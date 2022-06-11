@@ -1,5 +1,5 @@
 {
-  "name": "intuita-vscode-extension",
+  	"name": "intuita-vscode-extension",
 	"displayName": "intuita-vscode-extension",
 	"description": "Intuita VSCode Extension",
 	"version": "0.0.1",
@@ -10,16 +10,37 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:intuita-vscode-extension.helloWorld"
+        "workspaceContains:**/*.ts*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "intuita-vscode-extension.helloWorld",
-				"title": "Hello World"
+				"command": "intuita-vscode-extension.objectifyParameterList",
+				"title": "[Intuita]: Objectify Parameter List" 
 			}
-		]
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"when": "editorHasCodeActionsProvider && editorTextFocus && !editorReadonly",
+					"submenu": "intuita-vscode-extension.refactoringSubMenu",
+					"group": "navigation"
+				}
+			],
+			"intuita-vscode-extension.refactoringSubMenu": [
+				{
+					"command": "intuita-vscode-extension.objectifyParameterList",
+					"group": "navigation"
+				}
+			]
+		},
+		"submenus": [
+			{
+			  "id": "intuita-vscode-extension.refactoringSubMenu",
+			  "label": "[Intuita]: Refactor..."
+			}
+		  ]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run package",
