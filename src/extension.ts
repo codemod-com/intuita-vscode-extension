@@ -1,9 +1,12 @@
 import * as child_process from 'child_process';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import { join } from 'path';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
 
 const exec = promisify(child_process.exec)
+const mkdir = promisify(fs.mkdir)
 
 const buildHash = (str: string): string => {
 	return crypto.createHash('ripemd160')
@@ -21,10 +24,14 @@ const parseInteger = (str: string): number | null => {
 	return timestamp;
 }
 
+const getTimestamp = (): number => {
+	return Date.now() / 1000;
+}
+
 const getDirectoryLastModificationTimestamp = async (path: string): Promise<number | null> => {
 	try {
 		const outputs = await exec(
-			'find $INTUITA_PATH -type f -printf "%T@+\n" | sort -nr | head -n 1',
+			'find "$INTUITA_PATH" -type f -printf "%T@+\n" | sort -nr | head -n 1',
 			{
 				env: {
 					INTUITA_PATH: path
@@ -40,10 +47,10 @@ const getDirectoryLastModificationTimestamp = async (path: string): Promise<numb
 	}
 }
 
-const getFileLastModificationTimestamp = async (path: string) => {
+const getFileLastModificationTimestamp = async (path: string): Promise<number | null> => {
 	try {
 		const outputs = await exec(
-			'stat $INTUITA_PATH --printf "%Y\n"',
+			'stat "$INTUITA_PATH" --printf "%Y\n"',
 			{
 				env: {
 					INTUITA_PATH: path
@@ -59,56 +66,50 @@ const getFileLastModificationTimestamp = async (path: string) => {
 	}
 }
 
-const cpgParseWorkspace = async (workspaceFolder: vscode.WorkspaceFolder) => {
-	const { fsPath } = workspaceFolder.uri;
+const cpgParseWorkspace = async (
+	storageUri: vscode.Uri,
+	workspaceFolder: vscode.WorkspaceFolder,
+) => {
+	const workspacePath = encodeURI(workspaceFolder.uri.fsPath);
+	const workspacePathHash = buildHash(workspacePath);
 
-	const timestamp = await getDirectoryLastModificationTimestamp(fsPath)
-
-	console.log(timestamp);
+	const timestamp = (await getDirectoryLastModificationTimestamp(workspacePath)) ?? getTimestamp();
 	
+	const cpgDirectoryPath = join(
+		storageUri.fsPath,
+		workspacePathHash,
+		String(timestamp),
+	)
+
+	const cpgFilePath = join(
+		cpgDirectoryPath,
+		'cpg.bin',
+	);
+
+	await mkdir(cpgDirectoryPath, { recursive: true })
+
+	const cpgLastModificationTimestamp = await getFileLastModificationTimestamp(cpgFilePath);
+	
+	if (cpgLastModificationTimestamp && cpgLastModificationTimestamp >= timestamp) {
+		return;
+	}
+
+	console.log('create the CPG')
 }
 	
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
 
-	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
-		await cpgParseWorkspace(workspaceFolder)
+	const { storageUri } = context;
+
+	if (!storageUri) {
+		return;
 	}
 
-	// vscode.workspace.
-
-	console.log('STORAGEURI', context.storageUri)
-
-	// context
-
-	
-
-	// let disposableOpl = vscode.commands.registerCommand('intuita-vscode-extension.objectifyParameterList', () => {
-	// 	const str = child_process.execSync('./dist/a.out').toString('utf8')
-
-	// 	console.log(str);
-
-	// 	// const str = child_process.execSync('pwd').toString('utf8')
-
-	// 	// // vscode.window.showInformationMessage(`HERE: ${str}`);
-		// 
-
-	// 	// const uri = workspaceFolder?.uri
-
-	// 	// if (uri) {
-	// 	// 	const x = vscode.workspace.fs.readDirectory(uri).then(
-	// 	// 		(c) => {
-	// 	// 			for(const ci of c) {
-	// 	// 				console.log(ci);
-	// 	// 			}
-	// 	// 		}
-	// 	// 	)
-	// 	// }
-	
-	// });
-
-	// context.subscriptions.push(disposableOpl);
+	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
+		await cpgParseWorkspace(storageUri, workspaceFolder)
+	}
 }
 
 // this method is called when your extension is deactivated
