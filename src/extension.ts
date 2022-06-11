@@ -1,25 +1,138 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+import * as child_process from 'child_process';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import { join } from 'path';
+import { promisify } from 'util';
 import * as vscode from 'vscode';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+const exec = promisify(child_process.exec)
+const mkdir = promisify(fs.mkdir)
+
+const buildHash = (str: string): string => {
+	return crypto.createHash('ripemd160')
+		.update(str)
+		.digest('base64url');
+}
+
+const parseInteger = (str: string): number | null => {
+	const timestamp = parseInt(str, 10);
+
+	if (Number.isNaN(timestamp)) {
+		return null;
+	}
+
+	return timestamp;
+}
+
+const getTimestamp = (): number => {
+	return Date.now() / 1000;
+}
+
+const getDirectoryLastModificationTimestamp = async (path: string): Promise<number | null> => {
+	try {
+		const outputs = await exec(
+			'find "$INTUITA_PATH" -type f -printf "%T@+\n" | sort -nr | head -n 1',
+			{
+				env: {
+					INTUITA_PATH: path
+				}
+			}
+		)
+
+		return parseInteger(outputs.stdout);
+	} catch (error) {
+		console.error(error);
+
+		return null;
+	}
+}
+
+const getFileLastModificationTimestamp = async (path: string): Promise<number | null> => {
+	try {
+		const outputs = await exec(
+			'stat "$INTUITA_PATH" --printf "%Y\n"',
+			{
+				env: {
+					INTUITA_PATH: path
+				}
+			}
+		)
+
+		return parseInteger(outputs.stdout);
+	} catch (error) {
+		console.error(error);
+
+		return null;
+	}
+}
+
+const cpgParseWorkspace = async (
+	storageUri: vscode.Uri,
+	workspaceFolder: vscode.WorkspaceFolder,
+) => {
+	const workspacePath = encodeURI(workspaceFolder.uri.fsPath);
+	const workspacePathHash = buildHash(workspacePath);
+
+	const timestamp = (await getDirectoryLastModificationTimestamp(workspacePath)) ?? getTimestamp();
 	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "intuita-vscode-extension" is now active!');
+	const cpgDirectoryPath = join(
+		storageUri.fsPath,
+		workspacePathHash,
+		String(timestamp),
+	)
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('intuita-vscode-extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from intuita-vscode-extension!');
-	});
+	const cpgFilePath = join(
+		cpgDirectoryPath,
+		'cpg.bin',
+	);
 
-	context.subscriptions.push(disposable);
+	console.log('A', cpgDirectoryPath);
+
+	try {
+		await mkdir(cpgDirectoryPath, { recursive: true })
+	} catch (error) {
+		console.error(error);
+	}
+	
+
+	const cpgLastModificationTimestamp = await getFileLastModificationTimestamp(cpgFilePath);
+
+	console.log(cpgLastModificationTimestamp);
+	console.log(timestamp);
+	
+	if (cpgLastModificationTimestamp && cpgLastModificationTimestamp >= timestamp) {
+		console.log('No new CPG will be created.')
+
+		return;
+	}
+
+	const cpgOutputs = await exec(
+		'joern-parse --output="$JOERN_PROXY_OUTPUT" "$JOERN_PROXY_INPUT"',
+		{
+			env: {
+				JOERN_PROXY_INPUT: workspacePath,
+				JOERN_PROXY_OUTPUT: cpgFilePath,
+				PATH: process.env.PATH,
+			}
+		}
+	)
+
+	console.log(cpgOutputs)
+}
+	
+
+export async function activate(context: vscode.ExtensionContext) {
+	console.log('Activated the Intuita VSCode Extension')
+
+	const { storageUri } = context;
+
+	if (!storageUri) {
+		return;
+	}
+
+	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
+		await cpgParseWorkspace(storageUri, workspaceFolder)
+	}
 }
 
 // this method is called when your extension is deactivated

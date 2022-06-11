@@ -1,5 +1,5 @@
 {
-  "name": "intuita-vscode-extension",
+  	"name": "intuita-vscode-extension",
 	"displayName": "intuita-vscode-extension",
 	"description": "Intuita VSCode Extension",
 	"version": "0.0.1",
@@ -10,17 +10,9 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:intuita-vscode-extension.helloWorld"
+        "workspaceContains:**/*.ts*"
 	],
 	"main": "./dist/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "intuita-vscode-extension.helloWorld",
-				"title": "Hello World"
-			}
-		]
-	},
 	"scripts": {
 		"vscode:prepublish": "yarn run package",
 		"compile": "webpack",
