@@ -1,25 +1,95 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+import * as child_process from 'child_process';
+import { promisify } from 'util';
 import * as vscode from 'vscode';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+const exec = promisify(child_process.exec)
+
+const getLastModificationTimestamp = async (path: string): Promise<number | null> => {
+	try {
+		const outputs = await exec(
+			'find $INTUITA_PATH -type f -printf "%T@+\n" | sort -nr | head -n 1',
+			{
+				env: {
+					INTUITA_PATH: path
+				}
+			}
+		)
 	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "intuita-vscode-extension" is now active!');
+		const stringifiedTimestamp = outputs.stdout.split('.')?.[0];
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('intuita-vscode-extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from intuita-vscode-extension!');
-	});
+		if (!stringifiedTimestamp) {
+			return null;
+		}
 
-	context.subscriptions.push(disposable);
+		const timestamp = parseInt(stringifiedTimestamp, 10);
+
+		if (Number.isNaN(timestamp)) {
+			return null;
+		}
+
+		return timestamp;
+	} catch (error) {
+		console.error(error);
+
+		return null;
+	}
+}
+
+const cpgParseWorkspace = async (workspaceFolder: vscode.WorkspaceFolder) => {
+	const { fsPath } = workspaceFolder.uri;
+
+	const timestamp = await getLastModificationTimestamp(fsPath)
+
+	console.log(timestamp);
+	
+}
+	
+
+export async function activate(context: vscode.ExtensionContext) {
+	console.log('Activated the Intuita VSCode Extension')
+
+	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
+		cpgParseWorkspace(workspaceFolder)
+	}
+
+	const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+	const uri = workspaceFolder?.uri
+
+	// vscode.workspace.
+
+	console.log('STORAGEURI', context.storageUri)
+
+	console.log(uri);
+
+	// context
+
+	
+
+	// let disposableOpl = vscode.commands.registerCommand('intuita-vscode-extension.objectifyParameterList', () => {
+	// 	const str = child_process.execSync('./dist/a.out').toString('utf8')
+
+	// 	console.log(str);
+
+	// 	// const str = child_process.execSync('pwd').toString('utf8')
+
+	// 	// // vscode.window.showInformationMessage(`HERE: ${str}`);
+		// 
+
+	// 	// const uri = workspaceFolder?.uri
+
+	// 	// if (uri) {
+	// 	// 	const x = vscode.workspace.fs.readDirectory(uri).then(
+	// 	// 		(c) => {
+	// 	// 			for(const ci of c) {
+	// 	// 				console.log(ci);
+	// 	// 			}
+	// 	// 		}
+	// 	// 	)
+	// 	// }
+	
+	// });
+
+	// context.subscriptions.push(disposableOpl);
 }
 
 // this method is called when your extension is deactivated
