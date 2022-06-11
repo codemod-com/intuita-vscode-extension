@@ -1,10 +1,27 @@
 import * as child_process from 'child_process';
+import * as crypto from 'crypto';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
 
 const exec = promisify(child_process.exec)
 
-const getLastModificationTimestamp = async (path: string): Promise<number | null> => {
+const buildHash = (str: string): string => {
+	return crypto.createHash('ripemd160')
+		.update(str)
+		.digest('base64url');
+}
+
+const parseInteger = (str: string): number | null => {
+	const timestamp = parseInt(str, 10);
+
+	if (Number.isNaN(timestamp)) {
+		return null;
+	}
+
+	return timestamp;
+}
+
+const getDirectoryLastModificationTimestamp = async (path: string): Promise<number | null> => {
 	try {
 		const outputs = await exec(
 			'find $INTUITA_PATH -type f -printf "%T@+\n" | sort -nr | head -n 1',
@@ -14,20 +31,27 @@ const getLastModificationTimestamp = async (path: string): Promise<number | null
 				}
 			}
 		)
-	
-		const stringifiedTimestamp = outputs.stdout.split('.')?.[0];
 
-		if (!stringifiedTimestamp) {
-			return null;
-		}
+		return parseInteger(outputs.stdout);
+	} catch (error) {
+		console.error(error);
 
-		const timestamp = parseInt(stringifiedTimestamp, 10);
+		return null;
+	}
+}
 
-		if (Number.isNaN(timestamp)) {
-			return null;
-		}
+const getFileLastModificationTimestamp = async (path: string) => {
+	try {
+		const outputs = await exec(
+			'stat $INTUITA_PATH --printf "%Y\n"',
+			{
+				env: {
+					INTUITA_PATH: path
+				}
+			}
+		)
 
-		return timestamp;
+		return parseInteger(outputs.stdout);
 	} catch (error) {
 		console.error(error);
 
@@ -38,7 +62,7 @@ const getLastModificationTimestamp = async (path: string): Promise<number | null
 const cpgParseWorkspace = async (workspaceFolder: vscode.WorkspaceFolder) => {
 	const { fsPath } = workspaceFolder.uri;
 
-	const timestamp = await getLastModificationTimestamp(fsPath)
+	const timestamp = await getDirectoryLastModificationTimestamp(fsPath)
 
 	console.log(timestamp);
 	
@@ -49,17 +73,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
 
 	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
-		cpgParseWorkspace(workspaceFolder)
+		await cpgParseWorkspace(workspaceFolder)
 	}
-
-	const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
-	const uri = workspaceFolder?.uri
 
 	// vscode.workspace.
 
 	console.log('STORAGEURI', context.storageUri)
-
-	console.log(uri);
 
 	// context
 
