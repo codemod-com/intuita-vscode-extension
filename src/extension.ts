@@ -86,15 +86,38 @@ const cpgParseWorkspace = async (
 		'cpg.bin',
 	);
 
-	await mkdir(cpgDirectoryPath, { recursive: true })
+	console.log('A', cpgDirectoryPath);
+
+	try {
+		await mkdir(cpgDirectoryPath, { recursive: true })
+	} catch (error) {
+		console.error(error);
+	}
+	
 
 	const cpgLastModificationTimestamp = await getFileLastModificationTimestamp(cpgFilePath);
+
+	console.log(cpgLastModificationTimestamp);
+	console.log(timestamp);
 	
 	if (cpgLastModificationTimestamp && cpgLastModificationTimestamp >= timestamp) {
+		console.log('No new CPG will be created.')
+
 		return;
 	}
 
-	console.log('create the CPG')
+	const cpgOutputs = await exec(
+		'joern-parse --output="$JOERN_PROXY_OUTPUT" "$JOERN_PROXY_INPUT"',
+		{
+			env: {
+				JOERN_PROXY_INPUT: workspacePath,
+				JOERN_PROXY_OUTPUT: cpgFilePath,
+				PATH: process.env.PATH,
+			}
+		}
+	)
+
+	console.log(cpgOutputs)
 }
 	
 
