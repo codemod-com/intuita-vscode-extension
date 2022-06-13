@@ -123,11 +123,53 @@ const cpgParseWorkspace = async (
 	console.log(cpgOutputs)
 }
 
-type X = Readonly<{
+type TextDocumentData = Readonly<{
+	fileName: string,
 	nodes: ReadonlyArray<ts.Node>,
 	hashes: ReadonlyArray<string>,
 }>;
 	
+const buildTextDocumentData = (
+	document: vscode.TextDocument
+): TextDocumentData => {
+	const { fileName } = document;
+	const newText = document.getText();
+
+	// changedTextDocuments.set(
+	// 	fileName,
+	// 	newText,
+	// )
+
+	// TODO
+	const sourceFile = ts.createSourceFile(
+		fileName,
+		newText,
+		ts.ScriptTarget.Latest,
+	)
+
+	const nodes: ts.Node[] = [];
+	
+	const callback = (node: ts.Node) => {
+		nodes.push(node);
+
+		ts.forEachChild(
+			node,
+			(childNode) => {
+				callback(childNode);
+			}
+		)
+	}
+
+	callback(sourceFile);
+
+	const hashes = nodes.map(node => oh(node))
+
+	return {
+		fileName,
+		nodes,
+		hashes,
+	}
+}
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
@@ -142,15 +184,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	// 	await cpgParseWorkspace(storageUri, workspaceFolder)
 	// }
 
-	const openedTextDocuments = new Map<string, string>();
-	const changedTextDocuments = new Map<string, string>();
+	const openedTextDocuments = new Map<string, TextDocumentData>();
+	const changedTextDocuments = new Map<string, TextDocumentData>();
 
 	vscode.workspace.onDidOpenTextDocument(
-		({ fileName, getText }) => {
-			const text = getText();
+		(document) => {
+			const textDocumentData = buildTextDocumentData(document);
 
-			openedTextDocuments.set(fileName, text)
-			changedTextDocuments.set(fileName, text);
+			openedTextDocuments.set(textDocumentData.fileName, textDocumentData)
+			changedTextDocuments.set(textDocumentData.fileName, textDocumentData);
 		}
 	)
 
@@ -163,40 +205,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeTextDocument(
 		({ document })=> {
-			const newText = document.getText();
+			const textDocumentData = buildTextDocumentData(document);
 
 			changedTextDocuments.set(
-				document.fileName,
-				newText,
-			)
-
-			// TODO
-			const sourceFile = ts.createSourceFile(
-				document.fileName,
-				newText,
-				ts.ScriptTarget.Latest,
-			)
-
-			const nodes: ts.Node[] = [];
-			
-			const callback = (node: ts.Node) => {
-				nodes.push(node);
-
-				ts.forEachChild(
-					node,
-					(childNode) => {
-						callback(childNode);
-					}
-				)
-			}
-
-			callback(sourceFile);
-
-			const hashes = nodes.map(node => oh(node))
-
-			console.log(x);
-
-			return nodes;
+				textDocumentData.fileName,
+				textDocumentData,
+			);
 		}
 	)
 }
