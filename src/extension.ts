@@ -2,8 +2,11 @@ import * as child_process from 'child_process';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { join } from 'path';
+import { stringify } from 'querystring';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
+import * as ts from 'typescript';
+import * as oh from 'object-hash'
 
 const exec = promisify(child_process.exec)
 const mkdir = promisify(fs.mkdir)
@@ -119,6 +122,11 @@ const cpgParseWorkspace = async (
 
 	console.log(cpgOutputs)
 }
+
+type X = Readonly<{
+	nodes: ReadonlyArray<ts.Node>,
+	hashes: ReadonlyArray<string>,
+}>;
 	
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -130,9 +138,67 @@ export async function activate(context: vscode.ExtensionContext) {
 		return;
 	}
 
-	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
-		await cpgParseWorkspace(storageUri, workspaceFolder)
-	}
+	// for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
+	// 	await cpgParseWorkspace(storageUri, workspaceFolder)
+	// }
+
+	const openedTextDocuments = new Map<string, string>();
+	const changedTextDocuments = new Map<string, string>();
+
+	vscode.workspace.onDidOpenTextDocument(
+		({ fileName, getText }) => {
+			const text = getText();
+
+			openedTextDocuments.set(fileName, text)
+			changedTextDocuments.set(fileName, text);
+		}
+	)
+
+	vscode.workspace.onDidCloseTextDocument(
+		({ fileName }) => {
+			openedTextDocuments.delete(fileName);
+			changedTextDocuments.delete(fileName);
+		}
+	)
+
+	vscode.workspace.onDidChangeTextDocument(
+		({ document })=> {
+			const newText = document.getText();
+
+			changedTextDocuments.set(
+				document.fileName,
+				newText,
+			)
+
+			// TODO
+			const sourceFile = ts.createSourceFile(
+				document.fileName,
+				newText,
+				ts.ScriptTarget.Latest,
+			)
+
+			const nodes: ts.Node[] = [];
+			
+			const callback = (node: ts.Node) => {
+				nodes.push(node);
+
+				ts.forEachChild(
+					node,
+					(childNode) => {
+						callback(childNode);
+					}
+				)
+			}
+
+			callback(sourceFile);
+
+			const hashes = nodes.map(node => oh(node))
+
+			console.log(x);
+
+			return nodes;
+		}
+	)
 }
 
 // this method is called when your extension is deactivated
