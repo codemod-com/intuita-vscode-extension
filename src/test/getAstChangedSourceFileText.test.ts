@@ -1,3 +1,4 @@
+import { assert } from "chai"
 import { getAstChangedSourceFileText } from "../getAstChangedSourceFileText"
 import { getAstChanges } from "../getAstChanges"
 
@@ -19,8 +20,16 @@ const y = () => {
 }
 `
 
-describe.only('x', () => {
-    it('y', () => {
+const astChangedSourceFileText = `
+const x = (a: number, c: boolean) => {}
+
+const y = () => {
+    x(1, false)
+}
+`
+
+describe('getAstChangedSourceFileText', () => {
+    it('should remove the second argument', () => {
         const astChanges = getAstChanges(
             oldSourceFileText,
             newSourceFileText,
@@ -31,6 +40,6 @@ describe.only('x', () => {
             newSourceFileText,
         )
 
-        console.log(string);
+        assert.deepEqual(string, astChangedSourceFileText)
     })
 })
