@@ -1,6 +1,7 @@
 import { ts, Project } from "ts-morph";
+import { isMethodDeclaration } from "typescript";
 
-const a = 'const x = (a: number) => {}; function y(a: number) {}'
+const a = 'const x = (a: number) => {}; function y(a: number) {}; class A {x(a: string) {}}'
 // const b = `const x = () => {}`;
 
 type SourceFileMethod = Readonly<{
@@ -10,8 +11,6 @@ type SourceFileMethod = Readonly<{
 }>;
 
 describe('', () => {
-    console.log('T');
-
     it('new test', () => {
         const sourceFileMethods: SourceFileMethod[] = [];
 
@@ -56,15 +55,41 @@ describe('', () => {
 
                 const parameters = functionDeclaration
                     .getChildrenOfKind(ts.SyntaxKind.Parameter)
-                    .map((parameter) => {
-                        return parameter.getText();
-                    });
+                    .map((parameter) => parameter.getText());
 
                 sourceFileMethods.push({
-                    kind: ts.SyntaxKind.Parameter,
+                    kind: ts.SyntaxKind.FunctionDeclaration,
                     name,
                     parameters,
                 })
+            }
+        )
+
+        sf.getClasses().forEach(
+            (classDeclaration) => {
+                const className = classDeclaration.getName();
+
+                if (!className) {
+                    return;
+                }
+
+                classDeclaration
+                    .getMethods()
+                    .forEach(
+                        (methodDeclaration) => {
+                            const methodName = methodDeclaration.getName();
+
+                            const parameters = methodDeclaration
+                                .getParameters()
+                                .map((parameter) => parameter.getText());
+
+                            sourceFileMethods.push({
+                                kind: ts.SyntaxKind.MethodDeclaration,
+                                name: `${className}::${methodName}`,
+                                parameters,
+                            })
+                        }
+                    )
             }
         )
 
