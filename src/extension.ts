@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
+import { getAstChanges } from './getAstChanges';
 
 const exec = promisify(child_process.exec)
 const mkdir = promisify(fs.mkdir)
@@ -119,7 +120,6 @@ const cpgParseWorkspace = async (
 
 	console.log(cpgOutputs)
 }
-	
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
@@ -130,9 +130,53 @@ export async function activate(context: vscode.ExtensionContext) {
 		return;
 	}
 
-	for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
-		await cpgParseWorkspace(storageUri, workspaceFolder)
-	}
+	// for(const workspaceFolder of vscode.workspace.workspaceFolders ?? []) {
+	// 	await cpgParseWorkspace(storageUri, workspaceFolder)
+	// }
+
+	const openedTextDocuments = new Map<string, string>();
+	const changedTextDocuments = new Map<string, string>();
+
+	vscode.workspace.onDidOpenTextDocument(
+		(document) => {
+			const fileName = document.fileName.replace('.git', '');
+			const text = document.getText();
+
+			openedTextDocuments.set(fileName, text)
+			changedTextDocuments.set(fileName, text);
+		}
+	)
+
+	vscode.workspace.onDidCloseTextDocument(
+		({ fileName }) => {
+			openedTextDocuments.delete(fileName);
+			changedTextDocuments.delete(fileName);
+		}
+	)
+
+	vscode.workspace.onDidChangeTextDocument(
+		({ document })=> {
+			const { fileName } = document;
+			const newText = document.getText();
+
+			changedTextDocuments.set(
+				fileName,
+				newText,
+			);
+
+			const oldText = openedTextDocuments.get(fileName);
+
+
+			if (!oldText) {
+				return;
+			}
+
+			const astChanges = getAstChanges(
+				oldText,
+				newText,
+			)
+		}
+	)
 }
 
 // this method is called when your extension is deactivated
