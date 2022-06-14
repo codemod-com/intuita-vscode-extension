@@ -1,11 +1,5 @@
 import { ts, Project } from "ts-morph";
 
-// export type SourceFileMethod = Readonly<{
-//     kind: ts.SyntaxKind.ArrowFunction | ts.SyntaxKind.FunctionDeclaration | ts.SyntaxKind.MethodDeclaration,
-//     name: string,
-//     parameters: ReadonlyArray<string>,
-// }>;
-
 export type SourceFileMethod =
     | Readonly<{
         kind: ts.SyntaxKind.ArrowFunction,
@@ -50,7 +44,7 @@ export const getSourceFileMethods = (
                     const parameters = arrowFunction
                         .getChildrenOfKind(ts.SyntaxKind.Parameter)
                         .map((parameter) => {
-                            return parameter.getText();
+                            return parameter.getName()
                         });
 
                     sourceFileMethods.push({
@@ -74,7 +68,7 @@ export const getSourceFileMethods = (
 
             const parameters = functionDeclaration
                 .getChildrenOfKind(ts.SyntaxKind.Parameter)
-                .map((parameter) => parameter.getText());
+                .map((parameter) => parameter.getName());
 
             sourceFileMethods.push({
                 kind: ts.SyntaxKind.FunctionDeclaration,
@@ -101,7 +95,7 @@ export const getSourceFileMethods = (
 
                         const parameters = methodDeclaration
                             .getParameters()
-                            .map((parameter) => parameter.getText());
+                            .map((parameter) => parameter.getName());
 
                         sourceFileMethods.push({
                             kind: ts.SyntaxKind.MethodDeclaration,

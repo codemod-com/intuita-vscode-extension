@@ -1,17 +1,32 @@
+import { ts } from "ts-morph";
 import { getSourceFileMethods, SourceFileMethod } from "../getSourceFileMethods";
 
-const oldSourceFileText = 'const af = (a: number) => {}; function f(a: number) {}; class C {m(a: string) {}}'
+const oldSourceFileText = 'const af = (a: number) => {}; function f(b: number) {}; class C {m(c: string) {}}'
 const newSourceFileText = 'const af = () => {}; function f() {}; class C {m() {}}'
 
 export enum AstChangeKind {
-    PARAMETER_DELETED = 1
+    ARROW_FUNCTION_PARAMETER_DELETED = 1,
+    FUNCTION_PARAMETER_DELETED = 2,
+    CLASS_METHOD_PARAMETER_DELETED = 3,
 }
 
-type AstChange = Readonly<{
-    kind: AstChangeKind,
-    sourceFileMethod: SourceFileMethod,
-    parameter: string
-}>
+type AstChange =
+    | Readonly<{
+        kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
+        arrowFunctionName: string,
+        parameter: string,
+    }>
+    | Readonly<{
+        kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
+        functionName: string,
+        parameter: string,
+    }>
+    | Readonly<{
+        kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
+        className: string,
+        methodName: string,
+        parameter: string,
+    }>
 
 describe('', () => {
     it('new test', () => {
@@ -19,9 +34,6 @@ describe('', () => {
 
         const oldSourceFileMethods = getSourceFileMethods(oldSourceFileText);
         const newSourceFileMethods = getSourceFileMethods(newSourceFileText);
-
-        console.log(oldSourceFileMethods);
-        console.log(newSourceFileMethods);
 
         oldSourceFileMethods.forEach(
             (oldSfm) => {
@@ -31,25 +43,45 @@ describe('', () => {
                     })
 
                 if (!newSfm) {
-                    console.log('not found');
                     return;
                 }
 
                 oldSfm.parameters.forEach(
                     (parameter) => {
-                        console.log(parameter)
-
                         if(newSfm.parameters.includes(parameter)) {
                             return;
                         }
 
-                        console.log(parameter);
-
-                        astChanges.push({
-                            kind: AstChangeKind.PARAMETER_DELETED,
-                            sourceFileMethod: oldSfm,
-                            parameter,
-                        })
+                        switch(oldSfm.kind) {
+                            case ts.SyntaxKind.ArrowFunction:
+                                {
+                                    astChanges.push({
+                                        kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
+                                        arrowFunctionName: oldSfm.arrowFunctionName,
+                                        parameter,
+                                    });
+                                    return;
+                                }
+                            case ts.SyntaxKind.FunctionDeclaration:
+                                {
+                                    astChanges.push({
+                                        kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
+                                        functionName: oldSfm.functionName,
+                                        parameter,
+                                    });
+                                    return;
+                                }
+                            case ts.SyntaxKind.MethodDeclaration:
+                                {
+                                    astChanges.push({
+                                        kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
+                                        className: oldSfm.className,
+                                        methodName: oldSfm.methodName,
+                                        parameter,
+                                    });
+                                    return;
+                                }
+                        }
                     }
                 )
             }
