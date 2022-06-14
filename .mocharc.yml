@@ -4,3 +4,4 @@ require:
 full-trace: true
 bail: true
 spec: './src/test/**/*.test.ts'
+timeout: 10000
