@@ -7,22 +7,25 @@ export enum AstChangeKind {
     CLASS_METHOD_PARAMETER_DELETED = 3,
 }
 
-type AstChange =
+export type AstChange =
     | Readonly<{
         kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
         arrowFunctionName: string,
         parameter: string,
+        parameters: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
         functionName: string,
         parameter: string,
+        parameters: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
         className: string,
         methodName: string,
         parameter: string,
+        parameters: ReadonlyArray<string>,
     }>
 
 export const getAstChanges = (
@@ -58,6 +61,7 @@ export const getAstChanges = (
                                     kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
                                     arrowFunctionName: oldSfm.arrowFunctionName,
                                     parameter,
+                                    parameters: oldSfm.parameters,
                                 });
                                 return;
                             }
@@ -67,6 +71,7 @@ export const getAstChanges = (
                                     kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
                                     functionName: oldSfm.functionName,
                                     parameter,
+                                    parameters: oldSfm.parameters,
                                 });
                                 return;
                             }
@@ -77,6 +82,7 @@ export const getAstChanges = (
                                     className: oldSfm.className,
                                     methodName: oldSfm.methodName,
                                     parameter,
+                                    parameters: oldSfm.parameters,
                                 });
                                 return;
                             }

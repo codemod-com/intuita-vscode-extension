@@ -17,18 +17,21 @@ describe('getAstChanges', () => {
                 {
                     kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
                     arrowFunctionName: 'af',
-                    parameter: 'a'
+                    parameter: 'a',
+                    parameters: ['a'],
                 },
                 {
                     kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
                     functionName: 'f',
-                    parameter: 'b'
+                    parameter: 'b',
+                    parameters: ['b'],
                 },
                 {
                     kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
                     className: 'C',
                     methodName: 'm',
-                    parameter: 'c'
+                    parameter: 'c',
+                    parameters: ['c'],
                 }
             ]
         );
