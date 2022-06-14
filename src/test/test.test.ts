@@ -53,25 +53,26 @@ describe.only('x', () => {
                     return;
                 }
 
-                const referencedSymbols = variableDeclaration.findReferences();
+                variableDeclaration
+                    .findReferences()
+                    .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                    .forEach(
+                        (reference) => {
+                            const parentNode = reference.getNode().getParent()
 
-                for (const referencedSymbol of referencedSymbols) {
-                    for (const reference of referencedSymbol.getReferences()) {
-                        const parentNode = reference.getNode().getParent()
-
-                        if (!Node.isCallExpression(parentNode)) {
-                            continue;
+                            if (!Node.isCallExpression(parentNode)) {
+                                return;
+                            }
+    
+                            const argument = parentNode.getArguments()[index];
+    
+                            if (!argument) {
+                                return;
+                            }
+    
+                            parentNode.removeArgument(argument);
                         }
-
-                        const argument = parentNode.getArguments()[index];
-
-                        if (!argument) {
-                            continue;
-                        }
-
-                        parentNode.removeArgument(argument);
-                    }
-                }
+                    )
             }
         )
 
