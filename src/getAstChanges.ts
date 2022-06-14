@@ -7,7 +7,7 @@ export enum AstChangeKind {
     CLASS_METHOD_PARAMETER_DELETED = 3,
 }
 
-type AstChange =
+export type AstChange =
     | Readonly<{
         kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
         arrowFunctionName: string,
