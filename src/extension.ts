@@ -125,20 +125,66 @@ const cpgParseWorkspace = async (
 
 type TextDocumentData = Readonly<{
 	fileName: string,
-	nodes: ReadonlyArray<ts.Node>,
-	hashes: ReadonlyArray<string>,
+	hashedNodes: ReadonlyArray<[ts.Node, string, number]>,
 }>;
+
+const findRemovedAndAddedNodes = (
+	leftTdd: TextDocumentData,
+	rightTdd: TextDocumentData,
+) => {
+	const leftHashes = new Map(leftTdd.hashedNodes.map(node => [node[1], node[2]]));
+	const rightHashes = new Map(rightTdd.hashedNodes.map(node => [node[1], node[2]]));
+
+	const removedNodes: ts.Node[] = [];
+	const addedNodes: ts.Node[] = [];
+
+	leftHashes.forEach(
+		((index, hash) => {
+			if(rightHashes.has(hash)) {
+				return;
+			}
+
+			const node = leftTdd.hashedNodes[index]?.[0];
+
+			if (!node) {
+				return;
+			}
+
+			removedNodes.push(
+				node
+			);
+		})
+	);
+
+	rightHashes.forEach(
+		(index, hash) => {
+			if (leftHashes.has(hash)) {
+				return;
+			}
+
+			const node = rightTdd.hashedNodes[index]?.[0];
+
+			if (!node) {
+				return;
+			}
+
+			addedNodes.push(
+				node
+			)
+		}
+	)
+
+	return {
+		removedNodes,
+		addedNodes,
+	}
+};
 	
 const buildTextDocumentData = (
 	document: vscode.TextDocument
 ): TextDocumentData => {
 	const { fileName } = document;
 	const newText = document.getText();
-
-	// changedTextDocuments.set(
-	// 	fileName,
-	// 	newText,
-	// )
 
 	// TODO
 	const sourceFile = ts.createSourceFile(
@@ -147,10 +193,18 @@ const buildTextDocumentData = (
 		ts.ScriptTarget.Latest,
 	)
 
-	const nodes: ts.Node[] = [];
+	const hashedNodes: [ts.Node, string, number][] = [];
 	
 	const callback = (node: ts.Node) => {
-		nodes.push(node);
+		// console.log('A')
+		try {
+			console.log(node.getText());
+		} catch (error) {
+			console.error(error)
+		}
+		
+
+		hashedNodes.push([node, oh(node), hashedNodes.length]);
 
 		ts.forEachChild(
 			node,
@@ -158,16 +212,15 @@ const buildTextDocumentData = (
 				callback(childNode);
 			}
 		)
+
+		console.log('B')
 	}
 
 	callback(sourceFile);
 
-	const hashes = nodes.map(node => oh(node))
-
 	return {
-		fileName,
-		nodes,
-		hashes,
+		fileName: fileName.replace('.git', ''),
+		hashedNodes
 	}
 }
 
@@ -191,6 +244,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		(document) => {
 			const textDocumentData = buildTextDocumentData(document);
 
+			console.log('HEREHERE', textDocumentData.fileName)
+
 			openedTextDocuments.set(textDocumentData.fileName, textDocumentData)
 			changedTextDocuments.set(textDocumentData.fileName, textDocumentData);
 		}
@@ -205,12 +260,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeTextDocument(
 		({ document })=> {
-			const textDocumentData = buildTextDocumentData(document);
+			const rightTdd = buildTextDocumentData(document);
 
 			changedTextDocuments.set(
-				textDocumentData.fileName,
-				textDocumentData,
+				rightTdd.fileName,
+				rightTdd,
 			);
+
+			const leftTdd = openedTextDocuments.get(rightTdd.fileName);
+
+
+			console.log('AAA', rightTdd.fileName)
+
+			if (!leftTdd) {
+				return;
+			}
+
+			const {
+				removedNodes,
+				addedNodes,
+			} = findRemovedAndAddedNodes(leftTdd, rightTdd);
+
+			console.log('AAAA', removedNodes);
 		}
 	)
 }
