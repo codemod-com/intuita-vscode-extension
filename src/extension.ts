@@ -127,7 +127,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const { storageUri } = context;
 
 	if (!storageUri) {
-		console.log('storageUri')
 		return;
 	}
 
@@ -142,8 +141,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		(document) => {
 			const fileName = document.fileName.replace('.git', '');
 			const text = document.getText();
-
-			console.log(fileName);
 
 			openedTextDocuments.set(fileName, text)
 			changedTextDocuments.set(fileName, text);
@@ -171,7 +168,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 			if (!oldText) {
-				console.log(fileName)
 				return;
 			}
 
@@ -179,8 +175,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				oldText,
 				newText,
 			)
-
-			console.log('AAAA', astChanges);
 		}
 	)
 }
