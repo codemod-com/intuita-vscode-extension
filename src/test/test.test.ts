@@ -1,128 +1,60 @@
-import { ts, Project } from "ts-morph";
-import { isMethodDeclaration } from "typescript";
+import { getSourceFileMethods, SourceFileMethod } from "../getSourceFileMethods";
 
-const a = 'const x = (a: number) => {}; function y(a: number) {}; class A {x(a: string) {}}'
-// const b = `const x = () => {}`;
+const oldSourceFileText = 'const af = (a: number) => {}; function f(a: number) {}; class C {m(a: string) {}}'
+const newSourceFileText = 'const af = () => {}; function f() {}; class C {m() {}}'
 
-type SourceFileMethod = Readonly<{
-    kind: ts.SyntaxKind,
-    name: string,
-    parameters: ReadonlyArray<string>,
-}>;
+export enum AstChangeKind {
+    PARAMETER_DELETED = 1
+}
+
+type AstChange = Readonly<{
+    kind: AstChangeKind,
+    sourceFileMethod: SourceFileMethod,
+    parameter: string
+}>
 
 describe('', () => {
     it('new test', () => {
-        const sourceFileMethods: SourceFileMethod[] = [];
+        const astChanges: AstChange[] = [];
 
-        const project = new Project();
+        const oldSourceFileMethods = getSourceFileMethods(oldSourceFileText);
+        const newSourceFileMethods = getSourceFileMethods(newSourceFileText);
 
-        const sf = project.createSourceFile(
-            'index.ts',
-            a
-        )
+        console.log(oldSourceFileMethods);
+        console.log(newSourceFileMethods);
 
-        sf.getVariableDeclarations().forEach(
-            (variableDeclaration) => {
-                const name = variableDeclaration.getName();
+        oldSourceFileMethods.forEach(
+            (oldSfm) => {
+                const newSfm = newSourceFileMethods
+                    .find((newSfm) => {
+                        return newSfm.hash === oldSfm.hash
+                    })
 
-                variableDeclaration
-                .getChildrenOfKind(ts.SyntaxKind.ArrowFunction)
-                .forEach(
-                    (arrowFunction) => {
-                        const parameters = arrowFunction
-                            .getChildrenOfKind(ts.SyntaxKind.Parameter)
-                            .map((parameter) => {
-                                return parameter.getText();
-                            });
+                if (!newSfm) {
+                    console.log('not found');
+                    return;
+                }
 
-                        sourceFileMethods.push({
-                            kind: ts.SyntaxKind.ArrowFunction,
-                            name,
-                            parameters,
+                oldSfm.parameters.forEach(
+                    (parameter) => {
+                        console.log(parameter)
+
+                        if(newSfm.parameters.includes(parameter)) {
+                            return;
+                        }
+
+                        console.log(parameter);
+
+                        astChanges.push({
+                            kind: AstChangeKind.PARAMETER_DELETED,
+                            sourceFileMethod: oldSfm,
+                            parameter,
                         })
                     }
                 )
             }
         )
 
-        sf.getFunctions().forEach(
-            (functionDeclaration) => {
-                const name = functionDeclaration.getName();
-
-                if (!name) {
-                    return;
-                }
-
-                const parameters = functionDeclaration
-                    .getChildrenOfKind(ts.SyntaxKind.Parameter)
-                    .map((parameter) => parameter.getText());
-
-                sourceFileMethods.push({
-                    kind: ts.SyntaxKind.FunctionDeclaration,
-                    name,
-                    parameters,
-                })
-            }
-        )
-
-        sf.getClasses().forEach(
-            (classDeclaration) => {
-                const className = classDeclaration.getName();
-
-                if (!className) {
-                    return;
-                }
-
-                classDeclaration
-                    .getMethods()
-                    .forEach(
-                        (methodDeclaration) => {
-                            const methodName = methodDeclaration.getName();
-
-                            const parameters = methodDeclaration
-                                .getParameters()
-                                .map((parameter) => parameter.getText());
-
-                            sourceFileMethods.push({
-                                kind: ts.SyntaxKind.MethodDeclaration,
-                                name: `${className}::${methodName}`,
-                                parameters,
-                            })
-                        }
-                    )
-            }
-        )
-
-        console.log(sourceFileMethods);
-    })
-
-    xit('test', () => {
-        const sourceFile = ts.createSourceFile(
-            'index.ts',
-            a,
-            ts.ScriptTarget.Latest,
-        )
-
-        const callback = (node: ts.Node, level: number, sibling: number) => {
-            console.log({
-                l: level,
-                s: sibling,
-                p1: node.pos,
-                e1: node.end,
-                kind: node.kind
-            });
-    
-            let s = 0;
-
-            ts.forEachChild(
-                node,
-                (childNode) => {
-                    callback(childNode, level+1, s);
-                    ++s;
-                }
-            )
-        }
-
-        callback(sourceFile, 0, 0);
+        console.log(astChanges);
     })
 })
