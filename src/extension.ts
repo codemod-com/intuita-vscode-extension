@@ -2,11 +2,9 @@ import * as child_process from 'child_process';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { join } from 'path';
-import { stringify } from 'querystring';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
-import * as ts from 'typescript';
-import * as oh from 'object-hash'
+import { getAstChanges } from './getAstChanges';
 
 const exec = promisify(child_process.exec)
 const mkdir = promisify(fs.mkdir)
@@ -123,113 +121,13 @@ const cpgParseWorkspace = async (
 	console.log(cpgOutputs)
 }
 
-type TextDocumentData = Readonly<{
-	fileName: string,
-	hashedNodes: ReadonlyArray<[ts.Node, string, number]>,
-}>;
-
-const findRemovedAndAddedNodes = (
-	leftTdd: TextDocumentData,
-	rightTdd: TextDocumentData,
-) => {
-	const leftHashes = new Map(leftTdd.hashedNodes.map(node => [node[1], node[2]]));
-	const rightHashes = new Map(rightTdd.hashedNodes.map(node => [node[1], node[2]]));
-
-	const removedNodes: ts.Node[] = [];
-	const addedNodes: ts.Node[] = [];
-
-	leftHashes.forEach(
-		((index, hash) => {
-			if(rightHashes.has(hash)) {
-				return;
-			}
-
-			const node = leftTdd.hashedNodes[index]?.[0];
-
-			if (!node) {
-				return;
-			}
-
-			removedNodes.push(
-				node
-			);
-		})
-	);
-
-	rightHashes.forEach(
-		(index, hash) => {
-			if (leftHashes.has(hash)) {
-				return;
-			}
-
-			const node = rightTdd.hashedNodes[index]?.[0];
-
-			if (!node) {
-				return;
-			}
-
-			addedNodes.push(
-				node
-			)
-		}
-	)
-
-	return {
-		removedNodes,
-		addedNodes,
-	}
-};
-	
-const buildTextDocumentData = (
-	document: vscode.TextDocument
-): TextDocumentData => {
-	const { fileName } = document;
-	const newText = document.getText();
-
-	// TODO
-	const sourceFile = ts.createSourceFile(
-		fileName,
-		newText,
-		ts.ScriptTarget.Latest,
-	)
-
-	const hashedNodes: [ts.Node, string, number][] = [];
-	
-	const callback = (node: ts.Node) => {
-		// console.log('A')
-		try {
-			console.log(node.getText());
-		} catch (error) {
-			console.error(error)
-		}
-		
-
-		hashedNodes.push([node, oh(node), hashedNodes.length]);
-
-		ts.forEachChild(
-			node,
-			(childNode) => {
-				callback(childNode);
-			}
-		)
-
-		console.log('B')
-	}
-
-	callback(sourceFile);
-
-	return {
-		fileName: fileName.replace('.git', ''),
-		hashedNodes
-	}
-}
-
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
 
 	const { storageUri } = context;
 
 	if (!storageUri) {
+		console.log('storageUri')
 		return;
 	}
 
@@ -237,17 +135,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	// 	await cpgParseWorkspace(storageUri, workspaceFolder)
 	// }
 
-	const openedTextDocuments = new Map<string, TextDocumentData>();
-	const changedTextDocuments = new Map<string, TextDocumentData>();
+	const openedTextDocuments = new Map<string, string>();
+	const changedTextDocuments = new Map<string, string>();
 
 	vscode.workspace.onDidOpenTextDocument(
 		(document) => {
-			const textDocumentData = buildTextDocumentData(document);
+			const fileName = document.fileName.replace('.git', '');
+			const text = document.getText();
 
-			console.log('HEREHERE', textDocumentData.fileName)
+			console.log(fileName);
 
-			openedTextDocuments.set(textDocumentData.fileName, textDocumentData)
-			changedTextDocuments.set(textDocumentData.fileName, textDocumentData);
+			openedTextDocuments.set(fileName, text)
+			changedTextDocuments.set(fileName, text);
 		}
 	)
 
@@ -260,28 +159,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeTextDocument(
 		({ document })=> {
-			const rightTdd = buildTextDocumentData(document);
+			const { fileName } = document;
+			const newText = document.getText();
 
 			changedTextDocuments.set(
-				rightTdd.fileName,
-				rightTdd,
+				fileName,
+				newText,
 			);
 
-			const leftTdd = openedTextDocuments.get(rightTdd.fileName);
+			const oldText = openedTextDocuments.get(fileName);
 
 
-			console.log('AAA', rightTdd.fileName)
-
-			if (!leftTdd) {
+			if (!oldText) {
+				console.log(fileName)
 				return;
 			}
 
-			const {
-				removedNodes,
-				addedNodes,
-			} = findRemovedAndAddedNodes(leftTdd, rightTdd);
+			const astChanges = getAstChanges(
+				oldText,
+				newText,
+			)
 
-			console.log('AAAA', removedNodes);
+			console.log('AAAA', astChanges);
 		}
 	)
 }
