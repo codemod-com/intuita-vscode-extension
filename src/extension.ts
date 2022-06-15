@@ -172,6 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			const astChanges = getAstChanges(
+				fileName,
 				oldText,
 				newText,
 			)

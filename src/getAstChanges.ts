@@ -1,4 +1,4 @@
-import { ts } from "ts-morph";
+import {ts, VariableDeclaration} from "ts-morph";
 import { getSourceFileMethods } from "./getSourceFileMethods";
 
 export enum AstChangeKind {
@@ -10,18 +10,21 @@ export enum AstChangeKind {
 export type AstChange =
     | Readonly<{
         kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
+        filePath: string,
         arrowFunctionName: string,
         parameter: string,
         parameters: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
+        filePath: string,
         functionName: string,
         parameter: string,
         parameters: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
+        filePath: string,
         className: string,
         methodName: string,
         parameter: string,
@@ -29,6 +32,7 @@ export type AstChange =
     }>
 
 export const getAstChanges = (
+    filePath: string,
     oldSourceFileText: string,
     newSourceFileText: string,
 ): ReadonlyArray<AstChange> => {
@@ -59,6 +63,7 @@ export const getAstChanges = (
                             {
                                 astChanges.push({
                                     kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
+                                    filePath,
                                     arrowFunctionName: oldSfm.arrowFunctionName,
                                     parameter,
                                     parameters: oldSfm.parameters,
@@ -69,6 +74,7 @@ export const getAstChanges = (
                             {
                                 astChanges.push({
                                     kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
+                                    filePath,
                                     functionName: oldSfm.functionName,
                                     parameter,
                                     parameters: oldSfm.parameters,
@@ -79,6 +85,7 @@ export const getAstChanges = (
                             {
                                 astChanges.push({
                                     kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
+                                    filePath,
                                     className: oldSfm.className,
                                     methodName: oldSfm.methodName,
                                     parameter,

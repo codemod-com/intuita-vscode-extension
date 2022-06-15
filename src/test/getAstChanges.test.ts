@@ -6,7 +6,10 @@ const newSourceFileText = 'const af = () => {}; function f() {}; class C {m() {}
 
 describe('getAstChanges', () => {
     it('should find AST changes for parameter removal', () => {
+        const filePath = 'index.ts'
+
         const astChanges = getAstChanges(
+            filePath,
             oldSourceFileText,
             newSourceFileText,
         )
@@ -16,18 +19,21 @@ describe('getAstChanges', () => {
             [
                 {
                     kind: AstChangeKind.ARROW_FUNCTION_PARAMETER_DELETED,
+                    filePath,
                     arrowFunctionName: 'af',
                     parameter: 'a',
                     parameters: ['a'],
                 },
                 {
                     kind: AstChangeKind.FUNCTION_PARAMETER_DELETED,
+                    filePath,
                     functionName: 'f',
                     parameter: 'b',
                     parameters: ['b'],
                 },
                 {
                     kind: AstChangeKind.CLASS_METHOD_PARAMETER_DELETED,
+                    filePath,
                     className: 'C',
                     methodName: 'm',
                     parameter: 'c',
