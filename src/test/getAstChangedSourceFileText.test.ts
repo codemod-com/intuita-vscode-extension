@@ -75,12 +75,13 @@ describe('getAstChangedSourceFileText', () => {
 
         const sourceFiles = applier.applyChanges();
 
-        console.log(sourceFiles);
-
         assert.equal(sourceFiles.length, 2);
         assert.isTrue(sourceFiles[0]![1]!.includes('x(1, false)'));
         assert.isTrue(sourceFiles[0]![1]!.includes('f("2", false)'));
+        assert.isTrue(sourceFiles[0]![1]!.includes('c.cm(1, "2")'));
+
         assert.isTrue(sourceFiles[1]![1]!.includes('x(4, true)'));
         assert.isTrue(sourceFiles[1]![1]!.includes('f("4", false)'));
+        assert.isTrue(sourceFiles[1]![1]!.includes('c.cm(1, "2")'));
     })
 })
