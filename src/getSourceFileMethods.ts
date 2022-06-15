@@ -1,4 +1,4 @@
-import { ts, Project } from "ts-morph";
+import {ts, Project, VariableDeclaration} from "ts-morph";
 
 export type SourceFileMethod =
     | Readonly<{
@@ -43,9 +43,7 @@ export const getSourceFileMethods = (
                 (arrowFunction) => {
                     const parameters = arrowFunction
                         .getChildrenOfKind(ts.SyntaxKind.Parameter)
-                        .map((parameter) => {
-                            return parameter.getName()
-                        });
+                        .map((parameter) => parameter.getName());
 
                     sourceFileMethods.push({
                         kind: ts.SyntaxKind.ArrowFunction,
@@ -75,9 +73,9 @@ export const getSourceFileMethods = (
                 functionName,
                 hash: `${ts.SyntaxKind.FunctionDeclaration}_${functionName}`,
                 parameters,
-            })
+            });
         }
-    )
+    );
 
     sourceFile.getClasses().forEach(
         (classDeclaration) => {
