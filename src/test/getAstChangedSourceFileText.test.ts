@@ -1,6 +1,7 @@
 import { assert } from "chai"
-import {AstChangeApplier, getAstChangedSourceFileText} from "../getAstChangedSourceFileText"
+import {AstChangeApplier, } from "../getAstChangedSourceFileText"
 import { getAstChanges } from "../getAstChanges"
+import {Project} from "ts-morph";
 
 const oldSourceFileText = 
 `
@@ -65,12 +66,25 @@ describe('getAstChangedSourceFileText', () => {
             newSourceFileText,
         );
 
+        const project = new Project({
+            useInMemoryFileSystem: true,
+        });
+
+        [
+            ['a.ts', newSourceFileText] as const,
+            ['b.ts', b] as const,
+        ].map(
+            ([filePath, sourceFileText]) => {
+                project.createSourceFile(
+                    filePath,
+                    sourceFileText,
+                );
+            }
+        );
+
         const applier = new AstChangeApplier(
+            project,
             astChanges,
-            [
-                ['a.ts', newSourceFileText],
-                ['b.ts', b],
-            ],
         );
 
         const sourceFiles = applier.applyChanges();
@@ -84,4 +98,4 @@ describe('getAstChangedSourceFileText', () => {
         assert.isTrue(sourceFiles[1]![1]!.includes('f("4", false)'));
         assert.isTrue(sourceFiles[1]![1]!.includes('c.cm(1, "2")'));
     })
-})
+});
