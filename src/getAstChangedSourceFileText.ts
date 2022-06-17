@@ -213,7 +213,7 @@ export class AstChangeApplier {
 export const getAstChangedSourceFileText = (
     astChanges: ReadonlyArray<AstChange>,
     newSourceFileText: string,
-) => {
+): ReadonlyArray<[string, string]> => {
     const applier = new AstChangeApplier(
         astChanges,
         [
@@ -221,7 +221,5 @@ export const getAstChangedSourceFileText = (
         ],
     );
 
-    const x = applier.applyChanges();
-
-    return x[0];
+    return applier.applyChanges();
 }
