@@ -121,7 +121,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				)
 	
 				if (!project) {
-					console.log('did not find a project')
+					console.log(`Did not find a project for the file name ${fileName}`)
 					return;
 				}
 				
