@@ -5,6 +5,8 @@ import { join } from 'path';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
 import { getAstChanges } from './getAstChanges';
+import {AstChangeApplier} from "./getAstChangedSourceFileText";
+import {Project} from "ts-morph";
 
 const exec = promisify(child_process.exec)
 const mkdir = promisify(fs.mkdir)
@@ -154,8 +156,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	)
 
-	vscode.workspace.onDidChangeTextDocument(
-		({ document })=> {
+	vscode.workspace.onDidSaveTextDocument(
+		(document)=> {
 			const { fileName } = document;
 			const newText = document.getText();
 
@@ -166,7 +168,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const oldText = openedTextDocuments.get(fileName);
 
-
 			if (!oldText) {
 				return;
 			}
@@ -175,7 +176,25 @@ export async function activate(context: vscode.ExtensionContext) {
 				fileName,
 				oldText,
 				newText,
+			);
+
+			if (!astChanges) {
+				return;
+			}
+
+			const project = new Project({
+				tsConfigFilePath: join(
+					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+					'tsconfig.json'
+				),
+			})
+			
+			const astChangeApplier = new AstChangeApplier(
+				project,
+				astChanges,
 			)
+
+			console.log(astChangeApplier.applyChanges())
 		}
 	)
 }

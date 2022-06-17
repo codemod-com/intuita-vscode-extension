@@ -2,27 +2,12 @@ import {Node, Project, SourceFile} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
-    protected _project: Project;
     protected _changedSourceFiles = new Set<SourceFile>();
 
     public constructor(
+        protected _project: Project,
         protected _astChanges: ReadonlyArray<AstChange>,
-        sourceFiles: ReadonlyArray<[string, string]>,
     ) {
-        const project = new Project({
-            useInMemoryFileSystem: true,
-        });
-
-        sourceFiles.map(
-            ([filePath, sourceFileText]) => {
-                project.createSourceFile(
-                    filePath,
-                    sourceFileText,
-                );
-            }
-        );
-
-        this._project = project;
     }
 
     public applyChanges(): ReadonlyArray<[string, string]> {
@@ -48,6 +33,8 @@ export class AstChangeApplier {
                     sourceFile.getFilePath(),
                     sourceFile.getFullText()
                 ]);
+
+                sourceFile.saveSync();
             }
         );
 
@@ -210,16 +197,16 @@ export class AstChangeApplier {
 
 }
 
-export const getAstChangedSourceFileText = (
-    astChanges: ReadonlyArray<AstChange>,
-    newSourceFileText: string,
-): ReadonlyArray<[string, string]> => {
-    const applier = new AstChangeApplier(
-        astChanges,
-        [
-            ['index.ts', newSourceFileText]
-        ],
-    );
-
-    return applier.applyChanges();
-}
+// export const getAstChangedSourceFileText = (
+//     astChanges: ReadonlyArray<AstChange>,
+//     newSourceFileText: string,
+// ): ReadonlyArray<[string, string]> => {
+//     const applier = new AstChangeApplier(
+//         astChanges,
+//         [
+//             ['index.ts', newSourceFileText]
+//         ],
+//     );
+//
+//     return applier.applyChanges();
+// }
