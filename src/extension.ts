@@ -1,8 +1,9 @@
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { getAstChanges } from './getAstChanges';
-import {AstChangeApplier} from "./getAstChangedSourceFileText";
-import {Project} from "ts-morph";
+import { AstChangeApplier } from "./getAstChangedSourceFileText";
+import { Project } from "ts-morph";
+import { watchProject } from './watchedProject';
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
@@ -15,6 +16,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const openedTextDocuments = new Map<string, string>();
 	const changedTextDocuments = new Map<string, string>();
+	const projects: Project[] = [];
+
+	vscode.workspace.workspaceFolders?.forEach(
+		(workspaceFolder) => {
+			const { fsPath } = workspaceFolder.uri;
+
+			const project = new Project({
+				tsConfigFilePath: join(
+					fsPath,
+					'tsconfig.json'
+				),
+			})
+
+			watchProject(project);
+
+			projects.push(project);
+		}
+	)
 
 	vscode.workspace.onDidOpenTextDocument(
 		(document) => {
@@ -38,8 +57,23 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	)
 
+	let react = true;
+
 	vscode.workspace.onDidSaveTextDocument(
 		(document)=> {
+			if (!react) {
+				return;
+			}
+
+			react = false;
+
+			setTimeout(
+				() => {
+					react = true;
+				},
+				10000,
+			)
+
 			const { fileName } = document;
 
 			console.log(`The document "${fileName}" has been saved.`);
@@ -69,12 +103,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			const project = new Project({
-				tsConfigFilePath: join(
-					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
-					'tsconfig.json'
-				),
-			})
+			const project = projects.find(
+				(_project) => _project.getSourceFile(fileName) !== undefined,
+			)
+
+			if (!project) {
+				console.log('did not find a project')
+				return;
+			}
 			
 			const astChangeApplier = new AstChangeApplier(
 				project,
