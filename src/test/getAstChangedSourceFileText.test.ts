@@ -84,4 +84,4 @@ describe('getAstChangedSourceFileText', () => {
         assert.isTrue(sourceFiles[1]![1]!.includes('f("4", false)'));
         assert.isTrue(sourceFiles[1]![1]!.includes('c.cm(1, "2")'));
     })
-})
+});

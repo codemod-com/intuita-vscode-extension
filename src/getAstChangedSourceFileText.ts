@@ -1,8 +1,9 @@
-import {Node, Project} from "ts-morph";
+import {Node, Project, SourceFile} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
     protected _project: Project;
+    protected _changedSourceFiles = new Set<SourceFile>();
 
     public constructor(
         protected _astChanges: ReadonlyArray<AstChange>,
@@ -39,12 +40,18 @@ export class AstChangeApplier {
             }
         });
 
-        return this._project.getSourceFiles().map(
-            (sourceFile) => [
-                sourceFile.getFilePath(),
-                sourceFile.getFullText()
-            ]
-        )
+        const sourceFiles: [string,string][] = [];
+
+        this._changedSourceFiles.forEach(
+            (sourceFile) => {
+                sourceFiles.push([
+                    sourceFile.getFilePath(),
+                    sourceFile.getFullText()
+                ]);
+            }
+        );
+
+        return sourceFiles;
     }
 
     protected _applyClassMethodParameterDeletedChange(
@@ -79,6 +86,10 @@ export class AstChangeApplier {
             .flatMap((referencedSymbol) => referencedSymbol.getReferences())
             .forEach(
                 (reference) => {
+                    const sourceFile = reference.getSourceFile();
+
+                    this._changedSourceFiles.add(sourceFile);
+
                     const parentNode = reference.getNode().getParent();
 
                     if (!Node.isPropertyAccessExpression(parentNode)) {
@@ -129,6 +140,10 @@ export class AstChangeApplier {
             .flatMap((referencedSymbol) => referencedSymbol.getReferences())
             .forEach(
                 (reference) => {
+                    const sourceFile = reference.getSourceFile();
+
+                    this._changedSourceFiles.add(sourceFile);
+
                     const parentNode = reference.getNode().getParent();
 
                     if (!Node.isCallExpression(parentNode)) {
@@ -172,6 +187,10 @@ export class AstChangeApplier {
             .flatMap((referencedSymbol) => referencedSymbol.getReferences())
             .forEach(
                 (reference) => {
+                    const sourceFile = reference.getSourceFile();
+
+                    this._changedSourceFiles.add(sourceFile);
+
                     const parentNode = reference.getNode().getParent();
 
                     if (!Node.isCallExpression(parentNode)) {
