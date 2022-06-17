@@ -35,6 +35,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	)
 
+	vscode.window.showInformationMessage(
+		`Loaded TS-Morph projects for all workspace folders.`
+	);
+
 	const addTextDocument = (textDocument: vscode.TextDocument) => {
 		const fileName = textDocument.fileName.replace('.git', '');
 
@@ -129,6 +133,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					project,
 					astChanges,
 				)
+
+				vscode.window.showInformationMessage(
+					`Applying ${astChanges.length} AST changes in file(s).`
+				);
 	
 				const changes = astChangeApplier.applyChanges()
 	
@@ -137,6 +145,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						`Applied changes in ${changes.length} file(s).`
 					);
 				}
+
+				vscode.commands.executeCommand('workbench.view.scm')
 			}
 		)
 	)
