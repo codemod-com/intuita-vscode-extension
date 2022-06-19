@@ -5,6 +5,7 @@ export enum AstChangeKind {
     ARROW_FUNCTION_PARAMETER_DELETED = 1,
     FUNCTION_PARAMETER_DELETED = 2,
     CLASS_METHOD_PARAMETER_DELETED = 3,
+    CLASS_SPLIT_COMMAND = 4,
 }
 
 export type AstChange =
@@ -30,6 +31,11 @@ export type AstChange =
         parameter: string,
         parameters: ReadonlyArray<string>,
     }>
+    | Readonly<{
+        kind: AstChangeKind.CLASS_SPLIT_COMMAND,
+        filePath: string,
+        className: string,
+    }>;
 
 export const getAstChanges = (
     filePath: string,
