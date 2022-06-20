@@ -307,14 +307,13 @@ export class AstChangeApplier {
                             // TODO: maybe there's a programmatic way to do this?
                             const text = `${staticMethod.getName()}${typeArguments}(${args})`;
 
+                            // this requires more insight!
                             if (expressionStatement) {
-                                expressionStatement.replaceWithText(text);
+                                callExpression.replaceWithText(text);
                             }
 
                             if (variableDeclaration) {
-                                variableDeclaration.replaceWithText(
-                                    `${variableDeclaration.getName()} = ${text}`
-                                );
+                                callExpression.replaceWithText(text);
                             }
                         });
 
