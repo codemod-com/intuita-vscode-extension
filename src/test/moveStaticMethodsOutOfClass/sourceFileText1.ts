@@ -1,5 +1,5 @@
 export class A {
-    static a<T, U, V>(p1: boolean, p2: number, p3: string): null {
+    static a<T, U, V>(p1: T, p2: U, p3: V): null {
         return null;
     }
 }
