@@ -234,6 +234,14 @@ export class AstChangeApplier {
                     }
 
                     {
+                        const typeParameterDeclarations = staticMethod
+                            .getTypeParameters()
+                            .map((tp) => tp.getStructure());
+
+                        functionDeclaration.addTypeParameters(typeParameterDeclarations);
+                    }
+
+                    {
                         const parameters = staticMethod
                             .getParameters()
                             .map(parameter => parameter.getStructure());
