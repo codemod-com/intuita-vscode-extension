@@ -1,9 +1,8 @@
-import {ts, VariableDeclaration} from "ts-morph";
+import {ts} from "ts-morph";
 import {
     getSourceFileNodes,
     isClassDeclaration,
     isExtendedMethodDeclaration,
-    SourceFileNode
 } from "./getSourceFileNodes";
 
 export enum AstChangeKind {

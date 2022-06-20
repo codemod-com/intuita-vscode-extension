@@ -27,9 +27,5 @@ describe.only('classSplitCommandAstChangeKind', () => {
 
             assert.deepEqual(astChanges, [ astChange ])
         }
-
-
     });
-
-
 });

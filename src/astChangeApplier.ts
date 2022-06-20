@@ -196,17 +196,3 @@ export class AstChangeApplier {
     }
 
 }
-
-// export const getAstChangedSourceFileText = (
-//     astChanges: ReadonlyArray<AstChange>,
-//     newSourceFileText: string,
-// ): ReadonlyArray<[string, string]> => {
-//     const applier = new AstChangeApplier(
-//         astChanges,
-//         [
-//             ['index.ts', newSourceFileText]
-//         ],
-//     );
-//
-//     return applier.applyChanges();
-// }

@@ -1,4 +1,4 @@
-import {ts, Project, VariableDeclaration, Node} from "ts-morph";
+import {ts, Project, Node} from "ts-morph";
 
 export type SourceFileNode =
     | Readonly<{
