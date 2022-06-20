@@ -1,7 +1,7 @@
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { getAstChanges } from './getAstChanges';
-//import { AstChangeApplier } from "./getAstChangedSourceFileText";
+import { AstChangeApplier } from "./astChangeApplier";
 import { Project } from "ts-morph";
 import { watchProject } from './watchedProject';
 
