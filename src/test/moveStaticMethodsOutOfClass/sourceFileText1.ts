@@ -5,3 +5,5 @@ export class A {
 }
 
 A.a<boolean, number, string, null>(false, 0, "");
+
+const variable = A.a(false, 0, "");
