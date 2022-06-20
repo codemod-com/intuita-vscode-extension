@@ -3,4 +3,3 @@ export function a(): null {
 }
 
 a();
-

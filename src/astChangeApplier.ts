@@ -212,13 +212,22 @@ export class AstChangeApplier {
             return;
         }
 
+        const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
+
+        if (Node.isCommentStatement(commentNode)) {
+            commentNode.remove();
+        }
+
         classDeclaration
             .getStaticMethods()
             .forEach(
                 (staticMethod) => {
-                    const functionDeclaration = sourceFile.addFunction({
-                        name: staticMethod.getName()
-                    });
+                    const functionDeclaration = sourceFile.insertFunction(
+                        classDeclaration.getChildIndex(),
+                        {
+                            name: staticMethod.getName()
+                        }
+                    );
 
                     {
                         functionDeclaration.setIsExported(true);
@@ -263,9 +272,10 @@ export class AstChangeApplier {
                                 return;
                             }
 
-                            // expressionStatement.replaceWithText('{}');
+                            // TODO: maybe there's a programmatic way to do this?
+                            const text = `${staticMethod.getName()}();`;
 
-                            // console.log('HERE', expressionStatement?.getText());
+                            expressionStatement.replaceWithText(text);
                         });
 
 
