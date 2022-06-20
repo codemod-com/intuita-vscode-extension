@@ -263,17 +263,27 @@ export class AstChangeApplier {
 
                             const node = referencedSymbolEntry.getNode();
 
+                            const callExpression = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.CallExpression
+                                );
+
                             const expressionStatement = node
                                 .getFirstAncestorByKind(
                                     ts.SyntaxKind.ExpressionStatement
                                 );
 
-                            if (!expressionStatement) {
+                            if (!callExpression || !expressionStatement) {
                                 return;
                             }
 
+                            const args = callExpression
+                                .getArguments()
+                                .map((arg) => arg.getText())
+                                .join(', ');
+                            
                             // TODO: maybe there's a programmatic way to do this?
-                            const text = `${staticMethod.getName()}();`;
+                            const text = `${staticMethod.getName()}(${args});`;
 
                             expressionStatement.replaceWithText(text);
                         });
