@@ -1,7 +1,7 @@
 import {AstChange, AstChangeKind, getAstChanges} from "../getAstChanges";
 import {assert} from "chai";
 
-describe.only('classSplitCommandAstChangeKind', () => {
+describe('classSplitCommandAstChangeKind', () => {
 
     it('should find AST changes for the split command', () => {
         const sourceFileTexts = [
