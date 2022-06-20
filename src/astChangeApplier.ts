@@ -217,24 +217,47 @@ export class AstChangeApplier {
             .forEach(
                 (staticMethod) => {
                     // might be not needed
-                    const structure = staticMethod.getStructure();
-
-                    const bodyText = staticMethod.getBodyText()
+                    // const structure = staticMethod.getStructure();
 
                     const functionDeclaration = sourceFile.addFunction({
                         name: staticMethod.getName()
                     });
 
-                    if (structure.parameters) {
-                        functionDeclaration.addParameters(structure.parameters);
+                    {
+                        functionDeclaration.setIsExported(true);
                     }
 
-                    if (bodyText) {
-                        functionDeclaration.setBodyText(bodyText);
+                    {
+                        const parameters = staticMethod
+                            .getParameters()
+                            .map(parameter => parameter.getStructure());
+                        functionDeclaration.addParameters(parameters);
                     }
+
+                    {
+                        const returnType = staticMethod.getReturnType().getText();
+
+                        functionDeclaration.setReturnType(returnType);
+                    }
+
+                    {
+                        const bodyText = staticMethod.getBodyText();
+                        if (bodyText) {
+                            functionDeclaration.setBodyText(bodyText);
+                        }
+                    }
+
 
                     this._changedSourceFiles.add(sourceFile);
                 }
-            )
+            );
+
+        const instanceMethods = classDeclaration.getInstanceMethods();
+        const instanceProperties = classDeclaration.getInstanceProperties();
+
+        // TODO: this might need more checks for other kinds
+        if (instanceMethods.length === 0 && instanceProperties.length === 0) {
+            classDeclaration.remove();
+        }
     }
 }

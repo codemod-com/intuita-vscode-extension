@@ -38,8 +38,6 @@ describe.only('applyClassSplitCommand', () => {
 
         const sourceFiles = applier.applyChanges();
 
-        assert.equal(sourceFiles.length, 1);
-
-        console.log(sourceFiles[0], sourceFileText3);
+        assert.equal(sourceFiles[0]![1], sourceFileText3);
     });
 });
