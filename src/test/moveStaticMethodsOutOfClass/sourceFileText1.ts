@@ -7,3 +7,9 @@ export class A {
 A.a<boolean, number, string, null>(false, 0, "")
 
 const variable = A.a(false, 0, "");
+
+function b<R>(p1: R): void {
+    console.log(p1)
+}
+
+b(A.a(false, 0, ""));
