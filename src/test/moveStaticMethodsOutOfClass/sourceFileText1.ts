@@ -1,7 +1,7 @@
 export class A {
-    static a(): null {
+    static a(p1: boolean, p2: number, p3: string): null {
         return null;
     }
 }
 
-A.a();
+A.a(false, 0, "");
