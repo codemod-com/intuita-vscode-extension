@@ -249,7 +249,9 @@ export class AstChangeApplier {
                     }
 
                     {
-                        const returnType = staticMethod.getReturnType().getText();
+                        const returnType = staticMethod
+                            .getReturnTypeNode()
+                            ?.getText() ?? 'void';
 
                         functionDeclaration.setReturnType(returnType);
                     }

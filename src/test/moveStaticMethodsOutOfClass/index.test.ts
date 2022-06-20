@@ -5,7 +5,7 @@ import {AstChangeApplier} from "../../astChangeApplier";
 import {readFileSync} from "fs";
 import {join} from "path";
 
-describe.only('applyClassSplitCommand', () => {
+describe('applyClassSplitCommand', () => {
     it('should apply the split command', () => {
         const sourceFileText1 = readFileSync(join(__dirname, 'sourceFileText1.ts'), 'utf8');
         const sourceFileText2 = readFileSync(join(__dirname, 'sourceFileText2.ts'), 'utf8');
