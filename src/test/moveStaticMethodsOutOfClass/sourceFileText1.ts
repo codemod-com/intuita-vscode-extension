@@ -1,5 +1,5 @@
 export class A {
-    static a() {
+    static a(): null {
         return null;
     }
 }

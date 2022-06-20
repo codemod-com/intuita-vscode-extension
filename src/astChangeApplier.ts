@@ -22,6 +22,8 @@ export class AstChangeApplier {
                 case AstChangeKind.CLASS_METHOD_PARAMETER_DELETED:
                     this._applyClassMethodParameterDeletedChange(astChange);
                     return;
+                case AstChangeKind.CLASS_SPLIT_COMMAND:
+                    this._applyClassSplitCommandChange(astChange);
             }
         });
 
@@ -195,4 +197,44 @@ export class AstChangeApplier {
             );
     }
 
+    protected _applyClassSplitCommandChange(
+        astChange: AstChange & { kind: AstChangeKind.CLASS_SPLIT_COMMAND },
+    ) {
+        const sourceFile = this._project.getSourceFile(astChange.filePath)
+
+        if (!sourceFile) {
+            return;
+        }
+
+        const classDeclaration = sourceFile.getClass(astChange.className);
+
+        if (!classDeclaration) {
+            return;
+        }
+
+        classDeclaration
+            .getStaticMethods()
+            .forEach(
+                (staticMethod) => {
+                    // might be not needed
+                    const structure = staticMethod.getStructure();
+
+                    const bodyText = staticMethod.getBodyText()
+
+                    const functionDeclaration = sourceFile.addFunction({
+                        name: staticMethod.getName()
+                    });
+
+                    if (structure.parameters) {
+                        functionDeclaration.addParameters(structure.parameters);
+                    }
+
+                    if (bodyText) {
+                        functionDeclaration.setBodyText(bodyText);
+                    }
+
+                    this._changedSourceFiles.add(sourceFile);
+                }
+            )
+    }
 }

@@ -19,6 +19,7 @@ export type SourceFileNode =
         methodName: string,
         hash: string,
         parameters: ReadonlyArray<string>,
+        static: boolean,
     }>
     | Readonly<{
         kind: ts.SyntaxKind.ClassDeclaration,
@@ -137,7 +138,7 @@ export const getSourceFileNodes = (
             });
 
             classDeclaration
-                .getMethods()
+                .getInstanceMethods()
                 .forEach(
                     (methodDeclaration) => {
                         const methodName = methodDeclaration.getName();
@@ -152,6 +153,28 @@ export const getSourceFileNodes = (
                             methodName,
                             hash: `${ts.SyntaxKind.MethodDeclaration}_${className}_${methodName}`,
                             parameters,
+                            static: false,
+                        })
+                    }
+                )
+
+            classDeclaration
+                .getStaticMethods()
+                .forEach(
+                    (methodDeclaration) => {
+                        const methodName = methodDeclaration.getName();
+
+                        const parameters = methodDeclaration
+                            .getParameters()
+                            .map((parameter) => parameter.getName());
+
+                        sourceFileNodes.push({
+                            kind: ts.SyntaxKind.MethodDeclaration,
+                            className,
+                            methodName,
+                            hash: `${ts.SyntaxKind.MethodDeclaration}_${className}_${methodName}`,
+                            parameters,
+                            static: true,
                         })
                     }
                 )
