@@ -6,15 +6,10 @@ describe.only('classSplitCommandAstChangeKind', () => {
     it('should find AST changes for the split command', () => {
         const sourceFileTexts = [
             [
-                `class A {}`,
-                `class A // split
-                {}`
+                `class A {}\nclass B {}\n`,
+                `// split\nclass A {}\nclass B {}\n`
             ] as const,
-            [
-                `class A {}`,
-                `// split
-                class A {}`
-            ] as const,
+            // TODO in the future we might support other patterns
         ];
 
         for(const [oldSourceFileText, newSourceFileText] of sourceFileTexts) {

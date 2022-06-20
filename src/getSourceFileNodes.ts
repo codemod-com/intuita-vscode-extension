@@ -1,6 +1,6 @@
-import {ts, Project, VariableDeclaration} from "ts-morph";
+import {ts, Project, VariableDeclaration, Node} from "ts-morph";
 
-export type SourceFileMethod =
+export type SourceFileNode =
     | Readonly<{
         kind: ts.SyntaxKind.ArrowFunction,
         arrowFunctionName: string,
@@ -20,11 +20,29 @@ export type SourceFileMethod =
         hash: string,
         parameters: ReadonlyArray<string>,
     }>
+    | Readonly<{
+        kind: ts.SyntaxKind.ClassDeclaration,
+        className: string,
+        hash: string,
+        toSplit: boolean;
+    }>;
 
-export const getSourceFileMethods = (
+export const isExtendedMethodDeclaration = (node: SourceFileNode): node is SourceFileNode & {
+    kind: ts.SyntaxKind.ArrowFunction | ts.SyntaxKind.FunctionDeclaration | ts.SyntaxKind.MethodDeclaration
+} =>
+    node.kind === ts.SyntaxKind.ArrowFunction
+    || node.kind === ts.SyntaxKind.FunctionDeclaration
+    || node.kind === ts.SyntaxKind.MethodDeclaration;
+
+export const isClassDeclaration = (node: SourceFileNode): node is SourceFileNode & {
+    kind: ts.SyntaxKind.ClassDeclaration
+} =>
+    node.kind === ts.SyntaxKind.ClassDeclaration;
+
+export const getSourceFileNodes = (
     sourceFileText: string,
-): ReadonlyArray<SourceFileMethod> => {
-    const sourceFileMethods: SourceFileMethod[] = [];
+): ReadonlyArray<SourceFileNode> => {
+    const sourceFileNodes: SourceFileNode[] = [];
 
     const project = new Project();
 
@@ -45,7 +63,7 @@ export const getSourceFileMethods = (
                         .getChildrenOfKind(ts.SyntaxKind.Parameter)
                         .map((parameter) => parameter.getName());
 
-                    sourceFileMethods.push({
+                    sourceFileNodes.push({
                         kind: ts.SyntaxKind.ArrowFunction,
                         arrowFunctionName,
                         hash: `${ts.SyntaxKind.ArrowFunction}_${arrowFunctionName}`,
@@ -68,7 +86,7 @@ export const getSourceFileMethods = (
                 .getChildrenOfKind(ts.SyntaxKind.Parameter)
                 .map((parameter) => parameter.getName());
 
-            sourceFileMethods.push({
+            sourceFileNodes.push({
                 kind: ts.SyntaxKind.FunctionDeclaration,
                 functionName,
                 hash: `${ts.SyntaxKind.FunctionDeclaration}_${functionName}`,
@@ -77,6 +95,32 @@ export const getSourceFileMethods = (
         }
     );
 
+    const classesToSplit = new Set<string>();
+
+    sourceFile.getStatementsWithComments().forEach((statement, i, statements) => {
+        if (!Node.isCommentStatement(statement)) {
+            return;
+        }
+
+        if(!statement.getText().includes('split')) {
+            return;
+        }
+
+        const nextSibling = statement.getNextSibling();
+
+        if (!Node.isClassDeclaration(nextSibling)) {
+            return;
+        }
+
+        const name = nextSibling.getName();
+
+        if (!name) {
+            return;
+        }
+
+        classesToSplit.add(name);
+    });
+
     sourceFile.getClasses().forEach(
         (classDeclaration) => {
             const className = classDeclaration.getName();
@@ -84,6 +128,13 @@ export const getSourceFileMethods = (
             if (!className) {
                 return;
             }
+
+            sourceFileNodes.push({
+                kind: ts.SyntaxKind.ClassDeclaration,
+                className,
+                hash: `${ts.SyntaxKind.ClassDeclaration}_${className}`,
+                toSplit: classesToSplit.has(className),
+            });
 
             classDeclaration
                 .getMethods()
@@ -95,7 +146,7 @@ export const getSourceFileMethods = (
                             .getParameters()
                             .map((parameter) => parameter.getName());
 
-                        sourceFileMethods.push({
+                        sourceFileNodes.push({
                             kind: ts.SyntaxKind.MethodDeclaration,
                             className,
                             methodName,
@@ -107,5 +158,5 @@ export const getSourceFileMethods = (
         }
     )
 
-    return sourceFileMethods;
+    return sourceFileNodes;
 }
