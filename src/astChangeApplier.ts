@@ -283,7 +283,12 @@ export class AstChangeApplier {
                                     ts.SyntaxKind.ExpressionStatement
                                 );
 
-                            if (!callExpression || !expressionStatement) {
+                            const variableDeclaration = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.VariableDeclaration
+                                );
+
+                            if (!callExpression) {
                                 return;
                             }
 
@@ -300,9 +305,17 @@ export class AstChangeApplier {
                                 .join(', ');
 
                             // TODO: maybe there's a programmatic way to do this?
-                            const text = `${staticMethod.getName()}${typeArguments}(${args});`;
+                            const text = `${staticMethod.getName()}${typeArguments}(${args})`;
 
-                            expressionStatement.replaceWithText(text);
+                            if (expressionStatement) {
+                                expressionStatement.replaceWithText(text);
+                            }
+
+                            if (variableDeclaration) {
+                                variableDeclaration.replaceWithText(
+                                    `${variableDeclaration.getName()} = ${text}`
+                                );
+                            }
                         });
 
 
