@@ -1,5 +1,5 @@
 import { assert } from "chai"
-import {AstChangeApplier, } from "../getAstChangedSourceFileText"
+import {AstChangeApplier, } from "../astChangeApplier"
 import { getAstChanges } from "../getAstChanges"
 import {Project} from "ts-morph";
 

@@ -1,10 +1,15 @@
-import {ts, VariableDeclaration} from "ts-morph";
-import { getSourceFileMethods } from "./getSourceFileMethods";
+import {ts} from "ts-morph";
+import {
+    getSourceFileNodes,
+    isClassDeclaration,
+    isExtendedMethodDeclaration,
+} from "./getSourceFileNodes";
 
 export enum AstChangeKind {
     ARROW_FUNCTION_PARAMETER_DELETED = 1,
     FUNCTION_PARAMETER_DELETED = 2,
     CLASS_METHOD_PARAMETER_DELETED = 3,
+    CLASS_SPLIT_COMMAND = 4,
 }
 
 export type AstChange =
@@ -30,6 +35,11 @@ export type AstChange =
         parameter: string,
         parameters: ReadonlyArray<string>,
     }>
+    | Readonly<{
+        kind: AstChangeKind.CLASS_SPLIT_COMMAND,
+        filePath: string,
+        className: string,
+    }>;
 
 export const getAstChanges = (
     filePath: string,
@@ -38,8 +48,28 @@ export const getAstChanges = (
 ): ReadonlyArray<AstChange> => {
     const astChanges: AstChange[] = [];
 
-    const oldSourceFileMethods = getSourceFileMethods(oldSourceFileText);
-    const newSourceFileMethods = getSourceFileMethods(newSourceFileText);
+    const oldSourceFileNodes = getSourceFileNodes(oldSourceFileText);
+    const newSourceFileNodes = getSourceFileNodes(newSourceFileText);
+
+    const oldSourceFileMethods = oldSourceFileNodes
+        .filter(isExtendedMethodDeclaration);
+
+    const newSourceFileMethods = newSourceFileNodes
+        .filter(isExtendedMethodDeclaration);
+
+    const classDeclarations = newSourceFileNodes.filter(isClassDeclaration)
+
+    classDeclarations.forEach((classDeclaration) => {
+        if (!classDeclaration.toSplit) {
+            return;
+        }
+
+        astChanges.push({
+            kind: AstChangeKind.CLASS_SPLIT_COMMAND,
+            filePath,
+            className: classDeclaration.className,
+        });
+    });
 
     oldSourceFileMethods.forEach(
         (oldSfm) => {
