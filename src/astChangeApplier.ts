@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile} from "ts-morph";
+import {Node, Project, SourceFile, ts} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
@@ -216,9 +216,6 @@ export class AstChangeApplier {
             .getStaticMethods()
             .forEach(
                 (staticMethod) => {
-                    // might be not needed
-                    // const structure = staticMethod.getStructure();
-
                     const functionDeclaration = sourceFile.addFunction({
                         name: staticMethod.getName()
                     });
@@ -246,6 +243,30 @@ export class AstChangeApplier {
                             functionDeclaration.setBodyText(bodyText);
                         }
                     }
+
+                    staticMethod
+                        .findReferences()
+                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                        .forEach((referencedSymbolEntry) => {
+                            const sourceFile = referencedSymbolEntry.getSourceFile();
+
+                            this._changedSourceFiles.add(sourceFile);
+
+                            const node = referencedSymbolEntry.getNode();
+
+                            const expressionStatement = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.ExpressionStatement
+                                );
+
+                            if (!expressionStatement) {
+                                return;
+                            }
+
+                            // expressionStatement.replaceWithText('{}');
+
+                            // console.log('HERE', expressionStatement?.getText());
+                        });
 
 
                     this._changedSourceFiles.add(sourceFile);
