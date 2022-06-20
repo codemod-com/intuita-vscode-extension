@@ -281,7 +281,7 @@ export class AstChangeApplier {
                                 .getArguments()
                                 .map((arg) => arg.getText())
                                 .join(', ');
-                            
+
                             // TODO: maybe there's a programmatic way to do this?
                             const text = `${staticMethod.getName()}(${args});`;
 
