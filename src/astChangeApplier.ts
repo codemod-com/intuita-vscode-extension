@@ -287,13 +287,20 @@ export class AstChangeApplier {
                                 return;
                             }
 
+                            let typeArguments = callExpression
+                                .getTypeArguments()
+                                .map(ta => ta.getText())
+                                .join(', ');
+
+                            typeArguments = typeArguments ? `<${typeArguments}>` : '';
+
                             const args = callExpression
                                 .getArguments()
                                 .map((arg) => arg.getText())
                                 .join(', ');
 
                             // TODO: maybe there's a programmatic way to do this?
-                            const text = `${staticMethod.getName()}(${args});`;
+                            const text = `${staticMethod.getName()}${typeArguments}(${args});`;
 
                             expressionStatement.replaceWithText(text);
                         });
