@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile} from "ts-morph";
+import {Node, Project, SourceFile, ts} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
@@ -22,6 +22,8 @@ export class AstChangeApplier {
                 case AstChangeKind.CLASS_METHOD_PARAMETER_DELETED:
                     this._applyClassMethodParameterDeletedChange(astChange);
                     return;
+                case AstChangeKind.CLASS_SPLIT_COMMAND:
+                    this._applyClassSplitCommandChange(astChange);
             }
         });
 
@@ -195,18 +197,137 @@ export class AstChangeApplier {
             );
     }
 
-}
+    protected _applyClassSplitCommandChange(
+        astChange: AstChange & { kind: AstChangeKind.CLASS_SPLIT_COMMAND },
+    ) {
+        const sourceFile = this._project.getSourceFile(astChange.filePath)
 
-// export const getAstChangedSourceFileText = (
-//     astChanges: ReadonlyArray<AstChange>,
-//     newSourceFileText: string,
-// ): ReadonlyArray<[string, string]> => {
-//     const applier = new AstChangeApplier(
-//         astChanges,
-//         [
-//             ['index.ts', newSourceFileText]
-//         ],
-//     );
-//
-//     return applier.applyChanges();
-// }
+        if (!sourceFile) {
+            return;
+        }
+
+        const classDeclaration = sourceFile.getClass(astChange.className);
+
+        if (!classDeclaration) {
+            return;
+        }
+
+        const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
+
+        if (Node.isCommentStatement(commentNode)) {
+            commentNode.remove();
+        }
+
+        classDeclaration
+            .getStaticMethods()
+            .forEach(
+                (staticMethod) => {
+                    const functionDeclaration = sourceFile.insertFunction(
+                        classDeclaration.getChildIndex(),
+                        {
+                            name: staticMethod.getName()
+                        }
+                    );
+
+                    {
+                        functionDeclaration.setIsExported(true);
+                    }
+
+                    {
+                        const typeParameterDeclarations = staticMethod
+                            .getTypeParameters()
+                            .map((tp) => tp.getStructure());
+
+                        functionDeclaration.addTypeParameters(typeParameterDeclarations);
+                    }
+
+                    {
+                        const parameters = staticMethod
+                            .getParameters()
+                            .map(parameter => parameter.getStructure());
+                        functionDeclaration.addParameters(parameters);
+                    }
+
+                    {
+                        const returnType = staticMethod
+                            .getReturnTypeNode()
+                            ?.getText() ?? 'void';
+
+                        functionDeclaration.setReturnType(returnType);
+                    }
+
+                    {
+                        const bodyText = staticMethod.getBodyText();
+                        if (bodyText) {
+                            functionDeclaration.setBodyText(bodyText);
+                        }
+                    }
+
+                    staticMethod
+                        .findReferences()
+                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                        .forEach((referencedSymbolEntry) => {
+                            const sourceFile = referencedSymbolEntry.getSourceFile();
+
+                            this._changedSourceFiles.add(sourceFile);
+
+                            const node = referencedSymbolEntry.getNode();
+
+                            const callExpression = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.CallExpression
+                                );
+
+                            const expressionStatement = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.ExpressionStatement
+                                );
+
+                            const variableDeclaration = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.VariableDeclaration
+                                );
+
+                            if (!callExpression) {
+                                return;
+                            }
+
+                            let typeArguments = callExpression
+                                .getTypeArguments()
+                                .map(ta => ta.getText())
+                                .join(', ');
+
+                            typeArguments = typeArguments ? `<${typeArguments}>` : '';
+
+                            const args = callExpression
+                                .getArguments()
+                                .map((arg) => arg.getText())
+                                .join(', ');
+
+                            // TODO: maybe there's a programmatic way to do this?
+                            const text = `${staticMethod.getName()}${typeArguments}(${args})`;
+
+                            // this requires more insight!
+                            if (expressionStatement) {
+                                callExpression.replaceWithText(text);
+                            }
+
+                            if (variableDeclaration) {
+                                callExpression.replaceWithText(text);
+                            }
+                        });
+
+
+                    this._changedSourceFiles.add(sourceFile);
+                }
+            );
+
+        const instanceMethods = classDeclaration.getInstanceMethods();
+        const instanceProperties = classDeclaration.getInstanceProperties();
+
+        // TODO: this might need more checks for other kinds
+        if (instanceMethods.length === 0 && instanceProperties.length === 0) {
+            classDeclaration.remove();
+        }
+    }
+}
