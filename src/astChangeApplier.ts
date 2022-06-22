@@ -213,6 +213,8 @@ export class AstChangeApplier {
             return;
         }
 
+        const members = classDeclaration.getMembers();
+
         const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
 
         if (Node.isCommentStatement(commentNode)) {
@@ -239,7 +241,7 @@ export class AstChangeApplier {
                         }
                     }
                 }
-            )
+            );
 
         classDeclaration
             .getStaticMethods()
@@ -340,13 +342,13 @@ export class AstChangeApplier {
                             }
                         });
 
+                    memberRemovalLazyFunctions.push(
+                        () => staticMethod.remove(),
+                    );
 
                     this._changedSourceFiles.add(sourceFile);
                 }
             );
-
-        const instanceMethods = classDeclaration.getInstanceMethods();
-        const instanceProperties = classDeclaration.getInstanceProperties();
 
         {
             if (memberRemovalLazyFunctions.length > 0) {
@@ -359,7 +361,7 @@ export class AstChangeApplier {
         }
 
         // TODO: this might need more checks for other kinds
-        if (instanceMethods.length === 0 && instanceProperties.length === 0) {
+        if (members.length - memberRemovalLazyFunctions.length === 0) {
             classDeclaration.remove();
         }
     }
