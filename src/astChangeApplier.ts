@@ -320,50 +320,47 @@ export class AstChangeApplier {
                 }
             );
 
+        const index = classDeclaration.getChildIndex();
+
         classDeclaration
             .getStaticMethods()
             .forEach(
                 (staticMethod) => {
-                    const functionDeclaration = sourceFile.insertFunction(
-                        classDeclaration.getChildIndex(),
-                        {
-                            name: staticMethod.getName()
+                    const name = staticMethod.getName();
+
+                    const typeParameterDeclarations = staticMethod
+                        .getTypeParameters()
+                        .map((tpd) => tpd.getStructure());
+
+                    const parameters = staticMethod
+                        .getParameters()
+                        .map(parameter => parameter.getStructure());
+
+                    const returnType = staticMethod
+                        .getReturnTypeNode()
+                        ?.getText() ?? 'void';
+
+                    const bodyText = staticMethod.getBodyText();
+
+                    lazyFunctions.push(
+                        () => {
+                            const functionDeclaration = sourceFile.insertFunction(
+                                index,
+                                {
+                                    name,
+                                }
+                            );
+
+                            functionDeclaration.setIsExported(true);
+                            functionDeclaration.addTypeParameters(typeParameterDeclarations);
+                            functionDeclaration.addParameters(parameters);
+                            functionDeclaration.setReturnType(returnType);
+
+                            if (bodyText) {
+                                functionDeclaration.setBodyText(bodyText);
+                            }
                         }
                     );
-
-                    {
-                        functionDeclaration.setIsExported(true);
-                    }
-
-                    {
-                        const typeParameterDeclarations = staticMethod
-                            .getTypeParameters()
-                            .map((tp) => tp.getStructure());
-
-                        functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                    }
-
-                    {
-                        const parameters = staticMethod
-                            .getParameters()
-                            .map(parameter => parameter.getStructure());
-                        functionDeclaration.addParameters(parameters);
-                    }
-
-                    {
-                        const returnType = staticMethod
-                            .getReturnTypeNode()
-                            ?.getText() ?? 'void';
-
-                        functionDeclaration.setReturnType(returnType);
-                    }
-
-                    {
-                        const bodyText = staticMethod.getBodyText();
-                        if (bodyText) {
-                            functionDeclaration.setBodyText(bodyText);
-                        }
-                    }
 
                     staticMethod
                         .findReferences()
