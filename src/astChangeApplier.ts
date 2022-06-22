@@ -1,5 +1,5 @@
 import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
-import { ModifierFlags } from "typescript";
+import {ModifierFlags} from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
@@ -255,10 +255,17 @@ export class AstChangeApplier {
 
                     {
                         if(Node.isStatemented(classParentNode)) {
+                            const modifierFlags = staticProperty.getCombinedModifierFlags()
+
+                            const declarationKind =
+                                modifierFlags & ModifierFlags.Readonly
+                                    ? VariableDeclarationKind.Const
+                                    : VariableDeclarationKind.Let;
+
                             const variableStatement = classParentNode.insertVariableStatement(
                                 classDeclaration.getChildIndex(),
                                 {
-                                    declarationKind: VariableDeclarationKind.Const,
+                                    declarationKind,
                                     declarations: [
                                         {
                                             name,

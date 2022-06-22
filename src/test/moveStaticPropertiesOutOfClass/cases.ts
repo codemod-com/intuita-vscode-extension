@@ -52,7 +52,7 @@
 {
     const a = 1;
 
-    function fnc(b: number) {}
+    function fnc(b: number) { }
 
     fnc(a)
 }
@@ -67,6 +67,5 @@
 /** new-006 **/
 {
     let a = 1;
-
     a = 2;
 }
