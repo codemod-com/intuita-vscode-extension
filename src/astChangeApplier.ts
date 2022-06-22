@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile, SyntaxKind, ts} from "ts-morph";
+import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import { ModifierFlags } from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
@@ -215,6 +215,8 @@ export class AstChangeApplier {
             return;
         }
 
+        const classParentNode = classDeclaration.getParent();
+
         const members = classDeclaration.getMembers();
 
         const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
@@ -228,16 +230,73 @@ export class AstChangeApplier {
         classDeclaration
             .getStaticProperties()
             .forEach(
-                property => {
-                    const name = property.getName();
+                staticProperty => {
+                    const structure = staticProperty.getStructure();
 
-                    const referenceCount = property.findReferences().length;
-
-                    if (referenceCount === 1) {
-                        memberRemovalLazyFunctions.push(
-                            () => property.remove(),
-                        );
+                    if (structure.kind !== StructureKind.Property) {
+                        return;
                     }
+
+                    const { initializer } = structure;
+
+                    const name = staticProperty.getName();
+
+                    memberRemovalLazyFunctions.push(
+                        () => staticProperty.remove(),
+                    );
+
+                    const referencedSymbolEntries = staticProperty
+                        .findReferences()
+                        .flatMap((referencedSymbol) => referencedSymbol.getReferences());
+
+                    if (referencedSymbolEntries.length === 1) {
+                        return;
+                    }
+
+                    {
+                        if(Node.isStatemented(classParentNode)) {
+                            const variableStatement = classParentNode.insertVariableStatement(
+                                classDeclaration.getChildIndex(),
+                                {
+                                    declarationKind: VariableDeclarationKind.Const,
+                                    declarations: [
+                                        {
+                                            name,
+                                            initializer,
+                                        }
+                                    ],
+                                }
+                            );
+
+                            {
+                                if (Node.isSourceFile(classParentNode)) {
+                                    variableStatement.setIsExported(true);
+                                }
+                            }
+                        }
+                    }
+
+                    staticProperty
+                        .findReferences()
+                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                        .forEach((referencedSymbolEntry) => {
+                            const sourceFile = referencedSymbolEntry.getSourceFile();
+
+                            this._changedSourceFiles.add(sourceFile);
+
+                            const node = referencedSymbolEntry.getNode();
+
+                            const expressionStatement = node
+                                .getFirstAncestorByKind(
+                                    ts.SyntaxKind.ExpressionStatement
+                                );
+
+                            if(expressionStatement) {
+                                expressionStatement.replaceWithText(
+                                    name
+                                );
+                            }
+                        });
                 }
             );
 
