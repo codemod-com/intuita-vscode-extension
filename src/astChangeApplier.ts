@@ -253,51 +253,47 @@ export class AstChangeApplier {
 
                     const referencedSymbolEntries = staticProperty
                         .findReferences()
-                        .flatMap((referencedSymbol) => referencedSymbol.getReferences());
+                        .flatMap((rs) => rs.getReferences());
 
                     if (referencedSymbolEntries.length === 1) {
                         return;
                     }
 
-                    {
-                        if(Node.isStatemented(classParentNode)) {
-                            const modifierFlags = staticProperty.getCombinedModifierFlags()
+                    if(Node.isStatemented(classParentNode)) {
+                        const modifierFlags = staticProperty.getCombinedModifierFlags()
 
-                            const declarationKind =
-                                modifierFlags & ModifierFlags.Readonly
-                                    ? VariableDeclarationKind.Const
-                                    : VariableDeclarationKind.Let;
+                        const declarationKind =
+                            modifierFlags & ModifierFlags.Readonly
+                                ? VariableDeclarationKind.Const
+                                : VariableDeclarationKind.Let;
 
-                            const index = classDeclaration.getChildIndex();
+                        const index = classDeclaration.getChildIndex();
 
-                            const nodeIsSourceFile = Node.isSourceFile(classParentNode);
+                        const nodeIsSourceFile = Node.isSourceFile(classParentNode);
 
-                            lazyFunctions.push(
-                                () => {
-                                    const variableStatement = classParentNode.insertVariableStatement(
-                                        index,
-                                        {
-                                            declarationKind,
-                                            declarations: [
-                                                {
-                                                    name,
-                                                    initializer,
-                                                }
-                                            ],
-                                        }
-                                    );
-
-                                    if (nodeIsSourceFile) {
-                                        variableStatement.setIsExported(true);
+                        lazyFunctions.push(
+                            () => {
+                                const variableStatement = classParentNode.insertVariableStatement(
+                                    index,
+                                    {
+                                        declarationKind,
+                                        declarations: [
+                                            {
+                                                name,
+                                                initializer,
+                                            }
+                                        ],
                                     }
+                                );
+
+                                if (nodeIsSourceFile) {
+                                    variableStatement.setIsExported(true);
                                 }
-                            );
-                        }
+                            }
+                        );
                     }
 
-                    staticProperty
-                        .findReferences()
-                        .flatMap((rs) => rs.getReferences())
+                    referencedSymbolEntries
                         .map((referencedSymbolEntry) => {
                             return calculateStaticPropertyAccessExpressionUpdate(
                                 name,
