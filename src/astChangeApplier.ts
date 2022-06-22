@@ -1,5 +1,4 @@
 import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
-import {ModifierFlags} from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 import {
     calculateStaticPropertyAccessExpressionUpdate,
@@ -10,7 +9,7 @@ export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
 
     public constructor(
-        protected readonly _project: Project,
+        protected _project: Project,
         protected readonly _astChanges: ReadonlyArray<AstChange>,
     ) {
     }
@@ -268,7 +267,7 @@ export class AstChangeApplier {
                         const modifierFlags = staticProperty.getCombinedModifierFlags();
 
                         const declarationKind =
-                            modifierFlags & ModifierFlags.Readonly
+                            modifierFlags & ts.ModifierFlags.Readonly
                                 ? VariableDeclarationKind.Const
                                 : VariableDeclarationKind.Let;
 
@@ -329,25 +328,27 @@ export class AstChangeApplier {
 
                     const bodyText = staticMethod.getBodyText();
 
-                    lazyFunctions.push(
-                        () => {
-                            const functionDeclaration = sourceFile.insertFunction(
-                                index,
-                                {
-                                    name,
+                    if(Node.isStatemented(classParentNode)) {
+                        lazyFunctions.push(
+                            () => {
+                                const functionDeclaration = classParentNode.insertFunction(
+                                    index,
+                                    {
+                                        name,
+                                    }
+                                );
+
+                                functionDeclaration.setIsExported(true);
+                                functionDeclaration.addTypeParameters(typeParameterDeclarations);
+                                functionDeclaration.addParameters(parameters);
+                                functionDeclaration.setReturnType(returnType);
+
+                                if (bodyText) {
+                                    functionDeclaration.setBodyText(bodyText);
                                 }
-                            );
-
-                            functionDeclaration.setIsExported(true);
-                            functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                            functionDeclaration.addParameters(parameters);
-                            functionDeclaration.setReturnType(returnType);
-
-                            if (bodyText) {
-                                functionDeclaration.setBodyText(bodyText);
                             }
-                        }
-                    );
+                        );
+                    }
 
                     staticMethod
                         .findReferences()
