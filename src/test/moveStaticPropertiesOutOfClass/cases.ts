@@ -38,3 +38,21 @@
     const a = 1;
     a
 }
+/** old-005 **/
+{
+    class A {
+        static a = 1;
+    }
+
+    function fnc(b: number) {}
+
+    fnc(A.a)
+}
+/** new-005 **/
+{
+    const a = 1;
+
+    function fnc(b: number) {}
+
+    fnc(a)
+}

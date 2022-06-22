@@ -286,13 +286,13 @@ export class AstChangeApplier {
 
                             const node = referencedSymbolEntry.getNode();
 
-                            const expressionStatement = node
+                            const propertyAccessExpression = node
                                 .getFirstAncestorByKind(
-                                    ts.SyntaxKind.ExpressionStatement
+                                    ts.SyntaxKind.PropertyAccessExpression
                                 );
 
-                            if(expressionStatement) {
-                                expressionStatement.replaceWithText(
+                            if(propertyAccessExpression) {
+                                propertyAccessExpression.replaceWithText(
                                     name
                                 );
                             }
