@@ -406,14 +406,9 @@ export class AstChangeApplier {
                             // TODO: maybe there's a programmatic way to do this?
                             const text = `${staticMethod.getName()}${typeArguments}(${args})`;
 
-                            // this requires more insight!
-                            if (expressionStatement) {
-                                callExpression.replaceWithText(text);
-                            }
-
-                            if (variableDeclaration) {
-                                callExpression.replaceWithText(text);
-                            }
+                            lazyFunctions.push(
+                                () => callExpression.replaceWithText(text),
+                            );
                         });
 
                     ++deletedMemberCount;
