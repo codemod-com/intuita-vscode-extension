@@ -10,10 +10,10 @@ describe.only('', () => {
         const regex = /^\/\*\*\s(old|new)-(\d{3})\s\*\*\//gm;
 
         const oldCaseLineMap = new Map<number, string[]>();
-        const oldCaseMap = new Map<number, string>();
-
+        // const oldCaseMap = new Map<number, string>();
         const newCaseLineMap = new Map<number, string[]>();
-        const newCaseMap = new Map<number, string>();
+        // const newCaseMap = new Map<number, string>();
+        const caseMap = new Map<number, Readonly<{ oldSourceFileText: string, newSourceFileText: string }>>();
 
         let currentCase: number | null = null;
         let currentMode: 'old' | 'new' = 'old';
@@ -69,7 +69,18 @@ describe.only('', () => {
                     } else {
                         const caseLines = newCaseLineMap.get(currentCase) ?? [];
 
-                        newCaseMap.set(currentCase, caseLines.join(' \n'));
+                        const _case = caseMap.get(currentCase) ?? {
+                            oldSourceFileText: '',
+                            newSourceFileText: '',
+                        };
+
+                        caseMap.set(
+                            currentCase,
+                            {
+                                ..._case,
+                                newSourceFileText: caseLines.join(' \n'),
+                            }
+                        );
 
                         currentCase = caseNumber;
                     }
@@ -83,7 +94,18 @@ describe.only('', () => {
                     } else {
                         const caseLines = oldCaseLineMap.get(currentCase) ?? [];
 
-                        oldCaseMap.set(currentCase, caseLines.join(' \n'));
+                        const _case = caseMap.get(currentCase) ?? {
+                            oldSourceFileText: '',
+                            newSourceFileText: '',
+                        };
+
+                        caseMap.set(
+                            currentCase,
+                            {
+                                ..._case,
+                                oldSourceFileText: caseLines.join(' \n'),
+                            }
+                        );
 
                         currentCase = caseNumber;
                     }
@@ -94,10 +116,20 @@ describe.only('', () => {
         if (currentCase) {
             const caseLines = newCaseLineMap.get(currentCase) ?? [];
 
-            newCaseMap.set(currentCase, caseLines.join(' \n'));
+            const _case = caseMap.get(currentCase) ?? {
+                oldSourceFileText: '',
+                newSourceFileText: '',
+            };
+
+            caseMap.set(
+                currentCase,
+                {
+                    ..._case,
+                    newSourceFileText: caseLines.join(' \n'),
+                }
+            );
         }
 
-        console.log(oldCaseMap);
-        console.log(newCaseMap);
+        console.log(caseMap);
     });
 })
