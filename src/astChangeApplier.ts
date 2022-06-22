@@ -1,6 +1,7 @@
 import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {ModifierFlags} from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
+import {calculateStaticPropertyAccessExpressionUpdate, isNeitherNullNorUndefined} from "./utilities";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -296,26 +297,17 @@ export class AstChangeApplier {
 
                     staticProperty
                         .findReferences()
-                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                        .forEach((referencedSymbolEntry) => {
-                            const sourceFile = referencedSymbolEntry.getSourceFile();
-
+                        .flatMap((rs) => rs.getReferences())
+                        .map((referencedSymbolEntry) => {
+                            return calculateStaticPropertyAccessExpressionUpdate(
+                                name,
+                                referencedSymbolEntry,
+                            );
+                        })
+                        .filter(isNeitherNullNorUndefined)
+                        .forEach(([sourceFile, callback ]) => {
                             this._changedSourceFiles.add(sourceFile);
-
-                            const node = referencedSymbolEntry.getNode();
-
-                            const propertyAccessExpression = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.PropertyAccessExpression
-                                );
-
-                            if(propertyAccessExpression) {
-                                lazyFunctions.push(
-                                    () => propertyAccessExpression.replaceWithText(
-                                        name
-                                    )
-                                );
-                            }
+                            lazyFunctions.push(callback);
                         });
                 }
             );
