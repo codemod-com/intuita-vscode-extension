@@ -1,12 +1,16 @@
-import {Node, Project, SourceFile, ts} from "ts-morph";
+import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
+import {
+    calculateStaticPropertyAccessExpressionUpdate,
+    isNeitherNullNorUndefined
+} from "./utilities";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
 
     public constructor(
         protected _project: Project,
-        protected _astChanges: ReadonlyArray<AstChange>,
+        protected readonly _astChanges: ReadonlyArray<AstChange>,
     ) {
     }
 
@@ -200,67 +204,150 @@ export class AstChangeApplier {
     protected _applyClassSplitCommandChange(
         astChange: AstChange & { kind: AstChangeKind.CLASS_SPLIT_COMMAND },
     ) {
-        const sourceFile = this._project.getSourceFile(astChange.filePath)
+        const sourceFile = this._project.getSourceFile(astChange.filePath);
 
         if (!sourceFile) {
             return;
         }
 
-        const classDeclaration = sourceFile.getClass(astChange.className);
+        const classDeclaration = sourceFile
+            .getDescendantsOfKind(SyntaxKind.ClassDeclaration)
+            .find((cd) => cd.getName() === astChange.className);
 
         if (!classDeclaration) {
             return;
         }
 
+        const classParentNode = classDeclaration.getParent();
+
+        const members = classDeclaration.getMembers();
+        let deletedMemberCount = 0;
+
         const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
 
+        const lazyFunctions: (() => void)[] = [];
+
         if (Node.isCommentStatement(commentNode)) {
-            commentNode.remove();
+            lazyFunctions.push(
+                () => commentNode.remove()
+            );
         }
+
+        const index = classDeclaration.getChildIndex();
+
+        classDeclaration
+            .getStaticProperties()
+            .forEach(
+                staticProperty => {
+                    const referencedSymbolEntries = staticProperty
+                        .findReferences()
+                        .flatMap((rs) => rs.getReferences());
+
+                    const structure = staticProperty.getStructure();
+
+                    if (structure.kind !== StructureKind.Property) {
+                        return;
+                    }
+
+                    const { initializer } = structure;
+
+                    const name = staticProperty.getName();
+
+                    ++deletedMemberCount;
+
+                    lazyFunctions.push(
+                        () => staticProperty.remove(),
+                    );
+
+                    if (referencedSymbolEntries.length === 1) {
+                        return;
+                    }
+
+                    if(Node.isStatemented(classParentNode)) {
+                        const modifierFlags = staticProperty.getCombinedModifierFlags();
+
+                        const declarationKind =
+                            modifierFlags & ts.ModifierFlags.Readonly
+                                ? VariableDeclarationKind.Const
+                                : VariableDeclarationKind.Let;
+
+                        const exported = Node.isSourceFile(classParentNode);
+
+                        lazyFunctions.push(
+                            () => {
+                                const variableStatement = classParentNode.insertVariableStatement(
+                                    index,
+                                    {
+                                        declarationKind,
+                                        declarations: [
+                                            {
+                                                name,
+                                                initializer,
+                                            }
+                                        ],
+                                    }
+                                );
+
+                                variableStatement.setIsExported(exported);
+                            }
+                        );
+                    }
+
+                    referencedSymbolEntries
+                        .map((referencedSymbolEntry) => {
+                            return calculateStaticPropertyAccessExpressionUpdate(
+                                name,
+                                referencedSymbolEntry,
+                            );
+                        })
+                        .filter(isNeitherNullNorUndefined)
+                        .forEach(([sourceFile, callback ]) => {
+                            this._changedSourceFiles.add(sourceFile);
+                            lazyFunctions.push(callback);
+                        });
+                }
+            );
 
         classDeclaration
             .getStaticMethods()
             .forEach(
                 (staticMethod) => {
-                    const functionDeclaration = sourceFile.insertFunction(
-                        classDeclaration.getChildIndex(),
-                        {
-                            name: staticMethod.getName()
-                        }
-                    );
+                    const name = staticMethod.getName();
 
-                    {
-                        functionDeclaration.setIsExported(true);
-                    }
+                    const typeParameterDeclarations = staticMethod
+                        .getTypeParameters()
+                        .map((tpd) => tpd.getStructure());
 
-                    {
-                        const typeParameterDeclarations = staticMethod
-                            .getTypeParameters()
-                            .map((tp) => tp.getStructure());
+                    const parameters = staticMethod
+                        .getParameters()
+                        .map(parameter => parameter.getStructure());
 
-                        functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                    }
+                    const returnType = staticMethod
+                        .getReturnTypeNode()
+                        ?.getText() ?? 'void';
 
-                    {
-                        const parameters = staticMethod
-                            .getParameters()
-                            .map(parameter => parameter.getStructure());
-                        functionDeclaration.addParameters(parameters);
-                    }
+                    const bodyText = staticMethod.getBodyText();
 
-                    {
-                        const returnType = staticMethod
-                            .getReturnTypeNode()
-                            ?.getText() ?? 'void';
+                    if(Node.isStatemented(classParentNode)) {
+                        lazyFunctions.push(
+                            () => {
+                                const functionDeclaration = classParentNode.insertFunction(
+                                    index,
+                                    {
+                                        name,
+                                    }
+                                );
 
-                        functionDeclaration.setReturnType(returnType);
-                    }
+                                functionDeclaration.setIsExported(true);
+                                functionDeclaration.addTypeParameters(typeParameterDeclarations);
+                                functionDeclaration.addParameters(parameters);
+                                functionDeclaration.setReturnType(returnType);
 
-                    {
-                        const bodyText = staticMethod.getBodyText();
-                        if (bodyText) {
-                            functionDeclaration.setBodyText(bodyText);
-                        }
+                                if (bodyText) {
+                                    functionDeclaration.setBodyText(bodyText);
+                                }
+                            }
+                        );
                     }
 
                     staticMethod
@@ -276,16 +363,6 @@ export class AstChangeApplier {
                             const callExpression = node
                                 .getFirstAncestorByKind(
                                     ts.SyntaxKind.CallExpression
-                                );
-
-                            const expressionStatement = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.ExpressionStatement
-                                );
-
-                            const variableDeclaration = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.VariableDeclaration
                                 );
 
                             if (!callExpression) {
@@ -307,26 +384,32 @@ export class AstChangeApplier {
                             // TODO: maybe there's a programmatic way to do this?
                             const text = `${staticMethod.getName()}${typeArguments}(${args})`;
 
-                            // this requires more insight!
-                            if (expressionStatement) {
-                                callExpression.replaceWithText(text);
-                            }
-
-                            if (variableDeclaration) {
-                                callExpression.replaceWithText(text);
-                            }
+                            lazyFunctions.push(
+                                () => callExpression.replaceWithText(text),
+                            );
                         });
 
+                    ++deletedMemberCount;
+
+                    lazyFunctions.push(
+                        () => staticMethod.remove(),
+                    );
 
                     this._changedSourceFiles.add(sourceFile);
                 }
             );
 
-        const instanceMethods = classDeclaration.getInstanceMethods();
-        const instanceProperties = classDeclaration.getInstanceProperties();
+        {
+            if (lazyFunctions.length > 0) {
+                this._changedSourceFiles.add(sourceFile);
+            }
 
-        // TODO: this might need more checks for other kinds
-        if (instanceMethods.length === 0 && instanceProperties.length === 0) {
+            lazyFunctions.forEach(
+                (lazyFunction) => lazyFunction(),
+            );
+        }
+
+        if (members.length - deletedMemberCount === 0) {
             classDeclaration.remove();
         }
     }
