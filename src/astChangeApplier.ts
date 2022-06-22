@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile, ts} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, ts} from "ts-morph";
 import { ModifierFlags } from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
@@ -207,7 +207,9 @@ export class AstChangeApplier {
             return;
         }
 
-        const classDeclaration = sourceFile.getClass(astChange.className);
+        const classDeclaration = sourceFile
+            .getDescendantsOfKind(SyntaxKind.ClassDeclaration)
+            .find((cd) => cd.getName() === astChange.className);
 
         if (!classDeclaration) {
             return;
@@ -229,16 +231,12 @@ export class AstChangeApplier {
                 property => {
                     const name = property.getName();
 
-                    const modifiedFlags = property.getCombinedModifierFlags()
+                    const referenceCount = property.findReferences().length;
 
-                    if (modifiedFlags & ModifierFlags.Private) {
-                        const referenceCount = property.findReferences().length;
-
-                        if (referenceCount === 1) {
-                            memberRemovalLazyFunctions.push(
-                                () => property.remove(),
-                            );
-                        }
+                    if (referenceCount === 1) {
+                        memberRemovalLazyFunctions.push(
+                            () => property.remove(),
+                        );
                     }
                 }
             );
