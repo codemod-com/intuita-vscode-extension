@@ -1,14 +1,17 @@
 import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {ModifierFlags} from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {calculateStaticPropertyAccessExpressionUpdate, isNeitherNullNorUndefined} from "./utilities";
+import {
+    calculateStaticPropertyAccessExpressionUpdate,
+    isNeitherNullNorUndefined
+} from "./utilities";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
 
     public constructor(
-        protected _project: Project,
-        protected _astChanges: ReadonlyArray<AstChange>,
+        protected readonly _project: Project,
+        protected readonly _astChanges: ReadonlyArray<AstChange>,
     ) {
     }
 
@@ -202,7 +205,7 @@ export class AstChangeApplier {
     protected _applyClassSplitCommandChange(
         astChange: AstChange & { kind: AstChangeKind.CLASS_SPLIT_COMMAND },
     ) {
-        const sourceFile = this._project.getSourceFile(astChange.filePath)
+        const sourceFile = this._project.getSourceFile(astChange.filePath);
 
         if (!sourceFile) {
             return;
@@ -231,10 +234,16 @@ export class AstChangeApplier {
             );
         }
 
+        const index = classDeclaration.getChildIndex();
+
         classDeclaration
             .getStaticProperties()
             .forEach(
                 staticProperty => {
+                    const referencedSymbolEntries = staticProperty
+                        .findReferences()
+                        .flatMap((rs) => rs.getReferences());
+
                     const structure = staticProperty.getStructure();
 
                     if (structure.kind !== StructureKind.Property) {
@@ -251,25 +260,19 @@ export class AstChangeApplier {
                         () => staticProperty.remove(),
                     );
 
-                    const referencedSymbolEntries = staticProperty
-                        .findReferences()
-                        .flatMap((rs) => rs.getReferences());
-
                     if (referencedSymbolEntries.length === 1) {
                         return;
                     }
 
                     if(Node.isStatemented(classParentNode)) {
-                        const modifierFlags = staticProperty.getCombinedModifierFlags()
+                        const modifierFlags = staticProperty.getCombinedModifierFlags();
 
                         const declarationKind =
                             modifierFlags & ModifierFlags.Readonly
                                 ? VariableDeclarationKind.Const
                                 : VariableDeclarationKind.Let;
 
-                        const index = classDeclaration.getChildIndex();
-
-                        const nodeIsSourceFile = Node.isSourceFile(classParentNode);
+                        const exported = Node.isSourceFile(classParentNode);
 
                         lazyFunctions.push(
                             () => {
@@ -286,9 +289,7 @@ export class AstChangeApplier {
                                     }
                                 );
 
-                                if (nodeIsSourceFile) {
-                                    variableStatement.setIsExported(true);
-                                }
+                                variableStatement.setIsExported(exported);
                             }
                         );
                     }
@@ -307,8 +308,6 @@ export class AstChangeApplier {
                         });
                 }
             );
-
-        const index = classDeclaration.getChildIndex();
 
         classDeclaration
             .getStaticMethods()
@@ -363,16 +362,6 @@ export class AstChangeApplier {
                             const callExpression = node
                                 .getFirstAncestorByKind(
                                     ts.SyntaxKind.CallExpression
-                                );
-
-                            const expressionStatement = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.ExpressionStatement
-                                );
-
-                            const variableDeclaration = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.VariableDeclaration
                                 );
 
                             if (!callExpression) {

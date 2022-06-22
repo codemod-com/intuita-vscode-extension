@@ -1,4 +1,8 @@
-import {ReferencedSymbolEntry, SourceFile, ts} from "ts-morph";
+import {
+    ReferencedSymbolEntry,
+    SourceFile,
+    ts,
+} from "ts-morph";
 
 export function isNeitherNullNorUndefined<T>(
     value: NonNullable<T> | null | undefined
@@ -11,7 +15,6 @@ export const calculateStaticPropertyAccessExpressionUpdate = (
     referencedSymbolEntry: ReferencedSymbolEntry
 ): [SourceFile, () => void] | null => {
     const sourceFile = referencedSymbolEntry.getSourceFile();
-
     const node = referencedSymbolEntry.getNode();
 
     const propertyAccessExpression = node
