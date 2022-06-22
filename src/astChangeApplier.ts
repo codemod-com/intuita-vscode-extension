@@ -1,4 +1,5 @@
 import {Node, Project, SourceFile, ts} from "ts-morph";
+import { ModifierFlags } from "typescript";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 
 export class AstChangeApplier {
@@ -218,6 +219,28 @@ export class AstChangeApplier {
             commentNode.remove();
         }
 
+        const memberRemovalLazyFunctions: (() => void)[] = [];
+
+        classDeclaration
+            .getStaticProperties()
+            .forEach(
+                property => {
+                    const name = property.getName();
+
+                    const modifiedFlags = property.getCombinedModifierFlags()
+
+                    if (modifiedFlags & ModifierFlags.Private) {
+                        const referenceCount = property.findReferences().length;
+
+                        if (referenceCount === 1) {
+                            memberRemovalLazyFunctions.push(
+                                () => property.remove(),
+                            );
+                        }
+                    }
+                }
+            )
+
         classDeclaration
             .getStaticMethods()
             .forEach(
@@ -324,6 +347,16 @@ export class AstChangeApplier {
 
         const instanceMethods = classDeclaration.getInstanceMethods();
         const instanceProperties = classDeclaration.getInstanceProperties();
+
+        {
+            if (memberRemovalLazyFunctions.length > 0) {
+                this._changedSourceFiles.add(sourceFile);
+            }
+
+            memberRemovalLazyFunctions.forEach(
+                (lazyFunction) => lazyFunction(),
+            );
+        }
 
         // TODO: this might need more checks for other kinds
         if (instanceMethods.length === 0 && instanceProperties.length === 0) {
