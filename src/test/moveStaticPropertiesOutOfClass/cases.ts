@@ -1,7 +1,7 @@
 /** old-001 **/
 {
     class A {
-        private static a = 1;
+        private static readonly a = 1;
     }
 }
 /** new-001 **/
@@ -10,7 +10,7 @@
 /** old-002 **/
 {
     class A {
-        protected static a = 1;
+        protected static readonly a = 1;
     }
 }
 /** new-002 **/
@@ -19,7 +19,7 @@
 /** old-003 **/
 {
     class A {
-        public static a = 1;
+        public static readonly a = 1;
     }
 }
 /** new-003 **/
@@ -28,7 +28,7 @@
 /** old-004 **/
 {
     class A {
-        static a = 1;
+        static readonly a = 1;
     }
 
     A.a
@@ -41,7 +41,7 @@
 /** old-005 **/
 {
     class A {
-        static a = 1;
+        static readonly a = 1;
     }
 
     function fnc(b: number) {}
@@ -55,4 +55,18 @@
     function fnc(b: number) {}
 
     fnc(a)
+}
+/** old-006 **/
+{
+    class A {
+        static a = 1;
+    }
+
+    A.a = 2;
+}
+/** new-006 **/
+{
+    let a = 1;
+
+    a = 2;
 }
