@@ -218,14 +218,17 @@ export class AstChangeApplier {
         const classParentNode = classDeclaration.getParent();
 
         const members = classDeclaration.getMembers();
+        let deletedMemberCount = 0;
 
         const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
 
-        if (Node.isCommentStatement(commentNode)) {
-            commentNode.remove();
-        }
+        const lazyFunctions: (() => void)[] = [];
 
-        const memberRemovalLazyFunctions: (() => void)[] = [];
+        if (Node.isCommentStatement(commentNode)) {
+            lazyFunctions.push(
+                () => commentNode.remove()
+            );
+        }
 
         classDeclaration
             .getStaticProperties()
@@ -241,7 +244,9 @@ export class AstChangeApplier {
 
                     const name = staticProperty.getName();
 
-                    memberRemovalLazyFunctions.push(
+                    ++deletedMemberCount;
+
+                    lazyFunctions.push(
                         () => staticProperty.remove(),
                     );
 
@@ -262,24 +267,30 @@ export class AstChangeApplier {
                                     ? VariableDeclarationKind.Const
                                     : VariableDeclarationKind.Let;
 
-                            const variableStatement = classParentNode.insertVariableStatement(
-                                classDeclaration.getChildIndex(),
-                                {
-                                    declarationKind,
-                                    declarations: [
+                            const index = classDeclaration.getChildIndex();
+
+                            const nodeIsSourceFile = Node.isSourceFile(classParentNode);
+
+                            lazyFunctions.push(
+                                () => {
+                                    const variableStatement = classParentNode.insertVariableStatement(
+                                        index,
                                         {
-                                            name,
-                                            initializer,
+                                            declarationKind,
+                                            declarations: [
+                                                {
+                                                    name,
+                                                    initializer,
+                                                }
+                                            ],
                                         }
-                                    ],
+                                    );
+
+                                    if (nodeIsSourceFile) {
+                                        variableStatement.setIsExported(true);
+                                    }
                                 }
                             );
-
-                            {
-                                if (Node.isSourceFile(classParentNode)) {
-                                    variableStatement.setIsExported(true);
-                                }
-                            }
                         }
                     }
 
@@ -299,8 +310,10 @@ export class AstChangeApplier {
                                 );
 
                             if(propertyAccessExpression) {
-                                propertyAccessExpression.replaceWithText(
-                                    name
+                                lazyFunctions.push(
+                                    () => propertyAccessExpression.replaceWithText(
+                                        name
+                                    )
                                 );
                             }
                         });
@@ -406,7 +419,9 @@ export class AstChangeApplier {
                             }
                         });
 
-                    memberRemovalLazyFunctions.push(
+                    ++deletedMemberCount;
+
+                    lazyFunctions.push(
                         () => staticMethod.remove(),
                     );
 
@@ -415,17 +430,16 @@ export class AstChangeApplier {
             );
 
         {
-            if (memberRemovalLazyFunctions.length > 0) {
+            if (lazyFunctions.length > 0) {
                 this._changedSourceFiles.add(sourceFile);
             }
 
-            memberRemovalLazyFunctions.forEach(
+            lazyFunctions.forEach(
                 (lazyFunction) => lazyFunction(),
             );
         }
 
-        // TODO: this might need more checks for other kinds
-        if (members.length - memberRemovalLazyFunctions.length === 0) {
+        if (members.length - deletedMemberCount === 0) {
             classDeclaration.remove();
         }
     }

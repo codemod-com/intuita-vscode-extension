@@ -52,7 +52,7 @@
 {
     const a = 1;
 
-    function fnc(b: number) { }
+    function fnc(b: number) {}
 
     fnc(a)
 }
