@@ -3,6 +3,7 @@ import {AstChangeApplier} from "../../astChangeApplier";
 import {buildCaseMap} from "../buildCaseMap";
 import {AstChangeKind} from "../../getAstChanges";
 import {assert} from "chai";
+import {isNeitherNullNorUndefined} from "../../utilities";
 
 describe.only('find member dependencies', () => {
     const caseMap = buildCaseMap(
@@ -28,57 +29,84 @@ describe.only('find member dependencies', () => {
                 return;
             }
 
-            const readonlyMethodNameSet = new Set<string>();
-            const methodNameToPropertyNamesMap = new Map<string, string[]>();
-
-            classDefinition
+            const properties = classDefinition
                 .getInstanceProperties()
-                .forEach(
+                .map(
                     (instanceProperty) => {
-                        const propertyName = instanceProperty.getName();
+                        const name = instanceProperty.getName();
+                        const readonly = Boolean(
+                            instanceProperty.getCombinedModifierFlags() & ts.ModifierFlags.Readonly
+                        );
 
-                        instanceProperty
+                        const methodNames = instanceProperty
                             .findReferences()
                             .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                            .forEach(
+                            .map(
                                 (referencedSymbolEntry) => {
-                                    const methodDeclaration = referencedSymbolEntry
+                                    return referencedSymbolEntry
                                         .getNode()
                                         .getFirstAncestorByKind(ts.SyntaxKind.MethodDeclaration)
-
-                                    if (!methodDeclaration) {
-                                        return;
-                                    }
-
+                                }
+                            )
+                            .filter(isNeitherNullNorUndefined)
+                            .map(
+                                (methodDeclaration) => {
                                     const methodName = methodDeclaration.getName();
 
                                     const methodClassDeclaration = methodDeclaration
                                         .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration)
 
-                                    if (methodClassDeclaration === classDefinition) {
-                                        const propertyNames = methodNameToPropertyNamesMap.get(methodName) ?? [];
-
-                                        propertyNames.push(propertyName);
-
-                                        methodNameToPropertyNamesMap.set(
-                                            methodName,
-                                            propertyNames,
-                                        );
+                                    if (methodClassDeclaration !== classDefinition) {
+                                        return null;
                                     }
+
+                                    return methodName;
                                 }
-                            );
+                            )
+                            .filter(isNeitherNullNorUndefined)
+                        ;
+
+                        return {
+                            name,
+                            readonly,
+                            methodNames,
+                        };
                     }
                 );
 
-            console.log(methodNameToPropertyNamesMap);
+            const enum Mutability {
+                READING_READONLY = 1,
+                READING_WRITABLE = 2,
+                WRITING_WRITABLE = 3,
+            }
 
-            const methodClassification = [
-                {
-                    name: 'ma',
-                    kind: 'rr',
-                    properties: ['pa']
+            const methodNameToPropertyNamesMap = new Map<string, string[]>();
+            const methodNameToMutabilityMap = new Map<string, Mutability>();
+
+            properties.forEach(
+                (property) => {
+                    property.methodNames.forEach(
+                        (methodName) => {
+                            const propertyNames = methodNameToPropertyNamesMap.get(methodName) ?? [];
+                            propertyNames.push(property.name);
+
+                            methodNameToPropertyNamesMap.set(methodName, propertyNames);
+
+                            let mutability = methodNameToMutabilityMap.get(methodName)
+
+                            mutability = property.readonly && ((mutability ?? Mutability.READING_READONLY) === Mutability.READING_READONLY)
+                                ? Mutability.READING_READONLY
+                                : Mutability.WRITING_WRITABLE;
+
+                            // does not support RW
+                            methodNameToMutabilityMap.set(methodName, mutability)
+                        }
+                    )
                 }
-            ];
+            )
+
+            console.log(methodNameToPropertyNamesMap);
+            console.log(methodNameToMutabilityMap);
         });
     }
 });
