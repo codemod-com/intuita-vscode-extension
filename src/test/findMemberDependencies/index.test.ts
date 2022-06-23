@@ -11,7 +11,7 @@ describe('find member dependencies', () => {
         __dirname,
     );
 
-    for(const [caseNumber, { oldSourceFileText }] of caseMap.entries()) {
+    for(const [caseNumber, { old: oldSourceFileText }] of caseMap.entries()) {
         it(`should implement case ${caseNumber}`, () => {
             const project = new Project({
                 useInMemoryFileSystem: true,

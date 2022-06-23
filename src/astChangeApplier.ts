@@ -486,6 +486,9 @@ export class AstChangeApplier {
 
             newImportDeclarationMap.forEach(
                 (names, otherSourceFile) => {
+                    if (otherSourceFile === sourceFile) {
+                        return;
+                    }
 
                     otherSourceFile.insertImportDeclaration(
                         0,
