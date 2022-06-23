@@ -307,11 +307,6 @@ export class AstChangeApplier {
                             this._changedSourceFiles.add(sourceFile);
                             lazyFunctions.push(callback);
 
-                            // newImports.push({
-                            //     name,
-                            //     sourceFile,
-                            // })
-
                             const names = newImportDeclarationMap.get(sourceFile) ?? [];
 
                             names.push(name);
@@ -400,6 +395,12 @@ export class AstChangeApplier {
                             lazyFunctions.push(
                                 () => callExpression.replaceWithText(text),
                             );
+
+                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
+
+                            names.push(name);
+
+                            newImportDeclarationMap.set(sourceFile, names);
                         });
 
                     ++deletedMemberCount;

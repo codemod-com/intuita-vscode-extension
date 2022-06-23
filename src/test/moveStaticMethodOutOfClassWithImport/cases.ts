@@ -11,7 +11,8 @@ console.log(A.a());
 
 /** newA-001 **/
 /* @ts-ignore */
-export function a() {}
+export function a(): void {
+}
 
 /** newB-001 **/
 /* @ts-ignore */
