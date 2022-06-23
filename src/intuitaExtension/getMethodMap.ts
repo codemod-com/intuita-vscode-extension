@@ -2,19 +2,21 @@ import {ClassInstanceProperty} from "./classInstanceProperty";
 import {Mutability} from "./mutability";
 
 export type Method = Readonly<{
+    methodNames: ReadonlyArray<string>,
     propertyNames: ReadonlyArray<string>,
     mutability: Mutability,
 }>;
 
 export const getMethodMap = (
     properties: ReadonlyArray<ClassInstanceProperty>,
-    methodNames: ReadonlyArray<string>,
+    methods: ReadonlyArray<[string, ReadonlyArray<string>]>,
 ): ReadonlyMap<string, Method> => {
     const methodMap = new Map<string, Method>(
-        methodNames.map(methodName => ([
+        methods.map(([methodName, methodNames]) => ([
             methodName,
             {
                 propertyNames: [],
+                methodNames,
                 mutability: Mutability.READING_READONLY,
             }
         ]))
@@ -38,12 +40,15 @@ export const getMethodMap = (
                         {
                             propertyNames,
                             mutability,
+                            methodNames: method?.methodNames ?? [],
                         },
                     );
                 }
             );
         }
     );
+
+    // TODO change the mutability based on the transitive method calls
 
     return methodMap;
 };

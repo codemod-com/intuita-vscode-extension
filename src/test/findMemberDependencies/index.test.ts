@@ -4,7 +4,13 @@ import {assert} from "chai";
 import {getClassInstanceProperties} from "../../tsMorphAdapter/getClassInstanceProperties";
 import {getMethodMap} from "../../intuitaExtension/getMethodMap";
 import {Mutability} from "../../intuitaExtension/mutability";
-import {getClassInstanceMethodsName} from "../../tsMorphAdapter/getClassInstanceMethodsName";
+import {getClassInstanceMethods} from "../../tsMorphAdapter/getClassInstanceMethods";
+
+function assertNeitherNullNorUndefined<T>(value: NonNullable<T> | null | undefined): asserts value is NonNullable<T> {
+    if (value === null || value === undefined) {
+        throw new Error('The provided value must neither be null nor undefined');
+    }
+}
 
 describe('find member dependencies', () => {
     const caseMap = buildCaseMap(
@@ -31,7 +37,7 @@ describe('find member dependencies', () => {
             }
 
             const properties = getClassInstanceProperties(classDefinition);
-            const methodNames = getClassInstanceMethodsName(classDefinition);
+            const methodNames = getClassInstanceMethods(classDefinition);
 
             const methodMap = getMethodMap(properties, methodNames);
 
@@ -43,51 +49,92 @@ describe('find member dependencies', () => {
 
                 case 2: {
                     assert.equal(methodMap.size, 1);
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, []);
+
+                    const ma = methodMap.get('ma');
+
+                    assertNeitherNullNorUndefined(ma);
+
+                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.deepEqual(ma.propertyNames, []);
+                    assert.deepEqual(ma.methodNames, []);
                     return;
                 }
 
                 case 3: {
                     assert.equal(methodMap.size, 1);
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa']);
+
+                    const ma = methodMap.get('ma');
+
+                    assertNeitherNullNorUndefined(ma);
+
+                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.deepEqual(ma.propertyNames, ['pa']);
+                    assert.deepEqual(ma.methodNames, []);
                     return;
                 }
 
                 case 4: {
                     assert.equal(methodMap.size, 1);
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.WRITING_WRITABLE)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa']);
+
+                    const ma = methodMap.get('ma');
+
+                    assertNeitherNullNorUndefined(ma);
+
+                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(ma.propertyNames, ['pa']);
+                    assert.deepEqual(ma.methodNames, []);
                     return;
                 }
 
                 case 5: {
                     assert.equal(methodMap.size, 1);
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa', 'pb', 'pc']);
+
+                    const ma = methodMap.get('ma');
+
+                    assertNeitherNullNorUndefined(ma);
+
+                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
+                    assert.deepEqual(ma.methodNames, []);
                     return;
                 }
 
                 case 6:
                 case 7: {
                     assert.equal(methodMap.size, 1);
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.WRITING_WRITABLE)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa', 'pb', 'pc']);
+
+                    const ma = methodMap.get('ma');
+
+                    assertNeitherNullNorUndefined(ma);
+
+                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
+                    assert.deepEqual(ma.methodNames, []);
                     return;
                 }
 
                 case 8: {
                     assert.equal(methodMap.size, 3);
 
-                    assert.equal(methodMap.get('ma')?.mutability, Mutability.WRITING_WRITABLE)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa']);
+                    const ma = methodMap.get('ma');
+                    const mb = methodMap.get('mb');
+                    const mc = methodMap.get('mc');
 
-                    assert.equal(methodMap.get('mb')?.mutability, Mutability.WRITING_WRITABLE)
-                    assert.deepEqual(methodMap.get('mb')?.propertyNames, ['pb']);
+                    assertNeitherNullNorUndefined(ma);
+                    assertNeitherNullNorUndefined(mb);
+                    assertNeitherNullNorUndefined(mc);
 
-                    assert.equal(methodMap.get('mc')?.mutability, Mutability.WRITING_WRITABLE)
-                    assert.deepEqual(methodMap.get('mc')?.propertyNames, ['pc']);
+                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(ma.propertyNames, ['pa']);
+                    assert.deepEqual(ma.methodNames, []);
+
+                    assert.equal(mb.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(mb.propertyNames, ['pb']);
+                    assert.deepEqual(mb.methodNames, []);
+
+                    assert.equal(mc.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(mc.propertyNames, ['pc']);
+                    assert.deepEqual(mc.methodNames, []);
                     return;
                 }
             }
