@@ -7,6 +7,12 @@ type Group = Readonly<{
     mutability: Mutability;
 }>;
 
+const uniquify = <A>(
+    array: ReadonlyArray<A>
+): ReadonlyArray<A> => {
+    return Array.from(new Set<A>(array)).sort();
+}
+
 export const getGroupMap = (
     methodMap: ReadonlyMap<string, Method>,
 ): ReadonlyMap<number, Group>=> {
@@ -21,21 +27,34 @@ export const getGroupMap = (
     }
 
     const traverse = (methodName: string) => {
+        if(traversedMethodNames.has(methodName)) {
+            return;
+        }
+
+        traversedMethodNames.add(methodName);
+
         const method = methodMap.get(methodName);
 
         if (!method) {
             return;
         }
 
-        const result = [...groupMap.entries()].find(
+        const methodResult = [...methodMap.entries()].filter(
+            ([_, method]) => method.methodNames.includes(methodName)
+        );
+
+        const groupResult = [...groupMap.entries()].find(
             ([_, group]) => group.methodNames.includes(methodName)
         );
 
-        if (!result) {
+        if (!groupResult) {
             groupMap.set(
                 groupNumber,
                 {
-                    methodNames: [ methodName ],
+                    methodNames: uniquify([
+                        ...methodResult.map((r) => r[0]),
+                        methodName
+                    ]),
                     propertyNames: method.propertyNames,
                     mutability: method.propertyMutability,
                 }
@@ -43,8 +62,26 @@ export const getGroupMap = (
 
             ++groupNumber;
         } else {
-            // TODO
+            groupMap.set(
+                groupResult[0],
+                {
+                    methodNames: uniquify([
+                        ...methodResult.map((r) => r[0]),
+                        ...groupResult[1].methodNames,
+                        methodName
+                    ]),
+                    propertyNames: method.propertyNames,
+                    mutability: method.propertyMutability,
+                }
+            );
         }
+
+        methodResult.forEach(
+            ([methodName,]) => {
+                traverse(methodName);
+            }
+        );
+
     };
 
     methodNames.forEach(
@@ -62,50 +99,6 @@ export const getGroupMap = (
             }
         }
     );
-
-    // methodNames
-    //     .filter(methodName => !traversedMethodNames.has(methodName))
-    //     .forEach(
-    //         (methodName) => {
-    //             const method = methodMap.get(methodName);
-    //
-    //             if (!method) {
-    //                 return;
-    //             }
-    //
-    //             const { methodNames } = method;
-    //
-    //             if (methodNames.length === 1) {
-    //                 console.log(methodName, methodNames);
-    //
-    //                 const result = [...groupMap.entries()].find(
-    //                     ([_, group]) => group.methodNames.includes(methodName)
-    //                 )
-    //
-    //                 if (!result) {
-    //                     return;
-    //                 }
-    //
-    //                 traversedMethodNames.add(methodName);
-    //
-    //                 groupMap.set(
-    //                     result[0],
-    //                     {
-    //                         methodNames: [ ...result[1].methodNames, methodName ],
-    //                         propertyNames: [...result[1].propertyNames, ...method.propertyNames ],
-    //                         mutability: concatMutabilities(
-    //                             [
-    //                                 result[1].mutability,
-    //                                 method.propertyMutability,
-    //                             ]
-    //                         )
-    //                     }
-    //                 );
-    //             }
-    //         }
-    //     )
-    //
-    // console.log(groupMap);
 
     return groupMap;
 }

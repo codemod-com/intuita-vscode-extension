@@ -298,6 +298,8 @@ describe('find member dependencies', () => {
                     }
 
                     {
+                        console.log(groupMap)
+
                         assert.equal(groupMap.size, 1);
 
                         {
@@ -305,7 +307,7 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['mc', 'mb', 'ma']);
+                            assert.deepEqual(group0.methodNames, ['ma', 'mb', 'mc']);
                             assert.deepEqual(group0.propertyNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
