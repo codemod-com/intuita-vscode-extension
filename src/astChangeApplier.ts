@@ -399,6 +399,26 @@ export class AstChangeApplier {
                 }
             );
 
+        const importSpecifierFilePaths = classDeclaration
+            .findReferences()
+            .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+            .map(
+                (rse) => {
+                    const node = rse.getNode();
+                    const parentNode = node.getParent();
+
+                    if (!parentNode || !Node.isImportSpecifier(parentNode)) {
+                        return null;
+                    }
+
+                    return parentNode
+                        .getSourceFile()
+                        .getFilePath()
+                        .toString();
+                }
+            )
+            .filter(isNeitherNullNorUndefined);
+
         {
             if (lazyFunctions.length > 0) {
                 this._changedSourceFiles.add(sourceFile);
@@ -410,6 +430,53 @@ export class AstChangeApplier {
         }
 
         if (members.length - deletedMemberCount === 0) {
+            importSpecifierFilePaths.forEach(
+                (filePath) => {
+                    const otherSourceFile = this._project.getSourceFile(filePath);
+
+                    if (!otherSourceFile) {
+                        return;
+                    }
+
+                    otherSourceFile
+                        .getImportDeclarations()
+                        .filter(
+                            (id) => {
+                                return id.getModuleSpecifierSourceFile() === sourceFile
+                            }
+                        )
+                        .forEach(
+                            (id) => {
+                                const namedImports = id.getNamedImports();
+
+                                const namedImport = namedImports
+                                    .find(ni => ni.getName()) ?? null;
+
+                                if (!namedImport) {
+                                    return;
+                                }
+
+                                const count = namedImports.length;
+
+                                // removal
+                                namedImport.remove()
+
+                                if (count === 1) {
+                                    id.remove()
+                                }
+                            }
+                        )
+
+                    // localSourceFile.getImportDeclarations(
+                    //     (id) => {
+                    //         id.getModuleSpecifierSourceFile() === sourceFile)
+                    //
+                    //         return true;
+                    //     }
+                    // )
+                }
+            )
+
             classDeclaration.remove();
         }
     }
