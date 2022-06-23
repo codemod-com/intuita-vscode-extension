@@ -237,7 +237,7 @@ describe('find member dependencies', () => {
                     }
 
                     {
-                        assert.equal(groupMap.size, 1);
+                        assert.equal(groupMap.size, 3);
 
                         {
                             const group0 = groupMap.get(0);
