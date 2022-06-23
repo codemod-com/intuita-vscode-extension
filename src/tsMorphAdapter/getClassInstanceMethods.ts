@@ -4,7 +4,7 @@ import {isNeitherNullNorUndefined} from "../utilities";
 export const getClassInstanceMethods = (
     classDefinition: ClassDeclaration,
 ): ReadonlyArray<[string, ReadonlyArray<string>]> => {
-    return classDefinition
+    const oldMethods: ReadonlyArray<[string, ReadonlyArray<string>]> = classDefinition
         .getInstanceMethods()
         .map((methodDeclaration) => {
 
@@ -21,10 +21,14 @@ export const getClassInstanceMethods = (
                 .filter(isNeitherNullNorUndefined)
                 .filter(
                     (otherMethodDeclaration) => {
+                        if (otherMethodDeclaration === methodDeclaration) {
+                            return false;
+                        }
+
                         const methodClassDeclaration = otherMethodDeclaration
                             .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration)
 
-                        return methodClassDeclaration !== classDefinition;
+                        return methodClassDeclaration === classDefinition;
                     }
                 )
                 .map((md) => md.getName());
@@ -34,4 +38,18 @@ export const getClassInstanceMethods = (
                 methodNames,
             ];
         });
+
+    // invert the relationship
+    return oldMethods.map(
+        ([methodName, _]) => {
+            const methodNames: ReadonlyArray<string> = oldMethods
+                .filter(([_, methodNames]) => methodNames.includes(methodName))
+                .map(([mn, ]) => mn)
+
+            return [
+                methodName,
+                methodNames,
+            ];
+        }
+    );
 };

@@ -57,9 +57,6 @@ export const getMethodMap = (
         }
     );
 
-    // TODO change the mutability based on the transitive method calls
-
-
     return methodMap;
 };
 
