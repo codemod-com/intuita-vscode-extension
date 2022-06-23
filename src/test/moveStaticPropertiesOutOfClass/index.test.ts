@@ -9,7 +9,7 @@ describe('move static properties out of the class', () => {
         __dirname,
     );
 
-    for(const [caseNumber, { oldSourceFileText, newSourceFileText }] of caseMap.entries()) {
+    for(const [caseNumber, { old: oldSourceFileText, new: newSourceFileText }] of caseMap.entries()) {
         it(`should implement case ${caseNumber}`, () => {
             const project = new Project({
                 useInMemoryFileSystem: true,
