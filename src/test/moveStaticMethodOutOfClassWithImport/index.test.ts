@@ -4,8 +4,8 @@ import {AstChangeKind} from "../../getAstChanges";
 import {assert} from "chai";
 import {buildCaseMap} from "../buildCaseMap";
 
-describe('move static method out of class with import', () => {
-    it('should provide proper imports and exports', () => {
+describe('move a static method out of class with import', () => {
+    it('should provide proper import and export statements', () => {
         const caseMap = buildCaseMap(
             __dirname,
         );
