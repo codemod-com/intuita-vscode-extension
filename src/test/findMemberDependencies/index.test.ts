@@ -54,7 +54,7 @@ describe('find member dependencies', () => {
 
                     assertNeitherNullNorUndefined(ma);
 
-                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
                     assert.deepEqual(ma.propertyNames, []);
                     assert.deepEqual(ma.methodNames, []);
                     return;
@@ -67,7 +67,7 @@ describe('find member dependencies', () => {
 
                     assertNeitherNullNorUndefined(ma);
 
-                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
                     assert.deepEqual(ma.propertyNames, ['pa']);
                     assert.deepEqual(ma.methodNames, []);
                     return;
@@ -80,7 +80,7 @@ describe('find member dependencies', () => {
 
                     assertNeitherNullNorUndefined(ma);
 
-                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
                     assert.deepEqual(ma.propertyNames, ['pa']);
                     assert.deepEqual(ma.methodNames, []);
                     return;
@@ -93,7 +93,7 @@ describe('find member dependencies', () => {
 
                     assertNeitherNullNorUndefined(ma);
 
-                    assert.equal(ma.mutability, Mutability.READING_READONLY)
+                    assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
                     assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
                     assert.deepEqual(ma.methodNames, []);
                     return;
@@ -107,7 +107,7 @@ describe('find member dependencies', () => {
 
                     assertNeitherNullNorUndefined(ma);
 
-                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
                     assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
                     assert.deepEqual(ma.methodNames, []);
                     return;
@@ -124,15 +124,15 @@ describe('find member dependencies', () => {
                     assertNeitherNullNorUndefined(mb);
                     assertNeitherNullNorUndefined(mc);
 
-                    assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                    assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
                     assert.deepEqual(ma.propertyNames, ['pa']);
                     assert.deepEqual(ma.methodNames, []);
 
-                    assert.equal(mb.mutability, Mutability.WRITING_WRITABLE)
+                    assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE)
                     assert.deepEqual(mb.propertyNames, ['pb']);
                     assert.deepEqual(mb.methodNames, []);
 
-                    assert.equal(mc.mutability, Mutability.WRITING_WRITABLE)
+                    assert.equal(mc.propertyMutability, Mutability.WRITING_WRITABLE)
                     assert.deepEqual(mc.propertyNames, ['pc']);
                     assert.deepEqual(mc.methodNames, []);
                     return;

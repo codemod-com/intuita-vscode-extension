@@ -4,7 +4,7 @@ import {concatMutabilities, Mutability} from "./mutability";
 export type Method = Readonly<{
     methodNames: ReadonlyArray<string>,
     propertyNames: ReadonlyArray<string>,
-    mutability: Mutability,
+    propertyMutability: Mutability,
 }>;
 
 export const getMethodMap = (
@@ -17,7 +17,7 @@ export const getMethodMap = (
             {
                 propertyNames: [],
                 methodNames,
-                mutability: Mutability.READING_READONLY,
+                propertyMutability: Mutability.READING_READONLY,
             }
         ]))
     );
@@ -35,12 +35,12 @@ export const getMethodMap = (
                     const propertyNames = method.propertyNames.slice();
                     propertyNames.push(property.name);
 
-                    const mutability = concatMutabilities(
+                    const propertyMutability = concatMutabilities(
                         [
                             property.readonly
                                 ? Mutability.READING_READONLY
                                 : Mutability.WRITING_WRITABLE,
-                            method.mutability,
+                            method.propertyMutability,
                         ]
                     );
 
@@ -48,7 +48,7 @@ export const getMethodMap = (
                         methodName,
                         {
                             propertyNames,
-                            mutability,
+                            propertyMutability,
                             methodNames: method.methodNames,
                         },
                     );
@@ -58,6 +58,7 @@ export const getMethodMap = (
     );
 
     // TODO change the mutability based on the transitive method calls
+
 
     return methodMap;
 };
