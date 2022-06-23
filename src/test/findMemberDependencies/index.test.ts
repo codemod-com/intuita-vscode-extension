@@ -5,9 +5,9 @@ import {buildCaseMap} from "../buildCaseMap";
 import {AstChangeKind} from "../../getAstChanges";
 import {assert} from "chai";
 import {isNeitherNullNorUndefined} from "../../utilities";
-import {TsMorphAdapter} from "../../tsMorphAdapter/getClassInstanceProperties";
+import {getClassInstanceProperties} from "../../tsMorphAdapter/getClassInstanceProperties";
 
-describe.only('find member dependencies', () => {
+describe('find member dependencies', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );
@@ -31,7 +31,7 @@ describe.only('find member dependencies', () => {
                 return;
             }
 
-            const properties = TsMorphAdapter.getClassInstanceProperties(classDefinition);
+            const properties = getClassInstanceProperties(classDefinition);
 
 
         });

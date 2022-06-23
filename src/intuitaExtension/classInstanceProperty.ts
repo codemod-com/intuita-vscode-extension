@@ -1,8 +1,6 @@
-namespace IntuitaExtension {
-    export type ClassInstanceProperty = Readonly<{
-        name: string;
-        readonly: boolean;
-        methodNames: ReadonlyArray<string>,
-    }>;
-}
+export type ClassInstanceProperty = Readonly<{
+    name: string;
+    readonly: boolean;
+    methodNames: ReadonlyArray<string>,
+}>;
 
