@@ -11,7 +11,7 @@ const uniquify = <A>(
     array: ReadonlyArray<A>
 ): ReadonlyArray<A> => {
     return Array.from(new Set<A>(array)).sort();
-}
+};
 
 export const getGroupMap = (
     methodMap: ReadonlyMap<string, Method>,
@@ -55,8 +55,15 @@ export const getGroupMap = (
                         ...methodResult.map((r) => r[0]),
                         methodName
                     ]),
-                    propertyNames: method.propertyNames,
-                    mutability: method.propertyMutability,
+                    propertyNames: uniquify([
+                        ...methodResult.flatMap((r) => r[1].propertyNames),
+                        ...method.propertyNames,
+                    ]),
+                    mutability: concatMutabilities([
+                        ...methodResult.flatMap((r) => r[1].propertyMutability),
+                        method.propertyMutability,
+                    ]),
+
                 }
             );
 
@@ -70,8 +77,16 @@ export const getGroupMap = (
                         ...groupResult[1].methodNames,
                         methodName
                     ]),
-                    propertyNames: method.propertyNames,
-                    mutability: method.propertyMutability,
+                    propertyNames: uniquify([
+                        ...methodResult.flatMap((r) => r[1].propertyNames),
+                        ...method.propertyNames,
+                        ...groupResult[1].propertyNames,
+                    ]),
+                    mutability: concatMutabilities([
+                        ...methodResult.flatMap((r) => r[1].propertyMutability),
+                        method.propertyMutability,
+                        groupResult[1].mutability,
+                    ]),
                 }
             );
         }

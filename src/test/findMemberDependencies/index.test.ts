@@ -298,8 +298,6 @@ describe('find member dependencies', () => {
                     }
 
                     {
-                        console.log(groupMap)
-
                         assert.equal(groupMap.size, 1);
 
                         {
