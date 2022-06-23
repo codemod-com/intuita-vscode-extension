@@ -235,6 +235,8 @@ export class AstChangeApplier {
 
         const index = classDeclaration.getChildIndex();
 
+        const newImportDeclarationMap = new Map<SourceFile, string[]>();
+
         classDeclaration
             .getStaticProperties()
             .forEach(
@@ -304,6 +306,12 @@ export class AstChangeApplier {
                         .forEach(([sourceFile, callback ]) => {
                             this._changedSourceFiles.add(sourceFile);
                             lazyFunctions.push(callback);
+
+                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
+
+                            names.push(name);
+
+                            newImportDeclarationMap.set(sourceFile, names);
                         });
                 }
             );
@@ -387,6 +395,12 @@ export class AstChangeApplier {
                             lazyFunctions.push(
                                 () => callExpression.replaceWithText(text),
                             );
+
+                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
+
+                            names.push(name);
+
+                            newImportDeclarationMap.set(sourceFile, names);
                         });
 
                     ++deletedMemberCount;
@@ -399,6 +413,26 @@ export class AstChangeApplier {
                 }
             );
 
+        const importSpecifierFilePaths = classDeclaration
+            .findReferences()
+            .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+            .map(
+                (rse) => {
+                    const node = rse.getNode();
+                    const parentNode = node.getParent();
+
+                    if (!parentNode || !Node.isImportSpecifier(parentNode)) {
+                        return null;
+                    }
+
+                    return parentNode
+                        .getSourceFile()
+                        .getFilePath()
+                        .toString();
+                }
+            )
+            .filter(isNeitherNullNorUndefined);
+
         {
             if (lazyFunctions.length > 0) {
                 this._changedSourceFiles.add(sourceFile);
@@ -410,6 +444,64 @@ export class AstChangeApplier {
         }
 
         if (members.length - deletedMemberCount === 0) {
+            importSpecifierFilePaths.forEach(
+                (filePath) => {
+                    const otherSourceFile = this._project.getSourceFile(filePath);
+
+                    if (!otherSourceFile) {
+                        return;
+                    }
+
+                    otherSourceFile
+                        .getImportDeclarations()
+                        .filter(
+                            (id) => {
+                                return id.getModuleSpecifierSourceFile() === sourceFile
+                            }
+                        )
+                        .forEach(
+                            (id) => {
+                                const namedImports = id.getNamedImports();
+
+                                const namedImport = namedImports
+                                    .find(ni => ni.getName()) ?? null;
+
+                                if (!namedImport) {
+                                    return;
+                                }
+
+                                const count = namedImports.length;
+
+                                // removal
+                                namedImport.remove();
+
+                                if (count === 1) {
+                                    id.remove();
+                                }
+                            }
+                        );
+
+
+                }
+            )
+
+            newImportDeclarationMap.forEach(
+                (names, otherSourceFile) => {
+                    if (otherSourceFile === sourceFile) {
+                        return;
+                    }
+
+                    otherSourceFile.insertImportDeclaration(
+                        0,
+                        {
+                            namedImports: names,
+                            moduleSpecifier: otherSourceFile
+                                .getRelativePathAsModuleSpecifierTo(sourceFile.getFilePath()),
+                        }
+                    );
+                }
+            )
+
             classDeclaration.remove();
         }
     }
