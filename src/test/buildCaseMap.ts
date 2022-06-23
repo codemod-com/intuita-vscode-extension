@@ -17,7 +17,7 @@ export const buildCaseMap = (
     const caseMap = new Map<number, Case>();
 
     let currentCaseNumber: number | null = null;
-    let currentMode: string | null = null;
+    let currentKey: string | null = null;
     let currentLines: string[] = [];
 
     lines.forEach(
@@ -34,10 +34,10 @@ export const buildCaseMap = (
                 return;
             }
 
-            const mode = regExpExecArray[1];
+            const key = regExpExecArray[1];
             const caseString = regExpExecArray[2];
 
-            if (!mode) {
+            if (!key) {
                 throw new Error('The mode needs to be specified in the header string');
             }
 
@@ -53,14 +53,14 @@ export const buildCaseMap = (
 
             if (currentCaseNumber === null) {
                 currentCaseNumber = caseNumber;
-            } else if (currentMode) {
-                const _case = caseMap.get(currentCaseNumber) ?? {};
+            } else if (currentKey) {
+                const currentCase = caseMap.get(currentCaseNumber) ?? {};
 
                 caseMap.set(
                     currentCaseNumber,
                     {
-                        ..._case,
-                        [currentMode]: currentLines.join('\n'),
+                        ...currentCase,
+                        [currentKey]: currentLines.join('\n'),
                     }
                 );
 
@@ -68,18 +68,18 @@ export const buildCaseMap = (
                 currentLines = [];
             }
 
-            currentMode = mode;
+            currentKey = key;
         }
     );
 
-    if (currentCaseNumber && currentMode) {
-        const _case = caseMap.get(currentCaseNumber) ?? {};
+    if (currentCaseNumber && currentKey) {
+        const currentCase = caseMap.get(currentCaseNumber) ?? {};
 
         caseMap.set(
             currentCaseNumber,
             {
-                ..._case,
-                [currentMode]: currentLines.join('\n'),
+                ...currentCase,
+                [currentKey]: currentLines.join('\n'),
             }
         );
     }
