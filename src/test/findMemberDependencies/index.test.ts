@@ -6,7 +6,7 @@ import {getMethodMap} from "../../intuitaExtension/getMethodMap";
 import {Mutability} from "../../intuitaExtension/mutability";
 import {getClassInstanceMethodsName} from "../../tsMorphAdapter/getClassInstanceMethodsName";
 
-describe.only('find member dependencies', () => {
+describe('find member dependencies', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );
@@ -66,6 +66,28 @@ describe.only('find member dependencies', () => {
                     assert.equal(methodMap.size, 1);
                     assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
                     assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa', 'pb', 'pc']);
+                    return;
+                }
+
+                case 6:
+                case 7: {
+                    assert.equal(methodMap.size, 1);
+                    assert.equal(methodMap.get('ma')?.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa', 'pb', 'pc']);
+                    return;
+                }
+
+                case 8: {
+                    assert.equal(methodMap.size, 3);
+
+                    assert.equal(methodMap.get('ma')?.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa']);
+
+                    assert.equal(methodMap.get('mb')?.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(methodMap.get('mb')?.propertyNames, ['pb']);
+
+                    assert.equal(methodMap.get('mc')?.mutability, Mutability.WRITING_WRITABLE)
+                    assert.deepEqual(methodMap.get('mc')?.propertyNames, ['pc']);
                     return;
                 }
             }

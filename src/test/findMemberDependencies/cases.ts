@@ -7,7 +7,7 @@
 /** old-002 **/
 {
     class A {
-        public ma() {
+        ma() {
 
         }
     }
@@ -18,9 +18,9 @@
 /** old-003 **/
 {
     class A {
-        private readonly pa = 1;
+        readonly pa = 1;
 
-        public ma() {
+        ma() {
             return this.pa;
         }
     }
@@ -30,10 +30,10 @@
 /** old-004 **/
 {
     class A {
-        private pa = 1;
+        pa = 1;
 
-        public ma() {
-            return this.pa;
+        ma() {
+            console.log(this.pa);
         }
     }
 }
@@ -42,11 +42,11 @@
 /** old-005 **/
 {
     class A {
-        private readonly pa = 1;
-        private readonly pb = 2;
-        private readonly pc = 3;
+        readonly pa = 1;
+        readonly pb = 2;
+        readonly pc = 3;
 
-        public ma() {
+        ma() {
             console.log(this.pa);
             console.log(this.pb);
             console.log(this.pc);
@@ -54,3 +54,57 @@
     }
 }
 /** new-005 **/
+
+/** old-006 **/
+{
+    class A {
+        pa = 1;
+        pb = 2;
+        pc = 3;
+
+        ma() {
+            console.log(this.pa);
+            console.log(this.pb);
+            console.log(this.pc);
+        }
+    }
+}
+/** new-006 **/
+
+/** old-007 **/
+{
+    class A {
+        readonly pa = 1;
+        pb = 2;
+        pc = 3;
+
+        ma() {
+            console.log(this.pa);
+            console.log(this.pb);
+            console.log(this.pc);
+        }
+    }
+}
+/** new-007 **/
+
+/** old-008 **/
+{
+    class A {
+        pa = 1;
+        pb = 2;
+        pc = 3;
+
+        ma() {
+            console.log(this.pa);
+        }
+
+        mb() {
+            console.log(this.pb);
+        }
+
+        mc() {
+            console.log(this.pc);
+        }
+    }
+}
+/** new-008 **/
