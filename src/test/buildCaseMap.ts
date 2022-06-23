@@ -22,6 +22,10 @@ export const buildCaseMap = (
 
     lines.forEach(
         (line) => {
+            if (line === '/* @ts-ignore */') {
+                return;
+            }
+
             const regExpExecArray = regex.exec(line);
 
             if (regExpExecArray === null) {
