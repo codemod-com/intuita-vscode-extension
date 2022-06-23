@@ -1,40 +1,43 @@
 import {ClassInstanceProperty} from "./classInstanceProperty";
 import {Mutability} from "./mutability";
 
-type Method = Readonly<{
-
+export type Method = Readonly<{
+    propertyNames: ReadonlyArray<string>,
+    mutability: Mutability,
 }>;
-
-const methodNameToPropertyNamesMap = new Map<string, string[]>();
-const methodNameToMutabilityMap = new Map<string, Mutability>();
 
 export const getMethodMap = (
     properties: ReadonlyArray<ClassInstanceProperty>
-) => {
+): ReadonlyMap<string, Method> => {
+    const methodMap = new Map<string, Method>;
+
     properties.forEach(
         (property) => {
             property.methodNames.forEach(
                 (methodName) => {
-                    const propertyNames = methodNameToPropertyNamesMap.get(methodName) ?? [];
+                    const method = methodMap.get(methodName);
+
+                    const propertyNames = method?.propertyNames.slice() ?? [];
                     propertyNames.push(property.name);
 
-                    methodNameToPropertyNamesMap.set(methodName, propertyNames);
-
-                    let mutability = methodNameToMutabilityMap.get(methodName)
-
-                    mutability = property.readonly && ((mutability ?? Mutability.READING_READONLY) === Mutability.READING_READONLY)
+                    const mutability = property.readonly && ((method?.mutability ?? Mutability.READING_READONLY) === Mutability.READING_READONLY)
                         ? Mutability.READING_READONLY
-                        : Mutability.WRITING_WRITABLE;
+                        : Mutability.WRITING_WRITABLE
 
-                    // does not support RW
-                    methodNameToMutabilityMap.set(methodName, mutability)
+                    methodMap.set(
+                        methodName,
+                        {
+                            propertyNames,
+                            mutability,
+                        },
+                    );
                 }
-            )
+            );
         }
-    )
-}
+    );
 
-console.log(methodNameToPropertyNamesMap);
-console.log(methodNameToMutabilityMap);
+    return methodMap;
+};
+
 
 

@@ -1,11 +1,9 @@
-/// <reference path="../../tsMorphAdapter/getClassInstanceProperties.ts" />
 import {Project, ts} from "ts-morph";
-import {AstChangeApplier} from "../../astChangeApplier";
 import {buildCaseMap} from "../buildCaseMap";
-import {AstChangeKind} from "../../getAstChanges";
 import {assert} from "chai";
-import {isNeitherNullNorUndefined} from "../../utilities";
 import {getClassInstanceProperties} from "../../tsMorphAdapter/getClassInstanceProperties";
+import {getMethodMap} from "../../intuitaExtension/getMethodMap";
+import {Mutability} from "../../intuitaExtension/mutability";
 
 describe('find member dependencies', () => {
     const caseMap = buildCaseMap(
@@ -33,7 +31,11 @@ describe('find member dependencies', () => {
 
             const properties = getClassInstanceProperties(classDefinition);
 
+            const methodMap = getMethodMap(properties);
 
+            assert.equal(methodMap.size, 1);
+            assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
+            assert.deepEqual(methodMap.get('ma')?.propertyNames, ['pa']);
         });
     }
 });
