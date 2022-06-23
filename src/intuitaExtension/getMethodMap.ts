@@ -1,5 +1,5 @@
 import {ClassInstanceProperty} from "./classInstanceProperty";
-import {Mutability} from "./mutability";
+import {concatMutabilities, Mutability} from "./mutability";
 
 export type Method = Readonly<{
     methodNames: ReadonlyArray<string>,
@@ -28,19 +28,28 @@ export const getMethodMap = (
                 (methodName) => {
                     const method = methodMap.get(methodName);
 
-                    const propertyNames = method?.propertyNames.slice() ?? [];
+                    if (!method) {
+                        return;
+                    }
+
+                    const propertyNames = method.propertyNames.slice();
                     propertyNames.push(property.name);
 
-                    const mutability = property.readonly && ((method?.mutability ?? Mutability.READING_READONLY) === Mutability.READING_READONLY)
-                        ? Mutability.READING_READONLY
-                        : Mutability.WRITING_WRITABLE
+                    const mutability = concatMutabilities(
+                        [
+                            property.readonly
+                                ? Mutability.READING_READONLY
+                                : Mutability.WRITING_WRITABLE,
+                            method.mutability,
+                        ]
+                    );
 
                     methodMap.set(
                         methodName,
                         {
                             propertyNames,
                             mutability,
-                            methodNames: method?.methodNames ?? [],
+                            methodNames: method.methodNames,
                         },
                     );
                 }
