@@ -21,8 +21,31 @@ export const getGroupMap = (
     }
 
     const traverse = (methodName: string) => {
+        const method = methodMap.get(methodName);
 
-    }
+        if (!method) {
+            return;
+        }
+
+        const result = [...groupMap.entries()].find(
+            ([_, group]) => group.methodNames.includes(methodName)
+        );
+
+        if (!result) {
+            groupMap.set(
+                groupNumber,
+                {
+                    methodNames: [ methodName ],
+                    propertyNames: method.propertyNames,
+                    mutability: method.propertyMutability,
+                }
+            );
+
+            ++groupNumber;
+        } else {
+            // TODO
+        }
+    };
 
     methodNames.forEach(
         (methodName) => {
@@ -35,65 +58,54 @@ export const getGroupMap = (
             const { methodNames } = method;
 
             if (methodNames.length === 0) {
-                traversedMethodNames.add(methodName);
-
-                groupMap.set(
-                    groupNumber,
-                    {
-                        methodNames: [ methodName ],
-                        propertyNames: method.propertyNames,
-                        mutability: method.propertyMutability,
-                    }
-                );
-
-                ++groupNumber;
+                traverse(methodName);
             }
         }
     );
 
-    methodNames
-        .filter(methodName => !traversedMethodNames.has(methodName))
-        .forEach(
-            (methodName) => {
-                const method = methodMap.get(methodName);
-
-                if (!method) {
-                    return;
-                }
-
-                const { methodNames } = method;
-
-                if (methodNames.length === 1) {
-                    console.log(methodName, methodNames);
-
-                    const result = [...groupMap.entries()].find(
-                        ([_, group]) => group.methodNames.includes(methodName)
-                    )
-
-                    if (!result) {
-                        return;
-                    }
-
-                    traversedMethodNames.add(methodName);
-
-                    groupMap.set(
-                        result[0],
-                        {
-                            methodNames: [ ...result[1].methodNames, methodName ],
-                            propertyNames: [...result[1].propertyNames, ...method.propertyNames ],
-                            mutability: concatMutabilities(
-                                [
-                                    result[1].mutability,
-                                    method.propertyMutability,
-                                ]
-                            )
-                        }
-                    );
-                }
-            }
-        )
-
-    console.log(groupMap);
+    // methodNames
+    //     .filter(methodName => !traversedMethodNames.has(methodName))
+    //     .forEach(
+    //         (methodName) => {
+    //             const method = methodMap.get(methodName);
+    //
+    //             if (!method) {
+    //                 return;
+    //             }
+    //
+    //             const { methodNames } = method;
+    //
+    //             if (methodNames.length === 1) {
+    //                 console.log(methodName, methodNames);
+    //
+    //                 const result = [...groupMap.entries()].find(
+    //                     ([_, group]) => group.methodNames.includes(methodName)
+    //                 )
+    //
+    //                 if (!result) {
+    //                     return;
+    //                 }
+    //
+    //                 traversedMethodNames.add(methodName);
+    //
+    //                 groupMap.set(
+    //                     result[0],
+    //                     {
+    //                         methodNames: [ ...result[1].methodNames, methodName ],
+    //                         propertyNames: [...result[1].propertyNames, ...method.propertyNames ],
+    //                         mutability: concatMutabilities(
+    //                             [
+    //                                 result[1].mutability,
+    //                                 method.propertyMutability,
+    //                             ]
+    //                         )
+    //                     }
+    //                 );
+    //             }
+    //         }
+    //     )
+    //
+    // console.log(groupMap);
 
     return groupMap;
 }
