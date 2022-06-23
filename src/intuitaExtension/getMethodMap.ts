@@ -7,9 +7,18 @@ export type Method = Readonly<{
 }>;
 
 export const getMethodMap = (
-    properties: ReadonlyArray<ClassInstanceProperty>
+    properties: ReadonlyArray<ClassInstanceProperty>,
+    methodNames: ReadonlyArray<string>,
 ): ReadonlyMap<string, Method> => {
-    const methodMap = new Map<string, Method>;
+    const methodMap = new Map<string, Method>(
+        methodNames.map(methodName => ([
+            methodName,
+            {
+                propertyNames: [],
+                mutability: Mutability.READING_READONLY,
+            }
+        ]))
+    );
 
     properties.forEach(
         (property) => {

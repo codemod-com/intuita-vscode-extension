@@ -1,9 +1,10 @@
-import {Project, ts} from "ts-morph";
+import {ClassDeclaration, Project, ts} from "ts-morph";
 import {buildCaseMap} from "../buildCaseMap";
 import {assert} from "chai";
 import {getClassInstanceProperties} from "../../tsMorphAdapter/getClassInstanceProperties";
 import {getMethodMap} from "../../intuitaExtension/getMethodMap";
 import {Mutability} from "../../intuitaExtension/mutability";
+import {getClassInstanceMethodsName} from "../../tsMorphAdapter/getClassInstanceMethodsName";
 
 describe.only('find member dependencies', () => {
     const caseMap = buildCaseMap(
@@ -30,8 +31,9 @@ describe.only('find member dependencies', () => {
             }
 
             const properties = getClassInstanceProperties(classDefinition);
+            const methodNames = getClassInstanceMethodsName(classDefinition);
 
-            const methodMap = getMethodMap(properties);
+            const methodMap = getMethodMap(properties, methodNames);
 
             switch(caseNumber) {
                 case 1: {
@@ -42,7 +44,7 @@ describe.only('find member dependencies', () => {
                 case 2: {
                     assert.equal(methodMap.size, 1);
                     assert.equal(methodMap.get('ma')?.mutability, Mutability.READING_READONLY)
-                    assert.deepEqual(methodMap.get('ma')?.propertyNames, ['']);
+                    assert.deepEqual(methodMap.get('ma')?.propertyNames, []);
                     return;
                 }
 
