@@ -235,6 +235,8 @@ export class AstChangeApplier {
 
         const index = classDeclaration.getChildIndex();
 
+        const newImportDeclarationMap = new Map<SourceFile, string[]>();
+
         classDeclaration
             .getStaticProperties()
             .forEach(
@@ -304,6 +306,17 @@ export class AstChangeApplier {
                         .forEach(([sourceFile, callback ]) => {
                             this._changedSourceFiles.add(sourceFile);
                             lazyFunctions.push(callback);
+
+                            // newImports.push({
+                            //     name,
+                            //     sourceFile,
+                            // })
+
+                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
+
+                            names.push(name);
+
+                            newImportDeclarationMap.set(sourceFile, names);
                         });
                 }
             );
@@ -459,21 +472,29 @@ export class AstChangeApplier {
                                 const count = namedImports.length;
 
                                 // removal
-                                namedImport.remove()
+                                namedImport.remove();
 
                                 if (count === 1) {
-                                    id.remove()
+                                    id.remove();
                                 }
                             }
-                        )
+                        );
 
-                    // localSourceFile.getImportDeclarations(
-                    //     (id) => {
-                    //         id.getModuleSpecifierSourceFile() === sourceFile)
-                    //
-                    //         return true;
-                    //     }
-                    // )
+
+                }
+            )
+
+            newImportDeclarationMap.forEach(
+                (names, otherSourceFile) => {
+
+                    otherSourceFile.insertImportDeclaration(
+                        0,
+                        {
+                            namedImports: names,
+                            moduleSpecifier: otherSourceFile
+                                .getRelativePathAsModuleSpecifierTo(sourceFile.getFilePath()),
+                        }
+                    );
                 }
             )
 
