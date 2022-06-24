@@ -6,6 +6,7 @@ import {
 } from "./utilities";
 import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
+import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -235,6 +236,47 @@ export class AstChangeApplier {
 
         const exported = Node.isSourceFile(classParentNode);
 
+        const staticProperties = getClassStaticProperties(classDeclaration);
+
+        staticProperties.forEach(
+            (staticProperty) => {
+                ++deletedMemberCount;
+
+                lazyFunctions.push(
+                    () => staticProperty.staticProperty.remove(),
+                );
+
+                if (staticProperty.propertyAccessExpressions.length === 0) {
+                    return;
+                }
+
+                if(Node.isStatemented(classParentNode)) {
+                    const declarationKind = staticProperty.readonly
+                        ? VariableDeclarationKind.Const
+                        : VariableDeclarationKind.Let;
+
+                    lazyFunctions.push(
+                        () => {
+                            const variableStatement = classParentNode.insertVariableStatement(
+                                index,
+                                {
+                                    declarationKind,
+                                    declarations: [
+                                        {
+                                            name: staticProperty.name,
+                                            initializer: staticProperty.initializer ?? undefined,
+                                        }
+                                    ],
+                                }
+                            );
+
+                            variableStatement.setIsExported(exported);
+                        }
+                    );
+                }
+            }
+        )
+
         classDeclaration
             .getStaticProperties()
             .forEach(
@@ -253,43 +295,43 @@ export class AstChangeApplier {
 
                     const name = staticProperty.getName();
 
-                    ++deletedMemberCount;
-
-                    lazyFunctions.push(
-                        () => staticProperty.remove(),
-                    );
+                    // ++deletedMemberCount;
+                    //
+                    // lazyFunctions.push(
+                    //     () => staticProperty.remove(),
+                    // );
 
                     if (referencedSymbolEntries.length === 1) {
                         return;
                     }
 
-                    if(Node.isStatemented(classParentNode)) {
-                        const modifierFlags = staticProperty.getCombinedModifierFlags();
-
-                        const declarationKind =
-                            modifierFlags & ts.ModifierFlags.Readonly
-                                ? VariableDeclarationKind.Const
-                                : VariableDeclarationKind.Let;
-
-                        lazyFunctions.push(
-                            () => {
-                                const variableStatement = classParentNode.insertVariableStatement(
-                                    index,
-                                    {
-                                        declarationKind,
-                                        declarations: [
-                                            {
-                                                name,
-                                                initializer,
-                                            }
-                                        ],
-                                    }
-                                );
-
-                                variableStatement.setIsExported(exported);
-                            }
-                        );
-                    }
+                    // if(Node.isStatemented(classParentNode)) {
+                    //     const modifierFlags = staticProperty.getCombinedModifierFlags();
+                    //
+                    //     const declarationKind =
+                    //         modifierFlags & ts.ModifierFlags.Readonly
+                    //             ? VariableDeclarationKind.Const
+                    //             : VariableDeclarationKind.Let;
+                    //
+                    //     lazyFunctions.push(
+                    //         () => {
+                    //             const variableStatement = classParentNode.insertVariableStatement(
+                    //                 index,
+                    //                 {
+                    //                     declarationKind,
+                    //                     declarations: [
+                    //                         {
+                    //                             name,
+                    //                             initializer,
+                    //                         }
+                    //                     ],
+                    //                 }
+                    //             );
+                    //
+                    //             variableStatement.setIsExported(exported);
+                    //         }
+                    //     );
+                    // }
 
                     referencedSymbolEntries
                         .map((referencedSymbolEntry) => {

@@ -1,10 +1,18 @@
-import {ClassDeclaration, PropertyAccessExpression, SourceFile, StructureKind, ts} from "ts-morph";
+import {
+    ClassDeclaration,
+    ClassStaticPropertyTypes,
+    PropertyAccessExpression,
+    SourceFile,
+    StructureKind,
+    ts
+} from "ts-morph";
 import { isNeitherNullNorUndefined } from "../utilities";
 
-type StaticMethod = Readonly<{
+type StaticProperty = Readonly<{
     name: string;
     initializer: string | null;
     readonly: boolean;
+    staticProperty: ClassStaticPropertyTypes,
     // the following structure is tied to ts-morph for speed purposes
     propertyAccessExpressions: ReadonlyArray<
         Readonly<{
@@ -14,9 +22,9 @@ type StaticMethod = Readonly<{
     >
 }>;
 
-export const getClassStaticMethods = (
+export const getClassStaticProperties = (
     classDeclaration: ClassDeclaration,
-): ReadonlyArray<StaticMethod> => {
+): ReadonlyArray<StaticProperty> => {
     return classDeclaration
         .getStaticProperties()
         .map(
@@ -64,8 +72,7 @@ export const getClassStaticMethods = (
                     initializer,
                     readonly,
                     propertyAccessExpressions,
+                    staticProperty,
                 };
             });
-
-
 }
