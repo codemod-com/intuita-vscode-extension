@@ -9,10 +9,9 @@ export type InstanceMethod = Readonly<{
 export const getClassInstanceMethods = (
     classDefinition: ClassDeclaration,
 ): ReadonlyArray<InstanceMethod> => {
-    const oldMethods: ReadonlyArray<[string, ReadonlyArray<string>]> = classDefinition
+    const oldMethods = classDefinition
         .getInstanceMethods()
         .map((methodDeclaration) => {
-
             const callerNames = methodDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
@@ -20,7 +19,7 @@ export const getClassInstanceMethods = (
                     (referencedSymbolEntry) => {
                         return referencedSymbolEntry
                             .getNode()
-                            .getFirstAncestorByKind(ts.SyntaxKind.MethodDeclaration)
+                            .getFirstAncestorByKind(ts.SyntaxKind.MethodDeclaration);
                     }
                 )
                 .filter(isNeitherNullNorUndefined)
@@ -31,28 +30,28 @@ export const getClassInstanceMethods = (
                         }
 
                         const methodClassDeclaration = otherMethodDeclaration
-                            .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration)
+                            .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration);
 
                         return methodClassDeclaration === classDefinition;
                     }
                 )
                 .map((md) => md.getName());
 
-            return [
-                methodDeclaration.getName(),
+            return {
+                name: methodDeclaration.getName(),
                 callerNames,
-            ];
+            };
         });
 
     // invert the relationship
     return oldMethods.map(
-        ([methodName, _]) => {
+        ({ name }) => {
             const calleeNames: ReadonlyArray<string> = oldMethods
-                .filter(([_, methodNames]) => methodNames.includes(methodName))
-                .map(([mn, ]) => mn)
+                .filter(({ callerNames }) => callerNames.includes(name))
+                .map(({ name }) => name);
 
             return {
-                name: methodName,
+                name,
                 calleeNames,
             };
         }

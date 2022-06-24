@@ -324,7 +324,7 @@ export class AstChangeApplier {
 
                         ++memberIndex;
                     }
-                )
+                );
 
                 group.methodNames.forEach(
                     (methodName) => {
