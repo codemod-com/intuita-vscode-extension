@@ -237,6 +237,7 @@ export class AstChangeApplier {
         const exported = Node.isSourceFile(classParentNode);
 
         const staticProperties = getClassStaticProperties(classDeclaration);
+        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
 
         staticProperties.forEach(
             (staticProperty) => {
@@ -390,10 +391,6 @@ export class AstChangeApplier {
                     this._changedSourceFiles.add(sourceFile);
                 }
             );
-
-        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(
-            classDeclaration,
-        );
 
         // CHANGES
         if (commentStatement) {
