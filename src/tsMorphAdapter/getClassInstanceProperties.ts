@@ -1,4 +1,4 @@
-import {ClassDeclaration, ts} from "ts-morph";
+import {ClassDeclaration, StructureKind, ts} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 import {ClassInstanceProperty} from "../intuitaExtension/classInstanceProperty";
 
@@ -13,6 +13,13 @@ export const getClassInstanceProperties = (
                 const readonly = Boolean(
                     instanceProperty.getCombinedModifierFlags() & ts.ModifierFlags.Readonly
                 );
+
+                const structure = instanceProperty.getStructure();
+
+                const initializer =
+                    structure.kind === StructureKind.Property
+                        ? structure.initializer?.toString() ?? null
+                        : null;
 
                 const methodNames = instanceProperty
                     .findReferences()
@@ -45,6 +52,7 @@ export const getClassInstanceProperties = (
                 return {
                     name,
                     readonly,
+                    initializer,
                     methodNames,
                 };
             }

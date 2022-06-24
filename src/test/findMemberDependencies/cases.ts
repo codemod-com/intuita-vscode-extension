@@ -92,6 +92,32 @@
         }
     }
 }
+/** new-008 **/
+{
+    class A0 {
+        pa = 1;
+
+        ma() {
+            console.log(this.pa);
+        }
+    }
+
+    class A1 {
+        pb = 1;
+
+        mb() {
+            console.log(this.pb);
+        }
+    }
+
+    class A2 {
+        pc = 1;
+
+        mc() {
+            console.log(this.pc);
+        }
+    }
+}
 /** old-009 **/
 {
     class A {

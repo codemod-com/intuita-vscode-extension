@@ -4,6 +4,10 @@ import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportS
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
+import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
+import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
+import {getMethodMap} from "./intuitaExtension/getMethodMap";
+import {getGroupMap} from "./intuitaExtension/getGroupMap";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -248,6 +252,14 @@ export class AstChangeApplier {
         const staticProperties = getClassStaticProperties(classDeclaration);
         const staticMethods = getClassStaticMethod(classDeclaration);
 
+        const instanceProperties = getClassInstanceProperties(classDeclaration);
+        const instanceMethods = getClassInstanceMethods(classDeclaration);
+
+        const methodMap = getMethodMap(instanceProperties, instanceMethods);
+        const groupMap = getGroupMap(methodMap);
+
+        console.log('GM', groupMap);
+
         staticProperties.forEach(
             (staticProperty) => {
                 const { name } = staticProperty;
@@ -280,6 +292,64 @@ export class AstChangeApplier {
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
 
         // UPDATES
+        groupMap.forEach(
+            (group, groupNumber) => {
+                if(!Node.isStatemented(classParentNode)) {
+                    return;
+                }
+
+                this._changedSourceFiles.add(sourceFile);
+
+                const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
+                    name:  `${astChange.className}${groupNumber}`,
+                    isExported: exported,
+                });
+
+                let memberIndex = 0;
+
+                group.propertyNames.forEach(
+                    (propertyName) => {
+                        const instanceProperty = instanceProperties.find(
+                            (ip) => ip.name === propertyName,
+                        );
+
+                        groupClass.insertProperty(
+                            memberIndex,
+                            {
+                                name: propertyName,
+                                isReadonly: instanceProperty?.readonly ?? false,
+                                initializer: instanceProperty?.initializer ?? undefined,
+                            },
+                        );
+
+                        ++memberIndex;
+                    }
+                )
+
+                group.methodNames.forEach(
+                    (methodName) => {
+                        groupClass.insertMethod(
+                            memberIndex,
+                            {
+                                name: methodName,
+                                parameters: [],
+                            },
+                        );
+
+                        // functionDeclaration.setIsExported(true);
+                        // functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
+                        // functionDeclaration.addParameters(staticMethod.parameters);
+                        // functionDeclaration.setReturnType(staticMethod.returnType);
+                        //
+                        // if (staticMethod.bodyText) {
+                        //     functionDeclaration.setBodyText(staticMethod.bodyText);
+                        // }
+
+                        ++memberIndex;
+                    }
+                );
+            }
+        )
 
         staticProperties.forEach(
             (staticProperty) => {
@@ -353,7 +423,6 @@ export class AstChangeApplier {
                 }
             );
 
-        // CHANGES
         if (commentStatement) {
             commentStatement.remove();
         }
