@@ -43,7 +43,11 @@ export class AstChangeApplier {
 
         const sourceFiles: [string,string][] = [];
 
-        this._changedSourceFiles.forEach(
+        Array.from(this._changedSourceFiles).sort(
+            (a, b) => {
+                return a.getFilePath().localeCompare(b.getFilePath());
+            }
+        ).forEach(
             (sourceFile) => {
                 sourceFiles.push([
                     sourceFile.getFilePath(),
@@ -343,60 +347,75 @@ export class AstChangeApplier {
                             }
                         );
                     }
-                }
-            );
 
-        classDeclaration
-            .getStaticMethods()
-            .forEach(
-                (staticMethod) => {
-                    const name = staticMethod.getName();
-
-                    staticMethod
-                        .findReferences()
-                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                        .forEach((referencedSymbolEntry) => {
-                            const sourceFile = referencedSymbolEntry.getSourceFile();
-
-                            this._changedSourceFiles.add(sourceFile);
-
-                            const node = referencedSymbolEntry.getNode();
-
-                            const callExpression = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.CallExpression
-                                );
-
-                            if (!callExpression) {
-                                return;
-                            }
-
-                            let typeArguments = callExpression
-                                .getTypeArguments()
-                                .map(ta => ta.getText())
-                                .join(', ');
-
-                            typeArguments = typeArguments ? `<${typeArguments}>` : '';
-
-                            const args = callExpression
-                                .getArguments()
-                                .map((arg) => arg.getText())
-                                .join(', ');
-
-                            // TODO: maybe there's a programmatic way to do this?
-                            const text = `${staticMethod.getName()}${typeArguments}(${args})`;
-
+                    staticMethod.references.forEach(
+                        (reference) => {
                             lazyFunctions.push(
-                                () => callExpression.replaceWithText(text),
+                                () => reference.callExpression.replaceWithText(reference.text),
                             );
 
                             newImportDeclarationMap.addItem(
-                                sourceFile,
-                                name,
+                                reference.sourceFile,
+                                staticMethod.name,
                             );
-                        });
+
+                            this._changedSourceFiles.add(reference.sourceFile);
+                        }
+                    );
                 }
             );
+
+        // classDeclaration
+        //     .getStaticMethods()
+        //     .forEach(
+        //         (staticMethod) => {
+        //             const name = staticMethod.getName();
+        //
+        //             staticMethod
+        //                 .findReferences()
+        //                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+        //                 .forEach((referencedSymbolEntry) => {
+        //                     const sourceFile = referencedSymbolEntry.getSourceFile();
+        //
+        //                     this._changedSourceFiles.add(sourceFile);
+        //
+        //                     const node = referencedSymbolEntry.getNode();
+        //
+        //                     const callExpression = node
+        //                         .getFirstAncestorByKind(
+        //                             ts.SyntaxKind.CallExpression
+        //                         );
+        //
+        //                     if (!callExpression) {
+        //                         return;
+        //                     }
+        //
+        //                     let typeArguments = callExpression
+        //                         .getTypeArguments()
+        //                         .map(ta => ta.getText())
+        //                         .join(', ');
+        //
+        //                     typeArguments = typeArguments ? `<${typeArguments}>` : '';
+        //
+        //                     const args = callExpression
+        //                         .getArguments()
+        //                         .map((arg) => arg.getText())
+        //                         .join(', ');
+        //
+        //                     // TODO: maybe there's a programmatic way to do this?
+        //                     const text = `${staticMethod.getName()}${typeArguments}(${args})`;
+        //
+        //                     lazyFunctions.push(
+        //                         () => callExpression.replaceWithText(text),
+        //                     );
+        //
+        //                     newImportDeclarationMap.addItem(
+        //                         sourceFile,
+        //                         name,
+        //                     );
+        //                 });
+        //         }
+        //     );
 
         // CHANGES
         if (commentStatement) {
