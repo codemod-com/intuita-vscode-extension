@@ -5,6 +5,7 @@ import {
     isNeitherNullNorUndefined
 } from "./utilities";
 import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
+import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -224,15 +225,9 @@ export class AstChangeApplier {
         const members = classDeclaration.getMembers();
         let deletedMemberCount = 0;
 
-        const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
-
         const lazyFunctions: (() => void)[] = [];
 
-        if (Node.isCommentStatement(commentNode)) {
-            lazyFunctions.push(
-                () => commentNode.remove()
-            );
-        }
+        const commentStatement = getClassCommentStatement(classDeclaration);
 
         const index = classDeclaration.getChildIndex();
 
@@ -417,6 +412,11 @@ export class AstChangeApplier {
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(
             classDeclaration,
         );
+
+        // CHANGES
+        if (commentStatement) {
+            commentStatement.remove();
+        }
 
         {
             if (lazyFunctions.length > 0) {
