@@ -108,3 +108,62 @@
         }
     }
 }
+/** old-010 **/
+{
+    class A {
+        ma() {
+            this.ma();
+        }
+    }
+}
+/** old-011 **/
+{
+    class A {
+        ma() {
+            this.mb();
+        }
+
+        mb() {
+            this.ma();
+        }
+    }
+}
+
+/** old-012 **/
+{
+    class A {
+        ma() {
+            this.mb();
+        }
+
+        mb() {
+            this.ma();
+        }
+
+        mc() {
+            this.md();
+        }
+
+        md() {
+
+        }
+    }
+}
+
+/** old-013 **/
+{
+    class A {
+        pa = 1;
+        pb = 2;
+
+        ma() {
+            ++this.pa;
+            this.mb();
+        }
+
+        mb() {
+            --this.pb;
+            this.ma();
+        }
+    }
+}

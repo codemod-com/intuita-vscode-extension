@@ -1,5 +1,6 @@
 import {ClassInstanceProperty} from "./classInstanceProperty";
 import {concatMutabilities, Mutability} from "./mutability";
+import {InstanceMethod} from "../tsMorphAdapter/getClassInstanceMethods";
 
 export type Method = Readonly<{
     methodNames: ReadonlyArray<string>,
@@ -9,14 +10,14 @@ export type Method = Readonly<{
 
 export const getMethodMap = (
     properties: ReadonlyArray<ClassInstanceProperty>,
-    methods: ReadonlyArray<[string, ReadonlyArray<string>]>,
+    methods: ReadonlyArray<InstanceMethod>,
 ): ReadonlyMap<string, Method> => {
     const methodMap = new Map<string, Method>(
-        methods.map(([methodName, methodNames]) => ([
-            methodName,
+        methods.map(({ name, calleeNames}) => ([
+            name,
             {
                 propertyNames: [],
-                methodNames,
+                methodNames: calleeNames,
                 propertyMutability: Mutability.READING_READONLY,
             }
         ]))
