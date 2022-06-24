@@ -1,9 +1,23 @@
-import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {
-    calculateStaticPropertyAccessExpressionUpdate,
-    isNeitherNullNorUndefined
-} from "./utilities";
+import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
+import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
+import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
+import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
+import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
+import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
+import {getMethodMap} from "./intuitaExtension/getMethodMap";
+import {getGroupMap} from "./intuitaExtension/getGroupMap";
+
+class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
+    public addItem(key: K, item: I): void {
+        const items = this.get(key)?.slice() ?? [];
+
+        items.push(item);
+
+        this.set(key, items);
+    }
+}
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -33,7 +47,11 @@ export class AstChangeApplier {
 
         const sourceFiles: [string,string][] = [];
 
-        this._changedSourceFiles.forEach(
+        Array.from(this._changedSourceFiles).sort(
+            (a, b) => {
+                return a.getFilePath().localeCompare(b.getFilePath());
+            }
+        ).forEach(
             (sourceFile) => {
                 sourceFiles.push([
                     sourceFile.getFilePath(),
@@ -221,226 +239,215 @@ export class AstChangeApplier {
         const classParentNode = classDeclaration.getParent();
 
         const members = classDeclaration.getMembers();
+
+        const classTypeParameters = classDeclaration
+            .getTypeParameters()
+            .map((tpd) => tpd.getStructure());
+
         let deletedMemberCount = 0;
 
-        const commentNode = classDeclaration.getPreviousSiblingIfKind(ts.SyntaxKind.SingleLineCommentTrivia);
-
-        const lazyFunctions: (() => void)[] = [];
-
-        if (Node.isCommentStatement(commentNode)) {
-            lazyFunctions.push(
-                () => commentNode.remove()
-            );
-        }
+        const commentStatement = getClassCommentStatement(classDeclaration);
 
         const index = classDeclaration.getChildIndex();
 
-        const newImportDeclarationMap = new Map<SourceFile, string[]>();
+        const newImportDeclarationMap = new ReadonlyArrayMap<SourceFile, string>();
 
-        classDeclaration
-            .getStaticProperties()
-            .forEach(
-                staticProperty => {
-                    const referencedSymbolEntries = staticProperty
-                        .findReferences()
-                        .flatMap((rs) => rs.getReferences());
+        const exported = Node.isSourceFile(classParentNode);
 
-                    const structure = staticProperty.getStructure();
+        const staticProperties = getClassStaticProperties(classDeclaration);
+        const staticMethods = getClassStaticMethod(classDeclaration);
 
-                    if (structure.kind !== StructureKind.Property) {
-                        return;
-                    }
+        const instanceProperties = getClassInstanceProperties(classDeclaration);
+        const instanceMethods = getClassInstanceMethods(classDeclaration);
 
-                    const { initializer } = structure;
+        const methodMap = getMethodMap(instanceProperties, instanceMethods);
+        const groupMap = getGroupMap(methodMap);
 
-                    const name = staticProperty.getName();
+        staticProperties.forEach(
+            (staticProperty) => {
+                const { name } = staticProperty;
 
-                    ++deletedMemberCount;
-
-                    lazyFunctions.push(
-                        () => staticProperty.remove(),
-                    );
-
-                    if (referencedSymbolEntries.length === 1) {
-                        return;
-                    }
-
-                    if(Node.isStatemented(classParentNode)) {
-                        const modifierFlags = staticProperty.getCombinedModifierFlags();
-
-                        const declarationKind =
-                            modifierFlags & ts.ModifierFlags.Readonly
-                                ? VariableDeclarationKind.Const
-                                : VariableDeclarationKind.Let;
-
-                        const exported = Node.isSourceFile(classParentNode);
-
-                        lazyFunctions.push(
-                            () => {
-                                const variableStatement = classParentNode.insertVariableStatement(
-                                    index,
-                                    {
-                                        declarationKind,
-                                        declarations: [
-                                            {
-                                                name,
-                                                initializer,
-                                            }
-                                        ],
-                                    }
-                                );
-
-                                variableStatement.setIsExported(exported);
-                            }
+                staticProperty.propertyAccessExpressions.forEach(
+                    ({ sourceFile }) => {
+                        newImportDeclarationMap.addItem(
+                            sourceFile,
+                            name,
                         );
                     }
+                );
+            }
+        );
 
-                    referencedSymbolEntries
-                        .map((referencedSymbolEntry) => {
-                            return calculateStaticPropertyAccessExpressionUpdate(
-                                name,
-                                referencedSymbolEntry,
-                            );
-                        })
-                        .filter(isNeitherNullNorUndefined)
-                        .forEach(([sourceFile, callback ]) => {
-                            this._changedSourceFiles.add(sourceFile);
-                            lazyFunctions.push(callback);
+        staticMethods.forEach(
+            (staticMethod) => {
 
-                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
+                staticMethod.references.forEach(
+                    (reference) => {
+                        newImportDeclarationMap.addItem(
+                            reference.sourceFile,
+                            staticMethod.name,
+                        );
+                    }
+                );
+            }
+        );
 
-                            names.push(name);
+        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
 
-                            newImportDeclarationMap.set(sourceFile, names);
-                        });
+        // UPDATES
+        groupMap.size > 1 && groupMap.forEach(
+            (group, groupNumber) => {
+                if(!Node.isStatemented(classParentNode)) {
+                    return;
                 }
-            );
 
-        classDeclaration
-            .getStaticMethods()
+                this._changedSourceFiles.add(sourceFile);
+
+                const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
+                    name:  `${astChange.className}${groupNumber}`,
+                    isExported: exported,
+                });
+
+                groupClass.addTypeParameters(classTypeParameters);
+
+                let memberIndex = 0;
+
+                group.propertyNames.forEach(
+                    (propertyName) => {
+                        const instanceProperty = instanceProperties.find(
+                            (ip) => ip.name === propertyName,
+                        );
+
+                        groupClass.insertProperty(
+                            memberIndex,
+                            {
+                                name: propertyName,
+                                isReadonly: instanceProperty?.readonly ?? false,
+                                initializer: instanceProperty?.initializer ?? undefined,
+                            },
+                        );
+
+                        ++memberIndex;
+
+                        ++deletedMemberCount;
+
+                        instanceProperty?.instanceProperty.remove();
+                    }
+                );
+
+                group.methodNames.forEach(
+                    (methodName) => {
+                        const instanceMethod = instanceMethods.find(
+                            (im) => im.name === methodName,
+                        );
+
+                        const methodDeclaration = groupClass.insertMethod(
+                            memberIndex,
+                            {
+                                name: methodName,
+                            },
+                        );
+
+                        methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
+                        methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
+                        methodDeclaration.setReturnType(instanceMethod?.returnType ?? 'void');
+
+                        if (instanceMethod?.bodyText) {
+                            methodDeclaration.setBodyText(instanceMethod.bodyText);
+                            methodDeclaration.formatText();
+                        }
+
+                        ++memberIndex;
+
+                        ++deletedMemberCount;
+
+                        instanceMethod?.methodDeclaration.remove();
+                    }
+                );
+            }
+        );
+
+        staticProperties.forEach(
+            (staticProperty) => {
+                if(Node.isStatemented(classParentNode) && staticProperty.propertyAccessExpressions.length) {
+                    const declarationKind = staticProperty.readonly
+                        ? VariableDeclarationKind.Const
+                        : VariableDeclarationKind.Let;
+
+                    const variableStatement = classParentNode.insertVariableStatement(
+                        index,
+                        {
+                            declarationKind,
+                            declarations: [
+                                {
+                                    name: staticProperty.name,
+                                    initializer: staticProperty.initializer ?? undefined,
+                                }
+                            ],
+                        }
+                    );
+
+                    variableStatement.setIsExported(exported);
+                }
+
+                staticProperty.propertyAccessExpressions.forEach(
+                    ({ sourceFile, propertyAccessExpression }) => {
+                        this._changedSourceFiles.add(sourceFile);
+
+                        propertyAccessExpression.replaceWithText(staticProperty.name);
+                    }
+                );
+
+                ++deletedMemberCount;
+
+                staticProperty.staticProperty.remove();
+            }
+        );
+
+        staticMethods
             .forEach(
                 (staticMethod) => {
-                    const name = staticMethod.getName();
-
-                    const typeParameterDeclarations = staticMethod
-                        .getTypeParameters()
-                        .map((tpd) => tpd.getStructure());
-
-                    const parameters = staticMethod
-                        .getParameters()
-                        .map(parameter => parameter.getStructure());
-
-                    const returnType = staticMethod
-                        .getReturnTypeNode()
-                        ?.getText() ?? 'void';
-
-                    const bodyText = staticMethod.getBodyText();
-
                     if(Node.isStatemented(classParentNode)) {
-                        lazyFunctions.push(
-                            () => {
-                                const functionDeclaration = classParentNode.insertFunction(
-                                    index,
-                                    {
-                                        name,
-                                    }
-                                );
-
-                                functionDeclaration.setIsExported(true);
-                                functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                                functionDeclaration.addParameters(parameters);
-                                functionDeclaration.setReturnType(returnType);
-
-                                if (bodyText) {
-                                    functionDeclaration.setBodyText(bodyText);
-                                }
+                        const functionDeclaration = classParentNode.insertFunction(
+                            index,
+                            {
+                                name: staticMethod.name,
                             }
                         );
+
+                        functionDeclaration.setIsExported(true);
+                        functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
+                        functionDeclaration.addParameters(staticMethod.parameters);
+                        functionDeclaration.setReturnType(staticMethod.returnType);
+
+                        if (staticMethod.bodyText) {
+                            functionDeclaration.setBodyText(staticMethod.bodyText);
+                            functionDeclaration.formatText();
+                        }
                     }
 
-                    staticMethod
-                        .findReferences()
-                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                        .forEach((referencedSymbolEntry) => {
-                            const sourceFile = referencedSymbolEntry.getSourceFile();
+                    staticMethod.references.forEach(
+                        (reference) => {
+                            reference.callExpression.replaceWithText(reference.text);
 
-                            this._changedSourceFiles.add(sourceFile);
-
-                            const node = referencedSymbolEntry.getNode();
-
-                            const callExpression = node
-                                .getFirstAncestorByKind(
-                                    ts.SyntaxKind.CallExpression
-                                );
-
-                            if (!callExpression) {
-                                return;
-                            }
-
-                            let typeArguments = callExpression
-                                .getTypeArguments()
-                                .map(ta => ta.getText())
-                                .join(', ');
-
-                            typeArguments = typeArguments ? `<${typeArguments}>` : '';
-
-                            const args = callExpression
-                                .getArguments()
-                                .map((arg) => arg.getText())
-                                .join(', ');
-
-                            // TODO: maybe there's a programmatic way to do this?
-                            const text = `${staticMethod.getName()}${typeArguments}(${args})`;
-
-                            lazyFunctions.push(
-                                () => callExpression.replaceWithText(text),
-                            );
-
-                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
-
-                            names.push(name);
-
-                            newImportDeclarationMap.set(sourceFile, names);
-                        });
+                            this._changedSourceFiles.add(reference.sourceFile);
+                        }
+                    );
 
                     ++deletedMemberCount;
 
-                    lazyFunctions.push(
-                        () => staticMethod.remove(),
-                    );
-
-                    this._changedSourceFiles.add(sourceFile);
+                    staticMethod.staticMethod.remove();
                 }
             );
 
-        const importSpecifierFilePaths = classDeclaration
-            .findReferences()
-            .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-            .map(
-                (rse) => {
-                    const node = rse.getNode();
-                    const parentNode = node.getParent();
-
-                    if (!parentNode || !Node.isImportSpecifier(parentNode)) {
-                        return null;
-                    }
-
-                    return parentNode
-                        .getSourceFile()
-                        .getFilePath()
-                        .toString();
-                }
-            )
-            .filter(isNeitherNullNorUndefined);
+        if (commentStatement) {
+            commentStatement.remove();
+        }
 
         {
-            if (lazyFunctions.length > 0) {
+            if (deletedMemberCount > 0) {
                 this._changedSourceFiles.add(sourceFile);
             }
-
-            lazyFunctions.forEach(
-                (lazyFunction) => lazyFunction(),
-            );
         }
 
         if (members.length - deletedMemberCount === 0) {
@@ -483,7 +490,7 @@ export class AstChangeApplier {
 
 
                 }
-            )
+            );
 
             newImportDeclarationMap.forEach(
                 (names, otherSourceFile) => {
@@ -494,13 +501,13 @@ export class AstChangeApplier {
                     otherSourceFile.insertImportDeclaration(
                         0,
                         {
-                            namedImports: names,
+                            namedImports: names.slice(),
                             moduleSpecifier: otherSourceFile
                                 .getRelativePathAsModuleSpecifierTo(sourceFile.getFilePath()),
                         }
                     );
                 }
-            )
+            );
 
             classDeclaration.remove();
         }

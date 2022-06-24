@@ -45,10 +45,10 @@ describe('move a static property out of class with import', () => {
 
         assert.equal(sourceFiles.length, 2);
 
-        assert.equal(sourceFiles[0]![0], '/b.ts');
-        assert.equal(sourceFiles[0]![1], currentCase.newB);
+        assert.equal(sourceFiles[0]![0], '/a.ts');
+        assert.equal(sourceFiles[0]![1], currentCase.newA);
 
-        assert.equal(sourceFiles[1]![0], '/a.ts');
-        assert.equal(sourceFiles[1]![1], currentCase.newA);
+        assert.equal(sourceFiles[1]![0], '/b.ts');
+        assert.equal(sourceFiles[1]![1], currentCase.newB);
     });
 });

@@ -312,6 +312,162 @@ describe('find member dependencies', () => {
                     }
                     return;
                 }
+                case 10: {
+                    {
+                        assert.equal(methodMap.size, 1);
+
+                        const ma = methodMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.propertyNames, []);
+                        assert.deepEqual(ma.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group0 = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group0);
+
+                            assert.deepEqual(group0.methodNames, ['ma']);
+                            assert.deepEqual(group0.propertyNames, []);
+                            assert.equal(group0.mutability, Mutability.READING_READONLY);
+                        }
+                    }
+                    return;
+                }
+                case 11: {
+                    {
+                        assert.equal(methodMap.size, 2);
+
+                        const ma = methodMap.get('ma');
+                        const mb = methodMap.get('mb');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+
+                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(ma.propertyNames, []);
+                        assert.deepEqual(ma.methodNames, ['mb']);
+
+                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mb.propertyNames, []);
+                        assert.deepEqual(mb.methodNames, ['ma']);
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group0 = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group0);
+
+                            assert.deepEqual(group0.methodNames, ['ma', 'mb']);
+                            assert.deepEqual(group0.propertyNames, []);
+                            assert.equal(group0.mutability, Mutability.READING_READONLY);
+                        }
+                    }
+                    return;
+                }
+                case 12: {
+                    {
+                        assert.equal(methodMap.size, 4);
+
+                        const ma = methodMap.get('ma');
+                        const mb = methodMap.get('mb');
+                        const mc = methodMap.get('mc');
+                        const md = methodMap.get('md');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+                        assertNeitherNullNorUndefined(mc);
+                        assertNeitherNullNorUndefined(md);
+
+                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(ma.propertyNames, []);
+                        assert.deepEqual(ma.methodNames, ['mb']);
+
+                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mb.propertyNames, []);
+                        assert.deepEqual(mb.methodNames, ['ma']);
+
+                        assert.equal(mc.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mc.propertyNames, []);
+                        assert.deepEqual(mc.methodNames, ['md']);
+
+                        assert.equal(md.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(md.propertyNames, []);
+                        assert.deepEqual(md.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 2);
+
+                        {
+                            const group = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group);
+
+                            assert.deepEqual(group.methodNames, ['mc', 'md']);
+                            assert.deepEqual(group.propertyNames, []);
+                            assert.equal(group.mutability, Mutability.READING_READONLY);
+                        }
+
+                        {
+                            const group = groupMap.get(1);
+
+                            assertNeitherNullNorUndefined(group);
+
+                            assert.deepEqual(group.methodNames, ['ma', 'mb']);
+                            assert.deepEqual(group.propertyNames, []);
+                            assert.equal(group.mutability, Mutability.READING_READONLY);
+                        }
+                    }
+                    return;
+                }
+                case 12: {
+                    {
+                        assert.equal(methodMap.size, 2);
+
+                        {
+                            const ma = methodMap.get('ma');
+                            assertNeitherNullNorUndefined(ma);
+
+                            assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(ma.propertyNames, ['pa']);
+                            assert.deepEqual(ma.methodNames, ['mb']);
+                        }
+
+                        {
+                            const mb = methodMap.get('mb');
+                            assertNeitherNullNorUndefined(mb);
+
+                            assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(mb.propertyNames, ['pb']);
+                            assert.deepEqual(mb.methodNames, ['ma']);
+                        }
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group);
+
+                            assert.deepEqual(group.methodNames, ['ma', 'mb']);
+                            assert.deepEqual(group.propertyNames, ['pa', 'pb']);
+                            assert.equal(group.mutability, Mutability.WRITING_WRITABLE);
+                        }
+                    }
+                    return;
+                }
             }
         });
     }
