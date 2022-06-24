@@ -1,8 +1,9 @@
-import {ClassDeclaration, ts} from "ts-morph";
+import {ClassDeclaration, ts, TypeParameterDeclarationStructure} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
 export type InstanceMethod = Readonly<{
     name: string,
+    typeParameterDeclarations: ReadonlyArray<TypeParameterDeclarationStructure>,
     calleeNames: ReadonlyArray<string>,
 }>;
 
@@ -12,6 +13,10 @@ export const getClassInstanceMethods = (
     const oldMethods = classDefinition
         .getInstanceMethods()
         .map((methodDeclaration) => {
+            const typeParameterDeclarations = methodDeclaration
+                .getTypeParameters()
+                .map((tpd) => tpd.getStructure());
+
             const callerNames = methodDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
@@ -40,18 +45,19 @@ export const getClassInstanceMethods = (
             return {
                 name: methodDeclaration.getName(),
                 callerNames,
+                typeParameterDeclarations,
             };
         });
 
     // invert the relationship
     return oldMethods.map(
-        ({ name }) => {
+        (method) => {
             const calleeNames: ReadonlyArray<string> = oldMethods
-                .filter(({ callerNames }) => callerNames.includes(name))
+                .filter(({ callerNames }) => callerNames.includes(method.name))
                 .map(({ name }) => name);
 
             return {
-                name,
+                ...method,
                 calleeNames,
             };
         }

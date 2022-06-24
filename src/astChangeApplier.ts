@@ -340,7 +340,8 @@ export class AstChangeApplier {
                                 // returnType: null,
                             },
                         );
-                        // functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
+
+                        methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
                         // functionDeclaration.addParameters(staticMethod.parameters);
                         // functionDeclaration.setReturnType(staticMethod.returnType);
                         //
