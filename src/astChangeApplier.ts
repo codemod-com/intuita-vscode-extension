@@ -237,8 +237,6 @@ export class AstChangeApplier {
         const members = classDeclaration.getMembers();
         let deletedMemberCount = 0;
 
-        const lazyFunctions: (() => void)[] = [];
-
         const commentStatement = getClassCommentStatement(classDeclaration);
 
         const index = classDeclaration.getChildIndex();
@@ -250,7 +248,7 @@ export class AstChangeApplier {
         const staticProperties = getClassStaticProperties(classDeclaration);
         const staticMethods = getClassStaticMethod(classDeclaration);
 
-        staticProperties.flatMap(
+        staticProperties.forEach(
             (staticProperty) => {
                 const { name } = staticProperty;
 
@@ -265,15 +263,29 @@ export class AstChangeApplier {
             }
         );
 
+        staticMethods.forEach(
+            (staticMethod) => {
+
+                staticMethod.references.forEach(
+                    (reference) => {
+                        newImportDeclarationMap.addItem(
+                            reference.sourceFile,
+                            staticMethod.name,
+                        );
+                    }
+                );
+            }
+        );
+
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
+
+        // UPDATES
 
         staticProperties.forEach(
             (staticProperty) => {
                 ++deletedMemberCount;
 
-                lazyFunctions.push(
-                    () => staticProperty.staticProperty.remove(),
-                );
+                staticProperty.staticProperty.remove();
 
                 if (staticProperty.propertyAccessExpressions.length === 0) {
                     return;
@@ -284,34 +296,27 @@ export class AstChangeApplier {
                         ? VariableDeclarationKind.Const
                         : VariableDeclarationKind.Let;
 
-                    lazyFunctions.push(
-                        () => {
-                            const variableStatement = classParentNode.insertVariableStatement(
-                                index,
+                    const variableStatement = classParentNode.insertVariableStatement(
+                        index,
+                        {
+                            declarationKind,
+                            declarations: [
                                 {
-                                    declarationKind,
-                                    declarations: [
-                                        {
-                                            name: staticProperty.name,
-                                            initializer: staticProperty.initializer ?? undefined,
-                                        }
-                                    ],
+                                    name: staticProperty.name,
+                                    initializer: staticProperty.initializer ?? undefined,
                                 }
-                            );
-
-                            variableStatement.setIsExported(exported);
+                            ],
                         }
                     );
+
+                    variableStatement.setIsExported(exported);
                 }
 
                 staticProperty.propertyAccessExpressions.forEach(
                     ({ sourceFile, propertyAccessExpression }) => {
                         this._changedSourceFiles.add(sourceFile);
-                        lazyFunctions.push(
-                            () => {
-                                propertyAccessExpression.replaceWithText(staticProperty.name);
-                            }
-                        );
+
+                        propertyAccessExpression.replaceWithText(staticProperty.name);
                     }
                 );
             }
@@ -322,42 +327,29 @@ export class AstChangeApplier {
                 (staticMethod) => {
                     ++deletedMemberCount;
 
-                    lazyFunctions.push(
-                        () => staticMethod.staticMethod.remove(),
-                    );
+                    staticMethod.staticMethod.remove()
 
                     if(Node.isStatemented(classParentNode)) {
-                        lazyFunctions.push(
-                            () => {
-                                const functionDeclaration = classParentNode.insertFunction(
-                                    index,
-                                    {
-                                        name: staticMethod.name,
-                                    }
-                                );
-
-                                functionDeclaration.setIsExported(true);
-                                functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
-                                functionDeclaration.addParameters(staticMethod.parameters);
-                                functionDeclaration.setReturnType(staticMethod.returnType);
-
-                                if (staticMethod.bodyText) {
-                                    functionDeclaration.setBodyText(staticMethod.bodyText);
-                                }
+                        const functionDeclaration = classParentNode.insertFunction(
+                            index,
+                            {
+                                name: staticMethod.name,
                             }
                         );
+
+                        functionDeclaration.setIsExported(true);
+                        functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
+                        functionDeclaration.addParameters(staticMethod.parameters);
+                        functionDeclaration.setReturnType(staticMethod.returnType);
+
+                        if (staticMethod.bodyText) {
+                            functionDeclaration.setBodyText(staticMethod.bodyText);
+                        }
                     }
 
                     staticMethod.references.forEach(
                         (reference) => {
-                            lazyFunctions.push(
-                                () => reference.callExpression.replaceWithText(reference.text),
-                            );
-
-                            newImportDeclarationMap.addItem(
-                                reference.sourceFile,
-                                staticMethod.name,
-                            );
+                            reference.callExpression.replaceWithText(reference.text);
 
                             this._changedSourceFiles.add(reference.sourceFile);
                         }
@@ -365,71 +357,15 @@ export class AstChangeApplier {
                 }
             );
 
-        // classDeclaration
-        //     .getStaticMethods()
-        //     .forEach(
-        //         (staticMethod) => {
-        //             const name = staticMethod.getName();
-        //
-        //             staticMethod
-        //                 .findReferences()
-        //                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-        //                 .forEach((referencedSymbolEntry) => {
-        //                     const sourceFile = referencedSymbolEntry.getSourceFile();
-        //
-        //                     this._changedSourceFiles.add(sourceFile);
-        //
-        //                     const node = referencedSymbolEntry.getNode();
-        //
-        //                     const callExpression = node
-        //                         .getFirstAncestorByKind(
-        //                             ts.SyntaxKind.CallExpression
-        //                         );
-        //
-        //                     if (!callExpression) {
-        //                         return;
-        //                     }
-        //
-        //                     let typeArguments = callExpression
-        //                         .getTypeArguments()
-        //                         .map(ta => ta.getText())
-        //                         .join(', ');
-        //
-        //                     typeArguments = typeArguments ? `<${typeArguments}>` : '';
-        //
-        //                     const args = callExpression
-        //                         .getArguments()
-        //                         .map((arg) => arg.getText())
-        //                         .join(', ');
-        //
-        //                     // TODO: maybe there's a programmatic way to do this?
-        //                     const text = `${staticMethod.getName()}${typeArguments}(${args})`;
-        //
-        //                     lazyFunctions.push(
-        //                         () => callExpression.replaceWithText(text),
-        //                     );
-        //
-        //                     newImportDeclarationMap.addItem(
-        //                         sourceFile,
-        //                         name,
-        //                     );
-        //                 });
-        //         }
-        //     );
-
         // CHANGES
         if (commentStatement) {
             commentStatement.remove();
         }
 
         {
-            if (lazyFunctions.length > 0) {
+            if (deletedMemberCount > 0) {
                 this._changedSourceFiles.add(sourceFile);
             }
-
-            lazyFunctions.forEach(
-                (lazyFunction) => lazyFunction(),
-            );
         }
 
         if (members.length - deletedMemberCount === 0) {
