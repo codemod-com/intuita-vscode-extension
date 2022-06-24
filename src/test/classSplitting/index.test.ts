@@ -4,7 +4,7 @@ import {buildCaseMap} from "../buildCaseMap";
 import {Project} from "ts-morph";
 import {assert} from "chai";
 
-describe.only('split classes', () => {
+describe('split classes', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );

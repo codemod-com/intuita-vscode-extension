@@ -422,6 +422,7 @@ export class AstChangeApplier {
 
                         if (staticMethod.bodyText) {
                             functionDeclaration.setBodyText(staticMethod.bodyText);
+                            functionDeclaration.formatText();
                         }
                     }
 
