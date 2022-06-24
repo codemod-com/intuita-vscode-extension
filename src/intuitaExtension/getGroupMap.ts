@@ -47,49 +47,41 @@ export const getGroupMap = (
             ([_, group]) => group.methodNames.includes(methodName)
         );
 
-        if (!groupResult) {
-            const methodNames = uniquify([
-                ...methodResult.map((r) => r[0]),
-                methodName
-            ]);
+        const methodNames = uniquify([
+            ...(groupResult?.[1].methodNames ?? []),
+            ...methodResult.map((r) => r[0]),
+            methodName
+        ]);
 
+        const propertyNames = uniquify([
+            ...(groupResult?.[1].propertyNames ?? []),
+            ...methodResult.flatMap((r) => r[1].propertyNames),
+            ...method.propertyNames,
+        ]);
+
+        const mutability = concatMutabilities([
+            ...methodResult.flatMap((r) => r[1].propertyMutability),
+            method.propertyMutability,
+            groupResult?.[1].mutability ?? Mutability.READING_READONLY,
+        ]);
+
+        const group: Group = {
+            methodNames,
+            propertyNames,
+            mutability,
+        };
+
+        if (!groupResult) {
             groupMap.set(
                 groupNumber,
-                {
-                    methodNames,
-                    propertyNames: uniquify([
-                        ...methodResult.flatMap((r) => r[1].propertyNames),
-                        ...method.propertyNames,
-                    ]),
-                    mutability: concatMutabilities([
-                        ...methodResult.flatMap((r) => r[1].propertyMutability),
-                        method.propertyMutability,
-                    ]),
-
-                }
+                group,
             );
 
             ++groupNumber;
         } else {
             groupMap.set(
                 groupResult[0],
-                {
-                    methodNames: uniquify([
-                        ...methodResult.map((r) => r[0]),
-                        ...groupResult[1].methodNames,
-                        methodName
-                    ]),
-                    propertyNames: uniquify([
-                        ...methodResult.flatMap((r) => r[1].propertyNames),
-                        ...method.propertyNames,
-                        ...groupResult[1].propertyNames,
-                    ]),
-                    mutability: concatMutabilities([
-                        ...methodResult.flatMap((r) => r[1].propertyMutability),
-                        method.propertyMutability,
-                        groupResult[1].mutability,
-                    ]),
-                }
+                group,
             );
         }
 
