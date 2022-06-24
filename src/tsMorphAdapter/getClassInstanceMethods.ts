@@ -1,4 +1,10 @@
-import {ClassDeclaration, ParameterDeclarationStructure, ts, TypeParameterDeclarationStructure} from "ts-morph";
+import {
+    ClassDeclaration,
+    MethodDeclaration,
+    ParameterDeclarationStructure,
+    ts,
+    TypeParameterDeclarationStructure
+} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
 export type InstanceMethod = Readonly<{
@@ -7,6 +13,8 @@ export type InstanceMethod = Readonly<{
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string,
     calleeNames: ReadonlyArray<string>,
+    bodyText: string | null,
+    methodDeclaration: MethodDeclaration,
 }>;
 
 export const getClassInstanceMethods = (
@@ -26,6 +34,8 @@ export const getClassInstanceMethods = (
             const returnType = methodDeclaration
                 .getReturnTypeNode()
                 ?.getText() ?? 'void';
+
+            const bodyText = methodDeclaration.getBodyText() ?? null;
 
             const callerNames = methodDeclaration
                 .findReferences()
@@ -58,6 +68,8 @@ export const getClassInstanceMethods = (
                 typeParameterDeclarations,
                 parameters,
                 returnType,
+                bodyText,
+                methodDeclaration,
             };
         });
 

@@ -97,23 +97,23 @@
     class A0 {
         pa = 1;
 
-        ma() {
+        ma(): void {
             console.log(this.pa);
         }
     }
 
     class A1 {
-        pb = 1;
+        pb = 2;
 
-        mb() {
+        mb(): void {
             console.log(this.pb);
         }
     }
 
     class A2 {
-        pc = 1;
+        pc = 3;
 
-        mc() {
+        mc(): void {
             console.log(this.pc);
         }
     }

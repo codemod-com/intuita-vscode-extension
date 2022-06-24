@@ -258,8 +258,6 @@ export class AstChangeApplier {
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
         const groupMap = getGroupMap(methodMap);
 
-        console.log('GM', groupMap);
-
         staticProperties.forEach(
             (staticProperty) => {
                 const { name } = staticProperty;
@@ -292,7 +290,7 @@ export class AstChangeApplier {
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
 
         // UPDATES
-        groupMap.forEach(
+        groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
                 if(!Node.isStatemented(classParentNode)) {
                     return;
@@ -323,6 +321,10 @@ export class AstChangeApplier {
                         );
 
                         ++memberIndex;
+
+                        ++deletedMemberCount;
+
+                        instanceProperty?.instanceProperty.remove();
                     }
                 );
 
@@ -336,19 +338,22 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
-                                // returnType: null,
                             },
                         );
 
                         methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
                         methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
                         methodDeclaration.setReturnType(instanceMethod?.returnType ?? 'void');
-                        //
-                        // if (staticMethod.bodyText) {
-                        //     functionDeclaration.setBodyText(staticMethod.bodyText);
-                        // }
+
+                        if (instanceMethod?.bodyText) {
+                            methodDeclaration.setBodyText(instanceMethod.bodyText);
+                        }
 
                         ++memberIndex;
+
+                        ++deletedMemberCount;
+
+                        instanceMethod?.methodDeclaration.remove();
                     }
                 );
             }
