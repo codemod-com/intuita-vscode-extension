@@ -233,6 +233,8 @@ export class AstChangeApplier {
 
         const newImportDeclarationMap = new Map<SourceFile, string[]>();
 
+        const exported = Node.isSourceFile(classParentNode);
+
         classDeclaration
             .getStaticProperties()
             .forEach(
@@ -269,8 +271,6 @@ export class AstChangeApplier {
                                 ? VariableDeclarationKind.Const
                                 : VariableDeclarationKind.Let;
 
-                        const exported = Node.isSourceFile(classParentNode);
-
                         lazyFunctions.push(
                             () => {
                                 const variableStatement = classParentNode.insertVariableStatement(
@@ -294,14 +294,17 @@ export class AstChangeApplier {
                     referencedSymbolEntries
                         .map((referencedSymbolEntry) => {
                             return calculateStaticPropertyAccessExpressionUpdate(
-                                name,
                                 referencedSymbolEntry,
                             );
                         })
                         .filter(isNeitherNullNorUndefined)
-                        .forEach(([sourceFile, callback ]) => {
+                        .forEach(([sourceFile, propertyAccessExpression ]) => {
                             this._changedSourceFiles.add(sourceFile);
-                            lazyFunctions.push(callback);
+                            lazyFunctions.push(
+                                () => {
+                                    propertyAccessExpression.replaceWithText(name);
+                                }
+                            );
 
                             const names = newImportDeclarationMap.get(sourceFile) ?? [];
 

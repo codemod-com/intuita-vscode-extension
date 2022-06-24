@@ -1,4 +1,5 @@
 import {
+    PropertyAccessExpression,
     ReferencedSymbolEntry,
     SourceFile,
     ts,
@@ -10,10 +11,10 @@ export function isNeitherNullNorUndefined<T>(
     return value !== null && value !== undefined;
 }
 
+// to be removed
 export const calculateStaticPropertyAccessExpressionUpdate = (
-    name: string,
     referencedSymbolEntry: ReferencedSymbolEntry
-): [SourceFile, () => void] | null => {
+): [SourceFile, PropertyAccessExpression] | null => {
     const sourceFile = referencedSymbolEntry.getSourceFile();
     const node = referencedSymbolEntry.getNode();
 
@@ -28,8 +29,9 @@ export const calculateStaticPropertyAccessExpressionUpdate = (
 
     return [
         sourceFile,
-        () => propertyAccessExpression.replaceWithText(
-            name
-        ),
+        propertyAccessExpression,
+        // () => propertyAccessExpression.replaceWithText(
+        //     name
+        // ),
     ];
 }
