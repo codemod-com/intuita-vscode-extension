@@ -336,14 +336,13 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
-                                // parameters: [],
                                 // returnType: null,
                             },
                         );
 
                         methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
-                        // functionDeclaration.addParameters(staticMethod.parameters);
-                        // functionDeclaration.setReturnType(staticMethod.returnType);
+                        methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
+                        methodDeclaration.setReturnType(instanceMethod?.returnType ?? 'void');
                         //
                         // if (staticMethod.bodyText) {
                         //     functionDeclaration.setBodyText(staticMethod.bodyText);
