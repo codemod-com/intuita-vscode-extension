@@ -283,15 +283,7 @@ export class AstChangeApplier {
 
         staticProperties.forEach(
             (staticProperty) => {
-                ++deletedMemberCount;
-
-                staticProperty.staticProperty.remove();
-
-                if (staticProperty.propertyAccessExpressions.length === 0) {
-                    return;
-                }
-
-                if(Node.isStatemented(classParentNode)) {
+                if(Node.isStatemented(classParentNode) && staticProperty.propertyAccessExpressions.length) {
                     const declarationKind = staticProperty.readonly
                         ? VariableDeclarationKind.Const
                         : VariableDeclarationKind.Let;
@@ -319,16 +311,16 @@ export class AstChangeApplier {
                         propertyAccessExpression.replaceWithText(staticProperty.name);
                     }
                 );
+
+                ++deletedMemberCount;
+
+                staticProperty.staticProperty.remove();
             }
         );
 
         staticMethods
             .forEach(
                 (staticMethod) => {
-                    ++deletedMemberCount;
-
-                    staticMethod.staticMethod.remove()
-
                     if(Node.isStatemented(classParentNode)) {
                         const functionDeclaration = classParentNode.insertFunction(
                             index,
@@ -354,6 +346,10 @@ export class AstChangeApplier {
                             this._changedSourceFiles.add(reference.sourceFile);
                         }
                     );
+
+                    ++deletedMemberCount;
+
+                    staticMethod.staticMethod.remove();
                 }
             );
 
