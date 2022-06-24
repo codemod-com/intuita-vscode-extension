@@ -48,13 +48,15 @@ export const getGroupMap = (
         );
 
         if (!groupResult) {
+            const methodNames = uniquify([
+                ...methodResult.map((r) => r[0]),
+                methodName
+            ]);
+
             groupMap.set(
                 groupNumber,
                 {
-                    methodNames: uniquify([
-                        ...methodResult.map((r) => r[0]),
-                        methodName
-                    ]),
+                    methodNames,
                     propertyNames: uniquify([
                         ...methodResult.flatMap((r) => r[1].propertyNames),
                         ...method.propertyNames,
@@ -99,21 +101,23 @@ export const getGroupMap = (
 
     };
 
-    methodNames.forEach(
-        (methodName) => {
-            const method = methodMap.get(methodName);
+    for(let i = 0; i < methodNames.length; ++i) {
+        methodNames.forEach(
+            (methodName) => {
+                const method = methodMap.get(methodName);
 
-            if (!method) {
-                return;
+                if (!method) {
+                    return;
+                }
+
+                const { methodNames } = method;
+
+                if (methodNames.length === i) {
+                    traverse(methodName);
+                }
             }
-
-            const { methodNames } = method;
-
-            if (methodNames.length === 0) {
-                traverse(methodName);
-            }
-        }
-    );
+        );
+    }
 
     return groupMap;
-}
+};

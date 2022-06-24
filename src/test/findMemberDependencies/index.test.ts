@@ -13,7 +13,7 @@ function assertNeitherNullNorUndefined<T>(value: NonNullable<T> | null | undefin
     }
 }
 
-describe('find member dependencies', () => {
+describe.only('find member dependencies', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );
@@ -306,6 +306,34 @@ describe('find member dependencies', () => {
                             assertNeitherNullNorUndefined(group0);
 
                             assert.deepEqual(group0.methodNames, ['ma', 'mb', 'mc']);
+                            assert.deepEqual(group0.propertyNames, []);
+                            assert.equal(group0.mutability, Mutability.READING_READONLY);
+                        }
+                    }
+                    return;
+                }
+                case 10: {
+                    {
+                        assert.equal(methodMap.size, 1);
+
+                        const ma = methodMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.propertyNames, []);
+                        assert.deepEqual(ma.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group0 = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group0);
+
+                            assert.deepEqual(group0.methodNames, ['ma']);
                             assert.deepEqual(group0.propertyNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
