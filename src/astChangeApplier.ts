@@ -3,6 +3,7 @@ import {AstChange, AstChangeKind} from "./getAstChanges";
 import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
+import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -243,6 +244,7 @@ export class AstChangeApplier {
         const exported = Node.isSourceFile(classParentNode);
 
         const staticProperties = getClassStaticProperties(classDeclaration);
+        const staticMethods = getClassStaticMethod(classDeclaration);
 
         staticProperties.flatMap(
             (staticProperty) => {
@@ -307,9 +309,36 @@ export class AstChangeApplier {
                             }
                         );
                     }
-                )
+                );
             }
         )
+
+        staticMethods
+            .forEach(
+                (staticMethod) => {
+                    if(Node.isStatemented(classParentNode)) {
+                        lazyFunctions.push(
+                            () => {
+                                const functionDeclaration = classParentNode.insertFunction(
+                                    index,
+                                    {
+                                        name: staticMethod.name,
+                                    }
+                                );
+
+                                functionDeclaration.setIsExported(true);
+                                functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
+                                functionDeclaration.addParameters(staticMethod.parameters);
+                                functionDeclaration.setReturnType(staticMethod.returnType);
+
+                                if (staticMethod.bodyText) {
+                                    functionDeclaration.setBodyText(staticMethod.bodyText);
+                                }
+                            }
+                        );
+                    }
+                }
+            );
 
         classDeclaration
             .getStaticMethods()
@@ -330,28 +359,6 @@ export class AstChangeApplier {
                         ?.getText() ?? 'void';
 
                     const bodyText = staticMethod.getBodyText();
-
-                    if(Node.isStatemented(classParentNode)) {
-                        lazyFunctions.push(
-                            () => {
-                                const functionDeclaration = classParentNode.insertFunction(
-                                    index,
-                                    {
-                                        name,
-                                    }
-                                );
-
-                                functionDeclaration.setIsExported(true);
-                                functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                                functionDeclaration.addParameters(parameters);
-                                functionDeclaration.setReturnType(returnType);
-
-                                if (bodyText) {
-                                    functionDeclaration.setBodyText(bodyText);
-                                }
-                            }
-                        );
-                    }
 
                     staticMethod
                         .findReferences()
