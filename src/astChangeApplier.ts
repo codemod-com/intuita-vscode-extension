@@ -352,7 +352,7 @@ export class AstChangeApplier {
                     }
                 );
             }
-        )
+        );
 
         staticProperties.forEach(
             (staticProperty) => {
