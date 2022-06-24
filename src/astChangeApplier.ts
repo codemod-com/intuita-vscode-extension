@@ -1,12 +1,18 @@
-import {Node, Project, SourceFile, StructureKind, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {
-    calculateStaticPropertyAccessExpressionUpdate,
-    isNeitherNullNorUndefined
-} from "./utilities";
 import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
+
+class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
+    public addItem(key: K, item: I): void {
+        const items = this.get(key)?.slice() ?? [];
+
+        items.push(item);
+
+        this.set(key, items);
+    }
+}
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -232,7 +238,7 @@ export class AstChangeApplier {
 
         const index = classDeclaration.getChildIndex();
 
-        const newImportDeclarationMap = new Map<SourceFile, string[]>();
+        const newImportDeclarationMap = new ReadonlyArrayMap<SourceFile, string>();
 
         const exported = Node.isSourceFile(classParentNode);
 
@@ -285,11 +291,10 @@ export class AstChangeApplier {
                             }
                         );
 
-                        const names = newImportDeclarationMap.get(sourceFile) ?? [];
-
-                        names.push(staticProperty.name);
-
-                        newImportDeclarationMap.set(sourceFile, names);
+                        newImportDeclarationMap.addItem(
+                            sourceFile,
+                            staticProperty.name,
+                        );
                     }
                 )
             }
@@ -375,11 +380,10 @@ export class AstChangeApplier {
                                 () => callExpression.replaceWithText(text),
                             );
 
-                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
-
-                            names.push(name);
-
-                            newImportDeclarationMap.set(sourceFile, names);
+                            newImportDeclarationMap.addItem(
+                                sourceFile,
+                                name,
+                            );
                         });
 
                     ++deletedMemberCount;
@@ -458,7 +462,7 @@ export class AstChangeApplier {
                     otherSourceFile.insertImportDeclaration(
                         0,
                         {
-                            namedImports: names,
+                            namedImports: names.slice(),
                             moduleSpecifier: otherSourceFile
                                 .getRelativePathAsModuleSpecifierTo(sourceFile.getFilePath()),
                         }
