@@ -243,6 +243,22 @@ export class AstChangeApplier {
         const exported = Node.isSourceFile(classParentNode);
 
         const staticProperties = getClassStaticProperties(classDeclaration);
+
+        staticProperties.flatMap(
+            (staticProperty) => {
+                const { name } = staticProperty;
+
+                staticProperty.propertyAccessExpressions.forEach(
+                    ({ sourceFile }) => {
+                        newImportDeclarationMap.addItem(
+                            sourceFile,
+                            name,
+                        );
+                    }
+                );
+            }
+        );
+
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
 
         staticProperties.forEach(
@@ -289,11 +305,6 @@ export class AstChangeApplier {
                             () => {
                                 propertyAccessExpression.replaceWithText(staticProperty.name);
                             }
-                        );
-
-                        newImportDeclarationMap.addItem(
-                            sourceFile,
-                            staticProperty.name,
                         );
                     }
                 )
@@ -451,7 +462,7 @@ export class AstChangeApplier {
 
 
                 }
-            )
+            );
 
             newImportDeclarationMap.forEach(
                 (names, otherSourceFile) => {
@@ -468,7 +479,7 @@ export class AstChangeApplier {
                         }
                     );
                 }
-            )
+            );
 
             classDeclaration.remove();
         }
