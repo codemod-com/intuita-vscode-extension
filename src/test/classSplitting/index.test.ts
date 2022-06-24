@@ -34,7 +34,7 @@ describe('split classes', () => {
             const sourceFiles = applier.applyChanges();
 
             switch(caseNumber) {
-                case 8: {
+                case 1: {
                     assert.equal(sourceFiles.length, 1);
 
                     assert.equal(sourceFiles[0]?.[0], '/a.ts');
