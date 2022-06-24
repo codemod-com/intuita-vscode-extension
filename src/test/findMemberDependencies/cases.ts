@@ -114,9 +114,17 @@
         ma() {
             this.ma();
         }
+    }
+}
+/** old-011 **/
+{
+    class A {
+        ma() {
+            this.mb();
+        }
 
-        // mb() {
-        //     this.ma();
-        // }
+        mb() {
+            this.ma();
+        }
     }
 }

@@ -340,6 +340,40 @@ describe.only('find member dependencies', () => {
                     }
                     return;
                 }
+                case 11: {
+                    {
+                        assert.equal(methodMap.size, 2);
+
+                        const ma = methodMap.get('ma');
+                        const mb = methodMap.get('mb');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+
+                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(ma.propertyNames, []);
+                        assert.deepEqual(ma.methodNames, ['mb']);
+
+                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mb.propertyNames, []);
+                        assert.deepEqual(mb.methodNames, ['ma']);
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group0 = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group0);
+
+                            assert.deepEqual(group0.methodNames, ['ma', 'mb']);
+                            assert.deepEqual(group0.propertyNames, []);
+                            assert.equal(group0.mutability, Mutability.READING_READONLY);
+                        }
+                    }
+                    return;
+                }
             }
         });
     }
