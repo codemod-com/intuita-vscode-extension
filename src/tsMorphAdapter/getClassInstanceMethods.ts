@@ -1,14 +1,19 @@
 import {ClassDeclaration, ts} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
+export type InstanceMethod = Readonly<{
+    name: string,
+    calleeNames: ReadonlyArray<string>,
+}>;
+
 export const getClassInstanceMethods = (
     classDefinition: ClassDeclaration,
-): ReadonlyArray<[string, ReadonlyArray<string>]> => {
+): ReadonlyArray<InstanceMethod> => {
     const oldMethods: ReadonlyArray<[string, ReadonlyArray<string>]> = classDefinition
         .getInstanceMethods()
         .map((methodDeclaration) => {
 
-            const methodNames = methodDeclaration
+            const callerNames = methodDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
                 .map(
@@ -35,21 +40,21 @@ export const getClassInstanceMethods = (
 
             return [
                 methodDeclaration.getName(),
-                methodNames,
+                callerNames,
             ];
         });
 
     // invert the relationship
     return oldMethods.map(
         ([methodName, _]) => {
-            const methodNames: ReadonlyArray<string> = oldMethods
+            const calleeNames: ReadonlyArray<string> = oldMethods
                 .filter(([_, methodNames]) => methodNames.includes(methodName))
                 .map(([mn, ]) => mn)
 
-            return [
-                methodName,
-                methodNames,
-            ];
+            return {
+                name: methodName,
+                calleeNames,
+            };
         }
     );
 };

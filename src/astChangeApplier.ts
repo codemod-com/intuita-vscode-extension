@@ -328,15 +328,18 @@ export class AstChangeApplier {
 
                 group.methodNames.forEach(
                     (methodName) => {
-                        groupClass.insertMethod(
+                        const instanceMethod = instanceMethods.find(
+                            (im) => im.name === methodName,
+                        );
+
+                        const methodDeclaration = groupClass.insertMethod(
                             memberIndex,
                             {
                                 name: methodName,
-                                parameters: [],
+                                // parameters: [],
+                                // returnType: null,
                             },
                         );
-
-                        // functionDeclaration.setIsExported(true);
                         // functionDeclaration.addTypeParameters(staticMethod.typeParameterDeclarations);
                         // functionDeclaration.addParameters(staticMethod.parameters);
                         // functionDeclaration.setReturnType(staticMethod.returnType);
