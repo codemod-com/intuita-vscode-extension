@@ -430,6 +430,44 @@ describe.only('find member dependencies', () => {
                     }
                     return;
                 }
+                case 12: {
+                    {
+                        assert.equal(methodMap.size, 2);
+
+                        {
+                            const ma = methodMap.get('ma');
+                            assertNeitherNullNorUndefined(ma);
+
+                            assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(ma.propertyNames, ['pa']);
+                            assert.deepEqual(ma.methodNames, ['mb']);
+                        }
+
+                        {
+                            const mb = methodMap.get('mb');
+                            assertNeitherNullNorUndefined(mb);
+
+                            assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(mb.propertyNames, ['pb']);
+                            assert.deepEqual(mb.methodNames, ['ma']);
+                        }
+                    }
+
+                    {
+                        assert.equal(groupMap.size, 1);
+
+                        {
+                            const group = groupMap.get(0);
+
+                            assertNeitherNullNorUndefined(group);
+
+                            assert.deepEqual(group.methodNames, ['ma', 'mb']);
+                            assert.deepEqual(group.propertyNames, ['pa', 'pb']);
+                            assert.equal(group.mutability, Mutability.WRITING_WRITABLE);
+                        }
+                    }
+                    return;
+                }
             }
         });
     }

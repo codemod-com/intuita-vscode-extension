@@ -149,3 +149,21 @@
         }
     }
 }
+
+/** old-013 **/
+{
+    class A {
+        pa = 1;
+        pb = 2;
+
+        ma() {
+            ++this.pa;
+            this.mb();
+        }
+
+        mb() {
+            --this.pb;
+            this.ma();
+        }
+    }
+}
