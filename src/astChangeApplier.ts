@@ -4,6 +4,7 @@ import {
     calculateStaticPropertyAccessExpressionUpdate,
     isNeitherNullNorUndefined
 } from "./utilities";
+import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
 
 export class AstChangeApplier {
     protected _changedSourceFiles = new Set<SourceFile>();
@@ -413,25 +414,9 @@ export class AstChangeApplier {
                 }
             );
 
-        const importSpecifierFilePaths = classDeclaration
-            .findReferences()
-            .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-            .map(
-                (rse) => {
-                    const node = rse.getNode();
-                    const parentNode = node.getParent();
-
-                    if (!parentNode || !Node.isImportSpecifier(parentNode)) {
-                        return null;
-                    }
-
-                    return parentNode
-                        .getSourceFile()
-                        .getFilePath()
-                        .toString();
-                }
-            )
-            .filter(isNeitherNullNorUndefined);
+        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(
+            classDeclaration,
+        );
 
         {
             if (lazyFunctions.length > 0) {
