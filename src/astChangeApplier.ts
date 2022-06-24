@@ -274,88 +274,25 @@ export class AstChangeApplier {
                         }
                     );
                 }
+
+                staticProperty.propertyAccessExpressions.forEach(
+                    ({ sourceFile, propertyAccessExpression }) => {
+                        this._changedSourceFiles.add(sourceFile);
+                        lazyFunctions.push(
+                            () => {
+                                propertyAccessExpression.replaceWithText(staticProperty.name);
+                            }
+                        );
+
+                        const names = newImportDeclarationMap.get(sourceFile) ?? [];
+
+                        names.push(staticProperty.name);
+
+                        newImportDeclarationMap.set(sourceFile, names);
+                    }
+                )
             }
         )
-
-        classDeclaration
-            .getStaticProperties()
-            .forEach(
-                staticProperty => {
-                    const referencedSymbolEntries = staticProperty
-                        .findReferences()
-                        .flatMap((rs) => rs.getReferences());
-
-                    const structure = staticProperty.getStructure();
-
-                    if (structure.kind !== StructureKind.Property) {
-                        return;
-                    }
-
-                    const { initializer } = structure;
-
-                    const name = staticProperty.getName();
-
-                    // ++deletedMemberCount;
-                    //
-                    // lazyFunctions.push(
-                    //     () => staticProperty.remove(),
-                    // );
-
-                    if (referencedSymbolEntries.length === 1) {
-                        return;
-                    }
-
-                    // if(Node.isStatemented(classParentNode)) {
-                    //     const modifierFlags = staticProperty.getCombinedModifierFlags();
-                    //
-                    //     const declarationKind =
-                    //         modifierFlags & ts.ModifierFlags.Readonly
-                    //             ? VariableDeclarationKind.Const
-                    //             : VariableDeclarationKind.Let;
-                    //
-                    //     lazyFunctions.push(
-                    //         () => {
-                    //             const variableStatement = classParentNode.insertVariableStatement(
-                    //                 index,
-                    //                 {
-                    //                     declarationKind,
-                    //                     declarations: [
-                    //                         {
-                    //                             name,
-                    //                             initializer,
-                    //                         }
-                    //                     ],
-                    //                 }
-                    //             );
-                    //
-                    //             variableStatement.setIsExported(exported);
-                    //         }
-                    //     );
-                    // }
-
-                    referencedSymbolEntries
-                        .map((referencedSymbolEntry) => {
-                            return calculateStaticPropertyAccessExpressionUpdate(
-                                referencedSymbolEntry,
-                            );
-                        })
-                        .filter(isNeitherNullNorUndefined)
-                        .forEach(([sourceFile, propertyAccessExpression ]) => {
-                            this._changedSourceFiles.add(sourceFile);
-                            lazyFunctions.push(
-                                () => {
-                                    propertyAccessExpression.replaceWithText(name);
-                                }
-                            );
-
-                            const names = newImportDeclarationMap.get(sourceFile) ?? [];
-
-                            names.push(name);
-
-                            newImportDeclarationMap.set(sourceFile, names);
-                        });
-                }
-            );
 
         classDeclaration
             .getStaticMethods()
