@@ -1,4 +1,4 @@
-import {ClassDeclaration, Node, ParameterDeclarationStructure, ts, TypeParameterDeclarationStructure} from "ts-morph";
+import {ClassDeclaration, MethodDeclaration, ParameterDeclarationStructure, ts, TypeParameterDeclarationStructure} from "ts-morph";
 
 export type StaticMethod = Readonly<{
     name: string,
@@ -6,6 +6,7 @@ export type StaticMethod = Readonly<{
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string,
     bodyText: string | null,
+    staticMethod: MethodDeclaration,
 }>;
 
 export const getClassStaticMethod = (
@@ -37,6 +38,7 @@ export const getClassStaticMethod = (
                     parameters,
                     returnType,
                     bodyText,
+                    staticMethod,
                 };
 
                 // if(Node.isStatemented(classParentNode)) {

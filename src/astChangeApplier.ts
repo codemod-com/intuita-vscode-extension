@@ -311,11 +311,17 @@ export class AstChangeApplier {
                     }
                 );
             }
-        )
+        );
 
         staticMethods
             .forEach(
                 (staticMethod) => {
+                    ++deletedMemberCount;
+
+                    lazyFunctions.push(
+                        () => staticMethod.staticMethod.remove(),
+                    );
+
                     if(Node.isStatemented(classParentNode)) {
                         lazyFunctions.push(
                             () => {
@@ -345,20 +351,6 @@ export class AstChangeApplier {
             .forEach(
                 (staticMethod) => {
                     const name = staticMethod.getName();
-
-                    const typeParameterDeclarations = staticMethod
-                        .getTypeParameters()
-                        .map((tpd) => tpd.getStructure());
-
-                    const parameters = staticMethod
-                        .getParameters()
-                        .map(parameter => parameter.getStructure());
-
-                    const returnType = staticMethod
-                        .getReturnTypeNode()
-                        ?.getText() ?? 'void';
-
-                    const bodyText = staticMethod.getBodyText();
 
                     staticMethod
                         .findReferences()
@@ -403,14 +395,6 @@ export class AstChangeApplier {
                                 name,
                             );
                         });
-
-                    ++deletedMemberCount;
-
-                    lazyFunctions.push(
-                        () => staticMethod.remove(),
-                    );
-
-                    this._changedSourceFiles.add(sourceFile);
                 }
             );
 
