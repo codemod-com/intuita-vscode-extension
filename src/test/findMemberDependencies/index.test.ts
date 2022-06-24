@@ -13,7 +13,7 @@ function assertNeitherNullNorUndefined<T>(value: NonNullable<T> | null | undefin
     }
 }
 
-describe.only('find member dependencies', () => {
+describe('find member dependencies', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );

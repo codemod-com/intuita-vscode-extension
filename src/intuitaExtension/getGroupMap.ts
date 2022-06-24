@@ -1,7 +1,7 @@
 import {Method} from "./getMethodMap";
 import {concatMutabilities, Mutability} from "./mutability";
 
-type Group = Readonly<{
+export type Group = Readonly<{
     methodNames: ReadonlyArray<string>;
     propertyNames: ReadonlyArray<string>;
     mutability: Mutability;
