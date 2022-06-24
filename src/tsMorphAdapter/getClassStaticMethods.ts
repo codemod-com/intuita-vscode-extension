@@ -1,4 +1,13 @@
-import {ClassDeclaration, MethodDeclaration, ParameterDeclarationStructure, ts, TypeParameterDeclarationStructure} from "ts-morph";
+import {
+    CallExpression,
+    ClassDeclaration,
+    MethodDeclaration,
+    ParameterDeclarationStructure,
+    SourceFile,
+    ts,
+    TypeParameterDeclarationStructure
+} from "ts-morph";
+import {isNeitherNullNorUndefined} from "../utilities";
 
 export type StaticMethod = Readonly<{
     name: string,
@@ -7,6 +16,13 @@ export type StaticMethod = Readonly<{
     returnType: string,
     bodyText: string | null,
     staticMethod: MethodDeclaration,
+    references: ReadonlyArray<
+        Readonly<{
+            sourceFile: SourceFile,
+            callExpression: CallExpression,
+            text: string,
+        }>
+    >
 }>;
 
 export const getClassStaticMethod = (
@@ -32,6 +48,45 @@ export const getClassStaticMethod = (
 
                 const bodyText = staticMethod.getBodyText() ?? null;
 
+                const references = staticMethod
+                    .findReferences()
+                    .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                    .map((referencedSymbolEntry) => {
+                        const sourceFile = referencedSymbolEntry.getSourceFile();
+                        const node = referencedSymbolEntry.getNode();
+
+                        const callExpression = node
+                            .getFirstAncestorByKind(
+                                ts.SyntaxKind.CallExpression
+                            );
+
+                        if (!callExpression) {
+                            return null;
+                        }
+
+                        let typeArguments = callExpression
+                            .getTypeArguments()
+                            .map(ta => ta.getText())
+                            .join(', ');
+
+                        typeArguments = typeArguments ? `<${typeArguments}>` : '';
+
+                        const args = callExpression
+                            .getArguments()
+                            .map((arg) => arg.getText())
+                            .join(', ');
+
+                        // TODO: maybe there's a programmatic way to do this?
+                        const text = `${staticMethod.getName()}${typeArguments}(${args})`;
+
+                        return {
+                            sourceFile,
+                            callExpression,
+                            text,
+                        };
+                    })
+                    .filter(isNeitherNullNorUndefined);
+
                 return {
                     name,
                     typeParameterDeclarations,
@@ -39,81 +94,8 @@ export const getClassStaticMethod = (
                     returnType,
                     bodyText,
                     staticMethod,
+                    references,
                 };
-
-                // if(Node.isStatemented(classParentNode)) {
-                //     lazyFunctions.push(
-                //         () => {
-                //             const functionDeclaration = classParentNode.insertFunction(
-                //                 index,
-                //                 {
-                //                     name,
-                //                 }
-                //             );
-                //
-                //             functionDeclaration.setIsExported(true);
-                //             functionDeclaration.addTypeParameters(typeParameterDeclarations);
-                //             functionDeclaration.addParameters(parameters);
-                //             functionDeclaration.setReturnType(returnType);
-                //
-                //             if (bodyText) {
-                //                 functionDeclaration.setBodyText(bodyText);
-                //             }
-                //         }
-                //     );
-                // }
-
-                // staticMethod
-                //     .findReferences()
-                //     .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                //     .forEach((referencedSymbolEntry) => {
-                //         const sourceFile = referencedSymbolEntry.getSourceFile();
-                //
-                //         this._changedSourceFiles.add(sourceFile);
-                //
-                //         const node = referencedSymbolEntry.getNode();
-                //
-                //         const callExpression = node
-                //             .getFirstAncestorByKind(
-                //                 ts.SyntaxKind.CallExpression
-                //             );
-                //
-                //         if (!callExpression) {
-                //             return;
-                //         }
-                //
-                //         let typeArguments = callExpression
-                //             .getTypeArguments()
-                //             .map(ta => ta.getText())
-                //             .join(', ');
-                //
-                //         typeArguments = typeArguments ? `<${typeArguments}>` : '';
-                //
-                //         const args = callExpression
-                //             .getArguments()
-                //             .map((arg) => arg.getText())
-                //             .join(', ');
-                //
-                //         // TODO: maybe there's a programmatic way to do this?
-                //         const text = `${staticMethod.getName()}${typeArguments}(${args})`;
-                //
-                //         lazyFunctions.push(
-                //             () => callExpression.replaceWithText(text),
-                //         );
-                //
-                //         newImportDeclarationMap.addItem(
-                //             sourceFile,
-                //             name,
-                //         );
-                //     });
-                //
-                // ++deletedMemberCount;
-                //
-                // lazyFunctions.push(
-                //     () => staticMethod.remove(),
-                // );
-                //
-                // this._changedSourceFiles.add(sourceFile);
             }
         );
 };
