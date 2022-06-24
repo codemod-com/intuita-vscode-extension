@@ -4,7 +4,7 @@ import {buildCaseMap} from "../buildCaseMap";
 import {Project} from "ts-morph";
 import {assert} from "chai";
 
-describe('split classes', () => {
+describe.only('split classes', () => {
     const caseMap = buildCaseMap(
         __dirname,
     );
@@ -33,14 +33,10 @@ describe('split classes', () => {
 
             const sourceFiles = applier.applyChanges();
 
-            switch(caseNumber) {
-                case 1: {
-                    assert.equal(sourceFiles.length, 1);
+            assert.equal(sourceFiles.length, 1);
 
-                    assert.equal(sourceFiles[0]?.[0], '/a.ts');
-                    assert.equal(sourceFiles[0]?.[1], newSourceFileText);
-                }
-            }
+            assert.equal(sourceFiles[0]?.[0], '/a.ts');
+            assert.equal(sourceFiles[0]?.[1], newSourceFileText);
         });
     }
 });

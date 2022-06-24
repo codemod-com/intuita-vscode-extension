@@ -44,3 +44,44 @@
         }
     }
 }
+/** old-002 **/
+{
+    class A<T> {
+        readonly pa = 1;
+        readonly pb = 2;
+
+        ma<U, V>(a: number): number {
+            console.log(a, this.pa);
+
+            return 1;
+        }
+
+        mb<U, V, R>(b: string): T | null {
+            console.log(b, this.pb);
+
+            return null;
+        }
+    }
+}
+/** new-002 **/
+{
+    class A0<T> {
+        readonly pa = 1;
+
+        ma<U, V>(a: number): number {
+            console.log(a, this.pa);
+
+            return 1;
+        }
+    }
+
+    class A1<T> {
+        readonly pb = 2;
+
+        mb<U, V, R>(b: string): T | null {
+            console.log(b, this.pb);
+
+            return null;
+        }
+    }
+}

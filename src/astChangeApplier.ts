@@ -239,6 +239,11 @@ export class AstChangeApplier {
         const classParentNode = classDeclaration.getParent();
 
         const members = classDeclaration.getMembers();
+
+        const classTypeParameters = classDeclaration
+            .getTypeParameters()
+            .map((tpd) => tpd.getStructure());
+
         let deletedMemberCount = 0;
 
         const commentStatement = getClassCommentStatement(classDeclaration);
@@ -303,6 +308,8 @@ export class AstChangeApplier {
                     isExported: exported,
                 });
 
+                groupClass.addTypeParameters(classTypeParameters);
+
                 let memberIndex = 0;
 
                 group.propertyNames.forEach(
@@ -347,6 +354,7 @@ export class AstChangeApplier {
 
                         if (instanceMethod?.bodyText) {
                             methodDeclaration.setBodyText(instanceMethod.bodyText);
+                            methodDeclaration.formatText();
                         }
 
                         ++memberIndex;
