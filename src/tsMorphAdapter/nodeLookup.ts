@@ -1,11 +1,13 @@
-import {ts} from "ts-morph";
+import {SourceFile, ts} from "ts-morph";
 
 export type NodeLookupCriterion = Readonly<{
-    bottomTopPath: ReadonlyArray<ts.SyntaxKind>;
+    sourceFile: SourceFile, // in the future this can be replaced with a filePath
+    topBottomPath: ReadonlyArray<ts.SyntaxKind>;
     text: string;
 }>;
 
 export const buildNodeLookupCriterion = (
+    sourceFile: SourceFile,
     node: ts.Node,
 ): NodeLookupCriterion => {
     const bottomTopPath: ts.SyntaxKind[] = [];
@@ -17,8 +19,52 @@ export const buildNodeLookupCriterion = (
         node = node.parent;
     }
 
+    const topBottomPath = bottomTopPath.reverse();
+
     return {
-        bottomTopPath,
+        sourceFile,
+        topBottomPath,
         text,
     };
+};
+
+export const lookupNode = (
+    { sourceFile, topBottomPath, text }: NodeLookupCriterion,
+): ReadonlyArray<ts.Node> => {
+    const lookup = (
+        node: ts.Node,
+        path: ReadonlyArray<ts.SyntaxKind>
+    ): ReadonlyArray<ts.Node> => {
+        const syntaxKind = path[0];
+
+        if (!syntaxKind || node.kind !== syntaxKind) {
+            return [];
+        }
+
+        if (path.length === 1) {
+            return [ node ];
+        }
+
+        const nodes: ts.Node[] = [];
+
+        node.forEachChild(
+            (childNode) => {
+                nodes.push(
+                    ...lookup(childNode, path.slice(1))
+                );
+            }
+        );
+
+        return nodes;
+    };
+
+    const nodes = lookup(
+        sourceFile.compilerNode,
+        topBottomPath,
+    );
+
+    return nodes
+        .filter(
+            node => node.getText() === text
+        );
 };

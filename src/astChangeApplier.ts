@@ -8,6 +8,7 @@ import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstancePrope
 import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
+import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -364,6 +365,18 @@ export class AstChangeApplier {
                         ++deletedMemberCount;
 
                         instanceMethod?.methodDeclaration.remove();
+
+                        instanceMethod?.methodLookupCriteria.forEach(
+                            (criterion) => {
+                                // console.log(criterion.sourceFile.getText());
+
+                                const nodes = lookupNode(
+                                    criterion,
+                                );
+
+                                console.log(nodes);
+                            }
+                        )
                     }
                 );
             }

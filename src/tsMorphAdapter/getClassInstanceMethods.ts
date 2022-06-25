@@ -74,7 +74,10 @@ export const getClassInstanceMethods = (
                 )
                 .map(
                     (referencedSymbolEntry) => {
+                        const sourceFile = referencedSymbolEntry.getSourceFile();
+
                         return buildNodeLookupCriterion(
+                            sourceFile,
                             referencedSymbolEntry
                                 .getNode()
                                 .compilerNode
