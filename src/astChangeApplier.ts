@@ -1,6 +1,6 @@
 import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
+import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
@@ -8,6 +8,7 @@ import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstancePrope
 import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
+import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -236,6 +237,8 @@ export class AstChangeApplier {
             return;
         }
 
+        const className = classDeclaration.getName();
+
         const classParentNode = classDeclaration.getParent();
 
         const members = classDeclaration.getMembers();
@@ -292,7 +295,7 @@ export class AstChangeApplier {
             }
         );
 
-        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
+        const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
         groupMap.size > 1 && groupMap.forEach(
@@ -303,8 +306,10 @@ export class AstChangeApplier {
 
                 this._changedSourceFiles.add(sourceFile);
 
+                const groupName = `${astChange.className}${groupNumber}`;
+
                 const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
-                    name:  `${astChange.className}${groupNumber}`,
+                    name: `${astChange.className}${groupNumber}`,
                     isExported: exported,
                 });
 
@@ -362,6 +367,23 @@ export class AstChangeApplier {
                         ++deletedMemberCount;
 
                         instanceMethod?.methodDeclaration.remove();
+
+                        instanceMethod?.methodLookupCriteria.forEach(
+                            (criterion) => {
+                                const nodes = lookupNode(
+                                    criterion,
+                                );
+
+                                nodes
+                                    .flatMap(node => node.getPreviousSiblings())
+                                    .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
+                                    .forEach(
+                                        (node) => node.replaceWithText(
+                                            groupName.toLocaleLowerCase()
+                                        )
+                                    );
+                            }
+                        );
                     }
                 );
             }
@@ -451,44 +473,94 @@ export class AstChangeApplier {
         }
 
         if (members.length - deletedMemberCount === 0) {
-            importSpecifierFilePaths.forEach(
-                (filePath) => {
-                    const otherSourceFile = this._project.getSourceFile(filePath);
+            classReferences.forEach(
+                (classReference) => {
+                    if (classReference.kind === ClassReferenceKind.IMPORT_SPECIFIER) {
+                        const otherSourceFile = this._project.getSourceFile(classReference.filePath);
 
-                    if (!otherSourceFile) {
-                        return;
+                        if (!otherSourceFile) {
+                            return;
+                        }
+
+                        this._changedSourceFiles.add(otherSourceFile);
+
+                        otherSourceFile
+                            .getImportDeclarations()
+                            .filter(
+                                (id) => {
+                                    return id.getModuleSpecifierSourceFile() === sourceFile
+                                }
+                            )
+                            .forEach(
+                                (importDeclaration) => {
+                                    const namedImports = importDeclaration.getNamedImports();
+
+                                    const namedImport = namedImports
+                                        .find(ni => ni.getName()) ?? null;
+
+                                    if (!namedImport) {
+                                        return;
+                                    }
+
+                                    const count = namedImports.length;
+
+                                    groupMap.forEach(
+                                        (group, groupNumber) => {
+                                            importDeclaration.insertNamedImport(
+                                                groupNumber,
+                                                `${className}${groupNumber}`,
+                                            );
+                                        }
+                                    );
+
+                                    // removal
+                                    namedImport.remove();
+
+                                    if (count + groupMap.size === 1) {
+                                        importDeclaration.remove();
+                                    }
+                                }
+                            );
                     }
 
-                    otherSourceFile
-                        .getImportDeclarations()
-                        .filter(
-                            (id) => {
-                                return id.getModuleSpecifierSourceFile() === sourceFile
-                            }
-                        )
-                        .forEach(
-                            (id) => {
-                                const namedImports = id.getNamedImports();
+                    if (classReference.kind === ClassReferenceKind.VARIABLE_STATEMENT) {
+                        groupMap.forEach(
+                            (group, index) => {
+                                const groupName = `${className}${index}`;
 
-                                const namedImport = namedImports
-                                    .find(ni => ni.getName()) ?? null;
+                                const variableNames = classReference.declarations.map(({ name }) => name);
 
-                                if (!namedImport) {
-                                    return;
-                                }
+                                classReference
+                                    .statementedNode
+                                    .getVariableDeclarations()
+                                    .filter(
+                                        variableDeclaration => {
+                                            const name = variableDeclaration.getName();
 
-                                const count = namedImports.length;
+                                            return variableNames.includes(name);
+                                        }
+                                    )
+                                    .forEach(
+                                        (variableDeclaration) => {
+                                            variableDeclaration.remove();
+                                        }
+                                    )
 
-                                // removal
-                                namedImport.remove();
-
-                                if (count === 1) {
-                                    id.remove();
-                                }
+                                classReference.statementedNode.insertVariableStatement(
+                                    index,
+                                    {
+                                        declarationKind: VariableDeclarationKind.Const,
+                                        declarations: [
+                                            {
+                                                name: groupName.toLocaleLowerCase(),
+                                                initializer: `new ${groupName}()`
+                                            }
+                                        ],
+                                    }
+                                );
                             }
                         );
-
-
+                    }
                 }
             );
 
