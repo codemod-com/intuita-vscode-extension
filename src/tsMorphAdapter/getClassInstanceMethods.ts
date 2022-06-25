@@ -6,6 +6,7 @@ import {
     TypeParameterDeclarationStructure
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
+import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 export type InstanceMethod = Readonly<{
     name: string,
@@ -15,12 +16,13 @@ export type InstanceMethod = Readonly<{
     calleeNames: ReadonlyArray<string>,
     bodyText: string | null,
     methodDeclaration: MethodDeclaration,
+    methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>
 }>;
 
 export const getClassInstanceMethods = (
-    classDefinition: ClassDeclaration,
+    classDeclaration: ClassDeclaration,
 ): ReadonlyArray<InstanceMethod> => {
-    const oldMethods = classDefinition
+    const oldMethods = classDeclaration
         .getInstanceMethods()
         .map((methodDeclaration) => {
             const typeParameterDeclarations = methodDeclaration
@@ -37,9 +39,11 @@ export const getClassInstanceMethods = (
 
             const bodyText = methodDeclaration.getBodyText() ?? null;
 
-            const callerNames = methodDeclaration
+            const referencedSymbolEntries = methodDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+
+            const callerNames = referencedSymbolEntries
                 .map(
                     (referencedSymbolEntry) => {
                         return referencedSymbolEntry
@@ -57,10 +61,26 @@ export const getClassInstanceMethods = (
                         const methodClassDeclaration = otherMethodDeclaration
                             .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration);
 
-                        return methodClassDeclaration === classDefinition;
+                        return methodClassDeclaration === classDeclaration;
                     }
                 )
                 .map((md) => md.getName());
+
+            const methodLookupCriteria = referencedSymbolEntries
+                .filter(
+                    (referencedSymbolEntry) => {
+                        return referencedSymbolEntry.getSourceFile() !== classDeclaration.getSourceFile()
+                    }
+                )
+                .map(
+                    (referencedSymbolEntry) => {
+                        return buildNodeLookupCriterion(
+                            referencedSymbolEntry
+                                .getNode()
+                                .compilerNode
+                        );
+                    }
+                );
 
             return {
                 name: methodDeclaration.getName(),
@@ -70,6 +90,7 @@ export const getClassInstanceMethods = (
                 returnType,
                 bodyText,
                 methodDeclaration,
+                methodLookupCriteria,
             };
         });
 
