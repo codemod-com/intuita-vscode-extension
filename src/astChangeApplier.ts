@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile, SyntaxKind, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
@@ -306,8 +306,10 @@ export class AstChangeApplier {
 
                 this._changedSourceFiles.add(sourceFile);
 
+                const groupName = `${astChange.className}${groupNumber}`;
+
                 const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
-                    name:  `${astChange.className}${groupNumber}`,
+                    name: `${astChange.className}${groupNumber}`,
                     isExported: exported,
                 });
 
@@ -368,15 +370,24 @@ export class AstChangeApplier {
 
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
-                                // console.log(criterion.sourceFile.getText());
+                               const nodes = lookupNode(
+                                   criterion,
+                               );
 
-                                const nodes = lookupNode(
-                                    criterion,
+                                nodes.forEach(
+                                    node => {
+                                        node
+                                            .getPreviousSiblings()
+                                            .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
+                                            .forEach(
+                                                (n) => n.replaceWithText(
+                                                    groupName.toLocaleLowerCase()
+                                                )
+                                            );
+                                    }
                                 );
-
-                                console.log(nodes);
                             }
-                        )
+                        );
                     }
                 );
             }

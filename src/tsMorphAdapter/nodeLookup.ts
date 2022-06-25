@@ -1,4 +1,4 @@
-import {SourceFile, ts} from "ts-morph";
+import {Node, SourceFile, ts} from "ts-morph";
 
 export type NodeLookupCriterion = Readonly<{
     sourceFile: SourceFile, // in the future this can be replaced with a filePath
@@ -30,14 +30,14 @@ export const buildNodeLookupCriterion = (
 
 export const lookupNode = (
     { sourceFile, topBottomPath, text }: NodeLookupCriterion,
-): ReadonlyArray<ts.Node> => {
+): ReadonlyArray<Node> => {
     const lookup = (
-        node: ts.Node,
+        node: Node,
         path: ReadonlyArray<ts.SyntaxKind>
-    ): ReadonlyArray<ts.Node> => {
+    ): ReadonlyArray<Node> => {
         const syntaxKind = path[0];
 
-        if (!syntaxKind || node.kind !== syntaxKind) {
+        if (!syntaxKind || node.getKind() !== syntaxKind) {
             return [];
         }
 
@@ -45,7 +45,7 @@ export const lookupNode = (
             return [ node ];
         }
 
-        const nodes: ts.Node[] = [];
+        const nodes: Node[] = [];
 
         node.forEachChild(
             (childNode) => {
@@ -59,7 +59,7 @@ export const lookupNode = (
     };
 
     const nodes = lookup(
-        sourceFile.compilerNode,
+        sourceFile,
         topBottomPath,
     );
 
