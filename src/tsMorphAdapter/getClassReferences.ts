@@ -1,14 +1,24 @@
-import {ClassDeclaration, Node} from "ts-morph";
+import {ClassDeclaration, Node, Statement, ts} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
-const enum ClassReferenceKind {
+export enum ClassReferenceKind {
     IMPORT_SPECIFIER = 1,
+    VARIABLE_STATEMENT = 2
 }
 
-type ClassReference =
+export type ClassReference =
     | Readonly<{
         kind: ClassReferenceKind.IMPORT_SPECIFIER,
         filePath: string;
+    }>
+    | Readonly<{
+        kind: ClassReferenceKind.VARIABLE_STATEMENT,
+        statement: Statement,
+        declarations: ReadonlyArray<
+            Readonly<{
+                name: string,
+            }>
+        >
     }>;
 
 export const getClassReferences = (
@@ -22,22 +32,56 @@ export const getClassReferences = (
                 const node = rse.getNode();
                 const parentNode = node.getParent();
 
-                console.log(parentNode?.getKindName())
+                if (Node.isImportSpecifier(parentNode)) {
+                    const filePath = parentNode
+                        .getSourceFile()
+                        .getFilePath()
+                        .toString();
 
-                if (!parentNode || !Node.isImportSpecifier(parentNode)) {
-                    return null;
+                    const classReference: ClassReference = {
+                        kind: ClassReferenceKind.IMPORT_SPECIFIER,
+                        filePath,
+                    };
+
+                    return classReference;
                 }
 
-                const filePath = parentNode
-                    .getSourceFile()
-                    .getFilePath()
-                    .toString();
+                if (Node.isNewExpression(parentNode)) {
+                    // TODO it assumes that it's just "const x = new A();"
+                    const variableStatement = parentNode
+                        .getFirstAncestorByKind(ts.SyntaxKind.VariableStatement);
 
-                return {
-                    kind: ClassReferenceKind.IMPORT_SPECIFIER,
-                    filePath,
-                };
+                    if (!variableStatement) {
+                        return null;
+                    }
+
+                    const maybeStatementedBlock = variableStatement.getParent();
+
+                    if(!Node.isStatement(maybeStatementedBlock)) {
+                        return null;
+                    }
+
+                    const declarations = variableStatement.getDeclarations().map(
+                        (variableDeclaration) => {
+                            const name = variableDeclaration.getName();
+
+                            return {
+                                name,
+                            };
+                        }
+                    );
+
+                    const classReference: ClassReference = {
+                        kind: ClassReferenceKind.VARIABLE_STATEMENT,
+                        statement: maybeStatementedBlock,
+                        declarations,
+                    };
+
+                    return classReference;
+                }
+
+                return null;
             }
         )
-        .filter(isNeitherNullNorUndefined);
+        .filter<ClassReference>(isNeitherNullNorUndefined);
 };
