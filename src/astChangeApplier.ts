@@ -1,6 +1,6 @@
-import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {getClassReferences} from "./tsMorphAdapter/getClassReferences";
+import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
@@ -454,54 +454,93 @@ export class AstChangeApplier {
 
         if (members.length - deletedMemberCount === 0) {
             classReferences.forEach(
-                ({ filePath}) => {
-                    const otherSourceFile = this._project.getSourceFile(filePath);
+                (classReference) => {
+                    if (classReference.kind === ClassReferenceKind.IMPORT_SPECIFIER) {
+                        const otherSourceFile = this._project.getSourceFile(classReference.filePath);
 
-                    if (!otherSourceFile) {
-                        return;
+                        if (!otherSourceFile) {
+                            return;
+                        }
+
+                        this._changedSourceFiles.add(otherSourceFile);
+
+                        otherSourceFile
+                            .getImportDeclarations()
+                            .filter(
+                                (id) => {
+                                    return id.getModuleSpecifierSourceFile() === sourceFile
+                                }
+                            )
+                            .forEach(
+                                (importDeclaration) => {
+                                    const namedImports = importDeclaration.getNamedImports();
+
+                                    const namedImport = namedImports
+                                        .find(ni => ni.getName()) ?? null;
+
+                                    if (!namedImport) {
+                                        return;
+                                    }
+
+                                    const count = namedImports.length;
+
+                                    groupMap.forEach(
+                                        (group, groupNumber) => {
+                                            importDeclaration.insertNamedImport(
+                                                groupNumber,
+                                                `${className}${groupNumber}`,
+                                            );
+                                        }
+                                    );
+
+                                    // removal
+                                    namedImport.remove();
+
+                                    if (count + groupMap.size === 1) {
+                                        importDeclaration.remove();
+                                    }
+                                }
+                            );
                     }
 
-                    this._changedSourceFiles.add(otherSourceFile);
+                    if (classReference.kind === ClassReferenceKind.VARIABLE_STATEMENT) {
+                        groupMap.forEach(
+                            (group, index) => {
+                                const groupName = `${className}${index}`;
 
-                    otherSourceFile
-                        .getImportDeclarations()
-                        .filter(
-                            (id) => {
-                                return id.getModuleSpecifierSourceFile() === sourceFile
-                            }
-                        )
-                        .forEach(
-                            (importDeclaration) => {
-                                const namedImports = importDeclaration.getNamedImports();
+                                const variableNames = classReference.declarations.map(({ name }) => name);
 
-                                const namedImport = namedImports
-                                    .find(ni => ni.getName()) ?? null;
+                                classReference
+                                    .statementedNode
+                                    .getVariableDeclarations()
+                                    .filter(
+                                        variableDeclaration => {
+                                            const name = variableDeclaration.getName();
 
-                                if (!namedImport) {
-                                    return;
-                                }
+                                            return variableNames.includes(name);
+                                        }
+                                    )
+                                    .forEach(
+                                        (variableDeclaration) => {
+                                            variableDeclaration.remove();
+                                        }
+                                    )
 
-                                const count = namedImports.length;
-
-                                groupMap.forEach(
-                                    (group, groupNumber) => {
-                                        importDeclaration.insertNamedImport(
-                                            groupNumber,
-                                            `${className}${groupNumber}`,
-                                        );
+                                classReference.statementedNode.insertVariableStatement(
+                                    index,
+                                    {
+                                        declarationKind: VariableDeclarationKind.Const,
+                                        declarations: [
+                                            {
+                                                name: groupName.toLocaleLowerCase(),
+                                                initializer: `new ${groupName}()`
+                                            }
+                                        ],
                                     }
                                 );
-
-                                // removal
-                                namedImport.remove();
-
-                                if (count + groupMap.size === 1) {
-                                    importDeclaration.remove();
-                                }
                             }
                         );
-
-
+                    }
                 }
             );
 

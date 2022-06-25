@@ -1,4 +1,10 @@
-import {ClassDeclaration, Node, Statement, ts} from "ts-morph";
+import {
+    ClassDeclaration,
+    Node,
+    StatementedNode,
+    ts,
+    VariableDeclarationStructure,
+} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
 export enum ClassReferenceKind {
@@ -13,7 +19,7 @@ export type ClassReference =
     }>
     | Readonly<{
         kind: ClassReferenceKind.VARIABLE_STATEMENT,
-        statement: Statement,
+        statementedNode: StatementedNode,
         declarations: ReadonlyArray<
             Readonly<{
                 name: string,
@@ -57,7 +63,7 @@ export const getClassReferences = (
 
                     const maybeStatementedBlock = variableStatement.getParent();
 
-                    if(!Node.isStatement(maybeStatementedBlock)) {
+                    if(!Node.isStatemented(maybeStatementedBlock)) {
                         return null;
                     }
 
@@ -73,7 +79,7 @@ export const getClassReferences = (
 
                     const classReference: ClassReference = {
                         kind: ClassReferenceKind.VARIABLE_STATEMENT,
-                        statement: maybeStatementedBlock,
+                        statementedNode: maybeStatementedBlock,
                         declarations,
                     };
 
