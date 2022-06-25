@@ -80,7 +80,8 @@ export const getClassInstanceMethods = (
                             sourceFile,
                             referencedSymbolEntry
                                 .getNode()
-                                .compilerNode
+                                .compilerNode,
+                            1,
                         );
                     }
                 );

@@ -3,45 +3,58 @@ import {Node, SourceFile, ts} from "ts-morph";
 export type NodeLookupCriterion = Readonly<{
     sourceFile: SourceFile, // in the future this can be replaced with a filePath
     topBottomPath: ReadonlyArray<ts.SyntaxKind>;
-    text: string;
+    topBottomTexts: ReadonlyArray<string | null>;
 }>;
 
 export const buildNodeLookupCriterion = (
     sourceFile: SourceFile,
     node: ts.Node,
+    numberOfBottomTopTexts: number,
 ): NodeLookupCriterion => {
     const bottomTopPath: ts.SyntaxKind[] = [];
-    const text = node.getText();
+    const bottomTopTexts: (string | null)[] = [];
 
-    while(node) {
+    for(let i = 0; node !== undefined; ++i) {
         bottomTopPath.push(node.kind);
+
+        if (i < numberOfBottomTopTexts ) {
+            bottomTopTexts.push(node.getText());
+        } else {
+            bottomTopTexts.push(null);
+        }
 
         node = node.parent;
     }
 
     const topBottomPath = bottomTopPath.reverse();
+    const topBottomTexts = bottomTopTexts.reverse();
 
     return {
         sourceFile,
         topBottomPath,
-        text,
+        topBottomTexts,
     };
 };
 
 export const lookupNode = (
-    { sourceFile, topBottomPath, text }: NodeLookupCriterion,
+    { sourceFile, topBottomPath, topBottomTexts }: NodeLookupCriterion,
 ): ReadonlyArray<Node> => {
     const lookup = (
         node: Node,
-        path: ReadonlyArray<ts.SyntaxKind>
+        index: number,
     ): ReadonlyArray<Node> => {
-        const syntaxKind = path[0];
+        const syntaxKind = topBottomPath[index];
+        const text = topBottomTexts[index];
 
-        if (!syntaxKind || node.getKind() !== syntaxKind) {
+        if (
+            !syntaxKind
+            || node.getKind() !== syntaxKind
+            || (text && text !== node.getText()))
+         {
             return [];
         }
 
-        if (path.length === 1) {
+        if (index === topBottomPath.length - 1) {
             return [ node ];
         }
 
@@ -50,7 +63,7 @@ export const lookupNode = (
         node.forEachChild(
             (childNode) => {
                 nodes.push(
-                    ...lookup(childNode, path.slice(1))
+                    ...lookup(childNode, index + 1)
                 );
             }
         );
@@ -58,13 +71,8 @@ export const lookupNode = (
         return nodes;
     };
 
-    const nodes = lookup(
+    return lookup(
         sourceFile,
-        topBottomPath,
+        0,
     );
-
-    return nodes
-        .filter(
-            node => node.getText() === text
-        );
 };
