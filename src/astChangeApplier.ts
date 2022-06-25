@@ -1,6 +1,6 @@
 import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
-import {getClassImportSpecifierFilePaths} from "./tsMorphAdapter/getClassImportSpecifierFilePaths";
+import {getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
@@ -294,9 +294,7 @@ export class AstChangeApplier {
             }
         );
 
-        const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
-
-        console.log(importSpecifierFilePaths);
+        const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
         groupMap.size > 1 && groupMap.forEach(
@@ -455,8 +453,8 @@ export class AstChangeApplier {
         }
 
         if (members.length - deletedMemberCount === 0) {
-            importSpecifierFilePaths.forEach(
-                (filePath) => {
+            classReferences.forEach(
+                ({ filePath}) => {
                     const otherSourceFile = this._project.getSourceFile(filePath);
 
                     if (!otherSourceFile) {
