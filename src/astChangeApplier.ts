@@ -236,6 +236,8 @@ export class AstChangeApplier {
             return;
         }
 
+        const className = classDeclaration.getName();
+
         const classParentNode = classDeclaration.getParent();
 
         const members = classDeclaration.getMembers();
@@ -293,6 +295,8 @@ export class AstChangeApplier {
         );
 
         const importSpecifierFilePaths = getClassImportSpecifierFilePaths(classDeclaration);
+
+        console.log(importSpecifierFilePaths);
 
         // UPDATES
         groupMap.size > 1 && groupMap.forEach(
@@ -459,6 +463,8 @@ export class AstChangeApplier {
                         return;
                     }
 
+                    this._changedSourceFiles.add(otherSourceFile);
+
                     otherSourceFile
                         .getImportDeclarations()
                         .filter(
@@ -467,8 +473,8 @@ export class AstChangeApplier {
                             }
                         )
                         .forEach(
-                            (id) => {
-                                const namedImports = id.getNamedImports();
+                            (importDeclaration) => {
+                                const namedImports = importDeclaration.getNamedImports();
 
                                 const namedImport = namedImports
                                     .find(ni => ni.getName()) ?? null;
@@ -479,11 +485,20 @@ export class AstChangeApplier {
 
                                 const count = namedImports.length;
 
+                                groupMap.forEach(
+                                    (group, groupNumber) => {
+                                        importDeclaration.insertNamedImport(
+                                            groupNumber,
+                                            `${className}${groupNumber}`,
+                                        );
+                                    }
+                                );
+
                                 // removal
                                 namedImport.remove();
 
-                                if (count === 1) {
-                                    id.remove();
+                                if (count + groupMap.size === 1) {
+                                    importDeclaration.remove();
                                 }
                             }
                         );

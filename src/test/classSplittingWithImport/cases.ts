@@ -29,6 +29,7 @@ import { A } from './a';
     a.mc();
 }
 /** newA-001 **/
+/* @ts-ignore */
 export class A0 {
     pa = 1;
 
@@ -37,6 +38,7 @@ export class A0 {
     }
 }
 
+/* @ts-ignore */
 export class A1 {
     pb = 2;
 
@@ -45,6 +47,7 @@ export class A1 {
     }
 }
 
+/* @ts-ignore */
 export class A2 {
     pc = 3;
 
@@ -52,14 +55,17 @@ export class A2 {
         console.log(this.pc);
     }
 }
+
 /** newB-001 **/
 /* @ts-ignore */
-import { A } from './a';
+import { A0, A1, A2 } from './a';
 
 {
-    const a = new A();
+    const a0 = new A0();
+    const a1 = new A1();
+    const a2 = new A2();
 
-    a.ma();
-    a.mb();
-    a.mc();
+    a0.ma();
+    a1.mb();
+    a2.mc();
 }
