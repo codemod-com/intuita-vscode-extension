@@ -370,22 +370,18 @@ export class AstChangeApplier {
 
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
-                               const nodes = lookupNode(
-                                   criterion,
-                               );
-
-                                nodes.forEach(
-                                    node => {
-                                        node
-                                            .getPreviousSiblings()
-                                            .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
-                                            .forEach(
-                                                (n) => n.replaceWithText(
-                                                    groupName.toLocaleLowerCase()
-                                                )
-                                            );
-                                    }
+                                const nodes = lookupNode(
+                                    criterion,
                                 );
+
+                                nodes
+                                    .flatMap(node => node.getPreviousSiblings())
+                                    .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
+                                    .forEach(
+                                        (node) => node.replaceWithText(
+                                            groupName.toLocaleLowerCase()
+                                        )
+                                    );
                             }
                         );
                     }
