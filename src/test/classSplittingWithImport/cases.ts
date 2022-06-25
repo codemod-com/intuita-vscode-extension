@@ -1,4 +1,5 @@
 /** oldA-001 **/
+/* @ts-ignore */
 export class A {
     pa = 1;
     pb = 2;
@@ -15,6 +16,17 @@ export class A {
     mc() {
         console.log(this.pc);
     }
+}
+/** oldB-001 **/
+/* @ts-ignore */
+import { A } from './a';
+
+{
+    const a = new A();
+
+    a.ma();
+    a.mb();
+    a.mc();
 }
 /** newA-001 **/
 export class A0 {
@@ -39,4 +51,15 @@ export class A2 {
     mc(): void {
         console.log(this.pc);
     }
+}
+/** newB-001 **/
+/* @ts-ignore */
+import { A } from './a';
+
+{
+    const a = new A();
+
+    a.ma();
+    a.mb();
+    a.mc();
 }
