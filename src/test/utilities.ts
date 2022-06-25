@@ -41,6 +41,3 @@ export const applyChanges = (directoryPath: string) => {
         sourceFileText3,
     };
 }
-export let x = 1;
-
-x
