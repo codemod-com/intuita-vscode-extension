@@ -8,7 +8,7 @@ export type ConstructorReference = Readonly<{
     arguments: ReadonlyArray<string>,
 }>;
 
-type Constructor = Readonly<{
+export type Constructor = Readonly<{
     bodyText: string | null,
     typeParameters: ReadonlyArray<string>,
     parameters: ReadonlyArray<

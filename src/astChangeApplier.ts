@@ -12,6 +12,7 @@ import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {isNeitherNullNorUndefined} from "./utilities";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
+import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -240,11 +241,9 @@ export class AstChangeApplier {
             return;
         }
 
-        const className = classDeclaration.getName();
+        const className = classDeclaration.getName() ?? '';
 
         const classParentNode = classDeclaration.getParent();
-
-
 
         const classTypeParameters = classDeclaration
             .getTypeParameters()
@@ -468,46 +467,13 @@ export class AstChangeApplier {
                     );
 
                     groupMap.forEach((group, index) => {
-                        const groupName = `${className}${index}`;
-
-                        const selectedParameterIndices: ReadonlySet<number> = new Set<number>(
-                            constructor
-                                .parameters
-                                .map(
-                                    (parameter, index) =>
-                                        group.propertyNames.includes(parameter.name)
-                                            ? index
-                                            : null
-                                )
-                                .filter(isNeitherNullNorUndefined)
+                        createNewExpressionVariableDeclaration(
+                            constructor,
+                            reference,
+                            group,
+                            className,
+                            index,
                         );
-
-                        const selectedArguments = reference
-                            .arguments
-                            .filter((_, index) => selectedParameterIndices.has(index))
-                            .join(', ');
-
-                        const declarations = [
-                            {
-                                name: groupName.toLocaleLowerCase(),
-                                initializer: `new ${groupName}(${selectedArguments})`
-                            }
-                        ];
-
-                        lookupNode(
-                            reference.nodeLookupCriterion,
-                            true,
-                        )
-                            .filter(Node.isStatemented)
-                            .forEach(statementedNode => {
-                                statementedNode.insertVariableStatement(
-                                    index,
-                                    {
-                                        declarationKind: VariableDeclarationKind.Const,
-                                        declarations,
-                                    }
-                                );
-                            });
                     });
                 });
             }
@@ -656,29 +622,13 @@ export class AstChangeApplier {
 
                         groupMap.forEach(
                             (group, index) => {
-                                const groupName = `${className}${index}`;
-
-                                const declarations = [
-                                    {
-                                        name: groupName.toLocaleLowerCase(),
-                                        initializer: `new ${groupName}()`
-                                    }
-                                ];
-
-                                lookupNode(
-                                    classReference.nodeLookupCriterion,
-                                    true,
-                                )
-                                    .filter(Node.isStatemented)
-                                    .forEach(statementedNode => {
-                                        statementedNode.insertVariableStatement(
-                                            index,
-                                            {
-                                                declarationKind: VariableDeclarationKind.Const,
-                                                declarations,
-                                            }
-                                        );
-                                    });
+                                createNewExpressionVariableDeclaration(
+                                    null,
+                                    classReference,
+                                    group,
+                                    className,
+                                    index,
+                                );
                             }
                         );
                     }
