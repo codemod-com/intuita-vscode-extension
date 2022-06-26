@@ -16,11 +16,12 @@ export enum ClassReferenceKind {
 export type ClassReference =
     | Readonly<{
         kind: ClassReferenceKind.IMPORT_SPECIFIER,
-        filePath: string;
+        filePath: string,
     }>
     | Readonly<{
         kind: ClassReferenceKind.NEW_EXPRESSION,
         nodeLookupCriterion: NodeLookupCriterion,
+        arguments: ReadonlyArray<string>,
     }>;
 
 export const getClassReferences = (
@@ -49,6 +50,10 @@ export const getClassReferences = (
                 }
 
                 if (Node.isNewExpression(parentNode)) {
+                    const _arguments = parentNode
+                        .getArguments()
+                        .map((node) => node.getText());
+
                     const nodeLookupCriterion = buildNodeLookupCriterion(
                         parentNode.getSourceFile(),
                         parentNode.compilerNode,
@@ -58,6 +63,7 @@ export const getClassReferences = (
                     const classReference: ClassReference = {
                         kind: ClassReferenceKind.NEW_EXPRESSION,
                         nodeLookupCriterion,
+                        arguments: _arguments,
                     };
 
                     return classReference;
