@@ -16,7 +16,6 @@ export const getClassCommentStatement = (
     return buildNodeLookupCriterion(
         commentStatement.getSourceFile(),
         commentStatement.compilerNode,
-        0,
         (node) => {
             if (!Node.isCommentStatement(node)) {
                 return true;

@@ -8,8 +8,7 @@ export type NodeLookupCriterion = Readonly<{
     sourceFile: SourceFile, // in the future this can be replaced with a filePath
     topBottomPath: ReadonlyArray<ts.SyntaxKind>;
     topBottomFlags: ReadonlyArray<NodeFlags>;
-    topBottomTexts: ReadonlyArray<string | null>;
-    predicate?: (node: Node) => boolean,
+    predicate: (node: Node, index: number, length: number) => boolean,
 }>;
 
 // borrowed from ts-morph
@@ -38,21 +37,13 @@ const isStatementedSyntaxKind = (syntaxKind: ts.SyntaxKind): boolean => {
 export const buildNodeLookupCriterion = (
     sourceFile: SourceFile,
     node: ts.Node,
-    numberOfBottomTopTexts: number,
-    predicate?: (node: Node) => boolean,
+    predicate: (node: Node, index: number, length: number) => boolean,
 ): NodeLookupCriterion => {
     const bottomTopPath: ts.SyntaxKind[] = [];
-    const bottomTopTexts: (string | null)[] = [];
     const bottomTopFlags: number[] = [];
 
     for(let i = 0; node !== undefined; ++i) {
         bottomTopPath.push(node.kind);
-
-        if (i < numberOfBottomTopTexts ) {
-            bottomTopTexts.push(node.getText());
-        } else {
-            bottomTopTexts.push(null);
-        }
 
         const statemented = isStatementedSyntaxKind(node.kind)
 
@@ -64,20 +55,18 @@ export const buildNodeLookupCriterion = (
     }
 
     const topBottomPath = bottomTopPath.reverse();
-    const topBottomTexts = bottomTopTexts.reverse();
     const topBottomFlags = bottomTopFlags.reverse();
 
     return {
         sourceFile,
         topBottomPath,
-        topBottomTexts,
         topBottomFlags,
         predicate,
     };
 };
 
 export const lookupNode = (
-    { sourceFile, topBottomPath, topBottomTexts, topBottomFlags, predicate }: NodeLookupCriterion,
+    { sourceFile, topBottomPath, topBottomFlags, predicate }: NodeLookupCriterion,
     getBottomStatementedNode: boolean = false,
 ): ReadonlyArray<Node> => {
     const bottomStatementedNodeIndex = topBottomFlags
@@ -90,16 +79,15 @@ export const lookupNode = (
         index: number,
     ): ReadonlyArray<Node> => {
         const syntaxKind = topBottomPath[index];
-        const text = topBottomTexts[index];
 
-        if (predicate && !predicate(node)) {
+        if (!predicate(node, index, topBottomPath.length)) {
             return [];
         }
 
         if (
             !syntaxKind
             || node.getKind() !== syntaxKind
-            || (text && text !== node.getText()))
+        )
         {
             return [];
         }

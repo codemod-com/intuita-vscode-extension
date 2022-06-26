@@ -76,12 +76,22 @@ export const getClassInstanceMethods = (
                     (referencedSymbolEntry) => {
                         const sourceFile = referencedSymbolEntry.getSourceFile();
 
+                        const node = referencedSymbolEntry
+                            .getNode();
+
+                        const kind = node.getKind();
+                        const text = node.getText();
+
                         return buildNodeLookupCriterion(
                             sourceFile,
-                            referencedSymbolEntry
-                                .getNode()
-                                .compilerNode,
-                            1,
+                            node.compilerNode,
+                            (node, index, length) => {
+                                if (index !== (length-1)) {
+                                    return true;
+                                }
+
+                                return node.getText() === text;
+                            },
                         );
                     }
                 );

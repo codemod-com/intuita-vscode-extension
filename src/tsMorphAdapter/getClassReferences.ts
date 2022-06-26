@@ -1,9 +1,6 @@
 import {
     ClassDeclaration,
     Node,
-    StatementedNode,
-    ts,
-    VariableDeclarationStructure,
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
@@ -59,10 +56,18 @@ export const getClassReferences = (
                         .getArguments()
                         .map((node) => node.getText());
 
+                    const text = parentNode.getText();
+
                     const nodeLookupCriterion = buildNodeLookupCriterion(
                         parentNode.getSourceFile(),
                         parentNode.compilerNode,
-                        1,
+                        (node, index, length) => {
+                            if(index !== (length-1) || !Node.isNewExpression(parentNode)) {
+                                return true;
+                            }
+
+                            return node.getText() === text;
+                        },
                     );
 
                     const classReference: ClassReference = {

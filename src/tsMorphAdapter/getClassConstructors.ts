@@ -35,7 +35,6 @@ export const getClassConstructors = (
             const criterion = buildNodeLookupCriterion(
                 constructorDeclaration.getSourceFile(),
                 constructorDeclaration.compilerNode,
-                0,
                 (node) => {
                     if (!Node.isClassDeclaration(node)) {
                         return true;
@@ -79,10 +78,18 @@ export const getClassConstructors = (
                                 .getArguments()
                                 .map((node) => node.getText());
 
+                            const text = parentNode.getText();
+
                             const nodeLookupCriterion = buildNodeLookupCriterion(
                                 parentNode.getSourceFile(),
                                 parentNode.compilerNode,
-                                1,
+                                (node, index, length) => {
+                                    if (index !== (length-1) || !Node.isNewExpression(node)) {
+                                        return true;
+                                    }
+
+                                    return node.getText() === text;
+                                }
                             );
 
                             const reference: ConstructorReference = {
