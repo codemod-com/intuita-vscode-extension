@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile, StatementedNode, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
@@ -414,9 +414,7 @@ export class AstChangeApplier {
 
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
-                                const nodes = lookupNode(
-                                    criterion,
-                                );
+                                const nodes = lookupNode(criterion);
 
                                 nodes
                                     .flatMap(node => node.getPreviousSiblings())
@@ -451,8 +449,6 @@ export class AstChangeApplier {
 
         groupMap.size > 1 && constructors.forEach(
             (constructor) => {
-                console.log(constructor.criterion,)
-
                 lookupNode(
                     constructor.criterion,
                     false,
@@ -464,6 +460,25 @@ export class AstChangeApplier {
                             constructorDeclaration.remove();
                         }
                     );
+
+                constructor.references.forEach(
+                    (reference) => {
+                        lookupNode(
+                            reference.nodeLookupCriterion
+                        )
+                            .filter(Node.isNewExpression)
+                            .map(
+                                (newExpression) =>
+                                    newExpression.getFirstAncestorByKind(ts.SyntaxKind.VariableDeclaration)
+                            )
+                            .filter(isNeitherNullNorUndefined)
+                            .forEach(
+                                (variableDeclaration) => {
+                                    variableDeclaration.remove();
+                                }
+                            );
+                    }
+                );
             }
         );
 
@@ -550,8 +565,6 @@ export class AstChangeApplier {
             }
         }
 
-        console.log(memberCount, deletedMemberCount)
-
         if (memberCount - deletedMemberCount === 0) {
             classReferences.forEach(
                 (classReference) => {
@@ -608,8 +621,6 @@ export class AstChangeApplier {
                     ) {
                         groupMap.forEach(
                             (group, index) => {
-                                const groupName = `${className}${index}`;
-
                                 lookupNode(
                                     classReference.nodeLookupCriterion
                                 )
@@ -624,6 +635,14 @@ export class AstChangeApplier {
                                             variableDeclaration.remove();
                                         }
                                     );
+                            }
+                        );
+                    }
+
+                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION) {
+                        groupMap.forEach(
+                            (group, index) => {
+                                const groupName = `${className}${index}`;
 
                                 lookupNode(
                                     classReference.nodeLookupCriterion,
@@ -646,6 +665,8 @@ export class AstChangeApplier {
                                     });
                             }
                         );
+
+
                     }
                 }
             );

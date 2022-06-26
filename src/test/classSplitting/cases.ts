@@ -23,7 +23,7 @@
     class A0 {
         pa = 1;
 
-        ma(): void {
+        ma() {
             console.log(this.pa);
         }
     }
@@ -31,7 +31,7 @@
     class A1 {
         pb = 2;
 
-        mb(): void {
+        mb() {
             console.log(this.pb);
         }
     }
@@ -39,7 +39,7 @@
     class A2 {
         pc = 3;
 
-        mc(): void {
+        mc() {
             console.log(this.pc);
         }
     }
