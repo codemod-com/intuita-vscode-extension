@@ -306,8 +306,14 @@ export class AstChangeApplier {
 
                 staticMethod.references.forEach(
                     (reference) => {
+                        const sourceFile = this._project.getSourceFile(reference.criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         newImportDeclarationMap.addItem(
-                            reference.sourceFile,
+                            sourceFile,
                             staticMethod.name,
                         );
                     }
@@ -573,9 +579,26 @@ export class AstChangeApplier {
 
                     staticMethod.references.forEach(
                         (reference) => {
-                            reference.callExpression.replaceWithText(reference.text);
+                            const { criterion, replacementText } = reference;
 
-                            this._changedSourceFiles.add(reference.sourceFile);
+                            const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                            if (!sourceFile) {
+                                return;
+                            }
+
+                            this._changedSourceFiles.add(sourceFile);
+
+                            const callExpressions = lookupNode(
+                                this._project,
+                                criterion,
+                            );
+
+                            callExpressions.forEach(
+                                (callExpression) => {
+                                    callExpression.replaceWithText(replacementText);
+                                }
+                            );
                         }
                     );
 
