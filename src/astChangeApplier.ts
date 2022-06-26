@@ -466,6 +466,49 @@ export class AstChangeApplier {
                     deleteNewExpressionVariableDeclaration(
                         reference.nodeLookupCriterion,
                     );
+
+                    groupMap.forEach((group, index) => {
+                        const groupName = `${className}${index}`;
+
+                        const selectedParameterIndices: ReadonlySet<number> = new Set<number>(
+                            constructor
+                                .parameters
+                                .map(
+                                    (parameter, index) =>
+                                        group.propertyNames.includes(parameter.name)
+                                            ? index
+                                            : null
+                                )
+                                .filter(isNeitherNullNorUndefined)
+                        );
+
+                        const selectedArguments = reference
+                            .arguments
+                            .filter((_, index) => selectedParameterIndices.has(index))
+                            .join(', ');
+
+                        const declarations = [
+                            {
+                                name: groupName.toLocaleLowerCase(),
+                                initializer: `new ${groupName}(${selectedArguments})`
+                            }
+                        ];
+
+                        lookupNode(
+                            reference.nodeLookupCriterion,
+                            true,
+                        )
+                            .filter(Node.isStatemented)
+                            .forEach(statementedNode => {
+                                statementedNode.insertVariableStatement(
+                                    index,
+                                    {
+                                        declarationKind: VariableDeclarationKind.Const,
+                                        declarations,
+                                    }
+                                );
+                            });
+                    });
                 });
             }
         );
@@ -610,12 +653,17 @@ export class AstChangeApplier {
                         deleteNewExpressionVariableDeclaration(
                             classReference.nodeLookupCriterion,
                         );
-                    }
 
-                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION) {
                         groupMap.forEach(
                             (group, index) => {
                                 const groupName = `${className}${index}`;
+
+                                const declarations = [
+                                    {
+                                        name: groupName.toLocaleLowerCase(),
+                                        initializer: `new ${groupName}()`
+                                    }
+                                ];
 
                                 lookupNode(
                                     classReference.nodeLookupCriterion,
@@ -627,19 +675,12 @@ export class AstChangeApplier {
                                             index,
                                             {
                                                 declarationKind: VariableDeclarationKind.Const,
-                                                declarations: [
-                                                    {
-                                                        name: groupName.toLocaleLowerCase(),
-                                                        initializer: `new ${groupName}()`
-                                                    }
-                                                ],
+                                                declarations,
                                             }
                                         );
                                     });
                             }
                         );
-
-
                     }
                 }
             );
