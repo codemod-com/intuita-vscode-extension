@@ -15,7 +15,6 @@ export type StaticMethod = Readonly<{
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string,
     bodyText: string | null,
-    staticMethod: MethodDeclaration,
     references: ReadonlyArray<
         Readonly<{
             sourceFile: SourceFile,
@@ -93,7 +92,6 @@ export const getClassStaticMethod = (
                     parameters,
                     returnType,
                     bodyText,
-                    staticMethod,
                     references,
                 };
             }

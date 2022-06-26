@@ -1,6 +1,5 @@
 import {
     ClassDeclaration,
-    ClassStaticPropertyTypes,
     PropertyAccessExpression,
     SourceFile,
     StructureKind,
@@ -12,7 +11,6 @@ type StaticProperty = Readonly<{
     name: string;
     initializer: string | null;
     readonly: boolean;
-    staticProperty: ClassStaticPropertyTypes,
     // the following structure is tied to ts-morph for speed purposes
     propertyAccessExpressions: ReadonlyArray<
         Readonly<{
@@ -72,7 +70,6 @@ export const getClassStaticProperties = (
                     initializer,
                     readonly,
                     propertyAccessExpressions,
-                    staticProperty,
                 };
             });
 }

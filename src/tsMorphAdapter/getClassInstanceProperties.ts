@@ -54,7 +54,6 @@ export const getClassInstanceProperties = (
                     readonly,
                     initializer,
                     methodNames,
-                    instanceProperty,
                 };
             }
         );

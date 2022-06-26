@@ -15,7 +15,6 @@ export type InstanceMethod = Readonly<{
     returnType: string | null,
     calleeNames: ReadonlyArray<string>,
     bodyText: string | null,
-    methodDeclaration: MethodDeclaration,
     methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>
 }>;
 
@@ -103,7 +102,6 @@ export const getClassInstanceMethods = (
                 parameters,
                 returnType,
                 bodyText,
-                methodDeclaration,
                 methodLookupCriteria,
             };
         });

@@ -444,18 +444,16 @@ export class AstChangeApplier {
         );
 
         groupMap.size > 1 && instanceMethods.forEach(
-            ({ methodDeclaration }) => {
+            () => {
+                // do not remove it, this will be removed when a class is removed
                 ++deletedMemberCount;
-
-                methodDeclaration.remove();
             }
         );
 
         groupMap.size > 1 && instanceProperties.forEach(
-            ({instanceProperty}) => {
+            () => {
+                // do not remove it, this will be removed when a class is removed
                 ++deletedMemberCount;
-
-                instanceProperty.remove();
             }
         );
 
@@ -522,9 +520,8 @@ export class AstChangeApplier {
                     }
                 );
 
+                // do not remove it, this will be removed when a class is removed
                 ++deletedMemberCount;
-
-                staticProperty.staticProperty.remove();
             }
         );
 
@@ -558,9 +555,8 @@ export class AstChangeApplier {
                         }
                     );
 
+                    // do not remove it, this will be removed when a class is removed
                     ++deletedMemberCount;
-
-                    staticMethod.staticMethod.remove();
                 }
             );
 
