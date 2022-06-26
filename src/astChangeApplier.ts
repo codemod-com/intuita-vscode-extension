@@ -284,8 +284,14 @@ export class AstChangeApplier {
             (staticProperty) => {
                 const { name } = staticProperty;
 
-                staticProperty.propertyAccessExpressions.forEach(
-                    ({ sourceFile }) => {
+                staticProperty.references.forEach(
+                    (criterion) => {
+                        const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         newImportDeclarationMap.addItem(
                             sourceFile,
                             name,
@@ -494,7 +500,7 @@ export class AstChangeApplier {
 
         staticProperties.forEach(
             (staticProperty) => {
-                if(Node.isStatemented(classParentNode) && staticProperty.propertyAccessExpressions.length) {
+                if(Node.isStatemented(classParentNode) && staticProperty.references.length) {
                     const declarationKind = staticProperty.readonly
                         ? VariableDeclarationKind.Const
                         : VariableDeclarationKind.Let;
@@ -515,11 +521,26 @@ export class AstChangeApplier {
                     variableStatement.setIsExported(exported);
                 }
 
-                staticProperty.propertyAccessExpressions.forEach(
-                    ({ sourceFile, propertyAccessExpression }) => {
+                staticProperty.references.forEach(
+                    (criterion) => {
+                        const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         this._changedSourceFiles.add(sourceFile);
 
-                        propertyAccessExpression.replaceWithText(staticProperty.name);
+                        const propertyAccessExpressions = lookupNode(
+                            this._project,
+                            criterion,
+                        );
+
+                        propertyAccessExpressions.forEach(
+                            (pae) => {
+                                pae.replaceWithText(staticProperty.name);
+                            }
+                        );
                     }
                 );
 

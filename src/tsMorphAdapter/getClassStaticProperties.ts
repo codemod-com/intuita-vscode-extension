@@ -1,23 +1,16 @@
 import {
     ClassDeclaration,
-    PropertyAccessExpression,
-    SourceFile,
     StructureKind,
     ts
 } from "ts-morph";
 import { isNeitherNullNorUndefined } from "../utilities";
+import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 type StaticProperty = Readonly<{
     name: string;
     initializer: string | null;
     readonly: boolean;
-    // the following structure is tied to ts-morph for speed purposes
-    propertyAccessExpressions: ReadonlyArray<
-        Readonly<{
-            sourceFile: SourceFile,
-            propertyAccessExpression: PropertyAccessExpression,
-        }>
-    >
+    references: ReadonlyArray<NodeLookupCriterion>;
 }>;
 
 export const getClassStaticProperties = (
@@ -40,9 +33,9 @@ export const getClassStaticProperties = (
 
                 const readonly = Boolean(modifierFlags & ts.ModifierFlags.Readonly);
 
-                const propertyAccessExpressions = staticProperty
+                const references = staticProperty
                     .findReferences()
-                    .flatMap((rs) => rs.getReferences())
+                    .flatMap((referencedSymbol) => referencedSymbol.getReferences())
                     .map(
                         (referencedSymbolEntry) => {
                             const sourceFile = referencedSymbolEntry.getSourceFile();
@@ -57,10 +50,18 @@ export const getClassStaticProperties = (
                                 return null;
                             }
 
-                            return {
-                                sourceFile,
-                                propertyAccessExpression,
-                            };
+                            const text = propertyAccessExpression.getText();
+
+                            return buildNodeLookupCriterion(
+                                propertyAccessExpression.compilerNode,
+                                (node, index, length) => {
+                                    if (index !== (length-1)) {
+                                        return true;
+                                    }
+
+                                    return node.getText() === text;
+                                }
+                            );
                         }
                     )
                     .filter(isNeitherNullNorUndefined);
@@ -69,7 +70,7 @@ export const getClassStaticProperties = (
                     name,
                     initializer,
                     readonly,
-                    propertyAccessExpressions,
+                    references,
                 };
             });
 }
