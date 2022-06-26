@@ -266,16 +266,17 @@ export class AstChangeApplier {
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
 
-        const constructorPropertyCount = constructors
-            .map(constructor => constructor
-                .parameters
-                .filter(parameter => Boolean(parameter.scope))
-                .length
-            )
-            .reduce((a, b) => a + b, 0)
+        const constructorPropertyNames: ReadonlySet<string> = new Set<string>(
+            constructors
+                .flatMap(constructor => constructor
+                    .parameters
+                    .filter(parameter => Boolean(parameter.scope))
+                )
+                .map(({ name }) => name)
+        );
 
         const memberCount = classDeclaration.getMembers().length
-            + constructorPropertyCount;
+            + constructorPropertyNames.size;
 
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
         const groupMap = getGroupMap(methodMap);
@@ -329,7 +330,7 @@ export class AstChangeApplier {
 
                 groupClass.addTypeParameters(classTypeParameters);
 
-               let memberIndex = 0;
+                let memberIndex = 0;
 
                 constructors.forEach((constructor) => {
                     const { bodyText, parameters, typeParameters } = constructor;
@@ -363,6 +364,10 @@ export class AstChangeApplier {
 
                 group.propertyNames.forEach(
                     (propertyName) => {
+                        if (constructorPropertyNames.has(propertyName)) {
+                            return;
+                        }
+
                         const instanceProperty = instanceProperties.find(
                             (ip) => ip.name === propertyName,
                         );

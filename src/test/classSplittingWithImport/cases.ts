@@ -141,6 +141,7 @@ export class A2 {
         console.log(this.pc);
     }
 }
+
 /** newB-002 **/
 /* @ts-ignore */
 import { A0, A1, A2 } from './a';
