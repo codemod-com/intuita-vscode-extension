@@ -10,6 +10,7 @@ import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
 import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {isNeitherNullNorUndefined} from "./utilities";
+import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -261,6 +262,7 @@ export class AstChangeApplier {
         const staticProperties = getClassStaticProperties(classDeclaration);
         const staticMethods = getClassStaticMethod(classDeclaration);
 
+        const constructors = getClassConstructors(classDeclaration);
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
 
