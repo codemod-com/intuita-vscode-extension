@@ -334,10 +334,23 @@ export class AstChangeApplier {
                 constructors.forEach((constructor) => {
                     const { bodyText, parameters, typeParameters } = constructor;
 
+                    const selectedParameter = parameters
+                        .filter(
+                        parameter => group.propertyNames.includes(parameter.name)
+                        )
+                        .map((parameter) => ({
+                            ...parameter,
+                            initializer: parameter.initializer ?? undefined,
+                            type: parameter.type ?? undefined,
+                            scope: parameter.scope ?? undefined,
+                            isReadonly: parameter.readonly
+                        }));
+
                     const constructorDeclaration = groupClass.insertConstructor(
                         memberIndex,
                         {
                             typeParameters: typeParameters.slice(),
+                            parameters: selectedParameter
                         }
                     );
 
