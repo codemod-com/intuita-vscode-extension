@@ -82,9 +82,6 @@ export class A {
         public readonly pc: number,
     ) {
         console.log('A::constructor');
-        console.log(this.pa);
-        console.log(this.pb);
-        console.log(this.pc);
     }
 
     ma() {
@@ -113,38 +110,11 @@ import { A } from './a';
 }
 /** newA-002 **/
 /* @ts-ignore */
-export class A {
-    constructor(
-        public readonly pa: number,
-        public readonly pb: number,
-        public readonly pc: number,
-    ) {
-        console.log('A::constructor');
-        console.log(this.pa);
-        console.log(this.pb);
-        console.log(this.pc);
-    }
-
-    ma() {
-        console.log(this.pa);
-    }
-
-    mb() {
-        console.log(this.pb);
-    }
-
-    mc() {
-        console.log(this.pc);
-    }
-}
-
-/* @ts-ignore */
 export class A0 {
     constructor(
         public readonly pa: number,
     ) {
         console.log('A::constructor');
-        console.log(this.pa);
     }
 
     ma() {
@@ -158,7 +128,6 @@ export class A1 {
         public readonly pb: number,
     ) {
         console.log('A::constructor');
-        console.log(this.pb);
     }
 
     mb() {
@@ -172,7 +141,6 @@ export class A2 {
         public readonly pc: number,
     ) {
         console.log('A::constructor');
-        console.log(this.pc);
     }
 
     mc() {

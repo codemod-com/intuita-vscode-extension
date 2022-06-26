@@ -9,6 +9,7 @@ export type NodeLookupCriterion = Readonly<{
     topBottomPath: ReadonlyArray<ts.SyntaxKind>;
     topBottomFlags: ReadonlyArray<NodeFlags>;
     topBottomTexts: ReadonlyArray<string | null>;
+    predicate?: (node: Node) => boolean,
 }>;
 
 // borrowed from ts-morph
@@ -38,6 +39,7 @@ export const buildNodeLookupCriterion = (
     sourceFile: SourceFile,
     node: ts.Node,
     numberOfBottomTopTexts: number,
+    predicate?: (node: Node) => boolean,
 ): NodeLookupCriterion => {
     const bottomTopPath: ts.SyntaxKind[] = [];
     const bottomTopTexts: (string | null)[] = [];
@@ -70,11 +72,12 @@ export const buildNodeLookupCriterion = (
         topBottomPath,
         topBottomTexts,
         topBottomFlags,
+        predicate,
     };
 };
 
 export const lookupNode = (
-    { sourceFile, topBottomPath, topBottomTexts, topBottomFlags }: NodeLookupCriterion,
+    { sourceFile, topBottomPath, topBottomTexts, topBottomFlags, predicate }: NodeLookupCriterion,
     getBottomStatementedNode: boolean = false,
 ): ReadonlyArray<Node> => {
     const bottomStatementedNodeIndex = topBottomFlags
@@ -88,6 +91,10 @@ export const lookupNode = (
     ): ReadonlyArray<Node> => {
         const syntaxKind = topBottomPath[index];
         const text = topBottomTexts[index];
+
+        if (predicate && !predicate(node)) {
+            return [];
+        }
 
         if (
             !syntaxKind

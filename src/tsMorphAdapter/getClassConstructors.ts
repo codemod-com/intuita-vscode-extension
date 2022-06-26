@@ -27,6 +27,8 @@ type Constructor = Readonly<{
 export const getClassConstructors = (
     classDeclaration: ClassDeclaration
 ): ReadonlyArray<Constructor> => {
+    const className = classDeclaration.getName();
+
     return classDeclaration
         .getConstructors()
         .map((constructorDeclaration) => {
@@ -34,6 +36,13 @@ export const getClassConstructors = (
                 constructorDeclaration.getSourceFile(),
                 constructorDeclaration.compilerNode,
                 0,
+                (node) => {
+                    if (!Node.isClassDeclaration(node)) {
+                        return true;
+                    }
+
+                    return className === node.getName();
+                }
             );
 
             const bodyText = constructorDeclaration.getBodyText() ?? null;

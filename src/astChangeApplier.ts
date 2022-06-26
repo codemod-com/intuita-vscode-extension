@@ -329,7 +329,22 @@ export class AstChangeApplier {
 
                 groupClass.addTypeParameters(classTypeParameters);
 
-                let memberIndex = 0;
+               let memberIndex = 0;
+
+                constructors.forEach((constructor) => {
+                    const { bodyText, parameters, typeParameters } = constructor;
+
+                    const constructorDeclaration = groupClass.insertConstructor(
+                        memberIndex,
+                        {
+                            typeParameters: typeParameters.slice(),
+                        }
+                    );
+
+                    if (bodyText) {
+                        constructorDeclaration.setBodyText(bodyText);
+                    }
+                });
 
                 group.propertyNames.forEach(
                     (propertyName) => {
@@ -411,10 +426,10 @@ export class AstChangeApplier {
             }
         );
 
-        console.log(deletedMemberCount);
-
         groupMap.size > 1 && constructors.forEach(
             (constructor) => {
+                console.log(constructor.criterion,)
+
                 lookupNode(
                     constructor.criterion,
                     false,
@@ -511,6 +526,8 @@ export class AstChangeApplier {
                 this._changedSourceFiles.add(sourceFile);
             }
         }
+
+        console.log(memberCount, deletedMemberCount)
 
         if (memberCount - deletedMemberCount === 0) {
             classReferences.forEach(
