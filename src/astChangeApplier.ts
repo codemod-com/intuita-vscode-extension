@@ -344,6 +344,8 @@ export class AstChangeApplier {
                     if (bodyText) {
                         constructorDeclaration.setBodyText(bodyText);
                     }
+
+                    ++memberIndex;
                 });
 
                 group.propertyNames.forEach(
