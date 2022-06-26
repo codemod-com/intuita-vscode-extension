@@ -313,6 +313,18 @@ export class AstChangeApplier {
         const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
+        if (commentStatement) {
+            const nodes = lookupNode(commentStatement);
+
+            lookupNode(commentStatement)
+                .filter(Node.isCommentStatement)
+                .forEach(
+                    (commentStatement) => {
+                        commentStatement.remove();
+                    }
+                );
+        }
+
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
                 if(!Node.isStatemented(classParentNode)) {
@@ -551,10 +563,6 @@ export class AstChangeApplier {
                     staticMethod.staticMethod.remove();
                 }
             );
-
-        if (commentStatement) {
-            commentStatement.remove();
-        }
 
         {
             if (deletedMemberCount > 0) {

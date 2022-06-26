@@ -100,7 +100,7 @@ export const lookupNode = (
             !syntaxKind
             || node.getKind() !== syntaxKind
             || (text && text !== node.getText()))
-         {
+        {
             return [];
         }
 
@@ -114,13 +114,25 @@ export const lookupNode = (
 
         const nodes: Node[] = [];
 
-        node.forEachChild(
-            (childNode) => {
-                nodes.push(
-                    ...lookup(childNode, index + 1)
-                );
-            }
-        );
+        const children = node.getChildSyntaxList()?.getChildren() ?? [];
+
+        if (children.length > 0) {
+            children.forEach(
+                (childNode) => {
+                    nodes.push(
+                        ...lookup(childNode, index + 1)
+                    );
+                }
+            );
+        } else {
+            node.forEachChild(
+                (childNode) => {
+                    nodes.push(
+                        ...lookup(childNode, index + 1)
+                    );
+                }
+            );
+        }
 
         return nodes;
     };
