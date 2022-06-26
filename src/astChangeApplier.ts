@@ -11,6 +11,7 @@ import {getGroupMap} from "./intuitaExtension/getGroupMap";
 import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {isNeitherNullNorUndefined} from "./utilities";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
+import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -461,24 +462,11 @@ export class AstChangeApplier {
                         }
                     );
 
-                constructor.references.forEach(
-                    (reference) => {
-                        lookupNode(
-                            reference.nodeLookupCriterion
-                        )
-                            .filter(Node.isNewExpression)
-                            .map(
-                                (newExpression) =>
-                                    newExpression.getFirstAncestorByKind(ts.SyntaxKind.VariableDeclaration)
-                            )
-                            .filter(isNeitherNullNorUndefined)
-                            .forEach(
-                                (variableDeclaration) => {
-                                    variableDeclaration.remove();
-                                }
-                            );
-                    }
-                );
+                constructor.references.forEach((reference) => {
+                    deleteNewExpressionVariableDeclaration(
+                        reference.nodeLookupCriterion,
+                    );
+                });
             }
         );
 
@@ -619,23 +607,8 @@ export class AstChangeApplier {
                     if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION
                         && !classReference.existingConstructor
                     ) {
-                        groupMap.forEach(
-                            (group, index) => {
-                                lookupNode(
-                                    classReference.nodeLookupCriterion
-                                )
-                                    .filter(Node.isNewExpression)
-                                    .map(
-                                        (newExpression) =>
-                                            newExpression.getFirstAncestorByKind(ts.SyntaxKind.VariableDeclaration)
-                                    )
-                                    .filter(isNeitherNullNorUndefined)
-                                    .forEach(
-                                        (variableDeclaration) => {
-                                            variableDeclaration.remove();
-                                        }
-                                    );
-                            }
+                        deleteNewExpressionVariableDeclaration(
+                            classReference.nodeLookupCriterion,
                         );
                     }
 
