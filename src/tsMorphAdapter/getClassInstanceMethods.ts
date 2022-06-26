@@ -12,7 +12,7 @@ export type InstanceMethod = Readonly<{
     name: string,
     typeParameterDeclarations: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
-    returnType: string,
+    returnType: string | null,
     calleeNames: ReadonlyArray<string>,
     bodyText: string | null,
     methodDeclaration: MethodDeclaration,
@@ -35,7 +35,7 @@ export const getClassInstanceMethods = (
 
             const returnType = methodDeclaration
                 .getReturnTypeNode()
-                ?.getText() ?? 'void';
+                ?.getText() ?? null;
 
             const bodyText = methodDeclaration.getBodyText() ?? null;
 

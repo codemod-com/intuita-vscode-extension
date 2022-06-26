@@ -34,7 +34,7 @@ import { A } from './a';
 export class A0 {
     pa = 1;
 
-    ma(): void {
+    ma() {
         console.log(this.pa);
     }
 }
@@ -43,7 +43,7 @@ export class A0 {
 export class A1 {
     pb = 2;
 
-    mb(): void {
+    mb() {
         console.log(this.pb);
     }
 }
@@ -52,7 +52,7 @@ export class A1 {
 export class A2 {
     pc = 3;
 
-    mc(): void {
+    mc() {
         console.log(this.pc);
     }
 }

@@ -380,7 +380,10 @@ export class AstChangeApplier {
 
                         methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
                         methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
-                        methodDeclaration.setReturnType(instanceMethod?.returnType ?? 'void');
+
+                        if (instanceMethod?.returnType) {
+                            methodDeclaration.setReturnType(instanceMethod.returnType);
+                        }
 
                         if (instanceMethod?.bodyText) {
                             methodDeclaration.setBodyText(instanceMethod.bodyText);
