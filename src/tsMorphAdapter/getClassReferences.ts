@@ -22,11 +22,16 @@ export type ClassReference =
         kind: ClassReferenceKind.NEW_EXPRESSION,
         nodeLookupCriterion: NodeLookupCriterion,
         arguments: ReadonlyArray<string>,
+        existingConstructor: boolean;
     }>;
 
 export const getClassReferences = (
     classDeclaration: ClassDeclaration,
 ): ReadonlyArray<ClassReference> => {
+    const existingConstructor = classDeclaration
+        .getConstructors()
+        .length !== 0;
+
     return classDeclaration
         .findReferences()
         .flatMap((referencedSymbol) => referencedSymbol.getReferences())
@@ -64,6 +69,7 @@ export const getClassReferences = (
                         kind: ClassReferenceKind.NEW_EXPRESSION,
                         nodeLookupCriterion,
                         arguments: _arguments,
+                        existingConstructor,
                     };
 
                     return classReference;

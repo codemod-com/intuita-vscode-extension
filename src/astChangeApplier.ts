@@ -526,7 +526,9 @@ export class AstChangeApplier {
                             );
                     }
 
-                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION) {
+                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION
+                        && !classReference.existingConstructor
+                    ) {
                         groupMap.forEach(
                             (group, index) => {
                                 const groupName = `${className}${index}`;
