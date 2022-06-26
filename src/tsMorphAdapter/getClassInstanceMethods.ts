@@ -1,6 +1,5 @@
 import {
     ClassDeclaration,
-    MethodDeclaration,
     ParameterDeclarationStructure,
     ts,
     TypeParameterDeclarationStructure
@@ -73,8 +72,6 @@ export const getClassInstanceMethods = (
                 )
                 .map(
                     (referencedSymbolEntry) => {
-                        const sourceFile = referencedSymbolEntry.getSourceFile();
-
                         const node = referencedSymbolEntry
                             .getNode();
 
@@ -82,7 +79,6 @@ export const getClassInstanceMethods = (
                         const text = node.getText();
 
                         return buildNodeLookupCriterion(
-                            sourceFile,
                             node.compilerNode,
                             (node, index, length) => {
                                 if (index !== (length-1)) {

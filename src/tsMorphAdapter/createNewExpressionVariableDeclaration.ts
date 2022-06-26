@@ -1,10 +1,11 @@
 import {isNeitherNullNorUndefined} from "../utilities";
 import {lookupNode} from "./nodeLookup";
-import {Node, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, VariableDeclarationKind} from "ts-morph";
 import {Constructor, ConstructorReference} from "./getClassConstructors";
 import {Group} from "../intuitaExtension/getGroupMap";
 
 export const createNewExpressionVariableDeclaration = (
+    project: Project,
     constructor: Constructor | null,
     reference: ConstructorReference,
     group: Group,
@@ -38,6 +39,7 @@ export const createNewExpressionVariableDeclaration = (
     ];
 
     lookupNode(
+        project,
         reference.nodeLookupCriterion,
         true,
     )

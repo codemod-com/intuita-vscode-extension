@@ -1,11 +1,11 @@
-import {Node, SourceFile, ts} from "ts-morph";
+import {Node, Project, ts} from "ts-morph";
 
 export const enum NodeFlags {
     STATEMENTED_NODE = 1,
 }
 
 export type NodeLookupCriterion = Readonly<{
-    sourceFile: SourceFile, // in the future this can be replaced with a filePath
+    fileName: string,
     topBottomPath: ReadonlyArray<ts.SyntaxKind>;
     topBottomFlags: ReadonlyArray<NodeFlags>;
     predicate: (node: Node, index: number, length: number) => boolean,
@@ -35,12 +35,13 @@ const isStatementedSyntaxKind = (syntaxKind: ts.SyntaxKind): boolean => {
 };
 
 export const buildNodeLookupCriterion = (
-    sourceFile: SourceFile,
     node: ts.Node,
     predicate: (node: Node, index: number, length: number) => boolean,
 ): NodeLookupCriterion => {
     const bottomTopPath: ts.SyntaxKind[] = [];
     const bottomTopFlags: number[] = [];
+
+    const { fileName } = node.getSourceFile();
 
     for(let i = 0; node !== undefined; ++i) {
         bottomTopPath.push(node.kind);
@@ -58,7 +59,7 @@ export const buildNodeLookupCriterion = (
     const topBottomFlags = bottomTopFlags.reverse();
 
     return {
-        sourceFile,
+        fileName,
         topBottomPath,
         topBottomFlags,
         predicate,
@@ -66,7 +67,8 @@ export const buildNodeLookupCriterion = (
 };
 
 export const lookupNode = (
-    { sourceFile, topBottomPath, topBottomFlags, predicate }: NodeLookupCriterion,
+    project: Project,
+    { fileName, topBottomPath, topBottomFlags, predicate }: NodeLookupCriterion,
     getBottomStatementedNode: boolean = false,
 ): ReadonlyArray<Node> => {
     const bottomStatementedNodeIndex = topBottomFlags
@@ -124,6 +126,12 @@ export const lookupNode = (
 
         return nodes;
     };
+
+    const sourceFile = project.getSourceFile(fileName);
+
+    if (!sourceFile) {
+        return [];
+    }
 
     return lookup(
         sourceFile,

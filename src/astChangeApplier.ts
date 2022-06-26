@@ -9,7 +9,6 @@ import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods"
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
 import {lookupNode} from "./tsMorphAdapter/nodeLookup";
-import {isNeitherNullNorUndefined} from "./utilities";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
@@ -314,9 +313,10 @@ export class AstChangeApplier {
 
         // UPDATES
         if (commentStatement) {
-            const nodes = lookupNode(commentStatement);
-
-            lookupNode(commentStatement)
+            lookupNode(
+                this._project,
+                commentStatement
+            )
                 .filter(Node.isCommentStatement)
                 .forEach(
                     (commentStatement) => {
@@ -426,7 +426,7 @@ export class AstChangeApplier {
 
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
-                                const nodes = lookupNode(criterion);
+                                const nodes = lookupNode(this._project, criterion);
 
                                 nodes
                                     .flatMap(node => node.getPreviousSiblings())
@@ -460,6 +460,7 @@ export class AstChangeApplier {
         groupMap.size > 1 && constructors.forEach(
             (constructor) => {
                 lookupNode(
+                    this._project,
                     constructor.criterion,
                     false,
                 )
@@ -473,11 +474,13 @@ export class AstChangeApplier {
 
                 constructor.references.forEach((reference) => {
                     deleteNewExpressionVariableDeclaration(
+                        this._project,
                         reference.nodeLookupCriterion,
                     );
 
                     groupMap.forEach((group, index) => {
                         createNewExpressionVariableDeclaration(
+                            this._project,
                             constructor,
                             reference,
                             group,
@@ -621,12 +624,14 @@ export class AstChangeApplier {
                         && !classReference.existingConstructor
                     ) {
                         deleteNewExpressionVariableDeclaration(
+                            this._project,
                             classReference.nodeLookupCriterion,
                         );
 
                         groupMap.forEach(
                             (group, index) => {
                                 createNewExpressionVariableDeclaration(
+                                    this._project,
                                     null,
                                     classReference,
                                     group,

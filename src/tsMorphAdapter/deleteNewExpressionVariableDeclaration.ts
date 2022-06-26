@@ -1,11 +1,12 @@
 import {lookupNode, NodeLookupCriterion} from "./nodeLookup";
-import {Node, ts} from "ts-morph";
+import {Node, Project, ts} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 
 export const deleteNewExpressionVariableDeclaration = (
+    project: Project,
     criterion: NodeLookupCriterion
 ): void => {
-    lookupNode(criterion)
+    lookupNode(project, criterion)
         .filter(Node.isNewExpression)
         .map(
             (newExpression) =>

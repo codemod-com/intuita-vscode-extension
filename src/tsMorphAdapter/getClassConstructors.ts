@@ -33,7 +33,6 @@ export const getClassConstructors = (
         .getConstructors()
         .map((constructorDeclaration) => {
             const criterion = buildNodeLookupCriterion(
-                constructorDeclaration.getSourceFile(),
                 constructorDeclaration.compilerNode,
                 (node) => {
                     if (!Node.isClassDeclaration(node)) {
@@ -81,7 +80,6 @@ export const getClassConstructors = (
                             const text = parentNode.getText();
 
                             const nodeLookupCriterion = buildNodeLookupCriterion(
-                                parentNode.getSourceFile(),
                                 parentNode.compilerNode,
                                 (node, index, length) => {
                                     if (index !== (length-1) || !Node.isNewExpression(node)) {

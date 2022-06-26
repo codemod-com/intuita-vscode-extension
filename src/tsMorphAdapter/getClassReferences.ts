@@ -59,7 +59,6 @@ export const getClassReferences = (
                     const text = parentNode.getText();
 
                     const nodeLookupCriterion = buildNodeLookupCriterion(
-                        parentNode.getSourceFile(),
                         parentNode.compilerNode,
                         (node, index, length) => {
                             if(index !== (length-1) || !Node.isNewExpression(parentNode)) {
