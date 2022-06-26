@@ -1,6 +1,5 @@
 import {
     ClassDeclaration,
-    MethodDeclaration,
     ParameterDeclarationStructure,
     ts,
     TypeParameterDeclarationStructure
@@ -12,10 +11,9 @@ export type InstanceMethod = Readonly<{
     name: string,
     typeParameterDeclarations: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
-    returnType: string,
+    returnType: string | null,
     calleeNames: ReadonlyArray<string>,
     bodyText: string | null,
-    methodDeclaration: MethodDeclaration,
     methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>
 }>;
 
@@ -35,7 +33,7 @@ export const getClassInstanceMethods = (
 
             const returnType = methodDeclaration
                 .getReturnTypeNode()
-                ?.getText() ?? 'void';
+                ?.getText() ?? null;
 
             const bodyText = methodDeclaration.getBodyText() ?? null;
 
@@ -74,14 +72,21 @@ export const getClassInstanceMethods = (
                 )
                 .map(
                     (referencedSymbolEntry) => {
-                        const sourceFile = referencedSymbolEntry.getSourceFile();
+                        const node = referencedSymbolEntry
+                            .getNode();
+
+                        const kind = node.getKind();
+                        const text = node.getText();
 
                         return buildNodeLookupCriterion(
-                            sourceFile,
-                            referencedSymbolEntry
-                                .getNode()
-                                .compilerNode,
-                            1,
+                            node.compilerNode,
+                            (node, index, length) => {
+                                if (index !== (length-1)) {
+                                    return true;
+                                }
+
+                                return node.getText() === text;
+                            },
                         );
                     }
                 );
@@ -93,7 +98,6 @@ export const getClassInstanceMethods = (
                 parameters,
                 returnType,
                 bodyText,
-                methodDeclaration,
                 methodLookupCriteria,
             };
         });

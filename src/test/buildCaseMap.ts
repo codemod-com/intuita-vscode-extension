@@ -22,7 +22,7 @@ export const buildCaseMap = (
 
     lines.forEach(
         (line) => {
-            if (line === '/* @ts-ignore */') {
+            if (line.endsWith('/* @ts-ignore */')) {
                 return;
             }
 
