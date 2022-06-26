@@ -6,10 +6,11 @@ import {
     VariableDeclarationStructure,
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
+import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 export enum ClassReferenceKind {
     IMPORT_SPECIFIER = 1,
-    VARIABLE_STATEMENT = 2
+    NEW_EXPRESSION = 3,
 }
 
 export type ClassReference =
@@ -18,13 +19,8 @@ export type ClassReference =
         filePath: string;
     }>
     | Readonly<{
-        kind: ClassReferenceKind.VARIABLE_STATEMENT,
-        statementedNode: StatementedNode,
-        declarations: ReadonlyArray<
-            Readonly<{
-                name: string,
-            }>
-        >
+        kind: ClassReferenceKind.NEW_EXPRESSION,
+        nodeLookupCriterion: NodeLookupCriterion,
     }>;
 
 export const getClassReferences = (
@@ -53,34 +49,15 @@ export const getClassReferences = (
                 }
 
                 if (Node.isNewExpression(parentNode)) {
-                    // TODO it assumes that it's just "const x = new A();"
-                    const variableStatement = parentNode
-                        .getFirstAncestorByKind(ts.SyntaxKind.VariableStatement);
-
-                    if (!variableStatement) {
-                        return null;
-                    }
-
-                    const maybeStatementedBlock = variableStatement.getParent();
-
-                    if(!Node.isStatemented(maybeStatementedBlock)) {
-                        return null;
-                    }
-
-                    const declarations = variableStatement.getDeclarations().map(
-                        (variableDeclaration) => {
-                            const name = variableDeclaration.getName();
-
-                            return {
-                                name,
-                            };
-                        }
+                    const nodeLookupCriterion = buildNodeLookupCriterion(
+                        parentNode.getSourceFile(),
+                        parentNode.compilerNode,
+                        1,
                     );
 
                     const classReference: ClassReference = {
-                        kind: ClassReferenceKind.VARIABLE_STATEMENT,
-                        statementedNode: maybeStatementedBlock,
-                        declarations,
+                        kind: ClassReferenceKind.NEW_EXPRESSION,
+                        nodeLookupCriterion,
                     };
 
                     return classReference;
@@ -89,5 +66,5 @@ export const getClassReferences = (
                 return null;
             }
         )
-        .filter<ClassReference>(isNeitherNullNorUndefined);
+        .filter(isNeitherNullNorUndefined);
 };

@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
+import {Node, Project, SourceFile, StatementedNode, SyntaxKind, ts, VariableDeclarationKind} from "ts-morph";
 import {AstChange, AstChangeKind} from "./getAstChanges";
 import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassReferences";
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
@@ -9,6 +9,7 @@ import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods"
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
 import {lookupNode} from "./tsMorphAdapter/nodeLookup";
+import {isNeitherNullNorUndefined} from "./utilities";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -523,41 +524,45 @@ export class AstChangeApplier {
                             );
                     }
 
-                    if (classReference.kind === ClassReferenceKind.VARIABLE_STATEMENT) {
+                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION) {
                         groupMap.forEach(
                             (group, index) => {
                                 const groupName = `${className}${index}`;
 
-                                const variableNames = classReference.declarations.map(({ name }) => name);
-
-                                classReference
-                                    .statementedNode
-                                    .getVariableDeclarations()
-                                    .filter(
-                                        variableDeclaration => {
-                                            const name = variableDeclaration.getName();
-
-                                            return variableNames.includes(name);
-                                        }
+                                lookupNode(
+                                    classReference.nodeLookupCriterion
+                                )
+                                    .filter(Node.isNewExpression)
+                                    .map(
+                                        (newExpression) =>
+                                            newExpression.getFirstAncestorByKind(ts.SyntaxKind.VariableDeclaration)
                                     )
+                                    .filter(isNeitherNullNorUndefined)
                                     .forEach(
                                         (variableDeclaration) => {
                                             variableDeclaration.remove();
                                         }
-                                    )
+                                    );
 
-                                classReference.statementedNode.insertVariableStatement(
-                                    index,
-                                    {
-                                        declarationKind: VariableDeclarationKind.Const,
-                                        declarations: [
+                                lookupNode(
+                                    classReference.nodeLookupCriterion,
+                                    true,
+                                )
+                                    .filter(Node.isStatemented)
+                                    .forEach(statementedNode => {
+                                        statementedNode.insertVariableStatement(
+                                            index,
                                             {
-                                                name: groupName.toLocaleLowerCase(),
-                                                initializer: `new ${groupName}()`
+                                                declarationKind: VariableDeclarationKind.Const,
+                                                declarations: [
+                                                    {
+                                                        name: groupName.toLocaleLowerCase(),
+                                                        initializer: `new ${groupName}()`
+                                                    }
+                                                ],
                                             }
-                                        ],
-                                    }
-                                );
+                                        );
+                                    });
                             }
                         );
                     }
