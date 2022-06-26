@@ -1,13 +1,11 @@
 import {
-    CallExpression,
     ClassDeclaration,
-    MethodDeclaration,
     ParameterDeclarationStructure,
-    SourceFile,
     ts,
     TypeParameterDeclarationStructure
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
+import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 export type StaticMethod = Readonly<{
     name: string,
@@ -15,12 +13,10 @@ export type StaticMethod = Readonly<{
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string,
     bodyText: string | null,
-    staticMethod: MethodDeclaration,
     references: ReadonlyArray<
         Readonly<{
-            sourceFile: SourceFile,
-            callExpression: CallExpression,
-            text: string,
+            criterion: NodeLookupCriterion,
+            replacementText: string,
         }>
     >
 }>;
@@ -52,7 +48,6 @@ export const getClassStaticMethod = (
                     .findReferences()
                     .flatMap((referencedSymbol) => referencedSymbol.getReferences())
                     .map((referencedSymbolEntry) => {
-                        const sourceFile = referencedSymbolEntry.getSourceFile();
                         const node = referencedSymbolEntry.getNode();
 
                         const callExpression = node
@@ -63,6 +58,19 @@ export const getClassStaticMethod = (
                         if (!callExpression) {
                             return null;
                         }
+
+                        const text = callExpression.getText();
+
+                        const criterion = buildNodeLookupCriterion(
+                            callExpression.compilerNode,
+                            (node, index, length) => {
+                                if (index !== (length-1)) {
+                                    return true;
+                                }
+
+                                return node.getText() === text;
+                            }
+                        );
 
                         let typeArguments = callExpression
                             .getTypeArguments()
@@ -76,13 +84,11 @@ export const getClassStaticMethod = (
                             .map((arg) => arg.getText())
                             .join(', ');
 
-                        // TODO: maybe there's a programmatic way to do this?
-                        const text = `${staticMethod.getName()}${typeArguments}(${args})`;
+                        const replacementText = `${staticMethod.getName()}${typeArguments}(${args})`;
 
                         return {
-                            sourceFile,
-                            callExpression,
-                            text,
+                            criterion,
+                            replacementText,
                         };
                     })
                     .filter(isNeitherNullNorUndefined);
@@ -93,7 +99,6 @@ export const getClassStaticMethod = (
                     parameters,
                     returnType,
                     bodyText,
-                    staticMethod,
                     references,
                 };
             }

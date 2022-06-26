@@ -9,6 +9,9 @@ import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods"
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
 import {lookupNode} from "./tsMorphAdapter/nodeLookup";
+import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
+import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
+import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -237,11 +240,9 @@ export class AstChangeApplier {
             return;
         }
 
-        const className = classDeclaration.getName();
+        const className = classDeclaration.getName() ?? '';
 
         const classParentNode = classDeclaration.getParent();
-
-        const members = classDeclaration.getMembers();
 
         const classTypeParameters = classDeclaration
             .getTypeParameters()
@@ -260,8 +261,21 @@ export class AstChangeApplier {
         const staticProperties = getClassStaticProperties(classDeclaration);
         const staticMethods = getClassStaticMethod(classDeclaration);
 
+        const constructors = getClassConstructors(classDeclaration);
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
+
+        const constructorPropertyNames: ReadonlySet<string> = new Set<string>(
+            constructors
+                .flatMap(constructor => constructor
+                    .parameters
+                    .filter(parameter => Boolean(parameter.scope))
+                )
+                .map(({ name }) => name)
+        );
+
+        const memberCount = classDeclaration.getMembers().length
+            + constructorPropertyNames.size;
 
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
         const groupMap = getGroupMap(methodMap);
@@ -270,8 +284,14 @@ export class AstChangeApplier {
             (staticProperty) => {
                 const { name } = staticProperty;
 
-                staticProperty.propertyAccessExpressions.forEach(
-                    ({ sourceFile }) => {
+                staticProperty.references.forEach(
+                    (criterion) => {
+                        const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         newImportDeclarationMap.addItem(
                             sourceFile,
                             name,
@@ -286,8 +306,14 @@ export class AstChangeApplier {
 
                 staticMethod.references.forEach(
                     (reference) => {
+                        const sourceFile = this._project.getSourceFile(reference.criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         newImportDeclarationMap.addItem(
-                            reference.sourceFile,
+                            sourceFile,
                             staticMethod.name,
                         );
                     }
@@ -298,6 +324,19 @@ export class AstChangeApplier {
         const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
+        if (commentStatement) {
+            lookupNode(
+                this._project,
+                commentStatement
+            )
+                .filter(Node.isCommentStatement)
+                .forEach(
+                    (commentStatement) => {
+                        commentStatement.remove();
+                    }
+                );
+        }
+
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
                 if(!Node.isStatemented(classParentNode)) {
@@ -317,8 +356,42 @@ export class AstChangeApplier {
 
                 let memberIndex = 0;
 
+                constructors.forEach((constructor) => {
+                    const { bodyText, parameters, typeParameters } = constructor;
+
+                    const selectedParameter = parameters
+                        .filter(
+                        parameter => group.propertyNames.includes(parameter.name)
+                        )
+                        .map((parameter) => ({
+                            ...parameter,
+                            initializer: parameter.initializer ?? undefined,
+                            type: parameter.type ?? undefined,
+                            scope: parameter.scope ?? undefined,
+                            isReadonly: parameter.readonly
+                        }));
+
+                    const constructorDeclaration = groupClass.insertConstructor(
+                        memberIndex,
+                        {
+                            typeParameters: typeParameters.slice(),
+                            parameters: selectedParameter
+                        }
+                    );
+
+                    if (bodyText) {
+                        constructorDeclaration.setBodyText(bodyText);
+                    }
+
+                    ++memberIndex;
+                });
+
                 group.propertyNames.forEach(
                     (propertyName) => {
+                        if (constructorPropertyNames.has(propertyName)) {
+                            return;
+                        }
+
                         const instanceProperty = instanceProperties.find(
                             (ip) => ip.name === propertyName,
                         );
@@ -333,10 +406,6 @@ export class AstChangeApplier {
                         );
 
                         ++memberIndex;
-
-                        ++deletedMemberCount;
-
-                        instanceProperty?.instanceProperty.remove();
                     }
                 );
 
@@ -355,7 +424,10 @@ export class AstChangeApplier {
 
                         methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
                         methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
-                        methodDeclaration.setReturnType(instanceMethod?.returnType ?? 'void');
+
+                        if (instanceMethod?.returnType) {
+                            methodDeclaration.setReturnType(instanceMethod.returnType);
+                        }
 
                         if (instanceMethod?.bodyText) {
                             methodDeclaration.setBodyText(instanceMethod.bodyText);
@@ -364,15 +436,9 @@ export class AstChangeApplier {
 
                         ++memberIndex;
 
-                        ++deletedMemberCount;
-
-                        instanceMethod?.methodDeclaration.remove();
-
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
-                                const nodes = lookupNode(
-                                    criterion,
-                                );
+                                const nodes = lookupNode(this._project, criterion);
 
                                 nodes
                                     .flatMap(node => node.getPreviousSiblings())
@@ -389,9 +455,58 @@ export class AstChangeApplier {
             }
         );
 
+        groupMap.size > 1 && instanceMethods.forEach(
+            () => {
+                // do not remove it, this will be removed when a class is removed
+                ++deletedMemberCount;
+            }
+        );
+
+        groupMap.size > 1 && instanceProperties.forEach(
+            () => {
+                // do not remove it, this will be removed when a class is removed
+                ++deletedMemberCount;
+            }
+        );
+
+        groupMap.size > 1 && constructors.forEach(
+            (constructor) => {
+                lookupNode(
+                    this._project,
+                    constructor.criterion,
+                    false,
+                )
+                    .filter(Node.isConstructorDeclaration)
+                    .forEach(
+                        (constructorDeclaration) => {
+                            ++deletedMemberCount;
+                            constructorDeclaration.remove();
+                        }
+                    );
+
+                constructor.references.forEach((reference) => {
+                    deleteNewExpressionVariableDeclaration(
+                        this._project,
+                        reference.nodeLookupCriterion,
+                    );
+
+                    groupMap.forEach((group, index) => {
+                        createNewExpressionVariableDeclaration(
+                            this._project,
+                            constructor,
+                            reference,
+                            group,
+                            className,
+                            index,
+                        );
+                    });
+                });
+            }
+        );
+
         staticProperties.forEach(
             (staticProperty) => {
-                if(Node.isStatemented(classParentNode) && staticProperty.propertyAccessExpressions.length) {
+                if(Node.isStatemented(classParentNode) && staticProperty.references.length) {
                     const declarationKind = staticProperty.readonly
                         ? VariableDeclarationKind.Const
                         : VariableDeclarationKind.Let;
@@ -412,17 +527,31 @@ export class AstChangeApplier {
                     variableStatement.setIsExported(exported);
                 }
 
-                staticProperty.propertyAccessExpressions.forEach(
-                    ({ sourceFile, propertyAccessExpression }) => {
+                staticProperty.references.forEach(
+                    (criterion) => {
+                        const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                        if (!sourceFile) {
+                            return;
+                        }
+
                         this._changedSourceFiles.add(sourceFile);
 
-                        propertyAccessExpression.replaceWithText(staticProperty.name);
+                        const propertyAccessExpressions = lookupNode(
+                            this._project,
+                            criterion,
+                        );
+
+                        propertyAccessExpressions.forEach(
+                            (pae) => {
+                                pae.replaceWithText(staticProperty.name);
+                            }
+                        );
                     }
                 );
 
+                // do not remove it, this will be removed when a class is removed
                 ++deletedMemberCount;
-
-                staticProperty.staticProperty.remove();
             }
         );
 
@@ -450,21 +579,33 @@ export class AstChangeApplier {
 
                     staticMethod.references.forEach(
                         (reference) => {
-                            reference.callExpression.replaceWithText(reference.text);
+                            const { criterion, replacementText } = reference;
 
-                            this._changedSourceFiles.add(reference.sourceFile);
+                            const sourceFile = this._project.getSourceFile(criterion.fileName);
+
+                            if (!sourceFile) {
+                                return;
+                            }
+
+                            this._changedSourceFiles.add(sourceFile);
+
+                            const callExpressions = lookupNode(
+                                this._project,
+                                criterion,
+                            );
+
+                            callExpressions.forEach(
+                                (callExpression) => {
+                                    callExpression.replaceWithText(replacementText);
+                                }
+                            );
                         }
                     );
 
+                    // do not remove it, this will be removed when a class is removed
                     ++deletedMemberCount;
-
-                    staticMethod.staticMethod.remove();
                 }
             );
-
-        if (commentStatement) {
-            commentStatement.remove();
-        }
 
         {
             if (deletedMemberCount > 0) {
@@ -472,7 +613,7 @@ export class AstChangeApplier {
             }
         }
 
-        if (members.length - deletedMemberCount === 0) {
+        if (memberCount - deletedMemberCount === 0) {
             classReferences.forEach(
                 (classReference) => {
                     if (classReference.kind === ClassReferenceKind.IMPORT_SPECIFIER) {
@@ -523,40 +664,23 @@ export class AstChangeApplier {
                             );
                     }
 
-                    if (classReference.kind === ClassReferenceKind.VARIABLE_STATEMENT) {
+                    if (classReference.kind === ClassReferenceKind.NEW_EXPRESSION
+                        && !classReference.existingConstructor
+                    ) {
+                        deleteNewExpressionVariableDeclaration(
+                            this._project,
+                            classReference.nodeLookupCriterion,
+                        );
+
                         groupMap.forEach(
                             (group, index) => {
-                                const groupName = `${className}${index}`;
-
-                                const variableNames = classReference.declarations.map(({ name }) => name);
-
-                                classReference
-                                    .statementedNode
-                                    .getVariableDeclarations()
-                                    .filter(
-                                        variableDeclaration => {
-                                            const name = variableDeclaration.getName();
-
-                                            return variableNames.includes(name);
-                                        }
-                                    )
-                                    .forEach(
-                                        (variableDeclaration) => {
-                                            variableDeclaration.remove();
-                                        }
-                                    )
-
-                                classReference.statementedNode.insertVariableStatement(
+                                createNewExpressionVariableDeclaration(
+                                    this._project,
+                                    null,
+                                    classReference,
+                                    group,
+                                    className,
                                     index,
-                                    {
-                                        declarationKind: VariableDeclarationKind.Const,
-                                        declarations: [
-                                            {
-                                                name: groupName.toLocaleLowerCase(),
-                                                initializer: `new ${groupName}()`
-                                            }
-                                        ],
-                                    }
                                 );
                             }
                         );
