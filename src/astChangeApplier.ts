@@ -243,7 +243,7 @@ export class AstChangeApplier {
 
         const classParentNode = classDeclaration.getParent();
 
-        const members = classDeclaration.getMembers();
+
 
         const classTypeParameters = classDeclaration
             .getTypeParameters()
@@ -265,6 +265,17 @@ export class AstChangeApplier {
         const constructors = getClassConstructors(classDeclaration);
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
+
+        const constructorPropertyCount = constructors
+            .map(constructor => constructor
+                .parameters
+                .filter(parameter => Boolean(parameter.scope))
+                .length
+            )
+            .reduce((a, b) => a + b, 0)
+
+        const memberCount = classDeclaration.getMembers().length
+            + constructorPropertyCount;
 
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
         const groupMap = getGroupMap(methodMap);
@@ -336,10 +347,6 @@ export class AstChangeApplier {
                         );
 
                         ++memberIndex;
-
-                        ++deletedMemberCount;
-
-                        instanceProperty?.instanceProperty.remove();
                     }
                 );
 
@@ -367,10 +374,6 @@ export class AstChangeApplier {
 
                         ++memberIndex;
 
-                        ++deletedMemberCount;
-
-                        instanceMethod?.methodDeclaration.remove();
-
                         instanceMethod?.methodLookupCriteria.forEach(
                             (criterion) => {
                                 const nodes = lookupNode(
@@ -389,6 +392,40 @@ export class AstChangeApplier {
                         );
                     }
                 );
+            }
+        );
+
+        groupMap.size > 1 && instanceMethods.forEach(
+            ({ methodDeclaration }) => {
+                ++deletedMemberCount;
+
+                methodDeclaration.remove();
+            }
+        );
+
+        groupMap.size > 1 && instanceProperties.forEach(
+            ({instanceProperty}) => {
+                ++deletedMemberCount;
+
+                instanceProperty.remove();
+            }
+        );
+
+        console.log(deletedMemberCount);
+
+        groupMap.size > 1 && constructors.forEach(
+            (constructor) => {
+                lookupNode(
+                    constructor.criterion,
+                    false,
+                )
+                    .filter(Node.isConstructorDeclaration)
+                    .forEach(
+                        (constructorDeclaration) => {
+                            ++deletedMemberCount;
+                            constructorDeclaration.remove();
+                        }
+                    );
             }
         );
 
@@ -475,7 +512,7 @@ export class AstChangeApplier {
             }
         }
 
-        if (members.length - deletedMemberCount === 0) {
+        if (memberCount - deletedMemberCount === 0) {
             classReferences.forEach(
                 (classReference) => {
                     if (classReference.kind === ClassReferenceKind.IMPORT_SPECIFIER) {

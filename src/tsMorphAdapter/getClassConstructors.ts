@@ -21,6 +21,7 @@ type Constructor = Readonly<{
         }>
     >
     references: ReadonlyArray<ConstructorReference>,
+    criterion: NodeLookupCriterion,
 }>;
 
 export const getClassConstructors = (
@@ -29,6 +30,12 @@ export const getClassConstructors = (
     return classDeclaration
         .getConstructors()
         .map((constructorDeclaration) => {
+            const criterion = buildNodeLookupCriterion(
+                constructorDeclaration.getSourceFile(),
+                constructorDeclaration.compilerNode,
+                0,
+            );
+
             const bodyText = constructorDeclaration.getBodyText() ?? null;
 
             const typeParameters = constructorDeclaration
@@ -88,6 +95,7 @@ export const getClassConstructors = (
                 typeParameters,
                 parameters,
                 references,
+                criterion,
             };
         });
 };
