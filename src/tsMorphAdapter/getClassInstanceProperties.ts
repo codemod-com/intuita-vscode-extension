@@ -1,6 +1,6 @@
 import {ClassDeclaration, Node, StructureKind, ts} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
-import {ClassInstanceProperty} from "../intuitaExtension/classInstanceProperty";
+import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
@@ -10,6 +10,8 @@ export const getClassInstanceProperties = (
         .map(
             (instanceProperty) => {
                 if (Node.isParameterDeclaration(instanceProperty) || Node.isPropertyDeclaration(instanceProperty)) {
+                    console.log(instanceProperty.getKindName())
+
                     const name = instanceProperty.getName();
                     const readonly = Boolean(
                         instanceProperty.getCombinedModifierFlags() & ts.ModifierFlags.Readonly
@@ -52,7 +54,8 @@ export const getClassInstanceProperties = (
                         .filter(isNeitherNullNorUndefined)
                     ;
 
-                    return {
+                    return <ClassInstanceProperty>{
+                        kind: ClassInstancePropertyKind.PROPERTY,
                         name,
                         readonly,
                         initializer,

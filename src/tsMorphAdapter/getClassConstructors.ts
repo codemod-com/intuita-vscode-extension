@@ -90,12 +90,10 @@ export const getClassConstructors = (
                                 }
                             );
 
-                            const reference: ConstructorReference = {
+                            return <ConstructorReference>{
                                 nodeLookupCriterion,
                                 arguments: _arguments,
                             };
-
-                            return reference;
                         }
 
                         return null;

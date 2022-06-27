@@ -43,12 +43,10 @@ export const getClassReferences = (
                         .getFilePath()
                         .toString();
 
-                    const classReference: ClassReference = {
+                    return <ClassReference>{
                         kind: ClassReferenceKind.IMPORT_SPECIFIER,
                         filePath,
                     };
-
-                    return classReference;
                 }
 
                 if (Node.isNewExpression(parentNode)) {
@@ -69,14 +67,12 @@ export const getClassReferences = (
                         },
                     );
 
-                    const classReference: ClassReference = {
+                    return <ClassReference>{
                         kind: ClassReferenceKind.NEW_EXPRESSION,
                         nodeLookupCriterion,
                         arguments: _arguments,
                         existingConstructor,
                     };
-
-                    return classReference;
                 }
 
                 return null;
