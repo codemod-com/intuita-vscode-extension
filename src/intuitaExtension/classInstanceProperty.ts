@@ -19,4 +19,10 @@ export type ClassInstanceProperty =
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
     }>
+    | Readonly<{
+        kind: ClassInstancePropertyKind.SETTER,
+        name: string,
+        bodyText: string | null,
+        methodNames: ReadonlyArray<string>,
+    }>
 ;

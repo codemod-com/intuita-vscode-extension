@@ -411,15 +411,35 @@ export class AstChangeApplier {
                         }
 
                         if (instanceProperty?.kind === ClassInstancePropertyKind.GETTER) {
+                            const statements = instanceProperty.bodyText !== null
+                                ? [ instanceProperty.bodyText ]
+                                : undefined;
+
                             groupClass.insertGetAccessor(
                                 memberIndex,
                                 {
                                     name: propertyName,
-                                    statements: [
-                                        instanceProperty.bodyText ?? ''
-                                    ]
+                                    statements,
                                 }
-                            )
+                            );
+
+                            ++memberIndex;
+                        }
+
+                        if (instanceProperty?.kind === ClassInstancePropertyKind.SETTER) {
+                            const statements = instanceProperty.bodyText !== null
+                                ? [ instanceProperty.bodyText ]
+                                : undefined;
+
+                            groupClass.insertSetAccessor(
+                                memberIndex,
+                                {
+                                    name: propertyName,
+                                    statements,
+                                }
+                            );
+
+                            ++memberIndex;
                         }
                     }
                 );

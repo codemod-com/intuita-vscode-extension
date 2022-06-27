@@ -73,6 +73,18 @@ export const getClassInstanceProperties = (
                     };
                 }
 
+                if (Node.isSetAccessorDeclaration(instanceProperty)) {
+                    const name = instanceProperty.getName();
+                    const bodyText = instanceProperty.getBodyText() ?? null;
+
+                    return {
+                        kind: ClassInstancePropertyKind.SETTER,
+                        name,
+                        bodyText,
+                        methodNames,
+                    };
+                }
+
                 return null;
             }
         )
