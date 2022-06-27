@@ -12,17 +12,20 @@ export type ClassInstanceProperty =
         initializer: string | null,
         readonly: boolean,
         methodNames: ReadonlyArray<string>,
+        setAccessorNames: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,
         name: string,
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
+        setAccessorNames: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.SETTER,
         name: string,
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
+        setAccessorNames: ReadonlyArray<string>,
     }>
 ;
