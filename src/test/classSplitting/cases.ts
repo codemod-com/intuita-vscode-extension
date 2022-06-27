@@ -23,7 +23,7 @@
     class A0 {
         public pa = 1;
 
-        ma() {
+        public ma() {
             console.log(this.pa);
         }
     }
@@ -31,7 +31,7 @@
     class A1 {
         public pb = 2;
 
-        mb() {
+        public mb() {
             console.log(this.pb);
         }
     }
@@ -39,7 +39,7 @@
     class A2 {
         public pc = 3;
 
-        mc() {
+        public mc() {
             console.log(this.pc);
         }
     }
@@ -68,7 +68,7 @@
     class A0<T> {
         public readonly pa = 1;
 
-        ma<U, V>(a: number): number {
+        public ma<U, V>(a: number): number {
             console.log(a, this.pa);
 
             return 1;
@@ -78,7 +78,7 @@
     class A1<T> {
         public readonly pb = 2;
 
-        mb<U, V, R>(b: string): T | null {
+        public mb<U, V, R>(b: string): T | null {
             console.log(b, this.pb);
 
             return null;
@@ -130,7 +130,7 @@
             this._pa = _pa;
         }
 
-        ma() {
+        public ma() {
             return this.pa;
         }
     }
@@ -146,7 +146,7 @@
             this._pb = _pb;
         }
 
-        mb() {
+        public mb() {
             return this.pb;
         }
     }

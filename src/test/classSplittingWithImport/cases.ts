@@ -34,7 +34,7 @@ import { A } from './a';
 export class A0 {
     public pa = 1;
 
-    ma() {
+    public ma() {
         console.log(this.pa);
     }
 }
@@ -43,7 +43,7 @@ export class A0 {
 export class A1 {
     public pb = 2;
 
-    mb() {
+    public mb() {
         console.log(this.pb);
     }
 }
@@ -52,7 +52,7 @@ export class A1 {
 export class A2 {
     public pc = 3;
 
-    mc() {
+    public mc() {
         console.log(this.pc);
     }
 }
@@ -115,7 +115,7 @@ export class A0 {
         console.log('A::constructor');
     }
 
-    ma() {
+    public ma() {
         console.log(this.pa);
     }
 }
@@ -126,7 +126,7 @@ export class A1 {
         console.log('A::constructor');
     }
 
-    mb() {
+    public mb() {
         console.log(this.pb);
     }
 }
@@ -137,7 +137,7 @@ export class A2 {
         console.log('A::constructor');
     }
 
-    mc() {
+    public mc() {
         console.log(this.pc);
     }
 }

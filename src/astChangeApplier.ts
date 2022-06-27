@@ -464,11 +464,11 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
+                                typeParameters: instanceMethod?.typeParameters.slice() ?? [],
+                                parameters: instanceMethod?.parameters.slice() ?? [],
+                                scope: instanceMethod?.scope ?? undefined,
                             },
                         );
-
-                        methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
-                        methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
 
                         if (instanceMethod?.returnType) {
                             methodDeclaration.setReturnType(instanceMethod.returnType);
