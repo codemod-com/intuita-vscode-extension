@@ -345,7 +345,7 @@ export class AstChangeApplier {
                 let memberIndex = 0;
 
                 constructors.forEach((constructor) => {
-                    const { parameters, typeParameters } = constructor;
+                    const { parameters, typeParameters, scope } = constructor;
 
                     const selectedParameter = parameters
                         .filter(
@@ -364,6 +364,7 @@ export class AstChangeApplier {
                         {
                             typeParameters: typeParameters.slice(),
                             parameters: selectedParameter,
+                            scope,
                         }
                     );
 

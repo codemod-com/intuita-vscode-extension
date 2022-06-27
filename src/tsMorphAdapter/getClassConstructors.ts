@@ -22,6 +22,7 @@ export type Constructor = Readonly<{
     >
     references: ReadonlyArray<ConstructorReference>,
     criterion: NodeLookupCriterion,
+    scope: Scope,
 }>;
 
 export const getClassConstructors = (
@@ -42,6 +43,8 @@ export const getClassConstructors = (
                     return className === node.getName();
                 }
             );
+
+            const scope = constructorDeclaration.getScope();
 
             const bodyText = constructorDeclaration.getBodyText() ?? null;
 
@@ -108,6 +111,7 @@ export const getClassConstructors = (
                 parameters,
                 references,
                 criterion,
+                scope,
             };
         });
 };
