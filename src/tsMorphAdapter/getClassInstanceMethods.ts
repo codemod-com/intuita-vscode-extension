@@ -1,6 +1,7 @@
 import {
     ClassDeclaration,
     ParameterDeclarationStructure,
+    Scope,
     ts,
     TypeParameterDeclarationStructure
 } from "ts-morph";
@@ -9,12 +10,13 @@ import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 export type InstanceMethod = Readonly<{
     name: string,
-    typeParameterDeclarations: ReadonlyArray<TypeParameterDeclarationStructure>,
+    typeParameters: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string | null,
     calleeNames: ReadonlyArray<string>,
     bodyText: string | null,
-    methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>
+    methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>,
+    scope: Scope,
 }>;
 
 export const getClassInstanceMethods = (
@@ -23,7 +25,7 @@ export const getClassInstanceMethods = (
     const oldMethods = classDeclaration
         .getInstanceMethods()
         .map((methodDeclaration) => {
-            const typeParameterDeclarations = methodDeclaration
+            const typeParameters = methodDeclaration
                 .getTypeParameters()
                 .map((tpd) => tpd.getStructure());
 
@@ -36,6 +38,8 @@ export const getClassInstanceMethods = (
                 ?.getText() ?? null;
 
             const bodyText = methodDeclaration.getBodyText() ?? null;
+
+            const scope = methodDeclaration.getScope();
 
             const referencedSymbolEntries = methodDeclaration
                 .findReferences()
@@ -94,11 +98,12 @@ export const getClassInstanceMethods = (
             return {
                 name: methodDeclaration.getName(),
                 callerNames,
-                typeParameterDeclarations,
+                typeParameters,
                 parameters,
                 returnType,
                 bodyText,
                 methodLookupCriteria,
+                scope,
             };
         });
 

@@ -22,6 +22,7 @@ export type Constructor = Readonly<{
     >
     references: ReadonlyArray<ConstructorReference>,
     criterion: NodeLookupCriterion,
+    scope: Scope,
 }>;
 
 export const getClassConstructors = (
@@ -42,6 +43,8 @@ export const getClassConstructors = (
                     return className === node.getName();
                 }
             );
+
+            const scope = constructorDeclaration.getScope();
 
             const bodyText = constructorDeclaration.getBodyText() ?? null;
 
@@ -67,7 +70,7 @@ export const getClassConstructors = (
             const references = constructorDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                .map(
+                .map<ConstructorReference | null>(
                     (referencedSymbolEntry) => {
                         const node = referencedSymbolEntry.getNode();
                         const parentNode = node.getParent();
@@ -90,12 +93,10 @@ export const getClassConstructors = (
                                 }
                             );
 
-                            const reference: ConstructorReference = {
+                            return {
                                 nodeLookupCriterion,
                                 arguments: _arguments,
                             };
-
-                            return reference;
                         }
 
                         return null;
@@ -110,6 +111,7 @@ export const getClassConstructors = (
                 parameters,
                 references,
                 criterion,
+                scope,
             };
         });
 };

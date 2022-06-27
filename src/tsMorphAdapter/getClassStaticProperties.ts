@@ -38,7 +38,6 @@ export const getClassStaticProperties = (
                     .flatMap((referencedSymbol) => referencedSymbol.getReferences())
                     .map(
                         (referencedSymbolEntry) => {
-                            const sourceFile = referencedSymbolEntry.getSourceFile();
                             const node = referencedSymbolEntry.getNode();
 
                             const propertyAccessExpression = node
