@@ -347,27 +347,6 @@ export class AstChangeApplier {
                 constructors.forEach((constructor) => {
                     const { parameters, typeParameters, scope } = constructor;
 
-                    const selectedParameter = parameters
-                        .filter(
-                        parameter => group.propertyNames.includes(parameter.name)
-                        )
-                        .map((parameter) => ({
-                            ...parameter,
-                            initializer: parameter.initializer ?? undefined,
-                            type: parameter.type ?? undefined,
-                            scope: parameter.scope ?? undefined,
-                            isReadonly: parameter.readonly
-                        }));
-
-                    const constructorDeclaration = groupClass.insertConstructor(
-                        memberIndex,
-                        {
-                            typeParameters: typeParameters.slice(),
-                            parameters: selectedParameter,
-                            scope,
-                        }
-                    );
-
                     const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
@@ -385,6 +364,29 @@ export class AstChangeApplier {
                     const dependencyNameSet: ReadonlySet<string> = new Set<string>(
                         constructorExpressions
                             .flatMap(({ dependencyNames }) => dependencyNames)
+                    );
+
+                    const selectedParameter = parameters
+                        .filter(
+                        ({ name }) => {
+                            return group.propertyNames.includes(name)
+                                || dependencyNameSet.has(name);
+                        })
+                        .map((parameter) => ({
+                            ...parameter,
+                            initializer: parameter.initializer ?? undefined,
+                            type: parameter.type ?? undefined,
+                            scope: parameter.scope ?? undefined,
+                            isReadonly: parameter.readonly
+                        }));
+
+                    const constructorDeclaration = groupClass.insertConstructor(
+                        memberIndex,
+                        {
+                            typeParameters: typeParameters.slice(),
+                            parameters: selectedParameter,
+                            scope,
+                        }
                     );
 
                     constructorDeclaration.setBodyText(bodyText);

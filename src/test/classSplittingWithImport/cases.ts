@@ -114,7 +114,7 @@ import { A } from './a';
 /** newA-002 **/
 /* @ts-ignore */
 export class A0 {
-    constructor(public readonly pa: number) {
+    public constructor(public readonly pa: number) {
         console.log('in constructor', this.pa);
     }
 
@@ -125,7 +125,7 @@ export class A0 {
 
 /* @ts-ignore */
 export class A1 {
-    constructor(public readonly pb: number) {
+    public constructor(public readonly pb: number) {
         console.log('in constructor', this.pb);
     }
 
@@ -136,7 +136,7 @@ export class A1 {
 
 /* @ts-ignore */
 export class A2 {
-    constructor(public readonly pc: number) {
+    public constructor(public readonly pc: number) {
         console.log('in constructor', this.pc);
     }
 
