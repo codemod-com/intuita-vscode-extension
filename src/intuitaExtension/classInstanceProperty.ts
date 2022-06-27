@@ -38,6 +38,5 @@ export type ClassInstanceProperty =
         getAccessorNames: ReadonlyArray<string>,
         parameters: ReadonlyArray<ParameterDeclarationStructure>,
         scope: Scope | null,
-        returnType: string,
     }>
 ;

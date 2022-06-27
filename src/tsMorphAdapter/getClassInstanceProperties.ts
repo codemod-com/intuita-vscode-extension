@@ -124,8 +124,6 @@ export const getClassInstanceProperties = (
                         .getParameters()
                         .map((parameter) => parameter.getStructure());
 
-                    const returnType = instanceProperty.getReturnType().getText();
-
                     return {
                         kind: ClassInstancePropertyKind.SETTER,
                         name: propertyName,
@@ -135,7 +133,6 @@ export const getClassInstanceProperties = (
                         getAccessorNames,
                         parameters,
                         scope,
-                        returnType,
                     };
                 }
 
