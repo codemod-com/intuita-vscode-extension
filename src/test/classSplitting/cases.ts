@@ -85,3 +85,37 @@
         }
     }
 }
+/** old-003 **/
+{
+    class A {
+        _pa = 1;
+        _pb = 2;
+
+        get pa() {
+            return this._pa;
+        }
+
+        set pa(_pa: number) {
+            this._pa = _pa;
+        }
+
+        get pb() {
+            return this._pb;
+        }
+
+        set pb(_pb: number) {
+            this._pb = _pb;
+        }
+    }
+}
+
+/** new-003 **/
+{
+    class A1 {
+        _pa = 1;
+    }
+
+    class A2 {
+        _pb = 2;
+    }
+}
