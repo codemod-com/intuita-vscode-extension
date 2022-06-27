@@ -393,54 +393,58 @@ export class AstChangeApplier {
                             return;
                         }
 
-                        const instanceProperty = instanceProperties.find(
+                        const properties = instanceProperties.filter(
                             (ip) => ip.name === propertyName,
                         );
 
-                        if (instanceProperty?.kind === ClassInstancePropertyKind.PROPERTY) {
-                            groupClass.insertProperty(
-                                memberIndex,
-                                {
-                                    name: propertyName,
-                                    isReadonly: instanceProperty.readonly,
-                                    initializer: instanceProperty.initializer ?? undefined,
-                                },
-                            );
+                        properties.forEach(
+                            (property) => {
+                                if (property.kind === ClassInstancePropertyKind.PROPERTY) {
+                                    groupClass.insertProperty(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            isReadonly: property.readonly,
+                                            initializer: property.initializer ?? undefined,
+                                        },
+                                    );
 
-                            ++memberIndex;
-                        }
-
-                        if (instanceProperty?.kind === ClassInstancePropertyKind.GETTER) {
-                            const statements = instanceProperty.bodyText !== null
-                                ? [ instanceProperty.bodyText ]
-                                : undefined;
-
-                            groupClass.insertGetAccessor(
-                                memberIndex,
-                                {
-                                    name: propertyName,
-                                    statements,
+                                    ++memberIndex;
                                 }
-                            );
 
-                            ++memberIndex;
-                        }
+                                if (property.kind === ClassInstancePropertyKind.GETTER) {
+                                    const statements = property.bodyText !== null
+                                        ? [ property.bodyText ]
+                                        : undefined;
 
-                        if (instanceProperty?.kind === ClassInstancePropertyKind.SETTER) {
-                            const statements = instanceProperty.bodyText !== null
-                                ? [ instanceProperty.bodyText ]
-                                : undefined;
+                                    groupClass.insertGetAccessor(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            statements,
+                                        }
+                                    );
 
-                            groupClass.insertSetAccessor(
-                                memberIndex,
-                                {
-                                    name: propertyName,
-                                    statements,
+                                    ++memberIndex;
                                 }
-                            );
 
-                            ++memberIndex;
-                        }
+                                if (property.kind === ClassInstancePropertyKind.SETTER) {
+                                    const statements = property.bodyText !== null
+                                        ? [ property.bodyText ]
+                                        : undefined;
+
+                                    groupClass.insertSetAccessor(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            statements,
+                                        }
+                                    );
+
+                                    ++memberIndex;
+                                }
+                            }
+                        );
                     }
                 );
 
