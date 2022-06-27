@@ -381,6 +381,11 @@ export class AstChangeApplier {
                         .map(({ text }) => text)
                         .join('\n');
 
+                    const dependencyNameSet: ReadonlySet<string> = new Set<string>(
+                        constructorExpressions
+                            .flatMap(({ dependencyNames }) => dependencyNames)
+                    );
+
                     constructorDeclaration.setBodyText(bodyText);
 
                     ++memberIndex;

@@ -218,3 +218,56 @@
         }
     }
 }
+
+/** old-005 **/
+{
+    class A {
+        private _pa: number;
+        private _pb: number;
+
+        public constructor(
+            a: number,
+            b: number,
+            c: number,
+        ) {
+            this._pa = a;
+            this._pb = b;
+            console.log(c);
+        }
+
+        public ma(): number {
+            return this._pa;
+        }
+
+        public mb(): number {
+            return this._pb;
+        }
+    }
+}
+
+/** new-005 **/
+{
+    class A0 {
+        public constructor(a: number) {
+            this._pa = a;
+        }
+
+        private _pa: number;
+
+        public ma(): number {
+            return this._pa;
+        }
+    }
+
+    class A1 {
+        public constructor(b: number) {
+            this._pb = b;
+        }
+
+        private _pb: number;
+
+        public mb(): number {
+            return this._pb;
+        }
+    }
+}
