@@ -1,3 +1,5 @@
+import {ParameterDeclarationStructure} from "ts-morph";
+
 export const enum ClassInstancePropertyKind {
     PARAMETER = 1, // defined in the constructor
     PROPERTY = 2, // defined in the body
@@ -30,5 +32,6 @@ export type ClassInstanceProperty =
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
+        parameters: ReadonlyArray<ParameterDeclarationStructure>
     }>
 ;

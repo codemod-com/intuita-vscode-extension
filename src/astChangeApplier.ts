@@ -438,6 +438,9 @@ export class AstChangeApplier {
                                         {
                                             name: propertyName,
                                             statements,
+                                            parameters: property
+                                                .parameters
+                                                .slice(),
                                         }
                                     );
 

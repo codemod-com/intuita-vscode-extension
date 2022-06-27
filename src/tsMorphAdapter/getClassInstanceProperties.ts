@@ -109,6 +109,10 @@ export const getClassInstanceProperties = (
                 if (Node.isSetAccessorDeclaration(instanceProperty)) {
                     const bodyText = instanceProperty.getBodyText() ?? null;
 
+                    const parameters = instanceProperty
+                        .getParameters()
+                        .map((parameter) => parameter.getStructure());
+
                     return {
                         kind: ClassInstancePropertyKind.SETTER,
                         name: propertyName,
@@ -116,6 +120,7 @@ export const getClassInstanceProperties = (
                         methodNames,
                         setAccessorNames,
                         getAccessorNames,
+                        parameters,
                     };
                 }
 
