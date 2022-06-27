@@ -1,11 +1,19 @@
-import {ClassDeclaration, MethodDeclaration, Node, SetAccessorDeclaration, StructureKind, ts} from "ts-morph";
+import {
+    ClassDeclaration,
+    GetAccessorDeclaration,
+    MethodDeclaration,
+    Node,
+    SetAccessorDeclaration,
+    StructureKind,
+    ts
+} from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
 ): ReadonlyArray<ClassInstanceProperty> => {
-    const filterCallback = <T extends MethodDeclaration | SetAccessorDeclaration>(
+    const filterCallback = <T extends MethodDeclaration | SetAccessorDeclaration | GetAccessorDeclaration>(
         declaration: T,
     ): boolean => {
         const otherClassDeclaration = declaration
@@ -47,7 +55,20 @@ export const getClassInstanceProperties = (
                     .filter(isNeitherNullNorUndefined)
                     .filter(filterCallback)
                     .map((declaration) => declaration.getName())
-                    .filter(name => name !== instanceProperty.getName())
+                    .filter(name => name !== instanceProperty.getName());
+
+                const getAccessorNames = referencedSymbolEntries
+                    .map(
+                        (referencedSymbolEntry) => {
+                            return referencedSymbolEntry
+                                .getNode()
+                                .getFirstAncestorByKind(ts.SyntaxKind.GetAccessor);
+                        }
+                    )
+                    .filter(isNeitherNullNorUndefined)
+                    .filter(filterCallback)
+                    .map((declaration) => declaration.getName())
+                    .filter(name => name !== instanceProperty.getName());
 
                 if (Node.isParameterDeclaration(instanceProperty) || Node.isPropertyDeclaration(instanceProperty)) {
                     const readonly = Boolean(
@@ -68,6 +89,7 @@ export const getClassInstanceProperties = (
                         initializer,
                         methodNames,
                         setAccessorNames,
+                        getAccessorNames,
                     };
                 }
 
@@ -80,6 +102,7 @@ export const getClassInstanceProperties = (
                         bodyText,
                         methodNames,
                         setAccessorNames,
+                        getAccessorNames,
                     };
                 }
 
@@ -92,6 +115,7 @@ export const getClassInstanceProperties = (
                         bodyText,
                         methodNames,
                         setAccessorNames,
+                        getAccessorNames,
                     };
                 }
 

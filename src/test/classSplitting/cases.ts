@@ -119,11 +119,35 @@
 
 /** new-003 **/
 {
-    class A1 {
+    class A0 {
         _pa = 1;
+
+        get pa() {
+            return this._pa;
+        }
+
+        set pa(_pa: number) {
+            this._pa = _pa;
+        }
+
+        ma() {
+            return this.pa;
+        }
     }
 
-    class A2 {
+    class A1 {
         _pb = 2;
+
+        get pb() {
+            return this._pb;
+        }
+
+        set pb(_pb: number) {
+            this._pb = _pb;
+        }
+
+        mb() {
+            return this.pb;
+        }
     }
 }

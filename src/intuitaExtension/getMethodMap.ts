@@ -25,6 +25,15 @@ export const getMethodMap = (
 
     properties.forEach(
         (property) => {
+            const accessorNames = properties
+                .filter(
+                    (otherProperty) => {
+                        return otherProperty.setAccessorNames.includes(property.name) ||
+                            otherProperty.getAccessorNames.includes(property.name);
+                    }
+                )
+                .map((otherProperty) => otherProperty.name);
+
             property.methodNames.forEach(
                 (methodName) => {
                     const method = methodMap.get(methodName);
@@ -35,6 +44,7 @@ export const getMethodMap = (
 
                     const propertyNames = method.propertyNames.slice();
                     propertyNames.push(property.name);
+                    propertyNames.push(...accessorNames);
 
                     const propertyMutability = concatMutabilities(
                         [

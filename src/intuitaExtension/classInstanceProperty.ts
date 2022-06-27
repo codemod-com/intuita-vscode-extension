@@ -13,6 +13,7 @@ export type ClassInstanceProperty =
         readonly: boolean,
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
+        getAccessorNames: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,
@@ -20,6 +21,7 @@ export type ClassInstanceProperty =
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
+        getAccessorNames: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.SETTER,
@@ -27,5 +29,6 @@ export type ClassInstanceProperty =
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
+        getAccessorNames: ReadonlyArray<string>,
     }>
 ;
