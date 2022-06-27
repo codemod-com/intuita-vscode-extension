@@ -84,6 +84,10 @@ export const getClassInstanceProperties = (
                             ? structure.initializer?.toString() ?? null
                             : null;
 
+                    const type = typeof structure.type === 'string'
+                        ? structure.type
+                        : null;
+
                     return {
                         kind: ClassInstancePropertyKind.PROPERTY, // TODO deal with the parameter kind
                         name: propertyName,
@@ -93,11 +97,13 @@ export const getClassInstanceProperties = (
                         setAccessorNames,
                         getAccessorNames,
                         scope,
+                        type,
                     };
                 }
 
                 if (Node.isGetAccessorDeclaration(instanceProperty)) {
                     const bodyText = instanceProperty.getBodyText() ?? null;
+                    const returnType = instanceProperty.getReturnTypeNode()?.getText() ?? null;
 
                     return {
                         kind: ClassInstancePropertyKind.GETTER,
@@ -107,6 +113,7 @@ export const getClassInstanceProperties = (
                         setAccessorNames,
                         getAccessorNames,
                         scope,
+                        returnType,
                     };
                 }
 
@@ -117,6 +124,8 @@ export const getClassInstanceProperties = (
                         .getParameters()
                         .map((parameter) => parameter.getStructure());
 
+                    const returnType = instanceProperty.getReturnType().getText();
+
                     return {
                         kind: ClassInstancePropertyKind.SETTER,
                         name: propertyName,
@@ -126,6 +135,7 @@ export const getClassInstanceProperties = (
                         getAccessorNames,
                         parameters,
                         scope,
+                        returnType,
                     };
                 }
 

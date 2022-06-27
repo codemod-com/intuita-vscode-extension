@@ -17,6 +17,7 @@ export type ClassInstanceProperty =
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
+        type: string | null,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,
@@ -26,6 +27,7 @@ export type ClassInstanceProperty =
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
+        returnType: string | null,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.SETTER,
@@ -36,5 +38,6 @@ export type ClassInstanceProperty =
         getAccessorNames: ReadonlyArray<string>,
         parameters: ReadonlyArray<ParameterDeclarationStructure>,
         scope: Scope | null,
+        returnType: string,
     }>
 ;

@@ -407,6 +407,7 @@ export class AstChangeApplier {
                                             isReadonly: property.readonly,
                                             initializer: property.initializer ?? undefined,
                                             scope: property.scope ?? undefined,
+                                            type: property.type ?? undefined,
                                         },
                                     );
 
@@ -424,6 +425,7 @@ export class AstChangeApplier {
                                             name: propertyName,
                                             statements,
                                             scope: property.scope ?? undefined,
+                                            returnType: property.returnType ?? undefined,
                                         }
                                     );
 
