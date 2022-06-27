@@ -21,7 +21,7 @@
 /** new-001 **/
 {
     class A0 {
-        pa = 1;
+        public pa = 1;
 
         ma() {
             console.log(this.pa);
@@ -29,7 +29,7 @@
     }
 
     class A1 {
-        pb = 2;
+        public pb = 2;
 
         mb() {
             console.log(this.pb);
@@ -37,7 +37,7 @@
     }
 
     class A2 {
-        pc = 3;
+        public pc = 3;
 
         mc() {
             console.log(this.pc);
@@ -66,7 +66,7 @@
 /** new-002 **/
 {
     class A0<T> {
-        readonly pa = 1;
+        public readonly pa = 1;
 
         ma<U, V>(a: number): number {
             console.log(a, this.pa);
@@ -76,7 +76,7 @@
     }
 
     class A1<T> {
-        readonly pb = 2;
+        public readonly pb = 2;
 
         mb<U, V, R>(b: string): T | null {
             console.log(b, this.pb);
@@ -91,19 +91,19 @@
         _pa = 1;
         _pb = 2;
 
-        get pa() {
+        public get pa() {
             return this._pa;
         }
 
-        set pa(_pa: number) {
+        public set pa(_pa: number) {
             this._pa = _pa;
         }
 
-        get pb() {
+        protected get pb() {
             return this._pb;
         }
 
-        set pb(_pb: number) {
+        protected set pb(_pb: number) {
             this._pb = _pb;
         }
 
@@ -120,13 +120,13 @@
 /** new-003 **/
 {
     class A0 {
-        _pa = 1;
+        public _pa = 1;
 
-        get pa() {
+        public get pa() {
             return this._pa;
         }
 
-        set pa(_pa: number) {
+        public set pa(_pa: number) {
             this._pa = _pa;
         }
 
@@ -136,13 +136,13 @@
     }
 
     class A1 {
-        _pb = 2;
+        public _pb = 2;
 
-        get pb() {
+        protected get pb() {
             return this._pb;
         }
 
-        set pb(_pb: number) {
+        protected set pb(_pb: number) {
             this._pb = _pb;
         }
 

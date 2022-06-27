@@ -1,4 +1,4 @@
-import {ParameterDeclarationStructure} from "ts-morph";
+import {ParameterDeclarationStructure, Scope} from "ts-morph";
 
 export const enum ClassInstancePropertyKind {
     PARAMETER = 1, // defined in the constructor
@@ -16,6 +16,7 @@ export type ClassInstanceProperty =
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
+        scope: Scope | null,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,
@@ -24,6 +25,7 @@ export type ClassInstanceProperty =
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
+        scope: Scope | null,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.SETTER,
@@ -32,6 +34,7 @@ export type ClassInstanceProperty =
         methodNames: ReadonlyArray<string>,
         setAccessorNames: ReadonlyArray<string>,
         getAccessorNames: ReadonlyArray<string>,
-        parameters: ReadonlyArray<ParameterDeclarationStructure>
+        parameters: ReadonlyArray<ParameterDeclarationStructure>,
+        scope: Scope | null,
     }>
 ;

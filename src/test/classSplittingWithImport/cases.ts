@@ -32,7 +32,7 @@ import { A } from './a';
 /** newA-001 **/
 /* @ts-ignore */
 export class A0 {
-    pa = 1;
+    public pa = 1;
 
     ma() {
         console.log(this.pa);
@@ -41,7 +41,7 @@ export class A0 {
 
 /* @ts-ignore */
 export class A1 {
-    pb = 2;
+    public pb = 2;
 
     mb() {
         console.log(this.pb);
@@ -50,7 +50,7 @@ export class A1 {
 
 /* @ts-ignore */
 export class A2 {
-    pc = 3;
+    public pc = 3;
 
     mc() {
         console.log(this.pc);

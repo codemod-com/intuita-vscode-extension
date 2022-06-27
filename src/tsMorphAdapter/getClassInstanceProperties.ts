@@ -70,6 +70,8 @@ export const getClassInstanceProperties = (
                     .map((declaration) => declaration.getName())
                     .filter(name => name !== instanceProperty.getName());
 
+                const scope = instanceProperty.getScope() ?? null;
+
                 if (Node.isParameterDeclaration(instanceProperty) || Node.isPropertyDeclaration(instanceProperty)) {
                     const readonly = Boolean(
                         instanceProperty.getCombinedModifierFlags() & ts.ModifierFlags.Readonly
@@ -90,6 +92,7 @@ export const getClassInstanceProperties = (
                         methodNames,
                         setAccessorNames,
                         getAccessorNames,
+                        scope,
                     };
                 }
 
@@ -103,6 +106,7 @@ export const getClassInstanceProperties = (
                         methodNames,
                         setAccessorNames,
                         getAccessorNames,
+                        scope,
                     };
                 }
 
@@ -121,6 +125,7 @@ export const getClassInstanceProperties = (
                         setAccessorNames,
                         getAccessorNames,
                         parameters,
+                        scope,
                     };
                 }
 
