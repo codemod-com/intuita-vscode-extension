@@ -7,6 +7,11 @@ export const enum ClassInstancePropertyKind {
     SETTER = 4,
 }
 
+export type MethodExpression = Readonly<{
+    text: string,
+    dependencyNames: ReadonlyArray<string>,
+}>;
+
 export type ClassInstanceProperty =
     | Readonly<{
         kind: ClassInstancePropertyKind.PROPERTY,
@@ -18,7 +23,7 @@ export type ClassInstanceProperty =
         getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
         type: string | null,
-        constructorExpressions: ReadonlyArray<string>,
+        constructorExpressions: ReadonlyArray<MethodExpression>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,

@@ -367,7 +367,7 @@ export class AstChangeApplier {
                         }
                     );
 
-                    const bodyText = instanceProperties
+                    const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
@@ -375,7 +375,10 @@ export class AstChangeApplier {
                             }
 
                             return property.constructorExpressions;
-                        })
+                        });
+
+                    const bodyText = constructorExpressions
+                        .map(({ text }) => text)
                         .join('\n');
 
                     constructorDeclaration.setBodyText(bodyText);

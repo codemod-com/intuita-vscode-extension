@@ -55,12 +55,21 @@ export const getClassInstanceProperties = (
                     )
                     .filter(isNeitherNullNorUndefined)
                     .filter((expressionStatement) => {
-                        // console.log(expressionStatement.getText());
                         return expressionStatement
                             .getFirstAncestorByKind(ts.SyntaxKind.Constructor) !== undefined;
                     })
                     .filter(filterCallback)
-                    .map((expressionStatement) => expressionStatement.getText());
+                    .map((expressionStatement) => {
+                        const text = expressionStatement.getText();
+                        const dependencyNames = expressionStatement
+                            .getDescendantsOfKind(ts.SyntaxKind.Identifier)
+                            .map(identifier => identifier.getText());
+
+                        return {
+                            text,
+                            dependencyNames,
+                        };
+                    });
 
                 const setAccessorNames = referencedSymbolEntries
                     .map(
