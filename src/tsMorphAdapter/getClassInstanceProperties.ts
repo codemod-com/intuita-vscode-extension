@@ -7,8 +7,36 @@ export const getClassInstanceProperties = (
 ): ReadonlyArray<ClassInstanceProperty> => {
     return classDefinition
         .getInstanceProperties()
-        .map(
+        .map<ClassInstanceProperty | null>(
             (instanceProperty) => {
+                const methodNames = instanceProperty
+                    .findReferences()
+                    .flatMap((referencedSymbol) => referencedSymbol.getReferences())
+                    .map(
+                        (referencedSymbolEntry) => {
+                            return referencedSymbolEntry
+                                .getNode()
+                                .getFirstAncestorByKind(ts.SyntaxKind.MethodDeclaration)
+                        }
+                    )
+                    .filter(isNeitherNullNorUndefined)
+                    .map(
+                        (methodDeclaration) => {
+                            const methodName = methodDeclaration.getName();
+
+                            const methodClassDeclaration = methodDeclaration
+                                .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration)
+
+                            if (methodClassDeclaration !== classDefinition) {
+                                return null;
+                            }
+
+                            return methodName;
+                        }
+                    )
+                    .filter(isNeitherNullNorUndefined)
+                ;
+
                 if (Node.isParameterDeclaration(instanceProperty) || Node.isPropertyDeclaration(instanceProperty)) {
                     console.log(instanceProperty.getKindName())
 
@@ -24,38 +52,8 @@ export const getClassInstanceProperties = (
                             ? structure.initializer?.toString() ?? null
                             : null;
 
-                    const body = instanceProperty.getText();
-
-                    const methodNames = instanceProperty
-                        .findReferences()
-                        .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                        .map(
-                            (referencedSymbolEntry) => {
-                                return referencedSymbolEntry
-                                    .getNode()
-                                    .getFirstAncestorByKind(ts.SyntaxKind.MethodDeclaration)
-                            }
-                        )
-                        .filter(isNeitherNullNorUndefined)
-                        .map(
-                            (methodDeclaration) => {
-                                const methodName = methodDeclaration.getName();
-
-                                const methodClassDeclaration = methodDeclaration
-                                    .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration)
-
-                                if (methodClassDeclaration !== classDefinition) {
-                                    return null;
-                                }
-
-                                return methodName;
-                            }
-                        )
-                        .filter(isNeitherNullNorUndefined)
-                    ;
-
-                    return <ClassInstanceProperty>{
-                        kind: ClassInstancePropertyKind.PROPERTY,
+                    return {
+                        kind: ClassInstancePropertyKind.PROPERTY, // TODO deal with the parameter kind
                         name,
                         readonly,
                         initializer,
@@ -63,9 +61,17 @@ export const getClassInstanceProperties = (
                     };
                 }
 
-                // if (Node.isGetAccessorDeclaration(instanceProperty)) {
-                //     instanceProperty.getBodyText()
-                // }
+                if (Node.isGetAccessorDeclaration(instanceProperty)) {
+                    const name = instanceProperty.getName();
+                    const bodyText = instanceProperty.getBodyText() ?? null;
+
+                    return {
+                        kind: ClassInstancePropertyKind.GETTER,
+                        name,
+                        bodyText,
+                        methodNames,
+                    };
+                }
 
                 return null;
             }

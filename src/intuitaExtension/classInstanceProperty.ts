@@ -1,8 +1,8 @@
 export const enum ClassInstancePropertyKind {
     PARAMETER = 1, // defined in the constructor
     PROPERTY = 2, // defined in the body
-    GETTER = 2,
-    SETTER = 3,
+    GETTER = 3,
+    SETTER = 4,
 }
 
 export type ClassInstanceProperty =
@@ -12,4 +12,11 @@ export type ClassInstanceProperty =
         initializer: string | null,
         readonly: boolean,
         methodNames: ReadonlyArray<string>,
-    }>;
+    }>
+    | Readonly<{
+        kind: ClassInstancePropertyKind.GETTER,
+        name: string,
+        bodyText: string | null,
+        methodNames: ReadonlyArray<string>,
+    }>
+;

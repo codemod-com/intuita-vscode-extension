@@ -32,7 +32,7 @@ export const getClassReferences = (
     return classDeclaration
         .findReferences()
         .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-        .map(
+        .map<ClassReference | null>(
             (rse) => {
                 const node = rse.getNode();
                 const parentNode = node.getParent();
@@ -43,7 +43,7 @@ export const getClassReferences = (
                         .getFilePath()
                         .toString();
 
-                    return <ClassReference>{
+                    return {
                         kind: ClassReferenceKind.IMPORT_SPECIFIER,
                         filePath,
                     };
@@ -67,7 +67,7 @@ export const getClassReferences = (
                         },
                     );
 
-                    return <ClassReference>{
+                    return {
                         kind: ClassReferenceKind.NEW_EXPRESSION,
                         nodeLookupCriterion,
                         arguments: _arguments,

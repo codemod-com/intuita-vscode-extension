@@ -67,7 +67,7 @@ export const getClassConstructors = (
             const references = constructorDeclaration
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
-                .map(
+                .map<ConstructorReference | null>(
                     (referencedSymbolEntry) => {
                         const node = referencedSymbolEntry.getNode();
                         const parentNode = node.getParent();
@@ -90,7 +90,7 @@ export const getClassConstructors = (
                                 }
                             );
 
-                            return <ConstructorReference>{
+                            return {
                                 nodeLookupCriterion,
                                 arguments: _arguments,
                             };

@@ -106,6 +106,14 @@
         set pb(_pb: number) {
             this._pb = _pb;
         }
+
+        ma() {
+            return this.pa;
+        }
+
+        mb() {
+            return this.pb;
+        }
     }
 }
 

@@ -12,6 +12,7 @@ import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
+import {ClassInstancePropertyKind} from "./intuitaExtension/classInstanceProperty";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -396,16 +397,30 @@ export class AstChangeApplier {
                             (ip) => ip.name === propertyName,
                         );
 
-                        groupClass.insertProperty(
-                            memberIndex,
-                            {
-                                name: propertyName,
-                                isReadonly: instanceProperty?.readonly ?? false,
-                                initializer: instanceProperty?.initializer ?? undefined,
-                            },
-                        );
+                        if (instanceProperty?.kind === ClassInstancePropertyKind.PROPERTY) {
+                            groupClass.insertProperty(
+                                memberIndex,
+                                {
+                                    name: propertyName,
+                                    isReadonly: instanceProperty.readonly,
+                                    initializer: instanceProperty.initializer ?? undefined,
+                                },
+                            );
 
-                        ++memberIndex;
+                            ++memberIndex;
+                        }
+
+                        if (instanceProperty?.kind === ClassInstancePropertyKind.GETTER) {
+                            groupClass.insertGetAccessor(
+                                memberIndex,
+                                {
+                                    name: propertyName,
+                                    statements: [
+                                        instanceProperty.bodyText ?? ''
+                                    ]
+                                }
+                            )
+                        }
                     }
                 );
 

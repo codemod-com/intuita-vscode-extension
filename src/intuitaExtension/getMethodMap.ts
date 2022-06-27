@@ -38,7 +38,7 @@ export const getMethodMap = (
 
                     const propertyMutability = concatMutabilities(
                         [
-                            property.readonly
+                            ('readonly' in property ? property.readonly : false)
                                 ? Mutability.READING_READONLY
                                 : Mutability.WRITING_WRITABLE,
                             method.propertyMutability,
