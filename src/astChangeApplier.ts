@@ -12,6 +12,7 @@ import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
+import {ClassInstancePropertyKind} from "./intuitaExtension/classInstanceProperty";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -324,19 +325,6 @@ export class AstChangeApplier {
         const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
-        if (commentStatement) {
-            lookupNode(
-                this._project,
-                commentStatement
-            )
-                .filter(Node.isCommentStatement)
-                .forEach(
-                    (commentStatement) => {
-                        commentStatement.remove();
-                    }
-                );
-        }
-
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
                 if(!Node.isStatemented(classParentNode)) {
@@ -357,12 +345,33 @@ export class AstChangeApplier {
                 let memberIndex = 0;
 
                 constructors.forEach((constructor) => {
-                    const { bodyText, parameters, typeParameters } = constructor;
+                    const { parameters, typeParameters, scope } = constructor;
+
+                    const constructorExpressions = instanceProperties
+                        .filter(property => group.propertyNames.includes(property.name))
+                        .flatMap(property => {
+                            if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
+                                return [];
+                            }
+
+                            return property.constructorExpressions;
+                        });
+
+                    const bodyText = constructorExpressions
+                        .map(({ text }) => text)
+                        .join('\n');
+
+                    const dependencyNameSet: ReadonlySet<string> = new Set<string>(
+                        constructorExpressions
+                            .flatMap(({ dependencyNames }) => dependencyNames)
+                    );
 
                     const selectedParameter = parameters
                         .filter(
-                        parameter => group.propertyNames.includes(parameter.name)
-                        )
+                        ({ name }) => {
+                            return group.propertyNames.includes(name)
+                                || dependencyNameSet.has(name);
+                        })
                         .map((parameter) => ({
                             ...parameter,
                             initializer: parameter.initializer ?? undefined,
@@ -375,13 +384,12 @@ export class AstChangeApplier {
                         memberIndex,
                         {
                             typeParameters: typeParameters.slice(),
-                            parameters: selectedParameter
+                            parameters: selectedParameter,
+                            scope,
                         }
                     );
 
-                    if (bodyText) {
-                        constructorDeclaration.setBodyText(bodyText);
-                    }
+                    constructorDeclaration.setBodyText(bodyText);
 
                     ++memberIndex;
                 });
@@ -392,20 +400,66 @@ export class AstChangeApplier {
                             return;
                         }
 
-                        const instanceProperty = instanceProperties.find(
+                        const properties = instanceProperties.filter(
                             (ip) => ip.name === propertyName,
                         );
 
-                        groupClass.insertProperty(
-                            memberIndex,
-                            {
-                                name: propertyName,
-                                isReadonly: instanceProperty?.readonly ?? false,
-                                initializer: instanceProperty?.initializer ?? undefined,
-                            },
-                        );
+                        properties.forEach(
+                            (property) => {
+                                if (property.kind === ClassInstancePropertyKind.PROPERTY) {
+                                    groupClass.insertProperty(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            isReadonly: property.readonly,
+                                            initializer: property.initializer ?? undefined,
+                                            scope: property.scope ?? undefined,
+                                            type: property.type ?? undefined,
+                                        },
+                                    );
 
-                        ++memberIndex;
+                                    ++memberIndex;
+                                }
+
+                                if (property.kind === ClassInstancePropertyKind.GETTER) {
+                                    const statements = property.bodyText !== null
+                                        ? [ property.bodyText ]
+                                        : undefined;
+
+                                    groupClass.insertGetAccessor(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            statements,
+                                            scope: property.scope ?? undefined,
+                                            returnType: property.returnType ?? undefined,
+                                        }
+                                    );
+
+                                    ++memberIndex;
+                                }
+
+                                if (property.kind === ClassInstancePropertyKind.SETTER) {
+                                    const statements = property.bodyText !== null
+                                        ? [ property.bodyText ]
+                                        : undefined;
+
+                                    groupClass.insertSetAccessor(
+                                        memberIndex,
+                                        {
+                                            name: propertyName,
+                                            statements,
+                                            parameters: property
+                                                .parameters
+                                                .slice(),
+                                            scope: property.scope ?? undefined,
+                                        }
+                                    );
+
+                                    ++memberIndex;
+                                }
+                            }
+                        );
                     }
                 );
 
@@ -419,11 +473,11 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
+                                typeParameters: instanceMethod?.typeParameters.slice() ?? [],
+                                parameters: instanceMethod?.parameters.slice() ?? [],
+                                scope: instanceMethod?.scope ?? undefined,
                             },
                         );
-
-                        methodDeclaration.addTypeParameters(instanceMethod?.typeParameterDeclarations ?? []);
-                        methodDeclaration.addParameters(instanceMethod?.parameters ?? []);
 
                         if (instanceMethod?.returnType) {
                             methodDeclaration.setReturnType(instanceMethod.returnType);
@@ -606,6 +660,19 @@ export class AstChangeApplier {
                     ++deletedMemberCount;
                 }
             );
+
+        if (commentStatement) {
+            lookupNode(
+                this._project,
+                commentStatement
+            )
+                .filter(Node.isCommentStatement)
+                .forEach(
+                    (commentStatement) => {
+                        commentStatement.remove();
+                    }
+                );
+        }
 
         {
             if (deletedMemberCount > 0) {

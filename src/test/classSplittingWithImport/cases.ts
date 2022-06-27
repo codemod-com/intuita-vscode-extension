@@ -32,27 +32,27 @@ import { A } from './a';
 /** newA-001 **/
 /* @ts-ignore */
 export class A0 {
-    pa = 1;
+    public pa = 1;
 
-    ma() {
+    public ma() {
         console.log(this.pa);
     }
 }
 
 /* @ts-ignore */
 export class A1 {
-    pb = 2;
+    public pb = 2;
 
-    mb() {
+    public mb() {
         console.log(this.pb);
     }
 }
 
 /* @ts-ignore */
 export class A2 {
-    pc = 3;
+    public pc = 3;
 
-    mc() {
+    public mc() {
         console.log(this.pc);
     }
 }
@@ -82,6 +82,9 @@ export class A {
         public readonly pc: number,
     ) {
         console.log('A::constructor');
+        console.log('in constructor', this.pa);
+        console.log('in constructor', this.pb);
+        console.log('in constructor', this.pc);
     }
 
     ma() {
@@ -111,33 +114,33 @@ import { A } from './a';
 /** newA-002 **/
 /* @ts-ignore */
 export class A0 {
-    constructor(public readonly pa: number) {
-        console.log('A::constructor');
+    public constructor(public readonly pa: number) {
+        console.log('in constructor', this.pa);
     }
 
-    ma() {
+    public ma() {
         console.log(this.pa);
     }
 }
 
 /* @ts-ignore */
 export class A1 {
-    constructor(public readonly pb: number) {
-        console.log('A::constructor');
+    public constructor(public readonly pb: number) {
+        console.log('in constructor', this.pb);
     }
 
-    mb() {
+    public mb() {
         console.log(this.pb);
     }
 }
 
 /* @ts-ignore */
 export class A2 {
-    constructor(public readonly pc: number) {
-        console.log('A::constructor');
+    public constructor(public readonly pc: number) {
+        console.log('in constructor', this.pc);
     }
 
-    mc() {
+    public mc() {
         console.log(this.pc);
     }
 }
