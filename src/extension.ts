@@ -22,12 +22,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		(workspaceFolder) => {
 			const { fsPath } = workspaceFolder.uri;
 
+			console.log({ fsPath });
+
 			const project = new Project({
 				tsConfigFilePath: join(
 					fsPath,
 					'tsconfig.json'
 				),
 			})
+
+			console.log(project.getSourceFiles().map(sf => sf.getFilePath()));
 
 			watchProject(project);
 

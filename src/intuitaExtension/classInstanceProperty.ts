@@ -18,6 +18,7 @@ export type ClassInstanceProperty =
         getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
         type: string | null,
+        constructorExpressions: ReadonlyArray<string>,
     }>
     | Readonly<{
         kind: ClassInstancePropertyKind.GETTER,

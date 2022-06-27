@@ -1,5 +1,5 @@
 import {
-    ClassDeclaration,
+    ClassDeclaration, ExpressionStatement,
     GetAccessorDeclaration,
     MethodDeclaration,
     Node,
@@ -13,7 +13,7 @@ import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtens
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
 ): ReadonlyArray<ClassInstanceProperty> => {
-    const filterCallback = <T extends MethodDeclaration | SetAccessorDeclaration | GetAccessorDeclaration>(
+    const filterCallback = <T extends MethodDeclaration | SetAccessorDeclaration | GetAccessorDeclaration | ExpressionStatement>(
         declaration: T,
     ): boolean => {
         const otherClassDeclaration = declaration
@@ -43,6 +43,24 @@ export const getClassInstanceProperties = (
                     .filter(isNeitherNullNorUndefined)
                     .filter(filterCallback)
                     .map((declaration) => declaration.getName());
+
+                // new:
+                const constructorExpressions = referencedSymbolEntries
+                    .map(
+                        (referencedSymbolEntry) => {
+                            return referencedSymbolEntry
+                                .getNode()
+                                .getFirstAncestorByKind(ts.SyntaxKind.ExpressionStatement);
+                        }
+                    )
+                    .filter(isNeitherNullNorUndefined)
+                    .filter((expressionStatement) => {
+                        // console.log(expressionStatement.getText());
+                        return expressionStatement
+                            .getFirstAncestorByKind(ts.SyntaxKind.Constructor) !== undefined;
+                    })
+                    .filter(filterCallback)
+                    .map((expressionStatement) => expressionStatement.getText());
 
                 const setAccessorNames = referencedSymbolEntries
                     .map(
@@ -98,6 +116,7 @@ export const getClassInstanceProperties = (
                         getAccessorNames,
                         scope,
                         type,
+                        constructorExpressions,
                     };
                 }
 

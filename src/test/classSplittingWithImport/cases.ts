@@ -82,6 +82,9 @@ export class A {
         public readonly pc: number,
     ) {
         console.log('A::constructor');
+        console.log('in constructor', this.pa);
+        console.log('in constructor', this.pb);
+        console.log('in constructor', this.pc);
     }
 
     ma() {
@@ -112,7 +115,7 @@ import { A } from './a';
 /* @ts-ignore */
 export class A0 {
     constructor(public readonly pa: number) {
-        console.log('A::constructor');
+        console.log('in constructor', this.pa);
     }
 
     public ma() {
@@ -123,7 +126,7 @@ export class A0 {
 /* @ts-ignore */
 export class A1 {
     constructor(public readonly pb: number) {
-        console.log('A::constructor');
+        console.log('in constructor', this.pb);
     }
 
     public mb() {
@@ -134,7 +137,7 @@ export class A1 {
 /* @ts-ignore */
 export class A2 {
     constructor(public readonly pc: number) {
-        console.log('A::constructor');
+        console.log('in constructor', this.pc);
     }
 
     public mc() {

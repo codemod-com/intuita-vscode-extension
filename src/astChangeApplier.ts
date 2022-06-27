@@ -325,19 +325,6 @@ export class AstChangeApplier {
         const classReferences = getClassReferences(classDeclaration);
 
         // UPDATES
-        if (commentStatement) {
-            lookupNode(
-                this._project,
-                commentStatement
-            )
-                .filter(Node.isCommentStatement)
-                .forEach(
-                    (commentStatement) => {
-                        commentStatement.remove();
-                    }
-                );
-        }
-
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
                 if(!Node.isStatemented(classParentNode)) {
@@ -358,7 +345,7 @@ export class AstChangeApplier {
                 let memberIndex = 0;
 
                 constructors.forEach((constructor) => {
-                    const { bodyText, parameters, typeParameters } = constructor;
+                    const { parameters, typeParameters } = constructor;
 
                     const selectedParameter = parameters
                         .filter(
@@ -376,13 +363,22 @@ export class AstChangeApplier {
                         memberIndex,
                         {
                             typeParameters: typeParameters.slice(),
-                            parameters: selectedParameter
+                            parameters: selectedParameter,
                         }
                     );
 
-                    if (bodyText) {
-                        constructorDeclaration.setBodyText(bodyText);
-                    }
+                    const bodyText = instanceProperties
+                        .filter(property => group.propertyNames.includes(property.name))
+                        .flatMap(property => {
+                            if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
+                                return [];
+                            }
+
+                            return property.constructorExpressions;
+                        })
+                        .join('\n');
+
+                    constructorDeclaration.setBodyText(bodyText);
 
                     ++memberIndex;
                 });
@@ -653,6 +649,19 @@ export class AstChangeApplier {
                     ++deletedMemberCount;
                 }
             );
+
+        if (commentStatement) {
+            lookupNode(
+                this._project,
+                commentStatement
+            )
+                .filter(Node.isCommentStatement)
+                .forEach(
+                    (commentStatement) => {
+                        commentStatement.remove();
+                    }
+                );
+        }
 
         {
             if (deletedMemberCount > 0) {
