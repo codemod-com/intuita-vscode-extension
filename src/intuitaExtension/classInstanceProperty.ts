@@ -15,13 +15,14 @@ export const enum MethodExpressionKind {
 export type MethodExpression =
     | Readonly<{
         kind: MethodExpressionKind.PROPERTY_ASSIGNMENT,
-        propertyName: string,
-        rightSideText: string;
+        name: string,
+        dependencyNames: ReadonlyArray<string>,
+        text: string,
     }>
     | Readonly<{
         kind: MethodExpressionKind.OTHER,
-        text: string,
         dependencyNames: ReadonlyArray<string>,
+        text: string,
     }>;
 
 export type ClassInstanceProperty =

@@ -64,10 +64,29 @@ export const getClassInstanceProperties = (
                     })
                     .filter(filterCallback)
                     .map((expressionStatement) => {
-                        const text = expressionStatement.getText();
                         const dependencyNames = expressionStatement
                             .getDescendantsOfKind(ts.SyntaxKind.Identifier)
                             .map(identifier => identifier.getText());
+
+                        const expression = expressionStatement.getExpression();
+                        const text = expressionStatement.getText();
+
+                        if (Node.isBinaryExpression(expression)) {
+                            const leftExpression = expression.getLeft();
+                            const rightExpression = expression.getRight();
+
+                            if (Node.isPropertyAccessExpression(leftExpression)) {
+                                const name = leftExpression.getName();
+
+                                return {
+                                    kind: MethodExpressionKind.PROPERTY_ASSIGNMENT,
+                                    name,
+                                    text,
+                                    dependencyNames: dependencyNames
+                                        .filter(dependencyName => dependencyName !== name),
+                                };
+                            }
+                        }
 
                         return {
                             kind: MethodExpressionKind.OTHER,

@@ -362,19 +362,19 @@ export class AstChangeApplier {
                         });
 
                     const bodyText = constructorExpressions
-                        .filter(
-                            (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
-                                expression.kind === MethodExpressionKind.OTHER
-                        )
+                        // .filter(
+                        //     (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
+                        //         expression.kind === MethodExpressionKind.OTHER
+                        // )
                         .map(({ text }) => text)
                         .join('\n');
 
                     const dependencyNameSet: ReadonlySet<string> = new Set<string>(
                         constructorExpressions
-                            .filter(
-                                (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
-                                    expression.kind === MethodExpressionKind.OTHER
-                            )
+                            // .filter(
+                            //     (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
+                            //         expression.kind === MethodExpressionKind.OTHER
+                            // )
                             .flatMap(({ dependencyNames }) => dependencyNames)
                     );
 
