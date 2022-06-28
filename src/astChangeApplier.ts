@@ -17,6 +17,7 @@ import {
     MethodExpression,
     MethodExpressionKind
 } from "./intuitaExtension/classInstanceProperty";
+import {getClassDecorators} from "./tsMorphAdapter/getClassDecorators";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -328,6 +329,8 @@ export class AstChangeApplier {
 
         const classReferences = getClassReferences(classDeclaration);
 
+        const classDecorators = getClassDecorators(classDeclaration);
+
         // UPDATES
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
@@ -342,6 +345,7 @@ export class AstChangeApplier {
                 const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
                     name: `${astChange.className}${groupNumber}`,
                     isExported: exported,
+                    decorators: classDecorators,
                 });
 
                 groupClass.addTypeParameters(classTypeParameters);
@@ -354,8 +358,6 @@ export class AstChangeApplier {
                     const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
-                            console.log(property);
-
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
                             }

@@ -337,6 +337,11 @@
 }
 /** old-008 **/
 {
+    function decorateClass(constructor: Function) {
+
+    }
+
+    @decorateClass
     class A {
         private _pa: number;
         private _pb: number;
@@ -362,6 +367,11 @@
 }
 /** new-008 **/
 {
+    function decorateClass(constructor: Function) {
+
+    }
+
+    @decorateClass
     class A0 {
         public constructor(a: number) {
             this._pa = a;
@@ -374,6 +384,7 @@
         }
     }
 
+    @decorateClass
     class A1 {
         public constructor(b: number) {
             this._pb = b;
