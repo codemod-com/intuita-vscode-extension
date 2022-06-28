@@ -27,6 +27,7 @@ describe('move static properties out of the class', () => {
                         kind: AstChangeKind.CLASS_SPLIT_COMMAND,
                         filePath: 'index.ts',
                         className: 'A',
+                        maxGroupCount: null,
                     }
                 ],
             );

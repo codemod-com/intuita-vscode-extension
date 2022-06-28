@@ -26,6 +26,7 @@ export type SourceFileNode =
         className: string,
         hash: string,
         toSplit: boolean;
+        maxGroupCount: 2 | null,
     }>;
 
 export const isExtendedMethodDeclaration = (node: SourceFileNode): node is SourceFileNode & {
@@ -97,13 +98,16 @@ export const getSourceFileNodes = (
     );
 
     const classesToSplit = new Set<string>();
+    const maxGroupCountMap = new Map<string, 2 | null>();
 
-    sourceFile.getStatementsWithComments().forEach((statement, i, statements) => {
+    sourceFile.getStatementsWithComments().forEach((statement, i) => {
         if (!Node.isCommentStatement(statement)) {
             return;
         }
 
-        if(!statement.getText().includes('split')) {
+        const text = statement.getText()
+
+        if(!text.includes('split')) {
             return;
         }
 
@@ -120,6 +124,11 @@ export const getSourceFileNodes = (
         }
 
         classesToSplit.add(name);
+
+        maxGroupCountMap.set(
+            name,
+            text.includes('split 2') ? 2 : null,
+        );
     });
 
     sourceFile.getClasses().forEach(
@@ -135,6 +144,7 @@ export const getSourceFileNodes = (
                 className,
                 hash: `${ts.SyntaxKind.ClassDeclaration}_${className}`,
                 toSplit: classesToSplit.has(className),
+                maxGroupCount: maxGroupCountMap.get(className) ?? null,
             });
 
             classDeclaration

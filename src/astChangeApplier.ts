@@ -12,7 +12,11 @@ import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
-import {ClassInstancePropertyKind} from "./intuitaExtension/classInstanceProperty";
+import {
+    ClassInstancePropertyKind,
+    MethodExpression,
+    MethodExpressionKind
+} from "./intuitaExtension/classInstanceProperty";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -279,7 +283,7 @@ export class AstChangeApplier {
             + constructorPropertyNames.size;
 
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
-        const groupMap = getGroupMap(methodMap);
+        const groupMap = getGroupMap(methodMap, astChange.maxGroupCount);
 
         staticProperties.forEach(
             (staticProperty) => {
@@ -350,11 +354,23 @@ export class AstChangeApplier {
                     const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
+                            console.log(property);
+
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
                             }
 
-                            return property.constructorExpressions;
+                            return property
+                                .constructorExpressions
+                                .filter(
+                                    (expression) => {
+                                        if (expression.kind === MethodExpressionKind.PROPERTY_ASSIGNMENT) {
+                                            return expression.name === property.name;
+                                        }
+
+                                        return true;
+                                    }
+                                );
                         });
 
                     const bodyText = constructorExpressions
@@ -674,6 +690,23 @@ export class AstChangeApplier {
                 );
         }
 
+        groupMap.size === 0 && instanceProperties.forEach(
+            (property) => {
+                const nameLength =
+                    property.methodNames.length
+                    + property.setAccessorNames.length
+                    + property.getAccessorNames.length;
+
+                if (nameLength === 0) {
+                    ++deletedMemberCount;
+
+                    classDeclaration
+                        .getInstanceProperty(property.name)
+                        ?.remove();
+                }
+            }
+        );
+
         {
             if (deletedMemberCount > 0) {
                 this._changedSourceFiles.add(sourceFile);
@@ -772,6 +805,15 @@ export class AstChangeApplier {
                 }
             );
 
+            classDeclaration.remove();
+        }
+
+        if (
+            groupMap.size === 0
+            && staticMethods.length === 0
+            && staticProperties.length === 0
+        ) {
+            this._changedSourceFiles.add(sourceFile);
             classDeclaration.remove();
         }
     }
