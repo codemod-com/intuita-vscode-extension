@@ -337,9 +337,27 @@
 }
 /** old-008 **/
 {
+    function decorateClass(constructor: Function) {
+
+    }
+
+    function decorateMethod(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    }
+
+    function decorateProperty(target: any,  name: PropertyKey) {
+
+    }
+
+    @decorateClass
     class A {
+        @decorateProperty
         private _pa: number;
+
+        @decorateProperty
         private _pb: number;
+
+        @decorateProperty
         private _pc: number;
 
         public constructor(
@@ -351,10 +369,12 @@
             this._pc = this._pb;
         }
 
+        @decorateMethod
         public ma() {
             return this._pa;
         }
 
+        @decorateMethod
         public mb() {
             return this._pb;
         }
@@ -362,25 +382,43 @@
 }
 /** new-008 **/
 {
+    function decorateClass(constructor: Function) {
+
+    }
+
+    function decorateMethod(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    }
+
+    function decorateProperty(target: any,  name: PropertyKey) {
+
+    }
+
+    @decorateClass
     class A0 {
         public constructor(a: number) {
             this._pa = a;
         }
 
+        @decorateProperty
         private _pa: number;
 
+        @decorateMethod
         public ma() {
             return this._pa;
         }
     }
 
+    @decorateClass
     class A1 {
         public constructor(b: number) {
             this._pb = b;
         }
 
+        @decorateProperty
         private _pb: number;
 
+        @decorateMethod
         public mb() {
             return this._pb;
         }

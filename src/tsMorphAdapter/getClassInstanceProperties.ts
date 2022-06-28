@@ -30,6 +30,10 @@ export const getClassInstanceProperties = (
         .getInstanceProperties()
         .map<ClassInstanceProperty | null>(
             (instanceProperty) => {
+                const decorators = instanceProperty
+                    .getDecorators()
+                    .map(decorator => decorator.getStructure());
+
                 const propertyName = instanceProperty.getName();
 
                 const referencedSymbolEntries = instanceProperty
@@ -150,6 +154,7 @@ export const getClassInstanceProperties = (
                         scope,
                         type,
                         constructorExpressions,
+                        decorators,
                     };
                 }
 
@@ -166,6 +171,7 @@ export const getClassInstanceProperties = (
                         getAccessorNames,
                         scope,
                         returnType,
+                        decorators,
                     };
                 }
 
@@ -185,6 +191,7 @@ export const getClassInstanceProperties = (
                         getAccessorNames,
                         parameters,
                         scope,
+                        decorators,
                     };
                 }
 
