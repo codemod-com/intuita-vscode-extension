@@ -1,5 +1,5 @@
 import {
-    ClassDeclaration,
+    ClassDeclaration, DecoratorStructure,
     ParameterDeclarationStructure,
     Scope,
     ts,
@@ -10,6 +10,7 @@ import {buildNodeLookupCriterion, NodeLookupCriterion} from "./nodeLookup";
 
 export type InstanceMethod = Readonly<{
     name: string,
+    decorators: ReadonlyArray<DecoratorStructure>,
     typeParameters: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string | null,
@@ -26,6 +27,10 @@ export const getClassInstanceMethods = (
     const oldMethods = classDeclaration
         .getInstanceMethods()
         .map((methodDeclaration) => {
+            const decorators = methodDeclaration
+                .getDecorators()
+                .map(decorator => decorator.getStructure());
+
             const typeParameters = methodDeclaration
                 .getTypeParameters()
                 .map((tpd) => tpd.getStructure());
@@ -108,6 +113,7 @@ export const getClassInstanceMethods = (
                 methodLookupCriteria,
                 scope,
                 empty,
+                decorators,
             };
         });
 

@@ -17,6 +17,7 @@ import {
     MethodExpression,
     MethodExpressionKind
 } from "./intuitaExtension/classInstanceProperty";
+import {getClassDecorators} from "./tsMorphAdapter/getClassDecorators";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -328,6 +329,8 @@ export class AstChangeApplier {
 
         const classReferences = getClassReferences(classDeclaration);
 
+        const classDecorators = getClassDecorators(classDeclaration);
+
         // UPDATES
         groupMap.size > 1 && groupMap.forEach(
             (group, groupNumber) => {
@@ -342,6 +345,7 @@ export class AstChangeApplier {
                 const groupClass = classParentNode.insertClass(index + groupNumber + 1, {
                     name: `${astChange.className}${groupNumber}`,
                     isExported: exported,
+                    decorators: classDecorators,
                 });
 
                 groupClass.addTypeParameters(classTypeParameters);
@@ -354,8 +358,6 @@ export class AstChangeApplier {
                     const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
-                            console.log(property);
-
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
                             }
@@ -427,6 +429,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             isReadonly: property.readonly,
                                             initializer: property.initializer ?? undefined,
                                             scope: property.scope ?? undefined,
@@ -446,6 +449,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             statements,
                                             scope: property.scope ?? undefined,
                                             returnType: property.returnType ?? undefined,
@@ -464,6 +468,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             statements,
                                             parameters: property
                                                 .parameters
@@ -489,6 +494,7 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
+                                decorators: instanceMethod?.decorators.slice() ?? [],
                                 typeParameters: instanceMethod?.typeParameters.slice() ?? [],
                                 parameters: instanceMethod?.parameters.slice() ?? [],
                                 scope: instanceMethod?.scope ?? undefined,

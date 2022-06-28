@@ -1,5 +1,5 @@
 import {
-    ClassDeclaration,
+    ClassDeclaration, DecoratorStructure,
     ParameterDeclarationStructure,
     ts,
     TypeParameterDeclarationStructure
