@@ -283,7 +283,7 @@ export class AstChangeApplier {
             + constructorPropertyNames.size;
 
         const methodMap = getMethodMap(instanceProperties, instanceMethods);
-        const groupMap = getGroupMap(methodMap);
+        const groupMap = getGroupMap(methodMap, null);
 
         staticProperties.forEach(
             (staticProperty) => {

@@ -13,14 +13,61 @@ const uniquify = <A>(
     return Array.from(new Set<A>(array)).sort();
 };
 
+export const repackageGroupMap = (
+    oldGroupMap: ReadonlyMap<number, Group>
+): ReadonlyMap<number, Group> => {
+    const newGroupMap = new Map<number, Group>();
+
+    const otherGroup = [...oldGroupMap.entries()]
+        .filter(([index, ]) => index !== 0)
+        .map(([_, group]) => {
+            console.log('A')
+
+            return group;
+        })
+        .reduce(
+            (leftGroup, rightGroup) => {
+                return {
+                    methodNames: [
+                        ...leftGroup.methodNames,
+                        ...rightGroup.methodNames,
+                    ],
+                    propertyNames: [
+                        ...leftGroup.propertyNames,
+                        ...rightGroup.propertyNames,
+                    ],
+                    mutability: concatMutabilities(
+                        [
+                            leftGroup.mutability,
+                            rightGroup.mutability,
+                        ]
+                    )
+                };
+            },
+        );
+
+    {
+        const group = oldGroupMap.get(0);
+
+        if (group) {
+            newGroupMap.set(0, group);
+        }
+
+        newGroupMap.set(1, otherGroup);
+    }
+
+    return newGroupMap;
+};
+
 export const getGroupMap = (
     methodMap: ReadonlyMap<string, Method>,
+    maxGroupCount: 2 | null,
 ): ReadonlyMap<number, Group>=> {
     let groupNumber = 0;
     const groupMap = new Map<number, Group>;
     const traversedMethodNames = new Set<string>();
 
-    const methodNames = Array.from(methodMap.keys()).sort()
+    const methodNames = Array.from(methodMap.keys()).sort();
 
     if (methodNames.length === 0) {
         return groupMap;
@@ -111,5 +158,9 @@ export const getGroupMap = (
         );
     }
 
-    return groupMap;
+    if (maxGroupCount === null || groupMap.size < 3) {
+        return groupMap;
+    }
+
+    return repackageGroupMap(groupMap);
 };
