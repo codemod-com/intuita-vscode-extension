@@ -41,7 +41,7 @@ describe('find member dependencies', () => {
             const methodNames = getClassInstanceMethods(classDefinition);
 
             const methodMap = getMethodMap(properties, methodNames);
-            const groupMap = getGroupMap(methodMap);
+            const groupMap = getGroupMap(methodMap, null);
 
             switch(caseNumber) {
                 case 1: {

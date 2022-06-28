@@ -17,6 +17,7 @@ export type InstanceMethod = Readonly<{
     bodyText: string | null,
     methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>,
     scope: Scope,
+    empty: boolean,
 }>;
 
 export const getClassInstanceMethods = (
@@ -95,6 +96,8 @@ export const getClassInstanceMethods = (
                     }
                 );
 
+            const empty = bodyText === "";
+
             return {
                 name: methodDeclaration.getName(),
                 callerNames,
@@ -104,6 +107,7 @@ export const getClassInstanceMethods = (
                 bodyText,
                 methodLookupCriteria,
                 scope,
+                empty,
             };
         });
 

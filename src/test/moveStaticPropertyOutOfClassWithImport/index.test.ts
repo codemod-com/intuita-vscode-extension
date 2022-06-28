@@ -37,6 +37,7 @@ describe('move a static property out of class with import', () => {
                     kind: AstChangeKind.CLASS_SPLIT_COMMAND,
                     filePath: 'a.ts',
                     className: 'A',
+                    maxGroupCount: null,
                 }
             ],
         );

@@ -6,7 +6,7 @@
 {
     class A {
         ma() {
-
+            console.log('ma');
         }
     }
 }
@@ -104,7 +104,7 @@
         }
 
         mc() {
-
+            console.log('mc');
         }
     }
 }
@@ -145,7 +145,7 @@
         }
 
         md() {
-
+            console.log('md');
         }
     }
 }
