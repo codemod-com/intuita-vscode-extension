@@ -354,27 +354,31 @@ export class AstChangeApplier {
                     const constructorExpressions = instanceProperties
                         .filter(property => group.propertyNames.includes(property.name))
                         .flatMap(property => {
+                            console.log(property);
+
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
                             }
 
-                            return property.constructorExpressions;
+                            return property
+                                .constructorExpressions
+                                .filter(
+                                    (expression) => {
+                                        if (expression.kind === MethodExpressionKind.PROPERTY_ASSIGNMENT) {
+                                            return expression.name === property.name;
+                                        }
+
+                                        return true;
+                                    }
+                                );
                         });
 
                     const bodyText = constructorExpressions
-                        // .filter(
-                        //     (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
-                        //         expression.kind === MethodExpressionKind.OTHER
-                        // )
                         .map(({ text }) => text)
                         .join('\n');
 
                     const dependencyNameSet: ReadonlySet<string> = new Set<string>(
                         constructorExpressions
-                            // .filter(
-                            //     (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
-                            //         expression.kind === MethodExpressionKind.OTHER
-                            // )
                             .flatMap(({ dependencyNames }) => dependencyNames)
                     );
 
