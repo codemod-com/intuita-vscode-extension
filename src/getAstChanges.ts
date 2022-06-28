@@ -39,6 +39,7 @@ export type AstChange =
         kind: AstChangeKind.CLASS_SPLIT_COMMAND,
         filePath: string,
         className: string,
+        maxGroupCount: 2 | null,
     }>;
 
 export const getAstChanges = (
@@ -68,6 +69,7 @@ export const getAstChanges = (
             kind: AstChangeKind.CLASS_SPLIT_COMMAND,
             filePath,
             className: classDeclaration.className,
+            maxGroupCount: classDeclaration.maxGroupCount,
         });
     });
 

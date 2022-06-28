@@ -21,8 +21,6 @@ export const repackageGroupMap = (
     const otherGroup = [...oldGroupMap.entries()]
         .filter(([index, ]) => index !== 0)
         .map(([_, group]) => {
-            console.log('A')
-
             return group;
         })
         .reduce(

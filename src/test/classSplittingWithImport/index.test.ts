@@ -37,6 +37,7 @@ describe('split classes with imports', () => {
                         kind: AstChangeKind.CLASS_SPLIT_COMMAND,
                         filePath: 'a.ts',
                         className: 'A',
+                        maxGroupCount: null,
                     }
                 ],
             );

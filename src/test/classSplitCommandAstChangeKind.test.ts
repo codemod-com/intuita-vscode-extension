@@ -23,6 +23,7 @@ describe('classSplitCommandAstChangeKind', () => {
                 kind: AstChangeKind.CLASS_SPLIT_COMMAND,
                 filePath: 'index.ts',
                 className: 'A',
+                maxGroupCount: null,
             };
 
             assert.deepEqual(astChanges, [ astChange ])
