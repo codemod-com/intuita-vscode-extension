@@ -686,6 +686,23 @@ export class AstChangeApplier {
                 );
         }
 
+        groupMap.size === 0 && instanceProperties.forEach(
+            (property) => {
+                const nameLength =
+                    property.methodNames.length
+                    + property.setAccessorNames.length
+                    + property.getAccessorNames.length;
+
+                if (nameLength === 0) {
+                    ++deletedMemberCount;
+
+                    classDeclaration
+                        .getInstanceProperty(property.name)
+                        ?.remove();
+                }
+            }
+        );
+
         {
             if (deletedMemberCount > 0) {
                 this._changedSourceFiles.add(sourceFile);
