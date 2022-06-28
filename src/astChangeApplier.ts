@@ -12,7 +12,11 @@ import {lookupNode} from "./tsMorphAdapter/nodeLookup";
 import {getClassConstructors} from "./tsMorphAdapter/getClassConstructors";
 import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNewExpressionVariableDeclaration";
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
-import {ClassInstancePropertyKind} from "./intuitaExtension/classInstanceProperty";
+import {
+    ClassInstancePropertyKind,
+    MethodExpression,
+    MethodExpressionKind
+} from "./intuitaExtension/classInstanceProperty";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -358,11 +362,19 @@ export class AstChangeApplier {
                         });
 
                     const bodyText = constructorExpressions
+                        .filter(
+                            (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
+                                expression.kind === MethodExpressionKind.OTHER
+                        )
                         .map(({ text }) => text)
                         .join('\n');
 
                     const dependencyNameSet: ReadonlySet<string> = new Set<string>(
                         constructorExpressions
+                            .filter(
+                                (expression): expression is MethodExpression & { kind: MethodExpressionKind.OTHER } =>
+                                    expression.kind === MethodExpressionKind.OTHER
+                            )
                             .flatMap(({ dependencyNames }) => dependencyNames)
                     );
 

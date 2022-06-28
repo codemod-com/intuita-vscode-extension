@@ -7,10 +7,22 @@ export const enum ClassInstancePropertyKind {
     SETTER = 4,
 }
 
-export type MethodExpression = Readonly<{
-    text: string,
-    dependencyNames: ReadonlyArray<string>,
-}>;
+export const enum MethodExpressionKind {
+    PROPERTY_ASSIGNMENT = 1,
+    OTHER = 2,
+}
+
+export type MethodExpression =
+    | Readonly<{
+        kind: MethodExpressionKind.PROPERTY_ASSIGNMENT,
+        propertyName: string,
+        rightSideText: string;
+    }>
+    | Readonly<{
+        kind: MethodExpressionKind.OTHER,
+        text: string,
+        dependencyNames: ReadonlyArray<string>,
+    }>;
 
 export type ClassInstanceProperty =
     | Readonly<{

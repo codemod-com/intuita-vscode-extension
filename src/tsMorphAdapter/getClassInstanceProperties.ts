@@ -8,7 +8,11 @@ import {
     ts
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
-import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
+import {
+    ClassInstanceProperty,
+    ClassInstancePropertyKind, MethodExpression,
+    MethodExpressionKind
+} from "../intuitaExtension/classInstanceProperty";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
@@ -45,7 +49,7 @@ export const getClassInstanceProperties = (
                     .map((declaration) => declaration.getName());
 
                 // new:
-                const constructorExpressions = referencedSymbolEntries
+                const constructorExpressions: MethodExpression[] = referencedSymbolEntries
                     .map(
                         (referencedSymbolEntry) => {
                             return referencedSymbolEntry
@@ -66,6 +70,7 @@ export const getClassInstanceProperties = (
                             .map(identifier => identifier.getText());
 
                         return {
+                            kind: MethodExpressionKind.OTHER,
                             text,
                             dependencyNames,
                         };
