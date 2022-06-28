@@ -341,6 +341,10 @@
 
     }
 
+    function decorateMethod(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    }
+
     @decorateClass
     class A {
         private _pa: number;
@@ -356,10 +360,12 @@
             this._pc = this._pb;
         }
 
+        @decorateMethod
         public ma() {
             return this._pa;
         }
 
+        @decorateMethod
         public mb() {
             return this._pb;
         }
@@ -371,6 +377,10 @@
 
     }
 
+    function decorateMethod(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    }
+
     @decorateClass
     class A0 {
         public constructor(a: number) {
@@ -379,6 +389,7 @@
 
         private _pa: number;
 
+        @decorateMethod
         public ma() {
             return this._pa;
         }
@@ -392,6 +403,7 @@
 
         private _pb: number;
 
+        @decorateMethod
         public mb() {
             return this._pb;
         }

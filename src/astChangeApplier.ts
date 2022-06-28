@@ -491,6 +491,7 @@ export class AstChangeApplier {
                             memberIndex,
                             {
                                 name: methodName,
+                                decorators: instanceMethod?.decorators.slice() ?? [],
                                 typeParameters: instanceMethod?.typeParameters.slice() ?? [],
                                 parameters: instanceMethod?.parameters.slice() ?? [],
                                 scope: instanceMethod?.scope ?? undefined,
