@@ -35,7 +35,7 @@ export const getGroupMap = (
 
         const method = methodMap.get(methodName);
 
-        if (!method) {
+        if (!method || method.empty) {
             return;
         }
 

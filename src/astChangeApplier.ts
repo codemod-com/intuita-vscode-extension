@@ -786,5 +786,14 @@ export class AstChangeApplier {
 
             classDeclaration.remove();
         }
+
+        if (
+            groupMap.size === 0
+            && staticMethods.length === 0
+            && staticProperties.length === 0
+        ) {
+            this._changedSourceFiles.add(sourceFile);
+            classDeclaration.remove();
+        }
     }
 }

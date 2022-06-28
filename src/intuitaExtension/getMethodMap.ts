@@ -6,6 +6,7 @@ export type Method = Readonly<{
     methodNames: ReadonlyArray<string>,
     propertyNames: ReadonlyArray<string>,
     propertyMutability: Mutability,
+    empty: boolean;
 }>;
 
 export const getMethodMap = (
@@ -13,12 +14,13 @@ export const getMethodMap = (
     methods: ReadonlyArray<InstanceMethod>,
 ): ReadonlyMap<string, Method> => {
     const methodMap = new Map<string, Method>(
-        methods.map(({ name, calleeNames}) => ([
+        methods.map(({ name, calleeNames, empty }) => ([
             name,
             {
                 propertyNames: [],
                 methodNames: calleeNames,
                 propertyMutability: Mutability.READING_READONLY,
+                empty,
             }
         ]))
     );
@@ -61,6 +63,7 @@ export const getMethodMap = (
                             propertyNames,
                             propertyMutability,
                             methodNames: method.methodNames,
+                            empty: method.empty,
                         },
                     );
                 }

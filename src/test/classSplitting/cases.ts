@@ -271,3 +271,23 @@
         }
     }
 }
+
+/** old-006 **/
+{
+    class A {
+        private _pa: number;
+
+        public constructor(
+            a: number,
+        ) {
+            this._pa = a;
+        }
+
+        public empty() {
+
+        }
+    }
+}
+/** new-006 **/
+{
+}
