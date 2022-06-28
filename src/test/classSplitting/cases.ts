@@ -345,10 +345,19 @@
 
     }
 
+    function decorateProperty(target: any,  name: PropertyKey) {
+
+    }
+
     @decorateClass
     class A {
+        @decorateProperty
         private _pa: number;
+
+        @decorateProperty
         private _pb: number;
+
+        @decorateProperty
         private _pc: number;
 
         public constructor(
@@ -381,12 +390,17 @@
 
     }
 
+    function decorateProperty(target: any,  name: PropertyKey) {
+
+    }
+
     @decorateClass
     class A0 {
         public constructor(a: number) {
             this._pa = a;
         }
 
+        @decorateProperty
         private _pa: number;
 
         @decorateMethod
@@ -401,6 +415,7 @@
             this._pb = b;
         }
 
+        @decorateProperty
         private _pb: number;
 
         @decorateMethod

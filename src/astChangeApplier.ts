@@ -429,6 +429,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             isReadonly: property.readonly,
                                             initializer: property.initializer ?? undefined,
                                             scope: property.scope ?? undefined,
@@ -448,6 +449,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             statements,
                                             scope: property.scope ?? undefined,
                                             returnType: property.returnType ?? undefined,
@@ -466,6 +468,7 @@ export class AstChangeApplier {
                                         memberIndex,
                                         {
                                             name: propertyName,
+                                            decorators: property.decorators.slice(),
                                             statements,
                                             parameters: property
                                                 .parameters
