@@ -31,7 +31,7 @@ export const getNonCallableFactMap = (
                         name,
                         {
                             kind: NonCallableKind.PARAMETER,
-                            parameter: {
+                            fact: {
                                 name,
                                 readonly: property.readonly,
                                 callerNames,
@@ -45,7 +45,7 @@ export const getNonCallableFactMap = (
                         name,
                         {
                             kind: NonCallableKind.PROPERTY,
-                            property: {
+                            fact: {
                                 name,
                                 readonly: property.readonly,
                                 callerNames,

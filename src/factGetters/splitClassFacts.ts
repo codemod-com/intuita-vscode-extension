@@ -18,11 +18,11 @@ export enum NonCallableKind {
 export type NonCallableFact =
     | Readonly<{
         kind: NonCallableKind.PROPERTY,
-        property: PropertyFact,
+        fact: PropertyFact,
     }>
     | Readonly<{
         kind: NonCallableKind.PARAMETER,
-        parameter: ParameterFact,
+        fact: ParameterFact,
     }>;
 
 export type MethodFact = Readonly<{
