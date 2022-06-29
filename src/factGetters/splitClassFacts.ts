@@ -39,17 +39,17 @@ export type AccessorFact = Readonly<{
     callerNames: ReadonlyArray<string>,
 }>;
 
-export enum CallableKind {
-    METHOD = 1,
-    ACCESSOR = 2,
+export enum CallableFactKind {
+    METHOD_FACT = 1,
+    ACCESSOR_FACT = 2,
 }
 
 export type CallableFact =
     | Readonly<{
-    kind: CallableKind.METHOD,
-    method: InstanceMethod,
+    kind: CallableFactKind.METHOD_FACT,
+    methodFact: MethodFact,
 }>
     | Readonly<{
-    kind: CallableKind.ACCESSOR,
-    accessor: AccessorFact,
+    kind: CallableFactKind.ACCESSOR_FACT,
+    accessorFact: AccessorFact,
 }>;

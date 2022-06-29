@@ -1,6 +1,13 @@
 import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
 import {uniquify} from "../intuitaExtension/getGroupMap";
-import {AccessorFact, MethodFact, NonCallableFact, NonCallableKind} from "./splitClassFacts";
+import {
+    AccessorFact,
+    CallableFact,
+    CallableFactKind,
+    MethodFact,
+    NonCallableFact,
+    NonCallableKind
+} from "./splitClassFacts";
 import {InstanceMethod} from "../tsMorphAdapter/getClassInstanceMethods";
 
 export const getNonCallableFactMap = (
@@ -118,7 +125,7 @@ export const getAccessorFactMap = (
 
 export const getMethodFactMap = (
     methods: ReadonlyArray<InstanceMethod>
-) => {
+): ReadonlyMap<string, MethodFact> => {
     const map = new Map<string, MethodFact>();
 
     methods.map(
@@ -142,4 +149,36 @@ export const getMethodFactMap = (
     );
 
     return map;
+};
+
+export const getCallableFactMap = (
+    accessorFactMap: ReadonlyMap<string, AccessorFact>,
+    methodFactMap: ReadonlyMap<string, MethodFact>,
+): ReadonlyMap<string, CallableFact> => {
+    const accessorFactEntries = [...accessorFactMap.entries()]
+        .map(([name, accessorFact]) => {
+             return [
+                 name,
+                 <CallableFact>{
+                     kind: CallableFactKind.ACCESSOR_FACT,
+                     accessorFact,
+                 },
+             ] as const;
+        });
+
+    const methodFactEntries = [...methodFactMap.entries()]
+        .map(([name, methodFact]) => {
+            return [
+                name,
+                <CallableFact>{
+                    kind: CallableFactKind.METHOD_FACT,
+                    methodFact,
+                },
+            ] as const;
+        });
+
+    return new Map<string, CallableFact>([
+        ...accessorFactEntries,
+        ...methodFactEntries,
+    ]);
 };
