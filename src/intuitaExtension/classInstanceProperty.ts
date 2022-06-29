@@ -3,8 +3,8 @@ import {DecoratorStructure, ParameterDeclarationStructure, Scope} from "ts-morph
 export const enum ClassInstancePropertyKind {
     PARAMETER = 1, // defined in the constructor
     PROPERTY = 2, // defined in the body
-    GETTER = 3,
-    SETTER = 4,
+    GET_ACCESSOR = 3,
+    SET_ACCESSOR = 4,
 }
 
 export const enum MethodExpressionKind {
@@ -40,7 +40,7 @@ export type ClassInstanceProperty =
         decorators: ReadonlyArray<DecoratorStructure>,
     }>
     | Readonly<{
-        kind: ClassInstancePropertyKind.GETTER,
+        kind: ClassInstancePropertyKind.GET_ACCESSOR,
         name: string,
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
@@ -51,7 +51,7 @@ export type ClassInstanceProperty =
         decorators: ReadonlyArray<DecoratorStructure>,
     }>
     | Readonly<{
-        kind: ClassInstancePropertyKind.SETTER,
+        kind: ClassInstancePropertyKind.SET_ACCESSOR,
         name: string,
         bodyText: string | null,
         methodNames: ReadonlyArray<string>,
@@ -62,3 +62,25 @@ export type ClassInstanceProperty =
         decorators: ReadonlyArray<DecoratorStructure>,
     }>
 ;
+
+export type AccessorProperty = Readonly<{
+    name: string,
+    setAccessor: Readonly<{
+        bodyText: string | null,
+        methodNames: ReadonlyArray<string>,
+        setAccessorNames: ReadonlyArray<string>,
+        getAccessorNames: ReadonlyArray<string>,
+        scope: Scope | null,
+        decorators: ReadonlyArray<DecoratorStructure>,
+        parameters: ReadonlyArray<ParameterDeclarationStructure>,
+    }> | null,
+    getAccessor: Readonly<{
+        bodyText: string | null,
+        methodNames: ReadonlyArray<string>,
+        setAccessorNames: ReadonlyArray<string>,
+        getAccessorNames: ReadonlyArray<string>,
+        scope: Scope | null,
+        decorators: ReadonlyArray<DecoratorStructure>,
+        returnType: string | null,
+    }> | null,
+}>;

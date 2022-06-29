@@ -440,7 +440,7 @@ export class AstChangeApplier {
                                     ++memberIndex;
                                 }
 
-                                if (property.kind === ClassInstancePropertyKind.GETTER) {
+                                if (property.kind === ClassInstancePropertyKind.GET_ACCESSOR) {
                                     const statements = property.bodyText !== null
                                         ? [ property.bodyText ]
                                         : undefined;
@@ -459,7 +459,7 @@ export class AstChangeApplier {
                                     ++memberIndex;
                                 }
 
-                                if (property.kind === ClassInstancePropertyKind.SETTER) {
+                                if (property.kind === ClassInstancePropertyKind.SET_ACCESSOR) {
                                     const statements = property.bodyText !== null
                                         ? [ property.bodyText ]
                                         : undefined;

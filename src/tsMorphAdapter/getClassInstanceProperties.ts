@@ -77,7 +77,6 @@ export const getClassInstanceProperties = (
 
                         if (Node.isBinaryExpression(expression)) {
                             const leftExpression = expression.getLeft();
-                            const rightExpression = expression.getRight();
 
                             if (Node.isPropertyAccessExpression(leftExpression)) {
                                 const name = leftExpression.getName();
@@ -163,7 +162,7 @@ export const getClassInstanceProperties = (
                     const returnType = instanceProperty.getReturnTypeNode()?.getText() ?? null;
 
                     return {
-                        kind: ClassInstancePropertyKind.GETTER,
+                        kind: ClassInstancePropertyKind.GET_ACCESSOR,
                         name: propertyName,
                         bodyText,
                         methodNames,
@@ -183,7 +182,7 @@ export const getClassInstanceProperties = (
                         .map((parameter) => parameter.getStructure());
 
                     return {
-                        kind: ClassInstancePropertyKind.SETTER,
+                        kind: ClassInstancePropertyKind.SET_ACCESSOR,
                         name: propertyName,
                         bodyText,
                         methodNames,
