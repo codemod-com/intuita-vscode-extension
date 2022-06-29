@@ -14,7 +14,10 @@ export type InstanceMethod = Readonly<{
     typeParameters: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string | null,
-    calleeNames: ReadonlyArray<string>,
+    calleeNames: ReadonlyArray<string>, // deprecated
+    methodNames: ReadonlyArray<string>,
+    setAccessorNames: ReadonlyArray<string>,
+    getAccessorNames: ReadonlyArray<string>,
     bodyText: string | null,
     methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>,
     scope: Scope,
@@ -97,19 +100,9 @@ export const getClassInstanceMethods = (
                     }
                 )
                 .filter(isNeitherNullNorUndefined)
-                .filter(
-                    (otherMethodDeclaration) => {
-                        if (otherMethodDeclaration === methodDeclaration) {
-                            return false;
-                        }
-
-                        const methodClassDeclaration = otherMethodDeclaration
-                            .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration);
-
-                        return methodClassDeclaration === classDeclaration;
-                    }
-                )
-                .map((md) => md.getName());
+                .filter(filterCallback)
+                .map((declaration) => declaration.getName())
+                .filter(name => name !== methodName);
 
             const methodLookupCriteria = referencedSymbolEntries
                 .filter(
@@ -143,6 +136,9 @@ export const getClassInstanceMethods = (
             return {
                 name: methodName,
                 callerNames,
+                methodNames: callerNames,
+                setAccessorNames,
+                getAccessorNames,
                 typeParameters,
                 parameters,
                 returnType,

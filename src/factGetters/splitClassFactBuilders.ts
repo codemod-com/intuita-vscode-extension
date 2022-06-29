@@ -125,11 +125,17 @@ export const getMethodFactMap = (
         (method) => {
             const { name } = method;
 
+            const callerNames = uniquify([
+                ...method.methodNames,
+                ...method.setAccessorNames,
+                ...method.getAccessorNames,
+            ]);
+
             map.set(
                 name,
                 {
                     name,
-                    callerNames: [],
+                    callerNames,
                 }
             );
         }
