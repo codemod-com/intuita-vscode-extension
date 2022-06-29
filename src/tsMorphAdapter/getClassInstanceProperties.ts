@@ -9,6 +9,7 @@ import {
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 import {
+    Accessor,
     ClassInstanceProperty,
     ClassInstancePropertyKind, MethodExpression,
     MethodExpressionKind
@@ -198,4 +199,72 @@ export const getClassInstanceProperties = (
             }
         )
         .filter(isNeitherNullNorUndefined);
+};
+
+export const getAccessors = (
+    properties: ReadonlyArray<ClassInstanceProperty>
+): ReadonlyMap<string, Accessor> => {
+    const accessorMap = new Map<string, Accessor>;
+
+    properties.forEach(
+        (property) => {
+            const { name } = property;
+
+            if (property.kind === ClassInstancePropertyKind.GET_ACCESSOR) {
+                const oldAccessor = accessorMap.get(name);
+
+                const getAccessor: NonNullable<Accessor['getAccessor']> = {
+                    bodyText: property.bodyText,
+                    methodNames: property.methodNames,
+                    setAccessorNames: property.setAccessorNames,
+                    getAccessorNames: property.getAccessorNames,
+                    scope: property.scope,
+                    decorators: property.decorators,
+                    returnType: property.returnType,
+                };
+
+                const newAccessor: Accessor = {
+                    name,
+                    getAccessor,
+                    setAccessor: oldAccessor?.setAccessor ?? null,
+                };
+
+                accessorMap.set(
+                    property.name,
+                    newAccessor,
+                );
+
+                return;
+            }
+
+            if (property.kind === ClassInstancePropertyKind.SET_ACCESSOR) {
+                const oldAccessor = accessorMap.get(name);
+
+                const setAccessor: NonNullable<Accessor['setAccessor']> = {
+                    bodyText: property.bodyText,
+                    methodNames: property.methodNames,
+                    setAccessorNames: property.setAccessorNames,
+                    getAccessorNames: property.getAccessorNames,
+                    scope: property.scope,
+                    decorators: property.decorators,
+                    parameters: property.parameters,
+                };
+
+                const newAccessor: Accessor = {
+                    name,
+                    getAccessor: oldAccessor?.getAccessor ?? null,
+                    setAccessor,
+                };
+
+                accessorMap.set(
+                    name,
+                    newAccessor,
+                );
+
+                return;
+            }
+        }
+    );
+
+    return accessorMap;
 };

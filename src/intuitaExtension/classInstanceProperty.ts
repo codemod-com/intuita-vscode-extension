@@ -63,7 +63,7 @@ export type ClassInstanceProperty =
     }>
 ;
 
-export type AccessorProperty = Readonly<{
+export type Accessor = Readonly<{
     name: string,
     setAccessor: Readonly<{
         bodyText: string | null,

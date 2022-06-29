@@ -4,7 +4,7 @@ import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassR
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
-import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
+import {getAccessors, getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
 import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
@@ -270,6 +270,8 @@ export class AstChangeApplier {
         const constructors = getClassConstructors(classDeclaration);
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
+
+        const accessors = getAccessors(instanceProperties);
 
         const constructorPropertyNames: ReadonlySet<string> = new Set<string>(
             constructors
