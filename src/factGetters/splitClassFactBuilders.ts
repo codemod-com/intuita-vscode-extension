@@ -1,6 +1,7 @@
 import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
 import {uniquify} from "../intuitaExtension/getGroupMap";
-import {AccessorFact, NonCallableFact, NonCallableKind} from "./splitClassFacts";
+import {AccessorFact, MethodFact, NonCallableFact, NonCallableKind} from "./splitClassFacts";
+import {InstanceMethod} from "../tsMorphAdapter/getClassInstanceMethods";
 
 export const getNonCallableFactMap = (
     properties: ReadonlyArray<ClassInstanceProperty>
@@ -113,4 +114,26 @@ export const getAccessorFactMap = (
     );
 
     return accessorFactMap;
+};
+
+export const getMethodFactMap = (
+    methods: ReadonlyArray<InstanceMethod>
+) => {
+    const map = new Map<string, MethodFact>();
+
+    methods.map(
+        (method) => {
+            const { name } = method;
+
+            map.set(
+                name,
+                {
+                    name,
+                    callerNames: [],
+                }
+            );
+        }
+    );
+
+    return map;
 };

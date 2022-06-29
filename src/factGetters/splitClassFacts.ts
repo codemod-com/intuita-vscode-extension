@@ -27,6 +27,11 @@ export type NonCallableFact =
         parameter: ParameterFact,
     }>;
 
+export type MethodFact = Readonly<{
+    name: string,
+    callerNames: ReadonlyArray<string>,
+}>;
+
 export type AccessorFact = Readonly<{
     name: string,
     setAccessorExists: boolean,
