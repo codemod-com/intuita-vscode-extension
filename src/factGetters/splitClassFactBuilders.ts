@@ -156,23 +156,23 @@ export const getCallableFactMap = (
     methodFactMap: ReadonlyMap<string, MethodFact>,
 ): ReadonlyMap<string, CallableFact> => {
     const accessorFactEntries = [...accessorFactMap.entries()]
-        .map(([name, accessorFact]) => {
+        .map(([name, fact]) => {
              return [
                  name,
                  <CallableFact>{
                      kind: CallableFactKind.ACCESSOR_FACT,
-                     accessorFact,
+                     fact,
                  },
              ] as const;
         });
 
     const methodFactEntries = [...methodFactMap.entries()]
-        .map(([name, methodFact]) => {
+        .map(([name, fact]) => {
             return [
                 name,
                 <CallableFact>{
                     kind: CallableFactKind.METHOD_FACT,
-                    methodFact,
+                    fact,
                 },
             ] as const;
         });

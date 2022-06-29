@@ -1,5 +1,3 @@
-import {InstanceMethod} from "../tsMorphAdapter/getClassInstanceMethods";
-
 export type PropertyFact = Readonly<{
     name: string,
     readonly: boolean,
@@ -47,9 +45,9 @@ export enum CallableFactKind {
 export type CallableFact =
     | Readonly<{
     kind: CallableFactKind.METHOD_FACT,
-    methodFact: MethodFact,
+    fact: MethodFact,
 }>
     | Readonly<{
     kind: CallableFactKind.ACCESSOR_FACT,
-    accessorFact: AccessorFact,
+    fact: AccessorFact,
 }>;
