@@ -19,7 +19,7 @@ export const createNewExpressionVariableDeclaration = (
             ?.parameters
             .map(
                 (parameter, index) =>
-                    group.propertyNames.includes(parameter.name)
+                    group.nonCallableNames.includes(parameter.name)
                         ? index
                         : null
             )

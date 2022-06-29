@@ -14,10 +14,16 @@ import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNew
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
 import {
     ClassInstancePropertyKind,
-    MethodExpression,
     MethodExpressionKind
 } from "./intuitaExtension/classInstanceProperty";
 import {getClassDecorators} from "./tsMorphAdapter/getClassDecorators";
+import {
+    getAccessorFactMap,
+    getCallableFactMap,
+    getMethodFactMap,
+    getNonCallableFactMap
+} from "./factGetters/splitClassFactBuilders";
+import {buildCallableMetadataMap} from "./astCommandBuilders/splitClassAstCommandBuilders";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -283,8 +289,18 @@ export class AstChangeApplier {
         const memberCount = classDeclaration.getMembers().length
             + constructorPropertyNames.size;
 
-        const methodMap = getMethodMap(instanceProperties, instanceMethods);
-        const groupMap = getGroupMap(methodMap, astChange.maxGroupCount);
+        const nonCallableFactMap = getNonCallableFactMap(instanceProperties);
+
+        const accessorFactMap = getAccessorFactMap(instanceProperties);
+        const methodFactMap = getMethodFactMap(instanceMethods);
+        const callableFactMap = getCallableFactMap(accessorFactMap, methodFactMap);
+
+        const callableMetadataMap = buildCallableMetadataMap(
+            nonCallableFactMap,
+            callableFactMap,
+        );
+
+        const groupMap = getGroupMap(callableMetadataMap, null);
 
         staticProperties.forEach(
             (staticProperty) => {
@@ -356,7 +372,7 @@ export class AstChangeApplier {
                     const { parameters, typeParameters, scope } = constructor;
 
                     const constructorExpressions = instanceProperties
-                        .filter(property => group.propertyNames.includes(property.name))
+                        .filter(property => group.nonCallableNames.includes(property.name))
                         .flatMap(property => {
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
@@ -387,7 +403,7 @@ export class AstChangeApplier {
                     const selectedParameter = parameters
                         .filter(
                         ({ name }) => {
-                            return group.propertyNames.includes(name)
+                            return group.nonCallableNames.includes(name)
                                 || dependencyNameSet.has(name);
                         })
                         .map((parameter) => ({
@@ -412,7 +428,7 @@ export class AstChangeApplier {
                     ++memberIndex;
                 });
 
-                group.propertyNames.forEach(
+                group.nonCallableNames.forEach(
                     (propertyName) => {
                         if (constructorPropertyNames.has(propertyName)) {
                             return;
@@ -439,8 +455,20 @@ export class AstChangeApplier {
 
                                     ++memberIndex;
                                 }
+                            }
+                        );
+                    }
+                );
 
-                                if (property.kind === ClassInstancePropertyKind.GETTER) {
+                group.callableNames.forEach(
+                    (methodName) => {
+                        const properties = instanceProperties.filter(
+                            (ip) => ip.name === methodName,
+                        );
+
+                        properties.forEach(
+                            (property) => {
+                                if (property.kind === ClassInstancePropertyKind.GET_ACCESSOR) {
                                     const statements = property.bodyText !== null
                                         ? [ property.bodyText ]
                                         : undefined;
@@ -448,7 +476,7 @@ export class AstChangeApplier {
                                     groupClass.insertGetAccessor(
                                         memberIndex,
                                         {
-                                            name: propertyName,
+                                            name: methodName,
                                             decorators: property.decorators.slice(),
                                             statements,
                                             scope: property.scope ?? undefined,
@@ -459,7 +487,7 @@ export class AstChangeApplier {
                                     ++memberIndex;
                                 }
 
-                                if (property.kind === ClassInstancePropertyKind.SETTER) {
+                                if (property.kind === ClassInstancePropertyKind.SET_ACCESSOR) {
                                     const statements = property.bodyText !== null
                                         ? [ property.bodyText ]
                                         : undefined;
@@ -467,7 +495,7 @@ export class AstChangeApplier {
                                     groupClass.insertSetAccessor(
                                         memberIndex,
                                         {
-                                            name: propertyName,
+                                            name: methodName,
                                             decorators: property.decorators.slice(),
                                             statements,
                                             parameters: property
@@ -479,53 +507,50 @@ export class AstChangeApplier {
 
                                     ++memberIndex;
                                 }
-                            }
-                        );
-                    }
-                );
+                            });
 
-                group.methodNames.forEach(
-                    (methodName) => {
                         const instanceMethod = instanceMethods.find(
                             (im) => im.name === methodName,
                         );
 
-                        const methodDeclaration = groupClass.insertMethod(
-                            memberIndex,
-                            {
-                                name: methodName,
-                                decorators: instanceMethod?.decorators.slice() ?? [],
-                                typeParameters: instanceMethod?.typeParameters.slice() ?? [],
-                                parameters: instanceMethod?.parameters.slice() ?? [],
-                                scope: instanceMethod?.scope ?? undefined,
-                            },
-                        );
+                        if (instanceMethod) {
+                            const methodDeclaration = groupClass.insertMethod(
+                                memberIndex,
+                                {
+                                    name: methodName,
+                                    decorators: instanceMethod.decorators.slice() ?? [],
+                                    typeParameters: instanceMethod.typeParameters.slice() ?? [],
+                                    parameters: instanceMethod.parameters.slice() ?? [],
+                                    scope: instanceMethod.scope ?? undefined,
+                                },
+                            );
 
-                        if (instanceMethod?.returnType) {
-                            methodDeclaration.setReturnType(instanceMethod.returnType);
-                        }
-
-                        if (instanceMethod?.bodyText) {
-                            methodDeclaration.setBodyText(instanceMethod.bodyText);
-                            methodDeclaration.formatText();
-                        }
-
-                        ++memberIndex;
-
-                        instanceMethod?.methodLookupCriteria.forEach(
-                            (criterion) => {
-                                const nodes = lookupNode(this._project, criterion);
-
-                                nodes
-                                    .flatMap(node => node.getPreviousSiblings())
-                                    .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
-                                    .forEach(
-                                        (node) => node.replaceWithText(
-                                            groupName.toLocaleLowerCase()
-                                        )
-                                    );
+                            if (instanceMethod.returnType) {
+                                methodDeclaration.setReturnType(instanceMethod.returnType);
                             }
-                        );
+
+                            if (instanceMethod.bodyText) {
+                                methodDeclaration.setBodyText(instanceMethod.bodyText);
+                                methodDeclaration.formatText();
+                            }
+
+                            ++memberIndex;
+
+                            instanceMethod.methodLookupCriteria.forEach(
+                                (criterion) => {
+                                    const nodes = lookupNode(this._project, criterion);
+
+                                    nodes
+                                        .flatMap(node => node.getPreviousSiblings())
+                                        .filter(sibling => sibling.getKind() === ts.SyntaxKind.Identifier)
+                                        .forEach(
+                                            (node) => node.replaceWithText(
+                                                groupName.toLocaleLowerCase()
+                                            )
+                                        );
+                                }
+                            );
+                        }
                     }
                 );
             }
