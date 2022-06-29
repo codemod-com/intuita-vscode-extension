@@ -62,4 +62,3 @@ export type ClassInstanceProperty =
         decorators: ReadonlyArray<DecoratorStructure>,
     }>
 ;
-

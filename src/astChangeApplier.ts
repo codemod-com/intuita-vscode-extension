@@ -4,7 +4,7 @@ import {ClassReferenceKind, getClassReferences} from "./tsMorphAdapter/getClassR
 import {getClassCommentStatement} from "./tsMorphAdapter/getClassCommentStatement";
 import {getClassStaticProperties} from "./tsMorphAdapter/getClassStaticProperties";
 import {getClassStaticMethod} from "./tsMorphAdapter/getClassStaticMethods";
-import {getAccessors, getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
+import {getClassInstanceProperties} from "./tsMorphAdapter/getClassInstanceProperties";
 import {getClassInstanceMethods} from "./tsMorphAdapter/getClassInstanceMethods";
 import {getMethodMap} from "./intuitaExtension/getMethodMap";
 import {getGroupMap} from "./intuitaExtension/getGroupMap";
@@ -14,10 +14,10 @@ import {deleteNewExpressionVariableDeclaration} from "./tsMorphAdapter/deleteNew
 import {createNewExpressionVariableDeclaration} from "./tsMorphAdapter/createNewExpressionVariableDeclaration";
 import {
     ClassInstancePropertyKind,
-    MethodExpression,
     MethodExpressionKind
 } from "./intuitaExtension/classInstanceProperty";
 import {getClassDecorators} from "./tsMorphAdapter/getClassDecorators";
+import {getAccessorFactMap} from "./factGetters/splitClassFactBuilders";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -271,7 +271,7 @@ export class AstChangeApplier {
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
 
-        const accessors = getAccessors(instanceProperties);
+        const accessors = getAccessorFactMap(instanceProperties);
 
         const constructorPropertyNames: ReadonlySet<string> = new Set<string>(
             constructors
