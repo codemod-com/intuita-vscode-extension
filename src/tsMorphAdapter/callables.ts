@@ -1,5 +1,5 @@
-import { Accessor } from "../intuitaExtension/classInstanceProperty";
 import { InstanceMethod } from "./getClassInstanceMethods";
+import {Accessor} from "../intuitaExtension/accessors";
 
 export enum CallableKind {
     METHOD = 1,

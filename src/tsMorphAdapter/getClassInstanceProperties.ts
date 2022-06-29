@@ -9,12 +9,12 @@ import {
 } from "ts-morph";
 import {isNeitherNullNorUndefined} from "../utilities";
 import {
-    Accessor,
     ClassInstanceProperty,
     ClassInstancePropertyKind, MethodExpression,
     MethodExpressionKind
 } from "../intuitaExtension/classInstanceProperty";
 import {uniquify} from "../intuitaExtension/getGroupMap";
+import {Accessor} from "../intuitaExtension/accessors";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
