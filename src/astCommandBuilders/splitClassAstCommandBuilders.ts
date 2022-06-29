@@ -21,20 +21,28 @@ export const buildCallableMetadataMap = (
                 .filter(({ fact }) => fact.callerNames.includes(callableName))
                 .map(({ fact }) => fact.name);
 
+            const mutability = callableFact.kind === CallableFactKind.ACCESSOR_FACT
+                ? Mutability.WRITING_WRITABLE
+                : Mutability.READING_READONLY;
+
             return {
                 ...callableFact,
                 callableNames,
+                mutability
             };
         }
     );
 
     const callableMetadataMap = new Map<string, CallableMetadata>(
-        newCallableFacts.map(({ fact, callableNames, kind }) => ([
+        newCallableFacts.map(({ fact, callableNames, mutability }) => ([
             fact.name,
             <CallableMetadata>{
                 nonCallableNames: [],
                 callableNames,
-                mutability: Mutability.READING_READONLY,
+                mutability: concatMutabilities([
+                    mutability,
+                    ...newCallableFacts.map(({ mutability }) => mutability),
+                ]),
             },
         ])),
     );

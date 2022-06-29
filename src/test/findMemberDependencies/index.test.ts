@@ -718,7 +718,7 @@ describe('find member dependencies', () => {
                             const mc = callableMetadataMap.get('mc');
                             assertNeitherNullNorUndefined(mc);
 
-                            assert.equal(mc.mutability, Mutability.READING_READONLY);
+                            assert.equal(mc.mutability, Mutability.WRITING_WRITABLE);
                             assert.deepEqual(mc.nonCallableNames, []);
                             assert.deepEqual(mc.callableNames, ['pb']);
                         }
@@ -727,7 +727,7 @@ describe('find member dependencies', () => {
                             const md = callableMetadataMap.get('md');
                             assertNeitherNullNorUndefined(md);
 
-                            assert.equal(md.mutability, Mutability.READING_READONLY);
+                            assert.equal(md.mutability, Mutability.WRITING_WRITABLE);
                             assert.deepEqual(md.nonCallableNames, []);
                             assert.deepEqual(md.callableNames, ['pb']);
                         }
