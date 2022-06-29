@@ -3,13 +3,13 @@ import {InstanceMethod} from "../tsMorphAdapter/getClassInstanceMethods";
 export type PropertyFact = Readonly<{
     name: string,
     readonly: boolean,
-    calleeNames: ReadonlyArray<string>,
+    callerNames: ReadonlyArray<string>,
 }>;
 
 export type ParameterFact = Readonly<{
     name: string,
     readonly: boolean,
-    calleeNames: ReadonlyArray<string>,
+    callerNames: ReadonlyArray<string>,
 }>;
 
 export enum NonCallableKind {

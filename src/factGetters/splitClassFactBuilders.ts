@@ -1,6 +1,55 @@
 import {ClassInstanceProperty, ClassInstancePropertyKind} from "../intuitaExtension/classInstanceProperty";
 import {uniquify} from "../intuitaExtension/getGroupMap";
-import {AccessorFact} from "./splitClassFacts";
+import {AccessorFact, NonCallableFact, NonCallableKind} from "./splitClassFacts";
+
+export const getNonCallableFactMap = (
+    properties: ReadonlyArray<ClassInstanceProperty>
+): ReadonlyMap<string, NonCallableFact> => {
+    const map = new Map<string, NonCallableFact>();
+
+    properties
+        .forEach(
+            (property) => {
+                const callerNames = uniquify([
+                    ...property.methodNames,
+                    ...property.setAccessorNames,
+                    ...property.getAccessorNames,
+                ]);
+
+                const { name } = property;
+
+                if (property.kind === ClassInstancePropertyKind.PARAMETER) {
+                    map.set(
+                        name,
+                        {
+                            kind: NonCallableKind.PARAMETER,
+                            parameter: {
+                                name,
+                                readonly: property.readonly,
+                                callerNames,
+                            },
+                        },
+                    );
+                }
+
+                if (property.kind === ClassInstancePropertyKind.PROPERTY) {
+                    map.set(
+                        name,
+                        {
+                            kind: NonCallableKind.PROPERTY,
+                            property: {
+                                name,
+                                readonly: property.readonly,
+                                callerNames,
+                            },
+                        },
+                    );
+                }
+            }
+        );
+
+    return map;
+};
 
 export const getAccessorFactMap = (
     properties: ReadonlyArray<ClassInstanceProperty>
