@@ -88,8 +88,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['ma']);
-                            assert.deepEqual(group0.propertyNames, []);
+                            assert.deepEqual(group0.callableNames, ['ma']);
+                            assert.deepEqual(group0.nonCallableNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
                     }
@@ -116,8 +116,8 @@ describe('find member dependencies', () => {
 
                         assertNeitherNullNorUndefined(group0);
 
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, ['pa']);
+                        assert.deepEqual(group0.callableNames, ['ma']);
+                        assert.deepEqual(group0.nonCallableNames, ['pa']);
                         assert.equal(group0.mutability, Mutability.READING_READONLY);
                     }
                     return;
@@ -143,8 +143,8 @@ describe('find member dependencies', () => {
 
                         assertNeitherNullNorUndefined(group0);
 
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, ['pa']);
+                        assert.deepEqual(group0.callableNames, ['ma']);
+                        assert.deepEqual(group0.nonCallableNames, ['pa']);
                         assert.equal(group0.mutability, Mutability.WRITING_WRITABLE);
                     }
                     return;
@@ -170,8 +170,8 @@ describe('find member dependencies', () => {
 
                         assertNeitherNullNorUndefined(group0);
 
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(group0.callableNames, ['ma']);
+                        assert.deepEqual(group0.nonCallableNames, ['pa', 'pb', 'pc']);
                         assert.equal(group0.mutability, Mutability.READING_READONLY);
                     }
                     return;
@@ -197,8 +197,8 @@ describe('find member dependencies', () => {
 
                         assertNeitherNullNorUndefined(group0);
 
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(group0.callableNames, ['ma']);
+                        assert.deepEqual(group0.nonCallableNames, ['pa', 'pb', 'pc']);
                         assert.equal(group0.mutability, Mutability.WRITING_WRITABLE);
                     }
                     return;
@@ -223,8 +223,8 @@ describe('find member dependencies', () => {
 
                         assertNeitherNullNorUndefined(group0);
 
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(group0.callableNames, ['ma']);
+                        assert.deepEqual(group0.nonCallableNames, ['pa', 'pb', 'pc']);
                         assert.equal(group0.mutability, Mutability.WRITING_WRITABLE);
                     }
                     return;
@@ -263,8 +263,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['ma']);
-                            assert.deepEqual(group0.propertyNames, ['pa']);
+                            assert.deepEqual(group0.callableNames, ['ma']);
+                            assert.deepEqual(group0.nonCallableNames, ['pa']);
                             assert.equal(group0.mutability, Mutability.WRITING_WRITABLE);
                         }
 
@@ -273,8 +273,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group1);
 
-                            assert.deepEqual(group1.methodNames, ['mb']);
-                            assert.deepEqual(group1.propertyNames, ['pb']);
+                            assert.deepEqual(group1.callableNames, ['mb']);
+                            assert.deepEqual(group1.nonCallableNames, ['pb']);
                             assert.equal(group1.mutability, Mutability.WRITING_WRITABLE);
                         }
 
@@ -283,8 +283,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group2);
 
-                            assert.deepEqual(group2.methodNames, ['mc']);
-                            assert.deepEqual(group2.propertyNames, ['pc']);
+                            assert.deepEqual(group2.callableNames, ['mc']);
+                            assert.deepEqual(group2.nonCallableNames, ['pc']);
                             assert.equal(group2.mutability, Mutability.WRITING_WRITABLE);
                         }
                     }
@@ -324,8 +324,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['ma', 'mb', 'mc']);
-                            assert.deepEqual(group0.propertyNames, []);
+                            assert.deepEqual(group0.callableNames, ['ma', 'mb', 'mc']);
+                            assert.deepEqual(group0.nonCallableNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
                     }
@@ -352,8 +352,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['ma']);
-                            assert.deepEqual(group0.propertyNames, []);
+                            assert.deepEqual(group0.callableNames, ['ma']);
+                            assert.deepEqual(group0.nonCallableNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
                     }
@@ -386,8 +386,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group0);
 
-                            assert.deepEqual(group0.methodNames, ['ma', 'mb']);
-                            assert.deepEqual(group0.propertyNames, []);
+                            assert.deepEqual(group0.callableNames, ['ma', 'mb']);
+                            assert.deepEqual(group0.nonCallableNames, []);
                             assert.equal(group0.mutability, Mutability.READING_READONLY);
                         }
                     }
@@ -432,8 +432,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group);
 
-                            assert.deepEqual(group.methodNames, ['mc', 'md']);
-                            assert.deepEqual(group.propertyNames, []);
+                            assert.deepEqual(group.callableNames, ['mc', 'md']);
+                            assert.deepEqual(group.nonCallableNames, []);
                             assert.equal(group.mutability, Mutability.READING_READONLY);
                         }
 
@@ -442,8 +442,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group);
 
-                            assert.deepEqual(group.methodNames, ['ma', 'mb']);
-                            assert.deepEqual(group.propertyNames, []);
+                            assert.deepEqual(group.callableNames, ['ma', 'mb']);
+                            assert.deepEqual(group.nonCallableNames, []);
                             assert.equal(group.mutability, Mutability.READING_READONLY);
                         }
                     }
@@ -480,8 +480,8 @@ describe('find member dependencies', () => {
 
                             assertNeitherNullNorUndefined(group);
 
-                            assert.deepEqual(group.methodNames, ['ma', 'mb']);
-                            assert.deepEqual(group.propertyNames, ['pa', 'pb']);
+                            assert.deepEqual(group.callableNames, ['ma', 'mb']);
+                            assert.deepEqual(group.nonCallableNames, ['pa', 'pb']);
                             assert.equal(group.mutability, Mutability.WRITING_WRITABLE);
                         }
                     }

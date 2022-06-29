@@ -2,8 +2,8 @@ import {concatMutabilities, Mutability} from "./mutability";
 import {CallableMetadata} from "../astCommandBuilders/splitClassAstCommandBuilders";
 
 export type Group = Readonly<{
-    methodNames: ReadonlyArray<string>;
-    propertyNames: ReadonlyArray<string>;
+    callableNames: ReadonlyArray<string>;
+    nonCallableNames: ReadonlyArray<string>;
     mutability: Mutability;
 }>;
 
@@ -26,13 +26,13 @@ export const repackageGroupMap = (
         .reduce(
             (leftGroup, rightGroup) => {
                 return {
-                    methodNames: [
-                        ...leftGroup.methodNames,
-                        ...rightGroup.methodNames,
+                    callableNames: [
+                        ...leftGroup.callableNames,
+                        ...rightGroup.callableNames,
                     ],
-                    propertyNames: [
-                        ...leftGroup.propertyNames,
-                        ...rightGroup.propertyNames,
+                    nonCallableNames: [
+                        ...leftGroup.nonCallableNames,
+                        ...rightGroup.nonCallableNames,
                     ],
                     mutability: concatMutabilities(
                         [
@@ -89,17 +89,17 @@ export const getGroupMap = (
         );
 
         const groupResult = [...groupMap.entries()].find(
-            ([_, group]) => group.methodNames.includes(methodName)
+            ([_, group]) => group.callableNames.includes(methodName)
         );
 
         const methodNames = uniquify([
-            ...(groupResult?.[1].methodNames ?? []),
+            ...(groupResult?.[1].callableNames ?? []),
             ...methodResult.map((r) => r[0]),
             methodName
         ]);
 
         const propertyNames = uniquify([
-            ...(groupResult?.[1].propertyNames ?? []),
+            ...(groupResult?.[1].nonCallableNames ?? []),
             ...methodResult.flatMap((r) => r[1].nonCallableNames),
             ...method.nonCallableNames,
         ]);
@@ -111,8 +111,8 @@ export const getGroupMap = (
         ]);
 
         const group: Group = {
-            methodNames,
-            propertyNames,
+            callableNames: methodNames,
+            nonCallableNames: propertyNames,
             mutability,
         };
 

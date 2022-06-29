@@ -372,7 +372,7 @@ export class AstChangeApplier {
                     const { parameters, typeParameters, scope } = constructor;
 
                     const constructorExpressions = instanceProperties
-                        .filter(property => group.propertyNames.includes(property.name))
+                        .filter(property => group.nonCallableNames.includes(property.name))
                         .flatMap(property => {
                             if (property.kind !== ClassInstancePropertyKind.PROPERTY) {
                                 return [];
@@ -403,7 +403,7 @@ export class AstChangeApplier {
                     const selectedParameter = parameters
                         .filter(
                         ({ name }) => {
-                            return group.propertyNames.includes(name)
+                            return group.nonCallableNames.includes(name)
                                 || dependencyNameSet.has(name);
                         })
                         .map((parameter) => ({
@@ -428,7 +428,7 @@ export class AstChangeApplier {
                     ++memberIndex;
                 });
 
-                group.propertyNames.forEach(
+                group.nonCallableNames.forEach(
                     (propertyName) => {
                         if (constructorPropertyNames.has(propertyName)) {
                             return;
@@ -460,7 +460,7 @@ export class AstChangeApplier {
                     }
                 );
 
-                group.methodNames.forEach(
+                group.callableNames.forEach(
                     (methodName) => {
                         const properties = instanceProperties.filter(
                             (ip) => ip.name === methodName,
