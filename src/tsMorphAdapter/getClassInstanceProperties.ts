@@ -13,7 +13,6 @@ import {
     ClassInstancePropertyKind, MethodExpression,
     MethodExpressionKind
 } from "../intuitaExtension/classInstanceProperty";
-import {uniquify} from "../intuitaExtension/getGroupMap";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration

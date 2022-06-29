@@ -6,6 +6,27 @@ export type PropertyFact = Readonly<{
     calleeNames: ReadonlyArray<string>,
 }>;
 
+export type ParameterFact = Readonly<{
+    name: string,
+    readonly: boolean,
+    calleeNames: ReadonlyArray<string>,
+}>;
+
+export enum NonCallableKind {
+    PROPERTY = 1,
+    PARAMETER = 2,
+}
+
+export type NonCallableFact =
+    | Readonly<{
+        kind: NonCallableKind.PROPERTY,
+        property: PropertyFact,
+    }>
+    | Readonly<{
+        kind: NonCallableKind.PARAMETER,
+        parameter: ParameterFact,
+    }>;
+
 export type AccessorFact = Readonly<{
     name: string,
     setAccessorExists: boolean,

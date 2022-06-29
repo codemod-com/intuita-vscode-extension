@@ -27,7 +27,7 @@ export type MethodExpression =
 
 export type ClassInstanceProperty =
     | Readonly<{
-        kind: ClassInstancePropertyKind.PROPERTY,
+        kind: ClassInstancePropertyKind.PROPERTY | ClassInstancePropertyKind.PARAMETER,
         name: string,
         initializer: string | null,
         readonly: boolean,
