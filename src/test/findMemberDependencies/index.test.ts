@@ -47,9 +47,6 @@ describe('find member dependencies', () => {
             const properties = getClassInstanceProperties(classDefinition);
             const methods = getClassInstanceMethods(classDefinition);
 
-            const methodMap = getMethodMap(properties, methods);
-            const groupMap = getGroupMap(methodMap, null);
-
             const nonCallableFactMap = getNonCallableFactMap(properties);
 
             const accessorFactMap = getAccessorFactMap(properties);
@@ -61,28 +58,17 @@ describe('find member dependencies', () => {
                 callableFactMap,
             );
 
+            const groupMap = getGroupMap(callableMetadataMap, null);
+
             switch(caseNumber) {
                 case 1: {
-                    assert.equal(methodMap.size, 0);
                     assert.equal(callableMetadataMap.size, 0);
-
                     assert.equal(groupMap.size, 0);
                     return;
                 }
 
                 case 2: {
                     {
-                        {
-                            assert.equal(methodMap.size, 1);
-                            const ma = methodMap.get('ma');
-
-                            assertNeitherNullNorUndefined(ma);
-
-                            assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                            assert.deepEqual(ma.propertyNames, []);
-                            assert.deepEqual(ma.methodNames, []);
-                        }
-
                         {
                             assert.equal(callableMetadataMap.size, 1);
                             const ma = callableMetadataMap.get('ma');
@@ -124,18 +110,6 @@ describe('find member dependencies', () => {
                     }
 
                     {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(ma.propertyNames, ['pa']);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
-                    {
                         assert.equal(groupMap.size, 1);
 
                         const group0 = groupMap.get(0);
@@ -150,18 +124,6 @@ describe('find member dependencies', () => {
                 }
 
                 case 4: {
-                    {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(ma.propertyNames, ['pa']);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 1);
 
@@ -190,18 +152,6 @@ describe('find member dependencies', () => {
 
                 case 5: {
                     {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
-                    {
                         assert.equal(callableMetadataMap.size, 1);
 
                         const ma = callableMetadataMap.get('ma');
@@ -229,18 +179,6 @@ describe('find member dependencies', () => {
 
                 case 6: {
                     {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
-                    {
                         assert.equal(callableMetadataMap.size, 1);
 
                         const ma = callableMetadataMap.get('ma');
@@ -266,18 +204,6 @@ describe('find member dependencies', () => {
                     return;
                 }
                 case 7: {
-                    {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 1);
 
@@ -305,30 +231,6 @@ describe('find member dependencies', () => {
                 }
 
                 case 8: {
-                    {
-                        assert.equal(methodMap.size, 3);
-
-                        const ma = methodMap.get('ma');
-                        const mb = methodMap.get('mb');
-                        const mc = methodMap.get('mc');
-
-                        assertNeitherNullNorUndefined(ma);
-                        assertNeitherNullNorUndefined(mb);
-                        assertNeitherNullNorUndefined(mc);
-
-                        assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(ma.propertyNames, ['pa']);
-                        assert.deepEqual(ma.methodNames, []);
-
-                        assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(mb.propertyNames, ['pb']);
-                        assert.deepEqual(mb.methodNames, []);
-
-                        assert.equal(mc.propertyMutability, Mutability.WRITING_WRITABLE)
-                        assert.deepEqual(mc.propertyNames, ['pc']);
-                        assert.deepEqual(mc.methodNames, []);
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 3);
 
@@ -391,30 +293,6 @@ describe('find member dependencies', () => {
 
                 case 9: {
                     {
-                        assert.equal(methodMap.size, 3);
-
-                        const ma = methodMap.get('ma');
-                        const mb = methodMap.get('mb');
-                        const mc = methodMap.get('mc');
-
-                        assertNeitherNullNorUndefined(ma);
-                        assertNeitherNullNorUndefined(mb);
-                        assertNeitherNullNorUndefined(mc);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(ma.propertyNames, []);
-                        assert.deepEqual(ma.methodNames, ['mb']);
-
-                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(mb.propertyNames, []);
-                        assert.deepEqual(mb.methodNames, ['mc']);
-
-                        assert.equal(mc.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(mc.propertyNames, []);
-                        assert.deepEqual(mc.methodNames, []);
-                    }
-
-                    {
                         assert.equal(callableMetadataMap.size, 3);
 
                         const ma = callableMetadataMap.get('ma');
@@ -455,18 +333,6 @@ describe('find member dependencies', () => {
                 }
                 case 10: {
                     {
-                        assert.equal(methodMap.size, 1);
-
-                        const ma = methodMap.get('ma');
-
-                        assertNeitherNullNorUndefined(ma);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(ma.propertyNames, []);
-                        assert.deepEqual(ma.methodNames, []);
-                    }
-
-                    {
                         assert.equal(callableMetadataMap.size, 1);
 
                         const ma = callableMetadataMap.get('ma');
@@ -494,24 +360,6 @@ describe('find member dependencies', () => {
                     return;
                 }
                 case 11: {
-                    {
-                        assert.equal(methodMap.size, 2);
-
-                        const ma = methodMap.get('ma');
-                        const mb = methodMap.get('mb');
-
-                        assertNeitherNullNorUndefined(ma);
-                        assertNeitherNullNorUndefined(mb);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(ma.propertyNames, []);
-                        assert.deepEqual(ma.methodNames, ['mb']);
-
-                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(mb.propertyNames, []);
-                        assert.deepEqual(mb.methodNames, ['ma']);
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 2);
 
@@ -546,36 +394,6 @@ describe('find member dependencies', () => {
                     return;
                 }
                 case 12: {
-                    {
-                        assert.equal(methodMap.size, 4);
-
-                        const ma = methodMap.get('ma');
-                        const mb = methodMap.get('mb');
-                        const mc = methodMap.get('mc');
-                        const md = methodMap.get('md');
-
-                        assertNeitherNullNorUndefined(ma);
-                        assertNeitherNullNorUndefined(mb);
-                        assertNeitherNullNorUndefined(mc);
-                        assertNeitherNullNorUndefined(md);
-
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(ma.propertyNames, []);
-                        assert.deepEqual(ma.methodNames, ['mb']);
-
-                        assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(mb.propertyNames, []);
-                        assert.deepEqual(mb.methodNames, ['ma']);
-
-                        assert.equal(mc.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(mc.propertyNames, []);
-                        assert.deepEqual(mc.methodNames, ['md']);
-
-                        assert.equal(md.propertyMutability, Mutability.READING_READONLY);
-                        assert.deepEqual(md.propertyNames, []);
-                        assert.deepEqual(md.methodNames, []);
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 4);
 
@@ -632,28 +450,6 @@ describe('find member dependencies', () => {
                     return;
                 }
                 case 12: {
-                    {
-                        assert.equal(methodMap.size, 2);
-
-                        {
-                            const ma = methodMap.get('ma');
-                            assertNeitherNullNorUndefined(ma);
-
-                            assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE);
-                            assert.deepEqual(ma.propertyNames, ['pa']);
-                            assert.deepEqual(ma.methodNames, ['mb']);
-                        }
-
-                        {
-                            const mb = methodMap.get('mb');
-                            assertNeitherNullNorUndefined(mb);
-
-                            assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE);
-                            assert.deepEqual(mb.propertyNames, ['pb']);
-                            assert.deepEqual(mb.methodNames, ['ma']);
-                        }
-                    }
-
                     {
                         assert.equal(callableMetadataMap.size, 2);
 

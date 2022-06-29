@@ -17,7 +17,13 @@ import {
     MethodExpressionKind
 } from "./intuitaExtension/classInstanceProperty";
 import {getClassDecorators} from "./tsMorphAdapter/getClassDecorators";
-import {getAccessorFactMap} from "./factGetters/splitClassFactBuilders";
+import {
+    getAccessorFactMap,
+    getCallableFactMap,
+    getMethodFactMap,
+    getNonCallableFactMap
+} from "./factGetters/splitClassFactBuilders";
+import {buildCallableMetadataMap} from "./astCommandBuilders/splitClassAstCommandBuilders";
 
 class ReadonlyArrayMap<K, I> extends Map<K, ReadonlyArray<I>> {
     public addItem(key: K, item: I): void {
@@ -271,8 +277,6 @@ export class AstChangeApplier {
         const instanceProperties = getClassInstanceProperties(classDeclaration);
         const instanceMethods = getClassInstanceMethods(classDeclaration);
 
-        const accessors = getAccessorFactMap(instanceProperties);
-
         const constructorPropertyNames: ReadonlySet<string> = new Set<string>(
             constructors
                 .flatMap(constructor => constructor
@@ -285,8 +289,18 @@ export class AstChangeApplier {
         const memberCount = classDeclaration.getMembers().length
             + constructorPropertyNames.size;
 
-        const methodMap = getMethodMap(instanceProperties, instanceMethods);
-        const groupMap = getGroupMap(methodMap, astChange.maxGroupCount);
+        const nonCallableFactMap = getNonCallableFactMap(instanceProperties);
+
+        const accessorFactMap = getAccessorFactMap(instanceProperties);
+        const methodFactMap = getMethodFactMap(instanceMethods);
+        const callableFactMap = getCallableFactMap(accessorFactMap, methodFactMap);
+
+        const callableMetadataMap = buildCallableMetadataMap(
+            nonCallableFactMap,
+            callableFactMap,
+        );
+
+        const groupMap = getGroupMap(callableMetadataMap, null);
 
         staticProperties.forEach(
             (staticProperty) => {

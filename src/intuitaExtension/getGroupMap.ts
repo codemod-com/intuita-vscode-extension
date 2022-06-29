@@ -1,5 +1,5 @@
-import {Method} from "./getMethodMap";
 import {concatMutabilities, Mutability} from "./mutability";
+import {CallableMetadata} from "../astCommandBuilders/splitClassAstCommandBuilders";
 
 export type Group = Readonly<{
     methodNames: ReadonlyArray<string>;
@@ -58,14 +58,14 @@ export const repackageGroupMap = (
 };
 
 export const getGroupMap = (
-    methodMap: ReadonlyMap<string, Method>,
+    callableMetadataMap: ReadonlyMap<string, CallableMetadata>,
     maxGroupCount: 2 | null,
 ): ReadonlyMap<number, Group>=> {
     let groupNumber = 0;
     const groupMap = new Map<number, Group>;
     const traversedMethodNames = new Set<string>();
 
-    const methodNames = Array.from(methodMap.keys()).sort();
+    const methodNames = Array.from(callableMetadataMap.keys()).sort();
 
     if (methodNames.length === 0) {
         return groupMap;
@@ -78,14 +78,14 @@ export const getGroupMap = (
 
         traversedMethodNames.add(methodName);
 
-        const method = methodMap.get(methodName);
+        const method = callableMetadataMap.get(methodName);
 
         if (!method || method.empty) {
             return;
         }
 
-        const methodResult = [...methodMap.entries()].filter(
-            ([_, method]) => method.methodNames.includes(methodName)
+        const methodResult = [...callableMetadataMap.entries()].filter(
+            ([_, method]) => method.callableNames.includes(methodName)
         );
 
         const groupResult = [...groupMap.entries()].find(
@@ -100,13 +100,13 @@ export const getGroupMap = (
 
         const propertyNames = uniquify([
             ...(groupResult?.[1].propertyNames ?? []),
-            ...methodResult.flatMap((r) => r[1].propertyNames),
-            ...method.propertyNames,
+            ...methodResult.flatMap((r) => r[1].nonCallableNames),
+            ...method.nonCallableNames,
         ]);
 
         const mutability = concatMutabilities([
-            ...methodResult.flatMap((r) => r[1].propertyMutability),
-            method.propertyMutability,
+            ...methodResult.flatMap((r) => r[1].mutability),
+            method.mutability,
             groupResult?.[1].mutability ?? Mutability.READING_READONLY,
         ]);
 
@@ -141,15 +141,15 @@ export const getGroupMap = (
     for(let i = 0; i < methodNames.length; ++i) {
         methodNames.forEach(
             (methodName) => {
-                const method = methodMap.get(methodName);
+                const method = callableMetadataMap.get(methodName);
 
                 if (!method) {
                     return;
                 }
 
-                const { methodNames } = method;
+                const { callableNames } = method;
 
-                if (methodNames.length === i) {
+                if (callableNames.length === i) {
                     traverse(methodName);
                 }
             }

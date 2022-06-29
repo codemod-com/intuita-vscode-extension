@@ -1,10 +1,11 @@
 import {CallableFact, CallableFactKind, NonCallableFact} from "../factGetters/splitClassFacts";
 import {concatMutabilities, Mutability} from "../intuitaExtension/mutability";
 
-type CallableMetadata = Readonly<{
+export type CallableMetadata = Readonly<{
     nonCallableNames: ReadonlyArray<string>,
     callableNames: ReadonlyArray<string>,
     mutability: Mutability,
+    empty: boolean,
 }>;
 
 export const buildCallableMetadataMap = (
@@ -43,6 +44,7 @@ export const buildCallableMetadataMap = (
                     mutability,
                     ...newCallableFacts.map(({ mutability }) => mutability),
                 ]),
+                empty: fact.empty,
             },
         ])),
     );
@@ -79,6 +81,7 @@ export const buildCallableMetadataMap = (
                             callableNames: callableMetadata.callableNames,
                             nonCallableNames,
                             mutability,
+                            empty: callableMetadata.empty,
                         },
                     );
                 }

@@ -28,6 +28,7 @@ export type NonCallableFact =
 export type MethodFact = Readonly<{
     name: string,
     callerNames: ReadonlyArray<string>,
+    empty: boolean,
 }>;
 
 export type AccessorFact = Readonly<{
@@ -35,6 +36,7 @@ export type AccessorFact = Readonly<{
     setAccessorExists: boolean,
     getAccessorExists: boolean,
     callerNames: ReadonlyArray<string>,
+    empty: boolean,
 }>;
 
 export enum CallableFactKind {

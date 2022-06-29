@@ -83,6 +83,7 @@ export const getAccessorFactMap = (
                     getAccessorExists: true,
                     setAccessorExists: oldAccessorFact?.setAccessorExists ?? false,
                     callerNames,
+                    empty: false,
                 };
 
                 accessorFactMap.set(
@@ -108,6 +109,7 @@ export const getAccessorFactMap = (
                     getAccessorExists: oldAccessorFact?.getAccessorExists ?? false,
                     setAccessorExists: true,
                     callerNames,
+                    empty: false,
                 };
 
                 accessorFactMap.set(
@@ -143,6 +145,7 @@ export const getMethodFactMap = (
                 {
                     name,
                     callerNames,
+                    empty: method.empty,
                 }
             );
         }
