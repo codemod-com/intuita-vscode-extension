@@ -14,6 +14,7 @@ import {
     ClassInstancePropertyKind, MethodExpression,
     MethodExpressionKind
 } from "../intuitaExtension/classInstanceProperty";
+import {uniquify} from "../intuitaExtension/getGroupMap";
 
 export const getClassInstanceProperties = (
     classDefinition: ClassDeclaration
@@ -213,11 +214,15 @@ export const getAccessors = (
             if (property.kind === ClassInstancePropertyKind.GET_ACCESSOR) {
                 const oldAccessor = accessorMap.get(name);
 
+                const callerNames = uniquify([
+                    ...(oldAccessor?.callerNames ?? []),
+                    ...property.methodNames,
+                    ...property.setAccessorNames,
+                    ...property.getAccessorNames,
+                ]);
+
                 const getAccessor: NonNullable<Accessor['getAccessor']> = {
                     bodyText: property.bodyText,
-                    methodNames: property.methodNames,
-                    setAccessorNames: property.setAccessorNames,
-                    getAccessorNames: property.getAccessorNames,
                     scope: property.scope,
                     decorators: property.decorators,
                     returnType: property.returnType,
@@ -227,6 +232,7 @@ export const getAccessors = (
                     name,
                     getAccessor,
                     setAccessor: oldAccessor?.setAccessor ?? null,
+                    callerNames,
                 };
 
                 accessorMap.set(
@@ -240,11 +246,15 @@ export const getAccessors = (
             if (property.kind === ClassInstancePropertyKind.SET_ACCESSOR) {
                 const oldAccessor = accessorMap.get(name);
 
+                const callerNames = uniquify([
+                    ...(oldAccessor?.callerNames ?? []),
+                    ...property.methodNames,
+                    ...property.setAccessorNames,
+                    ...property.getAccessorNames,
+                ]);
+
                 const setAccessor: NonNullable<Accessor['setAccessor']> = {
                     bodyText: property.bodyText,
-                    methodNames: property.methodNames,
-                    setAccessorNames: property.setAccessorNames,
-                    getAccessorNames: property.getAccessorNames,
                     scope: property.scope,
                     decorators: property.decorators,
                     parameters: property.parameters,
@@ -254,6 +264,7 @@ export const getAccessors = (
                     name,
                     getAccessor: oldAccessor?.getAccessor ?? null,
                     setAccessor,
+                    callerNames,
                 };
 
                 accessorMap.set(

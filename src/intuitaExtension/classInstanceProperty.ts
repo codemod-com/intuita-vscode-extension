@@ -67,20 +67,15 @@ export type Accessor = Readonly<{
     name: string,
     setAccessor: Readonly<{
         bodyText: string | null,
-        methodNames: ReadonlyArray<string>,
-        setAccessorNames: ReadonlyArray<string>,
-        getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
         decorators: ReadonlyArray<DecoratorStructure>,
         parameters: ReadonlyArray<ParameterDeclarationStructure>,
     }> | null,
     getAccessor: Readonly<{
         bodyText: string | null,
-        methodNames: ReadonlyArray<string>,
-        setAccessorNames: ReadonlyArray<string>,
-        getAccessorNames: ReadonlyArray<string>,
         scope: Scope | null,
         decorators: ReadonlyArray<DecoratorStructure>,
         returnType: string | null,
     }> | null,
+    callerNames: ReadonlyArray<string>,
 }>;

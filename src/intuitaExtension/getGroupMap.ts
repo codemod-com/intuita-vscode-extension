@@ -7,7 +7,7 @@ export type Group = Readonly<{
     mutability: Mutability;
 }>;
 
-const uniquify = <A>(
+export const uniquify = <A>(
     array: ReadonlyArray<A>
 ): ReadonlyArray<A> => {
     return Array.from(new Set<A>(array)).sort();
