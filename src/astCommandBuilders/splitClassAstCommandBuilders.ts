@@ -1,4 +1,4 @@
-import {CallableFact, NonCallableFact} from "../factGetters/splitClassFacts";
+import {CallableFact, CallableFactKind, NonCallableFact} from "../factGetters/splitClassFacts";
 import {concatMutabilities, Mutability} from "../intuitaExtension/mutability";
 
 type CallableMetadata = Readonly<{
@@ -29,7 +29,7 @@ export const buildCallableMetadataMap = (
     );
 
     const callableMetadataMap = new Map<string, CallableMetadata>(
-        newCallableFacts.map(({ fact, callableNames }) => ([
+        newCallableFacts.map(({ fact, callableNames, kind }) => ([
             fact.name,
             <CallableMetadata>{
                 nonCallableNames: [],

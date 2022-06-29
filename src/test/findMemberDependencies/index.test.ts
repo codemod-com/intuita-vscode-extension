@@ -691,6 +691,57 @@ describe('find member dependencies', () => {
                     }
                     return;
                 }
+                case 13:
+                {
+                    {
+                        assert.equal(callableMetadataMap.size, 5);
+
+                        {
+                            const ma = callableMetadataMap.get('ma');
+                            assertNeitherNullNorUndefined(ma);
+
+                            assert.equal(ma.mutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(ma.nonCallableNames, ['pa']);
+                            assert.deepEqual(ma.callableNames, ['mb']);
+                        }
+
+                        {
+                            const mb = callableMetadataMap.get('mb');
+                            assertNeitherNullNorUndefined(mb);
+
+                            assert.equal(mb.mutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(mb.nonCallableNames, ['pa']);
+                            assert.deepEqual(mb.callableNames, []);
+                        }
+
+                        {
+                            const mc = callableMetadataMap.get('mc');
+                            assertNeitherNullNorUndefined(mc);
+
+                            assert.equal(mc.mutability, Mutability.READING_READONLY);
+                            assert.deepEqual(mc.nonCallableNames, []);
+                            assert.deepEqual(mc.callableNames, ['pb']);
+                        }
+
+                        {
+                            const md = callableMetadataMap.get('md');
+                            assertNeitherNullNorUndefined(md);
+
+                            assert.equal(md.mutability, Mutability.READING_READONLY);
+                            assert.deepEqual(md.nonCallableNames, []);
+                            assert.deepEqual(md.callableNames, ['pb']);
+                        }
+
+                        {
+                            const pb = callableMetadataMap.get('pb');
+                            assertNeitherNullNorUndefined(pb);
+
+                            assert.equal(pb.mutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(pb.nonCallableNames, ['_pb']);
+                            assert.deepEqual(pb.callableNames, ['mb']);
+                        }
+                    }
+                }
             }
         });
     }

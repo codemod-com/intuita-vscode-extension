@@ -167,3 +167,40 @@
         }
     }
 }
+
+/** old-013 **/
+{
+    class A {
+        pa = 1;
+        private _pb: number = 2;
+
+        ma() {
+            ++this.pa;
+            this.mb();
+        }
+
+        mb() {
+            console.log(this.pa);
+        }
+
+        mc() {
+            return this.pb;
+        }
+
+        md() {
+            this.pb = 3;
+        }
+
+        get pb(): number {
+            this.mb();
+
+            return this._pb;
+        }
+
+        set pb(pb: number) {
+            this.mb();
+
+            this._pb = pb;
+        }
+    }
+}
