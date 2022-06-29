@@ -1,7 +1,7 @@
 import {
-    ClassDeclaration, DecoratorStructure,
+    ClassDeclaration, DecoratorStructure, ExpressionStatement, GetAccessorDeclaration, MethodDeclaration,
     ParameterDeclarationStructure,
-    Scope,
+    Scope, SetAccessorDeclaration,
     ts,
     TypeParameterDeclarationStructure
 } from "ts-morph";
@@ -14,7 +14,10 @@ export type InstanceMethod = Readonly<{
     typeParameters: ReadonlyArray<TypeParameterDeclarationStructure>,
     parameters: ReadonlyArray<ParameterDeclarationStructure>,
     returnType: string | null,
-    calleeNames: ReadonlyArray<string>,
+    calleeNames: ReadonlyArray<string>, // deprecated
+    methodNames: ReadonlyArray<string>,
+    setAccessorNames: ReadonlyArray<string>,
+    getAccessorNames: ReadonlyArray<string>,
     bodyText: string | null,
     methodLookupCriteria: ReadonlyArray<NodeLookupCriterion>,
     scope: Scope,
@@ -24,9 +27,20 @@ export type InstanceMethod = Readonly<{
 export const getClassInstanceMethods = (
     classDeclaration: ClassDeclaration,
 ): ReadonlyArray<InstanceMethod> => {
+    const filterCallback = <T extends MethodDeclaration | SetAccessorDeclaration | GetAccessorDeclaration | ExpressionStatement>(
+        declaration: T,
+    ): boolean => {
+        const otherClassDeclaration = declaration
+            .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration);
+
+        return otherClassDeclaration === classDeclaration;
+    };
+
     const oldMethods = classDeclaration
         .getInstanceMethods()
         .map((methodDeclaration) => {
+            const methodName = methodDeclaration.getName();
+
             const decorators = methodDeclaration
                 .getDecorators()
                 .map(decorator => decorator.getStructure());
@@ -51,6 +65,32 @@ export const getClassInstanceMethods = (
                 .findReferences()
                 .flatMap((referencedSymbol) => referencedSymbol.getReferences())
 
+            const setAccessorNames = referencedSymbolEntries
+                .map(
+                    (referencedSymbolEntry) => {
+                        return referencedSymbolEntry
+                            .getNode()
+                            .getFirstAncestorByKind(ts.SyntaxKind.SetAccessor);
+                    }
+                )
+                .filter(isNeitherNullNorUndefined)
+                .filter(filterCallback)
+                .map((declaration) => declaration.getName())
+                .filter(name => name !== methodName);
+
+            const getAccessorNames = referencedSymbolEntries
+                .map(
+                    (referencedSymbolEntry) => {
+                        return referencedSymbolEntry
+                            .getNode()
+                            .getFirstAncestorByKind(ts.SyntaxKind.GetAccessor);
+                    }
+                )
+                .filter(isNeitherNullNorUndefined)
+                .filter(filterCallback)
+                .map((declaration) => declaration.getName())
+                .filter(name => name !== methodName);
+
             const callerNames = referencedSymbolEntries
                 .map(
                     (referencedSymbolEntry) => {
@@ -60,19 +100,9 @@ export const getClassInstanceMethods = (
                     }
                 )
                 .filter(isNeitherNullNorUndefined)
-                .filter(
-                    (otherMethodDeclaration) => {
-                        if (otherMethodDeclaration === methodDeclaration) {
-                            return false;
-                        }
-
-                        const methodClassDeclaration = otherMethodDeclaration
-                            .getFirstAncestorByKind(ts.SyntaxKind.ClassDeclaration);
-
-                        return methodClassDeclaration === classDeclaration;
-                    }
-                )
-                .map((md) => md.getName());
+                .filter(filterCallback)
+                .map((declaration) => declaration.getName())
+                .filter(name => name !== methodName);
 
             const methodLookupCriteria = referencedSymbolEntries
                 .filter(
@@ -104,8 +134,11 @@ export const getClassInstanceMethods = (
             const empty = bodyText === "";
 
             return {
-                name: methodDeclaration.getName(),
+                name: methodName,
                 callerNames,
+                methodNames: callerNames,
+                setAccessorNames,
+                getAccessorNames,
                 typeParameters,
                 parameters,
                 returnType,

@@ -122,6 +122,10 @@
     class A0 {
         public _pa = 1;
 
+        public ma() {
+            return this.pa;
+        }
+
         public get pa(): number {
             return this._pa;
         }
@@ -129,14 +133,14 @@
         public set pa(_pa: number) {
             this._pa = _pa;
         }
-
-        public ma() {
-            return this.pa;
-        }
     }
 
     class A1 {
         public _pb = 2;
+
+        public mb() {
+            return this.pb;
+        }
 
         protected get pb(): number {
             return this._pb;
@@ -144,10 +148,6 @@
 
         protected set pb(_pb: number) {
             this._pb = _pb;
-        }
-
-        public mb() {
-            return this.pb;
         }
     }
 }
@@ -189,6 +189,10 @@
     class A0<T, U> {
         private _pa: T | null = null;
 
+        public ma(): T | null {
+            return this.pa;
+        }
+
         public get pa(): T | null {
             return this._pa;
         }
@@ -196,14 +200,14 @@
         public set pa(_pa: T | null) {
             this._pa = _pa;
         }
-
-        public ma(): T | null {
-            return this.pa;
-        }
     }
 
     class A1<T, U> {
         private _pb: U | null = null;
+
+        public mb(): U | null {
+            return this.pb;
+        }
 
         protected get pb(): U | null {
             return this._pb;
@@ -211,10 +215,6 @@
 
         protected set pb(_pb: U | null) {
             this._pb = _pb;
-        }
-
-        public mb(): U | null {
-            return this.pb;
         }
     }
 }
