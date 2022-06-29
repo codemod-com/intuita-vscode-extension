@@ -7,7 +7,7 @@ type CallableMetadata = Readonly<{
     mutability: Mutability,
 }>;
 
-export const buildSplitClassAstCommands = (
+export const buildCallableMetadataMap = (
     nonCallableFactMap: ReadonlyMap<string, NonCallableFact>,
     callableFactMap: ReadonlyMap<string, CallableFact>,
 ) => {
@@ -28,7 +28,7 @@ export const buildSplitClassAstCommands = (
         }
     );
 
-    const methodMap = new Map<string, CallableMetadata>(
+    const callableMetadataMap = new Map<string, CallableMetadata>(
         newCallableFacts.map(({ fact, callableNames }) => ([
             fact.name,
             <CallableMetadata>{
@@ -40,34 +40,36 @@ export const buildSplitClassAstCommands = (
     );
 
     nonCallableFactMap.forEach(
-        (property) => {
-            property.fact.callerNames.forEach(
-                (methodName) => {
-                    const method = methodMap.get(methodName);
+        (nonCallableFact) => {
+            const { fact } =  nonCallableFact;
 
-                    if (!method) {
+            fact.callerNames.forEach(
+                (callableName) => {
+                    const callableMetadata = callableMetadataMap.get(callableName);
+
+                    if (!callableMetadata) {
                         return;
                     }
 
-                    const propertyNames = method
+                    const nonCallableNames = callableMetadata
                         .nonCallableNames
                         .slice()
-                        .concat([ property.fact.name ]);
+                        .concat([ fact.name ]);
 
                     const mutability = concatMutabilities(
                         [
-                            property.fact.readonly
+                            nonCallableFact.fact.readonly
                                 ? Mutability.READING_READONLY
                                 : Mutability.WRITING_WRITABLE,
-                            method.mutability,
+                            callableMetadata.mutability,
                         ],
                     );
 
-                    methodMap.set(
-                        methodName,
+                    callableMetadataMap.set(
+                        callableName,
                         {
-                            nonCallableNames: propertyNames,
-                            callableNames: method.callableNames,
+                            callableNames: callableMetadata.callableNames,
+                            nonCallableNames,
                             mutability,
                         },
                     );
@@ -76,5 +78,5 @@ export const buildSplitClassAstCommands = (
         }
     );
 
-    return methodMap;
+    return callableMetadataMap;
 };
