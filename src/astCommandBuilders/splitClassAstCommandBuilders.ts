@@ -10,7 +10,7 @@ type CallableMetadata = Readonly<{
 export const buildCallableMetadataMap = (
     nonCallableFactMap: ReadonlyMap<string, NonCallableFact>,
     callableFactMap: ReadonlyMap<string, CallableFact>,
-) => {
+): ReadonlyMap<string, CallableMetadata> => {
     const oldCallableFacts = Array.from(callableFactMap.values());
 
     const newCallableFacts = oldCallableFacts.map(

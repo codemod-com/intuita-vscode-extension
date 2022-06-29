@@ -6,6 +6,13 @@ import {getMethodMap} from "../../intuitaExtension/getMethodMap";
 import {Mutability} from "../../intuitaExtension/mutability";
 import {getClassInstanceMethods} from "../../tsMorphAdapter/getClassInstanceMethods";
 import {getGroupMap} from "../../intuitaExtension/getGroupMap";
+import {buildCallableMetadataMap} from "../../astCommandBuilders/splitClassAstCommandBuilders";
+import {
+    getAccessorFactMap,
+    getCallableFactMap,
+    getMethodFactMap,
+    getNonCallableFactMap
+} from "../../factGetters/splitClassFactBuilders";
 
 function assertNeitherNullNorUndefined<T>(value: NonNullable<T> | null | undefined): asserts value is NonNullable<T> {
     if (value === null || value === undefined) {
@@ -38,46 +45,84 @@ describe('find member dependencies', () => {
             }
 
             const properties = getClassInstanceProperties(classDefinition);
-            const methodNames = getClassInstanceMethods(classDefinition);
+            const methods = getClassInstanceMethods(classDefinition);
 
-            const methodMap = getMethodMap(properties, methodNames);
+            const methodMap = getMethodMap(properties, methods);
             const groupMap = getGroupMap(methodMap, null);
+
+            const nonCallableFactMap = getNonCallableFactMap(properties);
+
+            const accessorFactMap = getAccessorFactMap(properties);
+            const methodFactMap = getMethodFactMap(methods);
+            const callableFactMap = getCallableFactMap(accessorFactMap, methodFactMap);
+
+            const callableMetadataMap = buildCallableMetadataMap(
+                nonCallableFactMap,
+                callableFactMap,
+            );
 
             switch(caseNumber) {
                 case 1: {
                     assert.equal(methodMap.size, 0);
+                    assert.equal(callableMetadataMap.size, 0);
+
                     assert.equal(groupMap.size, 0);
                     return;
                 }
 
                 case 2: {
                     {
-                        assert.equal(methodMap.size, 1);
+                        {
+                            assert.equal(methodMap.size, 1);
+                            const ma = methodMap.get('ma');
 
-                        const ma = methodMap.get('ma');
+                            assertNeitherNullNorUndefined(ma);
 
-                        assertNeitherNullNorUndefined(ma);
+                            assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
+                            assert.deepEqual(ma.propertyNames, []);
+                            assert.deepEqual(ma.methodNames, []);
+                        }
 
-                        assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
-                        assert.deepEqual(ma.propertyNames, []);
-                        assert.deepEqual(ma.methodNames, []);
+                        {
+                            assert.equal(callableMetadataMap.size, 1);
+                            const ma = callableMetadataMap.get('ma');
+
+                            assertNeitherNullNorUndefined(ma);
+
+                            assert.equal(ma.mutability, Mutability.READING_READONLY)
+                            assert.deepEqual(ma.nonCallableNames, []);
+                            assert.deepEqual(ma.callableNames, []);
+                        }
                     }
 
                     {
-                        assert.equal(groupMap.size, 1);
+                        {
+                            assert.equal(groupMap.size, 1);
+                            const group0 = groupMap.get(0);
 
-                        const group0 = groupMap.get(0);
+                            assertNeitherNullNorUndefined(group0);
 
-                        assertNeitherNullNorUndefined(group0);
-
-                        assert.deepEqual(group0.methodNames, ['ma']);
-                        assert.deepEqual(group0.propertyNames, []);
-                        assert.equal(group0.mutability, Mutability.READING_READONLY);
+                            assert.deepEqual(group0.methodNames, ['ma']);
+                            assert.deepEqual(group0.propertyNames, []);
+                            assert.equal(group0.mutability, Mutability.READING_READONLY);
+                        }
                     }
                     return;
                 }
 
                 case 3: {
+                    {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.nonCallableNames, ['pa']);
+                        assert.deepEqual(ma.callableNames, []);
+                    }
+
                     {
                         assert.equal(methodMap.size, 1);
 
@@ -118,6 +163,18 @@ describe('find member dependencies', () => {
                     }
 
                     {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(ma.nonCallableNames, ['pa']);
+                        assert.deepEqual(ma.callableNames, []);
+                    }
+
+                    {
                         assert.equal(groupMap.size, 1);
 
                         const group0 = groupMap.get(0);
@@ -142,6 +199,18 @@ describe('find member dependencies', () => {
                         assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
                         assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
                         assert.deepEqual(ma.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.nonCallableNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(ma.callableNames, []);
                     }
 
                     {
@@ -172,6 +241,18 @@ describe('find member dependencies', () => {
                     }
 
                     {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(ma.nonCallableNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(ma.callableNames, []);
+                    }
+
+                    {
                         assert.equal(groupMap.size, 1);
 
                         const group0 = groupMap.get(0);
@@ -195,6 +276,18 @@ describe('find member dependencies', () => {
                         assert.equal(ma.propertyMutability, Mutability.WRITING_WRITABLE)
                         assert.deepEqual(ma.propertyNames, ['pa', 'pb', 'pc']);
                         assert.deepEqual(ma.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(ma.nonCallableNames, ['pa', 'pb', 'pc']);
+                        assert.deepEqual(ma.callableNames, []);
                     }
 
                     {
@@ -234,6 +327,30 @@ describe('find member dependencies', () => {
                         assert.equal(mc.propertyMutability, Mutability.WRITING_WRITABLE)
                         assert.deepEqual(mc.propertyNames, ['pc']);
                         assert.deepEqual(mc.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 3);
+
+                        const ma = callableMetadataMap.get('ma');
+                        const mb = callableMetadataMap.get('mb');
+                        const mc = callableMetadataMap.get('mc');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+                        assertNeitherNullNorUndefined(mc);
+
+                        assert.equal(ma.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(ma.nonCallableNames, ['pa']);
+                        assert.deepEqual(ma.callableNames, []);
+
+                        assert.equal(mb.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(mb.nonCallableNames, ['pb']);
+                        assert.deepEqual(mb.callableNames, []);
+
+                        assert.equal(mc.mutability, Mutability.WRITING_WRITABLE)
+                        assert.deepEqual(mc.nonCallableNames, ['pc']);
+                        assert.deepEqual(mc.callableNames, []);
                     }
 
                     {
@@ -298,6 +415,30 @@ describe('find member dependencies', () => {
                     }
 
                     {
+                        assert.equal(callableMetadataMap.size, 3);
+
+                        const ma = callableMetadataMap.get('ma');
+                        const mb = callableMetadataMap.get('mb');
+                        const mc = callableMetadataMap.get('mc');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+                        assertNeitherNullNorUndefined(mc);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.nonCallableNames, []);
+                        assert.deepEqual(ma.callableNames, ['mb']);
+
+                        assert.equal(mb.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(mb.nonCallableNames, []);
+                        assert.deepEqual(mb.callableNames, ['mc']);
+
+                        assert.equal(mc.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(mc.nonCallableNames, []);
+                        assert.deepEqual(mc.callableNames, []);
+                    }
+
+                    {
                         assert.equal(groupMap.size, 1);
 
                         {
@@ -323,6 +464,18 @@ describe('find member dependencies', () => {
                         assert.equal(ma.propertyMutability, Mutability.READING_READONLY)
                         assert.deepEqual(ma.propertyNames, []);
                         assert.deepEqual(ma.methodNames, []);
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 1);
+
+                        const ma = callableMetadataMap.get('ma');
+
+                        assertNeitherNullNorUndefined(ma);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY)
+                        assert.deepEqual(ma.nonCallableNames, []);
+                        assert.deepEqual(ma.callableNames, []);
                     }
 
                     {
@@ -357,6 +510,24 @@ describe('find member dependencies', () => {
                         assert.equal(mb.propertyMutability, Mutability.READING_READONLY);
                         assert.deepEqual(mb.propertyNames, []);
                         assert.deepEqual(mb.methodNames, ['ma']);
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 2);
+
+                        const ma = callableMetadataMap.get('ma');
+                        const mb = callableMetadataMap.get('mb');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(ma.nonCallableNames, []);
+                        assert.deepEqual(ma.callableNames, ['mb']);
+
+                        assert.equal(mb.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mb.nonCallableNames, []);
+                        assert.deepEqual(mb.callableNames, ['ma']);
                     }
 
                     {
@@ -406,6 +577,36 @@ describe('find member dependencies', () => {
                     }
 
                     {
+                        assert.equal(callableMetadataMap.size, 4);
+
+                        const ma = callableMetadataMap.get('ma');
+                        const mb = callableMetadataMap.get('mb');
+                        const mc = callableMetadataMap.get('mc');
+                        const md = callableMetadataMap.get('md');
+
+                        assertNeitherNullNorUndefined(ma);
+                        assertNeitherNullNorUndefined(mb);
+                        assertNeitherNullNorUndefined(mc);
+                        assertNeitherNullNorUndefined(md);
+
+                        assert.equal(ma.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(ma.nonCallableNames, []);
+                        assert.deepEqual(ma.callableNames, ['mb']);
+
+                        assert.equal(mb.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mb.nonCallableNames, []);
+                        assert.deepEqual(mb.callableNames, ['ma']);
+
+                        assert.equal(mc.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(mc.nonCallableNames, []);
+                        assert.deepEqual(mc.callableNames, ['md']);
+
+                        assert.equal(md.mutability, Mutability.READING_READONLY);
+                        assert.deepEqual(md.nonCallableNames, []);
+                        assert.deepEqual(md.callableNames, []);
+                    }
+
+                    {
                         assert.equal(groupMap.size, 2);
 
                         {
@@ -450,6 +651,28 @@ describe('find member dependencies', () => {
                             assert.equal(mb.propertyMutability, Mutability.WRITING_WRITABLE);
                             assert.deepEqual(mb.propertyNames, ['pb']);
                             assert.deepEqual(mb.methodNames, ['ma']);
+                        }
+                    }
+
+                    {
+                        assert.equal(callableMetadataMap.size, 2);
+
+                        {
+                            const ma = callableMetadataMap.get('ma');
+                            assertNeitherNullNorUndefined(ma);
+
+                            assert.equal(ma.mutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(ma.nonCallableNames, ['pa']);
+                            assert.deepEqual(ma.callableNames, ['mb']);
+                        }
+
+                        {
+                            const mb = callableMetadataMap.get('mb');
+                            assertNeitherNullNorUndefined(mb);
+
+                            assert.equal(mb.mutability, Mutability.WRITING_WRITABLE);
+                            assert.deepEqual(mb.nonCallableNames, ['pb']);
+                            assert.deepEqual(mb.callableNames, ['ma']);
                         }
                     }
 
