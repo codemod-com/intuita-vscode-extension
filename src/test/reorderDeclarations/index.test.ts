@@ -5,10 +5,10 @@ import {executeReorderDeclarationsAstCommand} from "../../features/reorderDeclar
 import {assert} from "chai";
 
 describe('reorder declarations', async function() {
-    it('scanner test', () => {
-        const fileName = '/index.ts';
-        const fileText = "export function a() {}; export class B {}";
-
+    const execute = (
+        fileName: string,
+        fileText: string,
+    ) => {
         const userCommand = buildReorderDeclarationsUserCommand(
             fileName,
             fileText,
@@ -23,7 +23,14 @@ describe('reorder declarations', async function() {
             fact,
         );
 
-        const executions = executeReorderDeclarationsAstCommand(astCommand);
+        return executeReorderDeclarationsAstCommand(astCommand);
+    };
+
+    it('reorder a function and a class', () => {
+        const fileName = '/index.ts';
+        const fileText = "export function a() {}; export class B {}";
+
+        const executions = execute(fileName, fileText);
 
         assert.equal(executions.length, 1);
         assert.equal(executions[0]?.name, '/index.ts');
