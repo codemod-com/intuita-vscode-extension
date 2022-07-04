@@ -6,3 +6,8 @@ export function isNeitherNullNorUndefined<T>(
 ): value is NeitherNullNorUndefined<T> {
     return value !== null && value !== undefined;
 }
+
+export type SourceFileExecution = Readonly<{
+    name: string,
+    text: string,
+}>;

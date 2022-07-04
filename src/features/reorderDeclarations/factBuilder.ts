@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import {isNeitherNullNorUndefined} from "../../utilities";
 import {ReorderDeclarationsUserCommand} from "./userCommandBuilder";
 
-type NoraNode =
+export type NoraNode =
     | Readonly<{
         children: ReadonlyArray<NoraNode>;
     }>
@@ -16,13 +16,13 @@ export type ReorderDeclarationFact = Readonly<{
 }>;
 
 export const buildReorderDeclarationFact = (
-    fileName: string,
-    sourceText: string,
     userCommand: ReorderDeclarationsUserCommand,
 ): ReorderDeclarationFact => {
+    const { fileName, fileText } = userCommand;
+
     const sourceFile = ts.createSourceFile(
         fileName,
-        sourceText,
+        fileText,
         ts.ScriptTarget.ES5,
         true
     );
