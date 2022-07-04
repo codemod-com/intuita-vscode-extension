@@ -4,6 +4,7 @@ import { getAstChanges } from './getAstChanges';
 import { AstChangeApplier } from "./astChangeApplier";
 import { Project } from "ts-morph";
 import { watchProject } from './watchedProject';
+import {exec, spawn} from "child_process";
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activated the Intuita VSCode Extension')
