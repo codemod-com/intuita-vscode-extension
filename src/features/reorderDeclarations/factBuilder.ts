@@ -68,6 +68,8 @@ export const buildReorderDeclarationFact = (
                 || ts.isFunctionDeclaration(node)
                 || ts.isInterfaceDeclaration(node)
                 || ts.isBlock(node)
+                || ts.isTypeAliasDeclaration(node)
+                || ts.isVariableStatement(node)
             ) {
                 return index;
             }
