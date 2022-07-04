@@ -1,6 +1,7 @@
 import {spawn} from "child_process";
 import * as ts from 'typescript';
 import {isNeitherNullNorUndefined} from "../utilities";
+import {assert} from "chai";
 
 enum JoernCliState {
     INITIAL = 1,
@@ -38,61 +39,22 @@ describe.only('joern', async function() {
 
 
     it('scanner test', () => {
-        type NoraNode = Readonly<{
-            node: ts.Node; // hopefully will be deprecated
-            kind: ts.SyntaxKind;
-            children: ReadonlyArray<NoraNode> | null;
-        }>;
+        type NoraNode =
+            | Readonly<{
+                children: ReadonlyArray<NoraNode>;
+            }>
+            | Readonly<{
+                node: ts.Node,
+            }>;
 
         const sourceCode = "export function a() {}; export class B {}";
 
-        const mutableNodes = new Set<ts.Node>();
-
-        function printAllChildren(node: ts.Node, depth: number) {
-            console.log(new Array(depth + 1).join('----'), node.kind, node.pos, node.end);
-
-            if (ts.isClassDeclaration(node) || ts.isFunctionDeclaration(node)) {
-                let mutableNode: ts.Node | null = node;
-
-                while(mutableNode) {
-                    mutableNodes.add(mutableNode);
-
-                    mutableNode = mutableNode.parent;
-                    console.log('A')
-                }
-
-                return;
-            }
-
-            if (depth === 2) {
-                return;
-            }
-
-            node.getChildren().forEach(c=> {
-                if (c.kind === ts.SyntaxKind.SyntaxList) {
-                    // syntax list is a synthesized list
-                    c.getChildren().forEach(
-                        (gc) => {
-                            printAllChildren(gc, depth)
-                        }
-                    );
-                }
-
-                printAllChildren(c, depth + 1);
-            });
-        }
-
         const sourceFile = ts.createSourceFile('foo.ts', sourceCode, ts.ScriptTarget.ES5, true);
 
-        // printAllChildren(sourceFile, 0);
-
-        // TODO
         const buildNoraNode = (node: ts.Node, depth: number): NoraNode => {
             if (depth === 1) {
                 return {
-                    kind: node.kind,
                     node,
-                    children: null,
                 };
             }
 
@@ -111,16 +73,18 @@ describe.only('joern', async function() {
                 });
 
             return {
-                kind: node.kind,
-                node,
                 children,
             };
         };
 
         const noraNode = buildNoraNode(sourceFile, 0);
 
-        const indices = noraNode.children?.map(
+        const indices: ReadonlyArray<number> = 'children' in noraNode && noraNode.children.map(
             (childNode, index) => {
+                if (!('node' in childNode)) {
+                    return null;
+                }
+
                 const { node } = childNode;
 
                 if (ts.isClassDeclaration(node) || ts.isFunctionDeclaration(node)) {
@@ -129,16 +93,60 @@ describe.only('joern', async function() {
 
                 return null;
             }
-        ).filter(isNeitherNullNorUndefined);
+        ).filter(isNeitherNullNorUndefined) || [];
 
         console.log(indices);
 
-        const fullText = noraNode.children?.map(
-            (childNode) => {
-                return childNode.node.getFullText();
+        const getNoraNodeFullText = (noraNode: NoraNode): string => {
+            if ('node' in noraNode) {
+                return noraNode.node.getFullText();
             }
-        )?.join('');
 
-        console.log(fullText);
+            return noraNode
+                .children
+                .map(
+                    (childNode) => getNoraNodeFullText(childNode)
+                )
+                .join('');
+        };
+
+        const fullText = getNoraNodeFullText(noraNode);
+
+        assert.equal(fullText, sourceCode);
+
+        const replaceChildrenOrder = (
+            noraNode: NoraNode,
+            replacementMap: Map<number, number>,
+        ): NoraNode => {
+            if (!('children' in noraNode)) {
+                return noraNode;
+            }
+
+            const children = noraNode.children.slice();
+
+            replacementMap.forEach(
+                (value, key) => {
+                    children[key] = noraNode.children[value]!;
+                }
+            );
+
+            return {
+                ...noraNode,
+                children,
+            };
+        };
+
+        const replacementMap = new Map<number, number>(
+            [
+                [0, 2],
+                [2, 0],
+            ],
+        );
+
+        const newNoraNode = replaceChildrenOrder(noraNode, replacementMap);
+
+        const x = getNoraNodeFullText(newNoraNode);
+
+        console.log(x);
     });
 });
