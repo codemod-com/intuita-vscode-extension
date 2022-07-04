@@ -1,5 +1,6 @@
 import * as ts from "typescript";
-import {isNeitherNullNorUndefined} from "../utilities";
+import {isNeitherNullNorUndefined} from "../../utilities";
+import {ReorderDeclarationsUserCommand} from "./userCommandBuilder";
 
 type NoraNode =
     | Readonly<{
@@ -17,6 +18,7 @@ export type ReorderDeclarationFact = Readonly<{
 export const buildReorderDeclarationFact = (
     fileName: string,
     sourceText: string,
+    userCommand: ReorderDeclarationsUserCommand,
 ): ReorderDeclarationFact => {
     const sourceFile = ts.createSourceFile(
         fileName,
