@@ -67,6 +67,7 @@ export const buildReorderDeclarationFact = (
                 ts.isClassDeclaration(node)
                 || ts.isFunctionDeclaration(node)
                 || ts.isInterfaceDeclaration(node)
+                || ts.isBlock(node)
             ) {
                 return index;
             }
