@@ -12,15 +12,22 @@ export const buildReorderDeclarationsAstCommand = (
     userCommand: ReorderDeclarationsUserCommand,
     fact: ReorderDeclarationFact,
 ): ReorderDeclarationsAstCommand => {
+    const { indices } = fact;
+
+    // basic move-by-one algorithm
+    const reorderingMap = new Map<number, number>(
+        indices.map(
+            (value, index) => ([
+                value,
+                indices[index+1] ?? indices[0] ?? 0,
+            ]),
+        ),
+    );
+
     return {
         kind: 'REORDER_DECLARATIONS',
         fileName: userCommand.fileName,
         noraNode: fact.noraNode,
-        reorderingMap: new Map<number, number>(
-            [
-                [0, 2],
-                [2, 0],
-            ],
-        ),
+        reorderingMap,
     };
 };

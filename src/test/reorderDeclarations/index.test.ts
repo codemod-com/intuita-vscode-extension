@@ -36,4 +36,15 @@ describe('reorder declarations', async function() {
         assert.equal(executions[0]?.name, '/index.ts');
         assert.equal(executions[0]?.text, ' export class B {};export function a() {}');
     });
+
+    it('reorder a function and a class', () => {
+        const fileName = '/index.ts';
+        const fileText = "export interface A {}; export class B {}";
+
+        const executions = execute(fileName, fileText);
+
+        assert.equal(executions.length, 1);
+        assert.equal(executions[0]?.name, '/index.ts');
+        assert.equal(executions[0]?.text, ' export class B {};export interface A {}');
+    });
 });
