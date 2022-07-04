@@ -3,7 +3,7 @@ import {NoraNode} from "./factBuilder";
 import {SourceFileExecution} from "../../utilities";
 
 export const executeReorderDeclarationsAstCommand = (
-    command: ReorderDeclarationsAstCommand,
+    astCommand: ReorderDeclarationsAstCommand,
 ): ReadonlyArray<SourceFileExecution> => {
     const replaceChildrenOrder = (
         noraNode: NoraNode,
@@ -41,15 +41,15 @@ export const executeReorderDeclarationsAstCommand = (
     };
 
     const newNoraNode = replaceChildrenOrder(
-        command.noraNode,
-        command.reorderingMap,
+        astCommand.noraNode,
+        astCommand.reorderingMap,
     );
 
     const text = getNoraNodeFullText(newNoraNode);
 
     return [
         {
-            name: command.fileName,
+            name: astCommand.fileName,
             text,
         }
     ]

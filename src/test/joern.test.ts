@@ -2,6 +2,10 @@ import {spawn} from "child_process";
 import * as ts from 'typescript';
 import {isNeitherNullNorUndefined} from "../utilities";
 import {assert} from "chai";
+import {buildReorderDeclarationsUserCommand} from "../features/reorderDeclarations/userCommandBuilder";
+import {buildReorderDeclarationFact} from "../features/reorderDeclarations/factBuilder";
+import {buildReorderDeclarationsAstCommand} from "../features/reorderDeclarations/astCommandBuilder";
+import {executeReorderDeclarationsAstCommand} from "../features/reorderDeclarations/astCommandExecutor";
 
 enum JoernCliState {
     INITIAL = 1,
@@ -39,114 +43,25 @@ describe.only('joern', async function() {
 
 
     it('scanner test', () => {
-        type NoraNode =
-            | Readonly<{
-                children: ReadonlyArray<NoraNode>;
-            }>
-            | Readonly<{
-                node: ts.Node,
-            }>;
+        const fileName = '/index.ts';
+        const fileText = "export function a() {}; export class B {}";
 
-        const sourceCode = "export function a() {}; export class B {}";
-
-        const sourceFile = ts.createSourceFile('foo.ts', sourceCode, ts.ScriptTarget.ES5, true);
-
-        const buildNoraNode = (node: ts.Node, depth: number): NoraNode => {
-            if (depth === 1) {
-                return {
-                    node,
-                };
-            }
-
-            const children = node
-                .getChildren()
-                .flatMap(childNode => {
-                    if (childNode.kind === ts.SyntaxKind.SyntaxList) {
-                        return childNode
-                            .getChildren()
-                            .map(grandChildNode => {
-                                return buildNoraNode(grandChildNode, depth + 1);
-                            });
-                    }
-
-                    return buildNoraNode(childNode, depth + 1);
-                });
-
-            return {
-                children,
-            };
-        };
-
-        const noraNode = buildNoraNode(sourceFile, 0);
-
-        const indices: ReadonlyArray<number> = 'children' in noraNode && noraNode.children.map(
-            (childNode, index) => {
-                if (!('node' in childNode)) {
-                    return null;
-                }
-
-                const { node } = childNode;
-
-                if (ts.isClassDeclaration(node) || ts.isFunctionDeclaration(node)) {
-                    return index;
-                }
-
-                return null;
-            }
-        ).filter(isNeitherNullNorUndefined) || [];
-
-        console.log(indices);
-
-        const getNoraNodeFullText = (noraNode: NoraNode): string => {
-            if ('node' in noraNode) {
-                return noraNode.node.getFullText();
-            }
-
-            return noraNode
-                .children
-                .map(
-                    (childNode) => getNoraNodeFullText(childNode)
-                )
-                .join('');
-        };
-
-        const fullText = getNoraNodeFullText(noraNode);
-
-        assert.equal(fullText, sourceCode);
-
-        const replaceChildrenOrder = (
-            noraNode: NoraNode,
-            replacementMap: Map<number, number>,
-        ): NoraNode => {
-            if (!('children' in noraNode)) {
-                return noraNode;
-            }
-
-            const children = noraNode.children.slice();
-
-            replacementMap.forEach(
-                (value, key) => {
-                    children[key] = noraNode.children[value]!;
-                }
-            );
-
-            return {
-                ...noraNode,
-                children,
-            };
-        };
-
-        const replacementMap = new Map<number, number>(
-            [
-                [0, 2],
-                [2, 0],
-            ],
+        const userCommand = buildReorderDeclarationsUserCommand(
+            fileName,
+            fileText,
         );
 
-        const newNoraNode = replaceChildrenOrder(noraNode, replacementMap);
+        const fact = buildReorderDeclarationFact(
+            userCommand,
+        );
 
-        const x = getNoraNodeFullText(newNoraNode);
+        const astCommand = buildReorderDeclarationsAstCommand(
+            userCommand,
+            fact,
+        );
 
-        console.log(x);
+        const executions = executeReorderDeclarationsAstCommand(astCommand);
+
+        console.log(executions);
     });
 });
