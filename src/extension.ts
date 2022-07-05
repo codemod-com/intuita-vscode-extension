@@ -1,11 +1,56 @@
-import { join } from 'path';
 import * as vscode from 'vscode';
 import { getAstChanges } from './getAstChanges';
 import { AstChangeApplier } from "./astChangeApplier";
 import { Project } from "ts-morph";
 import { watchProject } from './watchedProject';
+import {readFileSync, writeFileSync} from "fs";
+import {reorderDeclarations} from "./features/reorderDeclarations";
+import {join} from "path";
 
 export async function activate(context: vscode.ExtensionContext) {
+	vscode.commands.registerCommand(
+		'intuita.reorderDeclarations',
+		(args) => {
+			const fileName: string | null = args && typeof args.fileName === 'string'
+				? args.fileName
+				: null;
+
+			if (fileName === null) {
+				return;
+			}
+
+			const fileText = readFileSync(fileName, 'utf8');
+
+			const executions = reorderDeclarations(fileName, fileText);
+
+			for (const { name, text } of executions) {
+				writeFileSync(name, text);
+			}
+		}
+	);
+
+	vscode.languages.registerHoverProvider(
+		'typescript',
+		{
+			provideHover(
+				document: vscode.TextDocument,
+			) {
+				const args = { fileName: document.uri.path };
+				const encodedArgs = encodeURIComponent(JSON.stringify(args));
+				const value = `command:intuita.reorderDeclarations?${encodedArgs}`;
+
+				const stageCommandUri = vscode.Uri.parse(value);
+
+				const contents = new vscode.MarkdownString(
+					`[Intuita: Reorder Declarations](${stageCommandUri})`
+				);
+				contents.isTrusted = true;
+
+				return new vscode.Hover(contents);
+			}
+		},
+	);
+
 	console.log('Activated the Intuita VSCode Extension')
 
 	const { storageUri } = context;

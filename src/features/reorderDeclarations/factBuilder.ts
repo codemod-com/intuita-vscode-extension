@@ -4,16 +4,76 @@ import {ReorderDeclarationsUserCommand} from "./userCommandBuilder";
 
 export type NoraNode =
     | Readonly<{
-        children: ReadonlyArray<NoraNode>;
+        children: ReadonlyArray<NoraNode>,
     }>
     | Readonly<{
         node: ts.Node,
+        identifiers: ReadonlySet<string>,
+        childIdentifiers: ReadonlySet<string>,
 }   >;
+
+export type Index = Readonly<{
+    index: number,
+    identifiers: ReadonlySet<string>,
+}>;
 
 export type ReorderDeclarationFact = Readonly<{
     noraNode: NoraNode,
-    indices: ReadonlyArray<number>,
+    indices: ReadonlyArray<Index>,
 }>;
+
+export const getChildIdentifiers = (
+    node: ts.Node
+): ReadonlyArray<string> => {
+    if (ts.isIdentifier(node)) {
+        return [ node.text ];
+    }
+
+    return node
+        .getChildren()
+        .map(
+            childNode => getChildIdentifiers(childNode)
+        )
+        .flat();
+};
+
+export const getIdentifiers = (
+    node: ts.Node,
+): ReadonlyArray<string> => {
+    if(
+        ts.isClassDeclaration(node)
+        || ts.isFunctionDeclaration(node)
+    ) {
+        const text = node.name?.text ?? null;
+
+        if (text === null) {
+            return [];
+        }
+
+        return [ text ];
+    }
+
+    if (
+        ts.isInterfaceDeclaration(node)
+        || ts.isInterfaceDeclaration(node)
+        || ts.isTypeAliasDeclaration(node)
+    ) {
+        return [ node.name.text ];
+    }
+
+    if (ts.isVariableStatement(node)) {
+         return node
+            .declarationList
+            .declarations
+            .map(
+                ({ name }) => name
+            )
+            .filter(ts.isIdentifier)
+            .map(({ text }) => text);
+    }
+
+    return [];
+};
 
 export const buildReorderDeclarationFact = (
     userCommand: ReorderDeclarationsUserCommand,
@@ -29,8 +89,17 @@ export const buildReorderDeclarationFact = (
 
     const buildNoraNode = (node: ts.Node, depth: number): NoraNode => {
         if (depth === 1) {
+            const identifiers = new Set(getIdentifiers(node));
+            const childIdentifiers = new Set(getChildIdentifiers(node));
+
+            identifiers.forEach((identifier) => {
+                childIdentifiers.delete(identifier);
+            });
+
             return {
                 node,
+                identifiers,
+                childIdentifiers,
             };
         }
 
@@ -55,13 +124,16 @@ export const buildReorderDeclarationFact = (
 
     const noraNode = buildNoraNode(sourceFile, 0);
 
-    const indices: ReadonlyArray<number> = 'children' in noraNode && noraNode.children.map(
+    const indices = 'children' in noraNode && noraNode.children.map(
         (childNode, index) => {
             if (!('node' in childNode)) {
                 return null;
             }
 
-            const { node } = childNode;
+            const {
+                node,
+                identifiers,
+            } = childNode;
 
             if (
                 ts.isClassDeclaration(node)
@@ -71,7 +143,10 @@ export const buildReorderDeclarationFact = (
                 || ts.isTypeAliasDeclaration(node)
                 || ts.isVariableStatement(node)
             ) {
-                return index;
+                return {
+                    index,
+                    identifiers,
+                };
             }
 
             return null;
@@ -82,4 +157,4 @@ export const buildReorderDeclarationFact = (
         noraNode,
         indices,
     };
-}
+};
