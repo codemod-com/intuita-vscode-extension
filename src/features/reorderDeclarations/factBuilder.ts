@@ -4,16 +4,71 @@ import {ReorderDeclarationsUserCommand} from "./userCommandBuilder";
 
 export type NoraNode =
     | Readonly<{
-        children: ReadonlyArray<NoraNode>;
+        children: ReadonlyArray<NoraNode>,
     }>
     | Readonly<{
         node: ts.Node,
+        identifiers: ReadonlyArray<string>,
+        childIdentifiers: ReadonlyArray<string>,
 }   >;
 
 export type ReorderDeclarationFact = Readonly<{
     noraNode: NoraNode,
     indices: ReadonlyArray<number>,
 }>;
+
+export const getChildIdentifiers = (
+    node: ts.Node
+): ReadonlyArray<string> => {
+    if (ts.isIdentifier(node)) {
+        return [ node.text ];
+    }
+
+    return node
+        .getChildren()
+        .map(
+            childNode => getChildIdentifiers(childNode)
+        )
+        .flat();
+};
+
+export const getIdentifiers = (
+    node: ts.Node,
+): ReadonlyArray<string> => {
+    if(
+        ts.isClassDeclaration(node)
+        || ts.isFunctionDeclaration(node)
+    ) {
+        const text = node.name?.text ?? null;
+
+        if (text === null) {
+            return [];
+        }
+
+        return [ text ];
+    }
+
+    if (
+        ts.isInterfaceDeclaration(node)
+        || ts.isInterfaceDeclaration(node)
+        || ts.isTypeAliasDeclaration(node)
+    ) {
+        return [ node.name.text ];
+    }
+
+    if (ts.isVariableStatement(node)) {
+         return node
+            .declarationList
+            .declarations
+            .map(
+                ({ name }) => name
+            )
+            .filter(ts.isIdentifier)
+            .map(({ text }) => text);
+    }
+
+    return [];
+};
 
 export const buildReorderDeclarationFact = (
     userCommand: ReorderDeclarationsUserCommand,
@@ -29,8 +84,11 @@ export const buildReorderDeclarationFact = (
 
     const buildNoraNode = (node: ts.Node, depth: number): NoraNode => {
         if (depth === 1) {
+
             return {
                 node,
+                identifiers: getIdentifiers(node),
+                childIdentifiers: getChildIdentifiers(node),
             };
         }
 
@@ -82,4 +140,4 @@ export const buildReorderDeclarationFact = (
         noraNode,
         indices,
     };
-}
+};

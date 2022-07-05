@@ -56,4 +56,15 @@ describe('reorder declarations', async function() {
         assert.equal(executions[0]?.name, '/index.ts');
         assert.equal(executions[0]?.text, ' export class B {}export const a = () => {};');
     });
+
+    it('reorder a variable statement and a class', () => {
+        const fileName = '/index.ts';
+        const fileText = "export const a = () => { const b = new B(); }; export class B {}";
+
+        const executions = reorderDeclarations(fileName, fileText);
+
+        assert.equal(executions.length, 1);
+        assert.equal(executions[0]?.name, '/index.ts');
+        assert.equal(executions[0]?.text, ' export class B {}export const a = () => {};');
+    });
 });
