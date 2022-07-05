@@ -1,18 +1,15 @@
-import { join } from 'path';
 import * as vscode from 'vscode';
 import { getAstChanges } from './getAstChanges';
 import { AstChangeApplier } from "./astChangeApplier";
 import { Project } from "ts-morph";
 import { watchProject } from './watchedProject';
 import {readFileSync, writeFileSync} from "fs";
-import {buildReorderDeclarationsUserCommand} from "./features/reorderDeclarations/userCommandBuilder";
-import {buildReorderDeclarationFact} from "./features/reorderDeclarations/factBuilder";
-import {buildReorderDeclarationsAstCommand} from "./features/reorderDeclarations/astCommandBuilder";
-import {executeReorderDeclarationsAstCommand} from "./features/reorderDeclarations/astCommandExecutor";
+import {reorderDeclarations} from "./features/reorderDeclarations";
+import {join} from "path";
 
 export async function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand(
-		'intuita.reorderFileStatements',
+		'intuita.reorderDeclarations',
 		(args) => {
 			const fileName: string | null = args && typeof args.fileName === 'string'
 				? args.fileName
@@ -24,21 +21,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const fileText = readFileSync(fileName, 'utf8');
 
-			const userCommand = buildReorderDeclarationsUserCommand(
-				fileName,
-				fileText,
-			);
-
-			const fact = buildReorderDeclarationFact(
-				userCommand,
-			);
-
-			const astCommand = buildReorderDeclarationsAstCommand(
-				userCommand,
-				fact,
-			);
-
-			const executions = executeReorderDeclarationsAstCommand(astCommand);
+			const executions = reorderDeclarations(fileName, fileText);
 
 			for (const { name, text } of executions) {
 				writeFileSync(name, text);
@@ -54,12 +37,12 @@ export async function activate(context: vscode.ExtensionContext) {
 			) {
 				const args = { fileName: document.uri.path };
 				const encodedArgs = encodeURIComponent(JSON.stringify(args));
-				const value = `command:intuita.reorderFileStatements?${encodedArgs}`;
+				const value = `command:intuita.reorderDeclarations?${encodedArgs}`;
 
 				const stageCommandUri = vscode.Uri.parse(value);
 
 				const contents = new vscode.MarkdownString(
-					`[Intuita: Reorder File Statements](${stageCommandUri})`
+					`[Intuita: Reorder Declarations](${stageCommandUri})`
 				);
 				contents.isTrusted = true;
 
