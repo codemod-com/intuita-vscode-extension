@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import {isNeitherNullNorUndefined} from "../../utilities";
 import {ReorderDeclarationsUserCommand} from "./userCommandBuilder";
+import {createHash} from "crypto";
 
 export type NoraNode =
     | Readonly<{
@@ -59,6 +60,18 @@ export const getIdentifiers = (
         || ts.isTypeAliasDeclaration(node)
     ) {
         return [ node.name.text ];
+    }
+
+    if (ts.isBlock(node)) {
+        const hash = createHash('ripemd160')
+            .update(
+                node.getFullText(),
+            )
+            .digest('base64url');
+
+        return [
+            hash,
+        ];
     }
 
     if (ts.isVariableStatement(node)) {

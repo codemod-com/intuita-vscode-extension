@@ -14,7 +14,7 @@ export type ReorderDeclarationsAstCommand = Readonly<{
 
 export const buildCallableMetadataMap = (
     noraNode: NoraNode,
-): ReadonlyMap<string, CallableMetadata> => {
+): ReadonlyMap<ReadonlySet<string>, CallableMetadata> => {
     if (!('children' in noraNode)) {
         return new Map();
     }
@@ -28,23 +28,21 @@ export const buildCallableMetadataMap = (
 
             const childIdentifiers = Array.from(childNode.childIdentifiers);
 
-            return Array.from(childNode.identifiers)
-                .map(
-                    (identifier) => {
-                        return [
-                            identifier,
-                            {
-                                nonCallableNames: [],
-                                callableNames: childIdentifiers,
-                                mutability: Mutability.READING_READONLY,
-                                empty: false,
-                            }
-                        ] as const;
-                    }
-                );
+            if (childNode.identifiers.size === 0) {
+                return null;
+            }
+
+            return [
+                childNode.identifiers,
+                {
+                    nonCallableNames: [],
+                    callableNames: childIdentifiers,
+                    mutability: Mutability.READING_READONLY,
+                    empty: false,
+                },
+            ] as const;
         })
-        .filter(isNeitherNullNorUndefined)
-        .flat();
+        .filter(isNeitherNullNorUndefined);
 
     return new Map(entries);
 };
@@ -62,13 +60,24 @@ export const buildReorderDeclarationsAstCommand = (
         null,
     );
 
+    const selectedIndices = Array.from(groupMap.values())
+        .map(({ callableNames }) => callableNames)
+        .flatMap((callableNames) => {
+            return callableNames
+                .map(
+                    name => indices.find(({ identifiers }) => identifiers.has(name))
+                )
+                .filter(isNeitherNullNorUndefined)
+                .map(({ index }) => index);
+        });
+
     // basic move-by-one algorithm
     const reorderingMap = new Map<number, number>(
-        indices.map(
+        selectedIndices.map(
             (value, index) => ([
-                value.index,
-                indices[index+1]?.index ?? indices[0]?.index ?? 0,
-            ]),
+                indices[index]?.index ?? 0,
+                value,
+            ])
         ),
     );
 
