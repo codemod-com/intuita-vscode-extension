@@ -8,8 +8,8 @@ export type NoraNode =
     }>
     | Readonly<{
         node: ts.Node,
-        identifiers: ReadonlyArray<string>,
-        childIdentifiers: ReadonlyArray<string>,
+        identifiers: ReadonlySet<string>,
+        childIdentifiers: ReadonlySet<string>,
 }   >;
 
 export type ReorderDeclarationFact = Readonly<{
@@ -84,11 +84,17 @@ export const buildReorderDeclarationFact = (
 
     const buildNoraNode = (node: ts.Node, depth: number): NoraNode => {
         if (depth === 1) {
+            const identifiers = new Set(getIdentifiers(node));
+            const childIdentifiers = new Set(getChildIdentifiers(node));
+
+            identifiers.forEach((identifier) => {
+                childIdentifiers.delete(identifier);
+            });
 
             return {
                 node,
-                identifiers: getIdentifiers(node),
-                childIdentifiers: getChildIdentifiers(node),
+                identifiers,
+                childIdentifiers,
             };
         }
 
