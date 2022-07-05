@@ -55,7 +55,7 @@ export const buildReorderDeclarationsAstCommand = (
 ): ReorderDeclarationsAstCommand => {
     const { indices, noraNode } = fact;
 
-    const callableMetadataMap = buildCallableMetadataMap(noraNode)
+    const callableMetadataMap = buildCallableMetadataMap(noraNode);
 
     const groupMap = getGroupMap(
         callableMetadataMap,
@@ -66,8 +66,8 @@ export const buildReorderDeclarationsAstCommand = (
     const reorderingMap = new Map<number, number>(
         indices.map(
             (value, index) => ([
-                value,
-                indices[index+1] ?? indices[0] ?? 0,
+                value.index,
+                indices[index+1]?.index ?? indices[0]?.index ?? 0,
             ]),
         ),
     );

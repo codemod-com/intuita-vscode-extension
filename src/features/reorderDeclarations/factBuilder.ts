@@ -12,9 +12,14 @@ export type NoraNode =
         childIdentifiers: ReadonlySet<string>,
 }   >;
 
+export type Index = Readonly<{
+    index: number,
+    identifiers: ReadonlySet<string>,
+}>;
+
 export type ReorderDeclarationFact = Readonly<{
     noraNode: NoraNode,
-    indices: ReadonlyArray<number>,
+    indices: ReadonlyArray<Index>,
 }>;
 
 export const getChildIdentifiers = (
@@ -119,13 +124,16 @@ export const buildReorderDeclarationFact = (
 
     const noraNode = buildNoraNode(sourceFile, 0);
 
-    const indices: ReadonlyArray<number> = 'children' in noraNode && noraNode.children.map(
+    const indices = 'children' in noraNode && noraNode.children.map(
         (childNode, index) => {
             if (!('node' in childNode)) {
                 return null;
             }
 
-            const { node } = childNode;
+            const {
+                node,
+                identifiers,
+            } = childNode;
 
             if (
                 ts.isClassDeclaration(node)
@@ -135,7 +143,10 @@ export const buildReorderDeclarationFact = (
                 || ts.isTypeAliasDeclaration(node)
                 || ts.isVariableStatement(node)
             ) {
-                return index;
+                return {
+                    index,
+                    identifiers,
+                };
             }
 
             return null;
