@@ -57,13 +57,21 @@ export const repackageGroupMap = (
     return newGroupMap;
 };
 
-export const getGroupMap = (
-    callableMetadataMap: ReadonlyMap<string, CallableMetadata>,
+const getCallableIdentifiers = <CallableIdentifier extends string | ReadonlySet<string>>(
+    callableIdentifier: CallableIdentifier,
+): ReadonlyArray<string> => {
+    return (typeof callableIdentifier === 'string')
+        ? [ callableIdentifier ]
+        : Array.from(callableIdentifier);
+};
+
+export const getGroupMap = <CallableIdentifier extends string | ReadonlySet<string>>(
+    callableMetadataMap: ReadonlyMap<CallableIdentifier, CallableMetadata>,
     maxGroupCount: 2 | null,
 ): ReadonlyMap<number, Group>=> {
     let groupNumber = 0;
     const groupMap = new Map<number, Group>;
-    const traversedMethodNames = new Set<string>();
+    const traversedMethodNames = new Set<CallableIdentifier>();
 
     const methodNames = Array.from(callableMetadataMap.keys()).sort();
 
@@ -71,31 +79,39 @@ export const getGroupMap = (
         return groupMap;
     }
 
-    const traverse = (methodName: string) => {
-        if(traversedMethodNames.has(methodName)) {
+    const traverse = (callableIdentifier: CallableIdentifier) => {
+        if(traversedMethodNames.has(callableIdentifier)) {
             return;
         }
 
-        traversedMethodNames.add(methodName);
+        traversedMethodNames.add(callableIdentifier);
 
-        const method = callableMetadataMap.get(methodName);
+        const method = callableMetadataMap.get(callableIdentifier);
 
         if (!method || method.empty) {
             return;
         }
 
+        const callableIdentifiers = getCallableIdentifiers(callableIdentifier);
+
         const methodResult = [...callableMetadataMap.entries()].filter(
-            ([_, method]) => method.callableNames.includes(methodName)
+            ([_, method]) => {
+                return callableIdentifiers
+                    .every(name => method.callableNames.includes(name));
+            }
         );
 
         const groupResult = [...groupMap.entries()].find(
-            ([_, group]) => group.callableNames.includes(methodName)
+            ([_, group]) => {
+                return callableIdentifiers
+                    .every(name => group.callableNames.includes(name));
+            }
         );
 
-        const methodNames = uniquify([
+        const methodNames = uniquify<string>([
             ...(groupResult?.[1].callableNames ?? []),
-            ...methodResult.map((r) => r[0]),
-            methodName
+            ...methodResult.flatMap((r) => getCallableIdentifiers(r[0])),
+            ...getCallableIdentifiers(callableIdentifier),
         ]);
 
         const propertyNames = uniquify([
@@ -140,8 +156,8 @@ export const getGroupMap = (
 
     for(let i = 0; i < methodNames.length; ++i) {
         methodNames.forEach(
-            (methodName) => {
-                const method = callableMetadataMap.get(methodName);
+            (callableIdentifier) => {
+                const method = callableMetadataMap.get(callableIdentifier);
 
                 if (!method) {
                     return;
@@ -150,7 +166,7 @@ export const getGroupMap = (
                 const { callableNames } = method;
 
                 if (callableNames.length === i) {
-                    traverse(methodName);
+                    traverse(callableIdentifier);
                 }
             }
         );
