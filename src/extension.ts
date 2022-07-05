@@ -4,8 +4,70 @@ import { getAstChanges } from './getAstChanges';
 import { AstChangeApplier } from "./astChangeApplier";
 import { Project } from "ts-morph";
 import { watchProject } from './watchedProject';
+import {readFileSync, writeFileSync} from "fs";
+import {buildReorderDeclarationsUserCommand} from "./features/reorderDeclarations/userCommandBuilder";
+import {buildReorderDeclarationFact} from "./features/reorderDeclarations/factBuilder";
+import {buildReorderDeclarationsAstCommand} from "./features/reorderDeclarations/astCommandBuilder";
+import {executeReorderDeclarationsAstCommand} from "./features/reorderDeclarations/astCommandExecutor";
 
 export async function activate(context: vscode.ExtensionContext) {
+	vscode.commands.registerCommand(
+		'intuita.reorderFileStatements',
+		(args) => {
+			const fileName: string | null = args && typeof args.fileName === 'string'
+				? args.fileName
+				: null;
+
+			if (fileName === null) {
+				return;
+			}
+
+			const fileText = readFileSync(fileName, 'utf8');
+
+			const userCommand = buildReorderDeclarationsUserCommand(
+				fileName,
+				fileText,
+			);
+
+			const fact = buildReorderDeclarationFact(
+				userCommand,
+			);
+
+			const astCommand = buildReorderDeclarationsAstCommand(
+				userCommand,
+				fact,
+			);
+
+			const executions = executeReorderDeclarationsAstCommand(astCommand);
+
+			for (const { name, text } of executions) {
+				writeFileSync(name, text);
+			}
+		}
+	);
+
+	vscode.languages.registerHoverProvider(
+		'typescript',
+		{
+			provideHover(
+				document: vscode.TextDocument,
+			) {
+				const args = { fileName: document.uri.path };
+				const encodedArgs = encodeURIComponent(JSON.stringify(args));
+				const value = `command:intuita.reorderFileStatements?${encodedArgs}`;
+
+				const stageCommandUri = vscode.Uri.parse(value);
+
+				const contents = new vscode.MarkdownString(
+					`[Intuita: Reorder File Statements](${stageCommandUri})`
+				);
+				contents.isTrusted = true;
+
+				return new vscode.Hover(contents);
+			}
+		},
+	);
+
 	console.log('Activated the Intuita VSCode Extension')
 
 	const { storageUri } = context;
