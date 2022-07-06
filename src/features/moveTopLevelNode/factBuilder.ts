@@ -1,22 +1,71 @@
 import {MoveTopLevelNodeUserCommand} from "./userCommandBuilder";
 import * as ts from "typescript";
-import {createHash} from "crypto";
 import {buildHash} from "../../utilities";
 
-type TopLevelNode = Readonly<{
+export type TopLevelNode = Readonly<{
     id: string,
     start: number,
     end: number,
 }>;
 
+export type MoveTopLevelNodeFact = Readonly<{
+    topLevelNodes: ReadonlyArray<TopLevelNode>,
+    selectedTopLevelNodeIndex: number,
+    stringNodes: ReadonlyArray<string>,
+}>;
+
+export const getStringNodes = (
+    fileText: string,
+    topLevelNodes: ReadonlyArray<TopLevelNode>
+): ReadonlyArray<string> => {
+    const stringNodes: string[] = [];
+
+    topLevelNodes.forEach(
+        (topLevelNode, index) => {
+            if (index === 0) {
+                stringNodes.push(
+                    fileText.slice(0, topLevelNode.start),
+                );
+            } else {
+                const previousNode = topLevelNodes[index - 1]!;
+
+                stringNodes.push(
+                    fileText.slice(
+                        previousNode.end + 1,
+                        topLevelNode.start,
+                    )
+                );
+            }
+
+            stringNodes.push(
+                fileText.slice(topLevelNode.start, topLevelNode.end + 1),
+            );
+
+            if (index === (topLevelNodes.length - 1)) {
+                stringNodes.push(
+                    fileText.slice(topLevelNode.end + 1),
+                );
+            }
+        }
+    );
+
+    return stringNodes;
+};
+
 export const buildMoveTopLevelNodeFact = (
     userCommand: MoveTopLevelNodeUserCommand
-) => {
+): MoveTopLevelNodeFact => {
     const {
         fileName,
         fileText,
         fileLine,
     } = userCommand;
+
+    const fineLineStart = fileText
+        .split('\n')
+        .filter((_, index) => index < fileLine)
+        .map(({ length }) => length)
+        .reduce((a, b) => a + b + 1, 0); // +1 for '\n'
 
     const sourceFile = ts.createSourceFile(
         fileName,
@@ -53,5 +102,14 @@ export const buildMoveTopLevelNodeFact = (
             };
         });
 
-    console.log(topLevelNodes);
+    const selectedTopLevelNodeIndex = topLevelNodes
+        .findIndex(node => node.start >= fineLineStart)
+
+    const stringNodes = getStringNodes(fileText, topLevelNodes);
+
+    return {
+        topLevelNodes,
+        selectedTopLevelNodeIndex,
+        stringNodes,
+    };
 };
