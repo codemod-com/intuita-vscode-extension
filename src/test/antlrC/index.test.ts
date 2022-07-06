@@ -10,14 +10,12 @@ type TopLevelNode = Readonly<{
     id: string,
     start: number,
     end: number,
-    // startLine: number,
-    // startPosition: number,
-    // endLine: number | null,
-    // endPosition: number | null,
 }>;
 
 describe('AntlrC', () => {
     it('x', () => {
+        // if you have \r\n, remove \r before checking and then replace \n with \r\n
+
         const oldText = [
             "",
             "int i = 0b0011;",
@@ -94,9 +92,18 @@ describe('AntlrC', () => {
 
         topLevelNodes.forEach(
             (topLevelNode, index) => {
-                if (elements.length === 0) {
+                if (index === 0) {
                     elements.push(
                         oldText.slice(0, topLevelNode.start),
+                    );
+                } else {
+                    const previousNode = topLevelNodes[index - 1]!;
+
+                    elements.push(
+                        oldText.slice(
+                            previousNode.end + 1,
+                            topLevelNode.start,
+                        )
                     );
                 }
 
@@ -113,8 +120,9 @@ describe('AntlrC', () => {
         );
 
         console.log(elements)
-        // const newText = value.join('\n');
-        //
-        // assert.equal(newText, oldText);
+
+        const newText = elements.join('');
+
+        assert.equal(newText, oldText);
     });
 });
