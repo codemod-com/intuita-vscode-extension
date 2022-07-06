@@ -8,10 +8,12 @@ import { createHash } from 'crypto';
 
 type TopLevelNode = Readonly<{
     id: string,
-    startLine: number,
-    startPosition: number,
-    endLine: number | null,
-    endPosition: number | null,
+    start: number,
+    end: number,
+    // startLine: number,
+    // startPosition: number,
+    // endLine: number | null,
+    // endPosition: number | null,
 }>;
 
 describe('AntlrC', () => {
@@ -22,6 +24,9 @@ describe('AntlrC', () => {
             "",
             "int j = 0B1010;",
         ].join('\n');
+
+        const lines = oldText.split('\n');
+        const lengths = lines.map(line => (line.length + 1));
 
         // Create the lexer and parser
         let inputStream = new ANTLRInputStream(oldText);
@@ -55,17 +60,25 @@ describe('AntlrC', () => {
                     .update(ctx.text)
                     .digest('base64url');
 
-                const startLine = ctx.start.line;
+                console.log(ctx.text);
+
+                const startLine = ctx.start.line - 1;
                 const startPosition = ctx.start.charPositionInLine;
-                const endLine = ctx.stop?.line ?? null;
-                const endPosition = ctx.stop?.charPositionInLine ?? null;
+                const endLine = (ctx.stop?.line ?? ctx.start.line) - 1;
+                const endPosition = (ctx.stop?.charPositionInLine ?? ctx.start.charPositionInLine);
+
+                const start = lengths
+                    .slice(0, startLine)
+                    .reduce((a, b) => a+b, startPosition);
+
+                const end = lengths
+                    .slice(0, endLine)
+                    .reduce((a, b) => a+b, endPosition);
 
                 const topLevelNode: TopLevelNode = {
                     id,
-                    startLine,
-                    startPosition,
-                    endLine,
-                    endPosition,
+                    start,
+                    end,
                 };
 
                 return [ topLevelNode ];
@@ -77,8 +90,29 @@ describe('AntlrC', () => {
         // Use the visitor entry point
         const topLevelNodes = countFunctionsVisitor.visit(tree);
 
-        console.log(topLevelNodes);
+        const elements: string[] = [];
 
+        topLevelNodes.forEach(
+            (topLevelNode, index) => {
+                if (elements.length === 0) {
+                    elements.push(
+                        oldText.slice(0, topLevelNode.start),
+                    );
+                }
+
+                elements.push(
+                    oldText.slice(topLevelNode.start, topLevelNode.end + 1),
+                );
+
+                if (index === (topLevelNodes.length - 1)) {
+                    elements.push(
+                        oldText.slice(topLevelNode.end + 1),
+                    );
+                }
+            }
+        );
+
+        console.log(elements)
         // const newText = value.join('\n');
         //
         // assert.equal(newText, oldText);
