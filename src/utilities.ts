@@ -1,4 +1,6 @@
 // the [T] is intentional (for distributive types)
+import {createHash} from "crypto";
+
 type NeitherNullNorUndefined<T> = [T] extends null | undefined ? never : T;
 
 export function isNeitherNullNorUndefined<T>(
@@ -11,3 +13,8 @@ export type SourceFileExecution = Readonly<{
     name: string,
     text: string,
 }>;
+
+export const buildHash = (data: string) =>
+    createHash('ripemd160')
+        .update(data)
+        .digest('base64url');
