@@ -38,6 +38,31 @@ export const calculateCoefficient = (
     return coefficient;
 };
 
+const calculateSolution = (
+    nodes: ReadonlyArray<TopLevelNode>,
+    selectedIndex: number,
+) => {
+    return (new Array(nodes.length))
+        .map((_, index) => {
+            return moveElementInArray(
+                nodes,
+                selectedIndex,
+                index,
+            );
+        })
+        .map((nodes, index) => {
+            return {
+                nodes,
+                index,
+                coefficient: calculateCoefficient(nodes),
+            };
+        })
+        .sort((a, b) => {
+            return Math.sign(b.coefficient - a.coefficient);
+        })
+        [0] ?? null;
+};
+
 type MoveTopLevelNodeAstCommand = Readonly<{
     kind: "MOVE_TOP_LEVEL_NODE",
     fileName: string,
@@ -61,25 +86,10 @@ export const buildMoveTopLevelNodeAstCommand = (
         return null;
     }
 
-    const solution = (new Array(topLevelNodes.length))
-        .map((_, index) => {
-            return moveElementInArray(
-                topLevelNodes,
-                selectedTopLevelNodeIndex,
-                index,
-            );
-        })
-        .map((nodes, index) => {
-            return {
-                nodes,
-                index,
-                coefficient: calculateCoefficient(nodes),
-            };
-        })
-        .sort((a, b) => {
-            return Math.sign(b.coefficient - a.coefficient);
-        })
-        [0] ?? null;
+    const solution = calculateSolution(
+        topLevelNodes,
+        selectedTopLevelNodeIndex,
+    );
 
     if (solution === null) {
         return null;
