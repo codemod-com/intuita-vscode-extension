@@ -6,14 +6,13 @@ export const executeMoveTopLevelNodeAstCommand = (
         fileName,
         oldIndex,
         newIndex,
+        topLevelNodes,
         stringNodes,
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {
     if (oldIndex === newIndex) {
         return [];
     }
-
-
 
     return [
         {

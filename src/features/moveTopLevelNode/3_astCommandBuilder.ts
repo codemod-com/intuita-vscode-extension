@@ -2,7 +2,7 @@
 import * as jaroWinkler from 'jaro-winkler';
 import {calculateAverage, isNeitherNullNorUndefined, moveElementInArray} from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
-import {MoveTopLevelNodeFact, TopLevelNode} from "./2_factBuilder";
+import {MoveTopLevelNodeFact, StringNode, TopLevelNode} from "./2_factBuilder";
 
 export const calculateDependencyCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
@@ -23,7 +23,7 @@ export const calculateDependencyCoefficient = (
                     );
             }
         )
-        .map((value) => Number(value))
+        .map((value) => Number(value));
 
     return calculateAverage(values);
 };
@@ -127,7 +127,8 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     oldIndex: number,
     newIndex: number,
     coefficient: number,
-    stringNodes: ReadonlyArray<string>,
+    topLevelNodes: ReadonlyArray<TopLevelNode>,
+    stringNodes: ReadonlyArray<StringNode>,
 }>;
 
 export const buildMoveTopLevelNodeAstCommand = (
@@ -159,6 +160,7 @@ export const buildMoveTopLevelNodeAstCommand = (
         oldIndex: selectedTopLevelNodeIndex,
         newIndex: solution.index,
         coefficient: solution.coefficient,
+        topLevelNodes,
         stringNodes,
     };
 };
