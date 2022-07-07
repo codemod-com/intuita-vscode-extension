@@ -1,12 +1,12 @@
-import { moveElementInArray } from "../../utilities";
+// @ts-ignore
+import * as jaroWinkler from 'jaro-winkler';
+import {isNeitherNullNorUndefined, moveElementInArray } from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact, TopLevelNode} from "./2_factBuilder";
 
 /*
 for the new nodes (m0, m1, m2, ..., mn)
-for each node, calculate if the name before it and above it is similar (between 0-1)
 for each base interface, calculate how far its extensions are (0-1)
-sum all values up with the same weights (we can alter it in the future)
  */
 
 export const calculateDependencyCoefficient = (
@@ -26,7 +26,7 @@ export const calculateDependencyCoefficient = (
                     .some(
                         (node) => {
                             return Array
-                                .from(node.identifiers.values())
+                                .from(node.identifiers)
                                 .some(
                                     (identifier) => childIdentifiers.has(identifier)
                                 );
@@ -38,6 +38,55 @@ export const calculateDependencyCoefficient = (
         .reduce((a, b) => a + b, 0);
 
     return sum / length;
+};
+
+export const calculateSimilarityCoefficient = (
+    nodes: ReadonlyArray<TopLevelNode>,
+): number => {
+    if (nodes.length === 0) {
+        return 0;
+    }
+
+    const sum = nodes
+        .map(
+        ({ identifiers }, index) => {
+            if (identifiers.size === 0) {
+                return 0;
+            }
+
+            const sum = Array
+                .from(identifiers)
+                .map((identifier) => {
+                    const values = [
+                        nodes[index - 1] ?? null,
+                        nodes[index + 1] ?? null,
+                    ]
+                        .filter(isNeitherNullNorUndefined)
+                        .flatMap(
+                            (node) => Array.from(node.identifiers),
+                        )
+                        .map(
+                            (otherIdentifier) => {
+                                return 1 - jaroWinkler(identifier, otherIdentifier);
+                            }
+                        );
+
+                    if (values.length === 0) {
+                        return 0;
+                    }
+
+                    const sum = values
+                        .reduce((a, b) => a + b, 0);
+
+                    return sum / values.length;
+                })
+                .reduce((a, b) => a + b, 0);
+
+            return sum / identifiers.size;
+        })
+        .reduce((a, b) => a + b, 0);
+
+    return sum / nodes.length;
 };
 
 export const calculateCoefficient = (
