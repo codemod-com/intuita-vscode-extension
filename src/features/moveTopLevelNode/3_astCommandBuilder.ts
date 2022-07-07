@@ -115,7 +115,7 @@ const calculateSolution = (
             };
         })
         .sort((a, b) => {
-            return Math.sign(b.coefficient - a.coefficient);
+            return Math.sign(a.coefficient - b.coefficient);
         });
 
     return solutions[0] ?? null;
@@ -127,7 +127,6 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     oldIndex: number,
     newIndex: number,
     coefficient: number,
-    topLevelNodes: ReadonlyArray<TopLevelNode>,
     stringNodes: ReadonlyArray<StringNode>,
 }>;
 
@@ -160,7 +159,6 @@ export const buildMoveTopLevelNodeAstCommand = (
         oldIndex: selectedTopLevelNodeIndex,
         newIndex: solution.index,
         coefficient: solution.coefficient,
-        topLevelNodes,
         stringNodes,
     };
 };

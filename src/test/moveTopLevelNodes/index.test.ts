@@ -1,5 +1,4 @@
 import {assert} from "chai";
-import {reorderDeclarations} from "../../features/reorderDeclarations";
 import {moveTopLevelNode} from "../../features/moveTopLevelNode";
 
 describe('move top-level nodes', async function() {
@@ -23,8 +22,8 @@ describe('move top-level nodes', async function() {
         assert.equal(
             executions[0]?.text,
             [
-                "export function a() { return new B(); };",
                 "export class B {};",
+                "export function a() { return new B(); };",
                 "export function c() {};",
             ].join('\n')
         );

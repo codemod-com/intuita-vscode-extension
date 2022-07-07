@@ -6,7 +6,6 @@ export const executeMoveTopLevelNodeAstCommand = (
         fileName,
         oldIndex,
         newIndex,
-        topLevelNodes, // deprecate!!! (remove from the structure) TODO
         stringNodes,
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {
