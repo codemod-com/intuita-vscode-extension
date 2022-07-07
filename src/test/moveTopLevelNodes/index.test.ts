@@ -23,10 +23,10 @@ describe('move top-level nodes', async function() {
         assert.equal(
             executions[0]?.text,
             [
-                "",
+                "export function a() { return new B(); };",
+                "export class B {};",
                 "export function c() {};",
-                "export class B {};export function a() { return new B(); }",
-            ].join('\n'),
+            ].join('\n')
         );
     });
 });

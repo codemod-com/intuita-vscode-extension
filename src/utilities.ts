@@ -21,10 +21,10 @@ export const buildHash = (data: string) =>
 
 export const moveElementInArray = <T>(
     array: ReadonlyArray<NonNullable<T>>,
-    fromIndex: number,
-    toIndex: number,
+    oldIndex: number,
+    newIndex: number,
 ): ReadonlyArray<NonNullable<T>> => {
-    const element = array[fromIndex];
+    const element = array[oldIndex];
 
     if (!isNeitherNullNorUndefined(element)) {
         return array;
@@ -32,8 +32,8 @@ export const moveElementInArray = <T>(
 
     const newArray = array.slice();
 
-    newArray.splice(fromIndex, 1);
-    newArray.splice(toIndex, 0, element);
+    newArray.splice(oldIndex, 1);
+    newArray.splice(newIndex, 0, element);
 
     return newArray;
 };
