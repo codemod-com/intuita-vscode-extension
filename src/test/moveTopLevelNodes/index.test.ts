@@ -18,15 +18,15 @@ describe('move top-level nodes', async function() {
             fileLine,
         );
 
-        // assert.equal(executions.length, 1);
-        // assert.equal(executions[0]?.name, '/index.ts');
-        // assert.equal(
-        //     executions[0]?.text,
-        //     [
-        //         "",
-        //         "export function c() {};",
-        //         "export class B {};export function a() { return new B(); }",
-        //     ].join('\n'),
-        // );
-    })
+        assert.equal(executions.length, 1);
+        assert.equal(executions[0]?.name, '/index.ts');
+        assert.equal(
+            executions[0]?.text,
+            [
+                "",
+                "export function c() {};",
+                "export class B {};export function a() { return new B(); }",
+            ].join('\n'),
+        );
+    });
 });

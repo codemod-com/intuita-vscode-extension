@@ -99,7 +99,7 @@ const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     selectedIndex: number,
 ) => {
-    return (new Array(nodes.length))
+    const solutions = nodes
         .map((_, index) => {
             return moveElementInArray(
                 nodes,
@@ -116,8 +116,9 @@ const calculateSolution = (
         })
         .sort((a, b) => {
             return Math.sign(b.coefficient - a.coefficient);
-        })
-        [0] ?? null;
+        });
+
+    return solutions[0] ?? null;
 };
 
 export type MoveTopLevelNodeAstCommand = Readonly<{
