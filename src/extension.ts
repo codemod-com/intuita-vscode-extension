@@ -6,8 +6,52 @@ import { watchProject } from './watchedProject';
 import {readFileSync, writeFileSync} from "fs";
 import {reorderDeclarations} from "./features/reorderDeclarations";
 import {join} from "path";
+import {CodeAction} from "vscode";
+import {buildMoveTopLevelNodeUserCommand} from "./features/moveTopLevelNode/1_userCommandBuilder";
+import {buildMoveTopLevelNodeFact} from "./features/moveTopLevelNode/2_factBuilder";
+
+class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
+	public provideCodeActions(
+		document: vscode.TextDocument,
+		range: vscode.Range | vscode.Selection,
+		context: vscode.CodeActionContext,
+		token: vscode.CancellationToken
+	): Thenable<vscode.CodeAction[]> {
+		const fileName = document.fileName.replace('.git', '');
+		const fileText = document.getText();
+		const fileLine = range.start.line;
+
+		const userCommand = buildMoveTopLevelNodeUserCommand(
+			fileName,
+			fileText,
+			fileLine,
+		);
+
+		const fact = buildMoveTopLevelNodeFact(userCommand);
+
+		const { selectedTopLevelNodeIndex, topLevelNodes } = fact;
+
+		const topLevelNode = topLevelNodes[selectedTopLevelNodeIndex] ?? null;
+
+		if (topLevelNode === null) {
+			return Promise.resolve<vscode.CodeAction[]>([
+				new CodeAction('No nodes'),
+			]);
+		}
+
+		return Promise.resolve<vscode.CodeAction[]>([
+			new CodeAction('Move this top-level node'),
+		]);
+	}
+}
 
 export async function activate(context: vscode.ExtensionContext) {
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider(
+			'typescript',
+			new MoveTopLevelNodeActionProvider()
+		));
+
 	vscode.commands.registerCommand(
 		'intuita.reorderDeclarations',
 		(args) => {

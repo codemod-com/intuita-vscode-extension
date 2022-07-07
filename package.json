@@ -12,6 +12,9 @@
 	"activationEvents": [
 		"workspaceContains:**/*.ts*"
 	],
+	"capabilities" : {
+		"codeActionProvider" : "true"
+	},
 	"main": "./dist/extension.js",
 	"scripts": {
 		"vscode:prepublish": "yarn run package",
