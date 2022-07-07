@@ -1,5 +1,5 @@
-import {buildMoveTopLevelNodeUserCommand} from "./userCommandBuilder";
-import {buildMoveTopLevelNodeFact} from "./factBuilder";
+import {buildMoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
+import {buildMoveTopLevelNodeFact} from "./2_factBuilder";
 
 export const moveTopLevelNode = (
     fileName: string,

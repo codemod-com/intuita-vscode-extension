@@ -1,4 +1,4 @@
-import {MoveTopLevelNodeUserCommand} from "./userCommandBuilder";
+import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
 import {buildHash} from "../../utilities";
 

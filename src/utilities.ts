@@ -18,3 +18,22 @@ export const buildHash = (data: string) =>
     createHash('ripemd160')
         .update(data)
         .digest('base64url');
+
+export const moveElementInArray = <T>(
+    array: ReadonlyArray<NonNullable<T>>,
+    fromIndex: number,
+    toIndex: number,
+): ReadonlyArray<NonNullable<T>> => {
+    const element = array[fromIndex];
+
+    if (!isNeitherNullNorUndefined(element)) {
+        return array;
+    }
+
+    const newArray = array.slice();
+
+    newArray.splice(fromIndex, 1);
+    newArray.splice(toIndex, 0, element);
+
+    return newArray;
+};
