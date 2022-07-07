@@ -11,6 +11,7 @@ export const enum TopLevelNodeKind {
     TYPE_ALIAS = 5,
     BLOCK = 6,
     VARIABLE = 7,
+    ENUM = 8,
 }
 
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
@@ -27,6 +28,8 @@ const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
             return TopLevelNodeKind.BLOCK;
         case ts.SyntaxKind.VariableStatement:
             return TopLevelNodeKind.VARIABLE;
+        case ts.SyntaxKind.EnumDeclaration:
+            return TopLevelNodeKind.ENUM;
         default:
             return TopLevelNodeKind.UNKNOWN;
     }
@@ -82,6 +85,7 @@ export const getIdentifiers = (
         ts.isInterfaceDeclaration(node)
         || ts.isInterfaceDeclaration(node)
         || ts.isTypeAliasDeclaration(node)
+        || ts.isEnumDeclaration(node)
     ) {
         return [ node.name.text ];
     }
@@ -191,7 +195,8 @@ export const buildMoveTopLevelNodeFact = (
                 || ts.isInterfaceDeclaration(node)
                 || ts.isTypeAliasDeclaration(node)
                 || ts.isBlock(node)
-                || ts.isVariableStatement(node);
+                || ts.isVariableStatement(node)
+                || ts.isEnumDeclaration(node);
         })
         .map((node) => {
             const kind = getTopLevelNodeKind(node.kind);
