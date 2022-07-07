@@ -120,7 +120,7 @@ const calculateSolution = (
         [0] ?? null;
 };
 
-type MoveTopLevelNodeAstCommand = Readonly<{
+export type MoveTopLevelNodeAstCommand = Readonly<{
     kind: "MOVE_TOP_LEVEL_NODE",
     fileName: string,
     oldIndex: number,
