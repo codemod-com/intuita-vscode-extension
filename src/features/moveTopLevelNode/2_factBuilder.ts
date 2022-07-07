@@ -3,7 +3,37 @@ import * as ts from "typescript";
 import {buildHash} from "../../utilities";
 import {createHash} from "crypto";
 
+export const enum TopLevelNodeKind {
+    UNKNOWN = 1,
+    CLASS = 2,
+    FUNCTION = 3,
+    INTERFACE = 4,
+    TYPE_ALIAS = 5,
+    BLOCK = 6,
+    VARIABLE = 7,
+}
+
+const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
+    switch(kind) {
+        case ts.SyntaxKind.ClassDeclaration:
+            return TopLevelNodeKind.CLASS;
+        case ts.SyntaxKind.FunctionDeclaration:
+            return TopLevelNodeKind.FUNCTION;
+        case ts.SyntaxKind.InterfaceDeclaration:
+            return TopLevelNodeKind.INTERFACE;
+        case ts.SyntaxKind.TypeAliasDeclaration:
+            return TopLevelNodeKind.TYPE_ALIAS;
+        case ts.SyntaxKind.Block:
+            return TopLevelNodeKind.BLOCK;
+        case ts.SyntaxKind.VariableStatement:
+            return TopLevelNodeKind.VARIABLE;
+        default:
+            return TopLevelNodeKind.UNKNOWN;
+    }
+};
+
 export type TopLevelNode = Readonly<{
+    kind: TopLevelNodeKind,
     id: string,
     start: number,
     end: number,
@@ -150,12 +180,13 @@ export const buildMoveTopLevelNodeFact = (
             return ts.isClassDeclaration(node)
                 || ts.isFunctionDeclaration(node)
                 || ts.isInterfaceDeclaration(node)
-                || ts.isInterfaceDeclaration(node)
                 || ts.isTypeAliasDeclaration(node)
                 || ts.isBlock(node)
                 || ts.isVariableStatement(node);
         })
         .map((node) => {
+            const kind = getTopLevelNodeKind(node.kind);
+
             const start = node.getStart();
             const end = start + node.getWidth() - 1;
 
@@ -172,6 +203,7 @@ export const buildMoveTopLevelNodeFact = (
             });
 
             return {
+                kind,
                 id,
                 start,
                 end,

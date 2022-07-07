@@ -89,11 +89,21 @@ export const calculateSimilarityCoefficient = (
     return sum / nodes.length;
 };
 
+export const calculateKindCoefficient = (
+    nodes: ReadonlyArray<TopLevelNode>,
+): number => {
+    return 0;
+};
+
 export const calculateCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
 ): number => {
     // "0" is the ideal (perfect) coefficient
-    return calculateDependencyCoefficient(nodes);
+    return (
+        + calculateDependencyCoefficient(nodes)
+        + calculateSimilarityCoefficient(nodes)
+        + calculateKindCoefficient(nodes)
+    ) / 3;
 };
 
 const calculateSolution = (
