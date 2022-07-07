@@ -38,18 +38,10 @@ export const calculateDependencyCoefficient = (
 export const calculateSimilarityCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
 ): number => {
-    if (nodes.length === 0) {
-        return 0;
-    }
-
-    const sum = nodes
+    const values = nodes
         .map(
         ({ identifiers }, index) => {
-            if (identifiers.size === 0) {
-                return 0;
-            }
-
-            const sum = Array
+            const values = Array
                 .from(identifiers)
                 .map((identifier) => {
                     const values = [
@@ -66,22 +58,13 @@ export const calculateSimilarityCoefficient = (
                             }
                         );
 
-                    if (values.length === 0) {
-                        return 0;
-                    }
+                    return calculateAverage(values);
+                });
 
-                    const sum = values
-                        .reduce((a, b) => a + b, 0);
+            return calculateAverage(values);
+        });
 
-                    return sum / values.length;
-                })
-                .reduce((a, b) => a + b, 0);
-
-            return sum / identifiers.size;
-        })
-        .reduce((a, b) => a + b, 0);
-
-    return sum / nodes.length;
+    return calculateAverage(values);
 };
 
 export const calculateKindCoefficient = (
