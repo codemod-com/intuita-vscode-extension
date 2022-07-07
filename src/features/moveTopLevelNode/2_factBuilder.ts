@@ -1,11 +1,14 @@
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
 import {buildHash} from "../../utilities";
+import {createHash} from "crypto";
 
 export type TopLevelNode = Readonly<{
     id: string,
     start: number,
     end: number,
+    identifiers: Set<string>,
+    childIdentifiers: Set<string>,
 }>;
 
 export type MoveTopLevelNodeFact = Readonly<{
@@ -13,6 +16,71 @@ export type MoveTopLevelNodeFact = Readonly<{
     selectedTopLevelNodeIndex: number,
     stringNodes: ReadonlyArray<string>,
 }>;
+
+export const getChildIdentifiers = (
+    node: ts.Node
+): ReadonlyArray<string> => {
+    if (ts.isIdentifier(node)) {
+        return [ node.text ];
+    }
+
+    return node
+        .getChildren()
+        .map(
+            childNode => getChildIdentifiers(childNode)
+        )
+        .flat();
+};
+
+export const getIdentifiers = (
+    node: ts.Node,
+): ReadonlyArray<string> => {
+    if(
+        ts.isClassDeclaration(node)
+        || ts.isFunctionDeclaration(node)
+    ) {
+        const text = node.name?.text ?? null;
+
+        if (text === null) {
+            return [];
+        }
+
+        return [ text ];
+    }
+
+    if (
+        ts.isInterfaceDeclaration(node)
+        || ts.isInterfaceDeclaration(node)
+        || ts.isTypeAliasDeclaration(node)
+    ) {
+        return [ node.name.text ];
+    }
+
+    if (ts.isBlock(node)) {
+        const hash = createHash('ripemd160')
+            .update(
+                node.getFullText(),
+            )
+            .digest('base64url');
+
+        return [
+            hash,
+        ];
+    }
+
+    if (ts.isVariableStatement(node)) {
+        return node
+            .declarationList
+            .declarations
+            .map(
+                ({ name }) => name
+            )
+            .filter(ts.isIdentifier)
+            .map(({ text }) => text);
+    }
+
+    return [];
+};
 
 export const getStringNodes = (
     fileText: string,
@@ -95,15 +163,25 @@ export const buildMoveTopLevelNodeFact = (
 
             const id = buildHash(text);
 
+            // extract identifiers:
+            const identifiers = new Set(getIdentifiers(node));
+            const childIdentifiers = new Set(getChildIdentifiers(node));
+
+            identifiers.forEach((identifier) => {
+                childIdentifiers.delete(identifier);
+            });
+
             return {
                 id,
                 start,
                 end,
+                identifiers,
+                childIdentifiers,
             };
         });
 
     const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start >= fineLineStart)
+        .findIndex(node => node.start >= fineLineStart);
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
