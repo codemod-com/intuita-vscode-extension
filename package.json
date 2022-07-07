@@ -12,6 +12,9 @@
 	"activationEvents": [
 		"workspaceContains:**/*.ts*"
 	],
+	"capabilities" : {
+		"codeActionProvider" : "true"
+	},
 	"main": "./dist/extension.js",
 	"scripts": {
 		"vscode:prepublish": "yarn run package",
@@ -19,7 +22,8 @@
 		"watch": "webpack --watch",
 		"package": "webpack --mode production --devtool hidden-source-map",
 		"lint": "eslint src --ext ts",
-		"test": "mocha"
+		"test": "mocha",
+		"antlr4ts": "antlr4ts -visitor C.g4"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.1",
@@ -30,6 +34,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
 		"@typescript-eslint/parser": "^5.27.0",
 		"@vscode/test-electron": "^2.1.3",
+		"antlr4ts-cli": "^0.5.0-alpha.4",
 		"chai": "^4.3.6",
 		"eslint": "^8.16.0",
 		"glob": "^8.0.3",
@@ -41,7 +46,9 @@
 		"webpack-cli": "^4.9.2"
 	},
 	"dependencies": {
+		"antlr4ts": "^0.5.0-alpha.4",
 		"chokidar": "^3.5.3",
+		"jaro-winkler": "^0.2.8",
 		"ts-morph": "^15.1.0",
 		"typescript": "^4.7.3"
 	}
