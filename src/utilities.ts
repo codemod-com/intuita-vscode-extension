@@ -37,3 +37,16 @@ export const moveElementInArray = <T>(
 
     return newArray;
 };
+
+export const calculateAverage = (
+    array: ReadonlyArray<number>
+): number => {
+    if (array.length === 0) {
+        return 0;
+    }
+
+    const sum = array
+        .reduce((a, b) => a + b, 0);
+
+    return sum / array.length;
+}

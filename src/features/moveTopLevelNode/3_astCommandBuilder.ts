@@ -1,6 +1,6 @@
 // @ts-ignore
 import * as jaroWinkler from 'jaro-winkler';
-import {isNeitherNullNorUndefined, moveElementInArray } from "../../utilities";
+import {calculateAverage, isNeitherNullNorUndefined, moveElementInArray} from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact, TopLevelNode} from "./2_factBuilder";
 
@@ -91,7 +91,21 @@ export const calculateKindCoefficient = (
         return 0;
     }
 
-    return 0;
+    const values = nodes.map(
+        ({ kind }, index) => {
+            const values = [
+                nodes[index - 1] ?? null,
+                nodes[index + 1] ?? null,
+            ]
+                .filter(isNeitherNullNorUndefined)
+                .map(otherNode => otherNode.kind !== kind)
+                .map(value => Number(value));
+
+            return calculateAverage(values);
+        }
+    );
+
+    return calculateAverage(values);
 };
 
 export const calculateCoefficient = (
