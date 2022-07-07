@@ -87,6 +87,10 @@ export const calculateSimilarityCoefficient = (
 export const calculateKindCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
 ): number => {
+    if (nodes.length === 0) {
+        return 0;
+    }
+
     return 0;
 };
 

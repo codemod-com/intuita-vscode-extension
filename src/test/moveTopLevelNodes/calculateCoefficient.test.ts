@@ -1,6 +1,7 @@
 import {assert} from "chai";
 import {
     calculateDependencyCoefficient,
+    calculateKindCoefficient,
     calculateSimilarityCoefficient
 } from "../../features/moveTopLevelNode/3_astCommandBuilder";
 import {TopLevelNode, TopLevelNodeKind} from "../../features/moveTopLevelNode/2_factBuilder";
@@ -9,13 +10,15 @@ const buildNode = (
     identifier: string,
     {
         childIdentifiers,
+        kind,
     }: Readonly<{
         childIdentifiers?: ReadonlySet<string>,
+        kind?: TopLevelNodeKind,
     }>,
 ): TopLevelNode => {
     return {
         id: identifier,
-        kind: TopLevelNodeKind.UNKNOWN,
+        kind: kind ?? TopLevelNodeKind.UNKNOWN,
         start: 0,
         end: 10,
         identifiers: new Set([ identifier ]),
@@ -117,5 +120,33 @@ describe('calculateSimilarityCoefficient', () => {
         ]);
 
         assert.approximately(coefficient, 0.78, 0.01);
+    });
+});
+
+describe('calculateKindCoefficient', () => {
+    it('should return 0 for 0 nodes', () => {
+        const coefficient = calculateKindCoefficient([]);
+
+        assert.approximately(coefficient, 0, 0.0001);
+    });
+
+    it('should return 0 for 3 nodes (the same kind)', () => {
+        const coefficient = calculateKindCoefficient([
+            buildNode('a', { kind: TopLevelNodeKind.CLASS }),
+            buildNode('b', { kind: TopLevelNodeKind.CLASS }),
+            buildNode('c', { kind: TopLevelNodeKind.CLASS }),
+        ]);
+
+        assert.approximately(coefficient, 0, 0.0001);
+    });
+
+    it('should return 1 for 3 nodes (different kinds)', () => {
+        const coefficient = calculateKindCoefficient([
+            buildNode('a', { kind: TopLevelNodeKind.CLASS }),
+            buildNode('b', { kind: TopLevelNodeKind.FUNCTION }),
+            buildNode('c', { kind: TopLevelNodeKind.INTERFACE }),
+        ]);
+
+        assert.approximately(coefficient, 1, 0.0001);
     });
 });
