@@ -2,13 +2,51 @@ import {assert} from "chai";
 import {moveTopLevelNode} from "../../features/moveTopLevelNode";
 
 describe('move top-level nodes', async function() {
-    it('reorder a function and a class', () => {
+    const fileText = [
+        "export function a() { return new B(); };",
+        "export function c() {};",
+        "export class B {};",
+    ].join('\n');
+
+    it('should move A nowhere', () => {
         const fileName = '/index.ts';
-        const fileText = [
-            "export function a() { return new B(); };",
-            "export function c() {};",
-            "export class B {};",
-        ].join('\n');
+
+        const fileLine = 0;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 0);
+    });
+
+    it('should move C before A', () => {
+        const fileName = '/index.ts';
+
+        const fileLine = 1;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "export function c() {};",
+                "export function a() { return new B(); };",
+                "export class B {};",
+            ].join('\n')
+        );
+    });
+
+    it('should move B before A', () => {
+        const fileName = '/index.ts';
+
         const fileLine = 2;
 
         const executions = moveTopLevelNode(
