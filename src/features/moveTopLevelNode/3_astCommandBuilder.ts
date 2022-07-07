@@ -4,11 +4,6 @@ import {isNeitherNullNorUndefined, moveElementInArray } from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact, TopLevelNode} from "./2_factBuilder";
 
-/*
-for the new nodes (m0, m1, m2, ..., mn)
-for each base interface, calculate how far its extensions are (0-1)
- */
-
 export const calculateDependencyCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
 ): number => {
