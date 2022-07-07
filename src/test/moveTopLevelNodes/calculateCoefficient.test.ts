@@ -1,4 +1,7 @@
-import {calculateCoefficient} from "../../features/moveTopLevelNode/3_astCommandBuilder";
+import {
+    calculateCoefficient,
+    calculateDependencyCoefficient
+} from "../../features/moveTopLevelNode/3_astCommandBuilder";
 import {assert} from "chai";
 import { TopLevelNode } from "../../features/moveTopLevelNode/2_factBuilder";
 
@@ -7,7 +10,7 @@ const buildNode = (
     childIdentifiers: ReadonlySet<string>,
 ): TopLevelNode => {
     return {
-        id: 'a',
+        id: identifier,
         start: 0,
         end: 10,
         identifiers: new Set([ identifier ]),
@@ -15,15 +18,15 @@ const buildNode = (
     };
 };
 
-describe('calculateCoefficient', () => {
+describe('calculateDependencyCoefficient', () => {
     it('should return 0 for 0 nodes', () => {
-        const coefficient = calculateCoefficient([]);
+        const coefficient = calculateDependencyCoefficient([]);
 
         assert.approximately(coefficient, 0, 0.0001);
     });
 
     it('should return 0 for 2 nodes (no dependency)', () => {
-        const coefficient = calculateCoefficient([
+        const coefficient = calculateDependencyCoefficient([
             buildNode('a', new Set([])),
             buildNode('b', new Set([])),
         ]);
@@ -32,7 +35,7 @@ describe('calculateCoefficient', () => {
     });
 
     it('should return 0.5 for 2 nodes (one depends on the other)', () => {
-        const coefficient = calculateCoefficient([
+        const coefficient = calculateDependencyCoefficient([
             buildNode('a', new Set(['b'])),
             buildNode('b', new Set([])),
         ]);
@@ -41,7 +44,7 @@ describe('calculateCoefficient', () => {
     });
 
     it('should return 0 for 2 nodes (one depends on the other)', () => {
-        const coefficient = calculateCoefficient([
+        const coefficient = calculateDependencyCoefficient([
             buildNode('a', new Set([''])),
             buildNode('b', new Set(['a'])),
         ]);

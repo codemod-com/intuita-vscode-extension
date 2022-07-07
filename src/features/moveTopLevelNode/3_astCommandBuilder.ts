@@ -4,24 +4,21 @@ import {MoveTopLevelNodeFact, TopLevelNode} from "./2_factBuilder";
 
 /*
 for the new nodes (m0, m1, m2, ..., mn)
-calculate if each node's dependencies are defined before it
-(this can get 0 if it's ok or positive values for each non-predefined dependency, up to 1)
 for each node, calculate if the name before it and above it is similar (between 0-1)
 for each base interface, calculate how far its extensions are (0-1)
 sum all values up with the same weights (we can alter it in the future)
  */
 
-export const calculateCoefficient = (
+export const calculateDependencyCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
 ): number => {
-    // "0" is the ideal (perfect) coefficient
-    let coefficient = 0;
+    const { length } = nodes;
 
-    if (nodes.length === 0) {
-        return coefficient;
+    if (length === 0) {
+        return 0;
     }
 
-    coefficient += nodes
+    const sum = nodes
         .map(
             ({ childIdentifiers }, index) => {
                 return nodes
@@ -38,9 +35,16 @@ export const calculateCoefficient = (
             }
         )
         .map((value) => Number(value))
-        .reduce((a, b) => a + b, 0) / nodes.length;
+        .reduce((a, b) => a + b, 0);
 
-    return coefficient;
+    return sum / length;
+};
+
+export const calculateCoefficient = (
+    nodes: ReadonlyArray<TopLevelNode>,
+): number => {
+    // "0" is the ideal (perfect) coefficient
+    return calculateDependencyCoefficient(nodes);
 };
 
 const calculateSolution = (
