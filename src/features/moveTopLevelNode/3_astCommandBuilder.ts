@@ -17,10 +17,15 @@ export const calculateCoefficient = (
     // "0" is the ideal (perfect) coefficient
     let coefficient = 0;
 
+    if (nodes.length === 0) {
+        return coefficient;
+    }
+
     coefficient += nodes
         .map(
-            ({ childIdentifiers }) => {
+            ({ childIdentifiers }, index) => {
                 return nodes
+                    .slice(index)
                     .some(
                         (node) => {
                             return Array
@@ -33,7 +38,7 @@ export const calculateCoefficient = (
             }
         )
         .map((value) => Number(value))
-        .reduce((a, b) => a + b, 0);
+        .reduce((a, b) => a + b, 0) / nodes.length;
 
     return coefficient;
 };

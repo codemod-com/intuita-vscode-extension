@@ -7,8 +7,8 @@ export type TopLevelNode = Readonly<{
     id: string,
     start: number,
     end: number,
-    identifiers: Set<string>,
-    childIdentifiers: Set<string>,
+    identifiers: ReadonlySet<string>,
+    childIdentifiers: ReadonlySet<string>,
 }>;
 
 export type MoveTopLevelNodeFact = Readonly<{
