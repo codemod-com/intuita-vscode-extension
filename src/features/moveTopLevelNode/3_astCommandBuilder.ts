@@ -1,3 +1,4 @@
+import { moveElementInArray } from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact} from "./2_factBuilder";
 
@@ -13,9 +14,15 @@ export const buildMoveTopLevelNodeAstCommand = (
         return null;
     }
 
-    for(let i = 0; i < topLevelNodes.length; ++i) {
-        if (selectedTopLevelNodeIndex === i) {
+    const nodesArray = (new Array(topLevelNodes.length))
+        // .map((_, index) => index)
+        .map((_, index) => {
+            return moveElementInArray(
+                topLevelNodes,
+                selectedTopLevelNodeIndex,
+                index,
+            );
+        });
 
-        }
-    }
+
 }
