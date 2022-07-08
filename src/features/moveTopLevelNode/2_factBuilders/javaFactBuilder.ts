@@ -1,4 +1,3 @@
-import {TopLevelNode, TopLevelNodeKind} from "../2_factBuilder";
 import {CharStreams, CommonTokenStream} from "antlr4ts";
 import {JavaLexer} from "../../../antlrJava/JavaLexer";
 import {
@@ -10,6 +9,7 @@ import {
 import {AbstractParseTreeVisitor} from "antlr4ts/tree";
 import {JavaParserVisitor} from "../../../antlrJava/JavaParserVisitor";
 import {buildHash} from "../../../utilities";
+import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
 
 const enum FactKind {
     CLASS_DECLARATION = 1,

@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import {buildHash} from "../../../utilities";
-import {getChildIdentifiers, getIdentifiers, TopLevelNode, TopLevelNodeKind} from "../2_factBuilder";
+import {getChildIdentifiers, getIdentifiers} from "../2_factBuilder";
+import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
 
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     switch(kind) {

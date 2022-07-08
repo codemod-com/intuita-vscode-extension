@@ -1,29 +1,9 @@
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
-import {buildHash} from "../../utilities";
 import {createHash} from "crypto";
 import {buildJavaTopLevelNodes} from "./2_factBuilders/javaFactBuilder";
 import {buildTypeScriptTopLevelNodes} from "./2_factBuilders/typeScriptFactBuilder";
-
-export const enum TopLevelNodeKind {
-    UNKNOWN = 1,
-    CLASS = 2,
-    FUNCTION = 3,
-    INTERFACE = 4,
-    TYPE_ALIAS = 5,
-    BLOCK = 6,
-    VARIABLE = 7,
-    ENUM = 8,
-}
-
-export type TopLevelNode = Readonly<{
-    kind: TopLevelNodeKind,
-    id: string,
-    start: number,
-    end: number,
-    identifiers: ReadonlySet<string>,
-    childIdentifiers: ReadonlySet<string>,
-}>;
+import {TopLevelNode} from "./2_factBuilders/topLevelNode";
 
 export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,

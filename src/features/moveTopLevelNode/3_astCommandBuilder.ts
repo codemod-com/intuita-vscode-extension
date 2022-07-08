@@ -2,7 +2,8 @@
 import * as jaroWinkler from 'jaro-winkler';
 import {calculateAverage, isNeitherNullNorUndefined, moveElementInArray} from "../../utilities";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
-import {MoveTopLevelNodeFact, StringNode, TopLevelNode} from "./2_factBuilder";
+import {MoveTopLevelNodeFact, StringNode} from "./2_factBuilder";
+import {TopLevelNode} from "./2_factBuilders/topLevelNode";
 
 export const calculateDependencyCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
