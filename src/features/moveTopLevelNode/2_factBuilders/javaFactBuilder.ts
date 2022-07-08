@@ -1,7 +1,7 @@
 import {CharStreams, CommonTokenStream} from "antlr4ts";
 import {JavaLexer} from "../../../antlrJava/JavaLexer";
 import {
-    ClassDeclarationContext,
+    ClassDeclarationContext, EnumDeclarationContext,
     IdentifierContext,
     InterfaceDeclarationContext,
     JavaParser, TypeDeclarationContext
@@ -16,11 +16,12 @@ const enum FactKind {
     TYPE_DECLARATION = 2,
     IDENTIFIER = 3,
     INTERFACE_DECLARATION = 4,
+    ENUM_DECLARATION = 5,
 }
 
 type Fact =
     | Readonly<{
-        kind: FactKind.CLASS_DECLARATION | FactKind.INTERFACE_DECLARATION,
+        kind: FactKind.CLASS_DECLARATION | FactKind.INTERFACE_DECLARATION | FactKind.ENUM_DECLARATION,
         identifier: string,
         childIdentifiers: ReadonlyArray<string>,
     }>
@@ -61,6 +62,20 @@ class Visitor
             {
                 kind: FactKind.IDENTIFIER,
                 identifier,
+            }
+        ];
+    }
+
+    visitEnumDeclaration(
+        ctx: EnumDeclarationContext,
+    ): ReadonlyArray<Fact> {
+        const identifier = ctx.text;
+
+        return [
+            {
+                kind: FactKind.ENUM_DECLARATION,
+                identifier,
+                childIdentifiers: [],
             }
         ];
     }
@@ -160,7 +175,18 @@ class Visitor
                 };
                 break;
             }
-
+            case FactKind.ENUM_DECLARATION:
+            {
+                topLevelNode = {
+                    id,
+                    start,
+                    end,
+                    kind: TopLevelNodeKind.ENUM,
+                    identifiers: new Set<string>([ firstChild.identifier ]),
+                    childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                };
+                break;
+            }
         }
 
         if (topLevelNode === null) {
