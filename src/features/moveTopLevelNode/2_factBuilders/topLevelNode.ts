@@ -17,3 +17,14 @@ export type TopLevelNode = Readonly<{
     identifiers: ReadonlySet<string>,
     childIdentifiers: ReadonlySet<string>,
 }>;
+
+export const enum TriviaNodeKind {
+    COMMENT = 1,
+    NEW_LINE = 2
+}
+
+export type TriviaNode = Readonly<{
+    kind: TriviaNodeKind.COMMENT | TriviaNodeKind.NEW_LINE,
+    start: number,
+    end: number,
+}>;

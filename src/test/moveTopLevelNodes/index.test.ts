@@ -71,7 +71,7 @@ describe('move top-level nodes', async function() {
 describe('move top-level nodes for Java', async function() {
     const fileText = [
         "package var.var.sealed;",
-        "",
+        "/** comment **/",
         "public class A { void a() { return new B(); } }",
         "interface C {}",
         "class B {}",
@@ -93,10 +93,10 @@ describe('move top-level nodes for Java', async function() {
             executions[0]?.text,
             [
                 "package var.var.sealed;",
-                "",
                 "interface C {}",
-                "class B {}",
+                "/** comment **/",
                 "public class A { void a() { return new B(); } }",
+                "class B {}",
             ].join('\n')
         );
     });
@@ -115,8 +115,8 @@ describe('move top-level nodes for Java', async function() {
             executions[0]?.text,
             [
                 "package var.var.sealed;",
-                "",
                 "interface C {}",
+                "/** comment **/",
                 "public class A { void a() { return new B(); } }",
                 "class B {}",
             ].join('\n')
@@ -137,8 +137,8 @@ describe('move top-level nodes for Java', async function() {
             executions[0]?.text,
             [
                 "package var.var.sealed;",
-                "",
                 "class B {}",
+                "/** comment **/",
                 "public class A { void a() { return new B(); } }",
                 "interface C {}",
             ].join('\n')

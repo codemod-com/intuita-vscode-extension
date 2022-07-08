@@ -1,15 +1,18 @@
 import {CharStreams, CommonTokenStream} from "antlr4ts";
 import {JavaLexer} from "../../../antlrJava/JavaLexer";
 import {
-    ClassDeclarationContext, EnumDeclarationContext,
+    ClassDeclarationContext,
+    EnumDeclarationContext,
     IdentifierContext,
     InterfaceDeclarationContext,
-    JavaParser, TypeDeclarationContext
+    JavaParser,
+    TypeDeclarationContext
 } from "../../../antlrJava/JavaParser";
 import {AbstractParseTreeVisitor} from "antlr4ts/tree";
 import {JavaParserVisitor} from "../../../antlrJava/JavaParserVisitor";
-import {buildHash} from "../../../utilities";
-import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
+import {buildHash, isNeitherNullNorUndefined} from "../../../utilities";
+import {TopLevelNode, TopLevelNodeKind, TriviaNode, TriviaNodeKind} from "./topLevelNode";
+import {BufferedTokenStream} from "antlr4ts/BufferedTokenStream";
 
 const enum FactKind {
     CLASS_DECLARATION = 1,
@@ -203,13 +206,56 @@ class Visitor
     }
 }
 
+export const buildTriviaNodes = (
+    fileText: string,
+): ReadonlyArray<TriviaNode> => {
+    const inputStream = CharStreams.fromString(fileText);
+
+    const lexer = new JavaLexer(inputStream);
+    const tokenStream = new BufferedTokenStream(lexer);
+
+    tokenStream.fill();
+
+    return tokenStream
+        .getTokens()
+        .filter(token => token.channel === 1)
+        .map((token, i) => {
+            const text = token.text;
+
+            const start = token.startIndex;
+            const end = token.stopIndex;
+
+            if (text === '\n') {
+                return {
+                    kind: TriviaNodeKind.NEW_LINE,
+                    start,
+                    end,
+                };
+            }
+
+            if (text?.startsWith('/**')) {
+                return {
+                    kind: TriviaNodeKind.COMMENT,
+                    start,
+                    end,
+                };
+            }
+
+            return null;
+        })
+        .filter(isNeitherNullNorUndefined);
+};
+
 export const buildJavaTopLevelNodes = (
     fileText: string,
 ): ReadonlyArray<TopLevelNode> => {
+    const triviaNodes = buildTriviaNodes(fileText);
+
     const lines = fileText.split('\n');
     const lengths = lines.map(line => (line.length + 1));
 
     const inputStream = CharStreams.fromString(fileText);
+
     const lexer = new JavaLexer(inputStream);
     const tokenStream = new CommonTokenStream(lexer);
     const parser = new JavaParser(tokenStream);
@@ -223,5 +269,19 @@ export const buildJavaTopLevelNodes = (
         .filter(
             (fact): fact is Fact & { kind: FactKind.TYPE_DECLARATION } => fact.kind === FactKind.TYPE_DECLARATION
         )
-        .map((fact) => fact.topLevelNode);
+        .map((fact, index, facts) => {
+            const end = facts[index - 1]?.topLevelNode.end ?? 0;
+            const { start } = fact.topLevelNode;
+
+            const newStart = triviaNodes
+                .filter((triviaNode) => triviaNode.end < start && triviaNode.start > end)
+                .filter((triviaNode) => triviaNode.kind === TriviaNodeKind.COMMENT)
+                .slice(-1)
+                [0]?.start ?? null;
+
+            return {
+                ...fact.topLevelNode,
+                start: newStart ?? start,
+            };
+        });
 };
