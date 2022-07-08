@@ -1,9 +1,9 @@
-import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
 import * as ts from "typescript";
 import {createHash} from "crypto";
-import {buildJavaTopLevelNodes} from "./2_factBuilders/javaFactBuilder";
-import {buildTypeScriptTopLevelNodes} from "./2_factBuilders/typeScriptFactBuilder";
-import {TopLevelNode} from "./2_factBuilders/topLevelNode";
+import {buildJavaTopLevelNodes} from "./javaFactBuilder";
+import {buildTypeScriptTopLevelNodes} from "./typeScriptFactBuilder";
+import {TopLevelNode} from "./topLevelNode";
 
 export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,
