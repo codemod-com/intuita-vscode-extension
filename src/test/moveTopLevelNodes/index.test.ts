@@ -67,3 +67,25 @@ describe('move top-level nodes', async function() {
         );
     });
 });
+
+describe('move top-level nodes for Java', async function() {
+    const fileText = [
+        "export class A { void a() { return new B(); } }",
+        "class C() {}",
+        "class B {}",
+    ].join('\n');
+
+    it('should move A nowhere', () => {
+        const fileName = '/A.java';
+
+        const fileLine = 0;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 0);
+    });
+});
