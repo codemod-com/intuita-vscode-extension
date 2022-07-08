@@ -4,7 +4,12 @@ import {buildHash} from "../../utilities";
 import {createHash} from "crypto";
 import {CharStreams, CommonTokenStream} from "antlr4ts";
 import {JavaLexer} from "../../antlrJava/JavaLexer";
-import {IdentifierContext, JavaParser, TypeDeclarationContext} from "../../antlrJava/JavaParser";
+import {
+    ClassDeclarationContext,
+    IdentifierContext,
+    JavaParser,
+    TypeDeclarationContext
+} from "../../antlrJava/JavaParser";
 import {AbstractParseTreeVisitor, ParseTree} from "antlr4ts/tree";
 import {JavaParserVisitor} from "../../antlrJava/JavaParserVisitor";
 
@@ -168,6 +173,22 @@ export const getStringNodes = (
     return stringNodes;
 };
 
+const enum FactKind {
+    CLASS_DECLARATION = 1,
+    TYPE_DECLARATION = 2
+}
+
+type Fact =
+    | Readonly<{
+        kind: FactKind.CLASS_DECLARATION,
+        children: ReadonlyArray<Fact>,
+    }>
+    | Readonly<{
+        kind: FactKind.TYPE_DECLARATION,
+        topLevelNode: TopLevelNode,
+        children: ReadonlyArray<Fact>,
+    }>;
+
 export const buildMoveTopLevelNodeFact = (
     userCommand: MoveTopLevelNodeUserCommand
 ): MoveTopLevelNodeFact => {
@@ -247,20 +268,35 @@ export const buildMoveTopLevelNodeFact = (
         const parseTree = parser.compilationUnit();
 
         class Visitor
-            extends AbstractParseTreeVisitor<ReadonlyArray<TopLevelNode>>
-            implements JavaParserVisitor<ReadonlyArray<TopLevelNode>>
+            extends AbstractParseTreeVisitor<ReadonlyArray<Fact>>
+            implements JavaParserVisitor<ReadonlyArray<Fact>>
         {
             defaultResult() {
                 return [];
             }
 
-            aggregateResult(aggregate: ReadonlyArray<TopLevelNode>, nextResult: ReadonlyArray<TopLevelNode>) {
+            aggregateResult(aggregate: ReadonlyArray<Fact>, nextResult: ReadonlyArray<Fact>) {
                 return aggregate.concat(nextResult);
+            }
+
+            visitClassDeclaration(
+                ctx: ClassDeclarationContext,
+            ): ReadonlyArray<Fact> {
+                ctx.text
+
+                const children = this.visitChildren(ctx)
+
+                return [
+                    {
+                        kind: FactKind.CLASS_DECLARATION,
+                        children,
+                    },
+                ];
             }
 
             visitTypeDeclaration(
                 ctx: TypeDeclarationContext,
-            ) {
+            ): ReadonlyArray<Fact> {
                 const id = buildHash(ctx.text);
 
                 const startLine = ctx.start.line - 1;
@@ -311,13 +347,24 @@ export const buildMoveTopLevelNodeFact = (
                     childIdentifiers: new Set<string>(childIdentifiers),
                 };
 
-                return [ topLevelNode ];
+                const children = this.visitChildren(ctx)
+
+                return [
+                    {
+                        kind: FactKind.TYPE_DECLARATION,
+                        topLevelNode,
+                        children,
+                    },
+                ];
             }
         }
 
         const visitor = new Visitor();
 
-        topLevelNodes = visitor.visit(parseTree);
+        topLevelNodes = visitor
+            .visit(parseTree)
+            .filter((fact): fact is Fact & { kind: FactKind.TYPE_DECLARATION } => fact.kind === FactKind.TYPE_DECLARATION)
+            .map((fact) => fact.topLevelNode);
 
         console.log(topLevelNodes);
     }
