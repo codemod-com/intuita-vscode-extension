@@ -22,8 +22,7 @@
 		"watch": "webpack --watch",
 		"package": "webpack --mode production --devtool hidden-source-map",
 		"lint": "eslint src --ext ts",
-		"test": "mocha",
-		"antlr4ts": "antlr4ts -visitor C.g4"
+		"test": "mocha"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.1",

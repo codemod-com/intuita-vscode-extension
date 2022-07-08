@@ -4,7 +4,7 @@ import {
     calculateKindCoefficient,
     calculateSimilarityCoefficient
 } from "../../features/moveTopLevelNode/3_astCommandBuilder";
-import {TopLevelNode, TopLevelNodeKind} from "../../features/moveTopLevelNode/2_factBuilder";
+import {TopLevelNode, TopLevelNodeKind} from "../../features/moveTopLevelNode/2_factBuilders/topLevelNode";
 
 const buildNode = (
     identifier: string,

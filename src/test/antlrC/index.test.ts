@@ -58,8 +58,6 @@ describe('AntlrC', () => {
                     .update(ctx.text)
                     .digest('base64url');
 
-                console.log(ctx.text);
-
                 const startLine = ctx.start.line - 1;
                 const startPosition = ctx.start.charPositionInLine;
                 const endLine = (ctx.stop?.line ?? ctx.start.line) - 1;

@@ -67,3 +67,81 @@ describe('move top-level nodes', async function() {
         );
     });
 });
+
+describe('move top-level nodes for Java', async function() {
+    const fileText = [
+        "package var.var.sealed;",
+        "/** comment **/",
+        "public class A { void a() { return new B(); } }",
+        "interface C {}",
+        "class B {}",
+    ].join('\n');
+
+    const fileName = '/A.java';
+
+    it('should move A after B', () => {
+        const fileLine = 2;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "interface C {}",
+                "/** comment **/",
+                "public class A { void a() { return new B(); } }",
+                "class B {}",
+            ].join('\n')
+        );
+    });
+
+    it('should move C before A', () => {
+        const fileLine = 3;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "interface C {}",
+                "/** comment **/",
+                "public class A { void a() { return new B(); } }",
+                "class B {}",
+            ].join('\n')
+        );
+    });
+
+    it('should move B before A', () => {
+        const fileLine = 4;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "class B {}",
+                "/** comment **/",
+                "public class A { void a() { return new B(); } }",
+                "interface C {}",
+            ].join('\n')
+        );
+    });
+});
