@@ -176,12 +176,13 @@ export const getStringNodes = (
 const enum FactKind {
     CLASS_DECLARATION = 1,
     TYPE_DECLARATION = 2,
-    IDENTIFIER = 3
+    IDENTIFIER = 3,
+    INTERFACE_DECLARATION = 4,
 }
 
 type Fact =
     | Readonly<{
-        kind: FactKind.CLASS_DECLARATION,
+        kind: FactKind.CLASS_DECLARATION | FactKind.INTERFACE_DECLARATION,
         identifier: string,
         childIdentifiers: ReadonlyArray<string>,
     }>
@@ -333,7 +334,7 @@ export const buildMoveTopLevelNodeFact = (
 
                 return [
                     {
-                        kind: FactKind.CLASS_DECLARATION,
+                        kind: FactKind.INTERFACE_DECLARATION,
                         identifier,
                         childIdentifiers,
                     },
@@ -358,47 +359,47 @@ export const buildMoveTopLevelNodeFact = (
                     .slice(0, endLine)
                     .reduce((a, b) => a+b, endPosition);
 
-                // const getIdentifiers = (parseTree: ParseTree): ReadonlyArray<string> => {
-                //     if (parseTree instanceof IdentifierContext) {
-                //         return [
-                //             parseTree.text,
-                //         ];
-                //     }
-                //
-                //     const { childCount } = parseTree;
-                //
-                //     const identifiers: string[] = [];
-                //
-                //     for(let i = 0; i < childCount; ++i) {
-                //         identifiers.push(
-                //             ...getIdentifiers(
-                //                 parseTree.getChild(i)
-                //             ),
-                //         );
-                //     }
-                //
-                //     return identifiers;
-                // };
-                //
-                // const allIdentifiers = getIdentifiers(ctx);
-                // const identifiers = allIdentifiers.slice(0, 1);
-                // const childIdentifiers = allIdentifiers.slice(1);
                 const children = this.visitChildren(ctx);
 
                 const firstChild = children[0] ?? null;
 
-                if (firstChild === null || firstChild.kind !== FactKind.CLASS_DECLARATION) {
+                if (firstChild === null) {
                     return [];
                 }
 
-                const topLevelNode: TopLevelNode = {
-                    id,
-                    start,
-                    end,
-                    kind: TopLevelNodeKind.CLASS,
-                    identifiers: new Set<string>([ firstChild.identifier ]),
-                    childIdentifiers: new Set<string>(firstChild.childIdentifiers),
-                };
+                let topLevelNode: TopLevelNode | null = null;
+
+                switch(firstChild.kind) {
+                    case FactKind.CLASS_DECLARATION:
+                    {
+                        topLevelNode = {
+                            id,
+                            start,
+                            end,
+                            kind: TopLevelNodeKind.CLASS,
+                            identifiers: new Set<string>([ firstChild.identifier ]),
+                            childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                        };
+                        break;
+                    }
+                    case FactKind.INTERFACE_DECLARATION:
+                    {
+                        topLevelNode = {
+                            id,
+                            start,
+                            end,
+                            kind: TopLevelNodeKind.INTERFACE,
+                            identifiers: new Set<string>([ firstChild.identifier ]),
+                            childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                        };
+                        break;
+                    }
+
+                }
+
+                if (topLevelNode === null) {
+                    return [];
+                }
 
                 return [
                     {
