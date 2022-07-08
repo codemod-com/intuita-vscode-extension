@@ -2,16 +2,8 @@ import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
 import {buildHash} from "../../utilities";
 import {createHash} from "crypto";
-import {CharStreams, CommonTokenStream} from "antlr4ts";
-import {JavaLexer} from "../../antlrJava/JavaLexer";
-import {
-    ClassDeclarationContext,
-    IdentifierContext, InterfaceDeclarationContext,
-    JavaParser,
-    TypeDeclarationContext
-} from "../../antlrJava/JavaParser";
-import {AbstractParseTreeVisitor, ParseTree} from "antlr4ts/tree";
-import {JavaParserVisitor} from "../../antlrJava/JavaParserVisitor";
+import {buildJavaTopLevelNodes} from "./2_factBuilders/javaFactBuilder";
+import {buildTypeScriptTopLevelNodes} from "./2_factBuilders/typeScriptFactBuilder";
 
 export const enum TopLevelNodeKind {
     UNKNOWN = 1,
@@ -23,27 +15,6 @@ export const enum TopLevelNodeKind {
     VARIABLE = 7,
     ENUM = 8,
 }
-
-const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
-    switch(kind) {
-        case ts.SyntaxKind.ClassDeclaration:
-            return TopLevelNodeKind.CLASS;
-        case ts.SyntaxKind.FunctionDeclaration:
-            return TopLevelNodeKind.FUNCTION;
-        case ts.SyntaxKind.InterfaceDeclaration:
-            return TopLevelNodeKind.INTERFACE;
-        case ts.SyntaxKind.TypeAliasDeclaration:
-            return TopLevelNodeKind.TYPE_ALIAS;
-        case ts.SyntaxKind.Block:
-            return TopLevelNodeKind.BLOCK;
-        case ts.SyntaxKind.VariableStatement:
-            return TopLevelNodeKind.VARIABLE;
-        case ts.SyntaxKind.EnumDeclaration:
-            return TopLevelNodeKind.ENUM;
-        default:
-            return TopLevelNodeKind.UNKNOWN;
-    }
-};
 
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
@@ -173,29 +144,6 @@ export const getStringNodes = (
     return stringNodes;
 };
 
-const enum FactKind {
-    CLASS_DECLARATION = 1,
-    TYPE_DECLARATION = 2,
-    IDENTIFIER = 3,
-    INTERFACE_DECLARATION = 4,
-}
-
-type Fact =
-    | Readonly<{
-        kind: FactKind.CLASS_DECLARATION | FactKind.INTERFACE_DECLARATION,
-        identifier: string,
-        childIdentifiers: ReadonlyArray<string>,
-    }>
-    | Readonly<{
-        kind: FactKind.IDENTIFIER,
-        identifier: string,
-    }>
-    | Readonly<{
-        kind: FactKind.TYPE_DECLARATION,
-        topLevelNode: TopLevelNode,
-        children: ReadonlyArray<Fact>,
-    }>;
-
 export const buildMoveTopLevelNodeFact = (
     userCommand: MoveTopLevelNodeUserCommand
 ): MoveTopLevelNodeFact => {
@@ -214,211 +162,11 @@ export const buildMoveTopLevelNodeFact = (
     let topLevelNodes: ReadonlyArray<TopLevelNode> = [];
 
     if (fileName.endsWith('.ts')) {
-        const sourceFile = ts.createSourceFile(
-            fileName,
-            fileText,
-            ts.ScriptTarget.ES5,
-            true
-        );
-
-        topLevelNodes = sourceFile
-            .getChildren()
-            .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
-            .flatMap((node) => node.getChildren())
-            .filter(node => {
-                return ts.isClassDeclaration(node)
-                    || ts.isFunctionDeclaration(node)
-                    || ts.isInterfaceDeclaration(node)
-                    || ts.isTypeAliasDeclaration(node)
-                    || ts.isBlock(node)
-                    || ts.isVariableStatement(node)
-                    || ts.isEnumDeclaration(node);
-            })
-            .map((node) => {
-                const kind = getTopLevelNodeKind(node.kind);
-
-                const start = node.getStart();
-                const end = start + node.getWidth() - 1;
-
-                const text = fileText.slice(start, end + 1);
-
-                const id = buildHash(text);
-
-                // extract identifiers:
-                const identifiers = new Set(getIdentifiers(node));
-                const childIdentifiers = new Set(getChildIdentifiers(node));
-
-                identifiers.forEach((identifier) => {
-                    childIdentifiers.delete(identifier);
-                });
-
-                return {
-                    kind,
-                    id,
-                    start,
-                    end,
-                    identifiers,
-                    childIdentifiers,
-                };
-            });
+        topLevelNodes = buildTypeScriptTopLevelNodes(fileName, fileText);
     }
 
     if (fileName.endsWith('.java')) {
-        const lines = fileText.split('\n');
-        const lengths = lines.map(line => (line.length + 1));
-
-        const inputStream = CharStreams.fromString(fileText);
-        const lexer = new JavaLexer(inputStream);
-        const tokenStream = new CommonTokenStream(lexer);
-        const parser = new JavaParser(tokenStream);
-
-        const parseTree = parser.compilationUnit();
-
-        class Visitor
-            extends AbstractParseTreeVisitor<ReadonlyArray<Fact>>
-            implements JavaParserVisitor<ReadonlyArray<Fact>>
-        {
-            defaultResult() {
-                return [];
-            }
-
-            aggregateResult(aggregate: ReadonlyArray<Fact>, nextResult: ReadonlyArray<Fact>) {
-                return aggregate.concat(nextResult);
-            }
-
-            visitIdentifier(
-                ctx: IdentifierContext,
-            ): ReadonlyArray<Fact> {
-                const identifier = ctx.text;
-
-                return [
-                    {
-                        kind: FactKind.IDENTIFIER,
-                        identifier,
-                    }
-                ];
-            }
-
-            visitClassDeclaration(
-                ctx: ClassDeclarationContext,
-            ): ReadonlyArray<Fact> {
-                const identifier = ctx.identifier().text;
-
-                const children = this.visitChildren(ctx);
-
-                const childIdentifiers = children
-                    .filter((fact): fact is Fact & { kind: FactKind.IDENTIFIER } => fact.kind === FactKind.IDENTIFIER)
-                    .map((fact) => fact.identifier)
-                    .filter((i) => i !== identifier);
-
-                return [
-                    {
-                        kind: FactKind.CLASS_DECLARATION,
-                        identifier,
-                        childIdentifiers,
-                    },
-                ];
-            }
-
-            visitInterfaceDeclaration(
-                ctx: InterfaceDeclarationContext
-            ): ReadonlyArray<Fact> {
-                const identifier = ctx.identifier().text;
-
-                const children = this.visitChildren(ctx);
-
-                const childIdentifiers = children
-                    .filter((fact): fact is Fact & { kind: FactKind.IDENTIFIER } => fact.kind === FactKind.IDENTIFIER)
-                    .map((fact) => fact.identifier)
-                    .filter((i) => i !== identifier);
-
-                return [
-                    {
-                        kind: FactKind.INTERFACE_DECLARATION,
-                        identifier,
-                        childIdentifiers,
-                    },
-                ];
-            }
-
-            visitTypeDeclaration(
-                ctx: TypeDeclarationContext,
-            ): ReadonlyArray<Fact> {
-                const id = buildHash(ctx.text);
-
-                const startLine = ctx.start.line - 1;
-                const startPosition = ctx.start.charPositionInLine;
-                const endLine = (ctx.stop?.line ?? ctx.start.line) - 1;
-                const endPosition = (ctx.stop?.charPositionInLine ?? ctx.start.charPositionInLine);
-
-                const start = lengths
-                    .slice(0, startLine)
-                    .reduce((a, b) => a+b, startPosition);
-
-                const end = lengths
-                    .slice(0, endLine)
-                    .reduce((a, b) => a+b, endPosition);
-
-                const children = this.visitChildren(ctx);
-
-                const firstChild = children[0] ?? null;
-
-                if (firstChild === null) {
-                    return [];
-                }
-
-                let topLevelNode: TopLevelNode | null = null;
-
-                switch(firstChild.kind) {
-                    case FactKind.CLASS_DECLARATION:
-                    {
-                        topLevelNode = {
-                            id,
-                            start,
-                            end,
-                            kind: TopLevelNodeKind.CLASS,
-                            identifiers: new Set<string>([ firstChild.identifier ]),
-                            childIdentifiers: new Set<string>(firstChild.childIdentifiers),
-                        };
-                        break;
-                    }
-                    case FactKind.INTERFACE_DECLARATION:
-                    {
-                        topLevelNode = {
-                            id,
-                            start,
-                            end,
-                            kind: TopLevelNodeKind.INTERFACE,
-                            identifiers: new Set<string>([ firstChild.identifier ]),
-                            childIdentifiers: new Set<string>(firstChild.childIdentifiers),
-                        };
-                        break;
-                    }
-
-                }
-
-                if (topLevelNode === null) {
-                    return [];
-                }
-
-                return [
-                    {
-                        kind: FactKind.TYPE_DECLARATION,
-                        topLevelNode,
-                        children,
-                    },
-                ];
-            }
-        }
-
-        const visitor = new Visitor();
-
-        topLevelNodes = visitor
-            .visit(parseTree)
-            .filter((fact): fact is Fact & { kind: FactKind.TYPE_DECLARATION } => fact.kind === FactKind.TYPE_DECLARATION)
-            .map((fact) => fact.topLevelNode);
-
-        console.log(topLevelNodes);
+        topLevelNodes = buildJavaTopLevelNodes(fileText);
     }
 
     const selectedTopLevelNodeIndex = topLevelNodes
