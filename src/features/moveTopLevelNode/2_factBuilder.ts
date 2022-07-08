@@ -6,7 +6,7 @@ import {CharStreams, CommonTokenStream} from "antlr4ts";
 import {JavaLexer} from "../../antlrJava/JavaLexer";
 import {
     ClassDeclarationContext,
-    IdentifierContext,
+    IdentifierContext, InterfaceDeclarationContext,
     JavaParser,
     TypeDeclarationContext
 } from "../../antlrJava/JavaParser";
@@ -175,13 +175,19 @@ export const getStringNodes = (
 
 const enum FactKind {
     CLASS_DECLARATION = 1,
-    TYPE_DECLARATION = 2
+    TYPE_DECLARATION = 2,
+    IDENTIFIER = 3
 }
 
 type Fact =
     | Readonly<{
         kind: FactKind.CLASS_DECLARATION,
-        children: ReadonlyArray<Fact>,
+        identifier: string,
+        childIdentifiers: ReadonlyArray<string>,
+    }>
+    | Readonly<{
+        kind: FactKind.IDENTIFIER,
+        identifier: string,
     }>
     | Readonly<{
         kind: FactKind.TYPE_DECLARATION,
@@ -279,17 +285,57 @@ export const buildMoveTopLevelNodeFact = (
                 return aggregate.concat(nextResult);
             }
 
+            visitIdentifier(
+                ctx: IdentifierContext,
+            ): ReadonlyArray<Fact> {
+                const identifier = ctx.text;
+
+                return [
+                    {
+                        kind: FactKind.IDENTIFIER,
+                        identifier,
+                    }
+                ];
+            }
+
             visitClassDeclaration(
                 ctx: ClassDeclarationContext,
             ): ReadonlyArray<Fact> {
-                ctx.text
+                const identifier = ctx.identifier().text;
 
-                const children = this.visitChildren(ctx)
+                const children = this.visitChildren(ctx);
+
+                const childIdentifiers = children
+                    .filter((fact): fact is Fact & { kind: FactKind.IDENTIFIER } => fact.kind === FactKind.IDENTIFIER)
+                    .map((fact) => fact.identifier)
+                    .filter((i) => i !== identifier);
 
                 return [
                     {
                         kind: FactKind.CLASS_DECLARATION,
-                        children,
+                        identifier,
+                        childIdentifiers,
+                    },
+                ];
+            }
+
+            visitInterfaceDeclaration(
+                ctx: InterfaceDeclarationContext
+            ): ReadonlyArray<Fact> {
+                const identifier = ctx.identifier().text;
+
+                const children = this.visitChildren(ctx);
+
+                const childIdentifiers = children
+                    .filter((fact): fact is Fact & { kind: FactKind.IDENTIFIER } => fact.kind === FactKind.IDENTIFIER)
+                    .map((fact) => fact.identifier)
+                    .filter((i) => i !== identifier);
+
+                return [
+                    {
+                        kind: FactKind.CLASS_DECLARATION,
+                        identifier,
+                        childIdentifiers,
                     },
                 ];
             }
@@ -312,42 +358,47 @@ export const buildMoveTopLevelNodeFact = (
                     .slice(0, endLine)
                     .reduce((a, b) => a+b, endPosition);
 
-                const getIdentifiers = (parseTree: ParseTree): ReadonlyArray<string> => {
-                    if (parseTree instanceof IdentifierContext) {
-                        return [
-                            parseTree.text,
-                        ];
-                    }
+                // const getIdentifiers = (parseTree: ParseTree): ReadonlyArray<string> => {
+                //     if (parseTree instanceof IdentifierContext) {
+                //         return [
+                //             parseTree.text,
+                //         ];
+                //     }
+                //
+                //     const { childCount } = parseTree;
+                //
+                //     const identifiers: string[] = [];
+                //
+                //     for(let i = 0; i < childCount; ++i) {
+                //         identifiers.push(
+                //             ...getIdentifiers(
+                //                 parseTree.getChild(i)
+                //             ),
+                //         );
+                //     }
+                //
+                //     return identifiers;
+                // };
+                //
+                // const allIdentifiers = getIdentifiers(ctx);
+                // const identifiers = allIdentifiers.slice(0, 1);
+                // const childIdentifiers = allIdentifiers.slice(1);
+                const children = this.visitChildren(ctx);
 
-                    const { childCount } = parseTree;
+                const firstChild = children[0] ?? null;
 
-                    const identifiers: string[] = [];
-
-                    for(let i = 0; i < childCount; ++i) {
-                        identifiers.push(
-                            ...getIdentifiers(
-                                parseTree.getChild(i)
-                            ),
-                        );
-                    }
-
-                    return identifiers;
-                };
-
-                const allIdentifiers = getIdentifiers(ctx);
-                const identifiers = allIdentifiers.slice(0, 1);
-                const childIdentifiers = allIdentifiers.slice(1);
+                if (firstChild === null || firstChild.kind !== FactKind.CLASS_DECLARATION) {
+                    return [];
+                }
 
                 const topLevelNode: TopLevelNode = {
                     id,
                     start,
                     end,
                     kind: TopLevelNodeKind.CLASS,
-                    identifiers: new Set<string>(identifiers),
-                    childIdentifiers: new Set<string>(childIdentifiers),
+                    identifiers: new Set<string>([ firstChild.identifier ]),
+                    childIdentifiers: new Set<string>(firstChild.childIdentifiers),
                 };
-
-                const children = this.visitChildren(ctx)
 
                 return [
                     {
