@@ -2,6 +2,11 @@ import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
 import {buildHash} from "../../utilities";
 import {createHash} from "crypto";
+import {CharStreams, CommonTokenStream} from "antlr4ts";
+import {JavaLexer} from "../../antlrJava/JavaLexer";
+import {IdentifierContext, JavaParser, TypeDeclarationContext} from "../../antlrJava/JavaParser";
+import {AbstractParseTreeVisitor, ParseTree} from "antlr4ts/tree";
+import {JavaParserVisitor} from "../../antlrJava/JavaParserVisitor";
 
 export const enum TopLevelNodeKind {
     UNKNOWN = 1,
@@ -231,7 +236,90 @@ export const buildMoveTopLevelNodeFact = (
     }
 
     if (fileName.endsWith('.java')) {
+        const lines = fileText.split('\n');
+        const lengths = lines.map(line => (line.length + 1));
 
+        const inputStream = CharStreams.fromString(fileText);
+        const lexer = new JavaLexer(inputStream);
+        const tokenStream = new CommonTokenStream(lexer);
+        const parser = new JavaParser(tokenStream);
+
+        const parseTree = parser.compilationUnit();
+
+        class Visitor
+            extends AbstractParseTreeVisitor<ReadonlyArray<TopLevelNode>>
+            implements JavaParserVisitor<ReadonlyArray<TopLevelNode>>
+        {
+            defaultResult() {
+                return [];
+            }
+
+            aggregateResult(aggregate: ReadonlyArray<TopLevelNode>, nextResult: ReadonlyArray<TopLevelNode>) {
+                return aggregate.concat(nextResult);
+            }
+
+            visitTypeDeclaration(
+                ctx: TypeDeclarationContext,
+            ) {
+                const id = buildHash(ctx.text);
+
+                const startLine = ctx.start.line - 1;
+                const startPosition = ctx.start.charPositionInLine;
+                const endLine = (ctx.stop?.line ?? ctx.start.line) - 1;
+                const endPosition = (ctx.stop?.charPositionInLine ?? ctx.start.charPositionInLine);
+
+                const start = lengths
+                    .slice(0, startLine)
+                    .reduce((a, b) => a+b, startPosition);
+
+                const end = lengths
+                    .slice(0, endLine)
+                    .reduce((a, b) => a+b, endPosition);
+
+                const getIdentifiers = (parseTree: ParseTree): ReadonlyArray<string> => {
+                    if (parseTree instanceof IdentifierContext) {
+                        return [
+                            parseTree.text,
+                        ];
+                    }
+
+                    const { childCount } = parseTree;
+
+                    const identifiers: string[] = [];
+
+                    for(let i = 0; i < childCount; ++i) {
+                        identifiers.push(
+                            ...getIdentifiers(
+                                parseTree.getChild(i)
+                            ),
+                        );
+                    }
+
+                    return identifiers;
+                };
+
+                const allIdentifiers = getIdentifiers(ctx);
+                const identifiers = allIdentifiers.slice(0, 1);
+                const childIdentifiers = allIdentifiers.slice(1);
+
+                const topLevelNode: TopLevelNode = {
+                    id,
+                    start,
+                    end,
+                    kind: TopLevelNodeKind.CLASS,
+                    identifiers: new Set<string>(identifiers),
+                    childIdentifiers: new Set<string>(childIdentifiers),
+                };
+
+                return [ topLevelNode ];
+            }
+        }
+
+        const visitor = new Visitor();
+
+        topLevelNodes = visitor.visit(parseTree);
+
+        console.log(topLevelNodes);
     }
 
     const selectedTopLevelNodeIndex = topLevelNodes

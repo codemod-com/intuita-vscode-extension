@@ -70,15 +70,17 @@ describe('move top-level nodes', async function() {
 
 describe('move top-level nodes for Java', async function() {
     const fileText = [
-        "export class A { void a() { return new B(); } }",
-        "class C() {}",
+        "package var.var.sealed;",
+        "",
+        "public class A { void a() { return new B(); } }",
+        "interface C {}",
         "class B {}",
     ].join('\n');
 
-    it('should move A nowhere', () => {
-        const fileName = '/A.java';
+    const fileName = '/A.java';
 
-        const fileLine = 0;
+    it('should move A after B', () => {
+        const fileLine = 2;
 
         const executions = moveTopLevelNode(
             fileName,
@@ -86,6 +88,60 @@ describe('move top-level nodes for Java', async function() {
             fileLine,
         );
 
-        assert.equal(executions.length, 0);
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "",
+                "interface C {}",
+                "class B {}",
+                "public class A { void a() { return new B(); } }",
+            ].join('\n')
+        );
+    });
+
+    it('should move C before A', () => {
+        const fileLine = 3;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "",
+                "interface C {}",
+                "public class A { void a() { return new B(); } }",
+                "class B {}",
+            ].join('\n')
+        );
+    });
+
+    it('should move B before A', () => {
+        const fileLine = 4;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "package var.var.sealed;",
+                "",
+                "class B {}",
+                "public class A { void a() { return new B(); } }",
+                "interface C {}",
+            ].join('\n')
+        );
     });
 });

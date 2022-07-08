@@ -28,6 +28,8 @@ export const moveTopLevelNode = (
         return [];
     }
 
+    console.log(astCommand)
+
     return executeMoveTopLevelNodeAstCommand(
         astCommand,
     );
