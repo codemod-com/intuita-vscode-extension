@@ -1,6 +1,4 @@
 import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
-import * as ts from "typescript";
-import {createHash} from "crypto";
 import {buildJavaTopLevelNodes} from "./javaFactBuilder";
 import {buildTypeScriptTopLevelNodes} from "./typeScriptFactBuilder";
 import {TopLevelNode} from "./topLevelNode";
@@ -10,72 +8,6 @@ export type MoveTopLevelNodeFact = Readonly<{
     selectedTopLevelNodeIndex: number,
     stringNodes: ReadonlyArray<StringNode>,
 }>;
-
-export const getChildIdentifiers = (
-    node: ts.Node
-): ReadonlyArray<string> => {
-    if (ts.isIdentifier(node)) {
-        return [ node.text ];
-    }
-
-    return node
-        .getChildren()
-        .map(
-            childNode => getChildIdentifiers(childNode)
-        )
-        .flat();
-};
-
-export const getIdentifiers = (
-    node: ts.Node,
-): ReadonlyArray<string> => {
-    if(
-        ts.isClassDeclaration(node)
-        || ts.isFunctionDeclaration(node)
-    ) {
-        const text = node.name?.text ?? null;
-
-        if (text === null) {
-            return [];
-        }
-
-        return [ text ];
-    }
-
-    if (
-        ts.isInterfaceDeclaration(node)
-        || ts.isInterfaceDeclaration(node)
-        || ts.isTypeAliasDeclaration(node)
-        || ts.isEnumDeclaration(node)
-    ) {
-        return [ node.name.text ];
-    }
-
-    if (ts.isBlock(node)) {
-        const hash = createHash('ripemd160')
-            .update(
-                node.getFullText(),
-            )
-            .digest('base64url');
-
-        return [
-            hash,
-        ];
-    }
-
-    if (ts.isVariableStatement(node)) {
-        return node
-            .declarationList
-            .declarations
-            .map(
-                ({ name }) => name
-            )
-            .filter(ts.isIdentifier)
-            .map(({ text }) => text);
-    }
-
-    return [];
-};
 
 export type StringNode = Readonly<{
     text: string,
