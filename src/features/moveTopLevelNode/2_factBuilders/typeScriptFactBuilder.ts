@@ -1,18 +1,7 @@
-import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import * as ts from "typescript";
-import {buildHash} from "../../utilities";
+import {buildHash} from "../../../utilities";
+import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
 import {createHash} from "crypto";
-
-export const enum TopLevelNodeKind {
-    UNKNOWN = 1,
-    CLASS = 2,
-    FUNCTION = 3,
-    INTERFACE = 4,
-    TYPE_ALIAS = 5,
-    BLOCK = 6,
-    VARIABLE = 7,
-    ENUM = 8,
-}
 
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     switch(kind) {
@@ -35,26 +24,11 @@ const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     }
 };
 
-export type TopLevelNode = Readonly<{
-    kind: TopLevelNodeKind,
-    id: string,
-    start: number,
-    end: number,
-    identifiers: ReadonlySet<string>,
-    childIdentifiers: ReadonlySet<string>,
-}>;
-
-export type MoveTopLevelNodeFact = Readonly<{
-    topLevelNodes: ReadonlyArray<TopLevelNode>,
-    selectedTopLevelNodeIndex: number,
-    stringNodes: ReadonlyArray<StringNode>,
-}>;
-
 export const getChildIdentifiers = (
     node: ts.Node
 ): ReadonlyArray<string> => {
     if (ts.isIdentifier(node)) {
-        return [ node.text ];
+        return [node.text];
     }
 
     return node
@@ -64,11 +38,10 @@ export const getChildIdentifiers = (
         )
         .flat();
 };
-
 export const getIdentifiers = (
     node: ts.Node,
 ): ReadonlyArray<string> => {
-    if(
+    if (
         ts.isClassDeclaration(node)
         || ts.isFunctionDeclaration(node)
     ) {
@@ -78,7 +51,7 @@ export const getIdentifiers = (
             return [];
         }
 
-        return [ text ];
+        return [text];
     }
 
     if (
@@ -87,7 +60,7 @@ export const getIdentifiers = (
         || ts.isTypeAliasDeclaration(node)
         || ts.isEnumDeclaration(node)
     ) {
-        return [ node.name.text ];
+        return [node.name.text];
     }
 
     if (ts.isBlock(node)) {
@@ -107,77 +80,18 @@ export const getIdentifiers = (
             .declarationList
             .declarations
             .map(
-                ({ name }) => name
+                ({name}) => name
             )
             .filter(ts.isIdentifier)
-            .map(({ text }) => text);
+            .map(({text}) => text);
     }
 
     return [];
 };
-
-export type StringNode = Readonly<{
-    text: string,
-    topLevelNodeIndex: number | null,
-}>;
-
-export const getStringNodes = (
+export const buildTypeScriptTopLevelNodes = (
+    fileName: string,
     fileText: string,
-    topLevelNodes: ReadonlyArray<TopLevelNode>
-): ReadonlyArray<StringNode> => {
-    const stringNodes: Readonly<StringNode>[] = [];
-
-    topLevelNodes.forEach(
-        (topLevelNode, index) => {
-            if (index === 0) {
-                stringNodes.push({
-                    text: fileText.slice(0, topLevelNode.start),
-                    topLevelNodeIndex: null,
-                });
-            } else {
-                const previousNode = topLevelNodes[index - 1]!;
-
-                stringNodes.push({
-                    text: fileText.slice(
-                        previousNode.end + 1,
-                        topLevelNode.start,
-                    ),
-                    topLevelNodeIndex: null,
-                });
-            }
-
-            stringNodes.push({
-                text: fileText.slice(topLevelNode.start, topLevelNode.end + 1),
-                topLevelNodeIndex: index,
-            });
-
-            if (index === (topLevelNodes.length - 1)) {
-                stringNodes.push({
-                    text: fileText.slice(topLevelNode.end + 1),
-                    topLevelNodeIndex: null,
-                });
-            }
-        }
-    );
-
-    return stringNodes;
-};
-
-export const buildMoveTopLevelNodeFact = (
-    userCommand: MoveTopLevelNodeUserCommand
-): MoveTopLevelNodeFact => {
-    const {
-        fileName,
-        fileText,
-        fileLine,
-    } = userCommand;
-
-    const fineLineStart = fileText
-        .split('\n')
-        .filter((_, index) => index < fileLine)
-        .map(({ length }) => length)
-        .reduce((a, b) => a + b + 1, 0); // +1 for '\n'
-
+): ReadonlyArray<TopLevelNode> => {
     const sourceFile = ts.createSourceFile(
         fileName,
         fileText,
@@ -185,7 +99,7 @@ export const buildMoveTopLevelNodeFact = (
         true
     );
 
-    const topLevelNodes = sourceFile
+    return sourceFile
         .getChildren()
         .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
         .flatMap((node) => node.getChildren())
@@ -225,15 +139,4 @@ export const buildMoveTopLevelNodeFact = (
                 childIdentifiers,
             };
         });
-
-    const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start >= fineLineStart);
-
-    const stringNodes = getStringNodes(fileText, topLevelNodes);
-
-    return {
-        topLevelNodes,
-        selectedTopLevelNodeIndex,
-        stringNodes,
-    };
 };
