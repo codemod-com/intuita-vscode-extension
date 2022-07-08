@@ -178,53 +178,61 @@ export const buildMoveTopLevelNodeFact = (
         .map(({ length }) => length)
         .reduce((a, b) => a + b + 1, 0); // +1 for '\n'
 
-    const sourceFile = ts.createSourceFile(
-        fileName,
-        fileText,
-        ts.ScriptTarget.ES5,
-        true
-    );
+    let topLevelNodes: ReadonlyArray<TopLevelNode> = [];
 
-    const topLevelNodes = sourceFile
-        .getChildren()
-        .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
-        .flatMap((node) => node.getChildren())
-        .filter(node => {
-            return ts.isClassDeclaration(node)
-                || ts.isFunctionDeclaration(node)
-                || ts.isInterfaceDeclaration(node)
-                || ts.isTypeAliasDeclaration(node)
-                || ts.isBlock(node)
-                || ts.isVariableStatement(node)
-                || ts.isEnumDeclaration(node);
-        })
-        .map((node) => {
-            const kind = getTopLevelNodeKind(node.kind);
+    if (fileName.endsWith('.ts')) {
+        const sourceFile = ts.createSourceFile(
+            fileName,
+            fileText,
+            ts.ScriptTarget.ES5,
+            true
+        );
 
-            const start = node.getStart();
-            const end = start + node.getWidth() - 1;
+        topLevelNodes = sourceFile
+            .getChildren()
+            .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
+            .flatMap((node) => node.getChildren())
+            .filter(node => {
+                return ts.isClassDeclaration(node)
+                    || ts.isFunctionDeclaration(node)
+                    || ts.isInterfaceDeclaration(node)
+                    || ts.isTypeAliasDeclaration(node)
+                    || ts.isBlock(node)
+                    || ts.isVariableStatement(node)
+                    || ts.isEnumDeclaration(node);
+            })
+            .map((node) => {
+                const kind = getTopLevelNodeKind(node.kind);
 
-            const text = fileText.slice(start, end + 1);
+                const start = node.getStart();
+                const end = start + node.getWidth() - 1;
 
-            const id = buildHash(text);
+                const text = fileText.slice(start, end + 1);
 
-            // extract identifiers:
-            const identifiers = new Set(getIdentifiers(node));
-            const childIdentifiers = new Set(getChildIdentifiers(node));
+                const id = buildHash(text);
 
-            identifiers.forEach((identifier) => {
-                childIdentifiers.delete(identifier);
+                // extract identifiers:
+                const identifiers = new Set(getIdentifiers(node));
+                const childIdentifiers = new Set(getChildIdentifiers(node));
+
+                identifiers.forEach((identifier) => {
+                    childIdentifiers.delete(identifier);
+                });
+
+                return {
+                    kind,
+                    id,
+                    start,
+                    end,
+                    identifiers,
+                    childIdentifiers,
+                };
             });
+    }
 
-            return {
-                kind,
-                id,
-                start,
-                end,
-                identifiers,
-                childIdentifiers,
-            };
-        });
+    if (fileName.endsWith('.java')) {
+
+    }
 
     const selectedTopLevelNodeIndex = topLevelNodes
         .findIndex(node => node.start >= fineLineStart);
