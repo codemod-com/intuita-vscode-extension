@@ -1,7 +1,7 @@
 // @ts-ignore
 import * as jaroWinkler from 'jaro-winkler';
 import {calculateAverage, isNeitherNullNorUndefined, moveElementInArray} from "../../utilities";
-import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeOptions, MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact, StringNode} from "./2_factBuilders/2_factBuilder";
 import {TopLevelNode} from "./2_factBuilders/topLevelNode";
 
@@ -87,18 +87,28 @@ export const calculateKindCoefficient = (
 
 export const calculateCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
+    {
+        dependencyCoefficientWeight,
+        similarityCoefficientWeight,
+        kindCoefficientWeight,
+    }: MoveTopLevelNodeOptions,
 ): number => {
     // "0" is the ideal (perfect) coefficient
     return (
-        + calculateDependencyCoefficient(nodes)
-        + calculateSimilarityCoefficient(nodes)
-        + calculateKindCoefficient(nodes)
-    ) / 3;
+        + calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
+        + calculateSimilarityCoefficient(nodes) * similarityCoefficientWeight
+        + calculateKindCoefficient(nodes) * kindCoefficientWeight
+    ) / (
+        + dependencyCoefficientWeight
+        + similarityCoefficientWeight
+        + kindCoefficientWeight
+    );
 };
 
 const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     selectedIndex: number,
+    options: MoveTopLevelNodeOptions,
 ) => {
     const solutions = nodes
         .map((_, index) => {
@@ -112,7 +122,7 @@ const calculateSolution = (
             return {
                 nodes,
                 index,
-                coefficient: calculateCoefficient(nodes),
+                coefficient: calculateCoefficient(nodes, options),
             };
         })
         .sort((a, b) => {
@@ -134,6 +144,7 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
 export const buildMoveTopLevelNodeAstCommand = (
     {
         fileName,
+        options,
     }: MoveTopLevelNodeUserCommand,
     {
         topLevelNodes,
@@ -148,6 +159,7 @@ export const buildMoveTopLevelNodeAstCommand = (
     const solution = calculateSolution(
         topLevelNodes,
         selectedTopLevelNodeIndex,
+        options,
     );
 
     if (solution === null) {
