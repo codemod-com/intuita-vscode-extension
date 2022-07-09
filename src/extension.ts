@@ -53,8 +53,28 @@ class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode
 
 		const identifiers = Array.from(topLevelNode.identifiers).join(' ,');
 
+		const {
+			dependencyShare,
+			similarityShare,
+			kindShare,
+		} = astCommand.coefficient;
+
+		let reason = '';
+
+		if (dependencyShare > similarityShare && dependencyShare > kindShare) {
+			reason = 'dependencies in order';
+		}
+
+		if (similarityShare > dependencyShare && similarityShare > kindShare) {
+			reason = 'more name similarity';
+		}
+
+		if (kindShare > similarityShare && kindShare > dependencyShare) {
+			reason = 'blocks of the same kind closer';
+		}
+
 		const codeAction = new CodeAction(
-			`Move (${identifiers}) to position ${astCommand.newIndex} (${astCommand.coefficient})`,
+			`Move (${identifiers}) to position ${astCommand.newIndex} (${reason})`,
 			CodeActionKind.Refactor,
 		);
 
