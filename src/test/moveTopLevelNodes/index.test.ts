@@ -116,13 +116,10 @@ describe('move top-level nodes for TS (real files)', function() {
         }
 
         {
-            // enum
-            const fileLine = 20;
-
             const executions = moveTopLevelNode(
                 fileName,
                 fileText,
-                fileLine,
+                20,
                 {
                     dependencyCoefficientWeight: 1,
                     similarityCoefficientWeight: 1,
@@ -136,6 +133,34 @@ describe('move top-level nodes for TS (real files)', function() {
                 join(
                     __dirname,
                     './typeScript/manipulationSettingsContainer20.txt'
+                ),
+                'utf8'
+            );
+
+            assert.equal(
+                executions[0]?.text,
+                newFileText
+            );
+        }
+
+        {
+            const executions = moveTopLevelNode(
+                fileName,
+                fileText,
+                41,
+                {
+                    dependencyCoefficientWeight: 1,
+                    similarityCoefficientWeight: 1,
+                    kindCoefficientWeight: 1,
+                },
+            );
+
+            assert.equal(executions.length, 1);
+
+            const newFileText = readFileSync(
+                join(
+                    __dirname,
+                    './typeScript/manipulationSettingsContainer41.txt'
                 ),
                 'utf8'
             );
