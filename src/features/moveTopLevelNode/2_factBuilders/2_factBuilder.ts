@@ -2,6 +2,7 @@ import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
 import {buildJavaTopLevelNodes} from "./javaFactBuilder";
 import {buildTypeScriptTopLevelNodes} from "./typeScriptFactBuilder";
 import {TopLevelNode} from "./topLevelNode";
+import {buildCTopLevelNodes} from "./cFactBuilder";
 
 export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,
@@ -73,7 +74,7 @@ export const buildMoveTopLevelNodeFact = (
 
     let topLevelNodes: ReadonlyArray<TopLevelNode> = [];
 
-    if (fileName.endsWith('.ts')) {
+    if (fileName.endsWith('.ts') || fileName.endsWith('.js')) {
         topLevelNodes = buildTypeScriptTopLevelNodes(fileName, fileText);
     }
 
@@ -81,8 +82,12 @@ export const buildMoveTopLevelNodeFact = (
         topLevelNodes = buildJavaTopLevelNodes(fileText);
     }
 
+    if (fileName.endsWith('.c')) {
+        topLevelNodes = buildCTopLevelNodes(fileText);
+    }
+
     const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start >= fineLineStart);
+        .findIndex(node => node.start <= fineLineStart && fineLineStart <= node.end );
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 

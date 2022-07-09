@@ -25,6 +25,11 @@ class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode
 			fileName,
 			fileText,
 			fileLine,
+			{
+				dependencyCoefficientWeight: 1,
+				similarityCoefficientWeight: 1,
+				kindCoefficientWeight: 1,
+			},
 		);
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);
@@ -98,6 +103,11 @@ export async function activate(context: vscode.ExtensionContext) {
 				fileName,
 				fileText,
 				fileLine,
+				{
+					dependencyCoefficientWeight: 1,
+					similarityCoefficientWeight: 1,
+					kindCoefficientWeight: 1,
+				},
 			);
 
 			for (const { name, text } of executions) {
