@@ -86,92 +86,130 @@ describe('move top-level nodes for TS', async function() {
 });
 
 describe('move top-level nodes for TS (real files)', function() {
-    it('should refactor the ts-morph\'s ManipulationSettingsContainer', function() {
-        const fileName = '/index.ts';
+    const fileName = '/index.ts';
 
-        const fileText = readFileSync(
+    const fileText = readFileSync(
+        join(
+            __dirname,
+            './typeScript/manipulationSettingsContainerOriginal.txt'
+        ),
+        'utf8'
+    );
+
+    it ('should do not move the 0th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            5,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 0,
+                kindCoefficientWeight: 0,
+            },
+        );
+
+        assert.equal(executions.length, 0);
+    });
+
+    it('should move the 1th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            20,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+
+        const newFileText = readFileSync(
             join(
                 __dirname,
-                './typeScript/manipulationSettingsContainerOriginal.txt'
+                './typeScript/manipulationSettingsContainer20.txt'
             ),
             'utf8'
         );
 
-        {
-            // enum
-            const fileLine = 5;
-
-            const executions = moveTopLevelNode(
-                fileName,
-                fileText,
-                fileLine,
-                {
-                    dependencyCoefficientWeight: 1,
-                    similarityCoefficientWeight: 0,
-                    kindCoefficientWeight: 0,
-                },
-            );
-
-            assert.equal(executions.length, 0);
-        }
-
-        {
-            const executions = moveTopLevelNode(
-                fileName,
-                fileText,
-                20,
-                {
-                    dependencyCoefficientWeight: 1,
-                    similarityCoefficientWeight: 1,
-                    kindCoefficientWeight: 1,
-                },
-            );
-
-            assert.equal(executions.length, 1);
-
-            const newFileText = readFileSync(
-                join(
-                    __dirname,
-                    './typeScript/manipulationSettingsContainer20.txt'
-                ),
-                'utf8'
-            );
-
-            assert.equal(
-                executions[0]?.text,
-                newFileText
-            );
-        }
-
-        {
-            const executions = moveTopLevelNode(
-                fileName,
-                fileText,
-                41,
-                {
-                    dependencyCoefficientWeight: 1,
-                    similarityCoefficientWeight: 1,
-                    kindCoefficientWeight: 1,
-                },
-            );
-
-            assert.equal(executions.length, 1);
-
-            const newFileText = readFileSync(
-                join(
-                    __dirname,
-                    './typeScript/manipulationSettingsContainer41.txt'
-                ),
-                'utf8'
-            );
-
-            assert.equal(
-                executions[0]?.text,
-                newFileText
-            );
-        }
+        assert.equal(
+            executions[0]?.text,
+            newFileText
+        );
     });
-})
+
+    it ('should move the 2th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            41,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+
+        const newFileText = readFileSync(
+            join(
+                __dirname,
+                './typeScript/manipulationSettingsContainer41.txt'
+            ),
+            'utf8'
+        );
+
+        assert.equal(
+            executions[0]?.text,
+            newFileText
+        );
+    });
+
+    it('should move the 3th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            47,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+
+        const newFileText = readFileSync(
+            join(
+                __dirname,
+                './typeScript/manipulationSettingsContainer47.txt'
+            ),
+            'utf8'
+        );
+
+        assert.equal(
+            executions[0]?.text,
+            newFileText
+        );
+    });
+
+    it('should do not move the 4th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            60,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 0);
+    });
+});
 
 describe('move top-level nodes for TS with comments', async function() {
     const fileText = [
