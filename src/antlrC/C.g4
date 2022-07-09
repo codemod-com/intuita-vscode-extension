@@ -871,17 +871,17 @@ AsmBlock
 // sample line : '#line 1 "/home/dm/files/dk1.h" 1'
 LineAfterPreprocessing
     :   '#line' Whitespace* ~[\r\n]*
-        -> skip
+        -> channel(HIDDEN)
     ;
 
 LineDirective
-    :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        -> skip
+    :   '#' Whitespace? DecimalConstant? Whitespace? StringLiteral ~[\r\n]*
+        -> channel(HIDDEN)
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> skip
+        -> channel(HIDDEN)
     ;
 
 Whitespace
@@ -893,15 +893,15 @@ Newline
     :   (   '\r' '\n'?
         |   '\n'
         )
-        -> skip
+        -> channel(HIDDEN)
     ;
 
 BlockComment
     :   '/*' .*? '*/'
-        -> skip
+        -> channel(HIDDEN)
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        -> skip
+        -> channel(HIDDEN)
     ;
