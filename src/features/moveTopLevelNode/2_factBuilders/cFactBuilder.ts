@@ -1,5 +1,5 @@
 import {TopLevelNode, TriviaNode, TriviaNodeKind} from "./topLevelNode";
-import {CharStreams, CommonTokenStream} from "antlr4ts";
+import {CharStreams} from "antlr4ts";
 import {CLexer} from "../../../antlrC/CLexer";
 import {BufferedTokenStream} from "antlr4ts/BufferedTokenStream";
 import {isNeitherNullNorUndefined} from "../../../utilities";
@@ -10,15 +10,13 @@ export const buildTriviaNodes = (
     const inputStream = CharStreams.fromString(fileText);
 
     const lexer = new CLexer(inputStream);
-    const tokenStream = new CommonTokenStream(lexer);
+    const tokenStream = new BufferedTokenStream(lexer);
 
-    // tokenStream()
-
-    console.log(lexer.channelNames);
+    tokenStream.fill();
 
     return tokenStream
         .getTokens()
-        // .filter(token => token.channel === 1)
+        .filter(token => token.channel === 1)
         .map((token, i) => {
 
             const text = token.text;
@@ -34,7 +32,7 @@ export const buildTriviaNodes = (
                 };
             }
 
-            if (text?.startsWith('/*')) {
+            if (text?.startsWith('/**') || text?.startsWith('//')) {
                 return {
                     kind: TriviaNodeKind.COMMENT,
                     start,
@@ -52,14 +50,11 @@ export const buildCTopLevelNodes = (
 ): ReadonlyArray<TopLevelNode> => {
     const triviaNodes = buildTriviaNodes(fileText);
 
-    console.log(triviaNodes);
-
     const lines = fileText.split('\n');
     const lengths = lines.map(line => (line.length + 1));
 
     const inputStream = CharStreams.fromString(fileText);
 
     // TODO
-
     return [];
 }

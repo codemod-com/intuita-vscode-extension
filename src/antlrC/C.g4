@@ -893,7 +893,7 @@ Newline
     :   (   '\r' '\n'?
         |   '\n'
         )
-        -> channel(HIDDEN)
+        -> skip
     ;
 
 BlockComment
