@@ -85,6 +85,13 @@ export const calculateKindCoefficient = (
     return calculateAverage(values);
 };
 
+export type Coefficient = Readonly<{
+    coefficient: number,
+    dependencyShare: number,
+    similarityShare: number,
+    kindShare: number,
+}>;
+
 export const calculateCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
     {
@@ -92,17 +99,33 @@ export const calculateCoefficient = (
         similarityCoefficientWeight,
         kindCoefficientWeight,
     }: MoveTopLevelNodeOptions,
-): number => {
+): Coefficient => {
     // "0" is the ideal (perfect) coefficient
-    return (
-        + calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
-        + calculateSimilarityCoefficient(nodes) * similarityCoefficientWeight
-        + calculateKindCoefficient(nodes) * kindCoefficientWeight
-    ) / (
+    const dependency = calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight;
+    const similarity = calculateSimilarityCoefficient(nodes) * similarityCoefficientWeight;
+    const kind = calculateKindCoefficient(nodes) * kindCoefficientWeight;
+
+    const weight =
         + dependencyCoefficientWeight
         + similarityCoefficientWeight
-        + kindCoefficientWeight
-    );
+        + kindCoefficientWeight;
+
+    const coefficient = (
+        + dependency
+        + similarity
+        + kind
+    ) / weight;
+  
+    const dependencyShare = dependency / weight;
+    const similarityShare = similarity / weight;
+    const kindShare = kind / weight;
+
+    return {
+        coefficient,
+        dependencyShare,
+        similarityShare,
+        kindShare,
+    }
 };
 
 const calculateSolution = (
@@ -126,7 +149,7 @@ const calculateSolution = (
             };
         })
         .sort((a, b) => {
-            return Math.sign(a.coefficient - b.coefficient);
+            return Math.sign(a.coefficient.coefficient - b.coefficient.coefficient);
         });
 
     return solutions[0] ?? null;
@@ -137,7 +160,7 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     fileName: string,
     oldIndex: number,
     newIndex: number,
-    coefficient: number,
+    coefficient: Coefficient,
     stringNodes: ReadonlyArray<StringNode>,
 }>;
 
