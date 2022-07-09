@@ -82,7 +82,7 @@ export const buildMoveTopLevelNodeFact = (
     }
 
     const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start >= fineLineStart);
+        .findIndex(node => node.start <= fineLineStart && fineLineStart <= node.end );
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 

@@ -68,6 +68,82 @@ describe('move top-level nodes', async function() {
     });
 });
 
+describe('move top-level nodes for TS with comments', async function() {
+    const fileText = [
+        "/** comment **/",
+        "export function a() { return new B(); };",
+        "// comment",
+        "export function c() {};",
+        "/** comment\ncomment2 **/",
+        "export class B {};",
+    ].join('\n');
+
+    it('should move A nowhere', () => {
+        const fileName = '/index.ts';
+
+        const fileLine = 1;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 0);
+    });
+
+    it('should move C before A', () => {
+        const fileName = '/index.ts';
+
+        const fileLine = 3;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(
+            executions[0]?.text,
+            [
+                "// comment",
+                "export function c() {};",
+                "/** comment **/",
+                "export function a() { return new B(); };",
+                "/** comment\ncomment2 **/",
+                "export class B {};",
+            ].join('\n')
+        );
+    });
+
+    it('should move B before A', () => {
+        const fileName = '/index.ts';
+
+        const fileLine = 5;
+
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            fileLine,
+        );
+
+        assert.equal(executions.length, 1);
+        assert.equal(executions[0]?.name, '/index.ts');
+        assert.equal(
+            executions[0]?.text,
+            [
+                "/** comment\ncomment2 **/",
+                "export class B {};",
+                "/** comment **/",
+                "export function a() { return new B(); };",
+                "// comment",
+                "export function c() {};",
+            ].join('\n')
+        );
+    });
+});
+
 describe('move top-level nodes for Java', async function() {
     const fileText = [
         "package var.var.sealed;",

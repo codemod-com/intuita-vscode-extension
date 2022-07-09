@@ -19,6 +19,8 @@ export const moveTopLevelNode = (
         userCommand,
     );
 
+    console.log(fact)
+
     const astCommand = buildMoveTopLevelNodeAstCommand(
         userCommand,
         fact,
