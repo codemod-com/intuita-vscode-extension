@@ -107,6 +107,24 @@ describe('move top-level nodes for TS (real files)', function() {
                 fileLine,
                 {
                     dependencyCoefficientWeight: 1,
+                    similarityCoefficientWeight: 0,
+                    kindCoefficientWeight: 0,
+                },
+            );
+
+            assert.equal(executions.length, 0);
+        }
+
+        {
+            // enum
+            const fileLine = 20;
+
+            const executions = moveTopLevelNode(
+                fileName,
+                fileText,
+                fileLine,
+                {
+                    dependencyCoefficientWeight: 1,
                     similarityCoefficientWeight: 1,
                     kindCoefficientWeight: 1,
                 },
@@ -114,7 +132,18 @@ describe('move top-level nodes for TS (real files)', function() {
 
             assert.equal(executions.length, 1);
 
-            console.log(executions[0]?.text)
+            const newFileText = readFileSync(
+                join(
+                    __dirname,
+                    './typeScript/manipulationSettingsContainer20.txt'
+                ),
+                'utf8'
+            );
+
+            assert.equal(
+                executions[0]?.text,
+                newFileText
+            );
         }
     });
 })
