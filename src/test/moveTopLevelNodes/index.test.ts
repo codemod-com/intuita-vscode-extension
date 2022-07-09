@@ -1,7 +1,9 @@
 import {assert} from "chai";
 import {moveTopLevelNode} from "../../features/moveTopLevelNode";
+import {readFileSync} from "fs";
+import {join} from "path";
 
-describe('move top-level nodes', async function() {
+describe('move top-level nodes for TS', async function() {
     const fileText = [
         "export function a() { return new B(); };",
         "export function c() {};",
@@ -67,6 +69,35 @@ describe('move top-level nodes', async function() {
         );
     });
 });
+
+describe('move top-level nodes for TS (real files)', function() {
+    it('should refactor the ts-morph\'s ManipulationSettingsContainer', function() {
+        const fileName = '/index.ts';
+
+        const fileText = readFileSync(
+            join(
+                __dirname,
+                './typeScript/manipulationSettingsContainerOriginal.txt'
+            ),
+            'utf8'
+        );
+
+        {
+            // enum
+            const fileLine = 5;
+
+            const executions = moveTopLevelNode(
+                fileName,
+                fileText,
+                fileLine,
+            );
+
+            assert.equal(executions.length, 1);
+
+            console.log(executions[0]?.text)
+        }
+    });
+})
 
 describe('move top-level nodes for TS with comments', async function() {
     const fileText = [
