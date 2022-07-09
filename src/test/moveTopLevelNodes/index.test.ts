@@ -71,11 +71,11 @@ describe('move top-level nodes', async function() {
 describe('move top-level nodes for TS with comments', async function() {
     const fileText = [
         "/** comment **/",
-        "export function a() { return new B(); };",
+        "export function a() { return new B(); }; /** commentA **/",
         "// comment",
-        "export function c() {};",
+        "export function c() {}; // commentC",
         "/** comment\ncomment2 **/",
-        "export class B {};",
+        "export class B {}; // commentB",
     ].join('\n');
 
     it('should move A nowhere', () => {
@@ -108,11 +108,11 @@ describe('move top-level nodes for TS with comments', async function() {
             executions[0]?.text,
             [
                 "// comment",
-                "export function c() {};",
+                "export function c() {}; // commentC",
                 "/** comment **/",
-                "export function a() { return new B(); };",
+                "export function a() { return new B(); }; /** commentA **/",
                 "/** comment\ncomment2 **/",
-                "export class B {};",
+                "export class B {}; // commentB",
             ].join('\n')
         );
     });
@@ -134,11 +134,11 @@ describe('move top-level nodes for TS with comments', async function() {
             executions[0]?.text,
             [
                 "/** comment\ncomment2 **/",
-                "export class B {};",
+                "export class B {}; // commentB",
                 "/** comment **/",
-                "export function a() { return new B(); };",
+                "export function a() { return new B(); }; /** commentA **/",
                 "// comment",
-                "export function c() {};",
+                "export function c() {}; // commentC",
             ].join('\n')
         );
     });

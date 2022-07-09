@@ -115,25 +115,26 @@ export const buildTypeScriptTopLevelNodes = (
         .map((node) => {
             const kind = getTopLevelNodeKind(node.kind);
 
-            const start = node.getStart();
-            const end = node.getEnd();
+            const nodeStart = node.getStart();
+            const nodeEnd = node.getEnd();
 
-            const newStart = ts.getLeadingCommentRanges(
+            const start = ts.getLeadingCommentRanges(
                 fileText,
                 node.getFullStart()
             )
                 ?.map(range => range.pos)
-                ?.reduce((a, b) => a < b ? a : b, start)
-                ?? start;
+                ?.reduce((a, b) => a < b ? a : b, nodeStart)
+                ?? nodeStart;
 
+            const end = ts.getTrailingCommentRanges(
+                fileText,
+            node.getEnd()+1
+            )
+                ?.map(range => range.end)
+                ?.reduce((a, b) => a > b ? a : b, nodeEnd)
+                ?? nodeEnd;
 
-            const ranges2 = ts.getTrailingCommentRanges(fileText, node.getEnd());
-
-            // console.log(ranges1, ranges2);
-
-
-
-            const text = fileText.slice(newStart, end + 1);
+            const text = fileText.slice(start, end);
 
             const id = buildHash(text);
 
@@ -148,7 +149,7 @@ export const buildTypeScriptTopLevelNodes = (
             return {
                 kind,
                 id,
-                start: newStart,
+                start,
                 end,
                 identifiers,
                 childIdentifiers,
