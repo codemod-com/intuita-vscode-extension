@@ -487,3 +487,30 @@ describe('move top-level nodes for Java', async function() {
         );
     });
 });
+
+describe('move top-level nodes for C (real files)', function() {
+    const fileName = '/adfs_inode.c';
+
+    const fileText = readFileSync(
+        join(
+            __dirname,
+            './c/adfs_inode.txt'
+        ),
+        'utf8'
+    );
+
+    it ('should not move the 0th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            11,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 0);
+    });
+})

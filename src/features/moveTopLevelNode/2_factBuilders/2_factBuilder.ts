@@ -2,6 +2,7 @@ import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
 import {buildJavaTopLevelNodes} from "./javaFactBuilder";
 import {buildTypeScriptTopLevelNodes} from "./typeScriptFactBuilder";
 import {TopLevelNode} from "./topLevelNode";
+import {buildCTopLevelNodes} from "./cFactBuilder";
 
 export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,
@@ -79,6 +80,10 @@ export const buildMoveTopLevelNodeFact = (
 
     if (fileName.endsWith('.java')) {
         topLevelNodes = buildJavaTopLevelNodes(fileText);
+    }
+
+    if (fileName.endsWith('.c')) {
+        topLevelNodes = buildCTopLevelNodes(fileText);
     }
 
     const selectedTopLevelNodeIndex = topLevelNodes
