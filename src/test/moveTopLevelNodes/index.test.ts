@@ -19,6 +19,11 @@ describe('move top-level nodes for TS', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 0);
@@ -33,6 +38,11 @@ describe('move top-level nodes for TS', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -55,6 +65,11 @@ describe('move top-level nodes for TS', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -90,6 +105,11 @@ describe('move top-level nodes for TS (real files)', function() {
                 fileName,
                 fileText,
                 fileLine,
+                {
+                    dependencyCoefficientWeight: 1,
+                    similarityCoefficientWeight: 1,
+                    kindCoefficientWeight: 1,
+                },
             );
 
             assert.equal(executions.length, 1);
@@ -120,6 +140,11 @@ describe('move top-level nodes for TS with comments', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 0);
@@ -134,6 +159,11 @@ describe('move top-level nodes for TS with comments', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -161,6 +191,11 @@ describe('move top-level nodes for TS with comments', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -193,12 +228,17 @@ describe('move top-level nodes for Java', async function() {
     const fileName = '/A.java';
 
     it('should move A after B', () => {
-        const fileLine = 2;
+        const fileLine = 3;
 
         const executions = moveTopLevelNode(
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -221,6 +261,11 @@ describe('move top-level nodes for Java', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
@@ -243,6 +288,11 @@ describe('move top-level nodes for Java', async function() {
             fileName,
             fileText,
             fileLine,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
         );
 
         assert.equal(executions.length, 1);
