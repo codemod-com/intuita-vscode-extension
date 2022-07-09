@@ -72,8 +72,10 @@ describe('move top-level nodes for TS with comments', async function() {
     const fileText = [
         "/** comment **/",
         "export function a() { return new B(); }; /** commentA **/",
+        "",
         "// comment",
         "export function c() {}; // commentC",
+        "",
         "/** comment\ncomment2 **/",
         "export class B {}; // commentB",
     ].join('\n');
@@ -95,7 +97,7 @@ describe('move top-level nodes for TS with comments', async function() {
     it('should move C before A', () => {
         const fileName = '/index.ts';
 
-        const fileLine = 3;
+        const fileLine = 4;
 
         const executions = moveTopLevelNode(
             fileName,
@@ -109,8 +111,10 @@ describe('move top-level nodes for TS with comments', async function() {
             [
                 "// comment",
                 "export function c() {}; // commentC",
+                "",
                 "/** comment **/",
                 "export function a() { return new B(); }; /** commentA **/",
+                "",
                 "/** comment\ncomment2 **/",
                 "export class B {}; // commentB",
             ].join('\n')
@@ -120,7 +124,7 @@ describe('move top-level nodes for TS with comments', async function() {
     it('should move B before A', () => {
         const fileName = '/index.ts';
 
-        const fileLine = 5;
+        const fileLine = 7;
 
         const executions = moveTopLevelNode(
             fileName,
@@ -137,8 +141,10 @@ describe('move top-level nodes for TS with comments', async function() {
                 "export class B {}; // commentB",
                 "/** comment **/",
                 "export function a() { return new B(); }; /** commentA **/",
+                "",
                 "// comment",
                 "export function c() {}; // commentC",
+                "",
             ].join('\n')
         );
     });
