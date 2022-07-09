@@ -73,7 +73,7 @@ export const buildMoveTopLevelNodeFact = (
 
     let topLevelNodes: ReadonlyArray<TopLevelNode> = [];
 
-    if (fileName.endsWith('.ts')) {
+    if (fileName.endsWith('.ts') || fileName.endsWith('.js')) {
         topLevelNodes = buildTypeScriptTopLevelNodes(fileName, fileText);
     }
 

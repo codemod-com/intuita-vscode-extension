@@ -96,7 +96,7 @@ describe('move top-level nodes for TS (real files)', function() {
         'utf8'
     );
 
-    it ('should do not move the 0th node', function() {
+    it ('should not move the 0th node', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
@@ -195,7 +195,7 @@ describe('move top-level nodes for TS (real files)', function() {
         );
     });
 
-    it('should do not move the 4th node', function() {
+    it('should not move the 4th node', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
@@ -208,6 +208,93 @@ describe('move top-level nodes for TS (real files)', function() {
         );
 
         assert.equal(executions.length, 0);
+    });
+});
+
+describe('move top-level nodes for JS (real files)', function() {
+    const fileName = '/index.js';
+
+    const fileText = readFileSync(
+        join(
+            __dirname,
+            './javaScript/resizeImageWidth.txt'
+        ),
+        'utf8'
+    );
+
+    it ('should not move the 0th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            5,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 0);
+    });
+
+    it ('should move the 1th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            64,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 0,
+                kindCoefficientWeight: 0,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+    });
+
+    it ('should move the 2th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            92,
+            {
+                dependencyCoefficientWeight: 0,
+                similarityCoefficientWeight: 0,
+                kindCoefficientWeight: 1,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+    });
+
+    it ('should move the 3th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            117,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 0,
+                kindCoefficientWeight: 0,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+    });
+
+    it ('should move the 4th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            203,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 0,
+                kindCoefficientWeight: 0,
+            },
+        );
+
+        assert.equal(executions.length, 1);
     });
 });
 
