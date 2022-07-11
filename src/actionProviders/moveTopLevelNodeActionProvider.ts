@@ -5,6 +5,30 @@ import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBu
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import { isNeitherNullNorUndefined } from '../utilities';
 
+const buildReason = (
+    solution: Solution,
+): string | null => {
+    const {
+        dependencyShare,
+        similarityShare,
+        kindShare,
+    } = solution.coefficient;
+
+    if (dependencyShare > similarityShare && dependencyShare > kindShare) {
+        return 'more ordered dependencies';
+    }
+
+    if (similarityShare > dependencyShare && similarityShare > kindShare) {
+        return 'more name similarity';
+    }
+
+    if (kindShare > similarityShare && kindShare > dependencyShare) {
+        return 'more same-type blocks';
+    }
+
+    return null;
+}
+
 const buildCodeAction = (
     fileName: string,
     solution: Solution,
@@ -12,34 +36,19 @@ const buildCodeAction = (
     const topLevelNode = solution.nodes[solution.newIndex];
 
     if (!topLevelNode) {
-        throw new Error('error');
         return null;
     }
 
-    const identifiers = Array.from(topLevelNode.identifiers).join(' ,');
+    const identifiers = Array.from(topLevelNode.identifiers);
+    const identifier = identifiers.length > 1
+        ? `(${identifiers.join(' ,')})`
+        : identifiers.join('')
 
-    const {
-        dependencyShare,
-        similarityShare,
-        kindShare,
-    } = solution.coefficient;
-
-    let reason = '';
-
-    if (dependencyShare > similarityShare && dependencyShare > kindShare) {
-        reason = 'dependencies in order';
-    }
-
-    if (similarityShare > dependencyShare && similarityShare > kindShare) {
-        reason = 'more name similarity';
-    }
-
-    if (kindShare > similarityShare && kindShare > dependencyShare) {
-        reason = 'blocks of the same kind closer';
-    }
+    const reason = buildReason(solution);
+    const reasonBlock = reason !== null ? ` (${reason})` : '';
 
     const codeAction = new vscode.CodeAction(
-        `Move (${identifiers}) to position ${solution.newIndex} (${reason})`,
+        `Move ${identifier} to position ${solution.newIndex}${reasonBlock}`,
         vscode.CodeActionKind.Refactor,
     );
 
@@ -82,6 +91,11 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 
         const codeActions = fact
             .solutions
+            .filter(
+                (solution) => {
+                    return solution.newIndex !== solution.oldIndex;
+                }
+            )
             .map(
                 (solution) => buildCodeAction(
                     fileName,
