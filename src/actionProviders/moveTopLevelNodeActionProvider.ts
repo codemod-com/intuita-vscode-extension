@@ -29,26 +29,45 @@ const buildReason = (
     return null;
 }
 
+const buildIdentifiersLabel = (
+    identifiers: ReadonlyArray<string>
+): string => {
+    return identifiers.length > 1
+        ? `(${identifiers.join(' ,')})`
+        : identifiers.join('')
+}
+
 const buildCodeAction = (
     fileName: string,
     solution: Solution,
 ): vscode.CodeAction | null => {
-    const topLevelNode = solution.nodes[solution.newIndex];
+    const { oldIndex, newIndex, nodes } = solution;
 
-    if (!topLevelNode) {
+    const otherNode = newIndex === 0
+        ? nodes[1]
+        : nodes[newIndex - 1];
+
+    const node = solution.nodes[newIndex];
+
+    if (!node || !otherNode) {
         return null;
     }
 
-    const identifiers = Array.from(topLevelNode.identifiers);
-    const identifier = identifiers.length > 1
-        ? `(${identifiers.join(' ,')})`
-        : identifiers.join('')
+    const orderLabel = newIndex === 0
+        ? 'before'
+        : 'after';
+
+    const otherIdentifiersLabel = buildIdentifiersLabel(
+        Array.from(
+            otherNode.identifiers
+        )
+    );
 
     const reason = buildReason(solution);
     const reasonBlock = reason !== null ? ` (${reason})` : '';
 
     const codeAction = new vscode.CodeAction(
-        `Move ${identifier} to position ${solution.newIndex}${reasonBlock}`,
+        `Move ${orderLabel} ${otherIdentifiersLabel} ${newIndex} ${reasonBlock}`,
         vscode.CodeActionKind.Refactor,
     );
 
@@ -58,8 +77,8 @@ const buildCodeAction = (
         arguments: [
             {
                 fileName,
-                oldIndex: solution.oldIndex,
-                newIndex: solution.newIndex,
+                oldIndex,
+                newIndex,
             }
         ]
     };
