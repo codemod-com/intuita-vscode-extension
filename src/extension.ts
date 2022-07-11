@@ -6,94 +6,10 @@ import * as vscode from 'vscode';
 import {readFileSync, writeFileSync} from "fs";
 // import {reorderDeclarations} from "./features/reorderDeclarations";
 // import {join} from "path";
-import {CodeAction, CodeActionKind} from "vscode";
-import {buildMoveTopLevelNodeUserCommand} from "./features/moveTopLevelNode/1_userCommandBuilder";
-import {buildMoveTopLevelNodeFact} from "./features/moveTopLevelNode/2_factBuilders/2_factBuilder";
-import {buildMoveTopLevelNodeAstCommand} from "./features/moveTopLevelNode/3_astCommandBuilder";
-import {moveTopLevelNode} from "./features/moveTopLevelNode";
-
-class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
-	public provideCodeActions(
-		document: vscode.TextDocument,
-		range: vscode.Range | vscode.Selection,
-	): Thenable<vscode.CodeAction[]> {
-		const fileName = document.fileName;
-		const fileText = readFileSync(fileName, 'utf8');
-		const fileLine = range.start.line;
-
-		const userCommand = buildMoveTopLevelNodeUserCommand(
-			fileName,
-			fileText,
-			fileLine,
-			{
-				dependencyCoefficientWeight: 1,
-				similarityCoefficientWeight: 1,
-				kindCoefficientWeight: 1,
-			},
-		);
-
-		const fact = buildMoveTopLevelNodeFact(userCommand);
-
-		const { selectedTopLevelNodeIndex, topLevelNodes } = fact;
-
-		const topLevelNode = topLevelNodes[selectedTopLevelNodeIndex] ?? null;
-
-		if (topLevelNode === null) {
-			return Promise.resolve([]);
-		}
-
-		const astCommand = buildMoveTopLevelNodeAstCommand(
-			userCommand,
-			fact,
-		);
-
-		if (astCommand === null || astCommand.oldIndex === astCommand.newIndex) {
-			return Promise.resolve([]);
-		}
-
-		const identifiers = Array.from(topLevelNode.identifiers).join(' ,');
-
-		const {
-			dependencyShare,
-			similarityShare,
-			kindShare,
-		} = astCommand.coefficient;
-
-		let reason = '';
-
-		if (dependencyShare > similarityShare && dependencyShare > kindShare) {
-			reason = 'dependencies in order';
-		}
-
-		if (similarityShare > dependencyShare && similarityShare > kindShare) {
-			reason = 'more name similarity';
-		}
-
-		if (kindShare > similarityShare && kindShare > dependencyShare) {
-			reason = 'blocks of the same kind closer';
-		}
-
-		const codeAction = new CodeAction(
-			`Move (${identifiers}) to position ${astCommand.newIndex} (${reason})`,
-			CodeActionKind.Refactor,
-		);
-
-		codeAction.command = {
-			title: 'Move',
-			command: 'intuita.moveTopLevelNode',
-			arguments: [
-				{
-					fileName,
-					fileLine,
-				}
-			]
-		};
-
-		return Promise.resolve([
-			codeAction,
-		]);
-	}
-}
+import { buildTopLevelNodes } from './features/moveTopLevelNode/2_factBuilders/buildTopLevelNodes';
+import { getStringNodes } from './features/moveTopLevelNode/2_factBuilders/stringNodes';
+import { executeMoveTopLevelNodeAstCommand } from './features/moveTopLevelNode/4_astCommandExecutor';
+import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
@@ -109,29 +25,51 @@ export async function activate(context: vscode.ExtensionContext) {
 				? args.fileName
 				: null;
 
-			const fileLine: number | null = args && typeof args.fileLine === 'number'
-				? args.fileLine
+			const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+				? args.oldIndex
 				: null;
 
-			if (fileName === null || fileLine === null) {
+			const newIndex: number | null = args && typeof args.newIndex === 'number'
+				? args.newIndex
+				: null;
+
+			if (fileName === null || oldIndex === null || newIndex === null) {
 				return;
 			}
 
 			const fileText = readFileSync(fileName, 'utf8');
 
-			const executions = moveTopLevelNode(
+			const topLevelNodes = buildTopLevelNodes(
 				fileName,
 				fileText,
-				fileLine,
-				{
-					dependencyCoefficientWeight: 1,
-					similarityCoefficientWeight: 1,
-					kindCoefficientWeight: 1,
-				},
 			);
 
-			for (const { name, text } of executions) {
+			const stringNodes = getStringNodes(fileText, topLevelNodes);
+
+			const executions = executeMoveTopLevelNodeAstCommand({
+				kind: "MOVE_TOP_LEVEL_NODE",
+				fileName,
+				oldIndex,
+				newIndex,
+				stringNodes,
+			});
+
+			for (const { name, text, lineNumber } of executions) {
 				writeFileSync(name, text);
+
+				setTimeout(
+					() => {
+						if (vscode.window.activeTextEditor) {
+							const position = new vscode.Position(lineNumber, 0);
+							const selection = new vscode.Selection(position, position);
+		
+							vscode.window.activeTextEditor.selections = [ selection ];
+						}
+					},
+					500,
+				)
+
+				
 			}
 		}
 	);
