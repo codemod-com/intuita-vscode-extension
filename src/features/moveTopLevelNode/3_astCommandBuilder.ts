@@ -125,15 +125,21 @@ export const calculateCoefficient = (
         dependencyShare,
         similarityShare,
         kindShare,
-    }
+    };
 };
 
-const calculateSolution = (
+type Solution = Readonly<{
+    nodes: ReadonlyArray<TopLevelNode>,
+    index: number,
+
+}>;
+
+const calculateSolutions = (
     nodes: ReadonlyArray<TopLevelNode>,
     selectedIndex: number,
     options: MoveTopLevelNodeOptions,
-) => {
-    const solutions = nodes
+): ReadonlyArray<Solution> => {
+    return nodes
         .map((_, index) => {
             return moveElementInArray(
                 nodes,
@@ -148,19 +154,17 @@ const calculateSolution = (
                 coefficient: calculateCoefficient(nodes, options),
             };
         })
+        .filter(({ coefficient }) => coefficient.coefficient < 0.5)
         .sort((a, b) => {
             return Math.sign(a.coefficient.coefficient - b.coefficient.coefficient);
         });
-
-    return solutions[0] ?? null;
 };
 
 export type MoveTopLevelNodeAstCommand = Readonly<{
     kind: "MOVE_TOP_LEVEL_NODE",
     fileName: string,
     oldIndex: number,
-    newIndex: number,
-    coefficient: Coefficient,
+    solutions: ReadonlyArray<Solution>,
     stringNodes: ReadonlyArray<StringNode>,
 }>;
 
@@ -179,13 +183,13 @@ export const buildMoveTopLevelNodeAstCommand = (
         return null;
     }
 
-    const solution = calculateSolution(
+    const solutions = calculateSolutions(
         topLevelNodes,
         selectedTopLevelNodeIndex,
         options,
     );
 
-    if (solution === null) {
+    if (solutions.length === 0) {
         return null;
     }
 
@@ -193,8 +197,7 @@ export const buildMoveTopLevelNodeAstCommand = (
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
         oldIndex: selectedTopLevelNodeIndex,
-        newIndex: solution.index,
-        coefficient: solution.coefficient,
+        solutions,
         stringNodes,
     };
 };
