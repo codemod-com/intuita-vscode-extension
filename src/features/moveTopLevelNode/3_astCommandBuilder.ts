@@ -34,13 +34,14 @@ export const buildMoveTopLevelNodeAstCommand = (
     const solution = solutions[solutionIndex] ?? null;
 
     if (solution === null) {
+        throw new Error();
         return null;
     }
 
     return {
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
-        oldIndex: solution.newIndex,
+        oldIndex: solution.oldIndex,
         newIndex: solution.newIndex,
         stringNodes,
     };

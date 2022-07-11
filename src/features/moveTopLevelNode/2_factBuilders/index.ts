@@ -30,7 +30,7 @@ export const buildMoveTopLevelNodeFact = (
     const topLevelNodes = buildTopLevelNodes(
         fileName,
         fileText,
-    )
+    );
 
     const selectedTopLevelNodeIndex = topLevelNodes
         .findIndex(node => node.start <= fineLineStart && fineLineStart <= node.end );

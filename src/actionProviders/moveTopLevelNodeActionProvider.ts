@@ -12,6 +12,7 @@ const buildCodeAction = (
     const topLevelNode = solution.nodes[solution.newIndex];
 
     if (!topLevelNode) {
+        throw new Error('error');
         return null;
     }
 
@@ -55,7 +56,7 @@ const buildCodeAction = (
     };
 
     return codeAction;
-}
+};
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
 	public provideCodeActions(

@@ -31,7 +31,7 @@ export const calculateSolutions = (
                 coefficient: calculateCoefficient(nodes, options),
             };
         })
-        .filter(({ coefficient }) => coefficient.coefficient < 0.5)
+        .filter((_, newIndex) => newIndex !== oldIndex)
         .sort((a, b) => {
             return Math.sign(a.coefficient.coefficient - b.coefficient.coefficient);
         });

@@ -24,6 +24,9 @@ export const moveTopLevelNode = (
     const astCommand = buildMoveTopLevelNodeAstCommand(
         userCommand,
         fact,
+        {
+            solutionIndex: 0,
+        }
     );
 
     if (astCommand === null) {
