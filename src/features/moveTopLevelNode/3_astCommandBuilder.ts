@@ -33,8 +33,7 @@ export const buildMoveTopLevelNodeAstCommand = (
 
     const solution = solutions[solutionIndex] ?? null;
 
-    if (solution === null) {
-        throw new Error();
+    if (solution === null || solution.oldIndex === solution.newIndex) {
         return null;
     }
 
