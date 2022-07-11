@@ -1,6 +1,5 @@
 import { MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {MoveTopLevelNodeFact } from "./2_factBuilders";
-import { Solution } from "./2_factBuilders/solutions";
 import { StringNode } from "./2_factBuilders/stringNodes";
 
 export type Options = Readonly<{
@@ -11,8 +10,8 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     kind: "MOVE_TOP_LEVEL_NODE",
     fileName: string,
     oldIndex: number,
+    newIndex: number,
     stringNodes: ReadonlyArray<StringNode>,
-    solution: Solution,
 }>;
 
 export const buildMoveTopLevelNodeAstCommand = (
@@ -21,7 +20,6 @@ export const buildMoveTopLevelNodeAstCommand = (
     }: MoveTopLevelNodeUserCommand,
     {
         topLevelNodes,
-        selectedTopLevelNodeIndex,
         stringNodes,
         solutions,
     }: MoveTopLevelNodeFact,
@@ -29,7 +27,7 @@ export const buildMoveTopLevelNodeAstCommand = (
         solutionIndex,
     }: Options,
 ): MoveTopLevelNodeAstCommand | null => {
-    if (topLevelNodes.length === 0 || selectedTopLevelNodeIndex === -1) {
+    if (topLevelNodes.length === 0) {
         return null;
     }
 
@@ -42,8 +40,8 @@ export const buildMoveTopLevelNodeAstCommand = (
     return {
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
-        oldIndex: selectedTopLevelNodeIndex,
-        solution,
+        oldIndex: solution.newIndex,
+        newIndex: solution.newIndex,
         stringNodes,
     };
 };

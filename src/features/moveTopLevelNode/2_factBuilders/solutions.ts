@@ -5,27 +5,29 @@ import { TopLevelNode } from "./topLevelNode";
 
 export type Solution = Readonly<{
     nodes: ReadonlyArray<TopLevelNode>,
-    index: number,
+    oldIndex: number,
+    newIndex: number,
     coefficient: Coefficient
 }>;
 
 export const calculateSolutions = (
     nodes: ReadonlyArray<TopLevelNode>,
-    selectedIndex: number,
+    oldIndex: number,
     options: MoveTopLevelNodeOptions,
 ): ReadonlyArray<Solution> => {
     return nodes
-        .map((_, index) => {
+        .map((_, newIndex) => {
             return moveElementInArray(
                 nodes,
-                selectedIndex,
-                index,
+                oldIndex,
+                newIndex,
             );
         })
-        .map((nodes, index) => {
+        .map((nodes, newIndex) => {
             return {
                 nodes,
-                index,
+                oldIndex,
+                newIndex,
                 coefficient: calculateCoefficient(nodes, options),
             };
         })
