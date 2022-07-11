@@ -23,6 +23,35 @@ export const executeMoveTopLevelNodeAstCommand = (
         newIndex,
     );
 
+    const index = stringNodes
+        .map(
+            ({ topLevelNodeIndex }, index) => {
+                return {
+                    topLevelNodeIndex,
+                    index,
+                };
+            }
+        )
+        .find(
+            ({ topLevelNodeIndex }) => topLevelNodeIndex === newIndex
+        )
+        ?.index ?? 0;
+    
+    const lineNumber = stringNodes
+        .slice(0, index - 1)
+        .map(({ topLevelNodeIndex, text}) => {
+            if (topLevelNodeIndex === null) {
+                return text;
+            }
+
+            return movedTopLevelNodeTexts[topLevelNodeIndex] ?? '';
+        })
+        .join('')
+        .split('\n')
+        .length + (index === 1 ? 1 : 0);
+
+    console.log(index, lineNumber)
+
     const text = stringNodes
         .map(
             ({ topLevelNodeIndex, text}) => {
@@ -35,10 +64,12 @@ export const executeMoveTopLevelNodeAstCommand = (
         )
         .join('');
 
+
     return [
         {
             name: fileName,
             text,
+            lineNumber,
         }
     ];
 };

@@ -1,9 +1,6 @@
 import {assert} from "chai";
-import {
-    calculateDependencyCoefficient,
-    calculateKindCoefficient,
-    calculateSimilarityCoefficient
-} from "../../features/moveTopLevelNode/3_astCommandBuilder";
+import { calculateDependencyCoefficient, calculateKindCoefficient, calculateSimilarityCoefficient } from "../../features/moveTopLevelNode/2_factBuilders/coefficients";
+
 import {TopLevelNode, TopLevelNodeKind} from "../../features/moveTopLevelNode/2_factBuilders/topLevelNode";
 
 const buildNode = (
