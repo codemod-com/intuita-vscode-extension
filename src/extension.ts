@@ -54,8 +54,22 @@ export async function activate(context: vscode.ExtensionContext) {
 				stringNodes,
 			});
 
-			for (const { name, text } of executions) {
+			for (const { name, text, lineNumber } of executions) {
 				writeFileSync(name, text);
+
+				setTimeout(
+					() => {
+						if (vscode.window.activeTextEditor) {
+							const position = new vscode.Position(lineNumber, 0);
+							const selection = new vscode.Selection(position, position);
+		
+							vscode.window.activeTextEditor.selections = [ selection ];
+						}
+					},
+					500,
+				)
+
+				
 			}
 		}
 	);
