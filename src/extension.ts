@@ -8,7 +8,7 @@ import {readFileSync, writeFileSync} from "fs";
 // import {join} from "path";
 import {CodeAction, CodeActionKind} from "vscode";
 import {buildMoveTopLevelNodeUserCommand} from "./features/moveTopLevelNode/1_userCommandBuilder";
-import {buildMoveTopLevelNodeFact} from "./features/moveTopLevelNode/2_factBuilders/2_factBuilder";
+import {buildMoveTopLevelNodeFact} from "./features/moveTopLevelNode/2_factBuilders";
 import {buildMoveTopLevelNodeAstCommand} from "./features/moveTopLevelNode/3_astCommandBuilder";
 import {moveTopLevelNode} from "./features/moveTopLevelNode";
 
