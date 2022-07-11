@@ -67,7 +67,7 @@ const buildCodeAction = (
     const reasonBlock = reason !== null ? ` (${reason})` : '';
 
     const codeAction = new vscode.CodeAction(
-        `Move ${orderLabel} ${otherIdentifiersLabel} ${newIndex} ${reasonBlock}`,
+        `Move ${orderLabel} ${otherIdentifiersLabel} ${reasonBlock}`,
         vscode.CodeActionKind.Refactor,
     );
 
@@ -95,14 +95,22 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileText = readFileSync(fileName, 'utf8');
 		const fileLine = range.start.line;
 
+        const configuration = vscode.workspace.getConfiguration(
+            'intuita',
+        );
+
+        const dependencyCoefficientWeight = configuration.get<number>('dependencyCoefficientWeight') ?? 1;
+        const similarityCoefficientWeight = configuration.get<number>('similarityCoefficientWeight') ?? 1;
+        const kindCoefficientWeight = configuration.get<number>('kindCoefficientWeight') ?? 1;
+
 		const userCommand = buildMoveTopLevelNodeUserCommand(
 			fileName,
 			fileText,
 			fileLine,
 			{
-				dependencyCoefficientWeight: 1,
-				similarityCoefficientWeight: 1,
-				kindCoefficientWeight: 1,
+				dependencyCoefficientWeight,
+				similarityCoefficientWeight,
+				kindCoefficientWeight,
 			},
 		);
 
