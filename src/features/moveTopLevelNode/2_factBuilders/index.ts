@@ -3,9 +3,11 @@ import {TopLevelNode} from "./topLevelNode";
 import { calculateSolutions, Solution } from "./solutions";
 import { getStringNodes, StringNode } from "./stringNodes";
 import { buildTopLevelNodes } from "./buildTopLevelNodes";
+import {calculateIndex, calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,
+    selectedIndex: number,
     selectedTopLevelNodeIndex: number,
     stringNodes: ReadonlyArray<StringNode>,
     solutions: ReadonlyArray<Solution>,
@@ -18,14 +20,15 @@ export const buildMoveTopLevelNodeFact = (
         fileName,
         fileText,
         fileLine,
+        fileCharacter,
         options,
     } = userCommand;
 
-    const fineLineStart = fileText
-        .split('\n')
-        .filter((_, index) => index < fileLine)
-        .map(({ length }) => length)
-        .reduce((a, b) => a + b + 1, 0); // +1 for '\n'
+    const separator = '\n';
+
+    const lines = calculateLines(fileText, separator);
+    const lengths = calculateLengths(lines);
+    const selectedIndex = calculateIndex(separator, lengths, fileLine, fileCharacter);
 
     const topLevelNodes = buildTopLevelNodes(
         fileName,
@@ -33,7 +36,7 @@ export const buildMoveTopLevelNodeFact = (
     );
 
     const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start <= fineLineStart && fineLineStart <= node.end );
+        .findIndex(node => node.start <= selectedIndex && selectedIndex <= node.end );
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
@@ -45,6 +48,7 @@ export const buildMoveTopLevelNodeFact = (
 
     return {
         topLevelNodes,
+        selectedIndex,
         selectedTopLevelNodeIndex,
         stringNodes,
         solutions,

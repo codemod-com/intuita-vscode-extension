@@ -93,6 +93,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileName = document.fileName;
 		const fileText = document.getText();
 		const fileLine = range.start.line;
+        const fileCharacter = range.start.character;
 
         const configuration = vscode.workspace.getConfiguration(
             'intuita',
@@ -106,6 +107,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 			fileName,
 			fileText,
 			fileLine,
+            fileCharacter,
 			{
 				dependencyCoefficientWeight,
 				similarityCoefficientWeight,
@@ -122,6 +124,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                     return solution.newIndex !== solution.oldIndex;
                 }
             )
+            .slice(0, 1)
             .map(
                 (solution) => buildCodeAction(
                     fileName,

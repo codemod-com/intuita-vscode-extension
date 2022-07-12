@@ -11,6 +11,7 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     fileName: string,
     oldIndex: number,
     newIndex: number,
+    selectedIndex: number,
     stringNodes: ReadonlyArray<StringNode>,
 }>;
 
@@ -22,6 +23,7 @@ export const buildMoveTopLevelNodeAstCommand = (
         topLevelNodes,
         stringNodes,
         solutions,
+        selectedIndex,
     }: MoveTopLevelNodeFact,
     {
         solutionIndex,
@@ -43,5 +45,6 @@ export const buildMoveTopLevelNodeAstCommand = (
         oldIndex: solution.oldIndex,
         newIndex: solution.newIndex,
         stringNodes,
+        selectedIndex,
     };
 };

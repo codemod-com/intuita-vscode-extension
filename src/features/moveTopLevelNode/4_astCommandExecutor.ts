@@ -6,6 +6,7 @@ export const executeMoveTopLevelNodeAstCommand = (
         fileName,
         oldIndex,
         newIndex,
+        selectedIndex,
         stringNodes,
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {

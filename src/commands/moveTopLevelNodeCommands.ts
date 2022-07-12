@@ -16,12 +16,17 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         ? args.newIndex
         : null;
 
+    const selectedIndex: number | null = args && typeof args.selectedIndex === 'number'
+        ? args.selectedIndex
+        : null;
+
     const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
     if (
         fileName === null
         || oldIndex === null
         || newIndex === null
+        || selectedIndex === null
         || activeTextEditor === null
         || activeTextEditor.document.fileName !== fileName
     ) {
@@ -42,6 +47,7 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         fileName,
         oldIndex,
         newIndex,
+        selectedIndex,
         stringNodes,
     });
 

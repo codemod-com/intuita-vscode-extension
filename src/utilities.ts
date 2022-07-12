@@ -50,4 +50,27 @@ export const calculateAverage = (
         .reduce((a, b) => a + b, 0);
 
     return sum / array.length;
-}
+};
+
+export const calculateLines = (
+    text: string,
+    separator: string,
+) =>
+    text.split(separator);
+
+export const calculateLengths = (lines: ReadonlyArray<string>) =>
+    lines.map((line) => line.length);
+
+export const calculateIndex = (
+    separator: string,
+    lengths: ReadonlyArray<number>,
+    lineNumber: number,
+    characterNumber: number,
+): number => {
+    return lengths
+        .slice(0, lineNumber)
+        .reduce(
+            (a, b) => a+b+separator.length,
+            characterNumber,
+        );
+};
