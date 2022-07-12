@@ -16,8 +16,8 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         ? args.newIndex
         : null;
 
-    const selectedIndex: number | null = args && typeof args.selectedIndex === 'number'
-        ? args.selectedIndex
+    const characterDifference: number | null = args && typeof args.characterDifference === 'number'
+        ? args.characterDifference
         : null;
 
     const activeTextEditor = vscode.window.activeTextEditor ?? null;
@@ -26,7 +26,7 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         fileName === null
         || oldIndex === null
         || newIndex === null
-        || selectedIndex === null
+        || characterDifference === null
         || activeTextEditor === null
         || activeTextEditor.document.fileName !== fileName
     ) {
@@ -41,7 +41,7 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         fileText,
         oldIndex,
         newIndex,
-        selectedIndex,
+        characterDifference,
     });
 
     const execution = executions[0] ?? null;
@@ -50,7 +50,7 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         return;
     }
 
-    const { name, text } = execution;
+    const { name, text, line, character } = execution;
 
     if (name !== fileName) {
         return;
@@ -80,8 +80,8 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         }
     );
 
-    // const position = new vscode.Position(lineNumber, lineCharacter);
-    // const selection = new vscode.Selection(position, position);
+    const position = new vscode.Position(line, character);
+    const selection = new vscode.Selection(position, position);
 
-    activeTextEditor.selections = [];
+    activeTextEditor.selections = [ selection ];
 }

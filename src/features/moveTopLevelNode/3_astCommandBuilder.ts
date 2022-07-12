@@ -12,7 +12,7 @@ export type MoveTopLevelNodeAstCommand = Readonly<{
     fileText: string,
     oldIndex: number,
     newIndex: number,
-    selectedIndex: number,
+    characterDifference: number,
 }>;
 
 export const buildMoveTopLevelNodeAstCommand = (
@@ -24,7 +24,7 @@ export const buildMoveTopLevelNodeAstCommand = (
         topLevelNodes,
         stringNodes,
         solutions,
-        selectedIndex,
+        characterDifference,
     }: MoveTopLevelNodeFact,
     {
         solutionIndex,
@@ -46,6 +46,6 @@ export const buildMoveTopLevelNodeAstCommand = (
         fileText,
         oldIndex: solution.oldIndex,
         newIndex: solution.newIndex,
-        selectedIndex,
+        characterDifference,
     };
 };

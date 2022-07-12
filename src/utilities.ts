@@ -12,6 +12,8 @@ export function isNeitherNullNorUndefined<T>(
 export type SourceFileExecution = Readonly<{
     name: string,
     text: string,
+    line: number,
+    character: number,
 }>;
 
 export const buildHash = (data: string) =>
@@ -60,7 +62,7 @@ export const calculateLines = (
 export const calculateLengths = (lines: ReadonlyArray<string>) =>
     lines.map((line) => line.length);
 
-export const calculateIndex = (
+export const calculateCharacterIndex = (
     separator: string,
     lengths: ReadonlyArray<number>,
     lineNumber: number,

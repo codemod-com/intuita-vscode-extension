@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import {calculateIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from '../utilities';
+import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from '../utilities';
 
 const buildReason = (
     solution: Solution,
@@ -38,6 +38,7 @@ const buildIdentifiersLabel = (
 
 const buildCodeAction = (
     fileName: string,
+    characterDifference: number,
     solution: Solution,
 ): vscode.CodeAction | null => {
     const { oldIndex, newIndex, nodes } = solution;
@@ -78,6 +79,7 @@ const buildCodeAction = (
                 fileName,
                 oldIndex,
                 newIndex,
+                characterDifference
             }
         ]
     };
@@ -128,6 +130,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
             .map(
                 (solution) => buildCodeAction(
                     fileName,
+                    fact.characterDifference,
                     solution,
                 )
             )

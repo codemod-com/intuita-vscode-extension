@@ -1,5 +1,5 @@
 import {MoveTopLevelNodeAstCommand} from "./3_astCommandBuilder";
-import {moveElementInArray, SourceFileExecution} from "../../utilities";
+import {calculateLines, moveElementInArray, SourceFileExecution} from "../../utilities";
 import {getStringNodes} from "./2_factBuilders/stringNodes";
 import {buildTopLevelNodes} from "./2_factBuilders/buildTopLevelNodes";
 
@@ -9,6 +9,7 @@ export const executeMoveTopLevelNodeAstCommand = (
         fileText,
         oldIndex,
         newIndex,
+        characterDifference
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {
     if (oldIndex === newIndex) {
@@ -32,37 +33,49 @@ export const executeMoveTopLevelNodeAstCommand = (
         newIndex,
     );
 
-    const index = stringNodes
-        .map(
-            ({ topLevelNodeIndex }, index) => {
-                return {
-                    topLevelNodeIndex,
-                    index,
-                };
-            }
-        )
-        .find(
-            ({ topLevelNodeIndex }) => topLevelNodeIndex === newIndex
-        )
-        ?.index ?? 0;
-
-    const text = stringNodes
+    const newNodes = stringNodes
         .map(
             ({ topLevelNodeIndex, text}) => {
                 if (topLevelNodeIndex === null) {
-                    return text;
+                    return {
+                        topLevelNodeIndex,
+                        text,
+                        match: false,
+                    };
                 }
 
-                return movedTopLevelNodeTexts[topLevelNodeIndex] ?? '';
-            },
-        )
+                return {
+                    topLevelNodeIndex,
+                    text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
+                    match: topLevelNodeIndex === newIndex,
+                }
+            });
+
+    const text = newNodes
+        .map(({ text }) => text)
         .join('');
 
+    const index = newNodes.findIndex(({ match }) => match);
+
+    const initialText = newNodes
+        .slice(0, index)
+        .map(({ text }) => text)
+        .join('');
+
+    const lines = calculateLines(initialText, '\n');
+
+    // initial
+    let line = lines.length - 1;
+    let character = characterDifference;
+
+    console.log(index, line, character)
 
     return [
         {
             name: fileName,
             text,
+            line,
+            character,
         }
     ];
 };
