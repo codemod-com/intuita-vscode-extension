@@ -64,11 +64,12 @@ export const executeMoveTopLevelNodeAstCommand = (
 
     const lines = calculateLines(initialText, '\n');
 
-    // initial
-    let line = lines.length - 1;
-    let character = characterDifference;
+    const nodeLines = (newNodes[index]?.text ?? '')
+        .slice(0, characterDifference)
+        .split('\n');
 
-    console.log(index, line, character)
+    const line = lines.length + nodeLines.length - 2;
+    const character = nodeLines[nodeLines.length-1]?.length ?? 0;
 
     return [
         {
