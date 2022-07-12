@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import * as vscode from 'vscode';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
