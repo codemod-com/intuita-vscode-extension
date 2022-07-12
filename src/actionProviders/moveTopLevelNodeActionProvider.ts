@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import { isNeitherNullNorUndefined } from '../utilities';
+import {calculateIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from '../utilities';
 
 const buildReason = (
     solution: Solution,
@@ -38,6 +38,7 @@ const buildIdentifiersLabel = (
 
 const buildCodeAction = (
     fileName: string,
+    selectedIndex: number,
     solution: Solution,
 ): vscode.CodeAction | null => {
     const { oldIndex, newIndex, nodes } = solution;
@@ -78,6 +79,7 @@ const buildCodeAction = (
                 fileName,
                 oldIndex,
                 newIndex,
+                selectedIndex,
             }
         ]
     };
@@ -94,6 +96,12 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileText = document.getText();
 		const fileLine = range.start.line;
         const fileCharacter = range.start.character;
+
+        const separator = '\n';
+
+        const lines = calculateLines(fileText, separator);
+        const lengths = calculateLengths(lines);
+        const selectedIndex = calculateIndex(separator, lengths, fileLine, fileCharacter);
 
         const configuration = vscode.workspace.getConfiguration(
             'intuita',
@@ -128,6 +136,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
             .map(
                 (solution) => buildCodeAction(
                     fileName,
+                    selectedIndex,
                     solution,
                 )
             )

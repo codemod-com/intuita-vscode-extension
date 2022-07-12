@@ -1,18 +1,27 @@
 import {MoveTopLevelNodeAstCommand} from "./3_astCommandBuilder";
 import {moveElementInArray, SourceFileExecution} from "../../utilities";
+import {getStringNodes} from "./2_factBuilders/stringNodes";
+import {buildTopLevelNodes} from "./2_factBuilders/buildTopLevelNodes";
 
 export const executeMoveTopLevelNodeAstCommand = (
     {
         fileName,
+        fileText,
         oldIndex,
         newIndex,
         selectedIndex,
-        stringNodes,
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {
     if (oldIndex === newIndex) {
         return [];
     }
+
+    const topLevelNodes = buildTopLevelNodes(
+        fileName,
+        fileText,
+    );
+
+    const stringNodes = getStringNodes(fileText, topLevelNodes);
 
     const topLevelNodeTexts = stringNodes
         .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
@@ -51,7 +60,7 @@ export const executeMoveTopLevelNodeAstCommand = (
         .split('\n')
         .length + (index === 1 ? 1 : 0);
 
-    console.log(index, lineNumber)
+    // console.log(index, lineNumber)
 
     const text = stringNodes
         .map(

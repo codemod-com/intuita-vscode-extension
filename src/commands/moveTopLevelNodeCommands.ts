@@ -45,10 +45,10 @@ export const moveTopLevelNodeCommands = async (args: any) => {
     const executions = executeMoveTopLevelNodeAstCommand({
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
+        fileText,
         oldIndex,
         newIndex,
         selectedIndex,
-        stringNodes,
     });
 
     const execution = executions[0] ?? null;
