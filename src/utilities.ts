@@ -12,7 +12,6 @@ export function isNeitherNullNorUndefined<T>(
 export type SourceFileExecution = Readonly<{
     name: string,
     text: string,
-    lineNumber: number,
 }>;
 
 export const buildHash = (data: string) =>

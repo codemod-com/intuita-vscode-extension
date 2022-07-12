@@ -9,7 +9,6 @@ export const executeMoveTopLevelNodeAstCommand = (
         fileText,
         oldIndex,
         newIndex,
-        selectedIndex,
     }: MoveTopLevelNodeAstCommand
 ): ReadonlyArray<SourceFileExecution> => {
     if (oldIndex === newIndex) {
@@ -46,21 +45,6 @@ export const executeMoveTopLevelNodeAstCommand = (
             ({ topLevelNodeIndex }) => topLevelNodeIndex === newIndex
         )
         ?.index ?? 0;
-    
-    const lineNumber = stringNodes
-        .slice(0, index - 1)
-        .map(({ topLevelNodeIndex, text}) => {
-            if (topLevelNodeIndex === null) {
-                return text;
-            }
-
-            return movedTopLevelNodeTexts[topLevelNodeIndex] ?? '';
-        })
-        .join('')
-        .split('\n')
-        .length + (index === 1 ? 1 : 0);
-
-    // console.log(index, lineNumber)
 
     const text = stringNodes
         .map(
@@ -79,7 +63,6 @@ export const executeMoveTopLevelNodeAstCommand = (
         {
             name: fileName,
             text,
-            lineNumber,
         }
     ];
 };

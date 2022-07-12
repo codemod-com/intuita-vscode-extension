@@ -51,7 +51,6 @@ export const executeReorderDeclarationsAstCommand = (
         {
             name: astCommand.fileName,
             text,
-            lineNumber: 0,
         }
     ]
 };

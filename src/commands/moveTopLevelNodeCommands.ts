@@ -35,13 +35,6 @@ export const moveTopLevelNodeCommands = async (args: any) => {
 
     const fileText = activeTextEditor.document.getText();
 
-    const topLevelNodes = buildTopLevelNodes(
-        fileName,
-        fileText,
-    );
-
-    const stringNodes = getStringNodes(fileText, topLevelNodes);
-
     const executions = executeMoveTopLevelNodeAstCommand({
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
@@ -57,7 +50,7 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         return;
     }
 
-    const { name, text, lineNumber } = execution;
+    const { name, text } = execution;
 
     if (name !== fileName) {
         return;
@@ -87,8 +80,8 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         }
     );
 
-    const position = new vscode.Position(lineNumber, 0);
-    const selection = new vscode.Selection(position, position);
-    
-    activeTextEditor.selections = [ selection ];
+    // const position = new vscode.Position(lineNumber, lineCharacter);
+    // const selection = new vscode.Selection(position, position);
+
+    activeTextEditor.selections = [];
 }
