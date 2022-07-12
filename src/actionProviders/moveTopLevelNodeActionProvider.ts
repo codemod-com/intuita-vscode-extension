@@ -92,7 +92,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		range: vscode.Range | vscode.Selection,
 	): Thenable<vscode.CodeAction[]> {
 		const fileName = document.fileName;
-		const fileText = readFileSync(fileName, 'utf8');
+		const fileText = document.getText();
 		const fileLine = range.start.line;
 
         const configuration = vscode.workspace.getConfiguration(

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { readFileSync } from "fs";
 import { buildTopLevelNodes } from './features/moveTopLevelNode/2_factBuilders/buildTopLevelNodes';
 import { getStringNodes } from './features/moveTopLevelNode/2_factBuilders/stringNodes';
 import { executeMoveTopLevelNodeAstCommand } from './features/moveTopLevelNode/4_astCommandExecutor';
@@ -27,11 +26,19 @@ export async function activate(context: vscode.ExtensionContext) {
 				? args.newIndex
 				: null;
 
-			if (fileName === null || oldIndex === null || newIndex === null) {
+			const activeTextEditor = vscode.window.activeTextEditor ?? null;
+
+			if (
+				fileName === null
+				|| oldIndex === null
+				|| newIndex === null
+				|| activeTextEditor === null
+				|| activeTextEditor.document.fileName !== fileName
+			) {
 				return;
 			}
 
-			const fileText = readFileSync(fileName, 'utf8');
+			const fileText = activeTextEditor.document.getText();
 
 			const topLevelNodes = buildTopLevelNodes(
 				fileName,
@@ -48,37 +55,44 @@ export async function activate(context: vscode.ExtensionContext) {
 				stringNodes,
 			});
 
-			for (const { name, text, lineNumber } of executions) {
-				if (vscode.window.activeTextEditor) {
-					const oldText = vscode.window.activeTextEditor.document.getText();
-					const oldLines = oldText.split('\n');
-					const oldTextLastLineNumber = oldLines.length - 1;
-					const oldTextLastCharacter = oldLines[oldLines.length - 1]?.length ?? 0;
+			const execution = executions[0] ?? null;
 
-					await vscode.window.activeTextEditor.edit(
-						(textEditorEdit) => {
-							textEditorEdit.replace(
-								new vscode.Range(
-									new vscode.Position(
-										0,
-										0
-									),
-									new vscode.Position(
-										oldTextLastLineNumber,
-										oldTextLastCharacter
-									),
-								),
-								text,
-							);
-						}
-					);
-
-					const position = new vscode.Position(lineNumber, 0);
-					const selection = new vscode.Selection(position, position);
-					
-					vscode.window.activeTextEditor.selections = [ selection ];
-				}
+			if (!execution) {
+				return;
 			}
+
+			const { name, text, lineNumber } = execution;
+
+			if (name !== fileName) {
+				return;
+			}
+
+			const oldLines = fileText.split('\n');
+			const oldTextLastLineNumber = oldLines.length - 1;
+			const oldTextLastCharacter = oldLines[oldLines.length - 1]?.length ?? 0;
+
+			await activeTextEditor.edit(
+				(textEditorEdit) => {
+					textEditorEdit.replace(
+						new vscode.Range(
+							new vscode.Position(
+								0,
+								0
+							),
+							new vscode.Position(
+								oldTextLastLineNumber,
+								oldTextLastCharacter
+							),
+						),
+						text,
+					);
+				}
+			);
+
+			const position = new vscode.Position(lineNumber, 0);
+			const selection = new vscode.Selection(position, position);
+			
+			activeTextEditor.selections = [ selection ];
 		}
 	);
 
