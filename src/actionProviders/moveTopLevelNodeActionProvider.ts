@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs';
 import * as vscode from 'vscode';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import { isNeitherNullNorUndefined } from '../utilities';
+import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from '../utilities';
 
 const buildReason = (
     solution: Solution,
@@ -39,6 +38,7 @@ const buildIdentifiersLabel = (
 
 const buildCodeAction = (
     fileName: string,
+    characterDifference: number,
     solution: Solution,
 ): vscode.CodeAction | null => {
     const { oldIndex, newIndex, nodes } = solution;
@@ -79,6 +79,7 @@ const buildCodeAction = (
                 fileName,
                 oldIndex,
                 newIndex,
+                characterDifference
             }
         ]
     };
@@ -92,8 +93,9 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		range: vscode.Range | vscode.Selection,
 	): Thenable<vscode.CodeAction[]> {
 		const fileName = document.fileName;
-		const fileText = readFileSync(fileName, 'utf8');
+		const fileText = document.getText();
 		const fileLine = range.start.line;
+        const fileCharacter = range.start.character;
 
         const configuration = vscode.workspace.getConfiguration(
             'intuita',
@@ -107,6 +109,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 			fileName,
 			fileText,
 			fileLine,
+            fileCharacter,
 			{
 				dependencyCoefficientWeight,
 				similarityCoefficientWeight,
@@ -123,9 +126,11 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                     return solution.newIndex !== solution.oldIndex;
                 }
             )
+            .slice(0, 1)
             .map(
                 (solution) => buildCodeAction(
                     fileName,
+                    fact.characterDifference,
                     solution,
                 )
             )
