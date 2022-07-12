@@ -9,19 +9,22 @@ export type Options = Readonly<{
 export type MoveTopLevelNodeAstCommand = Readonly<{
     kind: "MOVE_TOP_LEVEL_NODE",
     fileName: string,
+    fileText: string,
     oldIndex: number,
     newIndex: number,
-    stringNodes: ReadonlyArray<StringNode>,
+    characterDifference: number,
 }>;
 
 export const buildMoveTopLevelNodeAstCommand = (
     {
         fileName,
+        fileText,
     }: MoveTopLevelNodeUserCommand,
     {
         topLevelNodes,
         stringNodes,
         solutions,
+        characterDifference,
     }: MoveTopLevelNodeFact,
     {
         solutionIndex,
@@ -40,8 +43,9 @@ export const buildMoveTopLevelNodeAstCommand = (
     return {
         kind: "MOVE_TOP_LEVEL_NODE",
         fileName,
+        fileText,
         oldIndex: solution.oldIndex,
         newIndex: solution.newIndex,
-        stringNodes,
+        characterDifference,
     };
 };
