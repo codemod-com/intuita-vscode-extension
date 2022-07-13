@@ -147,7 +147,7 @@ describe('move top-level nodes for TS (real files)', function() {
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
-                kindCoefficientWeight: 1,
+                kindCoefficientWeight: 0,
             },
         );
 
@@ -207,7 +207,7 @@ describe('move top-level nodes for TS (real files)', function() {
             },
         );
 
-        assert.equal(executions.length, 0);
+        assert.equal(executions.length, 1);
     });
 });
 
