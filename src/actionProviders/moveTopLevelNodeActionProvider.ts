@@ -12,7 +12,7 @@ const buildIdentifiersLabel = (
         : identifiers.join('');
 };
 
-const buildReason = (
+const buildTitle = (
     solution: Solution,
 ): string | null => {
     const {
@@ -137,14 +137,14 @@ const buildCodeAction = (
         return null;
     }
 
-    const reason = buildReason(solution);
+    const title = buildTitle(solution);
 
-    if (reason === null) {
+    if (title === null) {
         return null;
     }
 
     const codeAction = new vscode.CodeAction(
-        reason,
+        title,
         vscode.CodeActionKind.Refactor,
     );
 
