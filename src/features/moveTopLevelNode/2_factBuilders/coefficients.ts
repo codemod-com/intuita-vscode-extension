@@ -125,25 +125,29 @@ export const calculateCoefficient = (
         kindCoefficientWeight,
     }: MoveTopLevelNodeOptions,
 ): Coefficient => {
-    // "0" is the ideal (perfect) coefficient
-    const dependency = calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight;
-    const similarity = calculateSimilarityCoefficient(nodes, newIndex) * similarityCoefficientWeight;
-    const kind = calculateKindCoefficient(nodes, newIndex) * kindCoefficientWeight;
-
     const weight =
         + dependencyCoefficientWeight
         + similarityCoefficientWeight
         + kindCoefficientWeight;
 
-    const coefficient = (
-        + dependency
-        + similarity
-        + kind
+    // "0" is the ideal (perfect) coefficient
+    const dependencyShare = (
+        calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
     ) / weight;
 
-    const dependencyShare = dependency / weight;
-    const similarityShare = similarity / weight;
-    const kindShare = kind / weight;
+    const similarityShare = (
+        calculateSimilarityCoefficient(nodes, newIndex) * similarityCoefficientWeight
+    ) / weight;
+
+    const kindShare = (
+        calculateKindCoefficient(nodes, newIndex) * kindCoefficientWeight
+    ) / weight;
+
+    const coefficient = (
+        + dependencyShare
+        + similarityShare
+        + kindShare
+    );
 
     return {
         coefficient,
