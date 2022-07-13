@@ -140,27 +140,33 @@ describe('calculateSimilarityCoefficient', () => {
 
 describe('calculateKindCoefficient', () => {
     it('should return 0 for 0 nodes', () => {
-        const coefficient = calculateKindCoefficient([]);
+        const coefficient = calculateKindCoefficient([], 0);
 
         assert.approximately(coefficient, 0, 0.0001);
     });
 
     it('should return 0 for 3 nodes (the same kind)', () => {
-        const coefficient = calculateKindCoefficient([
-            buildNode('a', { kind: TopLevelNodeKind.CLASS }),
-            buildNode('b', { kind: TopLevelNodeKind.CLASS }),
-            buildNode('c', { kind: TopLevelNodeKind.CLASS }),
-        ]);
+        const coefficient = calculateKindCoefficient(
+            [
+                buildNode('a', { kind: TopLevelNodeKind.CLASS }),
+                buildNode('b', { kind: TopLevelNodeKind.CLASS }),
+                buildNode('c', { kind: TopLevelNodeKind.CLASS }),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 0, 0.0001);
     });
 
     it('should return 1 for 3 nodes (different kinds)', () => {
-        const coefficient = calculateKindCoefficient([
-            buildNode('a', { kind: TopLevelNodeKind.CLASS }),
-            buildNode('b', { kind: TopLevelNodeKind.FUNCTION }),
-            buildNode('c', { kind: TopLevelNodeKind.INTERFACE }),
-        ]);
+        const coefficient = calculateKindCoefficient(
+            [
+                buildNode('a', { kind: TopLevelNodeKind.CLASS }),
+                buildNode('b', { kind: TopLevelNodeKind.FUNCTION }),
+                buildNode('c', { kind: TopLevelNodeKind.INTERFACE }),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 1, 0.0001);
     });

@@ -81,24 +81,29 @@ export const calculateSimilarityCoefficient = (
 
 export const calculateKindCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
+    newIndex: number,
 ): number => {
     if (nodes.length === 0) {
         return 0;
     }
 
-    const values = nodes.map(
-        ({ kind }, index) => {
-            const values = [
-                nodes[index - 1] ?? null,
-                nodes[index + 1] ?? null,
-            ]
-                .filter(isNeitherNullNorUndefined)
-                .map(otherNode => otherNode.kind !== kind)
-                .map(value => Number(value));
+    const node = nodes[newIndex] ?? null;
 
-            return calculateAverage(values);
-        }
-    );
+    if (node === null) {
+        // this should not happen
+        return 1;
+    }
+
+    const previousNode = nodes[newIndex - 1] ?? null;
+    const nextNode     = nodes[newIndex + 1] ?? null;
+
+    const values = [
+        previousNode,
+        nextNode,
+    ]
+        .filter(isNeitherNullNorUndefined)
+        .map(otherNode => otherNode.kind !== node.kind)
+        .map(value => Number(value));
 
     return calculateAverage(values);
 };
@@ -123,7 +128,7 @@ export const calculateCoefficient = (
     // "0" is the ideal (perfect) coefficient
     const dependency = calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight;
     const similarity = calculateSimilarityCoefficient(nodes, newIndex) * similarityCoefficientWeight;
-    const kind = calculateKindCoefficient(nodes) * kindCoefficientWeight;
+    const kind = calculateKindCoefficient(nodes, newIndex) * kindCoefficientWeight;
 
     const weight =
         + dependencyCoefficientWeight
