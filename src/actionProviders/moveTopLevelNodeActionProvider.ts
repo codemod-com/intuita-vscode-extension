@@ -2,26 +2,26 @@ import * as vscode from 'vscode';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from '../utilities';
+import {isNeitherNullNorUndefined} from '../utilities';
 
 const buildReason = (
     solution: Solution,
 ): string | null => {
     const {
-        dependencyShare,
-        similarityShare,
-        kindShare,
+        dependencyCoefficient,
+        similarityCoefficient,
+        kindCoefficient,
     } = solution.coefficient;
 
-    if (dependencyShare > similarityShare && dependencyShare > kindShare) {
+    if (dependencyCoefficient > similarityCoefficient && dependencyCoefficient > kindCoefficient) {
         return 'more ordered dependencies';
     }
 
-    if (similarityShare > dependencyShare && similarityShare > kindShare) {
+    if (similarityCoefficient > dependencyCoefficient && similarityCoefficient > kindCoefficient) {
         return 'more name similarity';
     }
 
-    if (kindShare > similarityShare && kindShare > dependencyShare) {
+    if (kindCoefficient > similarityCoefficient && kindCoefficient > dependencyCoefficient) {
         return 'more same-type blocks';
     }
 

@@ -137,9 +137,11 @@ export const calculateKindStructure = (
 
 export type Coefficient = Readonly<{
     coefficient: number,
-    dependencyShare: number,
-    similarityShare: number,
-    kindShare: number,
+    dependencyCoefficient: number,
+    similarityCoefficient: number,
+    kindCoefficient: number,
+    similarityStructure: SimilarityStructure | null,
+    kindStructure: KindStructure | null,
 }>;
 
 export const calculateCoefficient = (
@@ -162,21 +164,21 @@ export const calculateCoefficient = (
         calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
     ) / weight;
 
-    const similarityCoefficientStructure = calculateSimilarityStructure(nodes, newIndex);
-    const kindCoefficientStructure = calculateKindStructure(nodes, newIndex);
+    const similarityStructure = calculateSimilarityStructure(nodes, newIndex);
+    const kindStructure = calculateKindStructure(nodes, newIndex);
 
     const similarityCoefficient = (
         (
-            similarityCoefficientStructure
-                ? calculateStructuralCoefficient(similarityCoefficientStructure)
+            similarityStructure
+                ? calculateStructuralCoefficient(similarityStructure)
                 : 0
         ) * similarityCoefficientWeight
     ) / weight;
 
     const kindCoefficient = (
         (
-            kindCoefficientStructure
-                ? calculateStructuralCoefficient(kindCoefficientStructure)
+            kindStructure
+                ? calculateStructuralCoefficient(kindStructure)
                 : 0
         ) * kindCoefficientWeight
     ) / weight;
@@ -189,8 +191,10 @@ export const calculateCoefficient = (
 
     return {
         coefficient,
-        dependencyShare: dependencyCoefficient,
-        similarityShare: similarityCoefficient,
-        kindShare: kindCoefficient,
+        dependencyCoefficient,
+        similarityCoefficient,
+        kindCoefficient,
+        similarityStructure,
+        kindStructure,
     };
 };
