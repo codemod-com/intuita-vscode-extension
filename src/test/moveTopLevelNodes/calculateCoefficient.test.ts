@@ -1,5 +1,10 @@
 import {assert} from "chai";
-import { calculateDependencyCoefficient, calculateKindCoefficient, calculateSimilarityCoefficient } from "../../features/moveTopLevelNode/2_factBuilders/coefficients";
+import {
+    calculateDependencyCoefficient,
+    calculateKindCoefficient,
+    calculateSimilarityCoefficient,
+    calculateSimilarityCoefficientStructure
+} from "../../features/moveTopLevelNode/2_factBuilders/coefficients";
 
 import {TopLevelNode, TopLevelNodeKind} from "../../features/moveTopLevelNode/2_factBuilders/topLevelNode";
 
@@ -62,18 +67,18 @@ describe('calculateDependencyCoefficient', () => {
     });
 });
 
-describe('calculateSimilarityCoefficient', () => {
-    it('should return 0 for 0 nodes', () => {
-        const coefficient = calculateSimilarityCoefficient(
+describe('calculateSimilarityCoefficientStructure', () => {
+    it('should return null for 0 nodes', () => {
+        const structure = calculateSimilarityCoefficientStructure(
             [],
             0
         );
 
-        assert.approximately(coefficient, 0, 0.0001);
+        assert.isNull(structure);
     });
 
     it('should return 1 for 3 nodes (no dependency)', () => {
-        const coefficient = calculateSimilarityCoefficient(
+        const structure = calculateSimilarityCoefficientStructure(
             [
                 buildNode('a', {}),
                 buildNode('b', {}),
@@ -82,11 +87,15 @@ describe('calculateSimilarityCoefficient', () => {
             0,
         );
 
+        assert.isNotNull(structure);
+
+        const coefficient = calculateSimilarityCoefficient(structure!);
+
         assert.approximately(coefficient, 1, 0.0001);
     });
 
     it('should return 0 for 3 nodes (exact names)', () => {
-        const coefficient = calculateSimilarityCoefficient(
+        const structure = calculateSimilarityCoefficientStructure(
             [
                 buildNode('test', {}),
                 buildNode('test', {}),
@@ -95,11 +104,13 @@ describe('calculateSimilarityCoefficient', () => {
             0,
         );
 
+        const coefficient = calculateSimilarityCoefficient(structure!);
+
         assert.approximately(coefficient, 0, 0.01);
     });
 
     it('should return 0.33 for 3 nodes (a half of every word matches)', () => {
-        const coefficient = calculateSimilarityCoefficient(
+        const structure = calculateSimilarityCoefficientStructure(
             [
                 buildNode('ta', {}),
                 buildNode('tb', {}),
@@ -108,11 +119,13 @@ describe('calculateSimilarityCoefficient', () => {
             0,
         );
 
+        const coefficient = calculateSimilarityCoefficient(structure!);
+
         assert.approximately(coefficient, 0.33, 0.01);
     });
 
     it('should return 0.33 for 3 nodes (80% of every word matches)', () => {
-        const coefficient = calculateSimilarityCoefficient(
+        const structure = calculateSimilarityCoefficientStructure(
             [
                 buildNode('testa', {}),
                 buildNode('testb', {}),
@@ -121,11 +134,13 @@ describe('calculateSimilarityCoefficient', () => {
             0,
         );
 
+        const coefficient = calculateSimilarityCoefficient(structure!);
+
         assert.approximately(coefficient, 0.08, 0.01);
     });
 
     it('should return 0.55 for 3 nodes (no real matches)', () => {
-        const coefficient = calculateSimilarityCoefficient(
+        const structure = calculateSimilarityCoefficientStructure(
             [
                 buildNode('function', {}),
                 buildNode('class', {}),
@@ -133,6 +148,8 @@ describe('calculateSimilarityCoefficient', () => {
             ],
             0,
         );
+
+        const coefficient = calculateSimilarityCoefficient(structure!);
 
         assert.approximately(coefficient, 0.55, 0.01);
     });
