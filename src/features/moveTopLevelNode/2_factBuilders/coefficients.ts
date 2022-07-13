@@ -158,39 +158,39 @@ export const calculateCoefficient = (
         + kindCoefficientWeight;
 
     // "0" is the ideal (perfect) coefficient
-    const dependencyShare = (
+    const dependencyCoefficient = (
         calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
     ) / weight;
 
     const similarityCoefficientStructure = calculateSimilarityStructure(nodes, newIndex);
-    const similarityCoefficient = similarityCoefficientStructure
-        ? calculateStructuralCoefficient(similarityCoefficientStructure)
-        : 0;
-
-    const similarityShare = (
-        similarityCoefficient * similarityCoefficientWeight
-    ) / weight;
-
     const kindCoefficientStructure = calculateKindStructure(nodes, newIndex);
 
-    const kindCoefficient = kindCoefficientStructure
-        ? calculateStructuralCoefficient(kindCoefficientStructure)
-        : 0;
+    const similarityCoefficient = (
+        (
+            similarityCoefficientStructure
+                ? calculateStructuralCoefficient(similarityCoefficientStructure)
+                : 0
+        ) * similarityCoefficientWeight
+    ) / weight;
 
-    const kindShare = (
-        kindCoefficient * kindCoefficientWeight
+    const kindCoefficient = (
+        (
+            kindCoefficientStructure
+                ? calculateStructuralCoefficient(kindCoefficientStructure)
+                : 0
+        ) * kindCoefficientWeight
     ) / weight;
 
     const coefficient = (
-        + dependencyShare
-        + similarityShare
-        + kindShare
+        + dependencyCoefficient
+        + similarityCoefficient
+        + kindCoefficient
     );
 
     return {
         coefficient,
-        dependencyShare,
-        similarityShare,
-        kindShare,
+        dependencyShare: dependencyCoefficient,
+        similarityShare: similarityCoefficient,
+        kindShare: kindCoefficient,
     };
 };
