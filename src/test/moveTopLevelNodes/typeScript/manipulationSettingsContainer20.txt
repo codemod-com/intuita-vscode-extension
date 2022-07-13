@@ -21,19 +21,6 @@ export interface SupportedFormatCodeSettings extends SupportedFormatCodeSettings
 }
 
 /**
- * FormatCodeSettings that are currently supported in the library.
- */
-export interface SupportedFormatCodeSettingsOnly {
-  /**
-   * Whether to insert a space after opening and before closing non-empty braces.
-   *
-   * ex. `import { Item } from "./Item";` or `import {Item} from "./Item";`
-   * @remarks Defaults to true.
-   */
-  insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: boolean;
-}
-
-/**
  * Manipulation settings.
  */
 export interface ManipulationSettings extends SupportedFormatCodeSettingsOnly {
@@ -52,6 +39,19 @@ export interface ManipulationSettings extends SupportedFormatCodeSettingsOnly {
   usePrefixAndSuffixTextForRename: boolean;
   /** Whether to use trailing commas when inserting or removing nodes. */
   useTrailingCommas: boolean;
+}
+
+/**
+ * FormatCodeSettings that are currently supported in the library.
+ */
+export interface SupportedFormatCodeSettingsOnly {
+  /**
+   * Whether to insert a space after opening and before closing non-empty braces.
+   *
+   * ex. `import { Item } from "./Item";` or `import {Item} from "./Item";`
+   * @remarks Defaults to true.
+   */
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: boolean;
 }
 
 /**

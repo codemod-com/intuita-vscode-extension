@@ -24,14 +24,20 @@ export const calculateSolutions = (
             );
         })
         .map((nodes, newIndex) => {
+            const coefficient = calculateCoefficient(
+                nodes,
+                oldIndex,
+                newIndex,
+                options
+            );
+
             return {
                 nodes,
                 oldIndex,
                 newIndex,
-                coefficient: calculateCoefficient(nodes, options),
+                coefficient,
             };
         })
-        // .filter((_, newIndex) => newIndex !== oldIndex)
         .sort((a, b) => {
             return Math.sign(a.coefficient.coefficient - b.coefficient.coefficient);
         });
