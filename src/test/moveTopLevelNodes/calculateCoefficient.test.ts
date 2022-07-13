@@ -64,59 +64,77 @@ describe('calculateDependencyCoefficient', () => {
 
 describe('calculateSimilarityCoefficient', () => {
     it('should return 0 for 0 nodes', () => {
-        const coefficient = calculateSimilarityCoefficient([]);
+        const coefficient = calculateSimilarityCoefficient(
+            [],
+            0
+        );
 
         assert.approximately(coefficient, 0, 0.0001);
     });
 
     it('should return 1 for 3 nodes (no dependency)', () => {
-        const coefficient = calculateSimilarityCoefficient([
-            buildNode('a', {}),
-            buildNode('b', {}),
-            buildNode('c', {}),
-        ]);
+        const coefficient = calculateSimilarityCoefficient(
+            [
+                buildNode('a', {}),
+                buildNode('b', {}),
+                buildNode('c', {}),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 1, 0.0001);
     });
 
     it('should return 0 for 3 nodes (exact names)', () => {
-        const coefficient = calculateSimilarityCoefficient([
-            buildNode('test', {}),
-            buildNode('test', {}),
-            buildNode('test', {}),
-        ]);
+        const coefficient = calculateSimilarityCoefficient(
+            [
+                buildNode('test', {}),
+                buildNode('test', {}),
+                buildNode('test', {}),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 0, 0.01);
     });
 
     it('should return 0.33 for 3 nodes (a half of every word matches)', () => {
-        const coefficient = calculateSimilarityCoefficient([
-            buildNode('ta', {}),
-            buildNode('tb', {}),
-            buildNode('tc', {}),
-        ]);
+        const coefficient = calculateSimilarityCoefficient(
+            [
+                buildNode('ta', {}),
+                buildNode('tb', {}),
+                buildNode('tc', {}),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 0.33, 0.01);
     });
 
     it('should return 0.33 for 3 nodes (80% of every word matches)', () => {
-        const coefficient = calculateSimilarityCoefficient([
-            buildNode('testa', {}),
-            buildNode('testb', {}),
-            buildNode('testc', {}),
-        ]);
+        const coefficient = calculateSimilarityCoefficient(
+            [
+                buildNode('testa', {}),
+                buildNode('testb', {}),
+                buildNode('testc', {}),
+            ],
+            0,
+        );
 
         assert.approximately(coefficient, 0.08, 0.01);
     });
 
-    it('should return 0.78 for 3 nodes (no real matches)', () => {
-        const coefficient = calculateSimilarityCoefficient([
-            buildNode('function', {}),
-            buildNode('class', {}),
-            buildNode('method',{}),
-        ]);
+    it('should return 0.55 for 3 nodes (no real matches)', () => {
+        const coefficient = calculateSimilarityCoefficient(
+            [
+                buildNode('function', {}),
+                buildNode('class', {}),
+                buildNode('method',{}),
+            ],
+            0,
+        );
 
-        assert.approximately(coefficient, 0.78, 0.01);
+        assert.approximately(coefficient, 0.55, 0.01);
     });
 });
 

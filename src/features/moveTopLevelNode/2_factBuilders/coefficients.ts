@@ -28,36 +28,55 @@ export const calculateDependencyCoefficient = (
     return calculateAverage(values);
 };
 
-export const calculateSimilarityCoefficient = (
-    nodes: ReadonlyArray<TopLevelNode>,
+export const calculateNodesSimilarityCoefficient = (
+    leftNode: TopLevelNode,
+    rightNode: TopLevelNode,
 ): number => {
-    const values = nodes
-        .map(
-        ({ identifiers }, index) => {
-            const values = Array
-                .from(identifiers)
-                .map((identifier) => {
-                    const values = [
-                        nodes[index - 1] ?? null,
-                        nodes[index + 1] ?? null,
-                    ]
-                        .filter(isNeitherNullNorUndefined)
-                        .flatMap(
-                            (node) => Array.from(node.identifiers),
-                        )
-                        .map(
-                            (otherIdentifier) => {
-                                return 1 - jaroWinkler(identifier, otherIdentifier);
-                            }
-                        );
+    const leftIdentifiers = Array.from(leftNode.identifiers);
+    const rightIdentifiers = Array.from(rightNode.identifiers);
 
-                    return calculateAverage(values);
-                });
-
-            return calculateAverage(values);
-        });
+    const values = leftIdentifiers
+        .flatMap(
+            (leftIdentifier) => {
+                return rightIdentifiers.map(
+                    (rightIdentifier) => {
+                        return 1 - jaroWinkler(leftIdentifier, rightIdentifier);
+                    }
+                )
+            }
+        );
 
     return calculateAverage(values);
+}
+
+export const calculateSimilarityCoefficient = (
+    nodes: ReadonlyArray<TopLevelNode>,
+    newIndex: number,
+): number => {
+    if (nodes.length === 0) {
+        return 0;
+    }
+
+    const node = nodes[newIndex] ?? null;
+
+    if (node === null) {
+        // this should not happen
+        return 1;
+    }
+
+    const previousNode = nodes[newIndex - 1] ?? null;
+    const nextNode     = nodes[newIndex + 1] ?? null;
+
+    const coefficients = [
+        previousNode,
+        nextNode,
+    ]
+        .filter(isNeitherNullNorUndefined)
+        .map((otherNode) => calculateNodesSimilarityCoefficient(node, otherNode))
+        
+    // 
+
+    return calculateAverage(coefficients);
 };
 
 export const calculateKindCoefficient = (
@@ -93,6 +112,8 @@ export type Coefficient = Readonly<{
 
 export const calculateCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
+    oldIndex: number,
+    newIndex: number,
     {
         dependencyCoefficientWeight,
         similarityCoefficientWeight,
@@ -101,7 +122,7 @@ export const calculateCoefficient = (
 ): Coefficient => {
     // "0" is the ideal (perfect) coefficient
     const dependency = calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight;
-    const similarity = calculateSimilarityCoefficient(nodes) * similarityCoefficientWeight;
+    const similarity = calculateSimilarityCoefficient(nodes, newIndex) * similarityCoefficientWeight;
     const kind = calculateKindCoefficient(nodes) * kindCoefficientWeight;
 
     const weight =
@@ -114,7 +135,7 @@ export const calculateCoefficient = (
         + similarity
         + kind
     ) / weight;
-  
+
     const dependencyShare = dependency / weight;
     const similarityShare = similarity / weight;
     const kindShare = kind / weight;

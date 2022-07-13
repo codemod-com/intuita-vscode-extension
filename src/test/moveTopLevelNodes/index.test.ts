@@ -207,7 +207,7 @@ describe('move top-level nodes for TS (real files)', function() {
             },
         );
 
-        assert.equal(executions.length, 0);
+        assert.equal(executions.length, 1);
     });
 });
 
