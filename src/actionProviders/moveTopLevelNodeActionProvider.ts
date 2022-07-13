@@ -26,7 +26,7 @@ const buildReason = (
     }
 
     return null;
-}
+};
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>

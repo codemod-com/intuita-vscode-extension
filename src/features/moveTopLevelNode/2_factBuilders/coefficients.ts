@@ -49,15 +49,15 @@ export const calculateNodesSimilarityCoefficient = (
     return calculateAverage(values);
 };
 
-type SimilarityCoefficientStructure = Readonly<{
+type SimilarityStructure = Readonly<{
     previousNodeCoefficient: number | null,
     nextNodeCoefficient: number | null,
 }>;
 
-export const calculateSimilarityCoefficientStructure = (
+export const calculateSimilarityStructure = (
     nodes: ReadonlyArray<TopLevelNode>,
     newIndex: number,
-): SimilarityCoefficientStructure | null => {
+): SimilarityStructure | null => {
     if (nodes.length === 0) {
         return null;
     }
@@ -87,7 +87,7 @@ export const calculateSimilarityCoefficientStructure = (
 };
 
 export const calculateStructuralCoefficient = (
-    structure: SimilarityCoefficientStructure | KindCoefficientStructure
+    structure: SimilarityStructure | KindStructure
 ) => {
     return calculateAverage(
         [
@@ -98,15 +98,15 @@ export const calculateStructuralCoefficient = (
     );
 };
 
-type KindCoefficientStructure = Readonly<{
+type KindStructure = Readonly<{
     previousNodeCoefficient: number | null,
     nextNodeCoefficient: number | null,
 }>;
 
-export const calculateKindCoefficient = (
+export const calculateKindStructure = (
     nodes: ReadonlyArray<TopLevelNode>,
     newIndex: number,
-): KindCoefficientStructure | null => {
+): KindStructure | null => {
     if (nodes.length === 0) {
         return null;
     }
@@ -162,7 +162,7 @@ export const calculateCoefficient = (
         calculateDependencyCoefficient(nodes) * dependencyCoefficientWeight
     ) / weight;
 
-    const similarityCoefficientStructure = calculateSimilarityCoefficientStructure(nodes, newIndex);
+    const similarityCoefficientStructure = calculateSimilarityStructure(nodes, newIndex);
     const similarityCoefficient = similarityCoefficientStructure
         ? calculateStructuralCoefficient(similarityCoefficientStructure)
         : 0;
@@ -171,7 +171,7 @@ export const calculateCoefficient = (
         similarityCoefficient * similarityCoefficientWeight
     ) / weight;
 
-    const kindCoefficientStructure = calculateKindCoefficient(nodes, newIndex);
+    const kindCoefficientStructure = calculateKindStructure(nodes, newIndex);
 
     const kindCoefficient = kindCoefficientStructure
         ? calculateStructuralCoefficient(kindCoefficientStructure)
