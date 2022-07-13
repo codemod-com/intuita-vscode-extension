@@ -4,37 +4,121 @@ import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBu
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {isNeitherNullNorUndefined} from '../utilities';
 
-const buildReason = (
-    solution: Solution,
-): string | null => {
-    const {
-        dependencyCoefficient,
-        similarityCoefficient,
-        kindCoefficient,
-    } = solution.coefficient;
-
-    if (dependencyCoefficient > similarityCoefficient && dependencyCoefficient > kindCoefficient) {
-        return 'more ordered dependencies';
-    }
-
-    if (similarityCoefficient > dependencyCoefficient && similarityCoefficient > kindCoefficient) {
-        return 'more name similarity';
-    }
-
-    if (kindCoefficient > similarityCoefficient && kindCoefficient > dependencyCoefficient) {
-        return 'more same-type blocks';
-    }
-
-    return null;
-};
-
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>
 ): string => {
     return identifiers.length > 1
         ? `(${identifiers.join(' ,')})`
-        : identifiers.join('')
-}
+        : identifiers.join('');
+};
+
+const buildReason = (
+    solution: Solution,
+): string | null => {
+    const {
+        nodes,
+        newIndex,
+        coefficient,
+    } = solution;
+
+    const {
+        dependencyCoefficient,
+        similarityCoefficient,
+        kindCoefficient,
+        similarityStructure,
+        kindStructure,
+    } = coefficient;
+
+    const node = solution.nodes[newIndex];
+
+    if (!node) {
+        return null;
+    }
+
+    const nodeIdentifiersLabel = buildIdentifiersLabel(
+        Array.from(
+            node.identifiers
+        )
+    );
+
+    if (dependencyCoefficient > similarityCoefficient && dependencyCoefficient > kindCoefficient) {
+        const otherNode = newIndex === 0
+            ? nodes[1]
+            : nodes[newIndex - 1];
+
+        if (!otherNode) {
+            return null;
+        }
+
+        const orderLabel = newIndex === 0
+            ? 'before'
+            : 'after';
+
+        const otherIdentifiersLabel = buildIdentifiersLabel(
+            Array.from(
+                otherNode.identifiers
+            )
+        );
+
+        return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} (more ordered dependencies)`;
+    }
+
+    if (similarityCoefficient > dependencyCoefficient && similarityCoefficient > kindCoefficient) {
+        const previous = similarityStructure?.previousNodeCoefficient ?? 1;
+        const next     = similarityStructure?.nextNodeCoefficient ?? 1;
+
+        if (previous < next) {
+            const otherIdentifiers = solution.nodes[newIndex - 1]?.identifiers ?? new Set();
+
+            const label = buildIdentifiersLabel(
+                Array.from(
+                    otherIdentifiers
+                )
+            );
+
+            return `Move ${nodeIdentifiersLabel} after ${label} (more name similarity)`;
+        } else {
+            const otherIdentifiers = solution.nodes[newIndex + 1]?.identifiers ?? new Set();
+
+            const label = buildIdentifiersLabel(
+                Array.from(
+                    otherIdentifiers
+                )
+            );
+
+            return `Move ${nodeIdentifiersLabel} before ${label} (more name similarity)`;
+        }
+    }
+
+    if (kindCoefficient > similarityCoefficient && kindCoefficient > dependencyCoefficient) {
+        const previous = kindStructure?.previousNodeCoefficient ?? 1;
+        const next     = kindStructure?.nextNodeCoefficient ?? 1;
+
+        if (previous < next) {
+            const otherIdentifiers = solution.nodes[newIndex - 1]?.identifiers ?? new Set();
+
+            const label = buildIdentifiersLabel(
+                Array.from(
+                    otherIdentifiers
+                )
+            );
+
+            return `Move ${nodeIdentifiersLabel} after ${label} (more same-type blocks)`;
+        } else {
+            const otherIdentifiers = solution.nodes[newIndex + 1]?.identifiers ?? new Set();
+
+            const label = buildIdentifiersLabel(
+                Array.from(
+                    otherIdentifiers
+                )
+            );
+
+            return `Move ${nodeIdentifiersLabel} before ${label} (more same-type blocks)`;
+        }
+    }
+
+    return null;
+};
 
 const buildCodeAction = (
     fileName: string,
@@ -53,21 +137,14 @@ const buildCodeAction = (
         return null;
     }
 
-    const orderLabel = newIndex === 0
-        ? 'before'
-        : 'after';
-
-    const otherIdentifiersLabel = buildIdentifiersLabel(
-        Array.from(
-            otherNode.identifiers
-        )
-    );
-
     const reason = buildReason(solution);
-    const reasonBlock = reason !== null ? ` (${reason})` : '';
+
+    if (reason === null) {
+        return null;
+    }
 
     const codeAction = new vscode.CodeAction(
-        `Move ${orderLabel} ${otherIdentifiersLabel} ${reasonBlock}`,
+        reason,
         vscode.CodeActionKind.Refactor,
     );
 
