@@ -2,7 +2,7 @@ import {assert} from "chai";
 import {
     calculateDependencyCoefficient,
     calculateKindCoefficient,
-    calculateSimilarityCoefficient,
+    calculateStructuralCoefficient,
     calculateSimilarityCoefficientStructure
 } from "../../features/moveTopLevelNode/2_factBuilders/coefficients";
 
@@ -89,7 +89,7 @@ describe('calculateSimilarityCoefficientStructure', () => {
 
         assert.isNotNull(structure);
 
-        const coefficient = calculateSimilarityCoefficient(structure!);
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 1, 0.0001);
     });
@@ -104,7 +104,7 @@ describe('calculateSimilarityCoefficientStructure', () => {
             0,
         );
 
-        const coefficient = calculateSimilarityCoefficient(structure!);
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 0, 0.01);
     });
@@ -119,7 +119,7 @@ describe('calculateSimilarityCoefficientStructure', () => {
             0,
         );
 
-        const coefficient = calculateSimilarityCoefficient(structure!);
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 0.33, 0.01);
     });
@@ -134,7 +134,7 @@ describe('calculateSimilarityCoefficientStructure', () => {
             0,
         );
 
-        const coefficient = calculateSimilarityCoefficient(structure!);
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 0.08, 0.01);
     });
@@ -149,21 +149,21 @@ describe('calculateSimilarityCoefficientStructure', () => {
             0,
         );
 
-        const coefficient = calculateSimilarityCoefficient(structure!);
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 0.55, 0.01);
     });
 });
 
 describe('calculateKindCoefficient', () => {
-    it('should return 0 for 0 nodes', () => {
-        const coefficient = calculateKindCoefficient([], 0);
+    it('should return null for 0 nodes', () => {
+        const structure = calculateKindCoefficient([], 0);
 
-        assert.approximately(coefficient, 0, 0.0001);
+        assert.isNull(structure);
     });
 
     it('should return 0 for 3 nodes (the same kind)', () => {
-        const coefficient = calculateKindCoefficient(
+        const structure = calculateKindCoefficient(
             [
                 buildNode('a', { kind: TopLevelNodeKind.CLASS }),
                 buildNode('b', { kind: TopLevelNodeKind.CLASS }),
@@ -172,11 +172,13 @@ describe('calculateKindCoefficient', () => {
             0,
         );
 
+        const coefficient = calculateStructuralCoefficient(structure!);
+
         assert.approximately(coefficient, 0, 0.0001);
     });
 
     it('should return 1 for 3 nodes (different kinds)', () => {
-        const coefficient = calculateKindCoefficient(
+        const structure = calculateKindCoefficient(
             [
                 buildNode('a', { kind: TopLevelNodeKind.CLASS }),
                 buildNode('b', { kind: TopLevelNodeKind.FUNCTION }),
@@ -184,6 +186,8 @@ describe('calculateKindCoefficient', () => {
             ],
             0,
         );
+
+        const coefficient = calculateStructuralCoefficient(structure!);
 
         assert.approximately(coefficient, 1, 0.0001);
     });
