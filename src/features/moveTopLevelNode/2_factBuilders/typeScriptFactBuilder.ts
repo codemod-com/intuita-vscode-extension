@@ -88,6 +88,29 @@ export const getIdentifiers = (
 
     return [];
 };
+
+export const getScriptKind = (
+    fileName: string,
+):  ts.ScriptKind | null => {
+    if (fileName.endsWith('.js')) {
+        return ts.ScriptKind.JS;
+    }
+
+    if (fileName.endsWith('.jsx')) {
+        return ts.ScriptKind.JSX;
+    }
+
+    if (fileName.endsWith('.ts')) {
+        return ts.ScriptKind.TS;
+    }
+
+    if (fileName.endsWith('.tsx')) {
+        return ts.ScriptKind.TSX;
+    }
+
+    return null;
+};
+
 export const buildTypeScriptTopLevelNodes = (
     fileName: string,
     fileText: string,
@@ -96,7 +119,8 @@ export const buildTypeScriptTopLevelNodes = (
         fileName,
         fileText,
         ts.ScriptTarget.ES5,
-        true
+        true,
+        getScriptKind(fileName) ?? undefined,
     );
 
     return sourceFile
