@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import { buildTopLevelNodes } from "../features/moveTopLevelNode/2_factBuilders/buildTopLevelNodes";
-import { getStringNodes } from "../features/moveTopLevelNode/2_factBuilders/stringNodes";
 import { executeMoveTopLevelNodeAstCommand } from "../features/moveTopLevelNode/4_astCommandExecutor";
 
 export const moveTopLevelNodeCommands = async (args: any) => {
@@ -84,4 +82,9 @@ export const moveTopLevelNodeCommands = async (args: any) => {
     const selection = new vscode.Selection(position, position);
 
     activeTextEditor.selections = [ selection ];
+
+    activeTextEditor.revealRange(
+        new vscode.Range(position, position),
+        vscode.TextEditorRevealType.AtTop,
+    );
 }

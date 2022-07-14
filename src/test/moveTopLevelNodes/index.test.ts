@@ -211,6 +211,46 @@ describe('move top-level nodes for TS (real files)', function() {
     });
 });
 
+describe('move top-level nodes for TSX (real files)', function() {
+    const fileName = '/index.ts';
+
+    const fileText = readFileSync(
+        join(
+            __dirname,
+            './typeScript/entityExplorerOriginal.txt'
+        ),
+        'utf8'
+    );
+
+    it ('should not move the 0th node', function() {
+        const executions = moveTopLevelNode(
+            fileName,
+            fileText,
+            33,
+            {
+                dependencyCoefficientWeight: 1,
+                similarityCoefficientWeight: 1,
+                kindCoefficientWeight: 0,
+            },
+        );
+
+        assert.equal(executions.length, 1);
+
+        const newFileText = readFileSync(
+            join(
+                __dirname,
+                './typeScript/entityExplorer33.txt'
+            ),
+            'utf8'
+        );
+
+        assert.equal(
+            executions[0]?.text,
+            newFileText
+        );
+    });
+});
+
 describe('move top-level nodes for JS (real files)', function() {
     const fileName = '/index.js';
 
