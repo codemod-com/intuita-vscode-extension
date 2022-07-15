@@ -17,7 +17,7 @@ export const buildTriviaNodes = (
     return tokenStream
         .getTokens()
         .filter(token => token.channel === 1)
-        .map((token, i) => {
+        .map((token) => {
 
             const text = token.text;
 
