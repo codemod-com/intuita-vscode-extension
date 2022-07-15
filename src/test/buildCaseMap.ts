@@ -10,7 +10,7 @@ type Case = Readonly<{
 export const buildCaseMap = (
     directoryPath: string,
 ): ReadonlyMap<number, Case> => {
-    const cases = readFileSync(join(directoryPath, 'cases.ts'), 'utf8');
+    const cases = readFileSync(join(directoryPath, 'cases.txt'), 'utf8');
 
     const lines = cases.split('\n');
 

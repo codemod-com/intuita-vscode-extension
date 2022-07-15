@@ -146,7 +146,6 @@ export type Coefficient = Readonly<{
 
 export const calculateCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
-    oldIndex: number,
     newIndex: number,
     {
         dependencyCoefficientWeight,

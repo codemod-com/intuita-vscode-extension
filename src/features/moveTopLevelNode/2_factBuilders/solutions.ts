@@ -26,7 +26,6 @@ export const calculateSolutions = (
         .map((nodes, newIndex) => {
             const coefficient = calculateCoefficient(
                 nodes,
-                oldIndex,
                 newIndex,
                 options
             );
