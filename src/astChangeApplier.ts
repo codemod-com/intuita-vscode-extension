@@ -777,7 +777,7 @@ export class AstChangeApplier {
                                     const count = namedImports.length;
 
                                     groupMap.forEach(
-                                        (group, groupNumber) => {
+                                        (_, groupNumber) => {
                                             importDeclaration.insertNamedImport(
                                                 groupNumber,
                                                 `${className}${groupNumber}`,

@@ -100,7 +100,7 @@ export const getSourceFileNodes = (
     const classesToSplit = new Set<string>();
     const maxGroupCountMap = new Map<string, 2 | null>();
 
-    sourceFile.getStatementsWithComments().forEach((statement, i) => {
+    sourceFile.getStatementsWithComments().forEach((statement) => {
         if (!Node.isCommentStatement(statement)) {
             return;
         }

@@ -22,7 +22,6 @@ export const buildMoveTopLevelNodeAstCommand = (
     }: MoveTopLevelNodeUserCommand,
     {
         topLevelNodes,
-        stringNodes,
         solutions,
         characterDifference,
     }: MoveTopLevelNodeFact,

@@ -5,9 +5,9 @@ import {Project} from "ts-morph";
 import {AstChangeApplier} from "../astChangeApplier";
 
 export const applyChanges = (directoryPath: string) => {
-    const sourceFileText1 = readFileSync(join(directoryPath, 'sourceFileText1.ts'), 'utf8');
-    const sourceFileText2 = readFileSync(join(directoryPath, 'sourceFileText2.ts'), 'utf8');
-    const sourceFileText3 = readFileSync(join(directoryPath, 'sourceFileText3.ts'), 'utf8');
+    const sourceFileText1 = readFileSync(join(directoryPath, 'sourceFileText1.txt'), 'utf8');
+    const sourceFileText2 = readFileSync(join(directoryPath, 'sourceFileText2.txt'), 'utf8');
+    const sourceFileText3 = readFileSync(join(directoryPath, 'sourceFileText3.txt'), 'utf8');
 
     const astChanges = getAstChanges(
         'index.ts',
