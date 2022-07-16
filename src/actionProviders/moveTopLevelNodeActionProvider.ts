@@ -12,7 +12,7 @@ const buildIdentifiersLabel = (
         : identifiers.join('');
 };
 
-const buildTitle = (
+export const buildTitle = (
     solution: Solution,
 ): string | null => {
     const {
