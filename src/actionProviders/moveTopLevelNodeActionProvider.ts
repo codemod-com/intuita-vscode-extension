@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getConfiguration } from '../configuration';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
@@ -174,13 +175,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileLine = range.start.line;
         const fileCharacter = range.start.character;
 
-        const configuration = vscode.workspace.getConfiguration(
-            'intuita',
-        );
-
-        const dependencyCoefficientWeight = configuration.get<number>('dependencyCoefficientWeight') ?? 1;
-        const similarityCoefficientWeight = configuration.get<number>('similarityCoefficientWeight') ?? 1;
-        const kindCoefficientWeight = configuration.get<number>('kindCoefficientWeight') ?? 1;
+        const configuration = getConfiguration()
 
 		const userCommand = buildMoveTopLevelNodeUserCommand(
 			fileName,
@@ -188,9 +183,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 			fileLine,
             fileCharacter,
 			{
-				dependencyCoefficientWeight,
-				similarityCoefficientWeight,
-				kindCoefficientWeight,
+				...configuration,
 			},
 		);
 

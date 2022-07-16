@@ -1,0 +1,68 @@
+import { Hover, MarkdownString, Position, ProviderResult, TextDocument, Uri } from "vscode";
+import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
+import { getConfiguration } from "../configuration";
+import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
+import { buildMoveTopLevelNodeFact } from "../features/moveTopLevelNode/2_factBuilders";
+
+export const moveTopLevelNodeHoverProvider = {
+    provideHover(
+        document: TextDocument,
+        position: Position,
+    ): ProviderResult<Hover> {
+        const fileName = document.fileName;
+        const fileText = document.getText();
+        const fileLine = position.line;
+        const fileCharacter = position.character;
+
+        const configuration = getConfiguration()
+
+        const userCommand = buildMoveTopLevelNodeUserCommand(
+            fileName,
+            fileText,
+            fileLine,
+            fileCharacter,
+            {
+                ...configuration
+            },
+        );
+
+        const fact = buildMoveTopLevelNodeFact(userCommand);
+
+        const solutions = fact
+            .solutions
+            .filter(
+                (solution) => {
+                    return solution.newIndex !== solution.oldIndex;
+                }
+            );
+
+        const solution = solutions[0] ?? null;
+
+        if (solution === null) {
+            return new Hover([]);
+        }
+
+        const { oldIndex, newIndex } = solution;
+
+        const args = {
+            fileName,
+            oldIndex,
+            newIndex,
+            characterDifference: fact.characterDifference,
+        };
+
+        const encodedArgs = encodeURIComponent(JSON.stringify(args));
+        const value = `command:intuita.moveTopLevelNode?${encodedArgs}`;
+
+        const stageCommandUri = Uri.parse(value);
+        const title = buildTitle(solution);
+
+        const contents = new MarkdownString(
+            `${title}\n\n[$(check)](${stageCommandUri}) $(close)`,
+            true
+        );
+        contents.isTrusted = true;
+
+        return new Hover(contents);
+    }
+}
