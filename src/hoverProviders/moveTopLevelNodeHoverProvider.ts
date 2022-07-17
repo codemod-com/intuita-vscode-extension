@@ -55,13 +55,14 @@ export const moveTopLevelNodeHoverProvider = {
         const value = `command:intuita.moveTopLevelNode?${encodedArgs}`;
 
         const stageCommandUri = Uri.parse(value);
-        const title = buildTitle(solution);
+        const title = buildTitle(solution, true);
 
         const contents = new MarkdownString(
-            `${title}\n\n[$(check)](${stageCommandUri}) $(close)`,
+            `${title}<br /><a href="${stageCommandUri}">$(check)</a> $(close)`,
             true
         );
         contents.isTrusted = true;
+        contents.supportHtml = true;
 
         return new Hover(contents);
     }

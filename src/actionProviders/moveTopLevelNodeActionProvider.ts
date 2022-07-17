@@ -6,15 +6,23 @@ import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions'
 import {isNeitherNullNorUndefined} from '../utilities';
 
 const buildIdentifiersLabel = (
-    identifiers: ReadonlyArray<string>
+    identifiers: ReadonlyArray<string>,
+    useHtml: boolean,
 ): string => {
-    return identifiers.length > 1
+    const label = identifiers.length > 1
         ? `(${identifiers.join(' ,')})`
         : identifiers.join('');
+
+    if (useHtml === false) {
+        return label;
+    }
+
+    return `<b>${label}</b>`;
 };
 
 export const buildTitle = (
     solution: Solution,
+    useHtml: boolean,
 ): string | null => {
     const {
         nodes,
@@ -36,10 +44,11 @@ export const buildTitle = (
         return null;
     }
 
-    const nodeIdentifiersLabel = buildIdentifiersLabel(
+    let nodeIdentifiersLabel = buildIdentifiersLabel(
         Array.from(
             node.identifiers
-        )
+        ),
+        useHtml,
     );
 
     if (dependencyCoefficient > similarityCoefficient && dependencyCoefficient > kindCoefficient) {
@@ -58,7 +67,8 @@ export const buildTitle = (
         const otherIdentifiersLabel = buildIdentifiersLabel(
             Array.from(
                 otherNode.identifiers
-            )
+            ),
+            useHtml,
         );
 
         return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} (more ordered dependencies)`;
@@ -74,7 +84,8 @@ export const buildTitle = (
             const label = buildIdentifiersLabel(
                 Array.from(
                     otherIdentifiers
-                )
+                ),
+                useHtml,
             );
 
             return `Move ${nodeIdentifiersLabel} after ${label} (more name similarity)`;
@@ -84,7 +95,8 @@ export const buildTitle = (
             const label = buildIdentifiersLabel(
                 Array.from(
                     otherIdentifiers
-                )
+                ),
+                useHtml,
             );
 
             return `Move ${nodeIdentifiersLabel} before ${label} (more name similarity)`;
@@ -101,7 +113,8 @@ export const buildTitle = (
             const label = buildIdentifiersLabel(
                 Array.from(
                     otherIdentifiers
-                )
+                ),
+                useHtml,
             );
 
             return `Move ${nodeIdentifiersLabel} after ${label} (more same-type blocks)`;
@@ -111,7 +124,8 @@ export const buildTitle = (
             const label = buildIdentifiersLabel(
                 Array.from(
                     otherIdentifiers
-                )
+                ),
+                useHtml,
             );
 
             return `Move ${nodeIdentifiersLabel} before ${label} (more same-type blocks)`;
@@ -138,7 +152,10 @@ const buildCodeAction = (
         return null;
     }
 
-    const title = buildTitle(solution);
+    const title = buildTitle(
+        solution,
+        false,
+    );
 
     if (title === null) {
         return null;
