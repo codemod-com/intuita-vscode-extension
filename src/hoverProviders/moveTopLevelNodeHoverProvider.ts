@@ -14,17 +14,12 @@ export const moveTopLevelNodeHoverProvider = {
         const fileLine = position.line;
         const fileCharacter = position.character;
 
-        const configuration = getConfiguration()
+        const configuration = getConfiguration();
 
         const userCommand = buildMoveTopLevelNodeUserCommand(
             fileName,
             fileText,
-            fileLine,
-            fileCharacter,
-            true,
-            {
-                ...configuration
-            },
+            configuration
         );
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
@@ -67,4 +62,4 @@ export const moveTopLevelNodeHoverProvider = {
 
         return new Hover(contents, new Range(position, position.translate(1, 1)));
     }
-}
+};

@@ -19,9 +19,6 @@ export const buildMoveTopLevelNodeFact = (
     const {
         fileName,
         fileText,
-        fileLine,
-        fileCharacter,
-        onlyBeforeBody,
         options,
     } = userCommand;
 
@@ -29,19 +26,21 @@ export const buildMoveTopLevelNodeFact = (
 
     const lines = calculateLines(fileText, separator);
     const lengths = calculateLengths(lines);
-    const characterIndex = calculateCharacterIndex(separator, lengths, fileLine, fileCharacter);
+    // const characterIndex = calculateCharacterIndex(separator, lengths, fileLine, fileCharacter);
 
     const topLevelNodes = buildTopLevelNodes(
         fileName,
         fileText,
     );
 
+    const stringNodes = getStringNodes(fileText, topLevelNodes);
+
     const selectedTopLevelNodeIndex = topLevelNodes
         .findIndex(
             node => {
-                if (onlyBeforeBody && node.bodyStart !== null) {
-                    return node.start <= characterIndex && characterIndex <= node.bodyStart;
-                }
+                // if (onlyBeforeBody && node.bodyStart !== null) {
+                //     return node.start <= characterIndex && characterIndex <= node.bodyStart;
+                // }
 
                 return node.start <= characterIndex && characterIndex <= node.end;
             }
@@ -51,7 +50,7 @@ export const buildMoveTopLevelNodeFact = (
         characterIndex - (topLevelNodes[selectedTopLevelNodeIndex]?.start ?? characterIndex)
     );
 
-    const stringNodes = getStringNodes(fileText, topLevelNodes);
+    
 
     const solutions = calculateSolutions(
         topLevelNodes,

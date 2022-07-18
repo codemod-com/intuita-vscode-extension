@@ -192,17 +192,12 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileLine = range.start.line;
         const fileCharacter = range.start.character;
 
-        const configuration = getConfiguration()
+        const configuration = getConfiguration();
 
 		const userCommand = buildMoveTopLevelNodeUserCommand(
 			fileName,
 			fileText,
-			fileLine,
-            fileCharacter,
-            true,
-			{
-				...configuration,
-			},
+			configuration,
 		);
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);

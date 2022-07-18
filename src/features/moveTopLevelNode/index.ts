@@ -13,9 +13,9 @@ export const moveTopLevelNode = (
     const userCommand = buildMoveTopLevelNodeUserCommand(
         fileName,
         fileText,
-        fileLine,
-        0,
-        false,
+        // fileLine,
+        // 0,
+        // false,
         options,
     );
 
