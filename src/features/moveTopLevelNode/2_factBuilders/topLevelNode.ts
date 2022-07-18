@@ -13,6 +13,7 @@ export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
     id: string,
     start: number,
+    bodyStart: number | null,
     end: number,
     identifiers: ReadonlySet<string>,
     childIdentifiers: ReadonlySet<string>,

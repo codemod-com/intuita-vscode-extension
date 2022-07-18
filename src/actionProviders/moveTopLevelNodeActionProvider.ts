@@ -163,7 +163,7 @@ const buildCodeAction = (
 
     const codeAction = new vscode.CodeAction(
         title,
-        vscode.CodeActionKind.Refactor,
+        vscode.CodeActionKind.QuickFix,
     );
 
     codeAction.command = {
@@ -199,6 +199,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 			fileText,
 			fileLine,
             fileCharacter,
+            true,
 			{
 				...configuration,
 			},

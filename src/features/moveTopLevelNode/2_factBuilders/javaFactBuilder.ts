@@ -159,6 +159,7 @@ class Visitor
                 topLevelNode = {
                     id,
                     start,
+                    bodyStart: null,
                     end,
                     kind: TopLevelNodeKind.CLASS,
                     identifiers: new Set<string>([ firstChild.identifier ]),
@@ -171,6 +172,7 @@ class Visitor
                 topLevelNode = {
                     id,
                     start,
+                    bodyStart: null,
                     end,
                     kind: TopLevelNodeKind.INTERFACE,
                     identifiers: new Set<string>([ firstChild.identifier ]),
@@ -183,6 +185,7 @@ class Visitor
                 topLevelNode = {
                     id,
                     start,
+                    bodyStart: null,
                     end,
                     kind: TopLevelNodeKind.ENUM,
                     identifiers: new Set<string>([ firstChild.identifier ]),

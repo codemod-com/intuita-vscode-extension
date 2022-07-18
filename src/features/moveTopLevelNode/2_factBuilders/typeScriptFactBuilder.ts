@@ -24,6 +24,28 @@ const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     }
 };
 
+const getBodyNode = (node: ts.Node): ts.Node | null => {
+    if(
+        ts.isClassDeclaration(node)
+        || ts.isInterfaceDeclaration(node)
+        || ts.isEnumDeclaration(node)
+    ) {
+        return node
+            .getChildren()
+            .filter((n) => n.kind === ts.SyntaxKind.SyntaxList)
+            ?.[0] ?? null;
+    }
+
+    if (ts.isFunctionDeclaration(node)) {
+        return node
+            .getChildren()
+            .filter((n) => n.kind === ts.SyntaxKind.Block)
+            ?.[0] ?? null;
+    }
+
+    return null;
+};
+
 export const getChildIdentifiers = (
     node: ts.Node
 ): ReadonlyArray<string> => {
@@ -138,8 +160,10 @@ export const buildTypeScriptTopLevelNodes = (
         })
         .map((node) => {
             const kind = getTopLevelNodeKind(node.kind);
+            const bodyNode = getBodyNode(node);
 
             const nodeStart = node.getStart();
+            const bodyStart = bodyNode?.getStart() ?? null;
             const nodeEnd = node.getEnd();
 
             const start = ts.getLeadingCommentRanges(
@@ -174,6 +198,7 @@ export const buildTypeScriptTopLevelNodes = (
                 kind,
                 id,
                 start,
+                bodyStart,
                 end,
                 identifiers,
                 childIdentifiers,

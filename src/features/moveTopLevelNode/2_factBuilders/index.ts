@@ -21,6 +21,7 @@ export const buildMoveTopLevelNodeFact = (
         fileText,
         fileLine,
         fileCharacter,
+        onlyBeforeBody,
         options,
     } = userCommand;
 
@@ -36,7 +37,15 @@ export const buildMoveTopLevelNodeFact = (
     );
 
     const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start <= characterIndex && characterIndex <= node.end );
+        .findIndex(
+            node => {
+                if (onlyBeforeBody && node.bodyStart !== null) {
+                    return node.start <= characterIndex && characterIndex <= node.bodyStart;
+                }
+
+                return node.start <= characterIndex && characterIndex <= node.end;
+            }
+        );
 
     const characterDifference = (
         characterIndex - (topLevelNodes[selectedTopLevelNodeIndex]?.start ?? characterIndex)

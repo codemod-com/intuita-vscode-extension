@@ -1,4 +1,4 @@
-import { Hover, MarkdownString, Position, ProviderResult, TextDocument, Uri } from "vscode";
+import { Hover, MarkdownString, Position, ProviderResult, Range, TextDocument, Uri } from "vscode";
 import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
 import { getConfiguration } from "../configuration";
 import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
@@ -21,6 +21,7 @@ export const moveTopLevelNodeHoverProvider = {
             fileText,
             fileLine,
             fileCharacter,
+            true,
             {
                 ...configuration
             },
@@ -64,6 +65,6 @@ export const moveTopLevelNodeHoverProvider = {
         contents.isTrusted = true;
         contents.supportHtml = true;
 
-        return new Hover(contents);
+        return new Hover(contents, new Range(position, position.translate(1, 1)));
     }
 }

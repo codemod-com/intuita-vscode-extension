@@ -15,6 +15,7 @@ export const moveTopLevelNode = (
         fileText,
         fileLine,
         0,
+        false,
         options,
     );
 
