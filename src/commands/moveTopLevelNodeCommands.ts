@@ -87,4 +87,4 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         new vscode.Range(position, position),
         vscode.TextEditorRevealType.AtTop,
     );
-}
+};

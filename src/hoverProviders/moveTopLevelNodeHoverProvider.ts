@@ -61,12 +61,13 @@ export const moveTopLevelNodeHoverProvider = {
 
         const { oldIndex, newIndex } = solution;
 
+        const characterDifference = characterIndex - topLevelNode.start;
+
         const args = {
             fileName,
             oldIndex,
             newIndex,
-            // characterDifference: fact.characterDifference,
-            characterDifference: 0, // TODO
+            characterDifference,
         };
 
         const encodedArgs = encodeURIComponent(JSON.stringify(args));
