@@ -3,7 +3,7 @@ import { getConfiguration } from '../configuration';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import {isNeitherNullNorUndefined} from '../utilities';
+import {calculateCharacterIndex, isNeitherNullNorUndefined} from '../utilities';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -202,24 +202,46 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        // const codeActions = fact
-        //     .solutions
-        //     .filter(
-        //         (solution) => {
-        //             return solution.newIndex !== solution.oldIndex;
-        //         }
-        //     )
-        //     .slice(0, 1)
-        //     .map(
-        //         (solution) => buildCodeAction(
-        //             fileName,
-        //             fact.characterDifference,
-        //             solution,
-        //         )
-        //     )
-        //     .filter(isNeitherNullNorUndefined);
+        const characterIndex = calculateCharacterIndex(
+            fact.separator,
+            fact.lengths,
+            fileLine,
+            fileCharacter,
+        );
 
-        // return Promise.resolve(codeActions);
-        return Promise.resolve([]);
+        const topLevelNodeIndex = fact.topLevelNodes.findIndex(
+            (topLevelNode) => {
+                return topLevelNode.start <= characterIndex
+                    && characterIndex <= topLevelNode.end;
+            }
+        );
+
+        const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
+
+        if (topLevelNodeIndex === -1 || topLevelNode === null) {
+            return Promise.resolve([]);
+        }
+
+        const characterDifference = characterIndex - topLevelNode.start;
+
+        const codeActions = fact
+            .solutions[topLevelNodeIndex]
+            ?.filter(
+                (solution) => {
+                    return solution.newIndex !== solution.oldIndex;
+                }
+            )
+            .slice(0, 1)
+            .map(
+                (solution) => buildCodeAction(
+                    fileName,
+                    characterDifference,
+                    solution,
+                )
+            )
+            .filter(isNeitherNullNorUndefined)
+            ?? [];
+
+        return Promise.resolve(codeActions);
 	}
 }

@@ -10,6 +10,8 @@ export const moveTopLevelNode = (
     fileLine: number,
     options: MoveTopLevelNodeOptions,
 ): ReadonlyArray<SourceFileExecution> => {
+    (fileLine);
+
     const userCommand = buildMoveTopLevelNodeUserCommand(
         fileName,
         fileText,
