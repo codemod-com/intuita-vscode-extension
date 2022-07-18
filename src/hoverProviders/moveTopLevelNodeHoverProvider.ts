@@ -1,9 +1,8 @@
 import { Hover, MarkdownString, Position, ProviderResult, Range, TextDocument, Uri } from "vscode";
 import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
 import { getConfiguration } from "../configuration";
-import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
-import { buildMoveTopLevelNodeFact } from "../features/moveTopLevelNode/2_factBuilders";
-import { calculateCharacterIndex, calculatePosition } from "../utilities";
+import { buildFact } from "../features/moveTopLevelNode/builder";
+import { calculatePosition } from "../utilities";
 
 export const moveTopLevelNodeHoverProvider = {
     provideHover(
@@ -17,51 +16,24 @@ export const moveTopLevelNodeHoverProvider = {
 
         const configuration = getConfiguration();
 
-        const userCommand = buildMoveTopLevelNodeUserCommand(
+        const fact = buildFact(
             fileName,
             fileText,
-            configuration
+            [fileLine, fileCharacter],
+            configuration,
         );
 
-        const fact = buildMoveTopLevelNodeFact(userCommand);
-
-        const characterIndex = calculateCharacterIndex(
-            fact.separator,
-            fact.lengths,
-            fileLine,
-            fileCharacter,
-        );
-
-        const topLevelNodeIndex = fact.topLevelNodes.findIndex(
-            (topLevelNode) => {
-                return topLevelNode.start <= characterIndex
-                    && characterIndex <= topLevelNode.end;
-            }
-        );
-
-        const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
-
-        if (topLevelNodeIndex === -1 || topLevelNode === null) {
+        if (fact === null) {
             return new Hover([]);
         }
 
-        const solutions = fact
-            .solutions[topLevelNodeIndex]
-            ?.filter(
-                (solution) => {
-                    return solution.newIndex !== solution.oldIndex;
-                }
-            );
-
-        const solution = solutions?.[0] ?? null;
-
-        if (solution === null) {
-            return new Hover([]);
-        }
+        const {
+            topLevelNode,
+            solution,
+            characterDifference,
+        } = fact;
 
         const { oldIndex, newIndex } = solution;
-
-        const characterDifference = characterIndex - topLevelNode.start;
 
         const args = {
             fileName,
@@ -84,16 +56,16 @@ export const moveTopLevelNodeHoverProvider = {
         contents.supportHtml = true;
 
         const start = calculatePosition(
-            fact.separator,
-            fact.lengths,
+            fact.fact.separator,
+            fact.fact.lengths,
             topLevelNode.start,
         );
 
         const startPosition = new Position(start[0], start[1]);
 
         const end = calculatePosition(
-            fact.separator,
-            fact.lengths,
+            fact.fact.separator,
+            fact.fact.lengths,
             topLevelNode.end,
         );
 

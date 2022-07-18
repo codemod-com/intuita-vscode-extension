@@ -51,12 +51,12 @@ export const buildFact = (
         return null;
     }
 
-    const { oldIndex, newIndex } = solution;
-
     const characterDifference = characterIndex - topLevelNode.start;
 
     return {
         solution,
         characterDifference,
+        topLevelNode,
+        fact,
     };
 };
