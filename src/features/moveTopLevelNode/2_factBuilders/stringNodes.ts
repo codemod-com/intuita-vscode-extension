@@ -15,7 +15,7 @@ export const getStringNodes = (
         (topLevelNode, index) => {
             if (index === 0) {
                 stringNodes.push({
-                    text: fileText.slice(0, topLevelNode.start),
+                    text: fileText.slice(0, topLevelNode.triviaStart),
                     topLevelNodeIndex: null,
                 });
             } else {
@@ -23,21 +23,21 @@ export const getStringNodes = (
 
                 stringNodes.push({
                     text: fileText.slice(
-                        previousNode.end + 1,
-                        topLevelNode.start,
+                        previousNode.triviaEnd + 1,
+                        topLevelNode.triviaStart,
                     ),
                     topLevelNodeIndex: null,
                 });
             }
 
             stringNodes.push({
-                text: fileText.slice(topLevelNode.start, topLevelNode.end + 1),
+                text: fileText.slice(topLevelNode.triviaStart, topLevelNode.triviaEnd + 1),
                 topLevelNodeIndex: index,
             });
 
             if (index === (topLevelNodes.length - 1)) {
                 stringNodes.push({
-                    text: fileText.slice(topLevelNode.end + 1),
+                    text: fileText.slice(topLevelNode.triviaEnd + 1),
                     topLevelNodeIndex: null,
                 });
             }

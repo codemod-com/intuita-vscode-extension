@@ -58,13 +58,13 @@ export const moveTopLevelNodeHoverProvider = {
         const start = calculatePosition(
             fact.fact.separator,
             fact.fact.lengths,
-            topLevelNode.start,
+            topLevelNode.triviaStart,
         );
 
         const end = calculatePosition(
             fact.fact.separator,
             fact.fact.lengths,
-            topLevelNode.end,
+            topLevelNode.triviaEnd,
         );
 
         const startPosition = new Position(start[0], start[1]);

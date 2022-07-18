@@ -12,9 +12,10 @@ export const enum TopLevelNodeKind {
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
     id: string,
-    start: number,
-    bodyStart: number | null,
-    end: number,
+    triviaStart: number,
+    triviaEnd: number,
+    // start: number,
+    // end: number,
     identifiers: ReadonlySet<string>,
     childIdentifiers: ReadonlySet<string>,
 }>;

@@ -21,9 +21,8 @@ const buildNode = (
     return {
         id: identifier,
         kind: kind ?? TopLevelNodeKind.UNKNOWN,
-        start: 0,
-        bodyStart: null,
-        end: 10,
+        triviaStart: 0,
+        triviaEnd: 10,
         identifiers: new Set([ identifier ]),
         childIdentifiers: childIdentifiers ?? new Set([]),
     };

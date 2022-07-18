@@ -26,8 +26,8 @@ export const buildFact = (
 
     const topLevelNodeIndex = fact.topLevelNodes.findIndex(
         (topLevelNode) => {
-            return topLevelNode.start <= characterIndex
-                && characterIndex <= topLevelNode.end;
+            return topLevelNode.triviaStart <= characterIndex
+                && characterIndex <= topLevelNode.triviaEnd;
         }
     );
 
@@ -51,7 +51,7 @@ export const buildFact = (
         return null;
     }
 
-    const characterDifference = characterIndex - topLevelNode.start;
+    const characterDifference = characterIndex - topLevelNode.triviaStart;
 
     return {
         solution,

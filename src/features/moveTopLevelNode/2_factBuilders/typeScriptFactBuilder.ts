@@ -197,9 +197,8 @@ export const buildTypeScriptTopLevelNodes = (
             return {
                 kind,
                 id,
-                start,
-                bodyStart,
-                end,
+                triviaStart: start,
+                triviaEnd: end,
                 identifiers,
                 childIdentifiers,
             };

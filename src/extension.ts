@@ -51,13 +51,13 @@ export async function activate(context: vscode.ExtensionContext) {
 				const start = calculatePosition(
 					fact.separator,
 					fact.lengths,
-					topLevelNode.start,
+					topLevelNode.triviaStart,
 				);
 		
 				const end = calculatePosition(
 					fact.separator,
 					fact.lengths,
-					topLevelNode.end,
+					topLevelNode.triviaEnd,
 				);
 		
 				const startPosition = new vscode.Position(start[0], start[1]);

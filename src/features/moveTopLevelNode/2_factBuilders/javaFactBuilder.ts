@@ -158,9 +158,8 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    bodyStart: null,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
                     kind: TopLevelNodeKind.CLASS,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -171,9 +170,8 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    bodyStart: null,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
                     kind: TopLevelNodeKind.INTERFACE,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -184,9 +182,8 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    bodyStart: null,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
                     kind: TopLevelNodeKind.ENUM,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -273,18 +270,18 @@ export const buildJavaTopLevelNodes = (
             (fact): fact is Fact & { kind: FactKind.TYPE_DECLARATION } => fact.kind === FactKind.TYPE_DECLARATION
         )
         .map((fact, index, facts) => {
-            const end = facts[index - 1]?.topLevelNode.end ?? 0;
-            const { start } = fact.topLevelNode;
+            const end = facts[index - 1]?.topLevelNode.triviaEnd ?? 0;
+            const { triviaStart } = fact.topLevelNode;
 
             const newStart = triviaNodes
-                .filter((triviaNode) => triviaNode.end < start && triviaNode.start > end)
+                .filter((triviaNode) => triviaNode.end < triviaStart && triviaNode.start > end)
                 .filter((triviaNode) => triviaNode.kind === TriviaNodeKind.COMMENT)
                 .slice(-1)
                 [0]?.start ?? null;
 
             return {
                 ...fact.topLevelNode,
-                start: newStart ?? start,
+                start: newStart ?? triviaStart,
             };
         });
 };
