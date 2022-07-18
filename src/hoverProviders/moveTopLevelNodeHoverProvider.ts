@@ -61,22 +61,23 @@ export const moveTopLevelNodeHoverProvider = {
             topLevelNode.start,
         );
 
-        const startPosition = new Position(start[0], start[1]);
-
         const end = calculatePosition(
             fact.fact.separator,
             fact.fact.lengths,
             topLevelNode.end,
         );
 
+        const startPosition = new Position(start[0], start[1]);
         const endPosition = new Position(end[0], end[1]);
+
+        const range = new Range(
+            startPosition,
+            endPosition,
+        );
 
         return new Hover(
             contents,
-            new Range(
-                startPosition,
-                endPosition,
-            ),
+            range,
         );
     }
 };

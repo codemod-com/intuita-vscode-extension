@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
-import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
+import { buildTitle, MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
+import { getConfiguration } from './configuration';
+import { buildMoveTopLevelNodeUserCommand } from './features/moveTopLevelNode/1_userCommandBuilder';
+import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
 import { moveTopLevelNodeHoverProvider } from './hoverProviders/moveTopLevelNodeHoverProvider';
+import { calculatePosition } from './utilities';
 
 export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
@@ -27,15 +31,55 @@ export async function activate(context: vscode.ExtensionContext) {
 	const activeTextEditorChangedCallback = (
 		textEditor: vscode.TextEditor,
 	) => {
-		const { fileName } = textEditor.document;
+		const { fileName, getText } = textEditor.document;
 
-		const diagnostics = [
-			new vscode.Diagnostic(
-				new vscode.Range(2, 0, 2, 65),
-				'Move top-level node',
-				vscode.DiagnosticSeverity.Information
-			)
-		];
+		const fileText = getText();
+
+		const configuration = getConfiguration();
+
+		const userCommand = buildMoveTopLevelNodeUserCommand(
+			fileName,
+			fileText,
+			configuration
+		);
+	
+		const fact = buildMoveTopLevelNodeFact(userCommand);
+
+		const diagnostics = fact.solutions.map(
+			(solutions, index) => {
+				const topLevelNode = fact.topLevelNodes[index]!;
+
+				const solution = solutions[0]!;
+
+				const title = buildTitle(solution, false);
+
+				const start = calculatePosition(
+					fact.separator,
+					fact.lengths,
+					topLevelNode.start,
+				);
+		
+				const end = calculatePosition(
+					fact.separator,
+					fact.lengths,
+					topLevelNode.end,
+				);
+		
+				const startPosition = new vscode.Position(start[0], start[1]);
+				const endPosition = new vscode.Position(end[0], end[1]);
+		
+				const range = new vscode.Range(
+					startPosition,
+					endPosition,
+				);
+
+				return new vscode.Diagnostic(
+					range,
+					title ?? '',
+					vscode.DiagnosticSeverity.Information
+				);
+			}
+		);
 
 		diagnosticCollection.set(
 			vscode.Uri.parse(fileName),
