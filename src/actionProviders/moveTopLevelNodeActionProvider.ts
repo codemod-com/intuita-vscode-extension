@@ -3,6 +3,7 @@ import { getConfiguration } from '../configuration';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
+import { buildFact } from '../features/moveTopLevelNode/builder';
 import {calculateCharacterIndex, isNeitherNullNorUndefined} from '../utilities';
 
 const buildIdentifiersLabel = (
@@ -194,54 +195,29 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 
         const configuration = getConfiguration();
 
-		const userCommand = buildMoveTopLevelNodeUserCommand(
-			fileName,
-			fileText,
-			configuration,
-		);
-
-		const fact = buildMoveTopLevelNodeFact(userCommand);
-
-        const characterIndex = calculateCharacterIndex(
-            fact.separator,
-            fact.lengths,
-            fileLine,
-            fileCharacter,
+        const fact = buildFact(
+            fileName,
+            fileText,
+            [fileLine, fileCharacter],
+            configuration,
         );
 
-        const topLevelNodeIndex = fact.topLevelNodes.findIndex(
-            (topLevelNode) => {
-                return topLevelNode.start <= characterIndex
-                    && characterIndex <= topLevelNode.end;
-            }
-        );
-
-        const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
-
-        if (topLevelNodeIndex === -1 || topLevelNode === null) {
+        if (fact === null) {
             return Promise.resolve([]);
         }
 
-        const characterDifference = characterIndex - topLevelNode.start;
+        const codeAction = buildCodeAction(
+            fileName,
+            fact.characterDifference,
+            fact.solution,
+        );
 
-        const codeActions = fact
-            .solutions[topLevelNodeIndex]
-            ?.filter(
-                (solution) => {
-                    return solution.newIndex !== solution.oldIndex;
-                }
-            )
-            .slice(0, 1)
-            .map(
-                (solution) => buildCodeAction(
-                    fileName,
-                    characterDifference,
-                    solution,
-                )
-            )
-            .filter(isNeitherNullNorUndefined)
-            ?? [];
+        if (codeAction === null) {
+            return Promise.resolve([]);
+        }
 
-        return Promise.resolve(codeActions);
+        return Promise.resolve([
+            codeAction,
+        ]);
 	}
 }
