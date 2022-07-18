@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { executeMoveTopLevelNodeAstCommand } from "../features/moveTopLevelNode/4_astCommandExecutor";
 
-export const moveTopLevelNodeCommands = async (args: any) => {
+export const moveTopLevelNodeCommands = (
+    callback: () => void,
+) => async (args: any) => {
     const fileName: string | null = args && typeof args.fileName === 'string'
         ? args.fileName
         : null;
@@ -87,4 +89,6 @@ export const moveTopLevelNodeCommands = async (args: any) => {
         new vscode.Range(position, position),
         vscode.TextEditorRevealType.AtTop,
     );
+
+    callback();
 };

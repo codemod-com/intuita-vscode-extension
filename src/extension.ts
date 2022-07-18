@@ -14,17 +14,12 @@ export async function activate(context: vscode.ExtensionContext) {
 			new MoveTopLevelNodeActionProvider()
 		));
 
-	vscode.commands.registerCommand(
-		'intuita.moveTopLevelNode',
-		moveTopLevelNodeCommands,
-	);
-
-	vscode.languages.registerHoverProvider(
-		'typescript',
-		moveTopLevelNodeHoverProvider,
-	);
-
 	const diagnosticCollection = vscode.languages.createDiagnosticCollection('typescript');
+
+	// vscode.languages.registerHoverProvider(
+	// 	'typescript',
+	// 	moveTopLevelNodeHoverProvider,
+	// );
 
 	context.subscriptions.push(diagnosticCollection);
 
@@ -81,6 +76,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		);
 
+		diagnosticCollection.clear();
+
 		diagnosticCollection.set(
 			vscode.Uri.parse(fileName),
 			diagnostics,
@@ -99,6 +96,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			return activeTextEditorChangedCallback(textEditor);
 		}
+	);
+
+	vscode.commands.registerCommand(
+		'intuita.moveTopLevelNode',
+		moveTopLevelNodeCommands(
+			() => {
+				if (vscode.window.activeTextEditor) {
+					activeTextEditorChangedCallback(vscode.window.activeTextEditor);
+				}
+			}
+		),
 	);
 
 	console.log('Activated the Intuita VSCode Extension');
