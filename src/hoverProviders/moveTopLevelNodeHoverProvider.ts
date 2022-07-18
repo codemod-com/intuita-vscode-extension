@@ -3,6 +3,7 @@ import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
 import { getConfiguration } from "../configuration";
 import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
 import { buildMoveTopLevelNodeFact } from "../features/moveTopLevelNode/2_factBuilders";
+import { calculateCharacterIndex } from "../utilities";
 
 export const moveTopLevelNodeHoverProvider = {
     provideHover(
@@ -24,15 +25,33 @@ export const moveTopLevelNodeHoverProvider = {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
+        const characterIndex = calculateCharacterIndex(
+            fact.separator,
+            fact.lengths,
+            fileLine,
+            fileCharacter,
+        );
+
+        const topLevelNodeIndex = fact.topLevelNodes.findIndex(
+            (topLevelNode) => {
+                return topLevelNode.start <= characterIndex
+                    && characterIndex <= topLevelNode.end;
+            }
+        );
+
+        if (topLevelNodeIndex === -1) {
+            return new Hover([]);
+        }
+
         const solutions = fact
-            .solutions
-            .filter(
+            .solutions[topLevelNodeIndex]
+            ?.filter(
                 (solution) => {
                     return solution.newIndex !== solution.oldIndex;
                 }
             );
 
-        const solution = solutions[0] ?? null;
+        const solution = solutions?.[0] ?? null;
 
         if (solution === null) {
             return new Hover([]);
@@ -44,7 +63,8 @@ export const moveTopLevelNodeHoverProvider = {
             fileName,
             oldIndex,
             newIndex,
-            characterDifference: fact.characterDifference,
+            // characterDifference: fact.characterDifference,
+            characterDifference: 0, // TODO
         };
 
         const encodedArgs = encodeURIComponent(JSON.stringify(args));

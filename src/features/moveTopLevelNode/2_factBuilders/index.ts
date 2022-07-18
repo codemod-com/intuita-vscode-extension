@@ -6,6 +6,7 @@ import { buildTopLevelNodes } from "./buildTopLevelNodes";
 import { calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
+    separator: string,
     topLevelNodes: ReadonlyArray<TopLevelNode>,
     lengths: ReadonlyArray<number>,
     stringNodes: ReadonlyArray<StringNode>,
@@ -21,7 +22,7 @@ export const buildMoveTopLevelNodeFact = (
         options,
     } = userCommand;
 
-    const separator = '\n';
+    const separator = '\n'; // TODO we should check if this is the correct one!
 
     const lines = calculateLines(fileText, separator);
     const lengths = calculateLengths(lines);
@@ -44,6 +45,7 @@ export const buildMoveTopLevelNodeFact = (
     );
 
     return {
+        separator,
         topLevelNodes,
         lengths,
         stringNodes,

@@ -27,6 +27,7 @@ export const moveTopLevelNode = (
         userCommand,
         fact,
         {
+            topLevelNodeIndex: 0, // TODO
             solutionIndex: 0,
         }
     );

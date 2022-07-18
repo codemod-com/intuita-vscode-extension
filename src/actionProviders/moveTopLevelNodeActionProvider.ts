@@ -202,23 +202,24 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const codeActions = fact
-            .solutions
-            .filter(
-                (solution) => {
-                    return solution.newIndex !== solution.oldIndex;
-                }
-            )
-            .slice(0, 1)
-            .map(
-                (solution) => buildCodeAction(
-                    fileName,
-                    fact.characterDifference,
-                    solution,
-                )
-            )
-            .filter(isNeitherNullNorUndefined);
+        // const codeActions = fact
+        //     .solutions
+        //     .filter(
+        //         (solution) => {
+        //             return solution.newIndex !== solution.oldIndex;
+        //         }
+        //     )
+        //     .slice(0, 1)
+        //     .map(
+        //         (solution) => buildCodeAction(
+        //             fileName,
+        //             fact.characterDifference,
+        //             solution,
+        //         )
+        //     )
+        //     .filter(isNeitherNullNorUndefined);
 
-        return Promise.resolve(codeActions);
+        // return Promise.resolve(codeActions);
+        return Promise.resolve([]);
 	}
 }
