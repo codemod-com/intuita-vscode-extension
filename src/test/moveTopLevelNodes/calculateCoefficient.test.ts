@@ -23,6 +23,8 @@ const buildNode = (
         kind: kind ?? TopLevelNodeKind.UNKNOWN,
         triviaStart: 0,
         triviaEnd: 10,
+        nodeStart: 0,
+        nodeEnd: 10,
         identifiers: new Set([ identifier ]),
         childIdentifiers: childIdentifiers ?? new Set([]),
     };

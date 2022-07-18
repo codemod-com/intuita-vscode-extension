@@ -14,8 +14,8 @@ export type TopLevelNode = Readonly<{
     id: string,
     triviaStart: number,
     triviaEnd: number,
-    // start: number,
-    // end: number,
+    nodeStart: number,
+    nodeEnd: number,
     identifiers: ReadonlySet<string>,
     childIdentifiers: ReadonlySet<string>,
 }>;
