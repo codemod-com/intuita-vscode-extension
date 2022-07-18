@@ -3,7 +3,7 @@ import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
 import { getConfiguration } from "../configuration";
 import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
 import { buildMoveTopLevelNodeFact } from "../features/moveTopLevelNode/2_factBuilders";
-import { calculateCharacterIndex } from "../utilities";
+import { calculateCharacterIndex, calculatePosition } from "../utilities";
 
 export const moveTopLevelNodeHoverProvider = {
     provideHover(
@@ -39,7 +39,9 @@ export const moveTopLevelNodeHoverProvider = {
             }
         );
 
-        if (topLevelNodeIndex === -1) {
+        const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
+
+        if (topLevelNodeIndex === -1 || topLevelNode === null) {
             return new Hover([]);
         }
 
@@ -80,6 +82,28 @@ export const moveTopLevelNodeHoverProvider = {
         contents.isTrusted = true;
         contents.supportHtml = true;
 
-        return new Hover(contents, new Range(position, position.translate(1, 1)));
+        const start = calculatePosition(
+            fact.separator,
+            fact.lengths,
+            topLevelNode.start,
+        );
+
+        const startPosition = new Position(start[0], start[1]);
+
+        const end = calculatePosition(
+            fact.separator,
+            fact.lengths,
+            topLevelNode.end,
+        );
+
+        const endPosition = new Position(end[0], end[1]);
+
+        return new Hover(
+            contents,
+            new Range(
+                startPosition,
+                endPosition,
+            ),
+        );
     }
 };
