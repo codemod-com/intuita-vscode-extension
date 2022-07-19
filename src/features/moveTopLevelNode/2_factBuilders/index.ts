@@ -3,14 +3,14 @@ import {TopLevelNode} from "./topLevelNode";
 import { calculateSolutions, Solution } from "./solutions";
 import { getStringNodes, StringNode } from "./stringNodes";
 import { buildTopLevelNodes } from "./buildTopLevelNodes";
-import {calculateCharacterIndex, calculateLengths, calculateLines} from "../../../utilities";
+import { calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
+    separator: string,
     topLevelNodes: ReadonlyArray<TopLevelNode>,
-    selectedTopLevelNodeIndex: number,
-    characterDifference: number,
+    lengths: ReadonlyArray<number>,
     stringNodes: ReadonlyArray<StringNode>,
-    solutions: ReadonlyArray<Solution>,
+    solutions: ReadonlyArray<ReadonlyArray<Solution>>,
 }>;
 
 export const buildMoveTopLevelNodeFact = (
@@ -19,41 +19,35 @@ export const buildMoveTopLevelNodeFact = (
     const {
         fileName,
         fileText,
-        fileLine,
-        fileCharacter,
         options,
     } = userCommand;
 
-    const separator = '\n';
+    const separator = '\n'; // TODO we should check if this is the correct one!
 
     const lines = calculateLines(fileText, separator);
     const lengths = calculateLengths(lines);
-    const characterIndex = calculateCharacterIndex(separator, lengths, fileLine, fileCharacter);
 
     const topLevelNodes = buildTopLevelNodes(
         fileName,
         fileText,
     );
 
-    const selectedTopLevelNodeIndex = topLevelNodes
-        .findIndex(node => node.start <= characterIndex && characterIndex <= node.end );
-
-    const characterDifference = (
-        characterIndex - (topLevelNodes[selectedTopLevelNodeIndex]?.start ?? characterIndex)
-    );
-
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
-    const solutions = calculateSolutions(
-        topLevelNodes,
-        selectedTopLevelNodeIndex,
-        options,
+    const solutions = topLevelNodes.map(
+        (_, index) => {
+            return calculateSolutions(
+                topLevelNodes,
+                index,
+                options,
+            );
+        }
     );
 
     return {
+        separator,
         topLevelNodes,
-        selectedTopLevelNodeIndex,
-        characterDifference,
+        lengths,
         stringNodes,
         solutions,
     };

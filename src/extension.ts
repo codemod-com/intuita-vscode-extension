@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
-import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
+import { buildTitle, MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
+import { getConfiguration } from './configuration';
+import { buildMoveTopLevelNodeUserCommand } from './features/moveTopLevelNode/1_userCommandBuilder';
+import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
 import { moveTopLevelNodeHoverProvider } from './hoverProviders/moveTopLevelNodeHoverProvider';
+import { calculatePosition } from './utilities';
 
 export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
@@ -10,17 +14,102 @@ export async function activate(context: vscode.ExtensionContext) {
 			new MoveTopLevelNodeActionProvider()
 		));
 
-	vscode.commands.registerCommand(
-		'intuita.moveTopLevelNode',
-		moveTopLevelNodeCommands,
+	const diagnosticCollection = vscode.languages.createDiagnosticCollection('typescript');
+
+	// vscode.languages.registerHoverProvider(
+	// 	'typescript',
+	// 	moveTopLevelNodeHoverProvider,
+	// );
+
+	context.subscriptions.push(diagnosticCollection);
+
+	const activeTextEditorChangedCallback = (
+		textEditor: vscode.TextEditor,
+	) => {
+		const { fileName, getText } = textEditor.document;
+
+		const fileText = getText();
+
+		const configuration = getConfiguration();
+
+		const userCommand = buildMoveTopLevelNodeUserCommand(
+			fileName,
+			fileText,
+			configuration
+		);
+	
+		const fact = buildMoveTopLevelNodeFact(userCommand);
+
+		const diagnostics = fact.solutions.map(
+			(solutions, index) => {
+				const topLevelNode = fact.topLevelNodes[index]!;
+
+				const solution = solutions[0]!;
+
+				const title = buildTitle(solution, false);
+
+				const start = calculatePosition(
+					fact.separator,
+					fact.lengths,
+					topLevelNode.nodeStart,
+				);
+		
+				// const end = calculatePosition(
+				// 	fact.separator,
+				// 	fact.lengths,
+				// 	topLevelNode.triviaEnd,
+				// );
+		
+				const startPosition = new vscode.Position(start[0], start[1]);
+				const endPosition = new vscode.Position(start[0], fact.lengths[start[0]] ?? start[1]);
+		
+				const range = new vscode.Range(
+					startPosition,
+					endPosition,
+				);
+
+				return new vscode.Diagnostic(
+					range,
+					title ?? '',
+					vscode.DiagnosticSeverity.Information
+				);
+			}
+		);
+
+		diagnosticCollection.clear();
+
+		diagnosticCollection.set(
+			vscode.Uri.parse(fileName),
+			diagnostics,
+		);
+	};
+
+	if (vscode.window.activeTextEditor) {
+		activeTextEditorChangedCallback(vscode.window.activeTextEditor);
+	}
+
+	vscode.window.onDidChangeActiveTextEditor(
+		(textEditor) => {
+			if (!textEditor) {
+				return;
+			}
+
+			return activeTextEditorChangedCallback(textEditor);
+		}
 	);
 
-	vscode.languages.registerHoverProvider(
-		'typescript',
-		moveTopLevelNodeHoverProvider,
-	)
+	vscode.commands.registerCommand(
+		'intuita.moveTopLevelNode',
+		moveTopLevelNodeCommands(
+			() => {
+				if (vscode.window.activeTextEditor) {
+					activeTextEditorChangedCallback(vscode.window.activeTextEditor);
+				}
+			}
+		),
+	);
 
-	console.log('Activated the Intuita VSCode Extension')
+	console.log('Activated the Intuita VSCode Extension');
 }
 
 // this method is called when your extension is deactivated

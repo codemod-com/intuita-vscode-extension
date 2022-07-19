@@ -115,7 +115,7 @@ describe('move top-level nodes for TS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            20,
+            1,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -143,7 +143,7 @@ describe('move top-level nodes for TS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            41,
+            2,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -171,7 +171,7 @@ describe('move top-level nodes for TS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            47,
+            3,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -199,7 +199,7 @@ describe('move top-level nodes for TS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            60,
+            4,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -226,7 +226,7 @@ describe('move top-level nodes for TSX (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            33,
+            0,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -266,7 +266,7 @@ describe('move top-level nodes for JS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            5,
+            0,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -281,7 +281,7 @@ describe('move top-level nodes for JS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            64,
+            1,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 0,
@@ -296,7 +296,7 @@ describe('move top-level nodes for JS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            92,
+            2,
             {
                 dependencyCoefficientWeight: 0,
                 similarityCoefficientWeight: 0,
@@ -311,7 +311,7 @@ describe('move top-level nodes for JS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            117,
+            3,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 0,
@@ -326,7 +326,7 @@ describe('move top-level nodes for JS (real files)', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            203,
+            4,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 0,
@@ -353,12 +353,10 @@ describe('move top-level nodes for TS with comments', async function() {
     it('should move A nowhere', () => {
         const fileName = '/index.ts';
 
-        const fileLine = 1;
-
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            0,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -372,12 +370,10 @@ describe('move top-level nodes for TS with comments', async function() {
     it('should move C before A', () => {
         const fileName = '/index.ts';
 
-        const fileLine = 4;
-
-        const executions = moveTopLevelNode(
+       const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            1,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -404,12 +400,10 @@ describe('move top-level nodes for TS with comments', async function() {
     it('should move B before A', () => {
         const fileName = '/index.ts';
 
-        const fileLine = 7;
-
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            2,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -447,12 +441,10 @@ describe('move top-level nodes for Java', async function() {
     const fileName = '/A.java';
 
     it('should move A after B', () => {
-        const fileLine = 3;
-
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            0,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -466,20 +458,19 @@ describe('move top-level nodes for Java', async function() {
             [
                 "package var.var.sealed;",
                 "interface C {}",
+                "class B {}",
                 "/** comment **/",
                 "public class A { void a() { return new B(); } }",
-                "class B {}",
+
             ].join('\n')
         );
     });
 
     it('should move C before A', () => {
-        const fileLine = 3;
-
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            1,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,
@@ -501,12 +492,10 @@ describe('move top-level nodes for Java', async function() {
     });
 
     it('should move B before A', () => {
-        const fileLine = 4;
-
         const executions = moveTopLevelNode(
             fileName,
             fileText,
-            fileLine,
+            2,
             {
                 dependencyCoefficientWeight: 1,
                 similarityCoefficientWeight: 1,

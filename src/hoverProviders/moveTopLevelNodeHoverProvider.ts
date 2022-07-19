@@ -1,8 +1,8 @@
-import { Hover, MarkdownString, Position, ProviderResult, TextDocument, Uri } from "vscode";
+import { Hover, MarkdownString, Position, ProviderResult, Range, TextDocument, Uri } from "vscode";
 import { buildTitle } from "../actionProviders/moveTopLevelNodeActionProvider";
 import { getConfiguration } from "../configuration";
-import { buildMoveTopLevelNodeUserCommand } from "../features/moveTopLevelNode/1_userCommandBuilder";
-import { buildMoveTopLevelNodeFact } from "../features/moveTopLevelNode/2_factBuilders";
+import { buildFact } from "../features/moveTopLevelNode/builder";
+import { calculatePosition } from "../utilities";
 
 export const moveTopLevelNodeHoverProvider = {
     provideHover(
@@ -14,33 +14,24 @@ export const moveTopLevelNodeHoverProvider = {
         const fileLine = position.line;
         const fileCharacter = position.character;
 
-        const configuration = getConfiguration()
+        const configuration = getConfiguration();
 
-        const userCommand = buildMoveTopLevelNodeUserCommand(
+        const fact = buildFact(
             fileName,
             fileText,
-            fileLine,
-            fileCharacter,
-            {
-                ...configuration
-            },
+            [fileLine, fileCharacter],
+            configuration,
         );
 
-        const fact = buildMoveTopLevelNodeFact(userCommand);
-
-        const solutions = fact
-            .solutions
-            .filter(
-                (solution) => {
-                    return solution.newIndex !== solution.oldIndex;
-                }
-            );
-
-        const solution = solutions[0] ?? null;
-
-        if (solution === null) {
+        if (fact === null) {
             return new Hover([]);
         }
+
+        const {
+            topLevelNode,
+            solution,
+            characterDifference,
+        } = fact;
 
         const { oldIndex, newIndex } = solution;
 
@@ -48,7 +39,7 @@ export const moveTopLevelNodeHoverProvider = {
             fileName,
             oldIndex,
             newIndex,
-            characterDifference: fact.characterDifference,
+            characterDifference,
         };
 
         const encodedArgs = encodeURIComponent(JSON.stringify(args));
@@ -64,6 +55,29 @@ export const moveTopLevelNodeHoverProvider = {
         contents.isTrusted = true;
         contents.supportHtml = true;
 
-        return new Hover(contents);
+        const start = calculatePosition(
+            fact.fact.separator,
+            fact.fact.lengths,
+            topLevelNode.triviaStart,
+        );
+
+        const end = calculatePosition(
+            fact.fact.separator,
+            fact.fact.lengths,
+            topLevelNode.triviaEnd,
+        );
+
+        const startPosition = new Position(start[0], start[1]);
+        const endPosition = new Position(end[0], end[1]);
+
+        const range = new Range(
+            startPosition,
+            endPosition,
+        );
+
+        return new Hover(
+            contents,
+            range,
+        );
     }
-}
+};
