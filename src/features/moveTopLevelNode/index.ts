@@ -7,17 +7,12 @@ import { executeMoveTopLevelNodeAstCommand } from "./4_astCommandExecutor";
 export const moveTopLevelNode = (
     fileName: string,
     fileText: string,
-    fileLine: number,
+    topLevelNodeIndex: number,
     options: MoveTopLevelNodeOptions,
 ): ReadonlyArray<SourceFileExecution> => {
-    (fileLine);
-
     const userCommand = buildMoveTopLevelNodeUserCommand(
         fileName,
         fileText,
-        // fileLine,
-        // 0,
-        // false,
         options,
     );
 
@@ -29,7 +24,7 @@ export const moveTopLevelNode = (
         userCommand,
         fact,
         {
-            topLevelNodeIndex: 0, // TODO
+            topLevelNodeIndex,
             solutionIndex: 0,
         }
     );
