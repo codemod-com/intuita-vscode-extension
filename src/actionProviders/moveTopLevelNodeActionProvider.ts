@@ -3,7 +3,8 @@ import { getConfiguration } from '../configuration';
 import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import {isNeitherNullNorUndefined} from '../utilities';
+import { buildFact } from '../features/moveTopLevelNode/builder';
+import {calculateCharacterIndex, isNeitherNullNorUndefined} from '../utilities';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -163,7 +164,7 @@ const buildCodeAction = (
 
     const codeAction = new vscode.CodeAction(
         title,
-        vscode.CodeActionKind.Refactor,
+        vscode.CodeActionKind.QuickFix,
     );
 
     codeAction.command = {
@@ -192,37 +193,31 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		const fileLine = range.start.line;
         const fileCharacter = range.start.character;
 
-        const configuration = getConfiguration()
+        const configuration = getConfiguration();
 
-		const userCommand = buildMoveTopLevelNodeUserCommand(
-			fileName,
-			fileText,
-			fileLine,
-            fileCharacter,
-			{
-				...configuration,
-			},
-		);
+        const fact = buildFact(
+            fileName,
+            fileText,
+            [fileLine, fileCharacter],
+            configuration,
+        );
 
-		const fact = buildMoveTopLevelNodeFact(userCommand);
+        if (fact === null) {
+            return Promise.resolve([]);
+        }
 
-        const codeActions = fact
-            .solutions
-            .filter(
-                (solution) => {
-                    return solution.newIndex !== solution.oldIndex;
-                }
-            )
-            .slice(0, 1)
-            .map(
-                (solution) => buildCodeAction(
-                    fileName,
-                    fact.characterDifference,
-                    solution,
-                )
-            )
-            .filter(isNeitherNullNorUndefined);
+        const codeAction = buildCodeAction(
+            fileName,
+            fact.characterDifference,
+            fact.solution,
+        );
 
-        return Promise.resolve(codeActions);
+        if (codeAction === null) {
+            return Promise.resolve([]);
+        }
+
+        return Promise.resolve([
+            codeAction,
+        ]);
 	}
 }

@@ -75,3 +75,26 @@ export const calculateCharacterIndex = (
             characterNumber,
         );
 };
+
+export const calculatePosition = (
+    separator: string,
+    lengths: ReadonlyArray<number>,
+    characterIndex: number,
+): Readonly<[number, number]> => {
+    let currentCharacterIndex = characterIndex;
+
+    for(let line = 0; line < lengths.length; ++line) {
+        const length = lengths[line] ?? 0;
+
+        if (currentCharacterIndex <= length) {
+            return [
+                line,
+                currentCharacterIndex,
+            ];
+        }
+
+        currentCharacterIndex -= (length + separator.length);
+    }
+
+    return [0, 0];
+};

@@ -13,5 +13,7 @@ export const getConfiguration = () => {
         dependencyCoefficientWeight,
         similarityCoefficientWeight,
         kindCoefficientWeight,
-    }
-}
+    };
+};
+
+export type Configuration = ReturnType<typeof getConfiguration>;

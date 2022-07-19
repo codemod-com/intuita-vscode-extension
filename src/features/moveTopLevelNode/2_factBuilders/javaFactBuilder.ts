@@ -158,8 +158,10 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
+                    nodeStart: start,
+                    nodeEnd: end,
                     kind: TopLevelNodeKind.CLASS,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -170,8 +172,10 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
+                    nodeStart: start,
+                    nodeEnd: end,
                     kind: TopLevelNodeKind.INTERFACE,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -182,8 +186,10 @@ class Visitor
             {
                 topLevelNode = {
                     id,
-                    start,
-                    end,
+                    triviaStart: start,
+                    triviaEnd: end,
+                    nodeStart: start,
+                    nodeEnd: end,
                     kind: TopLevelNodeKind.ENUM,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
@@ -270,18 +276,26 @@ export const buildJavaTopLevelNodes = (
             (fact): fact is Fact & { kind: FactKind.TYPE_DECLARATION } => fact.kind === FactKind.TYPE_DECLARATION
         )
         .map((fact, index, facts) => {
-            const end = facts[index - 1]?.topLevelNode.end ?? 0;
-            const { start } = fact.topLevelNode;
+            const previousNodeEnd = facts[index - 1]?.topLevelNode.nodeEnd ?? 0;
+            const nextNodeStart   = facts[index + 1]?.topLevelNode.nodeStart ?? Number.MAX_SAFE_INTEGER;
+            const { nodeStart, nodeEnd } = fact.topLevelNode;
 
-            const newStart = triviaNodes
-                .filter((triviaNode) => triviaNode.end < start && triviaNode.start > end)
+            const triviaStart = triviaNodes
+                .filter((triviaNode) => triviaNode.start > previousNodeEnd && triviaNode.end < nodeStart)
+                .filter((triviaNode) => triviaNode.kind === TriviaNodeKind.COMMENT)
+                // .slice(-1)
+                [0]?.start ?? nodeStart;
+
+            const triviaEnd = triviaNodes
+                .filter((triviaNode) => triviaNode.start > nodeEnd && triviaNode.end < nextNodeStart)
                 .filter((triviaNode) => triviaNode.kind === TriviaNodeKind.COMMENT)
                 .slice(-1)
-                [0]?.start ?? null;
+                [0]?.end ?? nodeEnd;
 
             return {
                 ...fact.topLevelNode,
-                start: newStart ?? start,
+                triviaStart,
+                triviaEnd,
             };
         });
 };

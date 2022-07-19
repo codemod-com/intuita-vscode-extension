@@ -8,22 +8,16 @@ export type MoveTopLevelNodeUserCommand = Readonly<{
     kind: 'MOVE_TOP_LEVEL_NODE',
     fileName: string,
     fileText: string,
-    fileLine: number,
-    fileCharacter: number,
     options: MoveTopLevelNodeOptions,
 }>;
 
 export const buildMoveTopLevelNodeUserCommand = (
     fileName: string,
     fileText: string,
-    fileLine: number,
-    fileCharacter: number,
     options: MoveTopLevelNodeOptions,
 ): MoveTopLevelNodeUserCommand => ({
     kind: 'MOVE_TOP_LEVEL_NODE',
     fileName,
     fileText,
-    fileLine,
-    fileCharacter,
     options,
 });
