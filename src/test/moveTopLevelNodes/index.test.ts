@@ -429,7 +429,7 @@ describe('move top-level nodes for TS with comments', async function() {
     });
 });
 
-xdescribe('move top-level nodes for Java', async function() {
+describe('move top-level nodes for Java', async function() {
     const fileText = [
         "package var.var.sealed;",
         "/** comment **/",
@@ -458,9 +458,10 @@ xdescribe('move top-level nodes for Java', async function() {
             [
                 "package var.var.sealed;",
                 "interface C {}",
+                "class B {}",
                 "/** comment **/",
                 "public class A { void a() { return new B(); } }",
-                "class B {}",
+
             ].join('\n')
         );
     });
