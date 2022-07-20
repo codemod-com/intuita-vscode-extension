@@ -1,8 +1,9 @@
 {
 	"name": "intuita-vscode-extension",
-	"displayName": "intuita-vscode-extension",
+	"displayName": "Intutia",
 	"description": "Intuita VSCode Extension",
 	"version": "0.0.1",
+	"icon": "img/intuitasq128.png",
 	"engines": {
 		"vscode": "^1.67.0"
 	},
