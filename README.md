@@ -6,7 +6,7 @@ Intuita's algorithm takes into account a few dimensions:
 - Definitions first, usages later
 - Semantically similar code blocks closer together
 - Similar types of code blocks closer together
-- Other considerations you care about? [Let us know!](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)] 
+- Other considerations you care about? [Let us know!](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) 
 
 ## How does code organization help me?
 When file size is small (e.g., less than 200LOC), you might not need code organization that much. But as your code grows, it brings more problems with it:
