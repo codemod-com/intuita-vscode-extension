@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
-import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
 import { getConfiguration } from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
@@ -109,18 +108,47 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
-			moveTopLevelNodeCommands(
-				() => {
-					if (vscode.window.activeTextEditor) {
-						activeTextEditorChangedCallback(
-							vscode
-							.window
-							.activeTextEditor
-							.document
-						);
-					}
+			async (args) => {
+				const fileName: string | null = args && typeof args.fileName === 'string'
+					? args.fileName
+					: null;
+
+				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+					? args.oldIndex
+					: null;
+
+				const newIndex: number | null = args && typeof args.newIndex === 'number'
+					? args.newIndex
+					: null;
+
+				const characterDifference: number | null = args && typeof args.characterDifference === 'number'
+					? args.characterDifference
+					: null;
+
+				const activeTextEditor = vscode.window.activeTextEditor ?? null;
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+					|| characterDifference === null
+					|| activeTextEditor === null
+					|| activeTextEditor.document.fileName !== fileName
+				) {
+					return;
 				}
-			),
+
+				const fileText = activeTextEditor.document.getText();
+
+				return extensionStateManager
+					.executeCommand(
+						fileName,
+						fileText,
+						oldIndex,
+						newIndex,
+						characterDifference,
+					);
+			}
 		),
 	);
 

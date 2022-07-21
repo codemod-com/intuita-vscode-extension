@@ -9,6 +9,8 @@ import {
     IntuitaRange,
     isNeitherNullNorUndefined
 } from "../../utilities";
+import {executeMoveTopLevelNodeAstCommand} from "./4_astCommandExecutor";
+import * as vscode from "vscode";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
@@ -166,5 +168,70 @@ export class ExtensionStateManager {
                 }
             )
             .filter(isNeitherNullNorUndefined);
+    }
+
+    public async executeCommand(
+        fileName: string,
+        fileText: string,
+        oldIndex: number,
+        newIndex: number,
+        characterDifference: number,
+    ) {
+        const executions = executeMoveTopLevelNodeAstCommand({
+            kind: "MOVE_TOP_LEVEL_NODE",
+            fileName,
+            fileText,
+            oldIndex,
+            newIndex,
+            characterDifference,
+        });
+
+        const execution = executions[0] ?? null;
+
+        if (!execution) {
+            return;
+        }
+
+        const { name, text, line, character } = execution;
+
+        if (name !== fileName) {
+            return;
+        }
+
+        const oldLines = fileText.split('\n');
+        const oldTextLastLineNumber = oldLines.length - 1;
+        const oldTextLastCharacter = oldLines[oldLines.length - 1]?.length ?? 0;
+
+        const range = new vscode.Range(
+            new vscode.Position(
+                0,
+                0
+            ),
+            new vscode.Position(
+                oldTextLastLineNumber,
+                oldTextLastCharacter
+            ),
+        );
+
+        const activeTextEditor = vscode.window.activeTextEditor!;
+
+        await activeTextEditor.edit(
+            (textEditorEdit) => {
+                textEditorEdit.replace(
+                    range,
+                    text,
+                );
+            }
+        );
+
+        const position = new vscode.Position(line, character);
+        const selection = new vscode.Selection(position, position);
+
+        activeTextEditor.selections = [ selection ];
+
+        activeTextEditor.revealRange(
+            new vscode.Range(position, position),
+            vscode.TextEditorRevealType.AtTop,
+        );
     }
 }
