@@ -15,7 +15,7 @@ describe('tokenize', () => {
     });
 
     it('c', () => {
-        assert.deepEqual(tokenize('ABCDef'), ['ABC', 'Def']);
+        assert.deepEqual(tokenize('ABCDef'), ['abc', 'def']);
     });
 
     it('d', () => {
