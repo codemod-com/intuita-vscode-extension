@@ -170,13 +170,20 @@ export class ExtensionStateManager {
             .filter(isNeitherNullNorUndefined);
     }
 
-    public async executeCommand(
+    public executeCommand(
         fileName: string,
         fileText: string,
         oldIndex: number,
         newIndex: number,
         characterDifference: number,
     ) {
+        if (this._state?.fileName !== fileName) {
+            return;
+        }
+
+        // I am sure we can simplify it because we have all we
+        // need available in this class
+
         const executions = executeMoveTopLevelNodeAstCommand({
             kind: "MOVE_TOP_LEVEL_NODE",
             fileName,
@@ -189,49 +196,35 @@ export class ExtensionStateManager {
         const execution = executions[0] ?? null;
 
         if (!execution) {
-            return;
+            return null;
         }
 
         const { name, text, line, character } = execution;
 
         if (name !== fileName) {
-            return;
+            return null;
         }
 
         const oldLines = fileText.split('\n');
         const oldTextLastLineNumber = oldLines.length - 1;
         const oldTextLastCharacter = oldLines[oldLines.length - 1]?.length ?? 0;
 
-        const range = new vscode.Range(
-            new vscode.Position(
-                0,
-                0
-            ),
-            new vscode.Position(
-                oldTextLastLineNumber,
-                oldTextLastCharacter
-            ),
-        );
+        const range: IntuitaRange = [
+            0,
+            0,
+            oldTextLastLineNumber,
+            oldTextLastCharacter,
+        ];
 
-        const activeTextEditor = vscode.window.activeTextEditor!;
+        const position: IntuitaPosition = [
+            line,
+            character,
+        ];
 
-        await activeTextEditor.edit(
-            (textEditorEdit) => {
-                textEditorEdit.replace(
-                    range,
-                    text,
-                );
-            }
-        );
-
-        const position = new vscode.Position(line, character);
-        const selection = new vscode.Selection(position, position);
-
-        activeTextEditor.selections = [ selection ];
-
-        activeTextEditor.revealRange(
-            new vscode.Range(position, position),
-            vscode.TextEditorRevealType.AtTop,
-        );
+        return {
+            range,
+            text,
+            position,
+        };
     }
 }

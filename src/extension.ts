@@ -140,7 +140,7 @@ export async function activate(
 
 				const fileText = activeTextEditor.document.getText();
 
-				return extensionStateManager
+				const result = extensionStateManager
 					.executeCommand(
 						fileName,
 						fileText,
@@ -148,6 +148,53 @@ export async function activate(
 						newIndex,
 						characterDifference,
 					);
+
+				if (!result) {
+					return;
+				}
+
+				const range = new vscode.Range(
+				    new vscode.Position(
+						result.range[0],
+						result.range[1],
+				    ),
+				    new vscode.Position(
+						result.range[2],
+						result.range[3],
+				    ),
+				);
+
+				await activeTextEditor.edit(
+				    (textEditorEdit) => {
+				        textEditorEdit.replace(
+				            range,
+				            result.text,
+				        );
+				    },
+				);
+
+				const position = new vscode.Position(
+					result.position[0],
+					result.position[1],
+				);
+
+				const selection = new vscode.Selection(
+					position,
+					position
+				);
+
+				activeTextEditor.selections = [ selection ];
+
+				activeTextEditor.revealRange(
+				    new vscode.Range(
+						position,
+						position
+					),
+				    vscode
+						.TextEditorRevealType
+						.AtTop,
+				);
+
 			}
 		),
 	);
