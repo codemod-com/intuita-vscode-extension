@@ -3,6 +3,7 @@ import * as jaroWinkler from 'jaro-winkler';
 import { calculateAverage, isNeitherNullNorUndefined } from "../../../utilities";
 import { MoveTopLevelNodeOptions } from '../1_userCommandBuilder';
 import { TopLevelNode } from "./topLevelNode";
+import {tokenize} from "../../../tokenizer/tokenizer";
 
 export const calculateDependencyCoefficient = (
     nodes: ReadonlyArray<TopLevelNode>,
@@ -40,7 +41,23 @@ export const calculateNodesSimilarityCoefficient = (
             (leftIdentifier) => {
                 return rightIdentifiers.map(
                     (rightIdentifier) => {
-                        return 1 - jaroWinkler(leftIdentifier, rightIdentifier);
+                        const leftTokens = new Set(tokenize(leftIdentifier));
+                        const rightTokens = new Set(tokenize(rightIdentifier));
+
+                        const leftValues = Array.from(leftTokens.values())
+                            .map((token) => rightTokens.has(token))
+                            .map((value) => 1 - Number(value));
+
+                        const rightValues = Array.from(rightTokens.values())
+                            .map((token) => leftTokens.has(token))
+                            .map((value) => 1 - Number(value));
+
+                        const tokenValue = 0.5 * calculateAverage(leftValues)
+                            + 0.5 * calculateAverage(rightValues);
+
+                        const jwValue = 1 - jaroWinkler(leftIdentifier, rightIdentifier);
+
+                        return Math.min(tokenValue, jwValue);
                     }
                 );
             }

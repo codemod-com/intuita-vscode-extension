@@ -62,7 +62,7 @@ export const tokenize = (
                         ];
                     }
                 }
-                
+
                 return lowerCaseToken;
             }
         )
