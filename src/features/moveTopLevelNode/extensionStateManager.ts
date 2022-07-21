@@ -1,13 +1,27 @@
 import { Configuration } from "../../configuration";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
-import {buildMoveTopLevelNodeFact} from "./2_factBuilders";
+import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
-import {calculatePosition, IntuitaRange} from "../../utilities";
+import {
+    calculateCharacterIndex,
+    calculatePosition,
+    IntuitaPosition,
+    IntuitaRange,
+    isNeitherNullNorUndefined
+} from "../../utilities";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
+    fact: MoveTopLevelNodeFact,
+}>;
+
+export type IntuitaCodeAction = Readonly<{
+    title: string,
+    characterDifference: number,
+    oldIndex: number,
+    newIndex: number,
 }>;
 
 export class ExtensionStateManager {
@@ -63,6 +77,7 @@ export class ExtensionStateManager {
                 return {
                     range,
                     title,
+                    fact,
                 };
             }
         );
@@ -76,5 +91,80 @@ export class ExtensionStateManager {
             fileName,
             diagnostics,
         );
+    }
+
+    public findCodeActions(
+        fileName: string,
+        position: IntuitaPosition,
+    ): ReadonlyArray<IntuitaCodeAction> {
+        if (this._state?.fileName !== fileName) {
+            return [];
+        }
+
+        return this
+            ._state
+            .diagnostics
+            .filter(
+                ({ range }) => {
+                    return range[0] <= position[0]
+                        && range[2] >= position[0]
+                        && range[1] <= position[1]
+                        && range[3] >= position[1];
+                },
+            )
+            .map(
+                ({ fact, title }) => {
+                    const characterIndex = calculateCharacterIndex(
+                        fact.separator,
+                        fact.lengths,
+                        position[0],
+                        position[1],
+                    );
+
+                    const topLevelNodeIndex = fact
+                        .topLevelNodes
+                        .findIndex(
+                        (topLevelNode) => {
+                            return topLevelNode.triviaStart <= characterIndex
+                                && characterIndex <= topLevelNode.triviaEnd;
+                        }
+                    );
+
+                    const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
+
+                    if (topLevelNodeIndex === -1 || topLevelNode === null) {
+                        return null;
+                    }
+
+                    const solutions = fact
+                        .solutions[topLevelNodeIndex]
+                        ?.filter(
+                            (solution) => {
+                                return solution.newIndex !== solution.oldIndex;
+                            }
+                        );
+
+                    const solution = solutions?.[0] ?? null;
+
+                    if (solution === null) {
+                        return null;
+                    }
+
+                    const characterDifference = characterIndex - topLevelNode.triviaStart;
+
+                    const {
+                        oldIndex,
+                        newIndex,
+                    } = solution;
+
+                    return {
+                        title,
+                        characterDifference,
+                        oldIndex,
+                        newIndex,
+                    };
+                }
+            )
+            .filter(isNeitherNullNorUndefined);
     }
 }
