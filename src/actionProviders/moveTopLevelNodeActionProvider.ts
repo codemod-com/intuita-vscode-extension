@@ -134,53 +134,6 @@ export const buildTitle = (
     return null;
 };
 
-const buildCodeAction = (
-    fileName: string,
-    characterDifference: number,
-    solution: Solution,
-): vscode.CodeAction | null => {
-    const { oldIndex, newIndex, nodes } = solution;
-
-    const otherNode = newIndex === 0
-        ? nodes[1]
-        : nodes[newIndex - 1];
-
-    const node = solution.nodes[newIndex];
-
-    if (!node || !otherNode) {
-        return null;
-    }
-
-    const title = buildTitle(
-        solution,
-        false,
-    );
-
-    if (title === null) {
-        return null;
-    }
-
-    const codeAction = new vscode.CodeAction(
-        title,
-        vscode.CodeActionKind.QuickFix,
-    );
-
-    codeAction.command = {
-        title: 'Move',
-        command: 'intuita.moveTopLevelNode',
-        arguments: [
-            {
-                fileName,
-                oldIndex,
-                newIndex,
-                characterDifference
-            }
-        ]
-    };
-
-    return codeAction;
-};
-
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
     public constructor(
         protected _extensionStateManager: ExtensionStateManager,
@@ -192,35 +145,52 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 		range: vscode.Range | vscode.Selection,
 	): Thenable<vscode.CodeAction[]> {
 		const fileName = document.fileName;
-		const fileText = document.getText();
+
 		const fileLine = range.start.line;
         const fileCharacter = range.start.character;
 
-        const configuration = getConfiguration();
+        const intuitaCodeActions = this
+            ._extensionStateManager
+            .findCodeActions(
+                fileName,
+                [
+                    fileLine,
+                    fileCharacter,
+                ],
+            );
 
-        const fact = buildFact(
-            fileName,
-            fileText,
-            [fileLine, fileCharacter],
-            configuration,
+        const codeActions = intuitaCodeActions
+            .map(
+                ({
+                    title,
+                    oldIndex,
+                    newIndex,
+                    characterDifference
+                }) => {
+                    const codeAction = new vscode.CodeAction(
+                        title,
+                        vscode.CodeActionKind.QuickFix,
+                    );
+
+                    codeAction.command = {
+                        title: 'Move',
+                        command: 'intuita.moveTopLevelNode',
+                        arguments: [
+                            {
+                                fileName,
+                                oldIndex,
+                                newIndex,
+                                characterDifference
+                            }
+                        ]
+                    };
+
+                    return codeAction;
+                }
+            );
+
+        return Promise.resolve(
+            codeActions,
         );
-
-        if (fact === null) {
-            return Promise.resolve([]);
-        }
-
-        const codeAction = buildCodeAction(
-            fileName,
-            fact.characterDifference,
-            fact.solution,
-        );
-
-        if (codeAction === null) {
-            return Promise.resolve([]);
-        }
-
-        return Promise.resolve([
-            codeAction,
-        ]);
 	}
 }
