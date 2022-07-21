@@ -3,6 +3,9 @@ import {createHash} from "crypto";
 
 type NeitherNullNorUndefined<T> = [T] extends null | undefined ? never : T;
 
+export type IntuitaPosition = Readonly<[number, number]>;
+export type IntuitaRange = Readonly<[number, number, number, number]>;
+
 export function isNeitherNullNorUndefined<T>(
     value: NeitherNullNorUndefined<T> | null | undefined
 ): value is NeitherNullNorUndefined<T> {

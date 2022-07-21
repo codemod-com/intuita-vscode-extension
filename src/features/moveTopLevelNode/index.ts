@@ -1,4 +1,7 @@
-import {buildMoveTopLevelNodeUserCommand, MoveTopLevelNodeOptions} from "./1_userCommandBuilder";
+import {
+    MoveTopLevelNodeOptions,
+    MoveTopLevelNodeUserCommand
+} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact} from "./2_factBuilders";
 import {SourceFileExecution} from "../../utilities";
 import { buildMoveTopLevelNodeAstCommand } from "./3_astCommandBuilder";
@@ -10,11 +13,12 @@ export const moveTopLevelNode = (
     topLevelNodeIndex: number,
     options: MoveTopLevelNodeOptions,
 ): ReadonlyArray<SourceFileExecution> => {
-    const userCommand = buildMoveTopLevelNodeUserCommand(
+    const userCommand: MoveTopLevelNodeUserCommand = {
+        kind: 'MOVE_TOP_LEVEL_NODE',
         fileName,
         fileText,
         options,
-    );
+    };
 
     const fact = buildMoveTopLevelNodeFact(
         userCommand,
