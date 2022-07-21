@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getConfiguration } from '../configuration';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import { buildFact } from '../features/moveTopLevelNode/builder';
+import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -181,6 +182,11 @@ const buildCodeAction = (
 };
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
+    public constructor(
+        protected _extensionStateManager: ExtensionStateManager,
+    ) {
+    }
+
 	public provideCodeActions(
 		document: vscode.TextDocument,
 		range: vscode.Range | vscode.Selection,

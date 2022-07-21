@@ -62,7 +62,9 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
-			new MoveTopLevelNodeActionProvider()
+			new MoveTopLevelNodeActionProvider(
+				extensionStateManager,
+			)
 		));
 
 

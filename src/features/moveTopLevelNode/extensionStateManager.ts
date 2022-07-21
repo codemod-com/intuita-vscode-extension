@@ -4,17 +4,23 @@ import {buildMoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {calculatePosition, IntuitaRange} from "../../utilities";
 
+// probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
 }>;
 
 export class ExtensionStateManager {
+    protected _state: Readonly<{
+        fileName: string,
+        diagnostics: ReadonlyArray<IntuitaDiagnostic>,
+    }> | null = null;
+
     public constructor(
         protected readonly _configuration: Configuration,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            diagnostics: any[]
+            diagnostics: ReadonlyArray<IntuitaDiagnostic>,
         ) => void,
     ) {
 
@@ -60,6 +66,11 @@ export class ExtensionStateManager {
                 };
             }
         );
+
+        this._state = {
+            fileName,
+            diagnostics,
+        };
 
         this._setDiagnosticEntry(
             fileName,
