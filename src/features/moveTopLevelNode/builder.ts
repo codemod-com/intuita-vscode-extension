@@ -1,12 +1,12 @@
 import { Configuration } from "../../configuration";
-import { calculateCharacterIndex } from "../../utilities";
+import {calculateCharacterIndex, IntuitaPosition} from "../../utilities";
 import { MoveTopLevelNodeUserCommand } from "./1_userCommandBuilder";
 import { buildMoveTopLevelNodeFact } from "./2_factBuilders";
 
 export const buildFact = (
     fileName: string,
     fileText: string,
-    position: Readonly<[number, number]>,
+    position: IntuitaPosition,
     configuration: Configuration,
 ) => {
     const userCommand: MoveTopLevelNodeUserCommand = {

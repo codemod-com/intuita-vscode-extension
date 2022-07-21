@@ -7,8 +7,15 @@ import {
 } from './features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
 import { calculatePosition } from './utilities';
+import {ExtensionStateManager} from "./features/moveTopLevelNode/extensionStateManager";
 
 export async function activate(context: vscode.ExtensionContext) {
+	const configuration = getConfiguration();
+
+	const extensionStateManager = new ExtensionStateManager(
+		configuration,
+	);
+
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
@@ -26,46 +33,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		const fileText = getText();
 
-		const configuration = getConfiguration();
-
-		const userCommand: MoveTopLevelNodeUserCommand = {
-			kind: 'MOVE_TOP_LEVEL_NODE',
-			fileName,
-			fileText,
-			options: configuration,
-		};
-
-		const fact = buildMoveTopLevelNodeFact(userCommand);
-
-		const diagnostics = fact.solutions.map(
-			(solutions, index) => {
-				const topLevelNode = fact.topLevelNodes[index]!;
-
-				const solution = solutions[0]!;
-
-				const title = buildTitle(solution, false);
-
-				const start = calculatePosition(
-					fact.separator,
-					fact.lengths,
-					topLevelNode.nodeStart,
-				);
-
-				const startPosition = new vscode.Position(start[0], start[1]);
-				const endPosition = new vscode.Position(start[0], fact.lengths[start[0]] ?? start[1]);
-
-				const range = new vscode.Range(
-					startPosition,
-					endPosition,
-				);
-
-				return new vscode.Diagnostic(
-					range,
-					title ?? '',
-					vscode.DiagnosticSeverity.Information
-				);
-			}
-		);
+		const diagnostics = extensionStateManager
+			.onFileTextChanged(
+				fileName,
+				fileText,
+			);
 
 		diagnosticCollection.clear();
 
