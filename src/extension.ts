@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import { buildTitle, MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
 import { getConfiguration } from './configuration';
-import { buildMoveTopLevelNodeUserCommand } from './features/moveTopLevelNode/1_userCommandBuilder';
+import {
+	MoveTopLevelNodeUserCommand
+} from './features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
 import { calculatePosition } from './utilities';
 
@@ -26,11 +28,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		const configuration = getConfiguration();
 
-		const userCommand = buildMoveTopLevelNodeUserCommand(
+		const userCommand: MoveTopLevelNodeUserCommand = {
+			kind: 'MOVE_TOP_LEVEL_NODE',
 			fileName,
 			fileText,
-			configuration
-		);
+			options: configuration,
+		};
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);
 
