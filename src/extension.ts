@@ -1,42 +1,49 @@
 import * as vscode from 'vscode';
-import { buildTitle, MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
+import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
 import { getConfiguration } from './configuration';
-import {
-	MoveTopLevelNodeUserCommand
-} from './features/moveTopLevelNode/1_userCommandBuilder';
-import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
-import { calculatePosition } from './utilities';
-import {ExtensionStateManager} from "./features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
+import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(
+	context: vscode.ExtensionContext,
+) {
 	const configuration = getConfiguration();
 
-	const extensionStateManager = new ExtensionStateManager(
-		configuration,
-	);
+	const diagnosticCollection = vscode
+		.languages
+		.createDiagnosticCollection(
+			'typescript'
+		);
 
-	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider(
-			'typescript',
-			new MoveTopLevelNodeActionProvider()
-		));
-
-	const diagnosticCollection = vscode.languages.createDiagnosticCollection('typescript');
-
-	context.subscriptions.push(diagnosticCollection);
-
-	const activeTextEditorChangedCallback = (
-		document: vscode.TextDocument,
+	const _setDiagnosticEntry = (
+		fileName: string,
+		intuitaDiagnostics: ReadonlyArray<IntuitaDiagnostic>
 	) => {
-		const { fileName, getText } = document;
+		const diagnostics = intuitaDiagnostics
+			.map(
+				({ title, range: intuitaRange }) => {
+					const startPosition = new Position(
+						intuitaRange[0],
+						intuitaRange[1],
+					);
 
-		const fileText = getText();
+					const endPosition = new Position(
+						intuitaRange[2],
+						intuitaRange[3],
+					);
 
-		const diagnostics = extensionStateManager
-			.onFileTextChanged(
-				fileName,
-				fileText,
+					const range = new Range(
+						startPosition,
+						endPosition,
+					);
+
+					return new Diagnostic(
+						range,
+						title,
+						DiagnosticSeverity.Information
+					);
+				}
 			);
 
 		diagnosticCollection.clear();
@@ -47,18 +54,54 @@ export async function activate(context: vscode.ExtensionContext) {
 		);
 	};
 
+	const extensionStateManager = new ExtensionStateManager(
+		configuration,
+		_setDiagnosticEntry,
+	);
+
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider(
+			'typescript',
+			new MoveTopLevelNodeActionProvider()
+		));
+
+
+	const activeTextEditorChangedCallback = (
+		document: vscode.TextDocument,
+	) => {
+		const { fileName, getText } = document;
+
+		const fileText = getText();
+
+		extensionStateManager
+			.onFileTextChanged(
+				fileName,
+				fileText,
+			);
+	};
+
 	if (vscode.window.activeTextEditor) {
-		activeTextEditorChangedCallback(vscode.window.activeTextEditor.document);
+		activeTextEditorChangedCallback(
+			vscode
+				.window
+				.activeTextEditor
+				.document
+		);
 	}
 
-	vscode.window.onDidChangeActiveTextEditor(
-		(textEditor) => {
-			if (!textEditor) {
-				return;
-			}
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor(
+			(textEditor) => {
+				if (!textEditor) {
+					return;
+				}
 
-			return activeTextEditorChangedCallback(textEditor.document);
-		}
+				return activeTextEditorChangedCallback(
+					textEditor
+						.document
+				);
+			},
+		),
 	);
 
 	context.subscriptions.push(
@@ -81,11 +124,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
-			(e) => {
-				activeTextEditorChangedCallback(e.document);
+			({ document }) => {
+				activeTextEditorChangedCallback(
+					document
+				);
 			}
 		),
 	);
+
+	context.subscriptions.push(diagnosticCollection);
 
 	console.log('Activated the Intuita VSCode Extension');
 }
