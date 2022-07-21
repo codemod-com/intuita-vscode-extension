@@ -1,11 +1,11 @@
 {
 	"name": "intuita-vscode-extension",
-	"displayName": "Intutia",
+	"displayName": "Intuita",
 	"description": "Automated Code Organization & Modularization",
 	"version": "0.0.1",
 	"icon": "img/intuitasq128.png",
 	"engines": {
-		"vscode": "^1.67.0"
+		"vscode": "^1.69.0"
 	},
 	"categories": [
 		"Other"
