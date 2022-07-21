@@ -4,7 +4,6 @@ import { moveTopLevelNodeCommands } from './commands/moveTopLevelNodeCommands';
 import { getConfiguration } from './configuration';
 import { buildMoveTopLevelNodeUserCommand } from './features/moveTopLevelNode/1_userCommandBuilder';
 import { buildMoveTopLevelNodeFact } from './features/moveTopLevelNode/2_factBuilders';
-import { moveTopLevelNodeHoverProvider } from './hoverProviders/moveTopLevelNodeHoverProvider';
 import { calculatePosition } from './utilities';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -16,17 +15,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const diagnosticCollection = vscode.languages.createDiagnosticCollection('typescript');
 
-	// vscode.languages.registerHoverProvider(
-	// 	'typescript',
-	// 	moveTopLevelNodeHoverProvider,
-	// );
-
 	context.subscriptions.push(diagnosticCollection);
 
 	const activeTextEditorChangedCallback = (
-		textEditor: vscode.TextEditor,
+		document: vscode.TextDocument,
 	) => {
-		const { fileName, getText } = textEditor.document;
+		const { fileName, getText } = document;
 
 		const fileText = getText();
 
@@ -37,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			fileText,
 			configuration
 		);
-	
+
 		const fact = buildMoveTopLevelNodeFact(userCommand);
 
 		const diagnostics = fact.solutions.map(
@@ -53,16 +47,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					fact.lengths,
 					topLevelNode.nodeStart,
 				);
-		
-				// const end = calculatePosition(
-				// 	fact.separator,
-				// 	fact.lengths,
-				// 	topLevelNode.triviaEnd,
-				// );
-		
+
 				const startPosition = new vscode.Position(start[0], start[1]);
 				const endPosition = new vscode.Position(start[0], fact.lengths[start[0]] ?? start[1]);
-		
+
 				const range = new vscode.Range(
 					startPosition,
 					endPosition,
@@ -85,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	};
 
 	if (vscode.window.activeTextEditor) {
-		activeTextEditorChangedCallback(vscode.window.activeTextEditor);
+		activeTextEditorChangedCallback(vscode.window.activeTextEditor.document);
 	}
 
 	vscode.window.onDidChangeActiveTextEditor(
@@ -94,17 +82,32 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			return activeTextEditorChangedCallback(textEditor);
+			return activeTextEditorChangedCallback(textEditor.document);
 		}
 	);
 
-	vscode.commands.registerCommand(
-		'intuita.moveTopLevelNode',
-		moveTopLevelNodeCommands(
-			() => {
-				if (vscode.window.activeTextEditor) {
-					activeTextEditorChangedCallback(vscode.window.activeTextEditor);
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.moveTopLevelNode',
+			moveTopLevelNodeCommands(
+				() => {
+					if (vscode.window.activeTextEditor) {
+						activeTextEditorChangedCallback(
+							vscode
+							.window
+							.activeTextEditor
+							.document
+						);
+					}
 				}
+			),
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeTextDocument(
+			(e) => {
+				activeTextEditorChangedCallback(e.document);
 			}
 		),
 	);
