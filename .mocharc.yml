@@ -2,6 +2,6 @@ require:
   - "ts-node/register"
   - "source-map-support/register"
 full-trace: true
-#bail: true
+bail: true
 spec: './src/test/**/*.test.ts'
 timeout: 10000
