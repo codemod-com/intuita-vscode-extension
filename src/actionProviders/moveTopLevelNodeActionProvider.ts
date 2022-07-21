@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
 import { getConfiguration } from '../configuration';
-import { buildMoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
-import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import { buildFact } from '../features/moveTopLevelNode/builder';
-import {calculateCharacterIndex, isNeitherNullNorUndefined} from '../utilities';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
