@@ -1,28 +1,15 @@
 import {MoveTopLevelNodeAstCommand} from "./3_astCommandBuilder";
 import {calculateLines, moveElementInArray, SourceFileExecution} from "../../utilities";
-import {getStringNodes} from "./2_factBuilders/stringNodes";
+import {getStringNodes, StringNode} from "./2_factBuilders/stringNodes";
 import {buildTopLevelNodes} from "./2_factBuilders/buildTopLevelNodes";
 
-export const executeMoveTopLevelNodeAstCommand = (
-    {
-        fileName,
-        fileText,
-        oldIndex,
-        newIndex,
-        characterDifference
-    }: MoveTopLevelNodeAstCommand
-): ReadonlyArray<SourceFileExecution> => {
-    if (oldIndex === newIndex) {
-        return [];
-    }
-
-    const topLevelNodes = buildTopLevelNodes(
-        fileName,
-        fileText,
-    );
-
-    const stringNodes = getStringNodes(fileText, topLevelNodes);
-
+export const executeMoveTopLevelNodeAstCommandHelper = (
+    fileName: string,
+    oldIndex: number,
+    newIndex: number,
+    characterDifference: number,
+    stringNodes: ReadonlyArray<StringNode>,
+) => {
     const topLevelNodeTexts = stringNodes
         .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
         .map(({ text }) => text);
@@ -48,7 +35,7 @@ export const executeMoveTopLevelNodeAstCommand = (
                     topLevelNodeIndex,
                     text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
                     match: topLevelNodeIndex === newIndex,
-                }
+                };
             });
 
     const text = newNodes
@@ -79,4 +66,36 @@ export const executeMoveTopLevelNodeAstCommand = (
             character,
         }
     ];
+};
+
+export const executeMoveTopLevelNodeAstCommand = (
+    {
+        fileName,
+        fileText,
+        oldIndex,
+        newIndex,
+        characterDifference
+    }: MoveTopLevelNodeAstCommand
+): ReadonlyArray<SourceFileExecution> => {
+    if (oldIndex === newIndex) {
+        return [];
+    }
+
+    const topLevelNodes = buildTopLevelNodes(
+        fileName,
+        fileText,
+    );
+
+    const stringNodes = getStringNodes(
+        fileText,
+        topLevelNodes,
+    );
+
+    return executeMoveTopLevelNodeAstCommandHelper(
+        fileName,
+        oldIndex,
+        newIndex,
+        characterDifference,
+        stringNodes,
+    );
 };
