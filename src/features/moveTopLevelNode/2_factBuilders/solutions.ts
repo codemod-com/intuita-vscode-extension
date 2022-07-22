@@ -1,4 +1,4 @@
-import { moveElementInArray } from "../../../utilities";
+import { isNeitherNullNorUndefined, moveElementInArray } from "../../../utilities";
 import { MoveTopLevelNodeOptions } from "../1_userCommandBuilder";
 import { calculateCoefficient, Coefficient } from "./coefficients";
 import { TopLevelNode } from "./topLevelNode";
@@ -17,21 +17,28 @@ export const calculateSolutions = (
 ): ReadonlyArray<Solution> => {
     return nodes
         .map((_, newIndex) => {
-            return moveElementInArray(
+            if (oldIndex === newIndex) {
+                return null;
+            }
+
+            const newNodes = moveElementInArray(
                 nodes,
                 oldIndex,
                 newIndex,
             );
+
+            return [newNodes, newIndex] as const;
         })
-        .map((nodes, newIndex) => {
+        .filter(isNeitherNullNorUndefined)
+        .map(([ newNodes, newIndex ]) => {
             const coefficient = calculateCoefficient(
-                nodes,
+                newNodes,
                 newIndex,
                 options
             );
 
             return {
-                nodes,
+                nodes: newNodes,
                 oldIndex,
                 newIndex,
                 coefficient,
