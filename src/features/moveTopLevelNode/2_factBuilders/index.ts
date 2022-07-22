@@ -35,13 +35,13 @@ export const buildMoveTopLevelNodeFact = (
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
     const solutions = topLevelNodes.map(
-        (_, index) => {
+        (_, oldIndex) => {
             return calculateSolutions(
                 topLevelNodes,
-                index,
+                oldIndex,
                 options,
             );
-        }
+        },
     );
 
     return {

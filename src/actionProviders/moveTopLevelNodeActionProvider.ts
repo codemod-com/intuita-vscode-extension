@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import { getConfiguration } from '../configuration';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import { buildFact } from '../features/moveTopLevelNode/builder';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
 
 const buildIdentifiersLabel = (
@@ -33,11 +31,9 @@ export const buildTitle = (
         dependencyCoefficient,
         similarityCoefficient,
         kindCoefficient,
-        similarityStructure,
-        kindStructure,
     } = coefficient;
 
-    const node = solution.nodes[newIndex];
+    const node = nodes[newIndex];
 
     if (!node) {
         return null;
@@ -50,88 +46,44 @@ export const buildTitle = (
         useHtml,
     );
 
-    if (dependencyCoefficient > similarityCoefficient && dependencyCoefficient > kindCoefficient) {
-        const otherNode = newIndex === 0
-            ? nodes[1]
-            : nodes[newIndex - 1];
+    const dependencyDriven = dependencyCoefficient > similarityCoefficient
+        && dependencyCoefficient > kindCoefficient;
 
-        if (!otherNode) {
-            return null;
-        }
+    const similarityDriven = similarityCoefficient > dependencyCoefficient
+        && similarityCoefficient > kindCoefficient;
 
-        const orderLabel = newIndex === 0
-            ? 'before'
-            : 'after';
+    const kindDriven = kindCoefficient > similarityCoefficient
+        && kindCoefficient > dependencyCoefficient;
 
-        const otherIdentifiersLabel = buildIdentifiersLabel(
-            Array.from(
-                otherNode.identifiers
-            ),
-            useHtml,
-        );
+    const driveLabel = dependencyDriven
+        ? '(more ordered dependencies)'
+        : similarityDriven
+        ? '(more name similarity)'
+        : kindDriven
+        ? '(more same-type blocks)'
+        : '';
 
-        return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} (more ordered dependencies)`;
+
+    const otherNode = newIndex === 0
+        ? nodes[1]
+        : nodes[newIndex - 1];
+
+    if (!otherNode) {
+        return null;
     }
 
-    if (similarityCoefficient > dependencyCoefficient && similarityCoefficient > kindCoefficient) {
-        const previous = similarityStructure?.previousNodeCoefficient ?? 1;
-        const next     = similarityStructure?.nextNodeCoefficient ?? 1;
+    const orderLabel = newIndex === 0
+        ? 'before'
+        : 'after';
 
-        if (previous < next) {
-            const otherIdentifiers = solution.nodes[newIndex - 1]?.identifiers ?? new Set();
+    const otherIdentifiersLabel = buildIdentifiersLabel(
+        Array.from(
+            otherNode.identifiers
+        ),
+        useHtml,
+    );
 
-            const label = buildIdentifiersLabel(
-                Array.from(
-                    otherIdentifiers
-                ),
-                useHtml,
-            );
-
-            return `Move ${nodeIdentifiersLabel} after ${label} (more name similarity)`;
-        } else {
-            const otherIdentifiers = solution.nodes[newIndex + 1]?.identifiers ?? new Set();
-
-            const label = buildIdentifiersLabel(
-                Array.from(
-                    otherIdentifiers
-                ),
-                useHtml,
-            );
-
-            return `Move ${nodeIdentifiersLabel} before ${label} (more name similarity)`;
-        }
-    }
-
-    if (kindCoefficient > similarityCoefficient && kindCoefficient > dependencyCoefficient) {
-        const previous = kindStructure?.previousNodeCoefficient ?? 1;
-        const next     = kindStructure?.nextNodeCoefficient ?? 1;
-
-        if (previous < next) {
-            const otherIdentifiers = solution.nodes[newIndex - 1]?.identifiers ?? new Set();
-
-            const label = buildIdentifiersLabel(
-                Array.from(
-                    otherIdentifiers
-                ),
-                useHtml,
-            );
-
-            return `Move ${nodeIdentifiersLabel} after ${label} (more same-type blocks)`;
-        } else {
-            const otherIdentifiers = solution.nodes[newIndex + 1]?.identifiers ?? new Set();
-
-            const label = buildIdentifiersLabel(
-                Array.from(
-                    otherIdentifiers
-                ),
-                useHtml,
-            );
-
-            return `Move ${nodeIdentifiersLabel} before ${label} (more same-type blocks)`;
-        }
-    }
-
-    return null;
+    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} ${driveLabel}`;
 };
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
