@@ -10,13 +10,11 @@ import {
     isNeitherNullNorUndefined
 } from "../../utilities";
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
-import * as vscode from "vscode";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
-    fact: MoveTopLevelNodeFact, // TODO remove?
 }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -105,6 +103,8 @@ export class ExtensionStateManager {
             return [];
         }
 
+        const { fact } = this._state;
+
         return this
             ._state
             .diagnostics
@@ -117,7 +117,7 @@ export class ExtensionStateManager {
                 },
             )
             .map(
-                ({ fact, title }) => {
+                ({ title }) => {
                     const characterIndex = calculateCharacterIndex(
                         fact.separator,
                         fact.lengths,
