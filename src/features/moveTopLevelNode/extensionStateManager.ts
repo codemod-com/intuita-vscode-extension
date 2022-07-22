@@ -9,14 +9,12 @@ import {
     IntuitaRange,
     isNeitherNullNorUndefined
 } from "../../utilities";
-import {executeMoveTopLevelNodeAstCommand} from "./4_astCommandExecutor";
-import * as vscode from "vscode";
+import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
-    fact: MoveTopLevelNodeFact,
 }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -30,6 +28,7 @@ export class ExtensionStateManager {
     protected _state: Readonly<{
         fileName: string,
         diagnostics: ReadonlyArray<IntuitaDiagnostic>,
+        fact: MoveTopLevelNodeFact,
     }> | null = null;
 
     public constructor(
@@ -86,6 +85,7 @@ export class ExtensionStateManager {
 
         this._state = {
             fileName,
+            fact,
             diagnostics,
         };
 
@@ -103,6 +103,8 @@ export class ExtensionStateManager {
             return [];
         }
 
+        const { fact } = this._state;
+
         return this
             ._state
             .diagnostics
@@ -115,7 +117,7 @@ export class ExtensionStateManager {
                 },
             )
             .map(
-                ({ fact, title }) => {
+                ({ title }) => {
                     const characterIndex = calculateCharacterIndex(
                         fact.separator,
                         fact.lengths,
@@ -181,17 +183,17 @@ export class ExtensionStateManager {
             return;
         }
 
-        // I am sure we can simplify it because we have all we
-        // need available in this class
+        const {
+            stringNodes,
+        } = this._state.fact;
 
-        const executions = executeMoveTopLevelNodeAstCommand({
-            kind: "MOVE_TOP_LEVEL_NODE",
+        const executions = executeMoveTopLevelNodeAstCommandHelper(
             fileName,
-            fileText,
             oldIndex,
             newIndex,
             characterDifference,
-        });
+            stringNodes,
+        );
 
         const execution = executions[0] ?? null;
 
