@@ -10,7 +10,7 @@ describe('move top-level nodes for TS', async function() {
         "export class B {};",
     ].join('\n');
 
-    it('should move A nowhere', () => {
+    xit('should move A nowhere', () => {
         const fileName = '/index.ts';
 
         const fileLine = 0;
@@ -262,7 +262,7 @@ describe('move top-level nodes for JS (real files)', function() {
         'utf8'
     );
 
-    it ('should not move the 0th node', function() {
+    xit ('should not move the 0th node', function() {
         const executions = moveTopLevelNode(
             fileName,
             fileText,
@@ -350,7 +350,7 @@ describe('move top-level nodes for TS with comments', async function() {
         "export class B {}; // commentB",
     ].join('\n');
 
-    it('should move A nowhere', () => {
+    xit('should move A nowhere', () => {
         const fileName = '/index.ts';
 
         const executions = moveTopLevelNode(

@@ -27,6 +27,7 @@ const buildNode = (
         nodeEnd: 10,
         identifiers: new Set([ identifier ]),
         childIdentifiers: childIdentifiers ?? new Set([]),
+        heritageIdentifiers: new Set([]),
     };
 };
 

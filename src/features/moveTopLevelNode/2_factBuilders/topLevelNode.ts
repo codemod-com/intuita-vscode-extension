@@ -18,6 +18,7 @@ export type TopLevelNode = Readonly<{
     nodeEnd: number,
     identifiers: ReadonlySet<string>,
     childIdentifiers: ReadonlySet<string>,
+    heritageIdentifiers: ReadonlySet<string>,
 }>;
 
 export const enum TriviaNodeKind {
