@@ -10,8 +10,28 @@ export const calculateDependencyCoefficient = (
 ): number => {
     const values = nodes
         .map(
-            ({ childIdentifiers }, index) => {
-                return nodes
+            ({ childIdentifiers, heritageIdentifiers }, index) => {
+                const heritageValues = Array
+                    .from(heritageIdentifiers)
+                    .map(
+                        (heritageIdentifier) => {
+                            const otherNodeIndex = nodes
+                                .findIndex(
+                                    (node) => node.identifiers.has(heritageIdentifier)
+                                );
+
+                            if (otherNodeIndex !== -1) {
+                                return null;
+                            }
+
+                            return (Math.abs(otherNodeIndex - index) - 1) / nodes.length;
+                        }
+                    )
+                    .filter(isNeitherNullNorUndefined);
+
+                const averageHeritageValue = calculateAverage(heritageValues);
+
+                const value = nodes
                     .slice(index)
                     .some(
                         (node) => {
@@ -22,9 +42,15 @@ export const calculateDependencyCoefficient = (
                                 );
                         }
                     );
-            }
-        )
-        .map((value) => Number(value));
+
+                const averageDependencyValue = Number(value);
+
+                return calculateAverage([
+                    2* averageHeritageValue,
+                    averageDependencyValue,
+                ]);
+            },
+        );
 
     return calculateAverage(values);
 };
