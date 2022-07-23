@@ -38,9 +38,9 @@ export const getChildIdentifiers = (
         )
         .flat();
 };
-export const getIdentifiers = (
+export const getNameIdentifiers = (
     node: ts.Node,
-): ReadonlyArray<string> => {
+): ReadonlySet<string> => {
     if (
         ts.isClassDeclaration(node)
         || ts.isFunctionDeclaration(node)
@@ -48,10 +48,12 @@ export const getIdentifiers = (
         const text = node.name?.text ?? null;
 
         if (text === null) {
-            return [];
+            return new Set();
         }
 
-        return [text];
+        return new Set([
+            text,
+        ]);
     }
 
     if (
@@ -60,7 +62,9 @@ export const getIdentifiers = (
         || ts.isTypeAliasDeclaration(node)
         || ts.isEnumDeclaration(node)
     ) {
-        return [node.name.text];
+        return new Set([
+            node.name.text,
+        ]);
     }
 
     if (ts.isBlock(node)) {
@@ -70,13 +74,13 @@ export const getIdentifiers = (
             )
             .digest('base64url');
 
-        return [
+        return new Set([
             hash,
-        ];
+        ]);
     }
 
     if (ts.isVariableStatement(node)) {
-        return node
+        const identifiers = node
             .declarationList
             .declarations
             .map(
@@ -84,9 +88,32 @@ export const getIdentifiers = (
             )
             .filter(ts.isIdentifier)
             .map(({text}) => text);
+
+        return new Set(identifiers);
     }
 
-    return [];
+    return new Set();
+};
+
+export const buildHeritageIdentifiers = (
+    node: ts.Node,
+): ReadonlySet<string> => {
+    if (
+        !ts.isClassDeclaration(node)
+        && !ts.isInterfaceDeclaration(node)
+    ) {
+        return new Set();
+    }
+
+    const identifiers = node
+        .heritageClauses
+        ?.flatMap(
+            (heritageClause) => {
+                return getChildIdentifiers(heritageClause);
+            }
+        ) ?? [];
+
+    return new Set(identifiers);
 };
 
 export const getScriptKind = (
@@ -163,12 +190,21 @@ export const buildTypeScriptTopLevelNodes = (
             const id = buildHash(text);
 
             // extract identifiers:
-            const identifiers = new Set(getIdentifiers(node));
             const childIdentifiers = new Set(getChildIdentifiers(node));
+
+            const identifiers = new Set(getNameIdentifiers(node));
 
             identifiers.forEach((identifier) => {
                 childIdentifiers.delete(identifier);
             });
+
+            const heritageIdentifiers = buildHeritageIdentifiers(node);
+
+            heritageIdentifiers.forEach(
+                (identifier) => {
+                    childIdentifiers.delete(identifier);
+                },
+            );
 
             return {
                 kind,
@@ -179,6 +215,7 @@ export const buildTypeScriptTopLevelNodes = (
                 nodeEnd,
                 identifiers,
                 childIdentifiers,
+                heritageIdentifiers,
             };
         });
 };

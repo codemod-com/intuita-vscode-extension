@@ -165,6 +165,8 @@ class Visitor
                     kind: TopLevelNodeKind.CLASS,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                    // TODO to be implemented
+                    heritageIdentifiers: new Set<string>(),
                 };
                 break;
             }
@@ -179,6 +181,8 @@ class Visitor
                     kind: TopLevelNodeKind.INTERFACE,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                    // TODO to be implemented
+                    heritageIdentifiers: new Set<string>(),
                 };
                 break;
             }
@@ -193,6 +197,8 @@ class Visitor
                     kind: TopLevelNodeKind.ENUM,
                     identifiers: new Set<string>([ firstChild.identifier ]),
                     childIdentifiers: new Set<string>(firstChild.childIdentifiers),
+                    // TODO to be implemented
+                    heritageIdentifiers: new Set<string>(),
                 };
                 break;
             }

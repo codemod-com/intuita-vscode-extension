@@ -27,6 +27,7 @@ const buildNode = (
         nodeEnd: 10,
         identifiers: new Set([ identifier ]),
         childIdentifiers: childIdentifiers ?? new Set([]),
+        heritageIdentifiers: new Set([]),
     };
 };
 
@@ -54,7 +55,7 @@ describe('calculateDependencyCoefficient', () => {
             buildNode('b', {}),
         ]);
 
-        assert.approximately(coefficient, 0.5, 0.0001);
+        assert.approximately(coefficient, 0.25, 0.0001);
     });
 
     it('should return 0 for 2 nodes (one depends on the other)', () => {
