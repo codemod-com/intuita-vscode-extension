@@ -4,7 +4,7 @@ import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders"
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     calculateCharacterIndex,
-    calculatePosition,
+    calculatePosition, IntuitaCharacterRange,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
@@ -44,21 +44,25 @@ export class ExtensionStateManager {
     public onFileTextChanged(
         fileName: string,
         fileText: string,
+        ranges: ReadonlyArray<IntuitaRange>,
     ) {
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
             options: this._configuration,
+            ranges,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
         const diagnostics = fact.solutions.map(
-            (solutions, index) => {
-                const topLevelNode = fact.topLevelNodes[index]!;
-
+            (solutions) => {
                 const solution = solutions[0]!;
+
+                const { oldIndex } = solution;
+
+                const topLevelNode = fact.topLevelNodes[oldIndex]!;
 
                 const title = buildTitle(solution, false) ?? '';
 
