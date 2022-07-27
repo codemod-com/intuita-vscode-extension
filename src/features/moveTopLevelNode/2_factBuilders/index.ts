@@ -3,7 +3,7 @@ import {TopLevelNode} from "./topLevelNode";
 import { calculateSolutions, Solution } from "./solutions";
 import { getStringNodes, StringNode } from "./stringNodes";
 import { buildTopLevelNodes } from "./buildTopLevelNodes";
-import { calculateLengths, calculateLines} from "../../../utilities";
+import {calculateCharacterIndex, calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
     separator: string,
@@ -20,6 +20,7 @@ export const buildMoveTopLevelNodeFact = (
         fileName,
         fileText,
         options,
+        ranges,
     } = userCommand;
 
     const separator = '\n'; // TODO we should check if this is the correct one!
@@ -32,10 +33,54 @@ export const buildMoveTopLevelNodeFact = (
         fileText,
     );
 
+    const characterRanges = ranges.map(
+        (range) => {
+            const start = calculateCharacterIndex(
+                separator,
+                lengths,
+                range[0],
+                range[1],
+            );
+
+            const end = calculateCharacterIndex(
+                separator,
+                lengths,
+                range[2],
+                range[3],
+            );
+
+            return [
+                start,
+                end,
+            ] as const;
+        }
+    );
+
+    const updatedTopLevelNodes = topLevelNodes
+        .map(
+            (topLevelNode, oldIndex) => {
+                const updated = characterRanges
+                    .some(
+                        (characterRange) => {
+                            return topLevelNode.triviaStart <= characterRange[0]
+                                && characterRange[1] <= topLevelNode.triviaEnd;
+                        }
+                    );
+
+                return {
+                    updated,
+                    oldIndex,
+                };
+            }
+        )
+        .filter(
+            ({ updated }) => updated,
+        );
+
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
-    const solutions = topLevelNodes.map(
-        (_, oldIndex) => {
+    const solutions = updatedTopLevelNodes.map(
+        ({ oldIndex }) => {
             return calculateSolutions(
                 topLevelNodes,
                 oldIndex,
