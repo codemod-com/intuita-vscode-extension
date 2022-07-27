@@ -18,6 +18,7 @@ export const moveTopLevelNode = (
         fileName,
         fileText,
         options,
+        characterRanges: [[0, fileText.length]],
     };
 
     const fact = buildMoveTopLevelNodeFact(

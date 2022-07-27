@@ -20,6 +20,7 @@ export const buildMoveTopLevelNodeFact = (
         fileName,
         fileText,
         options,
+        characterRanges,
     } = userCommand;
 
     const separator = '\n'; // TODO we should check if this is the correct one!
@@ -32,10 +33,32 @@ export const buildMoveTopLevelNodeFact = (
         fileText,
     );
 
+    const updatedTopLevelNodes = topLevelNodes
+        .map(
+            (topLevelNode, oldIndex) => {
+                const updated = characterRanges
+                    .some(
+                        (characterRange) => {
+                            return characterRange[0] <= topLevelNode.triviaEnd
+                                && characterRange[1] >= topLevelNode.triviaStart;
+                        }
+                    );
+
+                return [
+                    topLevelNode,
+                    updated,
+                    oldIndex,
+                ] as const;
+            }
+        )
+        .filter(
+            ([updated]) => updated,
+        );
+
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
-    const solutions = topLevelNodes.map(
-        (_, oldIndex) => {
+    const solutions = updatedTopLevelNodes.map(
+        ([_, __, oldIndex]) => {
             return calculateSolutions(
                 topLevelNodes,
                 oldIndex,

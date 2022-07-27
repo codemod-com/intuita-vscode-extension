@@ -4,7 +4,7 @@ import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders"
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     calculateCharacterIndex,
-    calculatePosition,
+    calculatePosition, IntuitaCharacterRange,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
@@ -44,12 +44,16 @@ export class ExtensionStateManager {
     public onFileTextChanged(
         fileName: string,
         fileText: string,
+        characterRanges: ReadonlyArray<IntuitaCharacterRange>,
     ) {
+        // update here
+
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
             options: this._configuration,
+            characterRanges,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
