@@ -3,7 +3,7 @@ import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNo
 import { getConfiguration } from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
-import {calculateCharacterIndex, IntuitaCharacterRange} from "./utilities";
+import { IntuitaCharacterRange, IntuitaRange} from "./utilities";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -70,7 +70,7 @@ export async function activate(
 
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
-		characterRanges: ReadonlyArray<IntuitaCharacterRange>,
+		characterRanges: ReadonlyArray<IntuitaRange>,
 	) => {
 		const { fileName, getText } = document;
 
@@ -210,28 +210,25 @@ export async function activate(
 				const { fileName, getText } = document;
 				const text = getText();
 
-				const characterRanges: ReadonlyArray<IntuitaCharacterRange> = contentChanges.map((event) => {
-					const start = calculateCharacterIndex(
-						event.range.start.line,
-						event.range.start.character,
-					);
-
-					const end = calculateCharacterIndex(
-						event.range.start.line,
-						event.range.start.character,
-					);
-
-					return [
+				const ranges: ReadonlyArray<IntuitaRange> = contentChanges.map((event) => {
+					const {
 						start,
 						end,
-					] as const;
+					} = event.range;
+
+					return [
+						start.line,
+						start.character,
+						end.line,
+						end.character,
+					];
 				});
 
 				extensionStateManager
 					.onFileTextChanged(
 						fileName,
 						text,
-						characterRanges,
+						ranges,
 					);
 			})
 		);

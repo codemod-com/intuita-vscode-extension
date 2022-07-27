@@ -1,4 +1,4 @@
-import {IntuitaCharacterRange} from "../../utilities";
+import {IntuitaRange} from "../../utilities";
 
 export type MoveTopLevelNodeOptions = Readonly<{
     dependencyCoefficientWeight: number,
@@ -11,5 +11,5 @@ export type MoveTopLevelNodeUserCommand = Readonly<{
     fileName: string,
     fileText: string,
     options: MoveTopLevelNodeOptions,
-    characterRanges: ReadonlyArray<IntuitaCharacterRange>,
+    ranges: ReadonlyArray<IntuitaRange>,
 }>;

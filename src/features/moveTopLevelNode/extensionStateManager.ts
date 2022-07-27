@@ -44,16 +44,14 @@ export class ExtensionStateManager {
     public onFileTextChanged(
         fileName: string,
         fileText: string,
-        characterRanges: ReadonlyArray<IntuitaCharacterRange>,
+        ranges: ReadonlyArray<IntuitaRange>,
     ) {
-        // update here
-
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
             options: this._configuration,
-            characterRanges,
+            ranges,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);

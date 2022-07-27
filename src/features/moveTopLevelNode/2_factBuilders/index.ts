@@ -3,7 +3,7 @@ import {TopLevelNode} from "./topLevelNode";
 import { calculateSolutions, Solution } from "./solutions";
 import { getStringNodes, StringNode } from "./stringNodes";
 import { buildTopLevelNodes } from "./buildTopLevelNodes";
-import { calculateLengths, calculateLines} from "../../../utilities";
+import {calculateCharacterIndex, calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
     separator: string,
@@ -20,8 +20,10 @@ export const buildMoveTopLevelNodeFact = (
         fileName,
         fileText,
         options,
-        characterRanges,
+        ranges,
     } = userCommand;
+
+
 
     const separator = '\n'; // TODO we should check if this is the correct one!
 
@@ -31,6 +33,29 @@ export const buildMoveTopLevelNodeFact = (
     const topLevelNodes = buildTopLevelNodes(
         fileName,
         fileText,
+    );
+
+    const characterRanges = ranges.map(
+        (range) => {
+            const start = calculateCharacterIndex(
+                separator,
+                lengths,
+                range[0],
+                range[1],
+            );
+
+            const end = calculateCharacterIndex(
+                separator,
+                lengths,
+                range[0],
+                range[1],
+            );
+
+            return [
+                start,
+                end,
+            ] as const;
+        }
     );
 
     const updatedTopLevelNodes = topLevelNodes
