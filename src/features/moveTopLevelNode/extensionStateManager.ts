@@ -57,10 +57,12 @@ export class ExtensionStateManager {
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
         const diagnostics = fact.solutions.map(
-            (solutions, index) => {
-                const topLevelNode = fact.topLevelNodes[index]!;
-
+            (solutions) => {
                 const solution = solutions[0]!;
+
+                const { oldIndex } = solution;
+
+                const topLevelNode = fact.topLevelNodes[oldIndex]!;
 
                 const title = buildTitle(solution, false) ?? '';
 

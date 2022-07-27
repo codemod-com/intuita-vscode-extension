@@ -23,8 +23,6 @@ export const buildMoveTopLevelNodeFact = (
         ranges,
     } = userCommand;
 
-
-
     const separator = '\n'; // TODO we should check if this is the correct one!
 
     const lines = calculateLines(fileText, separator);
@@ -47,8 +45,8 @@ export const buildMoveTopLevelNodeFact = (
             const end = calculateCharacterIndex(
                 separator,
                 lengths,
-                range[0],
-                range[1],
+                range[2],
+                range[3],
             );
 
             return [
@@ -64,26 +62,25 @@ export const buildMoveTopLevelNodeFact = (
                 const updated = characterRanges
                     .some(
                         (characterRange) => {
-                            return characterRange[0] <= topLevelNode.triviaEnd
-                                && characterRange[1] >= topLevelNode.triviaStart;
+                            return topLevelNode.triviaStart <= characterRange[0]
+                                && characterRange[1] <= topLevelNode.triviaEnd;
                         }
                     );
 
-                return [
-                    topLevelNode,
+                return {
                     updated,
                     oldIndex,
-                ] as const;
+                };
             }
         )
         .filter(
-            ([updated]) => updated,
+            ({ updated }) => updated,
         );
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
     const solutions = updatedTopLevelNodes.map(
-        ([_, __, oldIndex]) => {
+        ({ oldIndex }) => {
             return calculateSolutions(
                 topLevelNodes,
                 oldIndex,
