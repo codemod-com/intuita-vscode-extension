@@ -145,14 +145,16 @@ export class ExtensionStateManager {
                     }
 
                     const solutions = fact
-                        .solutions[topLevelNodeIndex]
-                        ?.filter(
+                        .solutions
+                        .map((solutions) => solutions[0])
+                        .filter(isNeitherNullNorUndefined)
+                        .filter(
                             (solution) => {
-                                return solution.newIndex !== solution.oldIndex;
+                                return solution.oldIndex === topLevelNodeIndex;
                             }
                         );
 
-                    const solution = solutions?.[0] ?? null;
+                    const solution = solutions[0] ?? null;
 
                     if (solution === null) {
                         return null;
