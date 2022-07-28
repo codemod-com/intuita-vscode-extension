@@ -141,11 +141,8 @@ export class ExtensionStateManager {
                     const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
 
                     if (topLevelNodeIndex === -1 || topLevelNode === null) {
-                        console.log('HERE1');
                         return null;
                     }
-
-                    console.log('topLevelNodeIndex', topLevelNodeIndex);
 
                     const solutions = fact
                         .solutions
@@ -160,9 +157,6 @@ export class ExtensionStateManager {
                     const solution = solutions[0] ?? null;
 
                     if (solution === null) {
-                        console.log(fact
-                            .solutions);
-                        console.log('HERE2');
                         return null;
                     }
 
