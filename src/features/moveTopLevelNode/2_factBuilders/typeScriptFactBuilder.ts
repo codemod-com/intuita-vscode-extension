@@ -68,14 +68,8 @@ export const getNameIdentifiers = (
     }
 
     if (ts.isBlock(node)) {
-        const hash = createHash('ripemd160')
-            .update(
-                node.getFullText(),
-            )
-            .digest('base64url');
-
         return new Set([
-            hash,
+            'block',
         ]);
     }
 
