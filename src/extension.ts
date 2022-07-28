@@ -3,7 +3,7 @@ import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNo
 import { getConfiguration } from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
-import { IntuitaCharacterRange, IntuitaRange} from "./utilities";
+import { IntuitaRange} from "./utilities";
 
 export async function activate(
 	context: vscode.ExtensionContext,
