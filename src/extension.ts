@@ -72,14 +72,9 @@ export async function activate(
 		document: vscode.TextDocument,
 		characterRanges: ReadonlyArray<IntuitaRange>,
 	) => {
-		const { fileName, getText } = document;
-
-		const fileText = getText();
-
 		extensionStateManager
 			.onFileTextChanged(
-				fileName,
-				fileText,
+				document,
 				characterRanges,
 			);
 	};
@@ -143,12 +138,9 @@ export async function activate(
 					return;
 				}
 
-				const fileText = activeTextEditor.document.getText();
-
 				const result = extensionStateManager
 					.executeCommand(
 						fileName,
-						fileText,
 						oldIndex,
 						newIndex,
 						characterDifference,
@@ -169,7 +161,11 @@ export async function activate(
 				    ),
 				);
 
-				await activeTextEditor.edit(
+				const document = vscode.workspace.textDocuments.find(
+					(document) => document.fileName === fileName
+				);
+
+				await vscode.window.activeTextEditor?.edit(
 				    (textEditorEdit) => {
 				        textEditorEdit.replace(
 				            range,
@@ -207,9 +203,6 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
 			({ document, contentChanges })=> {
-				const { fileName, getText } = document;
-				const text = getText();
-
 				const ranges: ReadonlyArray<IntuitaRange> = contentChanges.map((event) => {
 					const {
 						start,
@@ -226,8 +219,7 @@ export async function activate(
 
 				extensionStateManager
 					.onFileTextChanged(
-						fileName,
-						text,
+						document,
 						ranges,
 					);
 			})

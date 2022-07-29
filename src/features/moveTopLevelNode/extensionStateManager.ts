@@ -3,13 +3,15 @@ import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
+    buildHash,
     calculateCharacterIndex,
-    calculatePosition, IntuitaCharacterRange,
+    calculatePosition,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
 } from "../../utilities";
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
+import * as vscode from "vscode";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
@@ -24,12 +26,17 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
-export class ExtensionStateManager {
-    protected _state: Readonly<{
-        fileName: string,
+type State = Map<
+    string,
+    Readonly<{
+        document: vscode.TextDocument,
         diagnostics: ReadonlyArray<IntuitaDiagnostic>,
         fact: MoveTopLevelNodeFact,
-    }> | null = null;
+    }>
+>;
+
+export class ExtensionStateManager {
+    protected _state: State = new Map();
 
     public constructor(
         protected readonly _configuration: Configuration,
@@ -42,10 +49,12 @@ export class ExtensionStateManager {
     }
 
     public onFileTextChanged(
-        fileName: string,
-        fileText: string,
+        document: vscode.TextDocument,
         ranges: ReadonlyArray<IntuitaRange>,
     ) {
+        const { fileName } = document;
+        const fileText = document.getText();
+
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
@@ -87,11 +96,16 @@ export class ExtensionStateManager {
             }
         );
 
-        this._state = {
-            fileName,
-            fact,
-            diagnostics,
-        };
+        const hash = buildHash(fileName);
+
+        this._state.set(
+            hash,
+            {
+                document,
+                fact,
+                diagnostics,
+            },
+        );
 
         this._setDiagnosticEntry(
             fileName,
@@ -103,14 +117,17 @@ export class ExtensionStateManager {
         fileName: string,
         position: IntuitaPosition,
     ): ReadonlyArray<IntuitaCodeAction> {
-        if (this._state?.fileName !== fileName) {
+        const fileData = this._state.get(
+            buildHash(fileName),
+        );
+
+        if (!fileData) {
             return [];
         }
 
-        const { fact } = this._state;
+        const { fact } = fileData;
 
-        return this
-            ._state
+        return fileData
             .diagnostics
             .filter(
                 ({ range }) => {
@@ -180,18 +197,23 @@ export class ExtensionStateManager {
 
     public executeCommand(
         fileName: string,
-        fileText: string,
         oldIndex: number,
         newIndex: number,
         characterDifference: number,
     ) {
-        if (this._state?.fileName !== fileName) {
+        const fileData = this._state.get(
+            buildHash(fileName),
+        );
+
+        if (!fileData) {
             return;
         }
 
+        const fileText = fileData.document.getText();
+
         const {
             stringNodes,
-        } = this._state.fact;
+        } = fileData.fact;
 
         const executions = executeMoveTopLevelNodeAstCommandHelper(
             fileName,
