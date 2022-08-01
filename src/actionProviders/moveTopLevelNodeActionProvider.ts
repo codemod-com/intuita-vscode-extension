@@ -112,7 +112,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
             );
 
         const codeActions = intuitaCodeActions
-            .map(
+            .flatMap(
                 ({
                     title,
                     oldIndex,
@@ -137,7 +137,31 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         ]
                     };
 
-                    return codeAction;
+                    const showDifferenceCodeAction = new vscode.CodeAction(
+                        'Show the difference (Intuita)',
+                        vscode.CodeActionKind.Empty,
+                    );
+
+                    showDifferenceCodeAction.command = {
+                        title: 'Show',
+                        command: 'vscode.diff',
+                        arguments: [
+                            document.uri,
+                            vscode.Uri.parse(
+                                'intuita://moveTopLevelNode.ts'
+                                + `?fileName=${encodeURIComponent(fileName)}`
+                                + `&oldIndex=${String(oldIndex)}`
+                                + `&newIndex=${String(newIndex)}`,
+                                true,
+                                
+                            ),
+                        ]
+                    };
+
+                    return [
+                        codeAction,
+                        showDifferenceCodeAction,
+                    ];
                 }
             );
 

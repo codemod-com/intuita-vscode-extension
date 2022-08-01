@@ -59,6 +59,50 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
+	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
+		provideTextDocumentContent(
+			uri: vscode.Uri
+		): string {
+			const searchParams = new URLSearchParams(uri.query);
+						
+			const fileName = searchParams.get('fileName');
+			const oldIndex = searchParams.get('oldIndex');
+			const newIndex = searchParams.get('newIndex');
+
+			if (
+				fileName === null
+				|| oldIndex === null
+				|| newIndex === null
+			) {
+				throw new Error('Did not pass file name or old index or new index.');
+			}
+
+			const parsedOldIndex = parseInt(oldIndex, 10);
+			const parsedNewIndex = parseInt(newIndex, 10);
+
+			if (Number.isNaN(parsedOldIndex)) {
+				return 'The old index could not have been parsed.'
+			}
+
+			if (Number.isNaN(parsedNewIndex)) {
+				return 'The new index could not have been parsed.'
+			}
+
+			return extensionStateManager.getText(
+				fileName,
+				parsedOldIndex,
+				parsedNewIndex,
+			);
+		}
+	};
+
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(
+			'intuita',
+			textDocumentContentProvider
+		)
+	);
+
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
