@@ -59,6 +59,23 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
+	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
+		provideTextDocumentContent(
+			uri: vscode.Uri
+		): string {
+			uri.toJSON();
+
+			return '';
+		}
+	};
+
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(
+			'intuita',
+			textDocumentContentProvider
+		)
+	);
+
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
