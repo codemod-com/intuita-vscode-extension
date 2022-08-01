@@ -179,6 +179,8 @@ export class ExtensionStateManager {
 
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
 
+                    
+
                     const {
                         oldIndex,
                         newIndex,
@@ -195,39 +197,42 @@ export class ExtensionStateManager {
             .filter(isNeitherNullNorUndefined);
     }
 
+    public getText(
+        fileName: string,
+        oldIndex: number,
+        newIndex: number,
+    ): string {
+        const data = this._getExecution(
+            fileName,
+            oldIndex,
+            newIndex,
+            0,
+        );
+
+        return data?.execution.text ?? '';
+    }
+
     public executeCommand(
         fileName: string,
         oldIndex: number,
         newIndex: number,
         characterDifference: number,
     ) {
-        const fileData = this._state.get(
-            buildHash(fileName),
-        );
-
-        if (!fileData) {
-            return;
-        }
-
-        const fileText = fileData.document.getText();
-
-        const {
-            stringNodes,
-        } = fileData.fact;
-
-        const executions = executeMoveTopLevelNodeAstCommandHelper(
+        const data = this._getExecution(
             fileName,
             oldIndex,
             newIndex,
             characterDifference,
-            stringNodes,
         );
 
-        const execution = executions[0] ?? null;
-
-        if (!execution) {
+        if (!data) {
             return null;
         }
+
+        const {
+            execution,
+            fileText,
+        } = data;
 
         const { name, text, line, character } = execution;
 
@@ -256,5 +261,45 @@ export class ExtensionStateManager {
             text,
             position,
         };
+    }
+
+    protected _getExecution(
+        fileName: string,
+        oldIndex: number,
+        newIndex: number,
+        characterDifference: number,
+    ) {
+        const fileData = this._state.get(
+            buildHash(fileName),
+        );
+
+        if (!fileData) {
+            return null;
+        }
+
+        const fileText = fileData.document.getText();
+
+        const {
+            stringNodes,
+        } = fileData.fact;
+
+        const executions = executeMoveTopLevelNodeAstCommandHelper(
+            fileName,
+            oldIndex,
+            newIndex,
+            characterDifference,
+            stringNodes,
+        );
+
+        const execution = executions[0] ?? null;
+
+        if (!execution) {
+            return null;
+        }
+
+        return {
+            execution,
+            fileText,
+        }
     }
 }
