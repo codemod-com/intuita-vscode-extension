@@ -55,6 +55,10 @@ export class ExtensionStateManager {
         const { fileName } = document;
         const fileText = document.getText();
 
+        if (ranges.length === 0) {
+            return;
+        }
+
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
