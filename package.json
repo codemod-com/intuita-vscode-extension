@@ -36,6 +36,14 @@
 					"description": "Change to apply a custom weight to the kind coefficient. This coefficient equals the ratio of the same-kind neighboring nodes of the current top-level node to their total number. By increasing the weight, you increase the influence of the kind on the proposed move solutions. Set the value to 0 to disable this coefficient."
 				}
 			}
+		},
+		"views": {
+			"explorer": [
+				{
+					"id": "intuitaViewId",
+					"name": "Intuita"
+				}
+			]
 		}
 	},
 	"main": "./dist/extension.js",

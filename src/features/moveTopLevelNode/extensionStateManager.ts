@@ -48,6 +48,10 @@ export class ExtensionStateManager {
 
     }
 
+    public getDocuments() {
+        return Array.from(this._state.values());
+    }
+
     public onFileTextChanged(
         document: vscode.TextDocument,
         ranges: ReadonlyArray<IntuitaRange>,
@@ -183,7 +187,7 @@ export class ExtensionStateManager {
 
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
 
-                    
+
 
                     const {
                         oldIndex,

@@ -2,8 +2,17 @@ import * as vscode from 'vscode';
 import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
 import { getConfiguration } from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
-import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
-import { IntuitaRange} from "./utilities";
+import {
+	CancellationToken,
+	Diagnostic,
+	DiagnosticSeverity,
+	Position,
+	ProviderResult,
+	Range, ThemeIcon,
+	TreeDataProvider,
+	TreeItem, TreeItemCollapsibleState
+} from "vscode";
+import {buildHash, IntuitaRange} from "./utilities";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -59,12 +68,71 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
+	type Element = Readonly<{
+		label: string,
+		children: ReadonlyArray<Element>,
+	}>;
+
+	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
+
+	const treeDataProvider: TreeDataProvider<Element> = {
+		getChildren(element: Element | undefined): ProviderResult<Element[]> {
+			if (element === undefined) {
+				const documents = extensionStateManager.getDocuments();
+
+				const elements = documents
+					.map(
+						({ document, diagnostics }) => {
+							const label = document.fileName;
+
+							const children = diagnostics
+								.map(
+									(diagnostic) => {
+										return {
+											label: diagnostic.title,
+											children: [],
+										};
+									}
+								);
+
+							return {
+								label,
+								children,
+							}
+						}
+					)
+
+				return Promise.resolve(elements);
+			}
+
+			return Promise.resolve(
+				element.children.slice()
+			);
+		},
+		getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
+			const treeItem = new TreeItem(
+				element.label,
+			);
+
+			treeItem.id = buildHash(element.label);
+			treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
+
+			return treeItem;
+		},
+		onDidChangeTreeData: _onDidChangeTreeData.event,
+	};
+
+	vscode.window.registerTreeDataProvider(
+		'intuitaViewId',
+		treeDataProvider
+	);
+
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(
 			uri: vscode.Uri
 		): string {
 			const searchParams = new URLSearchParams(uri.query);
-						
+
 			const fileName = searchParams.get('fileName');
 			const oldIndex = searchParams.get('oldIndex');
 			const newIndex = searchParams.get('newIndex');
@@ -121,6 +189,8 @@ export async function activate(
 				document,
 				characterRanges,
 			);
+
+		_onDidChangeTreeData.fire();
 	};
 
 	if (vscode.window.activeTextEditor) {
@@ -266,6 +336,8 @@ export async function activate(
 						document,
 						ranges,
 					);
+
+				_onDidChangeTreeData.fire();
 			})
 		);
 
