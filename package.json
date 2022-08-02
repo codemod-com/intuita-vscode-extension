@@ -37,11 +37,22 @@
 				}
 			}
 		},
-		"views": {
-			"explorer": [
+		"viewsContainers": {
+			"activitybar": [
 				{
 					"id": "intuitaViewId",
-					"name": "Intuita"
+					"title": "Intuita",
+					"icon": "img/intuita.svg"
+				}
+			]
+		},
+		"views": {
+			"intuitaViewId": [
+				{
+					"id": "intuitaViewId",
+					"name": "Intuita",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita"
 				}
 			]
 		}

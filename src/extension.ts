@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
-import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
-import { getConfiguration } from './configuration';
-import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {
-	CancellationToken,
 	Diagnostic,
 	DiagnosticSeverity,
 	Position,
 	ProviderResult,
-	Range, ThemeIcon,
+	Range,
 	TreeDataProvider,
-	TreeItem, TreeItemCollapsibleState
-} from "vscode";
+	TreeItem,
+	TreeItemCollapsibleState
+} from 'vscode';
+import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
+import {getConfiguration} from './configuration';
+import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange} from "./utilities";
 
 export async function activate(
@@ -68,41 +68,54 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
-	type Element = Readonly<{
-		label: string,
-		children: ReadonlyArray<Element>,
-	}>;
+	type Element =
+		| Readonly<{
+			kind: 'FILE',
+			label: string,
+			children: ReadonlyArray<Element>,
+		}>
+		| Readonly<{
+			kind: 'DIAGNOSTIC',
+			label: string,
+		}>;
 
 	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
 
 	const treeDataProvider: TreeDataProvider<Element> = {
 		getChildren(element: Element | undefined): ProviderResult<Element[]> {
 			if (element === undefined) {
+				const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
 				const documents = extensionStateManager.getDocuments();
 
-				const elements = documents
+				const elements: Element[] = documents
 					.map(
 						({ document, diagnostics }) => {
-							const label = document.fileName;
+							let label = document.fileName.replace(rootPath, '');
 
-							const children = diagnostics
+							const children: Element[] = diagnostics
 								.map(
 									(diagnostic) => {
 										return {
+											kind: 'DIAGNOSTIC',
 											label: diagnostic.title,
-											children: [],
 										};
 									}
 								);
 
 							return {
+								kind: 'FILE',
 								label,
 								children,
-							}
+							};
 						}
-					)
+					);
 
 				return Promise.resolve(elements);
+			}
+
+			if (element.kind === 'DIAGNOSTIC') {
+				return Promise.resolve([]);
 			}
 
 			return Promise.resolve(
@@ -115,7 +128,12 @@ export async function activate(
 			);
 
 			treeItem.id = buildHash(element.label);
-			treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
+			treeItem.collapsibleState = element.kind === 'FILE'
+				? TreeItemCollapsibleState.Collapsed
+				: TreeItemCollapsibleState.None;
+			treeItem.iconPath = element.kind === 'FILE'
+				? vscode.ThemeIcon.File
+				: vscode.ThemeIcon.Folder;
 
 			return treeItem;
 		},
@@ -126,6 +144,10 @@ export async function activate(
 		'intuitaViewId',
 		treeDataProvider
 	);
+
+	// vscode.window.createTreeView('intuitaViewId', {
+	// 	treeDataProvider,
+	// });
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(
