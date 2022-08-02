@@ -3,7 +3,7 @@
 	"displayName": "Intuita",
 	"description": "Automated Code Organization & Modularization",
 	"version": "0.0.1",
-	"icon": "img/intuitasq128.png",
+	"icon": "img/intuita.svg",
 	"engines": {
 		"vscode": "^1.69.0"
 	},
