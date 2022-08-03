@@ -1,11 +1,8 @@
-import {
-    MoveTopLevelNodeOptions,
-    MoveTopLevelNodeUserCommand
-} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeOptions, MoveTopLevelNodeUserCommand, RangeCriterionKind} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact} from "./2_factBuilders";
 import {SourceFileExecution} from "../../utilities";
-import { buildMoveTopLevelNodeAstCommand } from "./3_astCommandBuilder";
-import { executeMoveTopLevelNodeAstCommand } from "./4_astCommandExecutor";
+import {buildMoveTopLevelNodeAstCommand} from "./3_astCommandBuilder";
+import {executeMoveTopLevelNodeAstCommand} from "./4_astCommandExecutor";
 
 export const moveTopLevelNode = (
     fileName: string,
@@ -18,7 +15,9 @@ export const moveTopLevelNode = (
         fileName,
         fileText,
         options,
-        ranges: [],
+        rangeCriterion: {
+            kind: RangeCriterionKind.DOCUMENT,
+        }
     };
 
     const fact = buildMoveTopLevelNodeFact(

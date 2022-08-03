@@ -1,8 +1,8 @@
-import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
+import {MoveTopLevelNodeUserCommand, RangeCriterion, RangeCriterionKind} from "../1_userCommandBuilder";
 import {TopLevelNode} from "./topLevelNode";
-import { calculateSolutions, Solution } from "./solutions";
-import { getStringNodes, StringNode } from "./stringNodes";
-import { buildTopLevelNodes } from "./buildTopLevelNodes";
+import {calculateSolutions, Solution} from "./solutions";
+import {getStringNodes, StringNode} from "./stringNodes";
+import {buildTopLevelNodes} from "./buildTopLevelNodes";
 import {calculateCharacterIndex, calculateLengths, calculateLines} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
@@ -13,27 +13,32 @@ export type MoveTopLevelNodeFact = Readonly<{
     solutions: ReadonlyArray<ReadonlyArray<Solution>>,
 }>;
 
-export const buildMoveTopLevelNodeFact = (
-    userCommand: MoveTopLevelNodeUserCommand
-): MoveTopLevelNodeFact => {
-    const {
-        fileName,
-        fileText,
-        options,
-        ranges,
-    } = userCommand;
+export const calculateCharacterRanges = (
+    rangeCriterion: RangeCriterion,
+    separator: string,
+    lengths: ReadonlyArray<number>,
+) => {
+    if (rangeCriterion.kind === RangeCriterionKind.DOCUMENT) {
+        const start = 0;
 
-    const separator = '\n'; // TODO we should check if this is the correct one!
+        const end = calculateCharacterIndex(
+            separator,
+            lengths,
+            lengths.length - 1,
+            lengths[lengths.length - 1] ?? 0,
+        );
 
-    const lines = calculateLines(fileText, separator);
-    const lengths = calculateLengths(lines);
+        const range = [
+            start,
+            end,
+        ] as const;
 
-    const topLevelNodes = buildTopLevelNodes(
-        fileName,
-        fileText,
-    );
+        return [ range ];
+    }
 
-    const characterRanges = ranges.map(
+    const { ranges } = rangeCriterion;
+
+    return ranges.map(
         (range) => {
             const start = calculateCharacterIndex(
                 separator,
@@ -55,6 +60,35 @@ export const buildMoveTopLevelNodeFact = (
             ] as const;
         }
     );
+};
+
+export const buildMoveTopLevelNodeFact = (
+    userCommand: MoveTopLevelNodeUserCommand
+): MoveTopLevelNodeFact => {
+    const {
+        fileName,
+        fileText,
+        options,
+        rangeCriterion,
+    } = userCommand;
+
+    const separator = fileText.includes('\r\n')
+        ? '\r\n'
+        : '\n';
+
+    const lines = calculateLines(fileText, separator);
+    const lengths = calculateLengths(lines);
+
+    const topLevelNodes = buildTopLevelNodes(
+        fileName,
+        fileText,
+    );
+
+    const characterRanges = calculateCharacterRanges( // reconsider this function
+        rangeCriterion,
+        separator,
+        lengths,
+    );
 
     const updatedTopLevelNodes = topLevelNodes
         .map(
@@ -65,7 +99,7 @@ export const buildMoveTopLevelNodeFact = (
                             return topLevelNode.triviaStart <= characterRange[0]
                                 && characterRange[1] <= topLevelNode.triviaEnd;
                         }
-                    );
+                    ) || rangeCriterion.kind === RangeCriterionKind.DOCUMENT; // TODO hacky
 
                 return {
                     updated,

@@ -1,14 +1,37 @@
 import * as vscode from 'vscode';
-import { MoveTopLevelNodeActionProvider } from './actionProviders/moveTopLevelNodeActionProvider';
-import { getConfiguration } from './configuration';
+import {
+	Diagnostic,
+	DiagnosticSeverity,
+	Position,
+	ProviderResult,
+	Range,
+	TreeDataProvider,
+	TreeItem,
+	TreeItemCollapsibleState
+} from 'vscode';
+import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
+import {getConfiguration, RecommendationBlockTrigger} from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
-import {Diagnostic, DiagnosticSeverity, Position, Range} from "vscode";
-import { IntuitaRange} from "./utilities";
+import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
+import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
+import {buildContainer} from "./container";
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
-	const configuration = getConfiguration();
+	const configurationContainer = buildContainer(
+		getConfiguration()
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(
+			() => {
+				configurationContainer.set(
+					getConfiguration()
+				);
+			}
+		)
+	);
 
 	const diagnosticCollection = vscode
 		.languages
@@ -55,8 +78,126 @@ export async function activate(
 	};
 
 	const extensionStateManager = new ExtensionStateManager(
-		configuration,
+		configurationContainer,
 		_setDiagnosticEntry,
+	);
+
+	type Element =
+		| Readonly<{
+			kind: 'FILE',
+			label: string,
+			children: ReadonlyArray<Element>,
+		}>
+		| Readonly<{
+			kind: 'DIAGNOSTIC',
+			label: string,
+			uri: vscode.Uri,
+			fileName: string,
+			oldIndex: number,
+			newIndex: number,
+		}>;
+
+	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
+
+	const treeDataProvider: TreeDataProvider<Element> = {
+		getChildren(element: Element | undefined): ProviderResult<Element[]> {
+			if (element === undefined) {
+				const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+				const documents = extensionStateManager.getDocuments();
+
+				const elements: Element[] = documents
+					.map(
+						({ document, diagnostics }) => {
+							if (diagnostics.length === 0) {
+								return null;
+							}
+
+							let label = document.fileName.replace(rootPath, '');
+
+							const children: Element[] = diagnostics
+								.map(
+									(diagnostic) => {
+										return {
+											kind: 'DIAGNOSTIC' as const,
+											label: diagnostic.title,
+											fileName: document.fileName,
+											uri: document.uri,
+											oldIndex: diagnostic.oldIndex,
+											newIndex: diagnostic.newIndex,
+										};
+									}
+								);
+
+							return {
+								kind: 'FILE' as const,
+								label,
+								children,
+							};
+						}
+					)
+					.filter(isNeitherNullNorUndefined);
+
+				return Promise.resolve(elements);
+			}
+
+			if (element.kind === 'DIAGNOSTIC') {
+				return Promise.resolve([]);
+			}
+
+			return Promise.resolve(
+				element.children.slice()
+			);
+		},
+		getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
+			const treeItem = new TreeItem(
+				element.label,
+			);
+
+			treeItem.id = buildHash(element.label);
+
+			treeItem.collapsibleState = element.kind === 'FILE'
+				? TreeItemCollapsibleState.Collapsed
+				: TreeItemCollapsibleState.None;
+
+			treeItem.iconPath = element.kind === 'FILE'
+				? vscode.ThemeIcon.File
+				: vscode.ThemeIcon.Folder;
+
+			if (element.kind === 'DIAGNOSTIC') {
+				treeItem.command = {
+					title: 'Show difference',
+					command: 'vscode.diff',
+					arguments: [
+						element.uri,
+						vscode.Uri.parse(
+							'intuita://moveTopLevelNode.ts'
+							+ `?fileName=${encodeURIComponent(element.fileName)}`
+							+ `&oldIndex=${String(element.oldIndex)}`
+							+ `&newIndex=${String(element.newIndex)}`,
+							true,
+						),
+					]
+				};
+			}
+
+			return treeItem;
+		},
+		onDidChangeTreeData: _onDidChangeTreeData.event,
+	};
+
+	context.subscriptions.push(
+		vscode.window.registerTreeDataProvider(
+			'intuitaViewId',
+			treeDataProvider
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerTreeDataProvider(
+			'explorerIntuitaViewId',
+			treeDataProvider
+		)
 	);
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
@@ -64,7 +205,7 @@ export async function activate(
 			uri: vscode.Uri
 		): string {
 			const searchParams = new URLSearchParams(uri.query);
-						
+
 			const fileName = searchParams.get('fileName');
 			const oldIndex = searchParams.get('oldIndex');
 			const newIndex = searchParams.get('newIndex');
@@ -114,22 +255,34 @@ export async function activate(
 
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
-		characterRanges: ReadonlyArray<IntuitaRange>,
+		rangeCriterion: RangeCriterion,
 	) => {
 		extensionStateManager
 			.onFileTextChanged(
 				document,
-				characterRanges,
+				rangeCriterion,
 			);
+
+		_onDidChangeTreeData.fire();
 	};
 
 	if (vscode.window.activeTextEditor) {
+		const rangeCriterion: RangeCriterion =
+			configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+				? {
+					kind: RangeCriterionKind.DOCUMENT,
+				}
+				: {
+					kind: RangeCriterionKind.RANGES,
+					ranges: [],
+				};
+
 		activeTextEditorChangedCallback(
 			vscode
 				.window
 				.activeTextEditor
 				.document,
-			[],
+			rangeCriterion,
 		);
 	}
 
@@ -139,11 +292,20 @@ export async function activate(
 				if (!textEditor) {
 					return;
 				}
+				const rangeCriterion: RangeCriterion =
+					configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+						? {
+							kind: RangeCriterionKind.DOCUMENT,
+						}
+						: {
+							kind: RangeCriterionKind.RANGES,
+							ranges: [],
+						};
 
 				return activeTextEditorChangedCallback(
 					textEditor
 						.document,
-					[],
+					rangeCriterion,
 				);
 			},
 		),
@@ -205,10 +367,6 @@ export async function activate(
 				    ),
 				);
 
-				const document = vscode.workspace.textDocuments.find(
-					(document) => document.fileName === fileName
-				);
-
 				await vscode.window.activeTextEditor?.edit(
 				    (textEditorEdit) => {
 				        textEditorEdit.replace(
@@ -264,8 +422,13 @@ export async function activate(
 				extensionStateManager
 					.onFileTextChanged(
 						document,
-						ranges,
+						{
+							kind: RangeCriterionKind.RANGES,
+							ranges,
+						},
 					);
+
+				_onDidChangeTreeData.fire();
 			})
 		);
 
