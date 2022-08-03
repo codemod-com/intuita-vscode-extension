@@ -18,7 +18,16 @@ import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
-	const configuration = getConfiguration();
+	let configuration = getConfiguration();
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(
+			() => {
+				// it will obviously not work, but this is a stub of a working construct
+				configuration = getConfiguration();
+			}
+		)
+	);
 
 	const diagnosticCollection = vscode
 		.languages
@@ -173,14 +182,18 @@ export async function activate(
 		onDidChangeTreeData: _onDidChangeTreeData.event,
 	};
 
-	vscode.window.registerTreeDataProvider(
-		'intuitaViewId',
-		treeDataProvider
+	context.subscriptions.push(
+		vscode.window.registerTreeDataProvider(
+			'intuitaViewId',
+			treeDataProvider
+		)
 	);
 
-	vscode.window.registerTreeDataProvider(
-		'explorerIntuitaViewId',
-		treeDataProvider
+	context.subscriptions.push(
+		vscode.window.registerTreeDataProvider(
+			'explorerIntuitaViewId',
+			treeDataProvider
+		)
 	);
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
