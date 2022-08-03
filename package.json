@@ -47,6 +47,14 @@
 			]
 		},
 		"views": {
+			"explorer": [
+				{
+					"id": "explorerIntuitaViewId",
+					"name": "Intuita",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita"
+				}
+			],
 			"intuitaViewId": [
 				{
 					"id": "intuitaViewId",

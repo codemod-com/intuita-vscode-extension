@@ -77,6 +77,10 @@ export async function activate(
 		| Readonly<{
 			kind: 'DIAGNOSTIC',
 			label: string,
+			uri: vscode.Uri,
+			fileName: string,
+			oldIndex: number,
+			newIndex: number,
 		}>;
 
 	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
@@ -99,6 +103,10 @@ export async function activate(
 										return {
 											kind: 'DIAGNOSTIC',
 											label: diagnostic.title,
+											fileName: document.fileName,
+											uri: document.uri,
+											oldIndex: diagnostic.oldIndex,
+											newIndex: diagnostic.newIndex,
 										};
 									}
 								);
@@ -128,12 +136,31 @@ export async function activate(
 			);
 
 			treeItem.id = buildHash(element.label);
+
 			treeItem.collapsibleState = element.kind === 'FILE'
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None;
+
 			treeItem.iconPath = element.kind === 'FILE'
 				? vscode.ThemeIcon.File
 				: vscode.ThemeIcon.Folder;
+
+			if (element.kind === 'DIAGNOSTIC') {
+				treeItem.command = {
+					title: 'Show difference',
+					command: 'vscode.diff',
+					arguments: [
+						element.uri,
+						vscode.Uri.parse(
+							'intuita://moveTopLevelNode.ts'
+							+ `?fileName=${encodeURIComponent(element.fileName)}`
+							+ `&oldIndex=${String(element.oldIndex)}`
+							+ `&newIndex=${String(element.newIndex)}`,
+							true,
+						),
+					]
+				};
+			}
 
 			return treeItem;
 		},
@@ -145,9 +172,10 @@ export async function activate(
 		treeDataProvider
 	);
 
-	// vscode.window.createTreeView('intuitaViewId', {
-	// 	treeDataProvider,
-	// });
+	vscode.window.registerTreeDataProvider(
+		'explorerIntuitaViewId',
+		treeDataProvider
+	);
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(

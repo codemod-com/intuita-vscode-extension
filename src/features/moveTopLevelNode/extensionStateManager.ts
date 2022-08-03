@@ -17,6 +17,8 @@ import * as vscode from "vscode";
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
+    oldIndex: number,
+    newIndex: number,
 }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -77,7 +79,7 @@ export class ExtensionStateManager {
             (solutions) => {
                 const solution = solutions[0]!;
 
-                const { oldIndex } = solution;
+                const { oldIndex, newIndex } = solution;
 
                 const topLevelNode = fact.topLevelNodes[oldIndex]!;
 
@@ -100,6 +102,8 @@ export class ExtensionStateManager {
                     range,
                     title,
                     fact,
+                    oldIndex,
+                    newIndex,
                 };
             }
         );
