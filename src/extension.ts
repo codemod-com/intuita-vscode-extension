@@ -20,8 +20,6 @@ export async function activate(
 ) {
 	const configuration = getConfiguration();
 
-	console.log(configuration);
-
 	const diagnosticCollection = vscode
 		.languages
 		.createDiagnosticCollection(

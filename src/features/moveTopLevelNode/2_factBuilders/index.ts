@@ -72,7 +72,9 @@ export const buildMoveTopLevelNodeFact = (
         rangeCriterion,
     } = userCommand;
 
-    const separator = '\n'; // TODO we should check if this is the correct one!
+    const separator = fileText.includes('\r\n')
+        ? '\r\n'
+        : '\n';
 
     const lines = calculateLines(fileText, separator);
     const lengths = calculateLengths(lines);
