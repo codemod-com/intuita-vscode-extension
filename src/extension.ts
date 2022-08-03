@@ -12,7 +12,7 @@ import {
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
-import {buildHash, IntuitaRange} from "./utilities";
+import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -95,13 +95,17 @@ export async function activate(
 				const elements: Element[] = documents
 					.map(
 						({ document, diagnostics }) => {
+							if (diagnostics.length === 0) {
+								return null;
+							}
+
 							let label = document.fileName.replace(rootPath, '');
 
 							const children: Element[] = diagnostics
 								.map(
 									(diagnostic) => {
 										return {
-											kind: 'DIAGNOSTIC',
+											kind: 'DIAGNOSTIC' as const,
 											label: diagnostic.title,
 											fileName: document.fileName,
 											uri: document.uri,
@@ -112,12 +116,13 @@ export async function activate(
 								);
 
 							return {
-								kind: 'FILE',
+								kind: 'FILE' as const,
 								label,
 								children,
 							};
 						}
-					);
+					)
+					.filter(isNeitherNullNorUndefined);
 
 				return Promise.resolve(elements);
 			}
