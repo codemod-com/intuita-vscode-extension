@@ -34,8 +34,45 @@
 					"type": "number",
 					"default": 1,
 					"description": "Change to apply a custom weight to the kind coefficient. This coefficient equals the ratio of the same-kind neighboring nodes of the current top-level node to their total number. By increasing the weight, you increase the influence of the kind on the proposed move solutions. Set the value to 0 to disable this coefficient."
+				},
+				"intuita.recommendationBlockTrigger": {
+					"type": "string",
+					"default": "onlyNew",
+					"enum": ["onlyNew", "newAndChanged", "all"],
+					"enumDescriptions": [
+						"Provide recommendations only for the new code blocks",
+						"Provide recommendations only for the new and changed code blocks",
+						"Provide recommendations for all code blocks"
+					]
 				}
 			}
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "intuitaViewId",
+					"title": "Intuita",
+					"icon": "img/intuita.svg"
+				}
+			]
+		},
+		"views": {
+			"explorer": [
+				{
+					"id": "explorerIntuitaViewId",
+					"name": "Intuita",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita"
+				}
+			],
+			"intuitaViewId": [
+				{
+					"id": "intuitaViewId",
+					"name": "Intuita",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita"
+				}
+			]
 		}
 	},
 	"main": "./dist/extension.js",

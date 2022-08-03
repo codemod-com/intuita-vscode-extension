@@ -1,5 +1,5 @@
 import { Configuration } from "../../configuration";
-import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeUserCommand, RangeCriterion} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
@@ -12,11 +12,14 @@ import {
 } from "../../utilities";
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
+import {Container} from "../../container";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
     title: string,
     range: IntuitaRange,
+    oldIndex: number,
+    newIndex: number,
 }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -39,7 +42,7 @@ export class ExtensionStateManager {
     protected _state: State = new Map();
 
     public constructor(
-        protected readonly _configuration: Configuration,
+        protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
             diagnostics: ReadonlyArray<IntuitaDiagnostic>,
@@ -48,23 +51,23 @@ export class ExtensionStateManager {
 
     }
 
+    public getDocuments() {
+        return Array.from(this._state.values());
+    }
+
     public onFileTextChanged(
         document: vscode.TextDocument,
-        ranges: ReadonlyArray<IntuitaRange>,
+        rangeCriterion: RangeCriterion,
     ) {
         const { fileName } = document;
         const fileText = document.getText();
-
-        if (ranges.length === 0) {
-            return;
-        }
 
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
-            options: this._configuration,
-            ranges,
+            options: this._configurationContainer.get(),
+            rangeCriterion,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
@@ -73,7 +76,7 @@ export class ExtensionStateManager {
             (solutions) => {
                 const solution = solutions[0]!;
 
-                const { oldIndex } = solution;
+                const { oldIndex, newIndex } = solution;
 
                 const topLevelNode = fact.topLevelNodes[oldIndex]!;
 
@@ -96,6 +99,8 @@ export class ExtensionStateManager {
                     range,
                     title,
                     fact,
+                    oldIndex,
+                    newIndex,
                 };
             }
         );
@@ -183,7 +188,7 @@ export class ExtensionStateManager {
 
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
 
-                    
+
 
                     const {
                         oldIndex,
