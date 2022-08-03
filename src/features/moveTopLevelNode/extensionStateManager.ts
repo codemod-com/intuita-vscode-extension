@@ -12,6 +12,7 @@ import {
 } from "../../utilities";
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
+import {Container} from "../../container";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
@@ -41,7 +42,7 @@ export class ExtensionStateManager {
     protected _state: State = new Map();
 
     public constructor(
-        protected readonly _configuration: Configuration,
+        protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
             diagnostics: ReadonlyArray<IntuitaDiagnostic>,
@@ -65,7 +66,7 @@ export class ExtensionStateManager {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
-            options: this._configuration,
+            options: this._configurationContainer.get(),
             rangeCriterion,
         };
 

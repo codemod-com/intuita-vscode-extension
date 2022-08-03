@@ -14,17 +14,21 @@ import {getConfiguration, RecommendationBlockTrigger} from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
+import {buildContainer} from "./container";
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
-	let configuration = getConfiguration();
+	const configurationContainer = buildContainer(
+		getConfiguration()
+	);
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration(
 			() => {
-				// it will obviously not work, but this is a stub of a working construct
-				configuration = getConfiguration();
+				configurationContainer.set(
+					getConfiguration()
+				);
 			}
 		)
 	);
@@ -74,7 +78,7 @@ export async function activate(
 	};
 
 	const extensionStateManager = new ExtensionStateManager(
-		configuration,
+		configurationContainer,
 		_setDiagnosticEntry,
 	);
 
@@ -264,7 +268,7 @@ export async function activate(
 
 	if (vscode.window.activeTextEditor) {
 		const rangeCriterion: RangeCriterion =
-			configuration.recommendationBlockTrigger === RecommendationBlockTrigger.all
+			configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
 				? {
 					kind: RangeCriterionKind.DOCUMENT,
 				}
@@ -289,7 +293,7 @@ export async function activate(
 					return;
 				}
 				const rangeCriterion: RangeCriterion =
-					configuration.recommendationBlockTrigger === RecommendationBlockTrigger.all
+					configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
 						? {
 							kind: RangeCriterionKind.DOCUMENT,
 						}
