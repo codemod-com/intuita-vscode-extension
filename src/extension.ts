@@ -10,14 +10,17 @@ import {
 	TreeItemCollapsibleState
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
-import {getConfiguration} from './configuration';
+import {getConfiguration, RecommendationBlockTrigger} from './configuration';
 import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
+import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
 	const configuration = getConfiguration();
+
+	console.log(configuration);
 
 	const diagnosticCollection = vscode
 		.languages
@@ -237,24 +240,34 @@ export async function activate(
 
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
-		characterRanges: ReadonlyArray<IntuitaRange>,
+		rangeCriterion: RangeCriterion,
 	) => {
 		extensionStateManager
 			.onFileTextChanged(
 				document,
-				characterRanges,
+				rangeCriterion,
 			);
 
 		_onDidChangeTreeData.fire();
 	};
 
 	if (vscode.window.activeTextEditor) {
+		const rangeCriterion: RangeCriterion =
+			configuration.recommendationBlockTrigger === RecommendationBlockTrigger.all
+				? {
+					kind: RangeCriterionKind.DOCUMENT,
+				}
+				: {
+					kind: RangeCriterionKind.RANGES,
+					ranges: [],
+				};
+
 		activeTextEditorChangedCallback(
 			vscode
 				.window
 				.activeTextEditor
 				.document,
-			[],
+			rangeCriterion,
 		);
 	}
 
@@ -264,11 +277,20 @@ export async function activate(
 				if (!textEditor) {
 					return;
 				}
+				const rangeCriterion: RangeCriterion =
+					configuration.recommendationBlockTrigger === RecommendationBlockTrigger.all
+						? {
+							kind: RangeCriterionKind.DOCUMENT,
+						}
+						: {
+							kind: RangeCriterionKind.RANGES,
+							ranges: [],
+						};
 
 				return activeTextEditorChangedCallback(
 					textEditor
 						.document,
-					[],
+					rangeCriterion,
 				);
 			},
 		),
@@ -330,10 +352,6 @@ export async function activate(
 				    ),
 				);
 
-				const document = vscode.workspace.textDocuments.find(
-					(document) => document.fileName === fileName
-				);
-
 				await vscode.window.activeTextEditor?.edit(
 				    (textEditorEdit) => {
 				        textEditorEdit.replace(
@@ -389,7 +407,10 @@ export async function activate(
 				extensionStateManager
 					.onFileTextChanged(
 						document,
-						ranges,
+						{
+							kind: RangeCriterionKind.RANGES,
+							ranges,
+						},
 					);
 
 				_onDidChangeTreeData.fire();

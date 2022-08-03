@@ -1,5 +1,5 @@
 import { Configuration } from "../../configuration";
-import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeUserCommand, RangeCriterion} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
@@ -56,21 +56,17 @@ export class ExtensionStateManager {
 
     public onFileTextChanged(
         document: vscode.TextDocument,
-        ranges: ReadonlyArray<IntuitaRange>,
+        rangeCriterion: RangeCriterion,
     ) {
         const { fileName } = document;
         const fileText = document.getText();
-
-        if (ranges.length === 0) {
-            return;
-        }
 
         const userCommand: MoveTopLevelNodeUserCommand = {
             kind: 'MOVE_TOP_LEVEL_NODE',
             fileName,
             fileText,
             options: this._configuration,
-            ranges,
+            rangeCriterion,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
