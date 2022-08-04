@@ -17,6 +17,35 @@
 		"codeActionProvider": "true"
 	},
 	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "intuitaViewId",
+				"contents": "[TODO] There are no recommendations."
+			},
+			{
+				"view": "explorerIntuitaViewId",
+				"contents": "[TODO] There are no recommendations."
+			}
+		],
+		"commands": [
+			{
+				"command": "intuita.executeAllRecommendations",
+				"title": "Execute all recommendations",
+				"icon": "$(play)"
+			},
+			{
+				"command": "intuita.executeRecommendation",
+				"title": "★ Execute the recommendation"
+			},
+			{
+				"command": "intuita.acceptRecommendation",
+				"title": "✓ Accept the recommendation"
+			},
+			{
+				"command": "intuita.rejectRecommendation",
+				"title": "✗ Reject the recommendation"
+			}
+		],
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
@@ -71,6 +100,32 @@
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
+				}
+			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "intuita.executeAllRecommendations",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "intuita.executeRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaFirstGroup"
+				},
+				{
+					"command": "intuita.acceptRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaSecondGroup"
+				},
+				{
+					"command": "intuita.rejectRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaSecondGroup"
 				}
 			]
 		}

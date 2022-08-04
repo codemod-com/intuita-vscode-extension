@@ -188,17 +188,45 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			'intuitaViewId',
+			'explorerIntuitaViewId',
 			treeDataProvider
 		)
 	);
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			'explorerIntuitaViewId',
+			'intuitaViewId',
 			treeDataProvider
 		)
 	);
+
+	// vscode.window.withProgress( 
+	// 	{
+	// 		location: {
+	// 			viewId: 'intuitaViewId',
+	// 		}
+	// 	},
+	// 	async (progress) => {
+	// 		return new Promise<void>(
+	// 			(resolve, reject) => {
+	// 				setTimeout(
+	// 					() => {
+	// 						progress.report({
+	// 							increment: 10,
+	// 						})
+
+	// 						reject();
+
+	// 						// resolve();
+	// 					},
+	// 					10000,
+	// 				);
+	// 			}
+	// 		)
+	// 	}
+	// )
+
+	
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(
@@ -313,6 +341,54 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeRecommendation',
+			async (args) => {
+				const fileName: string | null = args && typeof args.fileName === 'string'
+					? args.fileName
+					: null;
+
+				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+					? args.oldIndex
+					: null;
+
+				const newIndex: number | null = args && typeof args.newIndex === 'number'
+					? args.newIndex
+					: null;
+
+
+				vscode.commands.executeCommand(
+					'intuita.moveTopLevelNode',
+					{
+						fileName,
+						oldIndex,
+						newIndex,
+						characterDifference: 0,
+					}
+				)
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectRecommendation',
+			async (args) => {
+				console.log(args);
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.deleteRecommendation',
+			async (args) => {
+				console.log(args);
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
@@ -331,6 +407,20 @@ export async function activate(
 					? args.characterDifference
 					: null;
 
+				const textDocuments = vscode
+					.workspace
+					.textDocuments
+					.filter(
+						(textDocument) => textDocument.fileName === fileName
+					)
+
+				const textEditors = vscode
+					.window
+					.visibleTextEditors
+					.filter(
+						(x) => x.document.fileName === fileName
+					)
+
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
 				if (
@@ -338,8 +428,6 @@ export async function activate(
 					|| oldIndex === null
 					|| newIndex === null
 					|| characterDifference === null
-					|| activeTextEditor === null
-					|| activeTextEditor.document.fileName !== fileName
 				) {
 					return;
 				}
@@ -367,37 +455,44 @@ export async function activate(
 				    ),
 				);
 
-				await vscode.window.activeTextEditor?.edit(
-				    (textEditorEdit) => {
-				        textEditorEdit.replace(
-				            range,
-				            result.text,
-				        );
-				    },
+				await Promise.all(
+					textEditors.map(
+						(textEditor) => {
+							return textEditor.edit(
+								(textEditorEdit) => {
+									textEditorEdit.replace(
+										range,
+										result.text,
+									);
+								}
+							);
+						}
+					)
 				);
 
-				const position = new vscode.Position(
-					result.position[0],
-					result.position[1],
-				);
-
-				const selection = new vscode.Selection(
-					position,
-					position
-				);
-
-				activeTextEditor.selections = [ selection ];
-
-				activeTextEditor.revealRange(
-				    new vscode.Range(
+				if (activeTextEditor?.document.fileName === fileName) {
+					const position = new vscode.Position(
+						result.position[0],
+						result.position[1],
+					);
+	
+					const selection = new vscode.Selection(
 						position,
 						position
-					),
-				    vscode
-						.TextEditorRevealType
-						.AtTop,
-				);
-
+					);
+	
+					activeTextEditor.selections = [ selection ];
+	
+					activeTextEditor.revealRange(
+						new vscode.Range(
+							position,
+							position
+						),
+						vscode
+							.TextEditorRevealType
+							.AtTop,
+					);
+				}
 			}
 		),
 	);
