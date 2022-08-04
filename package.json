@@ -19,6 +19,11 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "intuita.executeAllRecommendations",
+				"title": "Execute all recommendations",
+				"icon": "$(play)"
+			},
+			{
 				"command": "intuita.executeRecommendation",
 				"title": "★ Execute the recommendation"
 			},
@@ -89,6 +94,13 @@
 			]
 		},
 		"menus": {
+			"view/title": [
+				{
+					"command": "intuita.executeAllRecommendations",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				}
+			],
 			"view/item/context": [
 				{
 					"command": "intuita.executeRecommendation",

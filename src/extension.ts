@@ -313,6 +313,24 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeRecommendation',
+			async (args) => {
+				console.log(args);
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectRecommendation',
+			async (args) => {
+				console.log(args);
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.deleteRecommendation',
 			async (args) => {
 				console.log(args);
@@ -340,6 +358,20 @@ export async function activate(
 					? args.characterDifference
 					: null;
 
+				const textDocuments = vscode
+					.workspace
+					.textDocuments
+					.filter(
+						(textDocument) => textDocument.fileName === fileName
+					)
+
+				const textEditors = vscode
+					.window
+					.visibleTextEditors
+					.filter(
+						(x) => x.document.fileName === fileName
+					)
+
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
 				if (
@@ -347,8 +379,8 @@ export async function activate(
 					|| oldIndex === null
 					|| newIndex === null
 					|| characterDifference === null
-					|| activeTextEditor === null
-					|| activeTextEditor.document.fileName !== fileName
+					// || activeTextEditor === null
+					// || activeTextEditor.document.fileName !== fileName
 				) {
 					return;
 				}
@@ -376,37 +408,53 @@ export async function activate(
 				    ),
 				);
 
-				await vscode.window.activeTextEditor?.edit(
-				    (textEditorEdit) => {
-				        textEditorEdit.replace(
-				            range,
-				            result.text,
-				        );
-				    },
+				await Promise.all(
+					textEditors.map(
+						(textEditor) => {
+							return textEditor.edit(
+								(textEditorEdit) => {
+									textEditorEdit.replace(
+										range,
+										result.text,
+									);
+								}
+							);
+						}
+					)
 				);
 
-				const position = new vscode.Position(
-					result.position[0],
-					result.position[1],
-				);
+				// await vscode.window.activeTextEditor?.edit(
+				//     (textEditorEdit) => {
+				//         textEditorEdit.replace(
+				//             range,
+				//             result.text,
+				//         );
+				//     },
+				// );
 
-				const selection = new vscode.Selection(
-					position,
-					position
-				);
-
-				activeTextEditor.selections = [ selection ];
-
-				activeTextEditor.revealRange(
-				    new vscode.Range(
+				if (activeTextEditor?.document.fileName === fileName) {
+					const position = new vscode.Position(
+						result.position[0],
+						result.position[1],
+					);
+	
+					const selection = new vscode.Selection(
 						position,
 						position
-					),
-				    vscode
-						.TextEditorRevealType
-						.AtTop,
-				);
-
+					);
+	
+					activeTextEditor.selections = [ selection ];
+	
+					activeTextEditor.revealRange(
+						new vscode.Range(
+							position,
+							position
+						),
+						vscode
+							.TextEditorRevealType
+							.AtTop,
+					);
+				}
 			}
 		),
 	);
