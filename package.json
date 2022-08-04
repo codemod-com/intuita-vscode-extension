@@ -17,6 +17,20 @@
 		"codeActionProvider": "true"
 	},
 	"contributes": {
+		"commands": [
+			{
+				"command": "intuita.executeRecommendation",
+				"title": "★ Execute the recommendation"
+			},
+			{
+				"command": "intuita.acceptRecommendation",
+				"title": "✓ Accept the recommendation"
+			},
+			{
+				"command": "intuita.rejectRecommendation",
+				"title": "✗ Reject the recommendation"
+			}
+		],
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
@@ -71,6 +85,25 @@
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
+				}
+			]
+		},
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "intuita.executeRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaFirstGroup"
+				},
+				{
+					"command": "intuita.acceptRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaSecondGroup"
+				},
+				{
+					"command": "intuita.rejectRecommendation",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "intuitaSecondGroup"
 				}
 			]
 		}

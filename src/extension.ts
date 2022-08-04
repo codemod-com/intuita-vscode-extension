@@ -313,6 +313,15 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.deleteRecommendation',
+			async (args) => {
+				console.log(args);
+			}
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
