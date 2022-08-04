@@ -72,13 +72,21 @@ export class ExtensionStateManager {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const diagnostics = fact.solutions.map(
+        const diagnostics = fact.solutions.flatMap(
             (solutions) => {
-                const solution = solutions[0]!;
+                const solution = solutions[0] ?? null;
+
+                if (solution === null) {
+                    return null;
+                }
 
                 const { oldIndex, newIndex } = solution;
 
-                const topLevelNode = fact.topLevelNodes[oldIndex]!;
+                const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
+
+                if (topLevelNode === null) {
+                    return null;
+                }
 
                 const title = buildTitle(solution, false) ?? '';
 
@@ -103,7 +111,8 @@ export class ExtensionStateManager {
                     newIndex,
                 };
             }
-        );
+        )
+            .filter(isNeitherNullNorUndefined);
 
         const hash = buildHash(fileName);
 
