@@ -315,7 +315,28 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.executeRecommendation',
 			async (args) => {
-				console.log(args);
+				const fileName: string | null = args && typeof args.fileName === 'string'
+					? args.fileName
+					: null;
+
+				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+					? args.oldIndex
+					: null;
+
+				const newIndex: number | null = args && typeof args.newIndex === 'number'
+					? args.newIndex
+					: null;
+
+
+				vscode.commands.executeCommand(
+					'intuita.moveTopLevelNode',
+					{
+						fileName,
+						oldIndex,
+						newIndex,
+						characterDifference: 0,
+					}
+				)
 			}
 		)
 	);
@@ -379,8 +400,6 @@ export async function activate(
 					|| oldIndex === null
 					|| newIndex === null
 					|| characterDifference === null
-					// || activeTextEditor === null
-					// || activeTextEditor.document.fileName !== fileName
 				) {
 					return;
 				}
@@ -422,15 +441,6 @@ export async function activate(
 						}
 					)
 				);
-
-				// await vscode.window.activeTextEditor?.edit(
-				//     (textEditorEdit) => {
-				//         textEditorEdit.replace(
-				//             range,
-				//             result.text,
-				//         );
-				//     },
-				// );
 
 				if (activeTextEditor?.document.fileName === fileName) {
 					const position = new vscode.Position(
