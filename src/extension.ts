@@ -188,17 +188,45 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			'intuitaViewId',
+			'explorerIntuitaViewId',
 			treeDataProvider
 		)
 	);
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
-			'explorerIntuitaViewId',
+			'intuitaViewId',
 			treeDataProvider
 		)
 	);
+
+	// vscode.window.withProgress( 
+	// 	{
+	// 		location: {
+	// 			viewId: 'intuitaViewId',
+	// 		}
+	// 	},
+	// 	async (progress) => {
+	// 		return new Promise<void>(
+	// 			(resolve, reject) => {
+	// 				setTimeout(
+	// 					() => {
+	// 						progress.report({
+	// 							increment: 10,
+	// 						})
+
+	// 						reject();
+
+	// 						// resolve();
+	// 					},
+	// 					10000,
+	// 				);
+	// 			}
+	// 		)
+	// 	}
+	// )
+
+	
 
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(

@@ -17,6 +17,16 @@
 		"codeActionProvider": "true"
 	},
 	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "intuitaViewId",
+				"contents": "[TODO] There are no recommendations."
+			},
+			{
+				"view": "explorerIntuitaViewId",
+				"contents": "[TODO] There are no recommendations."
+			}
+		],
 		"commands": [
 			{
 				"command": "intuita.executeAllRecommendations",
