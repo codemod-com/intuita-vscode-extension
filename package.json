@@ -44,6 +44,14 @@
 			{
 				"command": "intuita.rejectRecommendation",
 				"title": "✗ Reject the recommendation"
+			},
+			{
+				"command": "intuita.acceptRecommendationFromVirtualDocument",
+				"title": "✓ Accept"
+			},
+			{
+				"command": "intuita.rejectRecommendationFromVirtualDocument",
+				"title": "✗ Reject"
 			}
 		],
 		"configuration": {
@@ -104,6 +112,18 @@
 			]
 		},
 		"menus": {
+			"editor/title": [
+				{
+					"command": "intuita.acceptRecommendationFromVirtualDocument",
+					"group": "navigation",
+					"when": "resourceScheme == intuita"
+				},
+				{
+					"command": "intuita.rejectRecommendationFromVirtualDocument",
+					"group": "navigation",
+					"when": "resourceScheme == intuita"
+				}
+			],
 			"view/title": [
 				{
 					"command": "intuita.executeAllRecommendations",
