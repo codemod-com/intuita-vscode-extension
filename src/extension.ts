@@ -542,7 +542,13 @@ export async function activate(
 	context.subscriptions.push(diagnosticCollection);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.getEditorTitle', async (args) => {
+		vscode.commands.registerCommand('intuita.acceptRecommendationFromVirtualDocument', async (args) => {
+			console.log('args', args);
+		})
+	)
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.rejectRecommendationFromVirtualDocument', async (args) => {
 			console.log('args', args);
 		})
 	)
