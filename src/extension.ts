@@ -95,6 +95,7 @@ export async function activate(
 			fileName: string,
 			oldIndex: number,
 			newIndex: number,
+			range: IntuitaRange,
 		}>;
 
 	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
@@ -125,6 +126,7 @@ export async function activate(
 											uri: document.uri,
 											oldIndex: diagnostic.oldIndex,
 											newIndex: diagnostic.newIndex,
+											range: diagnostic.range,
 										};
 									}
 								);
@@ -166,17 +168,27 @@ export async function activate(
 
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.command = {
-					title: 'Show difference',
-					command: 'vscode.diff',
+					title: 'Peek View',
+					command: 'editor.action.peekLocations',
 					arguments: [
 						element.uri,
-						vscode.Uri.parse(
-							'intuita://moveTopLevelNode.ts'
-							+ `?fileName=${encodeURIComponent(element.fileName)}`
-							+ `&oldIndex=${String(element.oldIndex)}`
-							+ `&newIndex=${String(element.newIndex)}`,
-							true,
+						new vscode.Position(
+							element.range[0],
+							element.range[1]
 						),
+						[
+							new vscode.Location(
+								vscode.Uri.parse(
+									'intuita:moveTopLevelNode.ts'
+									+ `?fileName=${encodeURIComponent(element.fileName)}`
+									+ `&oldIndex=${String(element.oldIndex)}`
+									+ `&newIndex=${String(element.newIndex)}`,
+									true,
+								),
+								new vscode.Position(0, 0),
+							)
+						],
+						'peek'
 					]
 				};
 			}
@@ -528,6 +540,12 @@ export async function activate(
 		);
 
 	context.subscriptions.push(diagnosticCollection);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.getEditorTitle', async (args) => {
+			console.log('args', args);
+		})
+	)
 
 	console.log('Activated the Intuita VSCode Extension');
 }
