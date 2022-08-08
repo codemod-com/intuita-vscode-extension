@@ -394,8 +394,6 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (args) => {
-				console.log(args);
-
 				const fileName: string | null = args && typeof args.fileName === 'string'
 					? args.fileName
 					: null;
@@ -412,14 +410,11 @@ export async function activate(
 					? args.characterDifference
 					: null;
 
-				// vscode.window.tex
-
 				const textEditors = vscode
 					.window
 					.visibleTextEditors
 					.filter(
 						({ document }) => {
-							console.log('A', document.fileName);
 							return document.fileName === fileName;
 						},
 					);
@@ -429,7 +424,6 @@ export async function activate(
 					.textDocuments
 					.filter(
 						(document) => {
-							console.log('B', document.fileName);
 							return document.fileName === fileName;
 						},
 					);
@@ -442,7 +436,6 @@ export async function activate(
 					|| newIndex === null
 					|| characterDifference === null
 				) {
-					console.log(fileName, oldIndex, newIndex, characterDifference);
 					throw new Error('Requirements were not met.');
 				}
 
@@ -601,25 +594,25 @@ export async function activate(
 				);
 			}
 		)
-	)
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendationFromVirtualDocument',
 			async (args) => {
 				console.log('args', args);
-			}
+			},
 		)
-	)
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.showNextRecommendationFromVirtualDocument',
 			async (args) => {
 				console.log('args', args);
-			}
-		)
-	)
+			},
+		),
+	);
 
 	console.log('Activated the Intuita VSCode Extension');
 }
