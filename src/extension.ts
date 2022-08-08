@@ -412,12 +412,27 @@ export async function activate(
 					? args.characterDifference
 					: null;
 
+				// vscode.window.tex
+
 				const textEditors = vscode
 					.window
 					.visibleTextEditors
 					.filter(
-						(vte) => vte.document.fileName === fileName
-					)
+						({ document }) => {
+							console.log('A', document.fileName);
+							return document.fileName === fileName;
+						},
+					);
+
+				const textDocuments = vscode
+					.workspace
+					.textDocuments
+					.filter(
+						(document) => {
+							console.log('B', document.fileName);
+							return document.fileName === fileName;
+						},
+					);
 
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
@@ -468,6 +483,29 @@ export async function activate(
 						}
 					)
 				);
+
+				if (textEditors.length === 0) {
+					textDocuments.forEach(
+						(textDocument) => {
+							vscode
+								.window
+								// TODO we can add a range here
+								.showTextDocument(textDocument)
+								.then(
+									(textEditor) => {
+										return textEditor.edit(
+											(textEditorEdit) => {
+												textEditorEdit.replace(
+													range,
+													result.text,
+												);
+											}
+										);
+									}
+								)
+						}
+					)
+				}
 
 				if (activeTextEditor?.document.fileName === fileName) {
 					const position = new vscode.Position(
