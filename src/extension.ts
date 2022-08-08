@@ -353,7 +353,7 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeRecommendation',
+			'intuita.acceptRecommendation',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
 					? args.fileName
@@ -384,15 +384,6 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendation',
-			async (args) => {
-				console.log(args);
-			}
-		)
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.deleteRecommendation',
 			async (args) => {
 				console.log(args);
 			}
@@ -542,15 +533,30 @@ export async function activate(
 	context.subscriptions.push(diagnosticCollection);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.acceptRecommendationFromVirtualDocument', async (args) => {
-			console.log('args', args);
-		})
+		vscode.commands.registerCommand(
+			'intuita.acceptRecommendationFromVirtualDocument',
+			async (args) => {
+				console.log('args', args);
+			}
+		)
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.rejectRecommendationFromVirtualDocument', async (args) => {
-			console.log('args', args);
-		})
+		vscode.commands.registerCommand(
+			'intuita.rejectRecommendationFromVirtualDocument',
+			async (args) => {
+				console.log('args', args);
+			}
+		)
+	)
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.showNextRecommendationFromVirtualDocument',
+			async (args) => {
+				console.log('args', args);
+			}
+		)
 	)
 
 	console.log('Activated the Intuita VSCode Extension');
