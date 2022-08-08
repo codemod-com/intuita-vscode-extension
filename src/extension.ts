@@ -570,7 +570,6 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.acceptRecommendationFromVirtualDocument',
 			async (args) => {
-				console.log('HERE')
 				const query: string = args.query;
 
 				const urlSearchParams = new URLSearchParams(query);
@@ -587,7 +586,9 @@ export async function activate(
 					throw new Error('Did not pass file name or old index or new index.');
 				}
 
-				console.log('ABCD', fileName, oldIndex, newIndex);
+				await vscode.commands.executeCommand(
+					'workbench.action.closeActiveEditor',
+				);
 
 				await vscode.commands.executeCommand(
 					'intuita.moveTopLevelNode',
@@ -596,8 +597,8 @@ export async function activate(
 						oldIndex: Number(oldIndex),
 						newIndex: Number(newIndex),
 						characterDifference: 0,
-					}
-				)
+					},
+				);
 			}
 		)
 	)
