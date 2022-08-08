@@ -29,13 +29,9 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.executeAllRecommendations",
-				"title": "Execute all recommendations",
+				"command": "intuita.executeRecommendations",
+				"title": "Execute recommendations",
 				"icon": "$(play)"
-			},
-			{
-				"command": "intuita.executeRecommendation",
-				"title": "★ Execute the recommendation"
 			},
 			{
 				"command": "intuita.acceptRecommendation",
@@ -52,6 +48,10 @@
 			{
 				"command": "intuita.rejectRecommendationFromVirtualDocument",
 				"title": "✗ Reject"
+			},
+			{
+				"command": "intuita.showNextRecommendationFromVirtualDocument",
+				"title": "➤ Next"
 			}
 		],
 		"configuration": {
@@ -122,30 +122,30 @@
 					"command": "intuita.rejectRecommendationFromVirtualDocument",
 					"group": "navigation",
 					"when": "resourceScheme == intuita"
+				},
+				{
+					"command": "intuita.showNextRecommendationFromVirtualDocument",
+					"group": "navigation",
+					"when": "resourceScheme == intuita"
 				}
 			],
 			"view/title": [
 				{
-					"command": "intuita.executeAllRecommendations",
+					"command": "intuita.executeRecommendations",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "intuita.executeRecommendation",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "intuitaFirstGroup"
-				},
-				{
 					"command": "intuita.acceptRecommendation",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "intuitaSecondGroup"
+					"group": "intuitaGroup"
 				},
 				{
 					"command": "intuita.rejectRecommendation",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "intuitaSecondGroup"
+					"group": "intuitaGroup"
 				}
 			]
 		}

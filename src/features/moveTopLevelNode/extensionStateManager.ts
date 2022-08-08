@@ -59,6 +59,10 @@ export class ExtensionStateManager {
         document: vscode.TextDocument,
         rangeCriterion: RangeCriterion,
     ) {
+        if (document.uri.scheme !== 'file') {
+            return;
+        }
+
         const { fileName } = document;
         const fileText = document.getText();
 

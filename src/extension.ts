@@ -353,7 +353,7 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeRecommendation',
+			'intuita.acceptRecommendation',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
 					? args.fileName
@@ -392,15 +392,6 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.deleteRecommendation',
-			async (args) => {
-				console.log(args);
-			}
-		)
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
@@ -419,19 +410,23 @@ export async function activate(
 					? args.characterDifference
 					: null;
 
-				const textDocuments = vscode
-					.workspace
-					.textDocuments
-					.filter(
-						(textDocument) => textDocument.fileName === fileName
-					)
-
 				const textEditors = vscode
 					.window
 					.visibleTextEditors
 					.filter(
-						(x) => x.document.fileName === fileName
-					)
+						({ document }) => {
+							return document.fileName === fileName;
+						},
+					);
+
+				const textDocuments = vscode
+					.workspace
+					.textDocuments
+					.filter(
+						(document) => {
+							return document.fileName === fileName;
+						},
+					);
 
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
@@ -441,7 +436,7 @@ export async function activate(
 					|| newIndex === null
 					|| characterDifference === null
 				) {
-					return;
+					throw new Error('Requirements were not met.');
 				}
 
 				const result = extensionStateManager
@@ -453,7 +448,7 @@ export async function activate(
 					);
 
 				if (!result) {
-					return;
+					throw new Error();
 				}
 
 				const range = new vscode.Range(
@@ -481,6 +476,29 @@ export async function activate(
 						}
 					)
 				);
+
+				if (textEditors.length === 0) {
+					textDocuments.forEach(
+						(textDocument) => {
+							vscode
+								.window
+								// TODO we can add a range here
+								.showTextDocument(textDocument)
+								.then(
+									(textEditor) => {
+										return textEditor.edit(
+											(textEditorEdit) => {
+												textEditorEdit.replace(
+													range,
+													result.text,
+												);
+											}
+										);
+									}
+								)
+						}
+					)
+				}
 
 				if (activeTextEditor?.document.fileName === fileName) {
 					const position = new vscode.Position(
@@ -542,16 +560,59 @@ export async function activate(
 	context.subscriptions.push(diagnosticCollection);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.acceptRecommendationFromVirtualDocument', async (args) => {
-			console.log('args', args);
-		})
-	)
+		vscode.commands.registerCommand(
+			'intuita.acceptRecommendationFromVirtualDocument',
+			async (args) => {
+				const query: string = args.query;
+
+				const urlSearchParams = new URLSearchParams(query);
+
+				const fileName = urlSearchParams.get('fileName')
+				const oldIndex = urlSearchParams.get('oldIndex');
+				const newIndex = urlSearchParams.get('newIndex');
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+				) {
+					throw new Error('Did not pass file name or old index or new index.');
+				}
+
+				await vscode.commands.executeCommand(
+					'workbench.action.closeActiveEditor',
+				);
+
+				await vscode.commands.executeCommand(
+					'intuita.moveTopLevelNode',
+					{
+						fileName,
+						oldIndex: Number(oldIndex),
+						newIndex: Number(newIndex),
+						characterDifference: 0,
+					},
+				);
+			}
+		)
+	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.rejectRecommendationFromVirtualDocument', async (args) => {
-			console.log('args', args);
-		})
-	)
+		vscode.commands.registerCommand(
+			'intuita.rejectRecommendationFromVirtualDocument',
+			async (args) => {
+				console.log('args', args);
+			},
+		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.showNextRecommendationFromVirtualDocument',
+			async (args) => {
+				console.log('args', args);
+			},
+		),
+	);
 
 	console.log('Activated the Intuita VSCode Extension');
 }
