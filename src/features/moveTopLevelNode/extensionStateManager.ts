@@ -15,7 +15,7 @@ import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
 import { RecommendationHash } from "./recommendationHash";
-import { FileNameHash } from "./fileNameHash";
+import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
 export type IntuitaRecommendation = Readonly<{
     title: string,
@@ -30,16 +30,6 @@ export type IntuitaCodeAction = Readonly<{
     oldIndex: number,
     newIndex: number,
 }>;
-
-// TODO: rename
-// type State = Map<
-//     string,
-//     Readonly<{
-//         document: vscode.TextDocument,
-//         // diagnostics: ReadonlyArray<IntuitaDiagnostic>,
-//         fact: MoveTopLevelNodeFact,
-//     }>
-// >;
 
 export class ExtensionStateManager {
     protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
@@ -76,13 +66,14 @@ export class ExtensionStateManager {
                 
                 const recommendations = Array.from(recommendationHashes).map(
                     (recommendationHash) => {
-                        const recommendation = this._recommendationMap.get(recommendationHash);
+                        if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+                            return null;
+                        }
 
-                        assertsNeitherNullOrUndefined(recommendation);
-
-                        return recommendation;
+                        return this._recommendationMap.get(recommendationHash);
                     },
-                );
+                )
+                    .filter(isNeitherNullNorUndefined);
 
                 return {
                     document,
@@ -96,7 +87,10 @@ export class ExtensionStateManager {
     public rejectRecommendation(
         recommendationHash: RecommendationHash,
     ) {
+        this._rejectedRecommendationHashes.add(recommendationHash);
+        this._recommendationMap.delete(recommendationHash);
 
+        // TODO run the callback
     }
 
     public onFileTextChanged(
@@ -162,16 +156,16 @@ export class ExtensionStateManager {
         )
             .filter(isNeitherNullNorUndefined);
 
-        const hash = buildHash(fileName);
+        const fileNameHash = buildFileNameHash(fileName);
 
-        this._state.set(
-            hash,
-            {
-                document,
-                fact,
-                diagnostics,
-            },
-        );
+        // this._state.set(
+        //     hash,
+        //     {
+        //         document,
+        //         fact,
+        //         diagnostics,
+        //     },
+        // );
 
         this._setDiagnosticEntry(
             fileName,
