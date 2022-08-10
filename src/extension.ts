@@ -168,27 +168,18 @@ export async function activate(
 
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.command = {
-					title: 'Peek View',
-					command: 'editor.action.peekLocations',
+					title: 'Diff View',
+					command: 'vscode.diff',
 					arguments: [
 						element.uri,
-						new vscode.Position(
-							element.range[0],
-							element.range[1]
+						vscode.Uri.parse(
+							'intuita:moveTopLevelNode.ts'
+							+ `?fileName=${encodeURIComponent(element.fileName)}`
+							+ `&oldIndex=${String(element.oldIndex)}`
+							+ `&newIndex=${String(element.newIndex)}`,
+							true,
 						),
-						[
-							new vscode.Location(
-								vscode.Uri.parse(
-									'intuita:moveTopLevelNode.ts'
-									+ `?fileName=${encodeURIComponent(element.fileName)}`
-									+ `&oldIndex=${String(element.oldIndex)}`
-									+ `&newIndex=${String(element.newIndex)}`,
-									true,
-								),
-								new vscode.Position(0, 0),
-							)
-						],
-						'peek'
+						'Proposed change',
 					]
 				};
 			}
