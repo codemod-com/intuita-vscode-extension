@@ -3,6 +3,7 @@ import {MoveTopLevelNodeUserCommand, RangeCriterion} from "./1_userCommandBuilde
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
+    assertsNeitherNullOrUndefined,
     buildHash,
     calculateCharacterIndex,
     calculatePosition,
@@ -57,8 +58,39 @@ export class ExtensionStateManager {
 
     }
 
+    // TODO: change name
     public getDocuments() {
-        return Array.from(this._state.values());
+        const fileNameHashes = Array.from(
+            this._documentMap.keys()
+        );
+
+        return fileNameHashes.map(
+            (fileNameHash) => {
+                const document = this._documentMap.get(fileNameHash);
+                const fact = this._factMap.get(fileNameHash);
+                const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
+
+                assertsNeitherNullOrUndefined(document);
+                assertsNeitherNullOrUndefined(fact);
+                assertsNeitherNullOrUndefined(recommendationHashes);
+                
+                const recommendations = Array.from(recommendationHashes).map(
+                    (recommendationHash) => {
+                        const recommendation = this._recommendationMap.get(recommendationHash);
+
+                        assertsNeitherNullOrUndefined(recommendation);
+
+                        return recommendation;
+                    },
+                );
+
+                return {
+                    document,
+                    fact,
+                    recommendations,
+                };
+            },
+        );
     }
 
     public rejectRecommendation(

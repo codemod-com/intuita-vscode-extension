@@ -110,14 +110,14 @@ export async function activate(
 
 				const elements: Element[] = documents
 					.map(
-						({ document, diagnostics }) => {
-							if (diagnostics.length === 0) {
+						({ document, recommendations }) => {
+							if (recommendations.length === 0) {
 								return null;
 							}
 
 							let label = document.fileName.replace(rootPath, '');
 
-							const children: Element[] = diagnostics
+							const children: Element[] = recommendations
 								.map(
 									(diagnostic) => {
 										return {
