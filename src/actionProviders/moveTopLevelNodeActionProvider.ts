@@ -143,7 +143,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                     );
 
                     showDifferenceCodeAction.command = {
-                        title: 'Show',
+                        title: 'Diff View',
                         command: 'vscode.diff',
                         arguments: [
                             document.uri,
@@ -153,7 +153,6 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                                 + `&oldIndex=${String(oldIndex)}`
                                 + `&newIndex=${String(newIndex)}`,
                                 true,
-                                
                             ),
                         ]
                     };

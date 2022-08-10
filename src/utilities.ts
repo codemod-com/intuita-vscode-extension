@@ -12,6 +12,14 @@ export function isNeitherNullNorUndefined<T>(
     return value !== null && value !== undefined;
 }
 
+export function assertsNeitherNullOrUndefined<T>(
+    value: NeitherNullNorUndefined<T> | null | undefined
+): asserts value is NeitherNullNorUndefined<T> {
+    if (value === null || value === undefined) {
+        throw new Error('The value cannot be null or undefined')
+    }
+}
+
 export type SourceFileExecution = Readonly<{
     name: string,
     text: string,

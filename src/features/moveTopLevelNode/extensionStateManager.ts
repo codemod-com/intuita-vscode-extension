@@ -3,6 +3,7 @@ import {MoveTopLevelNodeUserCommand, RangeCriterion} from "./1_userCommandBuilde
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
+    assertsNeitherNullOrUndefined,
     buildHash,
     calculateCharacterIndex,
     calculatePosition,
@@ -13,9 +14,11 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
+import { buildRecommendationHash, RecommendationHash } from "./recommendationHash";
+import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
-// probably this will change to a different name (like solution?)
-export type IntuitaDiagnostic = Readonly<{
+export type IntuitaRecommendation = Readonly<{
+    hash: RecommendationHash,
     title: string,
     range: IntuitaRange,
     oldIndex: number,
@@ -29,30 +32,92 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
-type State = Map<
-    string,
-    Readonly<{
-        document: vscode.TextDocument,
-        diagnostics: ReadonlyArray<IntuitaDiagnostic>,
-        fact: MoveTopLevelNodeFact,
-    }>
->;
-
 export class ExtensionStateManager {
-    protected _state: State = new Map();
+    protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
+    protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
+    protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
+    protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
+    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            diagnostics: ReadonlyArray<IntuitaDiagnostic>,
+            recommendations: ReadonlyArray<IntuitaRecommendation>,
         ) => void,
     ) {
 
     }
 
+    // TODO: change name
     public getDocuments() {
-        return Array.from(this._state.values());
+        const fileNameHashes = Array.from(
+            this._documentMap.keys()
+        );
+
+        return fileNameHashes.map(
+            (fileNameHash) => {
+                const document = this._documentMap.get(fileNameHash);
+                const fact = this._factMap.get(fileNameHash);
+                const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
+
+                assertsNeitherNullOrUndefined(document);
+                assertsNeitherNullOrUndefined(fact);
+                assertsNeitherNullOrUndefined(recommendationHashes);
+                
+                const recommendations = Array.from(recommendationHashes).map(
+                    (recommendationHash) => {
+                        if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+                            return null;
+                        }
+
+                        return this._recommendationMap.get(recommendationHash);
+                    },
+                )
+                    .filter(isNeitherNullNorUndefined);
+
+                return {
+                    document,
+                    fact,
+                    recommendations,
+                };
+            },
+        );
+    }
+
+    public rejectRecommendation(
+        recommendationHash: RecommendationHash,
+    ) {
+        const entries = Array.from(this._recommendationHashMap.entries());
+
+        const entry = entries.find(([ _, recommendationHashes]) => {
+            return recommendationHashes.has(recommendationHash);
+        });
+
+        assertsNeitherNullOrUndefined(entry);
+
+        const [ fileNameHash, recommendationHashes ] = entry;
+
+        const document = this._documentMap.get(fileNameHash);
+
+        assertsNeitherNullOrUndefined(document);
+
+        recommendationHashes.delete(recommendationHash);
+
+        this._rejectedRecommendationHashes.add(recommendationHash);
+        this._recommendationMap.delete(recommendationHash);
+
+        const recommendations = Array.from(recommendationHashes).map(
+            (recommendationHash) => {
+                return this._recommendationMap.get(recommendationHash);
+            },
+        )
+            .filter(isNeitherNullNorUndefined);
+
+        this._setDiagnosticEntry(
+            document.fileName,
+            recommendations,
+        );
     }
 
     public onFileTextChanged(
@@ -76,7 +141,7 @@ export class ExtensionStateManager {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const diagnostics = fact.solutions.flatMap(
+        const recommendations: ReadonlyArray<IntuitaRecommendation> = fact.solutions.flatMap(
             (solutions) => {
                 const solution = solutions[0] ?? null;
 
@@ -107,10 +172,21 @@ export class ExtensionStateManager {
                     fact.lengths[start[0]] ?? start[1],
                 ];
 
+                const hash = buildRecommendationHash(
+                    fileName,
+                    oldIndex,
+                    newIndex,
+                );
+
+                if (this._rejectedRecommendationHashes.has(hash)) {
+                    return null;
+                }
+
                 return {
+                    hash,
                     range,
                     title,
-                    fact,
+                    // fact,
                     oldIndex,
                     newIndex,
                 };
@@ -118,20 +194,27 @@ export class ExtensionStateManager {
         )
             .filter(isNeitherNullNorUndefined);
 
-        const hash = buildHash(fileName);
+        const fileNameHash = buildFileNameHash(fileName);
 
-        this._state.set(
-            hash,
-            {
-                document,
-                fact,
-                diagnostics,
-            },
+        this._documentMap.set(fileNameHash, document);
+        this._factMap.set(fileNameHash, fact);
+
+        const recommendationHashes = new Set(
+            recommendations.map(({ hash }) => hash)
         );
+
+        this._recommendationHashMap.set(fileNameHash, recommendationHashes);
+        
+        recommendations.forEach((recommendation) => {
+            this._recommendationMap.set(
+                recommendation.hash,
+                recommendation,
+            );
+        });
 
         this._setDiagnosticEntry(
             fileName,
-            diagnostics,
+            recommendations,
         );
     }
 
@@ -139,18 +222,27 @@ export class ExtensionStateManager {
         fileName: string,
         position: IntuitaPosition,
     ): ReadonlyArray<IntuitaCodeAction> {
-        const fileData = this._state.get(
-            buildHash(fileName),
-        );
+        const fileNameHash = buildFileNameHash(fileName);
 
-        if (!fileData) {
-            return [];
-        }
+        const fact = this._factMap.get(fileNameHash);
+        const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
 
-        const { fact } = fileData;
+        assertsNeitherNullOrUndefined(fact);
+        assertsNeitherNullOrUndefined(recommendationHashes);
 
-        return fileData
-            .diagnostics
+        const recommendations = Array.from(recommendationHashes.keys()).map(
+            (recommendationHash) => {
+                if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+                    return null;
+                }
+
+                return this._recommendationMap.get(recommendationHash);
+            }
+        )
+            .filter(isNeitherNullNorUndefined);
+        
+
+        return recommendations
             .filter(
                 ({ range }) => {
                     return range[0] <= position[0]
@@ -200,8 +292,6 @@ export class ExtensionStateManager {
                     }
 
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
-
-
 
                     const {
                         oldIndex,
@@ -291,19 +381,19 @@ export class ExtensionStateManager {
         newIndex: number,
         characterDifference: number,
     ) {
-        const fileData = this._state.get(
-            buildHash(fileName),
-        );
+        const fileNameHash = buildFileNameHash(fileName);
 
-        if (!fileData) {
-            return null;
-        }
+        const document = this._documentMap.get(fileNameHash);
+        const fact = this._factMap.get(fileNameHash);
 
-        const fileText = fileData.document.getText();
+        assertsNeitherNullOrUndefined(document);
+        assertsNeitherNullOrUndefined(fact);
+
+        const fileText = document.getText();
 
         const {
             stringNodes,
-        } = fileData.fact;
+        } = fact;
 
         const executions = executeMoveTopLevelNodeAstCommandHelper(
             fileName,
