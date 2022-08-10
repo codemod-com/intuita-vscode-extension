@@ -14,9 +14,9 @@ import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
 import { RecommendationHash } from "./recommendationHash";
+import { FileNameHash } from "./fileNameHash";
 
-// probably this will change to a different name (like solution?)
-export type IntuitaDiagnostic = Readonly<{
+export type IntuitaRecommendation = Readonly<{
     title: string,
     range: IntuitaRange,
     oldIndex: number,
@@ -30,24 +30,28 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
-type State = Map<
-    string,
-    Readonly<{
-        document: vscode.TextDocument,
-        diagnostics: ReadonlyArray<IntuitaDiagnostic>,
-        fact: MoveTopLevelNodeFact,
-    }>
->;
+// TODO: rename
+// type State = Map<
+//     string,
+//     Readonly<{
+//         document: vscode.TextDocument,
+//         // diagnostics: ReadonlyArray<IntuitaDiagnostic>,
+//         fact: MoveTopLevelNodeFact,
+//     }>
+// >;
 
 export class ExtensionStateManager {
-    protected _state: State = new Map();
+    protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
+    protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
+    protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
     protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
+    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            diagnostics: ReadonlyArray<IntuitaDiagnostic>,
+            recommendations: ReadonlyArray<IntuitaRecommendation>,
         ) => void,
     ) {
 
@@ -60,7 +64,7 @@ export class ExtensionStateManager {
     public rejectRecommendation(
         recommendationHash: RecommendationHash,
     ) {
-        
+
     }
 
     public onFileTextChanged(

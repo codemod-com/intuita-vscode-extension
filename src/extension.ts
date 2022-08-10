@@ -11,7 +11,7 @@ import {
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration, RecommendationBlockTrigger} from './configuration';
-import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
@@ -42,7 +42,7 @@ export async function activate(
 
 	const _setDiagnosticEntry = (
 		fileName: string,
-		intuitaDiagnostics: ReadonlyArray<IntuitaDiagnostic>
+		intuitaDiagnostics: ReadonlyArray<IntuitaRecommendation>
 	) => {
 		const diagnostics = intuitaDiagnostics
 			.map(
