@@ -296,8 +296,6 @@ export async function activate(
 				document,
 				rangeCriterion,
 			);
-
-		_onDidChangeTreeData.fire();
 	};
 
 	if (vscode.window.activeTextEditor) {
@@ -572,8 +570,6 @@ export async function activate(
 							ranges,
 						},
 					);
-
-				_onDidChangeTreeData.fire();
 			})
 		);
 
