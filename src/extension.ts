@@ -11,10 +11,11 @@ import {
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration, RecommendationBlockTrigger} from './configuration';
-import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
+import { buildRecommendationHash } from './features/moveTopLevelNode/recommendationHash';
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -41,7 +42,7 @@ export async function activate(
 
 	const _setDiagnosticEntry = (
 		fileName: string,
-		intuitaDiagnostics: ReadonlyArray<IntuitaDiagnostic>
+		intuitaDiagnostics: ReadonlyArray<IntuitaRecommendation>
 	) => {
 		const diagnostics = intuitaDiagnostics
 			.map(
@@ -75,6 +76,8 @@ export async function activate(
 			vscode.Uri.parse(fileName),
 			diagnostics,
 		);
+
+		_onDidChangeTreeData.fire();
 	};
 
 	const extensionStateManager = new ExtensionStateManager(
@@ -109,14 +112,14 @@ export async function activate(
 
 				const elements: Element[] = documents
 					.map(
-						({ document, diagnostics }) => {
-							if (diagnostics.length === 0) {
+						({ document, recommendations }) => {
+							if (recommendations.length === 0) {
 								return null;
 							}
 
 							let label = document.fileName.replace(rootPath, '');
 
-							const children: Element[] = diagnostics
+							const children: Element[] = recommendations
 								.map(
 									(diagnostic) => {
 										return {
@@ -168,27 +171,18 @@ export async function activate(
 
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.command = {
-					title: 'Peek View',
-					command: 'editor.action.peekLocations',
+					title: 'Diff View',
+					command: 'vscode.diff',
 					arguments: [
 						element.uri,
-						new vscode.Position(
-							element.range[0],
-							element.range[1]
+						vscode.Uri.parse(
+							'intuita:moveTopLevelNode.ts'
+							+ `?fileName=${encodeURIComponent(element.fileName)}`
+							+ `&oldIndex=${String(element.oldIndex)}`
+							+ `&newIndex=${String(element.newIndex)}`,
+							true,
 						),
-						[
-							new vscode.Location(
-								vscode.Uri.parse(
-									'intuita:moveTopLevelNode.ts'
-									+ `?fileName=${encodeURIComponent(element.fileName)}`
-									+ `&oldIndex=${String(element.oldIndex)}`
-									+ `&newIndex=${String(element.newIndex)}`,
-									true,
-								),
-								new vscode.Position(0, 0),
-							)
-						],
-						'peek'
+						'Proposed change',
 					]
 				};
 			}
@@ -302,8 +296,6 @@ export async function activate(
 				document,
 				rangeCriterion,
 			);
-
-		_onDidChangeTreeData.fire();
 	};
 
 	if (vscode.window.activeTextEditor) {
@@ -385,7 +377,33 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendation',
 			async (args) => {
-				console.log(args);
+				const fileName: string | null = args && typeof args.fileName === 'string'
+					? args.fileName
+					: null;
+
+				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+					? args.oldIndex
+					: null;
+
+				const newIndex: number | null = args && typeof args.newIndex === 'number'
+					? args.newIndex
+					: null;
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+				) {
+					throw new Error('Did not pass file name or old index or new index.');
+				}
+
+				const recommendationHash = buildRecommendationHash(
+					fileName,
+					oldIndex,
+					newIndex,
+				);
+
+				extensionStateManager.rejectRecommendation(recommendationHash);
 			}
 		)
 	);
@@ -552,8 +570,6 @@ export async function activate(
 							ranges,
 						},
 					);
-
-				_onDidChangeTreeData.fire();
 			})
 		);
 
@@ -600,7 +616,33 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendationFromVirtualDocument',
 			async (args) => {
-				console.log('args', args);
+				const query: string = args.query;
+
+				const urlSearchParams = new URLSearchParams(query);
+
+				const fileName = urlSearchParams.get('fileName')
+				const oldIndex = urlSearchParams.get('oldIndex');
+				const newIndex = urlSearchParams.get('newIndex');
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+				) {
+					throw new Error('Did not pass file name or old index or new index.');
+				}
+
+				await vscode.commands.executeCommand(
+					'workbench.action.closeActiveEditor',
+				);
+
+				const recommendationHash = buildRecommendationHash(
+					fileName,
+					Number(oldIndex),
+					Number(newIndex),
+				);
+
+				extensionStateManager.rejectRecommendation(recommendationHash);
 			},
 		)
 	);
