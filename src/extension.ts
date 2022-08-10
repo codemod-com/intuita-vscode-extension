@@ -616,7 +616,33 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendationFromVirtualDocument',
 			async (args) => {
-				console.log('args', args);
+				const query: string = args.query;
+
+				const urlSearchParams = new URLSearchParams(query);
+
+				const fileName = urlSearchParams.get('fileName')
+				const oldIndex = urlSearchParams.get('oldIndex');
+				const newIndex = urlSearchParams.get('newIndex');
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+				) {
+					throw new Error('Did not pass file name or old index or new index.');
+				}
+
+				await vscode.commands.executeCommand(
+					'workbench.action.closeActiveEditor',
+				);
+
+				const recommendationHash = buildRecommendationHash(
+					fileName,
+					Number(oldIndex),
+					Number(newIndex),
+				);
+
+				extensionStateManager.rejectRecommendation(recommendationHash);
 			},
 		)
 	);
