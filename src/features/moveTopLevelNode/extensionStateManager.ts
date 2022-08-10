@@ -14,10 +14,11 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
-import { RecommendationHash } from "./recommendationHash";
+import { buildRecommendationHash, RecommendationHash } from "./recommendationHash";
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
 export type IntuitaRecommendation = Readonly<{
+    hash: RecommendationHash,
     title: string,
     range: IntuitaRange,
     oldIndex: number,
@@ -114,7 +115,7 @@ export class ExtensionStateManager {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const diagnostics = fact.solutions.flatMap(
+        const recommendations: ReadonlyArray<IntuitaRecommendation> = fact.solutions.flatMap(
             (solutions) => {
                 const solution = solutions[0] ?? null;
 
@@ -145,10 +146,21 @@ export class ExtensionStateManager {
                     fact.lengths[start[0]] ?? start[1],
                 ];
 
+                const hash = buildRecommendationHash(
+                    fileName,
+                    oldIndex,
+                    newIndex,
+                );
+
+                if (this._rejectedRecommendationHashes.has(hash)) {
+                    return null;
+                }
+
                 return {
+                    hash,
                     range,
                     title,
-                    fact,
+                    // fact,
                     oldIndex,
                     newIndex,
                 };
@@ -158,18 +170,25 @@ export class ExtensionStateManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        // this._state.set(
-        //     hash,
-        //     {
-        //         document,
-        //         fact,
-        //         diagnostics,
-        //     },
-        // );
+        this._documentMap.set(fileNameHash, document);
+        this._factMap.set(fileNameHash, fact);
+
+        const recommendationHashes = new Set(
+            recommendations.map(({ hash }) => hash)
+        );
+
+        this._recommendationHashMap.set(fileNameHash, recommendationHashes);
+        
+        recommendations.forEach((recommendation) => {
+            this._recommendationMap.set(
+                recommendation.hash,
+                recommendation,
+            );
+        });
 
         this._setDiagnosticEntry(
             fileName,
-            diagnostics,
+            recommendations,
         );
     }
 
