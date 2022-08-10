@@ -76,6 +76,8 @@ export async function activate(
 			vscode.Uri.parse(fileName),
 			diagnostics,
 		);
+
+		_onDidChangeTreeData.fire();
 	};
 
 	const extensionStateManager = new ExtensionStateManager(
