@@ -196,18 +196,27 @@ export class ExtensionStateManager {
         fileName: string,
         position: IntuitaPosition,
     ): ReadonlyArray<IntuitaCodeAction> {
-        const fileData = this._state.get(
-            buildHash(fileName),
-        );
+        const fileNameHash = buildFileNameHash(fileName);
 
-        if (!fileData) {
-            return [];
-        }
+        const fact = this._factMap.get(fileNameHash);
+        const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
 
-        const { fact } = fileData;
+        assertsNeitherNullOrUndefined(fact);
+        assertsNeitherNullOrUndefined(recommendationHashes);
 
-        return fileData
-            .diagnostics
+        const recommendations = Array.from(recommendationHashes.keys()).map(
+            (recommendationHash) => {
+                if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+                    return null;
+                }
+
+                return this._recommendationMap.get(recommendationHash);
+            }
+        )
+            .filter(isNeitherNullNorUndefined);
+        
+
+        return recommendations
             .filter(
                 ({ range }) => {
                     return range[0] <= position[0]
@@ -346,19 +355,19 @@ export class ExtensionStateManager {
         newIndex: number,
         characterDifference: number,
     ) {
-        const fileData = this._state.get(
-            buildHash(fileName),
-        );
+        const fileNameHash = buildFileNameHash(fileName);
 
-        if (!fileData) {
-            return null;
-        }
+        const document = this._documentMap.get(fileNameHash);
+        const fact = this._factMap.get(fileNameHash);
 
-        const fileText = fileData.document.getText();
+        assertsNeitherNullOrUndefined(document);
+        assertsNeitherNullOrUndefined(fact);
+
+        const fileText = document.getText();
 
         const {
             stringNodes,
-        } = fileData.fact;
+        } = fact;
 
         const executions = executeMoveTopLevelNodeAstCommandHelper(
             fileName,
