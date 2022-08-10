@@ -88,10 +88,36 @@ export class ExtensionStateManager {
     public rejectRecommendation(
         recommendationHash: RecommendationHash,
     ) {
+        const entries = Array.from(this._recommendationHashMap.entries());
+
+        const entry = entries.find(([ _, recommendationHashes]) => {
+            return recommendationHashes.has(recommendationHash);
+        });
+
+        assertsNeitherNullOrUndefined(entry);
+
+        const [ fileNameHash, recommendationHashes ] = entry;
+
+        const document = this._documentMap.get(fileNameHash);
+
+        assertsNeitherNullOrUndefined(document);
+
+        recommendationHashes.delete(recommendationHash);
+
         this._rejectedRecommendationHashes.add(recommendationHash);
         this._recommendationMap.delete(recommendationHash);
 
-        // TODO run the callback
+        const recommendations = Array.from(recommendationHashes).map(
+            (recommendationHash) => {
+                return this._recommendationMap.get(recommendationHash);
+            },
+        )
+            .filter(isNeitherNullNorUndefined);
+
+        this._setDiagnosticEntry(
+            document.fileName,
+            recommendations,
+        );
     }
 
     public onFileTextChanged(
