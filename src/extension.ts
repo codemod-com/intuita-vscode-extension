@@ -15,6 +15,7 @@ import {ExtensionStateManager, IntuitaDiagnostic} from "./features/moveTopLevelN
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
+import { buildRecommendationHash } from './features/moveTopLevelNode/recommendationHash';
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -376,7 +377,33 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendation',
 			async (args) => {
-				console.log(args);
+				const fileName: string | null = args && typeof args.fileName === 'string'
+					? args.fileName
+					: null;
+
+				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
+					? args.oldIndex
+					: null;
+
+				const newIndex: number | null = args && typeof args.newIndex === 'number'
+					? args.newIndex
+					: null;
+
+				if (
+					fileName === null
+					|| oldIndex === null
+					|| newIndex === null
+				) {
+					throw new Error('Did not pass file name or old index or new index.');
+				}
+
+				const recommendationHash = buildRecommendationHash(
+					fileName,
+					oldIndex,
+					newIndex,
+				);
+
+				extensionStateManager.rejectRecommendation(recommendationHash);
 			}
 		)
 	);

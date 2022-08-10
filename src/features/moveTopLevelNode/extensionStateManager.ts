@@ -13,6 +13,7 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
+import { RecommendationHash } from "./recommendationHash";
 
 // probably this will change to a different name (like solution?)
 export type IntuitaDiagnostic = Readonly<{
@@ -40,6 +41,7 @@ type State = Map<
 
 export class ExtensionStateManager {
     protected _state: State = new Map();
+    protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
@@ -53,6 +55,12 @@ export class ExtensionStateManager {
 
     public getDocuments() {
         return Array.from(this._state.values());
+    }
+
+    public rejectRecommendation(
+        recommendationHash: RecommendationHash,
+    ) {
+        
     }
 
     public onFileTextChanged(
@@ -200,8 +208,6 @@ export class ExtensionStateManager {
                     }
 
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
-
-
 
                     const {
                         oldIndex,
