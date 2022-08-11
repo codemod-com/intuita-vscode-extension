@@ -16,6 +16,7 @@ import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
 import { buildRecommendationHash } from './features/moveTopLevelNode/recommendationHash';
+import path = require('node:path');
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -117,7 +118,7 @@ export async function activate(
 								return null;
 							}
 
-							let label = document.fileName.replace(rootPath, '');
+							const label: string = document.fileName.replace(rootPath, '');
 
 							const children: Element[] = recommendations
 								.map(
@@ -165,11 +166,17 @@ export async function activate(
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None;
 
-			treeItem.iconPath = element.kind === 'FILE'
-				? vscode.ThemeIcon.File
-				: vscode.ThemeIcon.Folder;
+			treeItem.iconPath = path.join(
+				__filename,
+				'..',
+				'..',
+				'resources',
+				element.kind === 'FILE' ? 'ts2.svg' : 'bluelightbulb.svg'
+			);
 
 			if (element.kind === 'DIAGNOSTIC') {
+				treeItem.contextValue = 'intuitaJob';
+
 				treeItem.command = {
 					title: 'Diff View',
 					command: 'vscode.diff',
