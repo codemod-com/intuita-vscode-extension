@@ -35,11 +35,11 @@
 			},
 			{
 				"command": "intuita.acceptRecommendation",
-				"title": "✓ Accept the recommendation"
+				"title": "✓ Accept"
 			},
 			{
 				"command": "intuita.rejectRecommendation",
-				"title": "✗ Reject the recommendation"
+				"title": "✗ Reject"
 			}
 		],
 		"configuration": {
@@ -100,23 +100,16 @@
 			]
 		},
 		"menus": {
-			"view/title": [
-				{
-					"command": "intuita.executeRecommendations",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "navigation"
-				}
-			],
 			"view/item/context": [
 				{
 					"command": "intuita.acceptRecommendation",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "intuitaGroup"
+					"when": "viewItem == intuitaJob",
+					"group": "inline"
 				},
 				{
 					"command": "intuita.rejectRecommendation",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "intuitaGroup"
+					"when": "viewItem == intuitaJob",
+					"group": "inline"
 				}
 			]
 		}
