@@ -29,9 +29,9 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.executeRecommendations",
-				"title": "Execute recommendations",
-				"icon": "$(play)"
+				"command": "intuita.requestFeature",
+				"title": "Request a feature",
+				"icon": "$(flame)"
 			},
 			{
 				"command": "intuita.acceptRecommendation",
@@ -100,6 +100,13 @@
 			]
 		},
 		"menus": {
+			"view/title": [
+				{
+					"command": "intuita.requestFeature",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				}
+			],
 			"view/item/context": [
 				{
 					"command": "intuita.acceptRecommendation",

@@ -352,6 +352,17 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.requestFeature',
+			() => {
+				vscode.env.openExternal(
+					vscode.Uri.parse('https://intuita.canny.io/feature-requests')
+				);
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.acceptRecommendation',
 			async (args) => {
 				const fileName: string | null = args && typeof args.fileName === 'string'
