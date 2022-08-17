@@ -355,7 +355,7 @@ export async function activate(
 			'intuita.requestFeature',
 			() => {
 				vscode.env.openExternal(
-					vscode.Uri.parse('https://intuita.canny.io/feature-requests')
+					vscode.Uri.parse('https://feedback.intuita.io/')
 				);
 			},
 		),
