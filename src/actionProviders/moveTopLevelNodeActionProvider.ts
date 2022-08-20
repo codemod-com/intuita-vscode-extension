@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
+import { buildRecommendationHash } from '../features/moveTopLevelNode/recommendationHash';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -99,17 +100,19 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         vscode.CodeActionKind.QuickFix,
                     );
 
+                    const jobHash = buildRecommendationHash(
+                        fileName,
+                        oldIndex,
+                        newIndex,
+                    );
+
                     codeAction.command = {
                         title: 'Move',
                         command: 'intuita.moveTopLevelNode',
                         arguments: [
-                            {
-                                fileName,
-                                oldIndex,
-                                newIndex,
-                                characterDifference
-                            }
-                        ]
+                            jobHash,
+                            characterDifference,
+                        ],
                     };
 
                     const showDifferenceCodeAction = new vscode.CodeAction(

@@ -333,7 +333,7 @@ export async function activate(
 					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				vscode.commands.executeCommand(
+				await vscode.commands.executeCommand(
 					'intuita.moveTopLevelNode',
 					jobHash,
 					0, // characterDifference
@@ -364,21 +364,13 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
-			async (args) => {
-				if (!Array.isArray(args)) {
-					throw new Error('Arguments of the "intuita.moveTopLevelNode" command must be an array');
+			async (jobHash, characterDifference) => {
+				if (typeof jobHash !== 'string') {
+					throw new Error('The job hash argument must be a string.');
 				}
-
-				const jobHash = typeof args[0] === 'string'
-					? args[0]
-					: null;
-
-				const characterDifference = typeof args[1] === 'number'
-					? args[1]
-					: null;
-
-				if (jobHash === null || characterDifference === null) {
-					throw new Error('Did not pass the job hash argument or the character difference argument.');
+					
+				if (typeof characterDifference !== 'number') {
+					throw new Error('The job hash argument must be a number.');
 				}
 
 				// TODO: job doesn't have to be retrieved to get the fileName
