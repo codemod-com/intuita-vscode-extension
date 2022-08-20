@@ -39,7 +39,7 @@ export class ExtensionStateManager {
     protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
     protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
     // TODO: temporary access override
-    public _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
+    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
@@ -428,6 +428,6 @@ export class ExtensionStateManager {
         return {
             execution,
             fileText,
-        }
+        };
     }
 }
