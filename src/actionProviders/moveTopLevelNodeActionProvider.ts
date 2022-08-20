@@ -24,14 +24,7 @@ export const buildTitle = (
     const {
         nodes,
         newIndex,
-        coefficient,
     } = solution;
-
-    const {
-        dependencyCoefficient,
-        similarityCoefficient,
-        kindCoefficient,
-    } = coefficient;
 
     const node = nodes[newIndex];
 
@@ -45,24 +38,6 @@ export const buildTitle = (
         ),
         useHtml,
     );
-
-    const dependencyDriven = dependencyCoefficient > similarityCoefficient
-        && dependencyCoefficient > kindCoefficient;
-
-    const similarityDriven = similarityCoefficient > dependencyCoefficient
-        && similarityCoefficient > kindCoefficient;
-
-    const kindDriven = kindCoefficient > similarityCoefficient
-        && kindCoefficient > dependencyCoefficient;
-
-    const driveLabel = dependencyDriven
-        ? '(more ordered dependencies)'
-        : similarityDriven
-        ? '(more name similarity)'
-        : kindDriven
-        ? '(more same-type blocks)'
-        : '';
-
 
     const otherNode = newIndex === 0
         ? nodes[1]
@@ -83,7 +58,7 @@ export const buildTitle = (
         useHtml,
     );
 
-    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} ${driveLabel}`;
+    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
 };
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
