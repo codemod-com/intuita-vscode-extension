@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
-import { buildRecommendationHash } from '../features/moveTopLevelNode/recommendationHash';
+import { buildJobHash } from '../features/moveTopLevelNode/jobHash';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -100,7 +100,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         vscode.CodeActionKind.QuickFix,
                     );
 
-                    const jobHash = buildRecommendationHash(
+                    const jobHash = buildJobHash(
                         fileName,
                         oldIndex,
                         newIndex,

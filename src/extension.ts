@@ -15,7 +15,7 @@ import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLe
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
-import { buildRecommendationHash, RecommendationHash } from './features/moveTopLevelNode/recommendationHash';
+import { buildJobHash, JobHash } from './features/moveTopLevelNode/jobHash';
 import path = require('node:path');
 
 export async function activate(
@@ -98,7 +98,7 @@ export async function activate(
 			kind: 'DIAGNOSTIC',
 			label: string,
 			uri: vscode.Uri,
-			hash: RecommendationHash,
+			hash: JobHash,
 			fileName: string,
 			oldIndex: number,
 			newIndex: number,
@@ -181,7 +181,7 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
-				const jobHash = buildRecommendationHash(
+				const jobHash = buildJobHash(
 					element.fileName,
 					element.oldIndex,
 					element.newIndex,
@@ -233,7 +233,7 @@ export async function activate(
 			}
 
 			return extensionStateManager.getText(
-				jobHash as RecommendationHash,
+				jobHash as JobHash,
 			);
 		}
 	};
@@ -355,7 +355,7 @@ export async function activate(
 				}
 
 				extensionStateManager.rejectRecommendation(
-					jobHash as RecommendationHash,
+					jobHash as JobHash,
 				);
 			}
 		)
@@ -375,7 +375,7 @@ export async function activate(
 
 				const result = extensionStateManager
 					.executeCommand(
-						jobHash as RecommendationHash,
+						jobHash as JobHash,
 						characterDifference,
 					);
 

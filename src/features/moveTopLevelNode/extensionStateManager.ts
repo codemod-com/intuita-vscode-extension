@@ -14,12 +14,12 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
-import { buildRecommendationHash, RecommendationHash } from "./recommendationHash";
+import { buildJobHash, JobHash } from "./jobHash";
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
 export type IntuitaRecommendation = Readonly<{
     fileName: string,
-    hash: RecommendationHash,
+    hash: JobHash,
     title: string,
     range: IntuitaRange,
     oldIndex: number,
@@ -36,9 +36,9 @@ export type IntuitaCodeAction = Readonly<{
 export class ExtensionStateManager {
     protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
     protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
-    protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
-    protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
-    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
+    protected _recommendationHashMap = new Map<FileNameHash, Set<JobHash>>();
+    protected _rejectedRecommendationHashes = new Set<JobHash>();
+    protected _recommendationMap = new Map<JobHash, IntuitaRecommendation>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
@@ -87,7 +87,7 @@ export class ExtensionStateManager {
     }
 
     public rejectRecommendation(
-        recommendationHash: RecommendationHash,
+        recommendationHash: JobHash,
     ) {
         const entries = Array.from(this._recommendationHashMap.entries());
 
@@ -173,7 +173,7 @@ export class ExtensionStateManager {
                     fact.lengths[start[0]] ?? start[1],
                 ];
 
-                const hash = buildRecommendationHash(
+                const hash = buildJobHash(
                     fileName,
                     oldIndex,
                     newIndex,
@@ -312,7 +312,7 @@ export class ExtensionStateManager {
     }
 
     public getText(
-        jobHash: RecommendationHash,
+        jobHash: JobHash,
     ): string {
         const data = this._getExecution(
             jobHash,
@@ -323,7 +323,7 @@ export class ExtensionStateManager {
     }
 
     public executeCommand(
-        jobHash: RecommendationHash,
+        jobHash: JobHash,
         characterDifference: number,
     ) {
         const data = this._getExecution(
@@ -371,7 +371,7 @@ export class ExtensionStateManager {
     }
 
     protected _getExecution(
-        jobHash: RecommendationHash,
+        jobHash: JobHash,
         characterDifference: number,
     ) {
         const job = this._recommendationMap.get(jobHash);
