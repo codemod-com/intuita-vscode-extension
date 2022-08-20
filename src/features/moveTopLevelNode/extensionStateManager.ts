@@ -18,6 +18,7 @@ import { buildRecommendationHash, RecommendationHash } from "./recommendationHas
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
 export type IntuitaRecommendation = Readonly<{
+    fileName: string,
     hash: RecommendationHash,
     title: string,
     range: IntuitaRange,
@@ -47,6 +48,13 @@ export class ExtensionStateManager {
         ) => void,
     ) {
 
+    }
+
+    public getJob(
+        recommendationHash: RecommendationHash,
+    ): IntuitaRecommendation | null {
+        // TODO: job is the new word for recommendation
+        return this._recommendationMap.get(recommendationHash) ?? null;
     }
 
     // TODO: change name
@@ -183,6 +191,7 @@ export class ExtensionStateManager {
                 }
 
                 return {
+                    fileName,
                     hash,
                     range,
                     title,

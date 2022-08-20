@@ -15,7 +15,7 @@ import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLe
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
-import { buildRecommendationHash } from './features/moveTopLevelNode/recommendationHash';
+import { buildRecommendationHash, RecommendationHash } from './features/moveTopLevelNode/recommendationHash';
 import path = require('node:path');
 
 export async function activate(
@@ -85,6 +85,8 @@ export async function activate(
 		configurationContainer,
 		_setDiagnosticEntry,
 	);
+
+	// move Element, _onDidChangeTreeData and treeDataProvider to a separate file
 
 	type Element =
 		| Readonly<{
@@ -177,16 +179,19 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
+				const recommendationHash = buildRecommendationHash(
+					element.fileName,
+					element.oldIndex,
+					element.newIndex,
+				);
+
 				treeItem.command = {
 					title: 'Diff View',
 					command: 'vscode.diff',
 					arguments: [
 						element.uri,
 						vscode.Uri.parse(
-							'intuita:moveTopLevelNode.ts'
-							+ `?fileName=${encodeURIComponent(element.fileName)}`
-							+ `&oldIndex=${String(element.oldIndex)}`
-							+ `&newIndex=${String(element.newIndex)}`,
+							`intuita:moveTopLevelNode.ts?h=${recommendationHash}`,
 							true,
 						),
 						'Proposed change',
@@ -219,33 +224,23 @@ export async function activate(
 		): string {
 			const searchParams = new URLSearchParams(uri.query);
 
-			const fileName = searchParams.get('fileName');
-			const oldIndex = searchParams.get('oldIndex');
-			const newIndex = searchParams.get('newIndex');
+			const jobHash = searchParams.get('h');
 
-			if (
-				fileName === null
-				|| oldIndex === null
-				|| newIndex === null
-			) {
-				throw new Error('Did not pass file name or old index or new index.');
+			if (jobHash === null) {
+				throw new Error('Did not pass the job hash parameter "h".');
 			}
 
-			const parsedOldIndex = parseInt(oldIndex, 10);
-			const parsedNewIndex = parseInt(newIndex, 10);
+			const job = extensionStateManager.getJob(jobHash as RecommendationHash);
 
-			if (Number.isNaN(parsedOldIndex)) {
-				return 'The old index could not have been parsed.'
+			if (job === null) {
+				throw new Error('Could not find a job with the specified hash');
 			}
 
-			if (Number.isNaN(parsedNewIndex)) {
-				return 'The new index could not have been parsed.'
-			}
-
+			// TODO have getText accept a job
 			return extensionStateManager.getText(
-				fileName,
-				parsedOldIndex,
-				parsedNewIndex,
+				job.fileName,
+				job.oldIndex,
+				job.newIndex,
 			);
 		}
 	};
