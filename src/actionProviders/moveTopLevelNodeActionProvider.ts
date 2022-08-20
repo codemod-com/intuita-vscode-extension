@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
+import { buildJobHash } from '../features/moveTopLevelNode/jobHash';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -24,14 +25,7 @@ export const buildTitle = (
     const {
         nodes,
         newIndex,
-        coefficient,
     } = solution;
-
-    const {
-        dependencyCoefficient,
-        similarityCoefficient,
-        kindCoefficient,
-    } = coefficient;
 
     const node = nodes[newIndex];
 
@@ -45,24 +39,6 @@ export const buildTitle = (
         ),
         useHtml,
     );
-
-    const dependencyDriven = dependencyCoefficient > similarityCoefficient
-        && dependencyCoefficient > kindCoefficient;
-
-    const similarityDriven = similarityCoefficient > dependencyCoefficient
-        && similarityCoefficient > kindCoefficient;
-
-    const kindDriven = kindCoefficient > similarityCoefficient
-        && kindCoefficient > dependencyCoefficient;
-
-    const driveLabel = dependencyDriven
-        ? '(more ordered dependencies)'
-        : similarityDriven
-        ? '(more name similarity)'
-        : kindDriven
-        ? '(more same-type blocks)'
-        : '';
-
 
     const otherNode = newIndex === 0
         ? nodes[1]
@@ -83,7 +59,7 @@ export const buildTitle = (
         useHtml,
     );
 
-    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel} ${driveLabel}`;
+    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
 };
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
@@ -124,17 +100,19 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         vscode.CodeActionKind.QuickFix,
                     );
 
+                    const jobHash = buildJobHash(
+                        fileName,
+                        oldIndex,
+                        newIndex,
+                    );
+
                     codeAction.command = {
                         title: 'Move',
                         command: 'intuita.moveTopLevelNode',
                         arguments: [
-                            {
-                                fileName,
-                                oldIndex,
-                                newIndex,
-                                characterDifference
-                            }
-                        ]
+                            jobHash,
+                            characterDifference,
+                        ],
                     };
 
                     const showDifferenceCodeAction = new vscode.CodeAction(
@@ -148,10 +126,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         arguments: [
                             document.uri,
                             vscode.Uri.parse(
-                                'intuita://moveTopLevelNode.ts'
-                                + `?fileName=${encodeURIComponent(fileName)}`
-                                + `&oldIndex=${String(oldIndex)}`
-                                + `&newIndex=${String(newIndex)}`,
+                                `intuita://moveTopLevelNode.ts?hash=${jobHash}`,
                                 true,
                             ),
                         ]

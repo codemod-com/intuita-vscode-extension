@@ -20,11 +20,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "[TODO] There are no recommendations."
+				"contents": "[TODO] There are no jobs."
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "[TODO] There are no recommendations."
+				"contents": "[TODO] There are no jobs."
 			}
 		],
 		"commands": [
@@ -34,40 +34,29 @@
 				"icon": "$(flame)"
 			},
 			{
-				"command": "intuita.acceptRecommendation",
+				"command": "intuita.acceptJob",
 				"title": "✓ Accept"
 			},
 			{
-				"command": "intuita.rejectRecommendation",
+				"command": "intuita.rejectJob",
 				"title": "✗ Reject"
 			}
 		],
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.dependencyCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the dependency coefficient. This coefficient equals the ratio of the dependencies of the current top-level node defined before that node to the total number of them. By increasing the weight, you increase the influence of the dependencies on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
-				"intuita.similarityCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the similarity coefficient. This coefficient equals the ratio of the similarity of the names of the current top-level node against the other nodes to the total number of them. By increasing the weight, you increase the influence of the similarity on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
-				"intuita.kindCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the kind coefficient. This coefficient equals the ratio of the same-kind neighboring nodes of the current top-level node to their total number. By increasing the weight, you increase the influence of the kind on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
-				"intuita.recommendationBlockTrigger": {
+				"intuita.jobBlockTrigger": {
 					"type": "string",
-					"default": "onlyNew",
-					"enum": ["onlyNew", "newAndChanged", "all"],
+					"default": "new",
+					"enum": [
+						"new",
+						"newAndChanged",
+						"all"
+					],
 					"enumDescriptions": [
-						"Provide recommendations only for the new code blocks",
-						"Provide recommendations only for the new and changed code blocks",
-						"Provide recommendations for all code blocks"
+						"Provide jobs only for the new code blocks",
+						"Provide jobs only for the new and changed code blocks",
+						"Provide jobs for all code blocks"
 					]
 				}
 			}
@@ -76,7 +65,7 @@
 			"activitybar": [
 				{
 					"id": "intuitaViewId",
-					"title": "Intuita",
+					"title": "Intuita Jobs",
 					"icon": "img/intuita.svg"
 				}
 			]
@@ -85,7 +74,7 @@
 			"explorer": [
 				{
 					"id": "explorerIntuitaViewId",
-					"name": "Intuita",
+					"name": "Intuita Jobs",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
 				}
@@ -93,9 +82,9 @@
 			"intuitaViewId": [
 				{
 					"id": "intuitaViewId",
-					"name": "Intuita",
+					"name": "Intuita Jobs",
 					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
+					"contextualTitle": "Intuita Jobs"
 				}
 			]
 		},
@@ -109,12 +98,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "intuita.acceptRecommendation",
+					"command": "intuita.acceptJob",
 					"when": "viewItem == intuitaJob",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectRecommendation",
+					"command": "intuita.rejectJob",
 					"when": "viewItem == intuitaJob",
 					"group": "inline"
 				}
@@ -134,7 +123,7 @@
 		"@types/chai": "^4.3.1",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
-		"@types/node": "18.0.6",
+		"@types/node": "18.7.8",
 		"@types/vscode": "^1.69.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.7",
 		"@typescript-eslint/parser": "^5.30.7",

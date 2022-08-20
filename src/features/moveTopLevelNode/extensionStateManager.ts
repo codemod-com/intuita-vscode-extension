@@ -14,11 +14,12 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
-import { buildRecommendationHash, RecommendationHash } from "./recommendationHash";
+import { buildJobHash, JobHash } from "./jobHash";
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 
-export type IntuitaRecommendation = Readonly<{
-    hash: RecommendationHash,
+export type IntuitaJob = Readonly<{
+    fileName: string,
+    hash: JobHash,
     title: string,
     range: IntuitaRange,
     oldIndex: number,
@@ -35,15 +36,15 @@ export type IntuitaCodeAction = Readonly<{
 export class ExtensionStateManager {
     protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
     protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
-    protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
-    protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
-    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
+    protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
+    protected _rejectedJobHashes = new Set<JobHash>();
+    protected _jobMap = new Map<JobHash, IntuitaJob>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            recommendations: ReadonlyArray<IntuitaRecommendation>,
+            jobs: ReadonlyArray<IntuitaJob>,
         ) => void,
     ) {
 
@@ -59,19 +60,19 @@ export class ExtensionStateManager {
             (fileNameHash) => {
                 const document = this._documentMap.get(fileNameHash);
                 const fact = this._factMap.get(fileNameHash);
-                const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
+                const jobHashes = this._jobHashMap.get(fileNameHash);
 
                 assertsNeitherNullOrUndefined(document);
                 assertsNeitherNullOrUndefined(fact);
-                assertsNeitherNullOrUndefined(recommendationHashes);
+                assertsNeitherNullOrUndefined(jobHashes);
                 
-                const recommendations = Array.from(recommendationHashes).map(
-                    (recommendationHash) => {
-                        if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+                const jobs = Array.from(jobHashes).map(
+                    (jobHash) => {
+                        if (this._rejectedJobHashes.has(jobHash)) {
                             return null;
                         }
 
-                        return this._recommendationMap.get(recommendationHash);
+                        return this._jobMap.get(jobHash);
                     },
                 )
                     .filter(isNeitherNullNorUndefined);
@@ -79,44 +80,44 @@ export class ExtensionStateManager {
                 return {
                     document,
                     fact,
-                    recommendations,
+                    jobs,
                 };
             },
         );
     }
 
-    public rejectRecommendation(
-        recommendationHash: RecommendationHash,
+    public rejectJob(
+        jobHash: JobHash,
     ) {
-        const entries = Array.from(this._recommendationHashMap.entries());
+        const entries = Array.from(this._jobHashMap.entries());
 
-        const entry = entries.find(([ _, recommendationHashes]) => {
-            return recommendationHashes.has(recommendationHash);
+        const entry = entries.find(([ _, jobHashes]) => {
+            return jobHashes.has(jobHash);
         });
 
         assertsNeitherNullOrUndefined(entry);
 
-        const [ fileNameHash, recommendationHashes ] = entry;
+        const [ fileNameHash, jobHashes ] = entry;
 
         const document = this._documentMap.get(fileNameHash);
 
         assertsNeitherNullOrUndefined(document);
 
-        recommendationHashes.delete(recommendationHash);
+        jobHashes.delete(jobHash);
 
-        this._rejectedRecommendationHashes.add(recommendationHash);
-        this._recommendationMap.delete(recommendationHash);
+        this._rejectedJobHashes.add(jobHash);
+        this._jobMap.delete(jobHash);
 
-        const recommendations = Array.from(recommendationHashes).map(
-            (recommendationHash) => {
-                return this._recommendationMap.get(recommendationHash);
+        const jobs = Array.from(jobHashes).map(
+            (jobHash) => {
+                return this._jobMap.get(jobHash);
             },
         )
             .filter(isNeitherNullNorUndefined);
 
         this._setDiagnosticEntry(
             document.fileName,
-            recommendations,
+            jobs,
         );
     }
 
@@ -141,7 +142,7 @@ export class ExtensionStateManager {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const recommendations: ReadonlyArray<IntuitaRecommendation> = fact.solutions.flatMap(
+        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.flatMap(
             (solutions) => {
                 const solution = solutions[0] ?? null;
 
@@ -172,21 +173,21 @@ export class ExtensionStateManager {
                     fact.lengths[start[0]] ?? start[1],
                 ];
 
-                const hash = buildRecommendationHash(
+                const hash = buildJobHash(
                     fileName,
                     oldIndex,
                     newIndex,
                 );
 
-                if (this._rejectedRecommendationHashes.has(hash)) {
+                if (this._rejectedJobHashes.has(hash)) {
                     return null;
                 }
 
                 return {
+                    fileName,
                     hash,
                     range,
                     title,
-                    // fact,
                     oldIndex,
                     newIndex,
                 };
@@ -199,22 +200,22 @@ export class ExtensionStateManager {
         this._documentMap.set(fileNameHash, document);
         this._factMap.set(fileNameHash, fact);
 
-        const recommendationHashes = new Set(
-            recommendations.map(({ hash }) => hash)
+        const jobHashes = new Set(
+            jobs.map(({ hash }) => hash)
         );
 
-        this._recommendationHashMap.set(fileNameHash, recommendationHashes);
+        this._jobHashMap.set(fileNameHash, jobHashes);
         
-        recommendations.forEach((recommendation) => {
-            this._recommendationMap.set(
-                recommendation.hash,
-                recommendation,
+        jobs.forEach((job) => {
+            this._jobMap.set(
+                job.hash,
+                job,
             );
         });
 
         this._setDiagnosticEntry(
             fileName,
-            recommendations,
+            jobs,
         );
     }
 
@@ -225,24 +226,24 @@ export class ExtensionStateManager {
         const fileNameHash = buildFileNameHash(fileName);
 
         const fact = this._factMap.get(fileNameHash);
-        const recommendationHashes = this._recommendationHashMap.get(fileNameHash);
+        const jobHashes = this._jobHashMap.get(fileNameHash);
 
         assertsNeitherNullOrUndefined(fact);
-        assertsNeitherNullOrUndefined(recommendationHashes);
+        assertsNeitherNullOrUndefined(jobHashes);
 
-        const recommendations = Array.from(recommendationHashes.keys()).map(
-            (recommendationHash) => {
-                if (this._rejectedRecommendationHashes.has(recommendationHash)) {
+        const jobs = Array.from(jobHashes.keys()).map(
+            (jobHash) => {
+                if (this._rejectedJobHashes.has(jobHash)) {
                     return null;
                 }
 
-                return this._recommendationMap.get(recommendationHash);
+                return this._jobMap.get(jobHash);
             }
         )
             .filter(isNeitherNullNorUndefined);
         
 
-        return recommendations
+        return jobs
             .filter(
                 ({ range }) => {
                     return range[0] <= position[0]
@@ -310,14 +311,10 @@ export class ExtensionStateManager {
     }
 
     public getText(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: JobHash,
     ): string {
         const data = this._getExecution(
-            fileName,
-            oldIndex,
-            newIndex,
+            jobHash,
             0,
         );
 
@@ -325,15 +322,11 @@ export class ExtensionStateManager {
     }
 
     public executeCommand(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: JobHash,
         characterDifference: number,
     ) {
         const data = this._getExecution(
-            fileName,
-            oldIndex,
-            newIndex,
+            jobHash,
             characterDifference,
         );
 
@@ -348,7 +341,7 @@ export class ExtensionStateManager {
 
         const { name, text, line, character } = execution;
 
-        if (name !== fileName) {
+        if (name !== data.fileName) {
             return null;
         }
 
@@ -369,6 +362,7 @@ export class ExtensionStateManager {
         ];
 
         return {
+            fileName: data.fileName,
             range,
             text,
             position,
@@ -376,11 +370,21 @@ export class ExtensionStateManager {
     }
 
     protected _getExecution(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: JobHash,
         characterDifference: number,
     ) {
+        const job = this._jobMap.get(jobHash);
+
+        if (!job) {
+            throw new Error('Could not find a job with the specified hash');
+        }
+
+        const {
+            fileName,
+            oldIndex,
+            newIndex,
+        } = job;
+
         const fileNameHash = buildFileNameHash(fileName);
 
         const document = this._documentMap.get(fileNameHash);
@@ -411,7 +415,8 @@ export class ExtensionStateManager {
 
         return {
             execution,
+            fileName,
             fileText,
-        }
+        };
     }
 }

@@ -10,12 +10,12 @@ import {
 	TreeItemCollapsibleState
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
-import {getConfiguration, RecommendationBlockTrigger} from './configuration';
-import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLevelNode/extensionStateManager";
+import {getConfiguration, JobBlockTrigger} from './configuration';
+import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
-import { buildRecommendationHash } from './features/moveTopLevelNode/recommendationHash';
+import { buildJobHash, JobHash } from './features/moveTopLevelNode/jobHash';
 import path = require('node:path');
 
 export async function activate(
@@ -43,7 +43,7 @@ export async function activate(
 
 	const _setDiagnosticEntry = (
 		fileName: string,
-		intuitaDiagnostics: ReadonlyArray<IntuitaRecommendation>
+		intuitaDiagnostics: ReadonlyArray<IntuitaJob>
 	) => {
 		const diagnostics = intuitaDiagnostics
 			.map(
@@ -86,6 +86,8 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
+	// TODO move Element, _onDidChangeTreeData and treeDataProvider to a separate file
+
 	type Element =
 		| Readonly<{
 			kind: 'FILE',
@@ -96,6 +98,7 @@ export async function activate(
 			kind: 'DIAGNOSTIC',
 			label: string,
 			uri: vscode.Uri,
+			hash: JobHash,
 			fileName: string,
 			oldIndex: number,
 			newIndex: number,
@@ -113,14 +116,14 @@ export async function activate(
 
 				const elements: Element[] = documents
 					.map(
-						({ document, recommendations }) => {
-							if (recommendations.length === 0) {
+						({ document, jobs }) => {
+							if (jobs.length === 0) {
 								return null;
 							}
 
 							const label: string = document.fileName.replace(rootPath, '');
 
-							const children: Element[] = recommendations
+							const children: Element[] = jobs
 								.map(
 									(diagnostic) => {
 										return {
@@ -131,6 +134,7 @@ export async function activate(
 											oldIndex: diagnostic.oldIndex,
 											newIndex: diagnostic.newIndex,
 											range: diagnostic.range,
+											hash: diagnostic.hash,
 										};
 									}
 								);
@@ -177,16 +181,19 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
+				const jobHash = buildJobHash(
+					element.fileName,
+					element.oldIndex,
+					element.newIndex,
+				);
+
 				treeItem.command = {
 					title: 'Diff View',
 					command: 'vscode.diff',
 					arguments: [
 						element.uri,
 						vscode.Uri.parse(
-							'intuita:moveTopLevelNode.ts'
-							+ `?fileName=${encodeURIComponent(element.fileName)}`
-							+ `&oldIndex=${String(element.oldIndex)}`
-							+ `&newIndex=${String(element.newIndex)}`,
+							`intuita:moveTopLevelNode.ts?hash=${jobHash}`,
 							true,
 						),
 						'Proposed change',
@@ -213,67 +220,20 @@ export async function activate(
 		)
 	);
 
-	// vscode.window.withProgress( 
-	// 	{
-	// 		location: {
-	// 			viewId: 'intuitaViewId',
-	// 		}
-	// 	},
-	// 	async (progress) => {
-	// 		return new Promise<void>(
-	// 			(resolve, reject) => {
-	// 				setTimeout(
-	// 					() => {
-	// 						progress.report({
-	// 							increment: 10,
-	// 						})
-
-	// 						reject();
-
-	// 						// resolve();
-	// 					},
-	// 					10000,
-	// 				);
-	// 			}
-	// 		)
-	// 	}
-	// )
-
-	
-
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(
 			uri: vscode.Uri
 		): string {
 			const searchParams = new URLSearchParams(uri.query);
 
-			const fileName = searchParams.get('fileName');
-			const oldIndex = searchParams.get('oldIndex');
-			const newIndex = searchParams.get('newIndex');
+			const jobHash = searchParams.get('hash');
 
-			if (
-				fileName === null
-				|| oldIndex === null
-				|| newIndex === null
-			) {
-				throw new Error('Did not pass file name or old index or new index.');
-			}
-
-			const parsedOldIndex = parseInt(oldIndex, 10);
-			const parsedNewIndex = parseInt(newIndex, 10);
-
-			if (Number.isNaN(parsedOldIndex)) {
-				return 'The old index could not have been parsed.'
-			}
-
-			if (Number.isNaN(parsedNewIndex)) {
-				return 'The new index could not have been parsed.'
+			if (jobHash === null) {
+				throw new Error('Did not pass the job hash parameter "hash".');
 			}
 
 			return extensionStateManager.getText(
-				fileName,
-				parsedOldIndex,
-				parsedNewIndex,
+				jobHash as JobHash,
 			);
 		}
 	};
@@ -307,7 +267,7 @@ export async function activate(
 
 	if (vscode.window.activeTextEditor) {
 		const rangeCriterion: RangeCriterion =
-			configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+			configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 				? {
 					kind: RangeCriterionKind.DOCUMENT,
 				}
@@ -332,7 +292,7 @@ export async function activate(
 					return;
 				}
 				const rangeCriterion: RangeCriterion =
-					configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+					configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 						? {
 							kind: RangeCriterionKind.DOCUMENT,
 						}
@@ -363,65 +323,40 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.acceptRecommendation',
+			'intuita.acceptJob',
 			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
+				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
+					? args.hash
 					: null;
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
-					: null;
+				if (jobHash === null) {
+					throw new Error('Did not pass the job hash argument "hash".');
+				}
 
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
-
-
-				vscode.commands.executeCommand(
+				await vscode.commands.executeCommand(
 					'intuita.moveTopLevelNode',
-					{
-						fileName,
-						oldIndex,
-						newIndex,
-						characterDifference: 0,
-					}
-				)
+					jobHash,
+					0, // characterDifference
+				);
 			}
 		)
 	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.rejectRecommendation',
+			'intuita.rejectJob',
 			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
+				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
+					? args.hash
 					: null;
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
-					: null;
-
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
-
-				if (
-					fileName === null
-					|| oldIndex === null
-					|| newIndex === null
-				) {
-					throw new Error('Did not pass file name or old index or new index.');
+				if (jobHash === null) {
+					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				const recommendationHash = buildRecommendationHash(
-					fileName,
-					oldIndex,
-					newIndex,
+				extensionStateManager.rejectJob(
+					jobHash as JobHash,
 				);
-
-				extensionStateManager.rejectRecommendation(recommendationHash);
 			}
 		)
 	);
@@ -429,22 +364,26 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
-			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
-					: null;
+			async (jobHash, characterDifference) => {
+				if (typeof jobHash !== 'string') {
+					throw new Error('The job hash argument must be a string.');
+				}
+					
+				if (typeof characterDifference !== 'number') {
+					throw new Error('The job hash argument must be a number.');
+				}
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
-					: null;
+				const result = extensionStateManager
+					.executeCommand(
+						jobHash as JobHash,
+						characterDifference,
+					);
 
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
+				if (!result) {
+					throw new Error();
+				}
 
-				const characterDifference: number | null = args && typeof args.characterDifference === 'number'
-					? args.characterDifference
-					: null;
+				const { fileName } = result;
 
 				const textEditors = vscode
 					.window
@@ -465,27 +404,6 @@ export async function activate(
 					);
 
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
-
-				if (
-					fileName === null
-					|| oldIndex === null
-					|| newIndex === null
-					|| characterDifference === null
-				) {
-					throw new Error('Requirements were not met.');
-				}
-
-				const result = extensionStateManager
-					.executeCommand(
-						fileName,
-						oldIndex,
-						newIndex,
-						characterDifference,
-					);
-
-				if (!result) {
-					throw new Error();
-				}
 
 				const range = new vscode.Range(
 				    new vscode.Position(
@@ -531,9 +449,9 @@ export async function activate(
 											}
 										);
 									}
-								)
+								);
 						}
-					)
+					);
 				}
 
 				if (activeTextEditor?.document.fileName === fileName) {

@@ -1,7 +1,6 @@
 import * as ts from "typescript";
 import {buildHash} from "../../../utilities";
 import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
-import {createHash} from "crypto";
 
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     switch(kind) {
@@ -183,7 +182,6 @@ export const buildTypeScriptTopLevelNodes = (
 
             const id = buildHash(text);
 
-            // extract identifiers:
             const childIdentifiers = new Set(getChildIdentifiers(node));
 
             const identifiers = new Set(getNameIdentifiers(node));

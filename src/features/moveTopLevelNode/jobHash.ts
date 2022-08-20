@@ -1,12 +1,12 @@
 import { buildHash } from "../../utilities";
 
-export type RecommendationHash = string & { __type: 'RecommendationHash' };
+export type JobHash = string & { __type: 'JobHash' };
 
-export const buildRecommendationHash = (
+export const buildJobHash = (
     fileName: string,
     oldIndex: number,
     newIndex: number,
-): RecommendationHash => {
+): JobHash => {
     const data = {
         fileName,
         oldIndex,
@@ -17,5 +17,5 @@ export const buildRecommendationHash = (
         JSON.stringify(data),
     );
 
-    return hash as RecommendationHash;
+    return hash as JobHash;
 }
