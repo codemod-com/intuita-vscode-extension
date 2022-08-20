@@ -333,15 +333,20 @@ export class ExtensionStateManager {
     }
 
     public executeCommand(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: RecommendationHash,
         characterDifference: number,
     ) {
+        const job = this._recommendationMap.get(jobHash);
+
+        if (!job) {
+            throw new Error(); // TODO provide error message
+        }
+
+        // TODO perhaps _getExecution relies on the job as well?
         const data = this._getExecution(
-            fileName,
-            oldIndex,
-            newIndex,
+            job.fileName,
+            job.oldIndex,
+            job.newIndex,
             characterDifference,
         );
 
@@ -356,7 +361,7 @@ export class ExtensionStateManager {
 
         const { name, text, line, character } = execution;
 
-        if (name !== fileName) {
+        if (name !== job.fileName) {
             return null;
         }
 
@@ -377,6 +382,7 @@ export class ExtensionStateManager {
         ];
 
         return {
+            job,
             range,
             text,
             position,

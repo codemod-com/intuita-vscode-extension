@@ -404,12 +404,9 @@ export async function activate(
 
 				const result = extensionStateManager
 					.executeCommand(
-						// TODO have executeCommand work on a jobHash
-						// TODO have the result include the fileName
-						job.fileName,
-						job.oldIndex,
-						job.newIndex,
+						jobHash as RecommendationHash,
 						characterDifference,
+						// TODO have the result include the fileName
 					);
 
 				if (!result) {
