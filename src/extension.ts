@@ -11,7 +11,7 @@ import {
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration, RecommendationBlockTrigger} from './configuration';
-import {ExtensionStateManager, IntuitaRecommendation} from "./features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
@@ -43,7 +43,7 @@ export async function activate(
 
 	const _setDiagnosticEntry = (
 		fileName: string,
-		intuitaDiagnostics: ReadonlyArray<IntuitaRecommendation>
+		intuitaDiagnostics: ReadonlyArray<IntuitaJob>
 	) => {
 		const diagnostics = intuitaDiagnostics
 			.map(
@@ -116,14 +116,14 @@ export async function activate(
 
 				const elements: Element[] = documents
 					.map(
-						({ document, recommendations }) => {
-							if (recommendations.length === 0) {
+						({ document, jobs }) => {
+							if (jobs.length === 0) {
 								return null;
 							}
 
 							const label: string = document.fileName.replace(rootPath, '');
 
-							const children: Element[] = recommendations
+							const children: Element[] = jobs
 								.map(
 									(diagnostic) => {
 										return {
