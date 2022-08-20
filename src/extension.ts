@@ -181,7 +181,7 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
-				const recommendationHash = buildRecommendationHash(
+				const jobHash = buildRecommendationHash(
 					element.fileName,
 					element.oldIndex,
 					element.newIndex,
@@ -193,7 +193,7 @@ export async function activate(
 					arguments: [
 						element.uri,
 						vscode.Uri.parse(
-							`intuita:moveTopLevelNode.ts?h=${recommendationHash}`,
+							`intuita:moveTopLevelNode.ts?hash=${jobHash}`,
 							true,
 						),
 						'Proposed change',
@@ -226,10 +226,10 @@ export async function activate(
 		): string {
 			const searchParams = new URLSearchParams(uri.query);
 
-			const jobHash = searchParams.get('h');
+			const jobHash = searchParams.get('hash');
 
 			if (jobHash === null) {
-				throw new Error('Did not pass the job hash parameter "h".');
+				throw new Error('Did not pass the job hash parameter "hash".');
 			}
 
 			return extensionStateManager.getText(
