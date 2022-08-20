@@ -323,7 +323,7 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.acceptRecommendation',
+			'intuita.acceptJob',
 			async (args) => {
 				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
 					? args.hash
@@ -344,7 +344,7 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.rejectRecommendation',
+			'intuita.rejectJob',
 			async (args) => {
 				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
 					? args.hash
@@ -354,7 +354,7 @@ export async function activate(
 					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				extensionStateManager.rejectRecommendation(
+				extensionStateManager.rejectJob(
 					jobHash as JobHash,
 				);
 			}

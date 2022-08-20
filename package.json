@@ -20,11 +20,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "[TODO] There are no recommendations."
+				"contents": "[TODO] There are no jobs."
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "[TODO] There are no recommendations."
+				"contents": "[TODO] There are no jobs."
 			}
 		],
 		"commands": [
@@ -34,11 +34,11 @@
 				"icon": "$(flame)"
 			},
 			{
-				"command": "intuita.acceptRecommendation",
+				"command": "intuita.acceptJob",
 				"title": "✓ Accept"
 			},
 			{
-				"command": "intuita.rejectRecommendation",
+				"command": "intuita.rejectJob",
 				"title": "✗ Reject"
 			}
 		],
@@ -65,7 +65,7 @@
 			"activitybar": [
 				{
 					"id": "intuitaViewId",
-					"title": "Intuita",
+					"title": "Intuita Jobs",
 					"icon": "img/intuita.svg"
 				}
 			]
@@ -74,7 +74,7 @@
 			"explorer": [
 				{
 					"id": "explorerIntuitaViewId",
-					"name": "Intuita",
+					"name": "Intuita Jobs",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
 				}
@@ -82,9 +82,9 @@
 			"intuitaViewId": [
 				{
 					"id": "intuitaViewId",
-					"name": "Intuita",
+					"name": "Intuita Jobs",
 					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
+					"contextualTitle": "Intuita Jobs"
 				}
 			]
 		},
@@ -98,12 +98,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "intuita.acceptRecommendation",
+					"command": "intuita.acceptJob",
 					"when": "viewItem == intuitaJob",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectRecommendation",
+					"command": "intuita.rejectJob",
 					"when": "viewItem == intuitaJob",
 					"group": "inline"
 				}

@@ -86,7 +86,7 @@ export class ExtensionStateManager {
         );
     }
 
-    public rejectRecommendation(
+    public rejectJob(
         jobHash: JobHash,
     ) {
         const entries = Array.from(this._jobHashMap.entries());
