@@ -229,18 +229,9 @@ export async function activate(
 			if (jobHash === null) {
 				throw new Error('Did not pass the job hash parameter "h".');
 			}
-
-			const job = extensionStateManager.getJob(jobHash as RecommendationHash);
-
-			if (job === null) {
-				throw new Error('Could not find a job with the specified hash');
-			}
-
-			// TODO have getText accept a job
+			
 			return extensionStateManager.getText(
-				job.fileName,
-				job.oldIndex,
-				job.newIndex,
+				jobHash as RecommendationHash,
 			);
 		}
 	};

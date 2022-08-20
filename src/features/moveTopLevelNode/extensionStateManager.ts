@@ -50,13 +50,6 @@ export class ExtensionStateManager {
 
     }
 
-    public getJob(
-        recommendationHash: RecommendationHash,
-    ): IntuitaRecommendation | null {
-        // TODO: job is the new word for recommendation
-        return this._recommendationMap.get(recommendationHash) ?? null;
-    }
-
     // TODO: change name
     public getDocuments() {
         const fileNameHashes = Array.from(
@@ -319,14 +312,19 @@ export class ExtensionStateManager {
     }
 
     public getText(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: RecommendationHash,
     ): string {
+        const job = this._recommendationMap.get(jobHash);
+
+        if (job === undefined) {
+            throw new Error('Could not find a job with the specified hash');
+        }
+
+        // TODO perhaps _getExecution relies on the job as well?
         const data = this._getExecution(
-            fileName,
-            oldIndex,
-            newIndex,
+            job.fileName,
+            job.oldIndex,
+            job.newIndex,
             0,
         );
 
