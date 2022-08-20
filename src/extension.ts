@@ -86,7 +86,7 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
-	// move Element, _onDidChangeTreeData and treeDataProvider to a separate file
+	// TODO move Element, _onDidChangeTreeData and treeDataProvider to a separate file
 
 	type Element =
 		| Readonly<{

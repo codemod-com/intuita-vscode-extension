@@ -38,7 +38,6 @@ export class ExtensionStateManager {
     protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
     protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
     protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
-    // TODO: temporary access override
     protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
 
     public constructor(
@@ -315,17 +314,8 @@ export class ExtensionStateManager {
     public getText(
         jobHash: RecommendationHash,
     ): string {
-        const job = this._recommendationMap.get(jobHash);
-
-        if (job === undefined) {
-            throw new Error('Could not find a job with the specified hash');
-        }
-
-        // TODO perhaps _getExecution relies on the job as well?
         const data = this._getExecution(
-            job.fileName,
-            job.oldIndex,
-            job.newIndex,
+            jobHash,
             0,
         );
 
@@ -336,19 +326,8 @@ export class ExtensionStateManager {
         jobHash: RecommendationHash,
         characterDifference: number,
     ) {
-        const job = this._recommendationMap.get(jobHash);
-
-        if (!job) {
-            throw new Error(); // TODO provide error message
-        }
-
-        const { fileName } = job;
-
-        // TODO perhaps _getExecution relies on the job as well?
         const data = this._getExecution(
-            fileName,
-            job.oldIndex,
-            job.newIndex,
+            jobHash,
             characterDifference,
         );
 
@@ -363,7 +342,7 @@ export class ExtensionStateManager {
 
         const { name, text, line, character } = execution;
 
-        if (name !== fileName) {
+        if (name !== data.fileName) {
             return null;
         }
 
@@ -384,7 +363,7 @@ export class ExtensionStateManager {
         ];
 
         return {
-            fileName,
+            fileName: data.fileName,
             range,
             text,
             position,
@@ -392,11 +371,21 @@ export class ExtensionStateManager {
     }
 
     protected _getExecution(
-        fileName: string,
-        oldIndex: number,
-        newIndex: number,
+        jobHash: RecommendationHash,
         characterDifference: number,
     ) {
+        const job = this._recommendationMap.get(jobHash);
+
+        if (!job) {
+            throw new Error('Could not find a job with the specified hash');
+        }
+
+        const {
+            fileName,
+            oldIndex,
+            newIndex,
+        } = job;
+
         const fileNameHash = buildFileNameHash(fileName);
 
         const document = this._documentMap.get(fileNameHash);
@@ -427,6 +416,7 @@ export class ExtensionStateManager {
 
         return {
             execution,
+            fileName,
             fileText,
         };
     }
