@@ -325,26 +325,18 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.acceptRecommendation',
 			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
+				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
+					? args.hash
 					: null;
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
-					: null;
-
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
+				if (jobHash === null) {
+					throw new Error('Did not pass the job hash argument "hash".');
+				}
 
 				vscode.commands.executeCommand(
 					'intuita.moveTopLevelNode',
-					{
-						fileName,
-						oldIndex,
-						newIndex,
-						characterDifference: 0,
-					}
+					jobHash,
+					0, // characterDifference
 				);
 			}
 		)
