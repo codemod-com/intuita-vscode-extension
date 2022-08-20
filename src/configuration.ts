@@ -1,23 +1,23 @@
 import * as vscode from 'vscode';
 
-export const enum RecommendationBlockTrigger {
-    onlyNew=1,
+export const enum JobBlockTrigger {
+    new=1,
     newAndChanged=2,
     all=3,
 }
 
-const getRecommendationBlockTrigger = (
+const getJobBlockTrigger = (
     str: string,
-): RecommendationBlockTrigger => {
+): JobBlockTrigger => {
     if (str === 'newAndChanged') {
-        return RecommendationBlockTrigger.newAndChanged;
+        return JobBlockTrigger.newAndChanged;
     }
 
     if (str === 'all') {
-        return RecommendationBlockTrigger.all;
+        return JobBlockTrigger.all;
     }
 
-    return RecommendationBlockTrigger.onlyNew;
+    return JobBlockTrigger.new;
 };
 
 export const getConfiguration = () => {
@@ -25,19 +25,12 @@ export const getConfiguration = () => {
         'intuita',
     );
 
-    const dependencyCoefficientWeight = configuration.get<number>('dependencyCoefficientWeight') ?? 1;
-    const similarityCoefficientWeight = configuration.get<number>('similarityCoefficientWeight') ?? 1;
-    const kindCoefficientWeight = configuration.get<number>('kindCoefficientWeight') ?? 1;
-
-    const recommendationBlockTrigger = getRecommendationBlockTrigger(
-        configuration.get<string>('recommendationBlockTrigger') ?? 'onlyNew'
+    const jobBlockTrigger = getJobBlockTrigger(
+        configuration.get<string>('jobBlockTrigger') ?? 'new'
     );
 
     return {
-        dependencyCoefficientWeight,
-        similarityCoefficientWeight,
-        kindCoefficientWeight,
-        recommendationBlockTrigger,
+        jobBlockTrigger,
     };
 };
 
