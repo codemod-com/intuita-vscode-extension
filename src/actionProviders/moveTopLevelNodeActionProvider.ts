@@ -126,10 +126,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         arguments: [
                             document.uri,
                             vscode.Uri.parse(
-                                'intuita://moveTopLevelNode.ts'
-                                + `?fileName=${encodeURIComponent(fileName)}`
-                                + `&oldIndex=${String(oldIndex)}`
-                                + `&newIndex=${String(newIndex)}`,
+                                `intuita://moveTopLevelNode.ts?hash=${jobHash}`,
                                 true,
                             ),
                         ]
