@@ -342,9 +342,11 @@ export class ExtensionStateManager {
             throw new Error(); // TODO provide error message
         }
 
+        const { fileName } = job;
+
         // TODO perhaps _getExecution relies on the job as well?
         const data = this._getExecution(
-            job.fileName,
+            fileName,
             job.oldIndex,
             job.newIndex,
             characterDifference,
@@ -361,7 +363,7 @@ export class ExtensionStateManager {
 
         const { name, text, line, character } = execution;
 
-        if (name !== job.fileName) {
+        if (name !== fileName) {
             return null;
         }
 
@@ -382,7 +384,7 @@ export class ExtensionStateManager {
         ];
 
         return {
-            job,
+            fileName,
             range,
             text,
             position,

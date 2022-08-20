@@ -373,21 +373,24 @@ export async function activate(
 					throw new Error('The job hash argument must be a number.');
 				}
 
-				// TODO: job doesn't have to be retrieved to get the fileName
-				const job = extensionStateManager._recommendationMap.get(
-					jobHash as RecommendationHash
-				);
+				const result = extensionStateManager
+					.executeCommand(
+						jobHash as RecommendationHash,
+						characterDifference,
+					);
 
-				if (!job) {
+				if (!result) {
 					throw new Error();
 				}
+
+				const { fileName } = result;
 
 				const textEditors = vscode
 					.window
 					.visibleTextEditors
 					.filter(
 						({ document }) => {
-							return document.fileName === job.fileName;
+							return document.fileName === fileName;
 						},
 					);
 
@@ -396,22 +399,11 @@ export async function activate(
 					.textDocuments
 					.filter(
 						(document) => {
-							return document.fileName === job.fileName;
+							return document.fileName === fileName;
 						},
 					);
 
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
-
-				const result = extensionStateManager
-					.executeCommand(
-						jobHash as RecommendationHash,
-						characterDifference,
-						// TODO have the result include the fileName
-					);
-
-				if (!result) {
-					throw new Error();
-				}
 
 				const range = new vscode.Range(
 				    new vscode.Position(
@@ -457,12 +449,12 @@ export async function activate(
 											}
 										);
 									}
-								)
+								);
 						}
-					)
+					);
 				}
 
-				if (activeTextEditor?.document.fileName === job.fileName) {
+				if (activeTextEditor?.document.fileName === fileName) {
 					const position = new vscode.Position(
 						result.position[0],
 						result.position[1],
