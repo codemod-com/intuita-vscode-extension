@@ -373,28 +373,37 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
+				if (!Array.isArray(args)) {
+					throw new Error('Arguments of the "intuita.moveTopLevelNode" command must be an array');
+				}
+
+				const jobHash = typeof args[0] === 'string'
+					? args[0]
 					: null;
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
+				const characterDifference = typeof args[1] === 'number'
+					? args[1]
 					: null;
 
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
+				if (jobHash === null || characterDifference === null) {
+					throw new Error('Did not pass the job hash argument or the character difference argument.');
+				}
 
-				const characterDifference: number | null = args && typeof args.characterDifference === 'number'
-					? args.characterDifference
-					: null;
+				// TODO: job doesn't have to be retrieved to get the fileName
+				const job = extensionStateManager._recommendationMap.get(
+					jobHash as RecommendationHash
+				);
+
+				if (!job) {
+					throw new Error();
+				}
 
 				const textEditors = vscode
 					.window
 					.visibleTextEditors
 					.filter(
 						({ document }) => {
-							return document.fileName === fileName;
+							return document.fileName === job.fileName;
 						},
 					);
 
@@ -403,26 +412,19 @@ export async function activate(
 					.textDocuments
 					.filter(
 						(document) => {
-							return document.fileName === fileName;
+							return document.fileName === job.fileName;
 						},
 					);
 
 				const activeTextEditor = vscode.window.activeTextEditor ?? null;
 
-				if (
-					fileName === null
-					|| oldIndex === null
-					|| newIndex === null
-					|| characterDifference === null
-				) {
-					throw new Error('Requirements were not met.');
-				}
-
 				const result = extensionStateManager
 					.executeCommand(
-						fileName,
-						oldIndex,
-						newIndex,
+						// TODO have executeCommand work on a jobHash
+						// TODO have the result include the fileName
+						job.fileName,
+						job.oldIndex,
+						job.newIndex,
 						characterDifference,
 					);
 
@@ -479,7 +481,7 @@ export async function activate(
 					)
 				}
 
-				if (activeTextEditor?.document.fileName === fileName) {
+				if (activeTextEditor?.document.fileName === job.fileName) {
 					const position = new vscode.Position(
 						result.position[0],
 						result.position[1],

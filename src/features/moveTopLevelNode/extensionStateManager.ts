@@ -38,7 +38,8 @@ export class ExtensionStateManager {
     protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
     protected _recommendationHashMap = new Map<FileNameHash, Set<RecommendationHash>>();
     protected _rejectedRecommendationHashes = new Set<RecommendationHash>();
-    protected _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
+    // TODO: temporary access override
+    public _recommendationMap = new Map<RecommendationHash, IntuitaRecommendation>;
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
