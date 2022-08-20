@@ -98,6 +98,7 @@ export async function activate(
 			kind: 'DIAGNOSTIC',
 			label: string,
 			uri: vscode.Uri,
+			hash: RecommendationHash,
 			fileName: string,
 			oldIndex: number,
 			newIndex: number,
@@ -133,6 +134,7 @@ export async function activate(
 											oldIndex: diagnostic.oldIndex,
 											newIndex: diagnostic.newIndex,
 											range: diagnostic.range,
+											hash: diagnostic.hash,
 										};
 									}
 								);
@@ -229,7 +231,7 @@ export async function activate(
 			if (jobHash === null) {
 				throw new Error('Did not pass the job hash parameter "h".');
 			}
-			
+
 			return extensionStateManager.getText(
 				jobHash as RecommendationHash,
 			);
@@ -335,7 +337,6 @@ export async function activate(
 					? args.newIndex
 					: null;
 
-
 				vscode.commands.executeCommand(
 					'intuita.moveTopLevelNode',
 					{
@@ -344,7 +345,7 @@ export async function activate(
 						newIndex,
 						characterDifference: 0,
 					}
-				)
+				);
 			}
 		)
 	);
@@ -353,33 +354,17 @@ export async function activate(
 		vscode.commands.registerCommand(
 			'intuita.rejectRecommendation',
 			async (args) => {
-				const fileName: string | null = args && typeof args.fileName === 'string'
-					? args.fileName
+				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
+					? args.hash
 					: null;
 
-				const oldIndex: number | null = args && typeof args.oldIndex === 'number'
-					? args.oldIndex
-					: null;
-
-				const newIndex: number | null = args && typeof args.newIndex === 'number'
-					? args.newIndex
-					: null;
-
-				if (
-					fileName === null
-					|| oldIndex === null
-					|| newIndex === null
-				) {
-					throw new Error('Did not pass file name or old index or new index.');
+				if (jobHash === null) {
+					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				const recommendationHash = buildRecommendationHash(
-					fileName,
-					oldIndex,
-					newIndex,
+				extensionStateManager.rejectRecommendation(
+					jobHash as RecommendationHash,
 				);
-
-				extensionStateManager.rejectRecommendation(recommendationHash);
 			}
 		)
 	);
