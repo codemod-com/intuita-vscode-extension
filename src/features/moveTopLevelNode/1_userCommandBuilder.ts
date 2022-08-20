@@ -1,10 +1,6 @@
 import {IntuitaRange} from "../../utilities";
 
-export type MoveTopLevelNodeOptions = Readonly<{
-    dependencyCoefficientWeight: number,
-    similarityCoefficientWeight: number,
-    kindCoefficientWeight: number,
-}>;
+export type MoveTopLevelNodeOptions = Readonly<{}>;
 
 export const enum RangeCriterionKind {
     RANGES = 1,

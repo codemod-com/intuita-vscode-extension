@@ -45,21 +45,6 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.dependencyCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the dependency coefficient. This coefficient equals the ratio of the dependencies of the current top-level node defined before that node to the total number of them. By increasing the weight, you increase the influence of the dependencies on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
-				"intuita.similarityCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the similarity coefficient. This coefficient equals the ratio of the similarity of the names of the current top-level node against the other nodes to the total number of them. By increasing the weight, you increase the influence of the similarity on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
-				"intuita.kindCoefficientWeight": {
-					"type": "number",
-					"default": 1,
-					"description": "Change to apply a custom weight to the kind coefficient. This coefficient equals the ratio of the same-kind neighboring nodes of the current top-level node to their total number. By increasing the weight, you increase the influence of the kind on the proposed move solutions. Set the value to 0 to disable this coefficient."
-				},
 				"intuita.recommendationBlockTrigger": {
 					"type": "string",
 					"default": "onlyNew",
