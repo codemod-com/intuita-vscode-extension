@@ -45,18 +45,18 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.recommendationBlockTrigger": {
+				"intuita.jobBlockTrigger": {
 					"type": "string",
-					"default": "onlyNew",
+					"default": "new",
 					"enum": [
-						"onlyNew",
+						"new",
 						"newAndChanged",
 						"all"
 					],
 					"enumDescriptions": [
-						"Provide recommendations only for the new code blocks",
-						"Provide recommendations only for the new and changed code blocks",
-						"Provide recommendations for all code blocks"
+						"Provide jobs only for the new code blocks",
+						"Provide jobs only for the new and changed code blocks",
+						"Provide jobs for all code blocks"
 					]
 				}
 			}

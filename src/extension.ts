@@ -10,7 +10,7 @@ import {
 	TreeItemCollapsibleState
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
-import {getConfiguration, RecommendationBlockTrigger} from './configuration';
+import {getConfiguration, JobBlockTrigger} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
@@ -267,7 +267,7 @@ export async function activate(
 
 	if (vscode.window.activeTextEditor) {
 		const rangeCriterion: RangeCriterion =
-			configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+			configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 				? {
 					kind: RangeCriterionKind.DOCUMENT,
 				}
@@ -292,7 +292,7 @@ export async function activate(
 					return;
 				}
 				const rangeCriterion: RangeCriterion =
-					configurationContainer.get().recommendationBlockTrigger === RecommendationBlockTrigger.all
+					configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 						? {
 							kind: RangeCriterionKind.DOCUMENT,
 						}
