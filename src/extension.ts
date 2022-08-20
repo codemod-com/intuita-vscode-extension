@@ -213,34 +213,6 @@ export async function activate(
 		)
 	);
 
-	// vscode.window.withProgress( 
-	// 	{
-	// 		location: {
-	// 			viewId: 'intuitaViewId',
-	// 		}
-	// 	},
-	// 	async (progress) => {
-	// 		return new Promise<void>(
-	// 			(resolve, reject) => {
-	// 				setTimeout(
-	// 					() => {
-	// 						progress.report({
-	// 							increment: 10,
-	// 						})
-
-	// 						reject();
-
-	// 						// resolve();
-	// 					},
-	// 					10000,
-	// 				);
-	// 			}
-	// 		)
-	// 	}
-	// )
-
-	
-
 	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
 		provideTextDocumentContent(
 			uri: vscode.Uri
