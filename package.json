@@ -58,6 +58,42 @@
 						"Provide jobs only for the new and changed code blocks",
 						"Provide jobs for all code blocks"
 					]
+				},
+				"intuita.topLevelNodeKindOrder": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"enum",
+							"typeAlias",
+							"interface",
+							"function",
+							"class",
+							"block",
+							"variable",
+							"unknown"
+						],
+						"enumDescriptions": [
+							"Enumeration",
+							"Type aliast",
+							"Interface",
+							"Function",
+							"Class",
+							"Unnamed block",
+							"Variable",
+							"Other / Unknown statement"
+						]
+					},
+					"default": [
+						"enum",
+						"typeAlias",
+						"interface",
+						"function",
+						"class",
+						"block",
+						"variable",
+						"unknown"
+					]
 				}
 			}
 		},

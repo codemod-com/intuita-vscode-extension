@@ -1,6 +1,9 @@
 import {IntuitaRange} from "../../utilities";
+import { TopLevelNodeKind } from "./2_factBuilders/topLevelNode";
 
-export type MoveTopLevelNodeOptions = Readonly<{}>;
+export type MoveTopLevelNodeOptions = Readonly<{
+    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>,
+}>;
 
 export const enum RangeCriterionKind {
     RANGES = 1,
