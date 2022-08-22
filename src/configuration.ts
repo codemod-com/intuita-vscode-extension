@@ -1,22 +1,11 @@
 import * as vscode from 'vscode';
-import { TopLevelNodeKind } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
+import { DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, TopLevelNodeKind } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
 
 export const enum JobBlockTrigger {
     new='new',
     newAndChanged='newAndChanged',
     all='all',
 }
-
-const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> = [
-    TopLevelNodeKind.enum,
-    TopLevelNodeKind.typeAlias,
-    TopLevelNodeKind.interface,
-    TopLevelNodeKind.function,
-    TopLevelNodeKind.class,
-    TopLevelNodeKind.block,
-    TopLevelNodeKind.variable,
-    TopLevelNodeKind.unknown,
-];
 
 export const getConfiguration = () => {
     const configuration = vscode.workspace.getConfiguration(

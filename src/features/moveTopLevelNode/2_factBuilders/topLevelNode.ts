@@ -9,6 +9,17 @@ export const enum TopLevelNodeKind {
     enum = 'enum',
 }
 
+export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> = [
+    TopLevelNodeKind.enum,
+    TopLevelNodeKind.typeAlias,
+    TopLevelNodeKind.interface,
+    TopLevelNodeKind.function,
+    TopLevelNodeKind.class,
+    TopLevelNodeKind.block,
+    TopLevelNodeKind.variable,
+    TopLevelNodeKind.unknown,
+];
+
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
     id: string,
