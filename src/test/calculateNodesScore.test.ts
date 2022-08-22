@@ -36,7 +36,7 @@ describe('calculateNodesScore', function() {
         assert.equal(score, 0);
     });
 
-    it('should return 0 for an array with two ordered element', () => {
+    it.only('should return 0 for an array with two ordered element', () => {
         const score = calculateNodesScore(
             [
                 {
