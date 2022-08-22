@@ -122,7 +122,10 @@ export const buildMoveTopLevelNodeFact = (
                 );
             },
         )
-        .filter(isNeitherNullNorUndefined);
+        .filter(isNeitherNullNorUndefined)
+        .sort((a, b) => {
+            return Math.sign(a.score - b.score);
+        });
 
     return {
         separator,

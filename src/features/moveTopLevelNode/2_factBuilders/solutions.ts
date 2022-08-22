@@ -5,7 +5,8 @@ import { TopLevelNode, TopLevelNodeKind } from "./topLevelNode";
 export type Solution = Readonly<{
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
-    newIndex: number
+    newIndex: number,
+    score: number,
 }>;
 
 const kindOrder: ReadonlyArray<TopLevelNodeKind> = [
@@ -51,6 +52,7 @@ export const calculateSolution = (
                 score,
             };
         })
+        .filter(a => a.score !== 0)
         .sort((a, b) => {
             return Math.sign(a.score - b.score);
         })
