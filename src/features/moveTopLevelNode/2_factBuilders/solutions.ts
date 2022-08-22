@@ -24,6 +24,11 @@ export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
 ): Solution | null => {
+    const oldScore = calculateNodesScore(
+        nodes,
+        kindOrder,
+    );
+
     return nodes
         .map((_, newIndex) => {
             if (oldIndex === newIndex) {
@@ -36,14 +41,23 @@ export const calculateSolution = (
                 newIndex,
             );
 
-            return [newNodes, newIndex] as const;
-        })
-        .filter(isNeitherNullNorUndefined)
-        .map(([ newNodes, newIndex ]) => {
-            const score = calculateNodesScore(
+            const newScore = calculateNodesScore(
                 newNodes,
                 kindOrder,
             );
+
+            return [
+                newNodes,
+                newIndex,
+                newScore,
+            ] as const;
+        })
+        .filter(isNeitherNullNorUndefined)
+        .filter(([_, __, newScore]) => {
+            return newScore < oldScore;
+        })
+        .map(([ newNodes, newIndex, score ]) => {
+            
 
             return {
                 nodes: newNodes,
