@@ -9,24 +9,14 @@ export type Solution = Readonly<{
     score: number,
 }>;
 
-const kindOrder: ReadonlyArray<TopLevelNodeKind> = [
-    TopLevelNodeKind.ENUM,
-    TopLevelNodeKind.TYPE_ALIAS,
-    TopLevelNodeKind.INTERFACE,
-    TopLevelNodeKind.FUNCTION,
-    TopLevelNodeKind.CLASS,
-    TopLevelNodeKind.BLOCK,
-    TopLevelNodeKind.VARIABLE,
-    TopLevelNodeKind.UNKNOWN,
-];
-
 export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
+    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>
 ): Solution | null => {
     const oldScore = calculateNodesScore(
         nodes,
-        kindOrder,
+        topLevelNodeKindOrder,
     );
 
     return nodes
@@ -43,7 +33,7 @@ export const calculateSolution = (
 
             const newScore = calculateNodesScore(
                 newNodes,
-                kindOrder,
+                topLevelNodeKindOrder,
             );
 
             return [

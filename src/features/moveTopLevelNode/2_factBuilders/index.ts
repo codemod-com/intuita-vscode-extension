@@ -119,6 +119,7 @@ export const buildMoveTopLevelNodeFact = (
                 return calculateSolution(
                     topLevelNodes,
                     oldIndex,
+                    options.topLevelNodeKindOrder,
                 );
             },
         )
