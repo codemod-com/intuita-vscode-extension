@@ -36,7 +36,7 @@ describe('calculateNodesScore', function() {
         assert.equal(score, 0);
     });
 
-    it.only('should return 0 for an array with two ordered element', () => {
+    it('should return 0 for an array with two ordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -50,5 +50,21 @@ describe('calculateNodesScore', function() {
         );
 
         assert.equal(score, 0);
+    });
+
+    it('should return a positive number for an array with two unordered elements', () => {
+        const score = calculateNodesScore(
+            [
+                {
+                    kind: TopLevelNodeKind.TYPE_ALIAS,
+                },
+                {
+                    kind: TopLevelNodeKind.ENUM,
+                },
+            ],
+            kindOrder,
+        );
+
+        assert.approximately(score, 0.0625, 0.0001);
     });
 });
