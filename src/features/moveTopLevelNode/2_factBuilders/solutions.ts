@@ -19,10 +19,10 @@ const kindOrder: ReadonlyArray<TopLevelNodeKind> = [
     TopLevelNodeKind.UNKNOWN,
 ];
 
-export const calculateSolutions = (
+export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
-): ReadonlyArray<Solution> => {
+): Solution | null => {
     return nodes
         .map((_, newIndex) => {
             if (oldIndex === newIndex) {
@@ -53,6 +53,6 @@ export const calculateSolutions = (
         })
         .sort((a, b) => {
             return Math.sign(a.score - b.score);
-        });
-        
+        })
+        [0] ?? null;
 };

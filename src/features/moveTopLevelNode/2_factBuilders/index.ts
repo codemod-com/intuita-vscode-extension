@@ -1,17 +1,15 @@
 import {MoveTopLevelNodeUserCommand, RangeCriterion, RangeCriterionKind} from "../1_userCommandBuilder";
 import {TopLevelNode} from "./topLevelNode";
-import {calculateSolutions, Solution} from "./solutions";
+import {calculateSolution, Solution} from "./solutions";
 import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
-import {calculateCharacterIndex, calculateLengths, calculateLines} from "../../../utilities";
+import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from "../../../utilities";
 
 export type MoveTopLevelNodeFact = Readonly<{
     separator: string,
     topLevelNodes: ReadonlyArray<TopLevelNode>,
     lengths: ReadonlyArray<number>,
     stringNodes: ReadonlyArray<StringNode>,
-    // TODO reduce to an array instead
-    // solutions: ReadonlyArray<ReadonlyArray<Solution>>,
     solutions: ReadonlyArray<Solution>,
 }>;
 
@@ -115,14 +113,16 @@ export const buildMoveTopLevelNodeFact = (
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
-    const solutions = updatedTopLevelNodes.map(
-        ({ oldIndex }) => {
-            return calculateSolutions(
-                topLevelNodes,
-                oldIndex,
-            );
-        },
-    );
+    const solutions = updatedTopLevelNodes
+        .map(
+            ({ oldIndex }) => {
+                return calculateSolution(
+                    topLevelNodes,
+                    oldIndex,
+                );
+            },
+        )
+        .filter(isNeitherNullNorUndefined);
 
     return {
         separator,
