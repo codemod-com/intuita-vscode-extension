@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Automated Code Organization & Modularization",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"icon": "img/intuitasq128.png",
 	"engines": {
 		"vscode": "^1.69.0"
@@ -101,7 +101,7 @@
 			"activitybar": [
 				{
 					"id": "intuitaViewId",
-					"title": "Intuita Jobs",
+					"title": "Intuita",
 					"icon": "img/intuita.svg"
 				}
 			]
@@ -110,7 +110,7 @@
 			"explorer": [
 				{
 					"id": "explorerIntuitaViewId",
-					"name": "Intuita Jobs",
+					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
 				}
@@ -118,9 +118,9 @@
 			"intuitaViewId": [
 				{
 					"id": "intuitaViewId",
-					"name": "Intuita Jobs",
+					"name": "Intuita",
 					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita Jobs"
+					"contextualTitle": "Intuita"
 				}
 			]
 		},
@@ -159,12 +159,11 @@
 		"@types/chai": "^4.3.1",
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
-		"@types/node": "18.7.8",
+		"@types/node": "18.7.9",
 		"@types/vscode": "^1.69.0",
-		"@typescript-eslint/eslint-plugin": "^5.30.7",
-		"@typescript-eslint/parser": "^5.30.7",
+		"@typescript-eslint/eslint-plugin": "^5.34.0",
+		"@typescript-eslint/parser": "^5.34.0",
 		"@vscode/test-electron": "^2.1.5",
-		"antlr4ts-cli": "^0.5.0-alpha.4",
 		"chai": "^4.3.6",
 		"eslint": "^8.20.0",
 		"glob": "^8.0.3",
@@ -176,8 +175,6 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
-		"antlr4ts": "^0.5.0-alpha.4",
-		"jaro-winkler": "^0.2.8",
 		"typescript": "^4.7.4"
 	}
 }
