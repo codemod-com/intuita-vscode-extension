@@ -1,13 +1,24 @@
 export const enum TopLevelNodeKind {
-    UNKNOWN = 1,
-    CLASS = 2,
-    FUNCTION = 3,
-    INTERFACE = 4,
-    TYPE_ALIAS = 5,
-    BLOCK = 6,
-    VARIABLE = 7,
-    ENUM = 8,
+    unknown = 'unknown',
+    class = 'class',
+    function = 'function',
+    interface = 'interface',
+    typeAlias = 'typeAlias',
+    block = 'block',
+    variable = 'variable',
+    enum = 'enum',
 }
+
+export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> = [
+    TopLevelNodeKind.enum,
+    TopLevelNodeKind.typeAlias,
+    TopLevelNodeKind.interface,
+    TopLevelNodeKind.function,
+    TopLevelNodeKind.class,
+    TopLevelNodeKind.block,
+    TopLevelNodeKind.variable,
+    TopLevelNodeKind.unknown,
+];
 
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,

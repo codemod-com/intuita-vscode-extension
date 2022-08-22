@@ -5,21 +5,21 @@ import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     switch(kind) {
         case ts.SyntaxKind.ClassDeclaration:
-            return TopLevelNodeKind.CLASS;
+            return TopLevelNodeKind.class;
         case ts.SyntaxKind.FunctionDeclaration:
-            return TopLevelNodeKind.FUNCTION;
+            return TopLevelNodeKind.function;
         case ts.SyntaxKind.InterfaceDeclaration:
-            return TopLevelNodeKind.INTERFACE;
+            return TopLevelNodeKind.interface;
         case ts.SyntaxKind.TypeAliasDeclaration:
-            return TopLevelNodeKind.TYPE_ALIAS;
+            return TopLevelNodeKind.typeAlias;
         case ts.SyntaxKind.Block:
-            return TopLevelNodeKind.BLOCK;
+            return TopLevelNodeKind.block;
         case ts.SyntaxKind.VariableStatement:
-            return TopLevelNodeKind.VARIABLE;
+            return TopLevelNodeKind.variable;
         case ts.SyntaxKind.EnumDeclaration:
-            return TopLevelNodeKind.ENUM;
+            return TopLevelNodeKind.enum;
         default:
-            return TopLevelNodeKind.UNKNOWN;
+            return TopLevelNodeKind.unknown;
     }
 };
 
