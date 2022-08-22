@@ -67,4 +67,55 @@ describe('calculateNodesScore', function() {
 
         assert.approximately(score, 0.0625, 0.0001);
     });
+
+    it('should return a positive number for an array with two unordered elements', () => {
+        const score = calculateNodesScore(
+            [
+                {
+                    kind: TopLevelNodeKind.TYPE_ALIAS,
+                },
+                {
+                    kind: TopLevelNodeKind.ENUM,
+                },
+            ],
+            kindOrder,
+        );
+
+        assert.approximately(score, 0.0625, 0.0001);
+    });
+
+    it('should return a positive number for an array with two unordered elements (kinds far apart)', () => {
+        const score = calculateNodesScore(
+            [
+                {
+                    kind: TopLevelNodeKind.UNKNOWN,
+                },
+                {
+                    kind: TopLevelNodeKind.ENUM,
+                },
+            ],
+            kindOrder,
+        );
+
+        assert.approximately(score, 0.4375, 0.0001);
+    });
+
+    it('should return a positive number for an array with three unordered elements', () => {
+        const score = calculateNodesScore(
+            [
+                {
+                    kind: TopLevelNodeKind.UNKNOWN,
+                },
+                {
+                    kind: TopLevelNodeKind.VARIABLE,
+                },
+                {
+                    kind: TopLevelNodeKind.ENUM,
+                },
+            ],
+            kindOrder,
+        );
+
+        assert.approximately(score, 0.3125, 0.0001);
+    });
 });
