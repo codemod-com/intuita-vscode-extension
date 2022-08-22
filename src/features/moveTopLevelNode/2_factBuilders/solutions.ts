@@ -52,7 +52,6 @@ export const calculateSolution = (
                 score,
             };
         })
-        .filter(a => a.score !== 0)
         .sort((a, b) => {
             return Math.sign(a.score - b.score);
         })

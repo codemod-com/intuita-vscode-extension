@@ -24,6 +24,7 @@ export type IntuitaJob = Readonly<{
     range: IntuitaRange,
     oldIndex: number,
     newIndex: number,
+    score: number,
 }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -144,7 +145,7 @@ export class ExtensionStateManager {
 
         const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map(
             (solution) => {
-                const { oldIndex, newIndex } = solution;
+                const { oldIndex, newIndex, score } = solution;
 
                 const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
 
@@ -184,6 +185,7 @@ export class ExtensionStateManager {
                     title,
                     oldIndex,
                     newIndex,
+                    score,
                 };
             }
         )
