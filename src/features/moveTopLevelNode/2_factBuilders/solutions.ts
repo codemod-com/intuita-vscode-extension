@@ -1,11 +1,23 @@
 import { isNeitherNullNorUndefined, moveElementInArray } from "../../../utilities";
-import { TopLevelNode } from "./topLevelNode";
+import { calculateNodesScore } from "./calculateNodesScore";
+import { TopLevelNode, TopLevelNodeKind } from "./topLevelNode";
 
 export type Solution = Readonly<{
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
     newIndex: number
 }>;
+
+const kindOrder: ReadonlyArray<TopLevelNodeKind> = [
+    TopLevelNodeKind.ENUM,
+    TopLevelNodeKind.TYPE_ALIAS,
+    TopLevelNodeKind.INTERFACE,
+    TopLevelNodeKind.FUNCTION,
+    TopLevelNodeKind.CLASS,
+    TopLevelNodeKind.BLOCK,
+    TopLevelNodeKind.VARIABLE,
+    TopLevelNodeKind.UNKNOWN,
+];
 
 export const calculateSolutions = (
     nodes: ReadonlyArray<TopLevelNode>,
@@ -27,10 +39,20 @@ export const calculateSolutions = (
         })
         .filter(isNeitherNullNorUndefined)
         .map(([ newNodes, newIndex ]) => {
+            const score = calculateNodesScore(
+                newNodes,
+                kindOrder,
+            );
+
             return {
                 nodes: newNodes,
                 oldIndex,
                 newIndex,
+                score,
             };
+        })
+        .sort((a, b) => {
+            return Math.sign(a.score - b.score);
         });
+        
 };

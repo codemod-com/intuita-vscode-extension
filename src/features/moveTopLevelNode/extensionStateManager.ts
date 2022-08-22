@@ -142,14 +142,8 @@ export class ExtensionStateManager {
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
 
-        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.flatMap(
-            (solutions) => {
-                const solution = solutions[0] ?? null;
-
-                if (solution === null) {
-                    return null;
-                }
-
+        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map(
+            (solution) => {
                 const { oldIndex, newIndex } = solution;
 
                 const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
@@ -278,7 +272,6 @@ export class ExtensionStateManager {
 
                     const solutions = fact
                         .solutions
-                        .map((solutions) => solutions[0])
                         .filter(isNeitherNullNorUndefined)
                         .filter(
                             (solution) => {

@@ -10,7 +10,9 @@ export type MoveTopLevelNodeFact = Readonly<{
     topLevelNodes: ReadonlyArray<TopLevelNode>,
     lengths: ReadonlyArray<number>,
     stringNodes: ReadonlyArray<StringNode>,
-    solutions: ReadonlyArray<ReadonlyArray<Solution>>,
+    // TODO reduce to an array instead
+    // solutions: ReadonlyArray<ReadonlyArray<Solution>>,
+    solutions: ReadonlyArray<Solution>,
 }>;
 
 export const calculateCharacterRanges = (
