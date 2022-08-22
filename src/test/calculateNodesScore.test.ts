@@ -14,7 +14,7 @@ describe('calculateNodesScore', function() {
         TopLevelNodeKind.UNKNOWN,
     ];
 
-    it('should return 0 for an empty array', () => {
+    it('should return 0 for an 0 elements', () => {
         const score = calculateNodesScore(
             [],
             kindOrder,
@@ -23,7 +23,7 @@ describe('calculateNodesScore', function() {
         assert.equal(score, 0);
     });
 
-    it('should return 0 for an array with one element', () => {
+    it('should return 0 for an array with 1 element', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -36,7 +36,7 @@ describe('calculateNodesScore', function() {
         assert.equal(score, 0);
     });
 
-    it('should return 0 for an array with two ordered elements', () => {
+    it('should return 0 for an array with 2 ordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -52,7 +52,7 @@ describe('calculateNodesScore', function() {
         assert.equal(score, 0);
     });
 
-    it('should return a positive number for an array with two unordered elements', () => {
+    it('should return a positive number for an array with 2 unordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -68,7 +68,7 @@ describe('calculateNodesScore', function() {
         assert.approximately(score, 0.0625, 0.0001);
     });
 
-    it('should return a positive number for an array with two unordered elements', () => {
+    it('should return a positive number for an array with 2 unordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -84,7 +84,7 @@ describe('calculateNodesScore', function() {
         assert.approximately(score, 0.0625, 0.0001);
     });
 
-    it('should return a positive number for an array with two unordered elements (kinds far apart)', () => {
+    it('should return a positive number for an array with 2 unordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -100,7 +100,7 @@ describe('calculateNodesScore', function() {
         assert.approximately(score, 0.4375, 0.0001);
     });
 
-    it('should return a positive number for an array with three unordered elements', () => {
+    it('should return a positive number for an array with 3 unordered elements', () => {
         const score = calculateNodesScore(
             [
                 {
@@ -117,5 +117,23 @@ describe('calculateNodesScore', function() {
         );
 
         assert.approximately(score, 0.3125, 0.0001);
+    });
+
+    it('should return a positive number for an array with 8 unordered elements', () => {
+        const nodes = kindOrder
+            .slice()
+            .reverse()
+            .map(
+                (kind) => ({
+                    kind,
+                }),
+            );
+
+        const score = calculateNodesScore(
+            nodes,
+            kindOrder,
+        );
+
+        assert.approximately(score, 0.2734, 0.0001);
     });
 });
