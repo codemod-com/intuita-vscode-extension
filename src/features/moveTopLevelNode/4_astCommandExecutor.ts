@@ -1,7 +1,5 @@
-import {MoveTopLevelNodeAstCommand} from "./3_astCommandBuilder";
 import {calculateLines, moveElementInArray, SourceFileExecution} from "../../utilities";
-import {getStringNodes, StringNode} from "./2_factBuilders/stringNodes";
-import {buildTopLevelNodes} from "./2_factBuilders/buildTopLevelNodes";
+import { StringNode } from "./2_factBuilders/stringNodes";
 
 export const executeMoveTopLevelNodeAstCommandHelper = (
     fileName: string,
@@ -66,36 +64,4 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
             character,
         }
     ];
-};
-
-export const executeMoveTopLevelNodeAstCommand = (
-    {
-        fileName,
-        fileText,
-        oldIndex,
-        newIndex,
-        characterDifference
-    }: MoveTopLevelNodeAstCommand
-): ReadonlyArray<SourceFileExecution> => {
-    if (oldIndex === newIndex) {
-        return [];
-    }
-
-    const topLevelNodes = buildTopLevelNodes(
-        fileName,
-        fileText,
-    );
-
-    const stringNodes = getStringNodes(
-        fileText,
-        topLevelNodes,
-    );
-
-    return executeMoveTopLevelNodeAstCommandHelper(
-        fileName,
-        oldIndex,
-        newIndex,
-        characterDifference,
-        stringNodes,
-    );
 };
