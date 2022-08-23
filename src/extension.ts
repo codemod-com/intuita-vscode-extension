@@ -183,7 +183,13 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
-				treeItem.tooltip = 'Score: ' + element.score.toFixed(2);
+				const tooltip = new vscode.MarkdownString(
+					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)'
+				);
+
+				tooltip.isTrusted = true;
+
+				treeItem.tooltip = tooltip;
 
 				const jobHash = buildJobHash(
 					element.fileName,
@@ -295,6 +301,7 @@ export async function activate(
 				if (!textEditor) {
 					return;
 				}
+
 				const rangeCriterion: RangeCriterion =
 					configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 						? {
@@ -367,6 +374,18 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.openTopLevelNodeKindOrderSetting',
+			() => {
+				return vscode.commands.executeCommand(
+					'workbench.action.openSettings',
+					'intuita.topLevelNodeKindOrder',
+				);
+			}
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
 			async (jobHash, characterDifference) => {
 				if (typeof jobHash !== 'string') {
@@ -420,18 +439,30 @@ export async function activate(
 				    ),
 				);
 
-				await Promise.all(
-					textEditors.map(
-						(textEditor) => {
-							return textEditor.edit(
-								(textEditorEdit) => {
-									textEditorEdit.replace(
-										range,
-										result.text,
-									);
-								}
+				const {
+					saveDocumentOnJobAccept,
+				} = configurationContainer.get();
+
+				const changeTextEditor = async (textEditor: vscode.TextEditor) => {
+					await textEditor.edit(
+						(textEditorEdit) => {
+							textEditorEdit.replace(
+								range,
+								result.text,
 							);
 						}
+					);
+					
+					if (!saveDocumentOnJobAccept) {
+						return;
+					}
+
+					return textEditor.document.save();
+				};
+
+				await Promise.all(
+					textEditors.map(
+						changeTextEditor,
 					)
 				);
 
@@ -443,16 +474,7 @@ export async function activate(
 								// TODO we can add a range here
 								.showTextDocument(textDocument)
 								.then(
-									(textEditor) => {
-										return textEditor.edit(
-											(textEditorEdit) => {
-												textEditorEdit.replace(
-													range,
-													result.text,
-												);
-											}
-										);
-									}
+									changeTextEditor,
 								);
 						}
 					);
@@ -481,13 +503,45 @@ export async function activate(
 							.AtTop,
 					);
 				}
+
+				const allTextDocuments = textEditors
+					.map(({ document }) => document)
+					.concat(
+						textDocuments
+					);
+
+				if (allTextDocuments[0]) {
+					extensionStateManager
+						.onFileTextChanged(
+							allTextDocuments[0],
+							{
+								kind: RangeCriterionKind.DOCUMENT,
+							},
+						);
+				}
 			}
 		),
 	);
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
-			({ document, contentChanges })=> {
+			({ document, contentChanges, reason })=> {
+				if (
+					reason === vscode.TextDocumentChangeReason.Undo
+					|| reason === vscode.TextDocumentChangeReason.Redo
+					|| getConfiguration().jobBlockTrigger === JobBlockTrigger.all
+				) {
+					extensionStateManager
+						.onFileTextChanged(
+							document,
+							{
+								kind: RangeCriterionKind.DOCUMENT,
+							},
+						);
+
+					return;
+				}
+
 				const ranges: ReadonlyArray<IntuitaRange> = contentChanges.map((event) => {
 					const {
 						start,

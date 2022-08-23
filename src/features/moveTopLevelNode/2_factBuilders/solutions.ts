@@ -1,8 +1,10 @@
 import { isNeitherNullNorUndefined, moveElementInArray } from "../../../utilities";
+import { buildSolutionHash, SolutionHash } from "../solutionHash";
 import { calculateNodesScore } from "./calculateNodesScore";
 import { TopLevelNode, TopLevelNodeKind } from "./topLevelNode";
 
 export type Solution = Readonly<{
+    hash: SolutionHash,
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
     newIndex: number,
@@ -47,9 +49,12 @@ export const calculateSolution = (
             return newScore < oldScore;
         })
         .map(([ newNodes, newIndex, score ]) => {
-            
+            const hash = buildSolutionHash(
+                newNodes.map(({ id }) => id),
+            );
 
             return {
+                hash,
                 nodes: newNodes,
                 oldIndex,
                 newIndex,
