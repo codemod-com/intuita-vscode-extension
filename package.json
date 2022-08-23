@@ -48,7 +48,7 @@
 			"properties": {
 				"intuita.jobBlockTrigger": {
 					"type": "string",
-					"default": "new",
+					"default": "newAndChanged",
 					"enum": [
 						"new",
 						"newAndChanged",
