@@ -4,6 +4,7 @@ import {calculateSolution, Solution} from "./solutions";
 import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
 import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from "../../../utilities";
+import { SolutionHash } from "../solutionHash";
 
 export type MoveTopLevelNodeFact = Readonly<{
     separator: string,
@@ -113,14 +114,24 @@ export const buildMoveTopLevelNodeFact = (
 
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
+    const solutionHashes = new Set<SolutionHash>();
+
     const solutions = updatedTopLevelNodes
         .map(
             ({ oldIndex }) => {
-                return calculateSolution(
+                const solution = calculateSolution(
                     topLevelNodes,
                     oldIndex,
                     options.topLevelNodeKindOrder,
                 );
+
+                if (!solution || solutionHashes.has(solution.hash)) {
+                    return null;
+                }
+
+                solutionHashes.add(solution.hash);
+
+                return solution;
             },
         )
         .filter(isNeitherNullNorUndefined)
