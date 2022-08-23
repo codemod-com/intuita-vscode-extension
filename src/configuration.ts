@@ -16,9 +16,12 @@ export const getConfiguration = () => {
     const topLevelNodeKindOrder = configuration.get<ReadonlyArray<TopLevelNodeKind>>('topLevelNodeKindOrder')
         ?? DEFAULT_TOP_LEVEL_NODE_KIND_ORDER;
 
+    const saveDocumentOnJobAccept = configuration.get<boolean>('saveDocumentOnJobAccept') ?? true;
+
     return {
         jobBlockTrigger,
         topLevelNodeKindOrder,
+        saveDocumentOnJobAccept,
     };
 };
 

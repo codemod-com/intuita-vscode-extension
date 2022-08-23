@@ -438,10 +438,14 @@ export async function activate(
 				    ),
 				);
 
+				const {
+					saveDocumentOnJobAccept,
+				} = configurationContainer.get();
+
 				await Promise.all(
 					textEditors.map(
-						(textEditor) => {
-							return textEditor.edit(
+						async (textEditor) => {
+							await textEditor.edit(
 								(textEditorEdit) => {
 									textEditorEdit.replace(
 										range,
@@ -449,7 +453,13 @@ export async function activate(
 									);
 								}
 							);
-						}
+							
+							if (!saveDocumentOnJobAccept) {
+								return;
+							}
+
+							return textEditor.document.save();
+						},
 					)
 				);
 
@@ -461,8 +471,8 @@ export async function activate(
 								// TODO we can add a range here
 								.showTextDocument(textDocument)
 								.then(
-									(textEditor) => {
-										return textEditor.edit(
+									async (textEditor) => {
+										await textEditor.edit(
 											(textEditorEdit) => {
 												textEditorEdit.replace(
 													range,
@@ -470,7 +480,13 @@ export async function activate(
 												);
 											}
 										);
-									}
+										
+										if (!saveDocumentOnJobAccept) {
+											return;
+										}
+			
+										return textEditor.document.save();
+									},
 								);
 						}
 					);

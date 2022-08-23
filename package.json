@@ -46,6 +46,11 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
+				"intuita.saveDocumentOnJobAccept": {
+					"type": "boolean",
+					"default": true,
+					"description": "When you accept a job, the extension will save the associated document"
+				},
 				"intuita.jobBlockTrigger": {
 					"type": "string",
 					"default": "newAndChanged",
