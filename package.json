@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Bring Order To Your Code",
-	"version": "0.1.0",
+	"version": "0.1.6",
 	"publisher": "Intuita",
 	"icon": "img/intuitasq128.png",
 	"engines": {
