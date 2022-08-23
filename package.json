@@ -1,7 +1,7 @@
 {
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
-	"description": "Automated Code Organization & Modularization",
+	"description": "Code Organizer for TypeScript & Friends",
 	"version": "0.1.0",
 	"icon": "img/intuitasq128.png",
 	"engines": {
@@ -20,11 +20,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "[TODO] There are no jobs."
+				"contents": "No recommendations yet! Build some code & check back later!"
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "[TODO] There are no jobs."
+				"contents": "No recommendations yet! Build some code & check back later!"
 			}
 		],
 		"commands": [
@@ -54,9 +54,9 @@
 						"all"
 					],
 					"enumDescriptions": [
-						"Provide jobs only for the new code blocks",
-						"Provide jobs only for the new and changed code blocks",
-						"Provide jobs for all code blocks"
+						"Rearrange only newly created code blocks.",
+						"Rearrange newly created or changed code blocks.",
+						"Rearrange all code blocks in the modified files."
 					]
 				},
 				"intuita.topLevelNodeKindOrder": {
@@ -75,13 +75,13 @@
 						],
 						"enumDescriptions": [
 							"Enumeration",
-							"Type aliast",
+							"Type Alias",
 							"Interface",
 							"Function",
 							"Class",
-							"Unnamed block",
+							"Unnamed Block",
 							"Variable",
-							"Other / Unknown statement"
+							"Other/Unknown Statement"
 						]
 					},
 					"default": [
