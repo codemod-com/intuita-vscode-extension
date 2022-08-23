@@ -183,7 +183,13 @@ export async function activate(
 			if (element.kind === 'DIAGNOSTIC') {
 				treeItem.contextValue = 'intuitaJob';
 
-				treeItem.tooltip = 'Score: ' + element.score.toFixed(2);
+				const tooltip = new vscode.MarkdownString(
+					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)'
+				);
+
+				tooltip.isTrusted = true;
+
+				treeItem.tooltip = tooltip;
 
 				const jobHash = buildJobHash(
 					element.fileName,
@@ -363,6 +369,18 @@ export async function activate(
 				);
 			}
 		)
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openTopLevelNodeKindOrderSetting',
+			() => {
+				return vscode.commands.executeCommand(
+					'workbench.action.openSettings',
+					'intuita.topLevelNodeKindOrder',
+				);
+			}
+		),
 	);
 
 	context.subscriptions.push(
