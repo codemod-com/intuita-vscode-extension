@@ -12,7 +12,7 @@ export const getConfiguration = () => {
         'intuita',
     );
 
-    const jobBlockTrigger = configuration.get<JobBlockTrigger>('jobBlockTrigger') ?? 'new';
+    const jobBlockTrigger = configuration.get<JobBlockTrigger>('jobBlockTrigger') ?? JobBlockTrigger.new;
     const topLevelNodeKindOrder = configuration.get<ReadonlyArray<TopLevelNodeKind>>('topLevelNodeKindOrder')
         ?? DEFAULT_TOP_LEVEL_NODE_KIND_ORDER;
 

@@ -529,6 +529,7 @@ export async function activate(
 				if (
 					reason === vscode.TextDocumentChangeReason.Undo
 					|| reason === vscode.TextDocumentChangeReason.Redo
+					|| getConfiguration().jobBlockTrigger === JobBlockTrigger.all
 				) {
 					extensionStateManager
 						.onFileTextChanged(
