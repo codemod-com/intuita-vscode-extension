@@ -442,24 +442,26 @@ export async function activate(
 					saveDocumentOnJobAccept,
 				} = configurationContainer.get();
 
+				const changeTextEditor = async (textEditor: vscode.TextEditor) => {
+					await textEditor.edit(
+						(textEditorEdit) => {
+							textEditorEdit.replace(
+								range,
+								result.text,
+							);
+						}
+					);
+					
+					if (!saveDocumentOnJobAccept) {
+						return;
+					}
+
+					return textEditor.document.save();
+				};
+
 				await Promise.all(
 					textEditors.map(
-						async (textEditor) => {
-							await textEditor.edit(
-								(textEditorEdit) => {
-									textEditorEdit.replace(
-										range,
-										result.text,
-									);
-								}
-							);
-							
-							if (!saveDocumentOnJobAccept) {
-								return;
-							}
-
-							return textEditor.document.save();
-						},
+						changeTextEditor,
 					)
 				);
 
@@ -471,22 +473,7 @@ export async function activate(
 								// TODO we can add a range here
 								.showTextDocument(textDocument)
 								.then(
-									async (textEditor) => {
-										await textEditor.edit(
-											(textEditorEdit) => {
-												textEditorEdit.replace(
-													range,
-													result.text,
-												);
-											}
-										);
-										
-										if (!saveDocumentOnJobAccept) {
-											return;
-										}
-			
-										return textEditor.document.save();
-									},
+									changeTextEditor,
 								);
 						}
 					);
