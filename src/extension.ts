@@ -502,6 +502,22 @@ export async function activate(
 							.AtTop,
 					);
 				}
+
+				const allTextDocuments = textEditors
+					.map(({ document }) => document)
+					.concat(
+						textDocuments
+					);
+
+				if (allTextDocuments[0]) {
+					extensionStateManager
+						.onFileTextChanged(
+							allTextDocuments[0],
+							{
+								kind: RangeCriterionKind.DOCUMENT,
+							},
+						);
+				}
 			}
 		),
 	);
