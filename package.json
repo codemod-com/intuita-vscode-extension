@@ -3,6 +3,7 @@
 	"displayName": "Intuita",
 	"description": "Bring Order To Your Code",
 	"version": "0.1.0",
+	"publisher": "Intuita",
 	"icon": "img/intuitasq128.png",
 	"engines": {
 		"vscode": "^1.69.0"
