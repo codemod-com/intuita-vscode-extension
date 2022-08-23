@@ -301,6 +301,7 @@ export async function activate(
 				if (!textEditor) {
 					return;
 				}
+
 				const rangeCriterion: RangeCriterion =
 					configurationContainer.get().jobBlockTrigger === JobBlockTrigger.all
 						? {
@@ -519,6 +520,20 @@ export async function activate(
 						);
 				}
 			}
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.onDidOpenTextDocument(
+			(textDocument) => {
+				extensionStateManager
+					.onFileTextChanged(
+						textDocument,
+						{
+							kind: RangeCriterionKind.DOCUMENT,
+						},
+					);
+			},
 		),
 	);
 
