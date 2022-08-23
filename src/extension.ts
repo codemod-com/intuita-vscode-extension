@@ -524,22 +524,23 @@ export async function activate(
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidOpenTextDocument(
-			(textDocument) => {
-				extensionStateManager
-					.onFileTextChanged(
-						textDocument,
-						{
-							kind: RangeCriterionKind.DOCUMENT,
-						},
-					);
-			},
-		),
-	);
-
-	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
-			({ document, contentChanges })=> {
+			({ document, contentChanges, reason })=> {
+				if (
+					reason === vscode.TextDocumentChangeReason.Undo
+					|| reason === vscode.TextDocumentChangeReason.Redo
+				) {
+					extensionStateManager
+						.onFileTextChanged(
+							document,
+							{
+								kind: RangeCriterionKind.DOCUMENT,
+							},
+						);
+
+					return;
+				}
+
 				const ranges: ReadonlyArray<IntuitaRange> = contentChanges.map((event) => {
 					const {
 						start,
