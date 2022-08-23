@@ -9,8 +9,19 @@
 		"vscode": "^1.69.0"
 	},
 	"categories": [
-		"Other"
+		"Programming Languages",
+		"Machine Learning",
+		"Debuggers"
 	],
+	
+	"keywords": [
+		"prettier",
+		"intellicode",
+		"intellisense",
+		"tabnine",
+		"refactor"
+	],
+
 	"activationEvents": [
 		"workspaceContains:**/*.ts*"
 	],
