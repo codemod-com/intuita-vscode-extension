@@ -1,7 +1,7 @@
 {
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
-	"description": "Code Organizer for TypeScript & Friends",
+	"description": "Bring Order To Your Code",
 	"version": "0.1.0",
 	"icon": "img/intuitasq128.png",
 	"engines": {
