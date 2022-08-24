@@ -3,6 +3,8 @@ import { TopLevelNodeKind } from "./2_factBuilders/topLevelNode";
 
 export type MoveTopLevelNodeOptions = Readonly<{
     topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>,
+    minimumLines: number,
+    minimumTopLevelBlocks: number,
 }>;
 
 export const enum RangeCriterionKind {

@@ -4,7 +4,6 @@ import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders"
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     assertsNeitherNullOrUndefined,
-    buildHash,
     calculateCharacterIndex,
     calculatePosition,
     IntuitaPosition,
@@ -142,6 +141,10 @@ export class ExtensionStateManager {
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
+
+        if (!fact) {
+            return;
+        }
 
         const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map(
             (solution) => {

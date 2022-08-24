@@ -65,7 +65,7 @@ export const calculateCharacterRanges = (
 
 export const buildMoveTopLevelNodeFact = (
     userCommand: MoveTopLevelNodeUserCommand
-): MoveTopLevelNodeFact => {
+): MoveTopLevelNodeFact | null => {
     const {
         fileName,
         fileText,
@@ -78,12 +78,21 @@ export const buildMoveTopLevelNodeFact = (
         : '\n';
 
     const lines = calculateLines(fileText, separator);
+
+    if (lines.length < options.minimumLines) {
+        return null;
+    }
+
     const lengths = calculateLengths(lines);
 
     const topLevelNodes = buildTopLevelNodes(
         fileName,
         fileText,
     );
+
+    if (topLevelNodes.length < options.minimumTopLevelBlocks) {
+        return null;
+    }
 
     const characterRanges = calculateCharacterRanges( // reconsider this function
         rangeCriterion,
