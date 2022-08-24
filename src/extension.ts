@@ -569,27 +569,27 @@ export async function activate(
 
 	context.subscriptions.push(diagnosticCollection);
 
-	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics(
-			({ uris }) => {
-				uris
-					.flatMap(
-						(uri) => vscode.languages.getDiagnostics(uri),
-					)
-					.filter(
-						({ source }) => source === 'ts'
-					)
-					.forEach(
-						(diagnostic) => {
-							diagnostic.code;
-							diagnostic.message;
-							diagnostic.range;
-							diagnostic.severity;
-						},
-					);
-			}
-		)
-	);
+	// context.subscriptions.push(
+	// 	vscode.languages.onDidChangeDiagnostics(
+	// 		({ uris }) => {
+	// 			uris
+	// 				.flatMap(
+	// 					(uri) => vscode.languages.getDiagnostics(uri),
+	// 				)
+	// 				.filter(
+	// 					({ source }) => source === 'ts'
+	// 				)
+	// 				.forEach(
+	// 					(diagnostic) => {
+	// 						diagnostic.code;
+	// 						diagnostic.message;
+	// 						diagnostic.range;
+	// 						diagnostic.severity;
+	// 					},
+	// 				);
+	// 		}
+	// 	)
+	// );
 
 	console.log('Activated the Intuita VSCode Extension');
 }
