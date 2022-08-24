@@ -1,10 +1,9 @@
 import { Configuration } from "../../configuration";
-import {MoveTopLevelNodeUserCommand, RangeCriterion} from "./1_userCommandBuilder";
+import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     assertsNeitherNullOrUndefined,
-    buildHash,
     calculateCharacterIndex,
     calculatePosition,
     IntuitaPosition,
@@ -124,7 +123,6 @@ export class ExtensionStateManager {
 
     public onFileTextChanged(
         document: vscode.TextDocument,
-        rangeCriterion: RangeCriterion,
     ) {
         if (document.uri.scheme !== 'file') {
             return;
@@ -138,10 +136,13 @@ export class ExtensionStateManager {
             fileName,
             fileText,
             options: this._configurationContainer.get(),
-            rangeCriterion,
         };
 
         const fact = buildMoveTopLevelNodeFact(userCommand);
+
+        if (!fact) {
+            return;
+        }
 
         const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map(
             (solution) => {
