@@ -13,7 +13,6 @@ import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNode
 import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
-import {RangeCriterion, RangeCriterionKind} from "./features/moveTopLevelNode/1_userCommandBuilder";
 import {buildContainer} from "./container";
 import { buildJobHash, JobHash } from './features/moveTopLevelNode/jobHash';
 import path = require('node:path');
@@ -266,12 +265,10 @@ export async function activate(
 
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
-		rangeCriterion: RangeCriterion,
 	) => {
 		extensionStateManager
 			.onFileTextChanged(
 				document,
-				rangeCriterion,
 			);
 	};
 
@@ -281,9 +278,6 @@ export async function activate(
 				.window
 				.activeTextEditor
 				.document,
-			{
-				kind: RangeCriterionKind.DOCUMENT,
-			},
 		);
 	}
 
@@ -297,9 +291,6 @@ export async function activate(
 				return activeTextEditorChangedCallback(
 					textEditor
 						.document,
-					{
-						kind: RangeCriterionKind.DOCUMENT,
-					},
 				);
 			},
 		),
@@ -498,9 +489,6 @@ export async function activate(
 					extensionStateManager
 						.onFileTextChanged(
 							allTextDocuments[0],
-							{
-								kind: RangeCriterionKind.DOCUMENT,
-							},
 						);
 				}
 			}
@@ -509,43 +497,10 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
-			({ document, contentChanges, reason })=> {
-				if (
-					reason === vscode.TextDocumentChangeReason.Undo
-					|| reason === vscode.TextDocumentChangeReason.Redo
-				) {
-					extensionStateManager
-						.onFileTextChanged(
-							document,
-							{
-								kind: RangeCriterionKind.DOCUMENT,
-							},
-						);
-
-					return;
-				}
-
-				const ranges: ReadonlyArray<IntuitaRange> = contentChanges.map((event) => {
-					const {
-						start,
-						end,
-					} = event.range;
-
-					return [
-						start.line,
-						start.character,
-						end.line,
-						end.character,
-					];
-				});
-
+			({ document })=> {
 				extensionStateManager
 					.onFileTextChanged(
 						document,
-						{
-							kind: RangeCriterionKind.RANGES,
-							ranges,
-						},
 					);
 			})
 		);
