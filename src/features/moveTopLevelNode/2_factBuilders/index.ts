@@ -40,10 +40,6 @@ export const buildMoveTopLevelNodeFact = (
         fileText,
     );
 
-    if (topLevelNodes.length < options.minimumTopLevelBlocks) {
-        return null;
-    }
-
     const stringNodes = getStringNodes(fileText, topLevelNodes);
 
     const solutionHashes = new Set<SolutionHash>();
