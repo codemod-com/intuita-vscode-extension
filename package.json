@@ -62,20 +62,10 @@
 					"default": true,
 					"description": "When you accept a job, the extension will save the associated document"
 				},
-				"intuita.recommendationCreationRestriction.enabled": {
-					"type": "boolean",
-					"default": false,
-					"description": "Restrict creation of recommendations based on the following criteria"
-				},
-				"intuita.recommendationCreationRestriction.minimumLines": {
+				"intuita.minimumLines": {
 					"type": "number",
-					"default": 0,
+					"default": 50,
 					"description": "The minimum number of lines in a file to create recommendations"
-				},
-				"intuita.recommendationCreationRestriction.minimumTopLevelBlocks": {
-					"type": "number",
-					"default": 0,
-					"description": "The minimum number of top-level blocks in a file to create recommendations"
 				},
 				"intuita.topLevelNodeKindOrder": {
 					"type": "array",
