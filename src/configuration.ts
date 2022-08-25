@@ -11,25 +11,12 @@ export const getConfiguration = () => {
 
     const saveDocumentOnJobAccept = configuration.get<boolean>('saveDocumentOnJobAccept') ?? true;
 
-    const recommendationCreationRestricted = configuration
-        .get<boolean>('recommendationCreationRestriction.enabled')
-        ?? false;
-
-    const minimumLines = recommendationCreationRestricted
-        ? configuration
-            .get<number>('recommendationCreationRestriction.minimumLines')
-            ?? 0
-        : 0;
-
-    const minimumTopLevelBlocks = configuration
-        .get<number>('recommendationCreationRestriction.minimumTopLevelBlocks')
-        ?? 0;
+    const minimumLines = configuration.get<number>('minimumLines') ?? 50;
 
     return {
         topLevelNodeKindOrder,
         saveDocumentOnJobAccept,
         minimumLines,
-        minimumTopLevelBlocks,
     };
 };
 
