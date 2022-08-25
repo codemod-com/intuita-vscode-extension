@@ -1,24 +1,10 @@
-import {
-    Disposable,
-    Event,
-    EventEmitter,
-    FileChangeEvent,
-    FileChangeType,
-    FilePermission,
-    FileStat,
-    FileSystemError,
-    FileSystemProvider,
-    FileType,
-    Uri
-} from "vscode";
-import {
-    MessageBus,
-    MessageKind
-} from "../messageBus";
+import { Disposable, Event, EventEmitter, FileChangeEvent, FileChangeType, FilePermission, FileStat, FileSystemError, FileSystemProvider, FileType, Uri } from "vscode";
+import { MessageBus, MessageKind } from "../messageBus";
 
-export const FS_PATH_REG_EXP = /\/(jobs|files)\/([a-zA-Z0-9\-_]{27})\.(tsx|jsx|ts|js)/;
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
+export const FS_PATH_REG_EXP = /\/(jobs|files)\/([a-zA-Z0-9\-_]{27})\.(tsx|jsx|ts|js)/;
 
+// type IntuitaFile = Uint8Array;
 type IntuitaFile = Readonly<{
     content: Uint8Array,
     permissions: FilePermission | null,
@@ -113,14 +99,20 @@ export class IntuitaFileSystem implements FileSystemProvider {
         
     }
 
-    readFile(uri: Uri): Uint8Array {
+    public readNullableFile(uri: Uri): Uint8Array | null {
         const fileName = uri.toString();
 
         const file = this._files.get(
             fileName,
         );
 
-        if (!file) {
+        return file?.content ?? null;
+    }
+
+    readFile(uri: Uri): Uint8Array {
+        const content = this.readNullableFile(uri);
+
+        if (!content) {
             this._messageBus.publish(
                 {
                     kind: MessageKind.readingFileFailed,
@@ -129,7 +121,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
             );
         }
 
-        return file?.content ?? LOADING_MESSAGE;
+        return content ?? LOADING_MESSAGE;
     }
     
     writeFile(

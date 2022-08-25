@@ -12,16 +12,37 @@ import {
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
-import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
+import {assertsNeitherNullOrUndefined, buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
 import {buildContainer} from "./container";
 import { buildJobHash, JobHash } from './features/moveTopLevelNode/jobHash';
-import path = require('node:path');
+import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
+import { MessageBus, MessageKind } from './messageBus';
+import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
+import { join } from 'node:path';
+import { buildFileUri, buildJobUri } from './fileSystems/uris';
+import { CommandComponent } from './components/commandComponent';
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
+	const messageBus = new MessageBus(context.subscriptions);
+
 	const configurationContainer = buildContainer(
 		getConfiguration()
+	);
+
+	const intuitaFileSystem = new IntuitaFileSystem(
+		messageBus,
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.registerFileSystemProvider(
+			'intuita',
+			intuitaFileSystem,
+			{
+				isCaseSensitive: true
+			}
+		),
 	);
 
 	context.subscriptions.push(
@@ -42,9 +63,9 @@ export async function activate(
 
 	const _setDiagnosticEntry = (
 		fileName: string,
-		intuitaDiagnostics: ReadonlyArray<IntuitaJob>
+		intuitaJobs: ReadonlyArray<IntuitaJob>
 	) => {
-		const diagnostics = intuitaDiagnostics
+		const diagnostics = intuitaJobs
 			.map(
 				({ title, range: intuitaRange }) => {
 					const startPosition = new Position(
@@ -81,8 +102,26 @@ export async function activate(
 	};
 
 	const extensionStateManager = new ExtensionStateManager(
+		messageBus,
 		configurationContainer,
 		_setDiagnosticEntry,
+	);
+
+	messageBus.subscribe(
+		(message) => {
+			if (message.kind === MessageKind.readingFileFailed) {
+				setImmediate(
+					() => extensionStateManager.onReadingFileFailed(
+						message.uri,
+					),
+				);
+			}  
+		},
+	);
+
+	const commandComponent = new CommandComponent(
+		intuitaFileSystem,
+		extensionStateManager,
 	);
 
 	// TODO move Element, _onDidChangeTreeData and treeDataProvider to a separate file
@@ -112,16 +151,21 @@ export async function activate(
 			if (element === undefined) {
 				const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-				const documents = extensionStateManager.getDocuments();
+				const fileJobs = extensionStateManager.getFileJobs();
 
-				const elements: Element[] = documents
+				const elements: Element[] = fileJobs
 					.map(
-						({ document, jobs }) => {
-							if (jobs.length === 0) {
+						(jobs) => {
+							const [ job ] = jobs;
+
+							if (!job) {
 								return null;
 							}
 
-							const label: string = document.fileName.replace(rootPath, '');
+							const { fileName } = job;
+
+							const label: string = fileName.replace(rootPath, '');
+							const uri = vscode.Uri.parse(fileName);
 
 							const children: Element[] = jobs
 								.map(
@@ -129,8 +173,8 @@ export async function activate(
 										return {
 											kind: 'DIAGNOSTIC' as const,
 											label: diagnostic.title,
-											fileName: document.fileName,
-											uri: document.uri,
+											fileName,
+											uri,
 											oldIndex: diagnostic.oldIndex,
 											newIndex: diagnostic.newIndex,
 											range: diagnostic.range,
@@ -171,7 +215,7 @@ export async function activate(
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None;
 
-			treeItem.iconPath = path.join(
+			treeItem.iconPath = join(
 				__filename,
 				'..',
 				'..',
@@ -190,6 +234,10 @@ export async function activate(
 
 				treeItem.tooltip = tooltip;
 
+				const fileNameHash = buildFileNameHash(
+					element.fileName,
+				)
+
 				const jobHash = buildJobHash(
 					element.fileName,
 					element.oldIndex,
@@ -200,11 +248,8 @@ export async function activate(
 					title: 'Diff View',
 					command: 'vscode.diff',
 					arguments: [
-						element.uri,
-						vscode.Uri.parse(
-							`intuita:moveTopLevelNode.ts?hash=${jobHash}`,
-							true,
-						),
+						buildFileUri(fileNameHash),
+						buildJobUri(jobHash),
 						'Proposed change',
 					]
 				};
@@ -226,31 +271,6 @@ export async function activate(
 		vscode.window.registerTreeDataProvider(
 			'intuitaViewId',
 			treeDataProvider
-		)
-	);
-
-	const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
-		provideTextDocumentContent(
-			uri: vscode.Uri
-		): string {
-			const searchParams = new URLSearchParams(uri.query);
-
-			const jobHash = searchParams.get('hash');
-
-			if (jobHash === null) {
-				throw new Error('Did not pass the job hash parameter "hash".');
-			}
-
-			return extensionStateManager.getText(
-				jobHash as JobHash,
-			);
-		}
-	};
-
-	context.subscriptions.push(
-		vscode.workspace.registerTextDocumentContentProvider(
-			'intuita',
-			textDocumentContentProvider
 		)
 	);
 
@@ -371,17 +391,13 @@ export async function activate(
 					throw new Error('The job hash argument must be a number.');
 				}
 
-				const result = extensionStateManager
-					.executeCommand(
-						jobHash as JobHash,
-						characterDifference,
-					);
+				const fileName = extensionStateManager.getFileNameFromJobHash(jobHash as JobHash);
 
-				if (!result) {
-					throw new Error();
-				}
+				assertsNeitherNullOrUndefined(fileName);
 
-				const { fileName } = result;
+				const result = commandComponent.getJobOutput(jobHash as JobHash);
+
+				assertsNeitherNullOrUndefined(result);
 
 				const textEditors = vscode
 					.window
@@ -528,8 +544,6 @@ export async function activate(
 	// 		}
 	// 	)
 	// );
-
-	console.log('Activated the Intuita VSCode Extension');
 }
 
 // this method is called when your extension is deactivated

@@ -109,3 +109,24 @@ export const calculatePosition = (
 
     return [0, 0];
 };
+
+export const calculateLastPosition = (
+    text: string,
+    separator: string,
+): IntuitaPosition => {
+    const lines = text.split(separator);
+
+    const lastLineNumber = lines.length - 1;
+    const lastCharacter = lines[lines.length - 1]?.length ?? 0;
+
+    return [
+        lastLineNumber,
+        lastCharacter,
+    ];
+};
+
+export const getSeparator = (text: string): string => {
+    return text.includes('\r\n')
+        ? '\r\n'
+        : '\n';
+};
