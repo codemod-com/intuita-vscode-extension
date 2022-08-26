@@ -10,8 +10,8 @@
 	},
 	"categories": [
 		"Programming Languages",
-		"Machine Learning",
-		"Debuggers"
+		"Formatters",
+		"Linters"
 	],
 	
 	"keywords": [
@@ -19,6 +19,7 @@
 		"intellicode",
 		"intellisense",
 		"tabnine",
+		"copilot",
 		"refactor"
 	],
 
