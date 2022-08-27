@@ -1,9 +1,4 @@
-import {
-    Disposable,
-    EventEmitter,
-    FilePermission,
-    Uri,
-} from 'vscode';
+import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
 
 export const enum MessageKind {
     readingFileFailed = 0,

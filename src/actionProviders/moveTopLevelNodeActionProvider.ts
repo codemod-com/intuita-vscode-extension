@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
+import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
 import { buildJobHash } from '../features/moveTopLevelNode/jobHash';
+import { buildFileUri, buildJobUri } from '../fileSystems/uris';
 
 const buildIdentifiersLabel = (
     identifiers: ReadonlyArray<string>,
@@ -100,6 +102,10 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         vscode.CodeActionKind.QuickFix,
                     );
 
+                    const fileNameHash = buildFileNameHash(
+                        fileName,
+                    );
+
                     const jobHash = buildJobHash(
                         fileName,
                         oldIndex,
@@ -124,12 +130,9 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         title: 'Diff View',
                         command: 'vscode.diff',
                         arguments: [
-                            document.uri,
-                            vscode.Uri.parse(
-                                `intuita://moveTopLevelNode.ts?hash=${jobHash}`,
-                                true,
-                            ),
-                        ]
+                            buildFileUri(fileNameHash),
+                            buildJobUri(jobHash),
+                        ],
                     };
 
                     return [

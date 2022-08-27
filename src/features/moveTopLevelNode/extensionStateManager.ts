@@ -5,7 +5,9 @@ import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     assertsNeitherNullOrUndefined,
     calculateCharacterIndex,
+    calculateLastPosition,
     calculatePosition,
+    getSeparator,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
@@ -15,6 +17,10 @@ import * as vscode from "vscode";
 import {Container} from "../../container";
 import { buildJobHash, JobHash } from "./jobHash";
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
+import { MessageBus, MessageKind } from "../../messageBus";
+import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
+import { buildFileUri, buildJobUri } from "../../fileSystems/uris";
+import { getOrOpenTextDocuments, getTextDocuments } from "../../components/vscodeUtilities";
 
 export type IntuitaJob = Readonly<{
     fileName: string,
@@ -33,40 +39,49 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
+export type JobOutput = Readonly<{
+    text: string,
+    range: IntuitaRange,
+    position: IntuitaPosition,
+}>;
+
 export class ExtensionStateManager {
-    protected _documentMap = new Map<FileNameHash, vscode.TextDocument>();
+    protected _fileNames = new Map<FileNameHash, string>();
     protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
     protected _jobMap = new Map<JobHash, IntuitaJob>;
 
     public constructor(
+        protected readonly _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
             jobs: ReadonlyArray<IntuitaJob>,
         ) => void,
     ) {
-
     }
 
-    // TODO: change name
-    public getDocuments() {
-        const fileNameHashes = Array.from(
-            this._documentMap.keys()
-        );
+    public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
+        return this._fileNames.get(fileNameHash) ?? null;
+    }
 
-        return fileNameHashes.map(
+    public getFileNameFromJobHash(
+        jobHash: JobHash,
+    ): string | null {
+        return this._jobMap.get(jobHash)?.fileName ?? null;
+    }
+
+    public getFileJobs(): ReadonlyArray<ReadonlyArray<IntuitaJob>> {
+        return Array.from(this._fileNames.keys()).map(
             (fileNameHash) => {
-                const document = this._documentMap.get(fileNameHash);
                 const fact = this._factMap.get(fileNameHash);
                 const jobHashes = this._jobHashMap.get(fileNameHash);
 
-                assertsNeitherNullOrUndefined(document);
                 assertsNeitherNullOrUndefined(fact);
                 assertsNeitherNullOrUndefined(jobHashes);
                 
-                const jobs = Array.from(jobHashes).map(
+                return Array.from(jobHashes).map(
                     (jobHash) => {
                         if (this._rejectedJobHashes.has(jobHash)) {
                             return null;
@@ -76,12 +91,6 @@ export class ExtensionStateManager {
                     },
                 )
                     .filter(isNeitherNullNorUndefined);
-
-                return {
-                    document,
-                    fact,
-                    jobs,
-                };
             },
         );
     }
@@ -99,9 +108,9 @@ export class ExtensionStateManager {
 
         const [ fileNameHash, jobHashes ] = entry;
 
-        const document = this._documentMap.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(document);
+        const fileName = this._fileNames.get(fileNameHash);
+        
+        assertsNeitherNullOrUndefined(fileName);
 
         jobHashes.delete(jobHash);
 
@@ -116,8 +125,18 @@ export class ExtensionStateManager {
             .filter(isNeitherNullNorUndefined);
 
         this._setDiagnosticEntry(
-            document.fileName,
+            fileName,
             jobs,
+        );
+
+        const uri = buildJobUri(jobHash);
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.changePermissions,
+                uri,
+                permissions: vscode.FilePermission.Readonly,
+            },
         );
     }
 
@@ -194,7 +213,9 @@ export class ExtensionStateManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        this._documentMap.set(fileNameHash, document);
+        const oldJobHashes = this._jobHashMap.get(fileNameHash);
+
+        this._fileNames.set(fileNameHash, fileName);
         this._factMap.set(fileNameHash, fact);
 
         const jobHashes = new Set(
@@ -214,6 +235,43 @@ export class ExtensionStateManager {
             fileName,
             jobs,
         );
+
+        oldJobHashes?.forEach(
+            (oldJobHash) => {
+                if (jobHashes.has(oldJobHash)) {
+                    return;
+                }
+
+                const uri = buildJobUri(oldJobHash);
+
+                this._messageBus.publish(
+                    {
+                        kind: MessageKind.deleteFile,
+                        uri,
+                    },
+                );
+            },
+        );
+
+        const uri = buildFileUri(fileNameHash);
+
+        if (jobs.length === 0) {
+            this._messageBus.publish(
+                {
+                    kind: MessageKind.deleteFile,
+                    uri,
+                },
+            );
+        } else {
+            this._messageBus.publish(
+                {
+                    kind: MessageKind.writeFile,
+                    uri,
+                    content: Buffer.from(fileText),
+                    permissions: vscode.FilePermission.Readonly,
+                },
+            );
+        }
     }
 
     public findCodeActions(
@@ -306,69 +364,10 @@ export class ExtensionStateManager {
             .filter(isNeitherNullNorUndefined);
     }
 
-    public getText(
-        jobHash: JobHash,
-    ): string {
-        const data = this._getExecution(
-            jobHash,
-            0,
-        );
-
-        return data?.execution.text ?? '';
-    }
-
-    public executeCommand(
+    public executeJob(
         jobHash: JobHash,
         characterDifference: number,
-    ) {
-        const data = this._getExecution(
-            jobHash,
-            characterDifference,
-        );
-
-        if (!data) {
-            return null;
-        }
-
-        const {
-            execution,
-            fileText,
-        } = data;
-
-        const { name, text, line, character } = execution;
-
-        if (name !== data.fileName) {
-            return null;
-        }
-
-        const oldLines = fileText.split('\n');
-        const oldTextLastLineNumber = oldLines.length - 1;
-        const oldTextLastCharacter = oldLines[oldLines.length - 1]?.length ?? 0;
-
-        const range: IntuitaRange = [
-            0,
-            0,
-            oldTextLastLineNumber,
-            oldTextLastCharacter,
-        ];
-
-        const position: IntuitaPosition = [
-            line,
-            character,
-        ];
-
-        return {
-            fileName: data.fileName,
-            range,
-            text,
-            position,
-        };
-    }
-
-    protected _getExecution(
-        jobHash: JobHash,
-        characterDifference: number,
-    ) {
+    ): JobOutput {
         const job = this._jobMap.get(jobHash);
 
         if (!job) {
@@ -383,36 +382,97 @@ export class ExtensionStateManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        const document = this._documentMap.get(fileNameHash);
         const fact = this._factMap.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(document);
+        
         assertsNeitherNullOrUndefined(fact);
 
-        const fileText = document.getText();
-
-        const {
-            stringNodes,
-        } = fact;
-
-        const executions = executeMoveTopLevelNodeAstCommandHelper(
+        const execution = executeMoveTopLevelNodeAstCommandHelper(
             fileName,
             oldIndex,
             newIndex,
             characterDifference,
-            stringNodes,
+            fact.stringNodes,
         );
 
-        const execution = executions[0] ?? null;
+        const { text, line, character } = execution;
 
-        if (!execution) {
-            return null;
-        }
+        const separator = getSeparator(text);
+        const lastPosition = calculateLastPosition(text, separator);
+
+        const range: IntuitaRange = [
+            0,
+            0,
+            lastPosition[0],
+            lastPosition[1],
+        ];
+
+        const position: IntuitaPosition = [
+            line,
+            character,
+        ];
 
         return {
-            execution,
-            fileName,
-            fileText,
+            range,
+            text,
+            position,
         };
+    }
+
+    public async onReadingFileFailed (
+        uri: vscode.Uri
+    ) {
+        if (uri.scheme !== 'intuita') {
+            return;
+        }
+
+        const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
+
+        if (!regExpExecArray) {
+            throw new Error(`The fsPath of the URI (${uri.fsPath}) does not belong to the Intuita File System`);
+        }
+
+        const directory = regExpExecArray[1];
+
+        const permissions = directory === 'files'
+            ? vscode.FilePermission.Readonly
+            : null;
+
+        const fileName = directory === 'files'
+            ? this.getFileNameFromFileNameHash(
+                regExpExecArray[2] as FileNameHash
+            )
+            : this.getFileNameFromJobHash(
+                regExpExecArray[2] as JobHash
+            );
+
+		assertsNeitherNullOrUndefined(fileName);
+
+        const textDocument = await getOrOpenTextDocuments(fileName);
+        let text = textDocument[0]?.getText();
+
+        assertsNeitherNullOrUndefined(text);
+
+		if (directory === 'jobs') {
+			const result = this
+				.executeJob(
+					regExpExecArray[2] as JobHash,
+					0,
+				);
+
+			if (result) {
+				text = result.text;
+			}
+		}
+        
+        const content = Buffer.from(text);
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.writeFile,
+                uri,
+                content,
+                permissions,
+            },
+        );
     }
 }
