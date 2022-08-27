@@ -56,12 +56,10 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
     const line = lines.length + nodeLines.length - 2;
     const character = nodeLines[nodeLines.length-1]?.length ?? 0;
 
-    return [
-        {
-            name: fileName,
-            text,
-            line,
-            character,
-        }
-    ];
+    return {
+        name: fileName,
+        text,
+        line,
+        character,
+    };
 };

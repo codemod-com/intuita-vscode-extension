@@ -3,7 +3,7 @@ import {TopLevelNode} from "./topLevelNode";
 import {calculateSolution, Solution} from "./solutions";
 import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
-import {calculateCharacterIndex, calculateLengths, calculateLines, isNeitherNullNorUndefined} from "../../../utilities";
+import {calculateLengths, calculateLines, getSeparator, isNeitherNullNorUndefined} from "../../../utilities";
 import { SolutionHash } from "../solutionHash";
 
 export type MoveTopLevelNodeFact = Readonly<{
@@ -23,10 +23,7 @@ export const buildMoveTopLevelNodeFact = (
         options,
     } = userCommand;
 
-    const separator = fileText.includes('\r\n')
-        ? '\r\n'
-        : '\n';
-
+    const separator = getSeparator(fileText);
     const lines = calculateLines(fileText, separator);
 
     if (lines.length < options.minimumLines) {
