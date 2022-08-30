@@ -5,16 +5,17 @@ Intuita helps you to arrange the order of TS code blocks based on your preferenc
 
 <img src="https://user-images.githubusercontent.com/78109534/186076206-0d6461b3-6a05-4dd7-823e-4004e4dfc38c.png" width="50%"/>
 
+---
+
 ## How Do I Use it?
-1. **Install Intuita.**
-    1. And open your TypeScript repo (other languages? [upvote them here!](https://feedback.intuita.io/feature-requests))
-2. **Build some code.**
-    1. And let Intuita generate recommendations to rearrange code blocks in the affected files.
-    2. The default is to place imports first, followed by types, interfaces, functions, classes & variables at the bottom of a file.
+
+1. **Open a ts/tsx file & let Intuita generates recommendations**
+    1. By default, Intuita only organizes files that are more than 50 lines of code. You can change it in the settings. 
+    2. The default organization rule is to place imports first, followed by types, interfaces, functions, classes & variables at the bottom of a file. You can change it in the settings.
 3. **Accept/reject Intuita’s recommendations.**
     1. Recommendations are accessible via the Explorer sidebar or Intuita’s dedicated section in the left panel.
-    2. You can tweak the recommended fix, if needed, before accepting.
-
+    2. You can tweak the recommended fix, if needed, before accepting. Make sure to save your edits before clicking on Accept.
+---
 
 ## Why Is It Important?
 **Big Files** (>300LOC) → **Big Problems**:
@@ -40,3 +41,6 @@ Intuita helps you to arrange the order of TS code blocks based on your preferenc
     * <kbd>Upvote your feature requests **[here](https://feedback.intuita.io/feature-requests)**, or chat with us in **[Slack](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)**.</kbd>
 <br>
 </br>
+
+
+---
