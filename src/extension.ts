@@ -21,6 +21,9 @@ import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import { join } from 'node:path';
 import { buildFileUri, buildJobUri } from './fileSystems/uris';
 import { CommandComponent } from './components/commandComponent';
+import { mkdir, mkdirSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -523,27 +526,13 @@ export async function activate(
 
 	context.subscriptions.push(diagnosticCollection);
 
-	// context.subscriptions.push(
-	// 	vscode.languages.onDidChangeDiagnostics(
-	// 		({ uris }) => {
-	// 			uris
-	// 				.flatMap(
-	// 					(uri) => vscode.languages.getDiagnostics(uri),
-	// 				)
-	// 				.filter(
-	// 					({ source }) => source === 'ts'
-	// 				)
-	// 				.forEach(
-	// 					(diagnostic) => {
-	// 						diagnostic.code;
-	// 						diagnostic.message;
-	// 						diagnostic.range;
-	// 						diagnostic.severity;
-	// 					},
-	// 				);
-	// 		}
-	// 	)
-	// );
+	context.subscriptions.push(
+		vscode.languages.onDidChangeDiagnostics(
+			buildDidChangeDiagnosticsCallback(
+				configurationContainer,
+			),
+		),
+	);
 }
 
 // this method is called when your extension is deactivated
