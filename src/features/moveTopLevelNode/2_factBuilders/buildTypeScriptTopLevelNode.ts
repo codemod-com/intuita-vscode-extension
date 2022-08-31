@@ -1,4 +1,4 @@
-import { isClassDeclaration, isEnumDeclaration, isFunctionDeclaration, isInterfaceDeclaration, isTypeAliasDeclaration, isVariableDeclaration, isVariableStatement, Node, SyntaxKind } from "typescript";
+import { isBlock, isClassDeclaration, isEnumDeclaration, isExportDeclaration, isFunctionDeclaration, isImportDeclaration, isInterfaceDeclaration, isTypeAliasDeclaration, isVariableDeclaration, isVariableStatement, Node, SyntaxKind } from "typescript";
 import { TopLevelNodeKind } from "./topLevelNode";
 
 const hasExportKeyword = (node: Node): boolean => {
@@ -22,6 +22,12 @@ const hasConstKeyword = (node: Node): boolean => {
 export const getTopLevelNodeKind = (
     node: Node,
 ): TopLevelNodeKind => {
+    // TODO factor in the "export default class A {}" cases;
+
+    if (isImportDeclaration(node)) {
+        return TopLevelNodeKind.import;
+    }
+
     if (isClassDeclaration(node)) {
         return hasExportKeyword(node)
             ? TopLevelNodeKind.exportClass
@@ -89,5 +95,13 @@ export const getTopLevelNodeKind = (
         return doesHaveExportKeyword
             ? TopLevelNodeKind.exportLetVariable
             : TopLevelNodeKind.letVariable;
+    }
+
+    if (isBlock(node)) {
+        return TopLevelNodeKind.block;
+    }
+
+    if (isExportDeclaration(node)) {
+        
     }
 }
