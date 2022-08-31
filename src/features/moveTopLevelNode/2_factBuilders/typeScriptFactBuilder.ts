@@ -4,6 +4,10 @@ import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
 
 const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
     switch(kind) {
+        case ts.SyntaxKind.ExportAssignment:
+            return TopLevelNodeKind.exportAssignment;
+        case ts.SyntaxKind.ImportDeclaration:
+            return TopLevelNodeKind.importDeclaration;
         case ts.SyntaxKind.ClassDeclaration:
             return TopLevelNodeKind.class;
         case ts.SyntaxKind.FunctionDeclaration:
@@ -40,6 +44,20 @@ export const getChildIdentifiers = (
 export const getNameIdentifiers = (
     node: ts.Node,
 ): ReadonlySet<string> => {
+    if (
+        ts.isImportDeclaration(node)
+    ) {
+        const literal = node
+            .getChildren()
+            .filter(ts.isStringLiteral)
+            ?.[0]
+            ?.getText();
+
+        if (literal) {
+            return new Set([literal]);
+        }
+    }
+
     if (
         ts.isClassDeclaration(node)
         || ts.isFunctionDeclaration(node)
@@ -83,6 +101,10 @@ export const getNameIdentifiers = (
             .map(({text}) => text);
 
         return new Set(identifiers);
+    }
+
+    if (ts.isExportAssignment(node)) {
+        return new Set('default export');
     }
 
     return new Set();
@@ -148,7 +170,9 @@ export const buildTypeScriptTopLevelNodes = (
         .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
         .flatMap((node) => node.getChildren())
         .filter(node => {
-            return ts.isClassDeclaration(node)
+            return ts.isImportDeclaration(node)
+                || ts.isExportAssignment(node)
+                || ts.isClassDeclaration(node)
                 || ts.isFunctionDeclaration(node)
                 || ts.isInterfaceDeclaration(node)
                 || ts.isTypeAliasDeclaration(node)

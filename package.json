@@ -73,6 +73,7 @@
 					"items": {
 						"type": "string",
 						"enum": [
+							"import",
 							"enum",
 							"typeAlias",
 							"interface",
@@ -80,9 +81,11 @@
 							"class",
 							"block",
 							"variable",
-							"unknown"
+							"unknown",
+							"defaultExport"
 						],
 						"enumDescriptions": [
+							"Import Declaration",
 							"Enumeration",
 							"Type Alias",
 							"Interface",
@@ -90,10 +93,12 @@
 							"Class",
 							"Unnamed Block",
 							"Variable",
-							"Other/Unknown Statement"
+							"Other/Unknown Statement",
+							"Default Export Assignment"
 						]
 					},
 					"default": [
+						"import",
 						"enum",
 						"typeAlias",
 						"interface",
@@ -101,7 +106,8 @@
 						"class",
 						"block",
 						"variable",
-						"unknown"
+						"unknown",
+						"defaultExport"
 					]
 				}
 			}

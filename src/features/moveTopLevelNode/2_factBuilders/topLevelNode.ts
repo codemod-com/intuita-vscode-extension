@@ -1,4 +1,5 @@
 export const enum TopLevelNodeKind {
+    importDeclaration = 'import',
     unknown = 'unknown',
     class = 'class',
     function = 'function',
@@ -7,9 +8,11 @@ export const enum TopLevelNodeKind {
     block = 'block',
     variable = 'variable',
     enum = 'enum',
+    exportAssignment = 'defaultExport',
 }
 
 export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> = [
+    TopLevelNodeKind.importDeclaration,
     TopLevelNodeKind.enum,
     TopLevelNodeKind.typeAlias,
     TopLevelNodeKind.interface,
@@ -18,6 +21,7 @@ export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> 
     TopLevelNodeKind.block,
     TopLevelNodeKind.variable,
     TopLevelNodeKind.unknown,
+    TopLevelNodeKind.exportAssignment,
 ];
 
 export type TopLevelNode = Readonly<{
