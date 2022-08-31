@@ -516,7 +516,15 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
-			({ document })=> {
+			async ({ document })=> {
+				const { uri } = document;
+
+				if (uri.scheme === 'intuita' && uri.path.startsWith('/jobs/')) {
+					await document.save();
+					
+					return;
+				}
+
 				extensionStateManager
 					.onFileTextChanged(
 						document,
