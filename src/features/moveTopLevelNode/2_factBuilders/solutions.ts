@@ -14,7 +14,7 @@ export type Solution = Readonly<{
 export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
-    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>
+    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>,
 ): Solution | null => {
     const oldScore = calculateNodesScore(
         nodes,
