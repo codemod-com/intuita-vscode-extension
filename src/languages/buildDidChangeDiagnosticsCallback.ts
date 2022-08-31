@@ -1,10 +1,16 @@
-import { execSync } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { DiagnosticChangeEvent, languages, window, workspace } from "vscode";
+import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { Configuration } from "../configuration";
 import { Container } from "../container";
-import { buildHash } from "../utilities";
+import { buildHash, isNeitherNullNorUndefined } from "../utilities";
+
+type UriEnvelope = Readonly<{
+    workspaceFolder: WorkspaceFolder,
+    uri: Uri,
+    diagnostics: Diagnostic[]
+}>;
 
 export const buildDidChangeDiagnosticsCallback = (
     configurationContainer: Container<Configuration>
@@ -47,42 +53,32 @@ export const buildDidChangeDiagnosticsCallback = (
                         ({ source }) => source === 'ts'
                     );
 
+                const workspaceFolder = workspace.getWorkspaceFolder(uri);
+
                 return {
                     uri,
                     diagnostics,
+                    workspaceFolder,
                 };
             },
         )
-        .filter(
-            ({ diagnostics }) => {
-                return diagnostics.length !== 0;
+        .filter<UriEnvelope>(
+            (u): u is UriEnvelope => {
+                return isNeitherNullNorUndefined(u.workspaceFolder)
+                    && u.diagnostics.length !== 0;
             },
         )
         .forEach(
-            ({ uri }) => {
-                if (uri.scheme !== 'file') {
-                    console.error(`Could not evaluate the non-file uri: ${uri.toString()}`);
-                    return;
-                }
-
-                const workspaceFolder = workspace.getWorkspaceFolder(uri);
-
-                if (!workspaceFolder) {
-                    console.error(`Could not recognize a workspace folder for the uri: ${uri.toString()}`);
-
-                    return;
-                }
-
-                const hash = buildHash(uri.toString());
-
+            ({ uri, workspaceFolder }) => {
                 const { fsPath } = workspaceFolder.uri;
+                const hash = buildHash(uri.toString());
 
                 const directoryPath = join(
                     fsPath,
                     `/.intuita/${hash}/`,
                 );
 
-                const path = join(
+                const filePath = join(
                     fsPath,
                     `/.intuita/${hash}/index.ts`,
                 );
@@ -94,13 +90,11 @@ export const buildDidChangeDiagnosticsCallback = (
 
                 mkdirSync(
                     directoryPath,
-                    {
-                        recursive: true,
-                    },
+                    { recursive: true, },
                 );
 
                 writeFileSync(
-                    path,
+                    filePath,
                     activeTextEditor.document.getText(),
                     { encoding: 'utf8', }
                 );
