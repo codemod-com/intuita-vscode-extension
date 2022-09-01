@@ -32,7 +32,7 @@ describe('calculateNodesScore', function() {
                     kind: TopLevelNodeKind.enum,
                 },
                 {
-                    kind: TopLevelNodeKind.typeAlias,
+                    kind: TopLevelNodeKind.type,
                 },
             ],
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
@@ -45,7 +45,7 @@ describe('calculateNodesScore', function() {
         const score = calculateNodesScore(
             [
                 {
-                    kind: TopLevelNodeKind.typeAlias,
+                    kind: TopLevelNodeKind.type,
                 },
                 {
                     kind: TopLevelNodeKind.enum,
@@ -54,23 +54,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        assert.approximately(score, 0.0625, 0.0001);
-    });
-
-    it('should return a positive number for an array with 2 unordered elements', () => {
-        const score = calculateNodesScore(
-            [
-                {
-                    kind: TopLevelNodeKind.typeAlias,
-                },
-                {
-                    kind: TopLevelNodeKind.enum,
-                },
-            ],
-            DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
-        );
-
-        assert.approximately(score, 0.0625, 0.0001);
+        assert.approximately(score, 0.0357, 0.0001);
     });
 
     it('should return a positive number for an array with 2 unordered elements', () => {
@@ -86,7 +70,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        assert.approximately(score, 0.4375, 0.0001);
+        assert.approximately(score, 0.4285, 0.0001);
     });
 
     it('should return a positive number for an array with 3 unordered elements', () => {
@@ -96,7 +80,7 @@ describe('calculateNodesScore', function() {
                     kind: TopLevelNodeKind.unknown,
                 },
                 {
-                    kind: TopLevelNodeKind.variable,
+                    kind: TopLevelNodeKind.constVariable,
                 },
                 {
                     kind: TopLevelNodeKind.enum,
@@ -105,7 +89,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        assert.approximately(score, 0.3125, 0.0001);
+        assert.approximately(score, 0.3928, 0.0001);
     });
 
     it('should return a positive number for an array with 8 unordered elements', () => {
@@ -123,6 +107,6 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        assert.approximately(score, 0.2734, 0.0001);
+        assert.approximately(score, 0.2653, 0.0001);
     });
 });
