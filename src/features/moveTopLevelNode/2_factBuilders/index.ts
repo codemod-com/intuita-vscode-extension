@@ -1,6 +1,6 @@
 import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
 import {TopLevelNode} from "./topLevelNode";
-import {calculateSolution, Solution} from "./solutions";
+import {calculateSolution, compareScores, Solution} from "./solutions";
 import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
 import {calculateLengths, calculateLines, getSeparator, isNeitherNullNorUndefined} from "../../../utilities";
@@ -62,13 +62,7 @@ export const buildMoveTopLevelNodeFact = (
         )
         .filter(isNeitherNullNorUndefined)
         .sort((a, b) => {
-            const modifierSign = Math.sign(a.score[0] - b.score[0]);
-
-            if (modifierSign !== 0) {
-                return modifierSign;
-            }
-
-            return Math.sign(a.score[1] - b.score[1]);
+            return compareScores(a.score, b.score);
         });
 
     return {

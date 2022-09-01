@@ -11,6 +11,19 @@ export type Solution = Readonly<{
     score: [number, number]
 }>;
 
+export const compareScores = (
+    a: [number, number],
+    b: [number, number],
+): number => {
+    const modifierSign = Math.sign(a[0] - b[0]);
+
+    if (modifierSign !== 0) {
+        return modifierSign;
+    }
+
+    return Math.sign(a[1] - b[1]);
+};
+
 export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
@@ -49,7 +62,7 @@ export const calculateSolution = (
         })
         .filter(isNeitherNullNorUndefined)
         .filter(([_, __, newScore]) => {
-            return newScore[0] < oldScore[0] && newScore[1] < oldScore[1];
+            return compareScores(oldScore, newScore) >= 0;
         })
         .map(([ newNodes, newIndex, score ]) => {
             const hash = buildSolutionHash(
@@ -65,13 +78,7 @@ export const calculateSolution = (
             };
         })
         .sort((a, b) => {
-            const modifierSign = Math.sign(a.score[0] - b.score[0]);
-
-            if (modifierSign !== 0) {
-                return modifierSign;
-            }
-
-            return Math.sign(a.score[1] - b.score[1]);
+            return compareScores(a.score, b.score);
         })
         [0] ?? null;
 };
