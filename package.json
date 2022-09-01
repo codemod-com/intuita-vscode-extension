@@ -68,46 +68,58 @@
 					"default": 50,
 					"description": "The minimum number of lines in a file to create recommendations"
 				},
-				"intuita.topLevelNodeKindOrder": {
+				"intuita.kindOrder": {
 					"type": "array",
 					"items": {
 						"type": "string",
 						"enum": [
 							"import",
 							"enum",
-							"typeAlias",
+							"type",
 							"interface",
+							"constVariable",
+							"letVariable",
+							"constArrowFunction",
+							"letArrowFunction",
 							"function",
 							"class",
+							"multipleVariables",
 							"block",
-							"variable",
-							"unknown",
-							"defaultExport"
+							"export",
+							"unknown"
 						],
 						"enumDescriptions": [
-							"Import Declaration",
-							"Enumeration",
-							"Type Alias",
+							"Import Statement",
+							"Enum",
+							"Type",
 							"Interface",
+							"Const Variable",
+							"Let Variable",
+							"Const Arrow Function",
+							"Let Arrow Function",
 							"Function",
 							"Class",
-							"Unnamed Block",
-							"Variable",
-							"Other/Unknown Statement",
-							"Default Export Assignment"
+							"Multiple Variables",
+							"Block",
+							"Export Block Statement",
+							"Unknown"
 						]
 					},
 					"default": [
 						"import",
 						"enum",
-						"typeAlias",
+						"type",
 						"interface",
+						"constVariable",
+						"letVariable",
+						"constArrowFunction",
+						"letArrowFunction",
 						"function",
 						"class",
+						"multipleVariables",
 						"block",
-						"variable",
-						"unknown",
-						"defaultExport"
+						"export",
+						"unknown"
 					]
 				}
 			}
