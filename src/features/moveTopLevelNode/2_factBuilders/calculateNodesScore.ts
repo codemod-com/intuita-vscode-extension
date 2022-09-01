@@ -10,7 +10,7 @@ export const calculateKindScore = (
     nodes: ReadonlyArray<Node>,
     rightIndex: number,
     kindOrder: ReadonlyArray<TopLevelNodeKind>,
-) => {
+): number => {
     const rightNode = nodes[rightIndex];
 
     if (!rightNode) {
@@ -35,6 +35,35 @@ export const calculateKindScore = (
     return calculateAverage(leftNodeScores);
 }
 
+export const calculateModifierScore = (
+    nodes: ReadonlyArray<Node>,
+    rightIndex: number,
+    modifierOrder: ReadonlyArray<TopLevelNodeModifier>,
+): number => {
+    const rightNode = nodes[rightIndex];
+
+    if (!rightNode) {
+        return 0;
+    }
+
+    const rightKindIndex = modifierOrder.indexOf(rightNode.modifier);
+
+    const leftNodes = nodes.slice(0, rightIndex);
+
+    const leftNodeScores = leftNodes.map(
+        (leftNode) => {
+            const leftKindIndex = modifierOrder.indexOf(leftNode.modifier);
+
+            return Math.max(
+                (leftKindIndex - rightKindIndex) / modifierOrder.length,
+                0,
+            );
+        },
+    );
+
+    return calculateAverage(leftNodeScores);
+}
+
 export const calculateNodesScore = (
     nodes: ReadonlyArray<Node>,
     modifierOrder: ReadonlyArray<TopLevelNodeModifier>,
@@ -46,11 +75,19 @@ export const calculateNodesScore = (
 
     const nodeScores = nodes.map(
         (_, rightIndex) => {
-            return calculateKindScore(
+            const modifierScore = calculateModifierScore(
+                nodes,
+                rightIndex,
+                modifierOrder,
+            );
+
+            const kindScore = calculateKindScore(
                 nodes,
                 rightIndex,
                 kindOrder,
             );
+
+            return (modifierScore + kindScore) / 2;
         }
     );
 

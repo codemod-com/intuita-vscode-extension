@@ -68,6 +68,30 @@
 					"default": 50,
 					"description": "The minimum number of lines in a file to create recommendations"
 				},
+				"intuita.modifierOrder": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"import",
+							"defaultExport",
+							"export",
+							"none"
+						],
+						"enumDescriptions": [
+							"Import Statement",
+							"Default Export Statement",
+							"Export Statement",
+							"Regular Statement"
+						]
+					},
+					"default": [
+						"import",
+						"defaultExport",
+						"export",
+						"none"
+					]
+				},
 				"intuita.kindOrder": {
 					"type": "array",
 					"items": {
