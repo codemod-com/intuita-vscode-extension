@@ -1,11 +1,20 @@
 import { isBlock, isClassDeclaration, isEnumDeclaration, isExportDeclaration, isFunctionDeclaration, isImportDeclaration, isInterfaceDeclaration, isTypeAliasDeclaration, isVariableDeclaration, isVariableStatement, Node, SyntaxKind } from "typescript";
-import { TopLevelNodeKind } from "./topLevelNode";
+import { TopLevelNodeKind, TopLevelNodeModifier } from "./topLevelNode";
 
 const hasExportKeyword = (node: Node): boolean => {
     return node
         .modifiers
         ?.some(
             (modifier) => modifier.kind === SyntaxKind.ExportKeyword
+        )
+        ?? false;
+};
+
+const hasDefaultKeyword = (node: Node): boolean => {
+    return node
+        .modifiers
+        ?.some(
+            (modifier) => modifier.kind === SyntaxKind.DefaultKeyword
         )
         ?? false;
 };
@@ -19,55 +28,97 @@ const hasConstKeyword = (node: Node): boolean => {
         ?? false;
 };
 
-export const getTopLevelNodeKind = (
+const getModifier = (
+    {
+        exportKeyword,
+        defaultKeyword,
+    }: Readonly<{
+        exportKeyword: boolean,
+        defaultKeyword: boolean,
+    }>
+): TopLevelNodeModifier => {
+    if (!exportKeyword) {
+        return TopLevelNodeModifier.none;
+    }
+
+    return defaultKeyword
+        ? TopLevelNodeModifier.defaultExport
+        : TopLevelNodeModifier.export;
+};
+
+export const getTopLevelNodeProperties = (
     node: Node,
-): TopLevelNodeKind => {
-    // TODO factor in the "export default class A {}" cases;
-
+): Readonly<{
+    modifier: TopLevelNodeModifier
+    kind: TopLevelNodeKind,
+}> => {
     if (isImportDeclaration(node)) {
-        return TopLevelNodeKind.import;
+        return {
+            modifier: TopLevelNodeModifier.import,
+            kind: TopLevelNodeKind.import,
+        };
     }
 
-    if (isClassDeclaration(node)) {
-        return hasExportKeyword(node)
-            ? TopLevelNodeKind.exportClass
-            : TopLevelNodeKind.class;
-    }
+    if (
+        isClassDeclaration(node)
+        || isInterfaceDeclaration(node)
+        || isFunctionDeclaration(node)
+    ) {
+        const exportKeyword = hasExportKeyword(node);
+        const defaultKeyword = hasDefaultKeyword(node);
+        
+        const modifier = getModifier({
+            exportKeyword,
+            defaultKeyword,
+        });
 
-    if (isTypeAliasDeclaration(node)) {
-        return hasExportKeyword(node)
-            ? TopLevelNodeKind.exportType
-            : TopLevelNodeKind.type;
-    }
-
-    if (isInterfaceDeclaration(node)) {
-        return hasExportKeyword(node)
-            ? TopLevelNodeKind.exportInterface
-            : TopLevelNodeKind.interface;
-    }
-
-    if (isEnumDeclaration(node)) {
-        return hasExportKeyword(node)
-            ? TopLevelNodeKind.exportEnum
-            : TopLevelNodeKind.enum;   
-    }
-
-    if (isFunctionDeclaration(node)) {
-        return hasExportKeyword(node)
-            ? TopLevelNodeKind.exportFunction
+        const kind = isClassDeclaration(node)
+            ? TopLevelNodeKind.class
+            : isInterfaceDeclaration(node)
+            ? TopLevelNodeKind.interface
             : TopLevelNodeKind.function;
+
+        return {
+            modifier,
+            kind,
+        };
+    }
+
+    if (isTypeAliasDeclaration(node) || isEnumDeclaration(node)) {
+        // type aliases cannot be default exported
+        const exportKeyword = hasExportKeyword(node);
+
+        const modifier = getModifier({
+            exportKeyword,
+            defaultKeyword: false,
+        });
+
+        const kind = isTypeAliasDeclaration(node)
+            ? TopLevelNodeKind.type
+            : TopLevelNodeKind.enum;
+
+        return {
+            modifier,
+            kind,
+        };
     }
 
     if (isVariableStatement(node)) {
         const { declarationList } = node;
         const { declarations } = declarationList;
 
-        const doesHaveExportKeyword = hasExportKeyword(node);
+        const exportKeyword = hasExportKeyword(node);
+
+        const modifier = getModifier({
+            exportKeyword,
+            defaultKeyword: false,
+        });
 
         if (declarations.length !== 1) {
-            return doesHaveExportKeyword
-                ? TopLevelNodeKind.exportManyVariables
-                : TopLevelNodeKind.manyVariables;
+            return {
+                kind: TopLevelNodeKind.manyVariables,
+                modifier,
+            };
         }
 
         const doesHaveConstKeyword = hasConstKeyword(declarationList);
@@ -102,6 +153,6 @@ export const getTopLevelNodeKind = (
     }
 
     if (isExportDeclaration(node)) {
-        
+
     }
 }

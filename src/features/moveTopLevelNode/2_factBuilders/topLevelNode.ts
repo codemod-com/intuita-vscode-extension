@@ -1,6 +1,8 @@
-export const enum TopLevelNodeKindModifier {
+export const enum TopLevelNodeModifier {
+    import = 'import',
+    defaultExport = 'default',
     export = 'export',
-    default = 'default',
+    none = 'none',
 }
 
 export const enum TopLevelNodeKind {
@@ -16,7 +18,7 @@ export const enum TopLevelNodeKind {
     // exportFunction = 'exportFunction',
     function = 'function',
     // exportManyVariables = 'exportManyVariables',
-    manyVariables = 'manyVariables',
+    multipleVariables = 'multipleVariables',
     // exportConstArrowFunction = 'exportConstArrowFunction',
     constArrowFunction = 'constArrowFunction',
     // exportLetArrowFunction = 'exportLetArrowFunction',
@@ -45,6 +47,7 @@ export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> 
 
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
+    modifier: TopLevelNodeModifier,
     id: string,
     triviaStart: number,
     triviaEnd: number,
