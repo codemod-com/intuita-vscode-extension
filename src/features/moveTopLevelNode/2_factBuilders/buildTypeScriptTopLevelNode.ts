@@ -116,43 +116,55 @@ export const getTopLevelNodeProperties = (
 
         if (declarations.length !== 1) {
             return {
-                kind: TopLevelNodeKind.manyVariables,
+                kind: TopLevelNodeKind.multipleVariables,
                 modifier,
             };
         }
 
-        const doesHaveConstKeyword = hasConstKeyword(declarationList);
+        const constKeyword = hasConstKeyword(declarationList);
 
         const arrowFunction = declarations[0]?.initializer?.kind === SyntaxKind.ArrowFunction;
 
         if (arrowFunction) {
-            if (doesHaveConstKeyword) {
-                return doesHaveExportKeyword
-                    ? TopLevelNodeKind.exportConstArrowFunction
-                    : TopLevelNodeKind.constArrowFunction;
-            }
-
-            return doesHaveExportKeyword
-                ? TopLevelNodeKind.exportLetArrowFunction
-                : TopLevelNodeKind.letArrowFunction;
+            return {
+                modifier,
+                kind: constKeyword
+                    ? TopLevelNodeKind.constArrowFunction
+                    : TopLevelNodeKind.letArrowFunction,
+            };
         }
 
-        if (doesHaveConstKeyword) {
-            return doesHaveExportKeyword
-                ? TopLevelNodeKind.exportConstVariable
-                : TopLevelNodeKind.constVariable;
-        }
-
-        return doesHaveExportKeyword
-            ? TopLevelNodeKind.exportLetVariable
-            : TopLevelNodeKind.letVariable;
+        return {
+            modifier,
+            kind: constKeyword
+                ? TopLevelNodeKind.constVariable
+                : TopLevelNodeKind.letVariable,
+        };
     }
 
     if (isBlock(node)) {
-        return TopLevelNodeKind.block;
+        return {
+            modifier: TopLevelNodeModifier.none,
+            kind: TopLevelNodeKind.block,
+        }
     }
 
     if (isExportDeclaration(node)) {
+        const defaultKeyword = hasDefaultKeyword(node);
 
+        const modifier = getModifier({
+            exportKeyword: true,
+            defaultKeyword,
+        });
+
+        return {
+            modifier,
+            kind: TopLevelNodeKind.export,
+        };
+    }
+
+    return {
+        modifier: TopLevelNodeModifier.none,
+        kind: TopLevelNodeKind.unknown,
     }
 }

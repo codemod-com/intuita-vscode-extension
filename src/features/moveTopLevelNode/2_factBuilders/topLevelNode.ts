@@ -5,45 +5,48 @@ export const enum TopLevelNodeModifier {
     none = 'none',
 }
 
+export const DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER:
+    ReadonlyArray<TopLevelNodeModifier> = [
+        TopLevelNodeModifier.import,
+        TopLevelNodeModifier.defaultExport,
+        TopLevelNodeModifier.export,
+        TopLevelNodeModifier.none,
+    ];
+
 export const enum TopLevelNodeKind {
     import = 'import',
-    // exportClass = 'exportClass',
-    class = 'class',
-    // exportType = 'exportType',
-    type = 'type',
-    // exportInterface = 'exportInterface',
-    interface = 'interface',
-    // exportEnum = 'exportEnum',
     enum = 'enum',
-    // exportFunction = 'exportFunction',
-    function = 'function',
-    // exportManyVariables = 'exportManyVariables',
-    multipleVariables = 'multipleVariables',
-    // exportConstArrowFunction = 'exportConstArrowFunction',
-    constArrowFunction = 'constArrowFunction',
-    // exportLetArrowFunction = 'exportLetArrowFunction',
-    letArrowFunction = 'letArrowFunction',
-    // exportConstVariable = 'exportConstVariable',
+    type = 'type',
+    interface = 'interface',
     constVariable = 'constVariable',
-    // exportLetVariable = 'exportLetVariable',
     letVariable = 'letVariable',
+    constArrowFunction = 'constArrowFunction',
+    letArrowFunction = 'letArrowFunction',
+    function = 'function',
+    class = 'class',
+    multipleVariables = 'multipleVariables',
     block = 'block',
-    // unknown = 'unknown',
-    // exportAssignment = 'defaultExport',
+    export = 'export',
+    unknown = 'unknown',
 }
 
-export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER: ReadonlyArray<TopLevelNodeKind> = [
-    TopLevelNodeKind.importDeclaration,
-    TopLevelNodeKind.enum,
-    TopLevelNodeKind.typeAlias,
-    TopLevelNodeKind.interface,
-    TopLevelNodeKind.function,
-    TopLevelNodeKind.class,
-    TopLevelNodeKind.block,
-    TopLevelNodeKind.variable,
-    TopLevelNodeKind.unknown,
-    TopLevelNodeKind.exportAssignment,
-];
+export const DEFAULT_TOP_LEVEL_NODE_KIND_ORDER:
+    ReadonlyArray<TopLevelNodeKind> = [
+        TopLevelNodeKind.import,
+        TopLevelNodeKind.enum,
+        TopLevelNodeKind.type,
+        TopLevelNodeKind.interface,
+        TopLevelNodeKind.constVariable,
+        TopLevelNodeKind.letVariable,
+        TopLevelNodeKind.constArrowFunction,
+        TopLevelNodeKind.letArrowFunction,
+        TopLevelNodeKind.function,
+        TopLevelNodeKind.class,
+        TopLevelNodeKind.multipleVariables,
+        TopLevelNodeKind.block,
+        TopLevelNodeKind.export,
+        TopLevelNodeKind.unknown,
+    ];
 
 export type TopLevelNode = Readonly<{
     kind: TopLevelNodeKind,
