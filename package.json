@@ -79,10 +79,10 @@
 							"none"
 						],
 						"enumDescriptions": [
-							"Import Statement",
-							"Default Export Statement",
-							"Export Statement",
-							"Regular Statement"
+							"Import Modifier",
+							"Default Export Modifier",
+							"Export Modifier",
+							"No Modifier"
 						]
 					},
 					"default": [
