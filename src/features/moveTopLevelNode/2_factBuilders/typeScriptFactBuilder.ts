@@ -1,31 +1,7 @@
 import * as ts from "typescript";
 import {buildHash} from "../../../utilities";
+import { getTopLevelNodeProperties } from "./buildTypeScriptTopLevelNode";
 import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
-
-const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
-    switch(kind) {
-        case ts.SyntaxKind.ExportAssignment:
-            return TopLevelNodeKind.exportAssignment;
-        case ts.SyntaxKind.ImportDeclaration:
-            return TopLevelNodeKind.importDeclaration;
-        case ts.SyntaxKind.ClassDeclaration:
-            return TopLevelNodeKind.class;
-        case ts.SyntaxKind.FunctionDeclaration:
-            return TopLevelNodeKind.function;
-        case ts.SyntaxKind.InterfaceDeclaration:
-            return TopLevelNodeKind.interface;
-        case ts.SyntaxKind.TypeAliasDeclaration:
-            return TopLevelNodeKind.typeAlias;
-        case ts.SyntaxKind.Block:
-            return TopLevelNodeKind.block;
-        case ts.SyntaxKind.VariableStatement:
-            return TopLevelNodeKind.variable;
-        case ts.SyntaxKind.EnumDeclaration:
-            return TopLevelNodeKind.enum;
-        default:
-            return TopLevelNodeKind.unknown;
-    }
-};
 
 export const getChildIdentifiers = (
     node: ts.Node
@@ -169,19 +145,11 @@ export const buildTypeScriptTopLevelNodes = (
         .getChildren()
         .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
         .flatMap((node) => node.getChildren())
-        .filter(node => {
-            return ts.isImportDeclaration(node)
-                || ts.isExportAssignment(node)
-                || ts.isClassDeclaration(node)
-                || ts.isFunctionDeclaration(node)
-                || ts.isInterfaceDeclaration(node)
-                || ts.isTypeAliasDeclaration(node)
-                || ts.isBlock(node)
-                || ts.isVariableStatement(node)
-                || ts.isEnumDeclaration(node);
-        })
         .map((node) => {
-            const kind = getTopLevelNodeKind(node.kind);
+            const {
+                modifier,
+                kind,
+            } = getTopLevelNodeProperties(node);
 
             const nodeStart = node.getStart();
             const nodeEnd = node.getEnd();
@@ -223,6 +191,7 @@ export const buildTypeScriptTopLevelNodes = (
             );
 
             return {
+                modifier,
                 kind,
                 id,
                 triviaStart: start,
