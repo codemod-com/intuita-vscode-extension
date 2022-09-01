@@ -47,7 +47,8 @@ export const buildMoveTopLevelNodeFact = (
                 const solution = calculateSolution(
                     topLevelNodes,
                     oldIndex,
-                    options.topLevelNodeKindOrder,
+                    options.modifierOrder,
+                    options.kindOrder,
                 );
 
                 if (!solution || solutionHashes.has(solution.hash)) {

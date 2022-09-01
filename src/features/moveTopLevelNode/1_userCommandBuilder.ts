@@ -1,8 +1,9 @@
 import {IntuitaRange} from "../../utilities";
-import { TopLevelNodeKind } from "./2_factBuilders/topLevelNode";
+import { TopLevelNodeKind, TopLevelNodeModifier } from "./2_factBuilders/topLevelNode";
 
 export type MoveTopLevelNodeOptions = Readonly<{
-    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>,
+    modifierOrder: ReadonlyArray<TopLevelNodeModifier>,
+    kindOrder: ReadonlyArray<TopLevelNodeKind>,
     minimumLines: number,
 }>;
 

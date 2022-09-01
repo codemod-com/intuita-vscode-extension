@@ -1,7 +1,7 @@
 import { isNeitherNullNorUndefined, moveElementInArray } from "../../../utilities";
 import { buildSolutionHash, SolutionHash } from "../solutionHash";
 import { calculateNodesScore } from "./calculateNodesScore";
-import { TopLevelNode, TopLevelNodeKind } from "./topLevelNode";
+import { TopLevelNode, TopLevelNodeKind, TopLevelNodeModifier } from "./topLevelNode";
 
 export type Solution = Readonly<{
     hash: SolutionHash,
@@ -14,11 +14,13 @@ export type Solution = Readonly<{
 export const calculateSolution = (
     nodes: ReadonlyArray<TopLevelNode>,
     oldIndex: number,
-    topLevelNodeKindOrder: ReadonlyArray<TopLevelNodeKind>,
+    modifierOrder: ReadonlyArray<TopLevelNodeModifier>,
+    kindOrder: ReadonlyArray<TopLevelNodeKind>
 ): Solution | null => {
     const oldScore = calculateNodesScore(
         nodes,
-        topLevelNodeKindOrder,
+        modifierOrder,
+        kindOrder,
     );
 
     return nodes
@@ -35,7 +37,8 @@ export const calculateSolution = (
 
             const newScore = calculateNodesScore(
                 newNodes,
-                topLevelNodeKindOrder,
+                modifierOrder,
+                kindOrder,
             );
 
             return [
