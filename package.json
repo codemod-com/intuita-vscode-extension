@@ -59,16 +59,19 @@
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
 				"intuita.saveDocumentOnJobAccept": {
+					"order": 0,
 					"type": "boolean",
 					"default": true,
 					"description": "When you accept a job, the extension will save the associated document"
 				},
 				"intuita.minimumLines": {
+					"order": 1,
 					"type": "number",
-					"default": 50,
+					"default": 1,
 					"description": "The minimum number of lines in a file to create recommendations"
 				},
 				"intuita.modifierOrder": {
+					"order": 2,
 					"type": "array",
 					"items": {
 						"type": "string",
@@ -93,6 +96,7 @@
 					]
 				},
 				"intuita.kindOrder": {
+					"order": 3,
 					"type": "array",
 					"items": {
 						"type": "string",
