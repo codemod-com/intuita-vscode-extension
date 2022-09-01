@@ -68,28 +68,33 @@ export const calculateNodesScore = (
     nodes: ReadonlyArray<Node>,
     modifierOrder: ReadonlyArray<TopLevelNodeModifier>,
     kindOrder: ReadonlyArray<TopLevelNodeKind>,
-): number => {
+): [number, number] => {
     if (modifierOrder.length === 0 || kindOrder.length === 0) {
-        return 0;
+        return [0, 0];
     }
 
-    const nodeScores = nodes.map(
+    const modifierScores = nodes.map(
         (_, rightIndex) => {
-            const modifierScore = calculateModifierScore(
+            return calculateModifierScore(
                 nodes,
                 rightIndex,
                 modifierOrder,
             );
+        },
+    );
 
-            const kindScore = calculateKindScore(
+    const kindScores = nodes.map(
+        (_, rightIndex) => {
+            return calculateKindScore(
                 nodes,
                 rightIndex,
                 kindOrder,
             );
-
-            return (modifierScore + kindScore) / 2;
         }
     );
 
-    return calculateAverage(nodeScores);
+    return [
+        calculateAverage(modifierScores),
+        calculateAverage(kindScores),
+    ];
 };

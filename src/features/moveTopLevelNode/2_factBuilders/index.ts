@@ -62,7 +62,13 @@ export const buildMoveTopLevelNodeFact = (
         )
         .filter(isNeitherNullNorUndefined)
         .sort((a, b) => {
-            return Math.sign(a.score - b.score);
+            const modifierSign = Math.sign(a.score[0] - b.score[0]);
+
+            if (modifierSign !== 0) {
+                return modifierSign;
+            }
+
+            return Math.sign(a.score[1] - b.score[1]);
         });
 
     return {

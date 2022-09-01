@@ -29,7 +29,7 @@ export type IntuitaJob = Readonly<{
     range: IntuitaRange,
     oldIndex: number,
     newIndex: number,
-    score: number,
+    score: [number, number],
 }>;
 
 export type IntuitaCodeAction = Readonly<{
