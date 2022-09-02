@@ -11,8 +11,7 @@ const isJoernAvailable = () => {
     }
 
     try {
-        // execSync('which joern-parse joern-vectors');
-        execSync('which joern-parse');
+        execSync('which joern-parse joern-vectors');
 
         return true;
     } catch {

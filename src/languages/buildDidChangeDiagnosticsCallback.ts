@@ -70,7 +70,6 @@ export const buildDidChangeDiagnosticsCallback = (
             },
         );
 
-    setImmediate(() => {
         uriEnvelopes.forEach(
             ({ uri, fsPath }) => {
                 const hash = buildHash(uri.toString());
@@ -89,6 +88,11 @@ export const buildDidChangeDiagnosticsCallback = (
                     fsPath,
                     `/.intuita/${hash}/cpg.bin`,
                 );
+
+                const vectorPath = join(
+                    fsPath,
+                    `/.intuita/${hash}/vectors`,
+                )
     
                 mkdirSync(
                     directoryPath,
@@ -104,11 +108,11 @@ export const buildDidChangeDiagnosticsCallback = (
                 const start = Date.now();
     
                 execSync(
-                    'joern-parse --output=$JOERN_PROXY_OUTPUT --nooverlays $JOERN_PROXY_INPUT',
+                    'joern-parse --output=$PARSE_OUTPUT --nooverlays $PARSE_INPUT',
                     {
                         env: {
-                            JOERN_PROXY_INPUT: directoryPath,
-                            JOERN_PROXY_OUTPUT: cpgFilePath,
+                            PARSE_INPUT: directoryPath,
+                            PARSE_OUTPUT: cpgFilePath,
                         },
                     },
                 );
@@ -116,7 +120,18 @@ export const buildDidChangeDiagnosticsCallback = (
                 const end = Date.now();
     
                 console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
+            
+                const data = execSync(
+                    'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
+                    {
+                        env: {
+                            VECTOR_INPUT: cpgFilePath,
+                            VECTOR_OUTPUT: vectorPath,
+                        }
+                    }
+                );
+
+                console.log(data.toString('utf8'))
             }
         );
-    });
 }
