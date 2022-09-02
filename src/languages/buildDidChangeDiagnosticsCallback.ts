@@ -1,10 +1,13 @@
-import { exec, execSync } from "node:child_process";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { Configuration } from "../configuration";
 import { Container } from "../container";
 import { buildHash, isNeitherNullNorUndefined } from "../utilities";
+
+const asyncExec = promisify(exec);
 
 type UriEnvelope = Readonly<{
     uri: Uri,
@@ -14,7 +17,7 @@ type UriEnvelope = Readonly<{
 
 export const buildDidChangeDiagnosticsCallback = (
     configurationContainer: Container<Configuration>
-) => ({ uris }: DiagnosticChangeEvent) => {
+) => async ({ uris }: DiagnosticChangeEvent) => {
     const { activeTextEditor } = window;
 
     if (!activeTextEditor) {
@@ -70,9 +73,8 @@ export const buildDidChangeDiagnosticsCallback = (
             },
         );
 
-    setImmediate(() => {
-        uriEnvelopes.forEach(
-            ({ uri, fsPath }) => {
+        await Promise.all(uriEnvelopes.map(
+            async ({ uri, fsPath }) => {
                 const hash = buildHash(uri.toString());
     
                 const directoryPath = join(
@@ -89,6 +91,11 @@ export const buildDidChangeDiagnosticsCallback = (
                     fsPath,
                     `/.intuita/${hash}/cpg.bin`,
                 );
+
+                const vectorPath = join(
+                    fsPath,
+                    `/.intuita/${hash}/vectors`,
+                )
     
                 mkdirSync(
                     directoryPath,
@@ -103,20 +110,32 @@ export const buildDidChangeDiagnosticsCallback = (
 
                 const start = Date.now();
     
-                execSync(
-                    'joern-parse --output=$JOERN_PROXY_OUTPUT --nooverlays $JOERN_PROXY_INPUT',
+                await asyncExec(
+                    'joern-parse --output=$PARSE_OUTPUT --nooverlays $PARSE_INPUT',
                     {
                         env: {
-                            JOERN_PROXY_INPUT: directoryPath,
-                            JOERN_PROXY_OUTPUT: cpgFilePath,
+                            PARSE_INPUT: directoryPath,
+                            PARSE_OUTPUT: cpgFilePath,
                         },
                     },
+                    
                 );
 
                 const end = Date.now();
-    
+
                 console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
+            
+                const data = await asyncExec(
+                    'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
+                    {
+                        env: {
+                            VECTOR_INPUT: cpgFilePath,
+                            VECTOR_OUTPUT: vectorPath,
+                        }
+                    }
+                );
+
+                console.log(data.stdout)
             }
-        );
-    });
+        ));
 }
