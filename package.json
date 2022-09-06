@@ -59,48 +59,94 @@
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
 				"intuita.saveDocumentOnJobAccept": {
+					"order": 0,
 					"type": "boolean",
 					"default": true,
 					"description": "When you accept a job, the extension will save the associated document"
 				},
 				"intuita.minimumLines": {
+					"order": 1,
 					"type": "number",
-					"default": 50,
+					"default": 1,
 					"description": "The minimum number of lines in a file to create recommendations"
 				},
-				"intuita.topLevelNodeKindOrder": {
+				"intuita.modifierOrder": {
+					"order": 2,
 					"type": "array",
 					"items": {
 						"type": "string",
 						"enum": [
-							"enum",
-							"typeAlias",
-							"interface",
-							"function",
-							"class",
-							"block",
-							"variable",
-							"unknown"
+							"import",
+							"defaultExport",
+							"export",
+							"none"
 						],
 						"enumDescriptions": [
-							"Enumeration",
-							"Type Alias",
-							"Interface",
-							"Function",
-							"Class",
-							"Unnamed Block",
-							"Variable",
-							"Other/Unknown Statement"
+							"Import Modifier",
+							"Default Export Modifier",
+							"Export Modifier",
+							"No Modifier"
 						]
 					},
 					"default": [
+						"import",
+						"defaultExport",
+						"export",
+						"none"
+					]
+				},
+				"intuita.kindOrder": {
+					"order": 3,
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"import",
+							"enum",
+							"type",
+							"interface",
+							"constVariable",
+							"letVariable",
+							"constArrowFunction",
+							"letArrowFunction",
+							"function",
+							"class",
+							"multipleVariables",
+							"block",
+							"export",
+							"unknown"
+						],
+						"enumDescriptions": [
+							"Import Statement",
+							"Enum",
+							"Type",
+							"Interface",
+							"Const Variable",
+							"Let Variable",
+							"Const Arrow Function",
+							"Let Arrow Function",
+							"Function",
+							"Class",
+							"Multiple Variables",
+							"Block",
+							"Export Block Statement",
+							"Unknown"
+						]
+					},
+					"default": [
+						"import",
 						"enum",
-						"typeAlias",
+						"type",
 						"interface",
+						"constVariable",
+						"letVariable",
+						"constArrowFunction",
+						"letArrowFunction",
 						"function",
 						"class",
+						"multipleVariables",
 						"block",
-						"variable",
+						"export",
 						"unknown"
 					]
 				}

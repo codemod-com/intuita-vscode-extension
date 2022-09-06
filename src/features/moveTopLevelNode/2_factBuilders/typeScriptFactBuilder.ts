@@ -1,27 +1,7 @@
 import * as ts from "typescript";
 import {buildHash} from "../../../utilities";
+import { getTopLevelNodeProperties } from "./buildTypeScriptTopLevelNode";
 import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
-
-const getTopLevelNodeKind = (kind: ts.SyntaxKind): TopLevelNodeKind => {
-    switch(kind) {
-        case ts.SyntaxKind.ClassDeclaration:
-            return TopLevelNodeKind.class;
-        case ts.SyntaxKind.FunctionDeclaration:
-            return TopLevelNodeKind.function;
-        case ts.SyntaxKind.InterfaceDeclaration:
-            return TopLevelNodeKind.interface;
-        case ts.SyntaxKind.TypeAliasDeclaration:
-            return TopLevelNodeKind.typeAlias;
-        case ts.SyntaxKind.Block:
-            return TopLevelNodeKind.block;
-        case ts.SyntaxKind.VariableStatement:
-            return TopLevelNodeKind.variable;
-        case ts.SyntaxKind.EnumDeclaration:
-            return TopLevelNodeKind.enum;
-        default:
-            return TopLevelNodeKind.unknown;
-    }
-};
 
 export const getChildIdentifiers = (
     node: ts.Node
@@ -40,6 +20,20 @@ export const getChildIdentifiers = (
 export const getNameIdentifiers = (
     node: ts.Node,
 ): ReadonlySet<string> => {
+    if (
+        ts.isImportDeclaration(node)
+    ) {
+        const literal = node
+            .getChildren()
+            .filter(ts.isStringLiteral)
+            ?.[0]
+            ?.getText();
+
+        if (literal) {
+            return new Set([literal]);
+        }
+    }
+
     if (
         ts.isClassDeclaration(node)
         || ts.isFunctionDeclaration(node)
@@ -83,6 +77,10 @@ export const getNameIdentifiers = (
             .map(({text}) => text);
 
         return new Set(identifiers);
+    }
+
+    if (ts.isExportAssignment(node)) {
+        return new Set('default export');
     }
 
     return new Set();
@@ -147,17 +145,11 @@ export const buildTypeScriptTopLevelNodes = (
         .getChildren()
         .filter(node => node.kind === ts.SyntaxKind.SyntaxList)
         .flatMap((node) => node.getChildren())
-        .filter(node => {
-            return ts.isClassDeclaration(node)
-                || ts.isFunctionDeclaration(node)
-                || ts.isInterfaceDeclaration(node)
-                || ts.isTypeAliasDeclaration(node)
-                || ts.isBlock(node)
-                || ts.isVariableStatement(node)
-                || ts.isEnumDeclaration(node);
-        })
         .map((node) => {
-            const kind = getTopLevelNodeKind(node.kind);
+            const {
+                modifier,
+                kind,
+            } = getTopLevelNodeProperties(node);
 
             const nodeStart = node.getStart();
             const nodeEnd = node.getEnd();
@@ -199,6 +191,7 @@ export const buildTypeScriptTopLevelNodes = (
             );
 
             return {
+                modifier,
                 kind,
                 id,
                 triviaStart: start,

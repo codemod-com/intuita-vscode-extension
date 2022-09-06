@@ -1,6 +1,6 @@
 import {MoveTopLevelNodeUserCommand} from "../1_userCommandBuilder";
 import {TopLevelNode} from "./topLevelNode";
-import {calculateSolution, Solution} from "./solutions";
+import {calculateSolution, compareScores, Solution} from "./solutions";
 import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
 import {calculateLengths, calculateLines, getSeparator, isNeitherNullNorUndefined} from "../../../utilities";
@@ -47,7 +47,8 @@ export const buildMoveTopLevelNodeFact = (
                 const solution = calculateSolution(
                     topLevelNodes,
                     oldIndex,
-                    options.topLevelNodeKindOrder,
+                    options.modifierOrder,
+                    options.kindOrder,
                 );
 
                 if (!solution || solutionHashes.has(solution.hash)) {
@@ -61,7 +62,7 @@ export const buildMoveTopLevelNodeFact = (
         )
         .filter(isNeitherNullNorUndefined)
         .sort((a, b) => {
-            return Math.sign(a.score - b.score);
+            return compareScores(a.score, b.score);
         });
 
     return {

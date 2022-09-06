@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { type } from 'node:os';
 import * as vscode from 'vscode';
-import { DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, TopLevelNodeKind } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
+import { DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER, TopLevelNodeKind, TopLevelNodeModifier } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
 
 const isJoernAvailable = () => {
     const operatingSystemName = type();
@@ -24,8 +24,11 @@ export const getConfiguration = () => {
         'intuita',
     );
 
-    const topLevelNodeKindOrder = configuration.get<ReadonlyArray<TopLevelNodeKind>>('topLevelNodeKindOrder')
+    const kindOrder = configuration.get<ReadonlyArray<TopLevelNodeKind>>('kindOrder')
         ?? DEFAULT_TOP_LEVEL_NODE_KIND_ORDER;
+
+    const modifierOrder = configuration.get<ReadonlyArray<TopLevelNodeModifier>>('modifierOrder')
+        ?? DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER;
 
     const saveDocumentOnJobAccept = configuration.get<boolean>('saveDocumentOnJobAccept') ?? true;
 
@@ -34,7 +37,8 @@ export const getConfiguration = () => {
     const joernAvailable = isJoernAvailable();
 
     return {
-        topLevelNodeKindOrder,
+        modifierOrder,
+        kindOrder,
         saveDocumentOnJobAccept,
         minimumLines,
         joernAvailable,
