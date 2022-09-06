@@ -144,7 +144,6 @@ export async function activate(
 			oldIndex: number,
 			newIndex: number,
 			range: IntuitaRange,
-			score: number,
 		}>;
 
 	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
@@ -182,7 +181,6 @@ export async function activate(
 											newIndex: diagnostic.newIndex,
 											range: diagnostic.range,
 											hash: diagnostic.hash,
-											score: diagnostic.score,
 										};
 									}
 								);
