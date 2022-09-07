@@ -62,7 +62,7 @@ export const calculateSolution = (
         })
         .filter(isNeitherNullNorUndefined)
         .filter(([_, __, newScore]) => {
-            return compareScores(oldScore, newScore) >= 0;
+            return compareScores(oldScore, newScore) > 0;
         })
         .map(([ newNodes, newIndex, score ]) => {
             const hash = buildSolutionHash(
