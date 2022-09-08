@@ -8,14 +8,13 @@ import {
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
-import { assertsNeitherNullOrUndefined } from "./utilities";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
 import { MessageBus, MessageKind } from './messageBus';
-import { CommandComponent } from './components/commandComponent';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import { buildTreeDataProvider } from './treeDataProviders';
+import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -102,7 +101,7 @@ export async function activate(
 		);
 
 		treeDataProvider._onDidChangeTreeData.fire();
-	};
+	}
 
 	messageBus.subscribe(
 		(message) => {
@@ -112,16 +111,9 @@ export async function activate(
 						message.uri,
 					),
 				);
-			}  
+			}
 		},
 	);
-
-	const commandComponent = new CommandComponent(
-		intuitaFileSystem,
-		extensionStateManager,
-	);
-
-
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
@@ -245,132 +237,11 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
-			async (jobHash, characterDifference) => {
-				if (typeof jobHash !== 'string') {
-					throw new Error('The job hash argument must be a string.');
-				}
-					
-				if (typeof characterDifference !== 'number') {
-					throw new Error('The job hash argument must be a number.');
-				}
-
-				const fileName = extensionStateManager.getFileNameFromJobHash(jobHash as JobHash);
-
-				assertsNeitherNullOrUndefined(fileName);
-
-				const result = commandComponent.getJobOutput(jobHash as JobHash);
-
-				assertsNeitherNullOrUndefined(result);
-
-				const textEditors = vscode
-					.window
-					.visibleTextEditors
-					.filter(
-						({ document }) => {
-							return document.fileName === fileName;
-						},
-					);
-
-				const textDocuments = vscode
-					.workspace
-					.textDocuments
-					.filter(
-						(document) => {
-							return document.fileName === fileName;
-						},
-					);
-
-				const activeTextEditor = vscode.window.activeTextEditor ?? null;
-
-				const range = new vscode.Range(
-				    new vscode.Position(
-						result.range[0],
-						result.range[1],
-				    ),
-				    new vscode.Position(
-						result.range[2],
-						result.range[3],
-				    ),
-				);
-
-				const {
-					saveDocumentOnJobAccept,
-				} = configurationContainer.get();
-
-				const changeTextEditor = async (textEditor: vscode.TextEditor) => {
-					await textEditor.edit(
-						(textEditorEdit) => {
-							textEditorEdit.replace(
-								range,
-								result.text,
-							);
-						}
-					);
-					
-					if (!saveDocumentOnJobAccept) {
-						return;
-					}
-
-					return textEditor.document.save();
-				};
-
-				await Promise.all(
-					textEditors.map(
-						changeTextEditor,
-					)
-				);
-
-				if (textEditors.length === 0) {
-					textDocuments.forEach(
-						(textDocument) => {
-							vscode
-								.window
-								// TODO we can add a range here
-								.showTextDocument(textDocument)
-								.then(
-									changeTextEditor,
-								);
-						}
-					);
-				}
-
-				if (activeTextEditor?.document.fileName === fileName) {
-					const position = new vscode.Position(
-						result.position[0],
-						result.position[1],
-					);
-	
-					const selection = new vscode.Selection(
-						position,
-						position
-					);
-	
-					activeTextEditor.selections = [ selection ];
-	
-					activeTextEditor.revealRange(
-						new vscode.Range(
-							position,
-							position
-						),
-						vscode
-							.TextEditorRevealType
-							.AtTop,
-					);
-				}
-
-				const allTextDocuments = textEditors
-					.map(({ document }) => document)
-					.concat(
-						textDocuments
-					);
-
-				if (allTextDocuments[0]) {
-					extensionStateManager
-						.onFileTextChanged(
-							allTextDocuments[0],
-						);
-				}
-			}
+			buildMoveTopLevelNodeCommand(
+				configurationContainer,
+				intuitaFileSystem,
+				extensionStateManager,
+			),
 		),
 	);
 
@@ -381,7 +252,7 @@ export async function activate(
 
 				if (uri.scheme === 'intuita' && uri.path.startsWith('/jobs/')) {
 					await document.save();
-					
+
 					return;
 				}
 
