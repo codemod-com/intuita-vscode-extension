@@ -15,7 +15,7 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
-import { buildJobHash, JobHash } from "./jobHash";
+import { buildMoveTopLevelNodeJobHash, JobHash } from "./jobHash";
 import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 import { MessageBus, MessageKind } from "../../messageBus";
 import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
@@ -44,6 +44,7 @@ export type IntuitaJob =
         hash: JobHash,
         title: string,
         range: IntuitaRange,
+        replacement: string,
     }>;
 
 export type IntuitaCodeAction = Readonly<{
@@ -202,7 +203,7 @@ export class ExtensionStateManager {
                     fact.lengths[start[0]] ?? start[1],
                 ];
 
-                const hash = buildJobHash(
+                const hash = buildMoveTopLevelNodeJobHash(
                     fileName,
                     oldIndex,
                     newIndex,

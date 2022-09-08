@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
 import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
-import { buildJobHash } from '../features/moveTopLevelNode/jobHash';
+import { buildMoveTopLevelNodeJobHash } from '../features/moveTopLevelNode/jobHash';
 import { buildFileUri, buildJobUri } from '../fileSystems/uris';
 
 const buildIdentifiersLabel = (
@@ -106,7 +106,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         fileName,
                     );
 
-                    const jobHash = buildJobHash(
+                    const jobHash = buildMoveTopLevelNodeJobHash(
                         fileName,
                         oldIndex,
                         newIndex,
