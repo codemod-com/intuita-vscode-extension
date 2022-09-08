@@ -6,14 +6,13 @@
 	"publisher": "Intuita",
 	"icon": "img/intuitasq128.png",
 	"engines": {
-		"vscode": "^1.69.0"
+		"vscode": "^1.71.0"
 	},
 	"categories": [
 		"Programming Languages",
 		"Formatters",
 		"Linters"
 	],
-	
 	"keywords": [
 		"prettier",
 		"intellicode",
@@ -22,7 +21,6 @@
 		"copilot",
 		"refactor"
 	],
-
 	"activationEvents": [
 		"workspaceContains:**/*.ts*"
 	],
@@ -212,15 +210,15 @@
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.1",
-		"@types/glob": "^7.2.0",
+		"@types/glob": "^8.0.0",
 		"@types/mocha": "^9.1.1",
-		"@types/node": "18.7.11",
-		"@types/vscode": "^1.69.0",
-		"@typescript-eslint/eslint-plugin": "^5.34.0",
-		"@typescript-eslint/parser": "^5.34.0",
+		"@types/node": "18.7.16",
+		"@types/vscode": "^1.71.0",
+		"@typescript-eslint/eslint-plugin": "^5.36.2",
+		"@typescript-eslint/parser": "^5.36.2",
 		"@vscode/test-electron": "^2.1.5",
 		"chai": "^4.3.6",
-		"eslint": "^8.20.0",
+		"eslint": "^8.23.0",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
 		"ts-loader": "^9.3.1",
@@ -230,6 +228,6 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
-		"typescript": "^4.7.4"
+		"typescript": "^4.8.2"
 	}
 }
