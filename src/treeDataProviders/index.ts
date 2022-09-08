@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { EventEmitter, MarkdownString, ProviderResult, TreeItem, TreeItemCollapsibleState, Uri, workspace } from "vscode";
 import { ExtensionStateManager } from "../features/moveTopLevelNode/extensionStateManager";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
-import { buildJobHash, JobHash } from "../features/moveTopLevelNode/jobHash";
+import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
 import { buildHash, IntuitaRange, isNeitherNullNorUndefined } from "../utilities";
 
@@ -18,8 +18,6 @@ type Element =
         uri: Uri,
         hash: JobHash,
         fileName: string,
-        oldIndex: number,
-        newIndex: number,
         range: IntuitaRange,
     }>;
 
@@ -57,8 +55,6 @@ export const buildTreeDataProvider = (
                                             label: diagnostic.title,
                                             fileName,
                                             uri,
-                                            oldIndex: diagnostic.oldIndex,
-                                            newIndex: diagnostic.newIndex,
                                             range: diagnostic.range,
                                             hash: diagnostic.hash,
                                         };
@@ -117,12 +113,6 @@ export const buildTreeDataProvider = (
     
                 const fileNameHash = buildFileNameHash(
                     element.fileName,
-                )
-    
-                const jobHash = buildJobHash(
-                    element.fileName,
-                    element.oldIndex,
-                    element.newIndex,
                 );
     
                 treeItem.command = {
@@ -130,7 +120,7 @@ export const buildTreeDataProvider = (
                     command: 'vscode.diff',
                     arguments: [
                         buildFileUri(fileNameHash),
-                        buildJobUri(jobHash),
+                        buildJobUri(element.hash),
                         'Proposed change',
                     ]
                 };

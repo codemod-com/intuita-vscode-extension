@@ -20,17 +20,31 @@ import { buildFileNameHash, FileNameHash } from "./fileNameHash";
 import { MessageBus, MessageKind } from "../../messageBus";
 import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
 import { buildFileUri, buildJobUri } from "../../fileSystems/uris";
-import { getOrOpenTextDocuments, getTextDocuments } from "../../components/vscodeUtilities";
+import { getOrOpenTextDocuments } from "../../components/vscodeUtilities";
 
-export type IntuitaJob = Readonly<{
-    fileName: string,
-    hash: JobHash,
-    title: string,
-    range: IntuitaRange,
-    oldIndex: number,
-    newIndex: number,
-    score: [number, number],
-}>;
+export const enum JobKind {
+    moveTopLevelNode = 1,
+    codeRepair = 2,
+}
+
+export type IntuitaJob = 
+    | Readonly<{
+        kind: JobKind.moveTopLevelNode,
+        fileName: string,
+        hash: JobHash,
+        title: string,
+        range: IntuitaRange,
+        oldIndex: number,
+        newIndex: number,
+        score: [number, number],
+    }>
+    | Readonly<{
+        kind: JobKind.codeRepair,
+        fileName: string,
+        hash: JobHash,
+        title: string,
+        range: IntuitaRange,
+    }>;
 
 export type IntuitaCodeAction = Readonly<{
     title: string,
@@ -163,7 +177,7 @@ export class ExtensionStateManager {
             return;
         }
 
-        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map(
+        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map<IntuitaJob | null>(
             (solution) => {
                 const { oldIndex, newIndex, score } = solution;
 
@@ -199,6 +213,7 @@ export class ExtensionStateManager {
                 }
 
                 return {
+                    kind: JobKind.moveTopLevelNode,
                     fileName,
                     hash,
                     range,
@@ -374,48 +389,52 @@ export class ExtensionStateManager {
             throw new Error('Could not find a job with the specified hash');
         }
 
-        const {
-            fileName,
-            oldIndex,
-            newIndex,
-        } = job;
+        if (job.kind === JobKind.moveTopLevelNode) {
+            const {
+                fileName,
+                oldIndex,
+                newIndex,
+            } = job;
+    
+            const fileNameHash = buildFileNameHash(fileName);
+    
+            const fact = this._factMap.get(fileNameHash);
+            
+            assertsNeitherNullOrUndefined(fact);
 
-        const fileNameHash = buildFileNameHash(fileName);
+            const execution = executeMoveTopLevelNodeAstCommandHelper(
+                fileName,
+                oldIndex,
+                newIndex,
+                characterDifference,
+                fact.stringNodes,
+            );
 
-        const fact = this._factMap.get(fileNameHash);
-        
-        assertsNeitherNullOrUndefined(fact);
+            const { text, line, character } = execution;
 
-        const execution = executeMoveTopLevelNodeAstCommandHelper(
-            fileName,
-            oldIndex,
-            newIndex,
-            characterDifference,
-            fact.stringNodes,
-        );
+            const separator = getSeparator(text);
+            const lastPosition = calculateLastPosition(text, separator);
 
-        const { text, line, character } = execution;
+            const range: IntuitaRange = [
+                0,
+                0,
+                lastPosition[0],
+                lastPosition[1],
+            ];
 
-        const separator = getSeparator(text);
-        const lastPosition = calculateLastPosition(text, separator);
+            const position: IntuitaPosition = [
+                line,
+                character,
+            ];
 
-        const range: IntuitaRange = [
-            0,
-            0,
-            lastPosition[0],
-            lastPosition[1],
-        ];
+            return {
+                range,
+                text,
+                position,
+            };
+        }
 
-        const position: IntuitaPosition = [
-            line,
-            character,
-        ];
-
-        return {
-            range,
-            text,
-            position,
-        };
+        throw new Error('Not implemented yet');        
     }
 
     public async onReadingFileFailed (
