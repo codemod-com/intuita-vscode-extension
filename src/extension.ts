@@ -3,27 +3,18 @@ import {
 	Diagnostic,
 	DiagnosticSeverity,
 	Position,
-	ProviderResult,
 	Range,
-	TreeDataProvider,
-	TreeItem,
-	TreeItemCollapsibleState
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
-import {assertsNeitherNullOrUndefined, buildHash, IntuitaRange, isNeitherNullNorUndefined} from "./utilities";
-import {buildContainer} from "./container";
-import { buildJobHash, JobHash } from './features/moveTopLevelNode/jobHash';
+import { buildContainer } from "./container";
+import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
 import { MessageBus, MessageKind } from './messageBus';
-import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
-import { join } from 'node:path';
-import { buildFileUri, buildJobUri } from './fileSystems/uris';
-import { CommandComponent } from './components/commandComponent';
-import { mkdir, mkdirSync, writeFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
+import { buildTreeDataProvider } from './treeDataProviders';
+import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -64,10 +55,18 @@ export async function activate(
 			'typescript'
 		);
 
-	const _setDiagnosticEntry = (
+	const extensionStateManager = new ExtensionStateManager(
+		messageBus,
+		configurationContainer,
+		_setDiagnosticEntry,
+	);
+
+	const treeDataProvider = buildTreeDataProvider(extensionStateManager);
+
+	function _setDiagnosticEntry(
 		fileName: string,
 		intuitaJobs: ReadonlyArray<IntuitaJob>
-	) => {
+	) {
 		const diagnostics = intuitaJobs
 			.map(
 				({ title, range: intuitaRange }) => {
@@ -101,14 +100,8 @@ export async function activate(
 			diagnostics,
 		);
 
-		_onDidChangeTreeData.fire();
-	};
-
-	const extensionStateManager = new ExtensionStateManager(
-		messageBus,
-		configurationContainer,
-		_setDiagnosticEntry,
-	);
+		treeDataProvider._onDidChangeTreeData.fire();
+	}
 
 	messageBus.subscribe(
 		(message) => {
@@ -118,148 +111,9 @@ export async function activate(
 						message.uri,
 					),
 				);
-			}  
+			}
 		},
 	);
-
-	const commandComponent = new CommandComponent(
-		intuitaFileSystem,
-		extensionStateManager,
-	);
-
-	// TODO move Element, _onDidChangeTreeData and treeDataProvider to a separate file
-
-	type Element =
-		| Readonly<{
-			kind: 'FILE',
-			label: string,
-			children: ReadonlyArray<Element>,
-		}>
-		| Readonly<{
-			kind: 'DIAGNOSTIC',
-			label: string,
-			uri: vscode.Uri,
-			hash: JobHash,
-			fileName: string,
-			oldIndex: number,
-			newIndex: number,
-			range: IntuitaRange,
-		}>;
-
-	const _onDidChangeTreeData = new vscode.EventEmitter<Element | undefined | null | void>();
-
-	const treeDataProvider: TreeDataProvider<Element> = {
-		getChildren(element: Element | undefined): ProviderResult<Element[]> {
-			if (element === undefined) {
-				const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-				const fileJobs = extensionStateManager.getFileJobs();
-
-				const elements: Element[] = fileJobs
-					.map(
-						(jobs) => {
-							const [ job ] = jobs;
-
-							if (!job) {
-								return null;
-							}
-
-							const { fileName } = job;
-
-							const label: string = fileName.replace(rootPath, '');
-							const uri = vscode.Uri.parse(fileName);
-
-							const children: Element[] = jobs
-								.map(
-									(diagnostic) => {
-										return {
-											kind: 'DIAGNOSTIC' as const,
-											label: diagnostic.title,
-											fileName,
-											uri,
-											oldIndex: diagnostic.oldIndex,
-											newIndex: diagnostic.newIndex,
-											range: diagnostic.range,
-											hash: diagnostic.hash,
-										};
-									}
-								);
-
-							return {
-								kind: 'FILE' as const,
-								label,
-								children,
-							};
-						}
-					)
-					.filter(isNeitherNullNorUndefined);
-
-				return Promise.resolve(elements);
-			}
-
-			if (element.kind === 'DIAGNOSTIC') {
-				return Promise.resolve([]);
-			}
-
-			return Promise.resolve(
-				element.children.slice()
-			);
-		},
-		getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
-			const treeItem = new TreeItem(
-				element.label,
-			);
-
-			treeItem.id = buildHash(element.label);
-
-			treeItem.collapsibleState = element.kind === 'FILE'
-				? TreeItemCollapsibleState.Collapsed
-				: TreeItemCollapsibleState.None;
-
-			treeItem.iconPath = join(
-				__filename,
-				'..',
-				'..',
-				'resources',
-				element.kind === 'FILE' ? 'ts2.svg' : 'bluelightbulb.svg'
-			);
-
-			if (element.kind === 'DIAGNOSTIC') {
-				treeItem.contextValue = 'intuitaJob';
-
-				const tooltip = new vscode.MarkdownString(
-					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)'
-				);
-
-				tooltip.isTrusted = true;
-
-				treeItem.tooltip = tooltip;
-
-				const fileNameHash = buildFileNameHash(
-					element.fileName,
-				)
-
-				const jobHash = buildJobHash(
-					element.fileName,
-					element.oldIndex,
-					element.newIndex,
-				);
-
-				treeItem.command = {
-					title: 'Diff View',
-					command: 'vscode.diff',
-					arguments: [
-						buildFileUri(fileNameHash),
-						buildJobUri(jobHash),
-						'Proposed change',
-					]
-				};
-			}
-
-			return treeItem;
-		},
-		onDidChangeTreeData: _onDidChangeTreeData.event,
-	};
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
@@ -383,132 +237,11 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.moveTopLevelNode',
-			async (jobHash, characterDifference) => {
-				if (typeof jobHash !== 'string') {
-					throw new Error('The job hash argument must be a string.');
-				}
-					
-				if (typeof characterDifference !== 'number') {
-					throw new Error('The job hash argument must be a number.');
-				}
-
-				const fileName = extensionStateManager.getFileNameFromJobHash(jobHash as JobHash);
-
-				assertsNeitherNullOrUndefined(fileName);
-
-				const result = commandComponent.getJobOutput(jobHash as JobHash);
-
-				assertsNeitherNullOrUndefined(result);
-
-				const textEditors = vscode
-					.window
-					.visibleTextEditors
-					.filter(
-						({ document }) => {
-							return document.fileName === fileName;
-						},
-					);
-
-				const textDocuments = vscode
-					.workspace
-					.textDocuments
-					.filter(
-						(document) => {
-							return document.fileName === fileName;
-						},
-					);
-
-				const activeTextEditor = vscode.window.activeTextEditor ?? null;
-
-				const range = new vscode.Range(
-				    new vscode.Position(
-						result.range[0],
-						result.range[1],
-				    ),
-				    new vscode.Position(
-						result.range[2],
-						result.range[3],
-				    ),
-				);
-
-				const {
-					saveDocumentOnJobAccept,
-				} = configurationContainer.get();
-
-				const changeTextEditor = async (textEditor: vscode.TextEditor) => {
-					await textEditor.edit(
-						(textEditorEdit) => {
-							textEditorEdit.replace(
-								range,
-								result.text,
-							);
-						}
-					);
-					
-					if (!saveDocumentOnJobAccept) {
-						return;
-					}
-
-					return textEditor.document.save();
-				};
-
-				await Promise.all(
-					textEditors.map(
-						changeTextEditor,
-					)
-				);
-
-				if (textEditors.length === 0) {
-					textDocuments.forEach(
-						(textDocument) => {
-							vscode
-								.window
-								// TODO we can add a range here
-								.showTextDocument(textDocument)
-								.then(
-									changeTextEditor,
-								);
-						}
-					);
-				}
-
-				if (activeTextEditor?.document.fileName === fileName) {
-					const position = new vscode.Position(
-						result.position[0],
-						result.position[1],
-					);
-	
-					const selection = new vscode.Selection(
-						position,
-						position
-					);
-	
-					activeTextEditor.selections = [ selection ];
-	
-					activeTextEditor.revealRange(
-						new vscode.Range(
-							position,
-							position
-						),
-						vscode
-							.TextEditorRevealType
-							.AtTop,
-					);
-				}
-
-				const allTextDocuments = textEditors
-					.map(({ document }) => document)
-					.concat(
-						textDocuments
-					);
-
-				if (allTextDocuments[0]) {
-					extensionStateManager
-						.onFileTextChanged(
-							allTextDocuments[0],
-						);
-				}
-			}
+			buildMoveTopLevelNodeCommand(
+				configurationContainer,
+				intuitaFileSystem,
+				extensionStateManager,
+			),
 		),
 	);
 
@@ -519,7 +252,7 @@ export async function activate(
 
 				if (uri.scheme === 'intuita' && uri.path.startsWith('/jobs/')) {
 					await document.save();
-					
+
 					return;
 				}
 
