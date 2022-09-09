@@ -24,7 +24,7 @@ import { getOrOpenTextDocuments } from "../../components/vscodeUtilities";
 
 export const enum JobKind {
     moveTopLevelNode = 1,
-    codeRepair = 2,
+    repairCode = 2,
 }
 
 export type IntuitaJob = 
@@ -39,7 +39,7 @@ export type IntuitaJob =
         score: [number, number],
     }>
     | Readonly<{
-        kind: JobKind.codeRepair,
+        kind: JobKind.repairCode,
         fileName: string,
         hash: JobHash,
         title: string,

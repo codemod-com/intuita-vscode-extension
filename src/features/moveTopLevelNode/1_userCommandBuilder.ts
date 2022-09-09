@@ -1,4 +1,3 @@
-import {IntuitaRange} from "../../utilities";
 import { TopLevelNodeKind, TopLevelNodeModifier } from "./2_factBuilders/topLevelNode";
 
 export type MoveTopLevelNodeOptions = Readonly<{
