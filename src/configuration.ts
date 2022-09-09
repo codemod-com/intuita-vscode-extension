@@ -3,7 +3,7 @@ import { type } from 'node:os';
 import * as vscode from 'vscode';
 import { DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER, TopLevelNodeKind, TopLevelNodeModifier } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
 
-const isJoernAvailable = () => {
+export const areRepairCodeCommandAvailable = () => {
     const operatingSystemName = type();
 
     if (operatingSystemName !== 'Linux' && operatingSystemName !== 'Darwin') {
@@ -11,7 +11,7 @@ const isJoernAvailable = () => {
     }
 
     try {
-        execSync('which joern-parse joern-vectors');
+        execSync('which joern-parse joern-vectors intuita-onnx-wrapper');
 
         return true;
     } catch {
@@ -34,14 +34,11 @@ export const getConfiguration = () => {
 
     const minimumLines = configuration.get<number>('minimumLines') ?? 50;
 
-    const joernAvailable = isJoernAvailable();
-
     return {
         modifierOrder,
         kindOrder,
         saveDocumentOnJobAccept,
         minimumLines,
-        joernAvailable,
     };
 };
 

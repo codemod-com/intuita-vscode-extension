@@ -2,10 +2,9 @@ import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace, WorkspaceFolder } from "vscode";
-import { Configuration } from "../configuration";
-import { Container } from "../container";
+import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace } from "vscode";
 import { buildHash, isNeitherNullNorUndefined } from "../utilities";
+import {ChildProcessWithoutNullStreams} from "child_process";
 
 const asyncExec = promisify(exec);
 
@@ -16,20 +15,12 @@ type UriEnvelope = Readonly<{
 }>;
 
 export const buildDidChangeDiagnosticsCallback = (
-    configurationContainer: Container<Configuration>
+    onnxWrapperProcess: ChildProcessWithoutNullStreams,
 ) => async ({ uris }: DiagnosticChangeEvent) => {
     const { activeTextEditor } = window;
 
     if (!activeTextEditor) {
         console.error('There is no active text editor despite the changed diagnostics.');
-
-        return;
-    }
-
-    const configuration = configurationContainer.get();
-
-    if (!configuration.joernAvailable) {
-        console.error('You either use Windows or you have not installed Joern.');
 
         return;
     }
@@ -135,9 +126,13 @@ export const buildDidChangeDiagnosticsCallback = (
                     }
                 );
 
-                console.log(data.stdout)
-
                 const range = diagnostics[0]?.range;
+
+                onnxWrapperProcess.stdin.write(JSON.stringify({
+                    kind: 'infer',
+                    hash: '1', // TODO we need to have a job stub
+                    ...JSON.parse(data.stdout),
+                }));
             }
         ));
 }

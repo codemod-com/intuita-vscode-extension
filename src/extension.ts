@@ -6,7 +6,7 @@ import {
 	Range,
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
-import {getConfiguration} from './configuration';
+import {areRepairCodeCommandAvailable, getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
@@ -15,6 +15,13 @@ import { MessageBus, MessageKind } from './messageBus';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
+import { spawn } from 'node:child_process';
+
+const commandsAvailable = areRepairCodeCommandAvailable();
+
+const onnxWrapperProcess = commandsAvailable
+	? spawn('intuita-onnx-wrapper')
+	: null;
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -265,14 +272,27 @@ export async function activate(
 
 	context.subscriptions.push(diagnosticCollection);
 
-	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics(
-			buildDidChangeDiagnosticsCallback(
-				configurationContainer,
+	if (onnxWrapperProcess) {
+		onnxWrapperProcess.stderr.on('data', (data: string) => {
+			console.error(data.toString());
+		});
+
+		onnxWrapperProcess.stdout.on('data', (data) => {
+			console.log(data.toString());
+		});
+
+		context.subscriptions.push(
+			vscode.languages.onDidChangeDiagnostics(
+				buildDidChangeDiagnosticsCallback(
+					onnxWrapperProcess
+				),
 			),
-		),
-	);
+		);
+	}
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	if (onnxWrapperProcess) {
+		onnxWrapperProcess.kill();
+	}
+}
