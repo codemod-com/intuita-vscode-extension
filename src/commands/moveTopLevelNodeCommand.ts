@@ -1,5 +1,5 @@
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {assertsNeitherNullOrUndefined, calculateLastPosition, IntuitaRange} from "../utilities";
+import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
 import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
 import {ExtensionStateManager, JobOutput} from "../features/moveTopLevelNode/extensionStateManager";
 import {IntuitaFileSystem} from "../fileSystems/intuitaFileSystem";
@@ -28,8 +28,9 @@ export const buildMoveTopLevelNodeCommand = (
         }
 
         const text = content.toString();
+        const separator = getSeparator(text);
 
-        const position = calculateLastPosition(text, '\n');
+        const position = calculateLastPosition(text, separator);
 
         const range: IntuitaRange = [
             0,

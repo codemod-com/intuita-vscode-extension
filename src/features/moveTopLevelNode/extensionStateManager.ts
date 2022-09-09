@@ -421,6 +421,7 @@ export class ExtensionStateManager {
                 newIndex,
                 characterDifference,
                 fact.stringNodes,
+                fact.separator,
             );
 
             const { text, line, character } = execution;

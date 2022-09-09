@@ -1,4 +1,4 @@
-import {calculateLines, moveElementInArray, SourceFileExecution} from "../../utilities";
+import {calculateLines, moveElementInArray} from "../../utilities";
 import { StringNode } from "./2_factBuilders/stringNodes";
 
 export const executeMoveTopLevelNodeAstCommandHelper = (
@@ -7,6 +7,7 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
     newIndex: number,
     characterDifference: number,
     stringNodes: ReadonlyArray<StringNode>,
+    separator: string,
 ) => {
     const topLevelNodeTexts = stringNodes
         .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
@@ -47,11 +48,11 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
         .map(({ text }) => text)
         .join('');
 
-    const lines = calculateLines(initialText, '\n');
+    const lines = calculateLines(initialText, separator);
 
     const nodeLines = (newNodes[index]?.text ?? '')
         .slice(0, characterDifference)
-        .split('\n');
+        .split(separator);
 
     const line = lines.length + nodeLines.length - 2;
     const character = nodeLines[nodeLines.length-1]?.length ?? 0;
