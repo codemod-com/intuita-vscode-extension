@@ -13,6 +13,7 @@ export type RepairCodeFact = Readonly<{
     fileText: string,
     range: IntuitaSimpleRange,
     replacement: string,
+    separator: string,
 }>;
 
 export const buildRepairCodeFact = (
@@ -33,5 +34,6 @@ export const buildRepairCodeFact = (
         fileText: userCommand.fileText,
         range,
         replacement: userCommand.replacement,
+        separator,
     };
 };

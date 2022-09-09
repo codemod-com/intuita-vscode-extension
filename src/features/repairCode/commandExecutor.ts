@@ -1,3 +1,4 @@
+import { calculateLines } from "../../utilities";
 import {RepairCodeFact} from "./factBuilder";
 
 export const executeRepairCodeCommand = (
@@ -9,12 +10,19 @@ export const executeRepairCodeCommand = (
     const afterCharacters = fact.fileText
         .slice(fact.range.end);
 
-    const fileText = previousCharacters.concat(
+    const text = previousCharacters.concat(
         fact.replacement,
         afterCharacters,
     );
 
+    const lines = calculateLines(previousCharacters, fact.separator);
+
+    const line = lines.length;
+    const character = lines[lines.length - 1]?.length ?? 0;
+
     return {
-        fileText,
+        text,
+        line,
+        character,
     };
 };

@@ -416,7 +416,6 @@ export class ExtensionStateManager {
             }
 
             const execution = executeMoveTopLevelNodeAstCommandHelper(
-                fileName,
                 oldIndex,
                 newIndex,
                 characterDifference,
@@ -426,8 +425,7 @@ export class ExtensionStateManager {
 
             const { text, line, character } = execution;
 
-            const separator = getSeparator(text);
-            const lastPosition = calculateLastPosition(text, separator);
+            const lastPosition = calculateLastPosition(text, fact.separator);
 
             const range: IntuitaRange = [
                 0,
@@ -448,19 +446,39 @@ export class ExtensionStateManager {
             };
         }
 
-        if (job.kind === JobKind.repairCode) {
-            const fileNameHash = buildFileNameHash(job.fileName);
+        // if (job.kind === JobKind.repairCode) {
+        const fileNameHash = buildFileNameHash(job.fileName);
 
-            const fact = this._factMap.get(fileNameHash);
+        const fact = this._factMap.get(fileNameHash);
 
-            assertsNeitherNullOrUndefined(fact);
+        assertsNeitherNullOrUndefined(fact);
 
-            if (fact.kind !== FactKind.repairCode) {
-                throw new Error('Could not find a repairCode fact with the specified hash');
-            }
-
-            const output = executeRepairCodeCommand(fact);
+        if (fact.kind !== FactKind.repairCode) {
+            throw new Error('Could not find a repairCode fact with the specified hash');
         }
+
+        const { text, line, character } = executeRepairCodeCommand(fact);
+
+        // TODO revisit it
+        const lastPosition = calculateLastPosition(text, fact.separator);
+
+        const range: IntuitaRange = [
+            0,
+            0,
+            lastPosition[0],
+            lastPosition[1],
+        ];
+
+        const position: IntuitaPosition = [
+            line,
+            character,
+        ];
+
+        return {
+            range,
+            text,
+            position,
+        };
     }
 
     public async onReadingFileFailed (

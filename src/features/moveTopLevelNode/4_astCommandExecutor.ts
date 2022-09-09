@@ -2,7 +2,6 @@ import {calculateLines, moveElementInArray} from "../../utilities";
 import { StringNode } from "./2_factBuilders/stringNodes";
 
 export const executeMoveTopLevelNodeAstCommandHelper = (
-    fileName: string,
     oldIndex: number,
     newIndex: number,
     characterDifference: number,
@@ -58,7 +57,6 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
     const character = nodeLines[nodeLines.length-1]?.length ?? 0;
 
     return {
-        name: fileName,
         text,
         line,
         character,
