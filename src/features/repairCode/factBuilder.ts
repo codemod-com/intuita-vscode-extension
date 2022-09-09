@@ -6,8 +6,10 @@ import {
     getSeparator,
     IntuitaSimpleRange
 } from "../../utilities";
+import {FactKind} from "../../facts";
 
 export type RepairCodeFact = Readonly<{
+    kind: FactKind.repairCode,
     range: IntuitaSimpleRange,
 }>;
 
@@ -25,6 +27,7 @@ export const buildRepairCodeFact = (
     );
 
     return {
+        kind: FactKind.repairCode,
         range,
     };
 };

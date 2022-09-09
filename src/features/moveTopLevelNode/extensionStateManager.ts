@@ -21,13 +21,15 @@ import { MessageBus, MessageKind } from "../../messageBus";
 import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
 import { buildFileUri, buildJobUri } from "../../fileSystems/uris";
 import { getOrOpenTextDocuments } from "../../components/vscodeUtilities";
+import {RepairCodeFact} from "../repairCode/factBuilder";
+import {FactKind} from "../../facts";
 
 export const enum JobKind {
     moveTopLevelNode = 1,
     repairCode = 2,
 }
 
-export type IntuitaJob = 
+export type IntuitaJob =
     | Readonly<{
         kind: JobKind.moveTopLevelNode,
         fileName: string,
@@ -62,7 +64,7 @@ export type JobOutput = Readonly<{
 
 export class ExtensionStateManager {
     protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact>();
+    protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact | RepairCodeFact>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
     protected _jobMap = new Map<JobHash, IntuitaJob>;
@@ -95,7 +97,7 @@ export class ExtensionStateManager {
 
                 assertsNeitherNullOrUndefined(fact);
                 assertsNeitherNullOrUndefined(jobHashes);
-                
+
                 return Array.from(jobHashes).map(
                     (jobHash) => {
                         if (this._rejectedJobHashes.has(jobHash)) {
@@ -124,7 +126,7 @@ export class ExtensionStateManager {
         const [ fileNameHash, jobHashes ] = entry;
 
         const fileName = this._fileNames.get(fileNameHash);
-        
+
         assertsNeitherNullOrUndefined(fileName);
 
         jobHashes.delete(jobHash);
@@ -239,7 +241,7 @@ export class ExtensionStateManager {
         );
 
         this._jobHashMap.set(fileNameHash, jobHashes);
-        
+
         jobs.forEach((job) => {
             this._jobMap.set(
                 job.hash,
@@ -300,6 +302,11 @@ export class ExtensionStateManager {
         const jobHashes = this._jobHashMap.get(fileNameHash);
 
         assertsNeitherNullOrUndefined(fact);
+
+        if (fact.kind !== FactKind.moveTopLevelNode) {
+            return [];
+        }
+
         assertsNeitherNullOrUndefined(jobHashes);
 
         const jobs = Array.from(jobHashes.keys()).map(
@@ -312,7 +319,7 @@ export class ExtensionStateManager {
             }
         )
             .filter(isNeitherNullNorUndefined);
-        
+
 
         return jobs
             .filter(
@@ -396,12 +403,16 @@ export class ExtensionStateManager {
                 oldIndex,
                 newIndex,
             } = job;
-    
+
             const fileNameHash = buildFileNameHash(fileName);
-    
+
             const fact = this._factMap.get(fileNameHash);
-            
+
             assertsNeitherNullOrUndefined(fact);
+
+            if(fact.kind !== FactKind.moveTopLevelNode) {
+                throw new Error('Could not find a moveTopLevelNode fact with the specified hash');
+            }
 
             const execution = executeMoveTopLevelNodeAstCommandHelper(
                 fileName,
@@ -435,7 +446,7 @@ export class ExtensionStateManager {
             };
         }
 
-        throw new Error('Not implemented yet');        
+        throw new Error('Not implemented yet');
     }
 
     public async onReadingFileFailed (
@@ -483,7 +494,7 @@ export class ExtensionStateManager {
 				text = result.text;
 			}
 		}
-        
+
         const content = Buffer.from(text);
 
         this._messageBus.publish(
