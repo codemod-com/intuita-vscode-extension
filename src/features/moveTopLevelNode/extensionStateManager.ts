@@ -23,6 +23,7 @@ import { buildFileUri, buildJobUri } from "../../fileSystems/uris";
 import { getOrOpenTextDocuments } from "../../components/vscodeUtilities";
 import {RepairCodeFact} from "../repairCode/factBuilder";
 import {FactKind} from "../../facts";
+import {executeRepairCodeCommand} from "../repairCode/commandExecutor";
 
 export const enum JobKind {
     moveTopLevelNode = 1,
@@ -446,7 +447,19 @@ export class ExtensionStateManager {
             };
         }
 
-        throw new Error('Not implemented yet');
+        if (job.kind === JobKind.repairCode) {
+            const fileNameHash = buildFileNameHash(job.fileName);
+
+            const fact = this._factMap.get(fileNameHash);
+
+            assertsNeitherNullOrUndefined(fact);
+
+            if (fact.kind !== FactKind.repairCode) {
+                throw new Error('Could not find a repairCode fact with the specified hash');
+            }
+
+            const output = executeRepairCodeCommand(fact);
+        }
     }
 
     public async onReadingFileFailed (

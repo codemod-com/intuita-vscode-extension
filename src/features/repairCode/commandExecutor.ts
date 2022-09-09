@@ -1,18 +1,16 @@
-import { RepairCodeUserCommand } from "./userCommand";
 import {RepairCodeFact} from "./factBuilder";
 
 export const executeRepairCodeCommand = (
-    userCommand: RepairCodeUserCommand,
     fact: RepairCodeFact,
 ) => {
-    const previousCharacters = userCommand.fileText
+    const previousCharacters = fact.fileText
         .slice(0, fact.range.start);
 
-    const afterCharacters = userCommand.fileText
+    const afterCharacters = fact.fileText
         .slice(fact.range.end);
 
     const fileText = previousCharacters.concat(
-        userCommand.replacement,
+        fact.replacement,
         afterCharacters,
     );
 

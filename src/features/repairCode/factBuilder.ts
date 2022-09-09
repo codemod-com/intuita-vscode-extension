@@ -10,7 +10,9 @@ import {FactKind} from "../../facts";
 
 export type RepairCodeFact = Readonly<{
     kind: FactKind.repairCode,
+    fileText: string,
     range: IntuitaSimpleRange,
+    replacement: string,
 }>;
 
 export const buildRepairCodeFact = (
@@ -28,6 +30,8 @@ export const buildRepairCodeFact = (
 
     return {
         kind: FactKind.repairCode,
+        fileText: userCommand.fileText,
         range,
+        replacement: userCommand.replacement,
     };
 };
