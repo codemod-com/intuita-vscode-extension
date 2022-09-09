@@ -22,15 +22,15 @@ export const buildDidChangeDiagnosticsCallback = (
 
     if (!activeTextEditor) {
         console.error('There is no active text editor despite the changed diagnostics.');
-        
+
         return;
     }
 
     const configuration = configurationContainer.get();
-    
+
     if (!configuration.joernAvailable) {
         console.error('You either use Windows or you have not installed Joern.');
-        
+
         return;
     }
 
@@ -74,19 +74,19 @@ export const buildDidChangeDiagnosticsCallback = (
         );
 
         await Promise.all(uriEnvelopes.map(
-            async ({ uri, fsPath }) => {
+            async ({ uri, fsPath, diagnostics }) => {
                 const hash = buildHash(uri.toString());
-    
+
                 const directoryPath = join(
                     fsPath,
                     `/.intuita/${hash}/`,
                 );
-    
+
                 const filePath = join(
                     fsPath,
                     `/.intuita/${hash}/index.ts`,
                 );
-    
+
                 const cpgFilePath = join(
                     fsPath,
                     `/.intuita/${hash}/cpg.bin`,
@@ -95,13 +95,13 @@ export const buildDidChangeDiagnosticsCallback = (
                 const vectorPath = join(
                     fsPath,
                     `/.intuita/${hash}/vectors`,
-                )
-    
+                );
+
                 mkdirSync(
                     directoryPath,
                     { recursive: true, },
                 );
-    
+
                 writeFileSync(
                     filePath,
                     activeTextEditor.document.getText(),
@@ -109,7 +109,7 @@ export const buildDidChangeDiagnosticsCallback = (
                 );
 
                 const start = Date.now();
-    
+
                 await asyncExec(
                     'joern-parse --output=$PARSE_OUTPUT --nooverlays $PARSE_INPUT',
                     {
@@ -118,13 +118,13 @@ export const buildDidChangeDiagnosticsCallback = (
                             PARSE_OUTPUT: cpgFilePath,
                         },
                     },
-                    
+
                 );
 
                 const end = Date.now();
 
                 console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
-            
+
                 const data = await asyncExec(
                     'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
                     {
@@ -136,6 +136,8 @@ export const buildDidChangeDiagnosticsCallback = (
                 );
 
                 console.log(data.stdout)
+
+                const range = diagnostics[0]?.range;
             }
         ));
 }
