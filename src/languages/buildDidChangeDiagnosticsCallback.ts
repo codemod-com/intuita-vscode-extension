@@ -5,8 +5,9 @@ import { join } from "node:path";
 import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace } from "vscode";
 import { buildHash, isNeitherNullNorUndefined } from "../utilities";
 import {ChildProcessWithoutNullStreams} from "child_process";
+import { buildCodeRepairJobHash } from "../features/repairCode/jobHash";
 
-const asyncExec = promisify(exec);
+const promisifiedExec = promisify(exec);
 
 type UriEnvelope = Readonly<{
     uri: Uri,
@@ -101,22 +102,23 @@ export const buildDidChangeDiagnosticsCallback = (
 
                 const start = Date.now();
 
-                await asyncExec(
-                    'joern-parse --output=$PARSE_OUTPUT --nooverlays $PARSE_INPUT',
+                await promisifiedExec(
+                    'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
                     {
                         env: {
                             PARSE_INPUT: directoryPath,
                             PARSE_OUTPUT: cpgFilePath,
                         },
                     },
-
                 );
+
+                // joern-slice (pass the error range)
 
                 const end = Date.now();
 
                 console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
 
-                const data = await asyncExec(
+                const data = await promisifiedExec(
                     'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
                     {
                         env: {
@@ -126,13 +128,14 @@ export const buildDidChangeDiagnosticsCallback = (
                     }
                 );
 
-                const range = diagnostics[0]?.range;
-
-                onnxWrapperProcess.stdin.write(JSON.stringify({
-                    kind: 'infer',
-                    hash: '1', // TODO we need to have a job stub
-                    ...JSON.parse(data.stdout),
-                }));
+                for (const { range } of diagnostics) {
+                    onnxWrapperProcess.stdin.write(JSON.stringify({
+                        kind: 'infer',
+                        fileName: uri.path,
+                        range, // TODO convert to IntuitaRange
+                        ...JSON.parse(data.stdout),
+                    }));
+                }                
             }
         ));
 }

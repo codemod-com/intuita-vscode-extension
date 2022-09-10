@@ -273,7 +273,7 @@ export async function activate(
 	context.subscriptions.push(diagnosticCollection);
 
 	if (onnxWrapperProcess) {
-		onnxWrapperProcess.stderr.on('data', (data: string) => {
+		onnxWrapperProcess.stderr.on('data', (data) => {
 			console.error(data.toString());
 		});
 

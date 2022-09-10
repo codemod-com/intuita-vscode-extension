@@ -228,6 +228,9 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
+		"fp-ts": "^2.12.3",
+		"io-ts": "^2.2.18",
+		"io-ts-reporters": "^2.0.1",
 		"typescript": "^4.8.2"
 	}
 }
