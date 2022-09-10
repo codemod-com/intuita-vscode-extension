@@ -106,6 +106,8 @@ export class OnnxWrapper {
             json
         );
 
+        console.log(message);
+
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJob,
             uri: Uri.file(message.fileName), // TODO we need to check if this is correct

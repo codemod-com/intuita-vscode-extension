@@ -131,7 +131,12 @@ export const buildDidChangeDiagnosticsCallback = (
                     onnxWrapper.writeToStandardInput({
                         kind: 'infer',
                         fileName: uri.path,
-                        range,
+                        range: [
+                            range.start.line,
+                            range.start.character,
+                            range.end.line,
+                            range.end.character,
+                        ],
                         edges: [], // TODO fix
                         ...JSON.parse(data.stdout),
                     });
