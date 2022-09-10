@@ -5,7 +5,6 @@ import {spawn} from "node:child_process";
 import {ChildProcessWithoutNullStreams} from "child_process";
 import {MessageBus, MessageKind} from "../messageBus";
 import {Uri} from "vscode";
-import {IntuitaRange} from "../utilities";
 
 export const buildTypeCodec = <T extends t.Props>(props: T): t.ReadonlyC<t.ExactC<t.TypeC<T>>> =>
     t.readonly(t.exact(t.type(props)));
@@ -79,7 +78,11 @@ export class OnnxWrapper {
             });
 
             this._process.stdout.on('data', (data) => {
-                console.log(data.toString());
+                try {
+                    this._onStandardOutput(data);
+                } catch (error) {
+                    console.error(error);
+                }
             });
         }
     }
@@ -106,8 +109,6 @@ export class OnnxWrapper {
             json
         );
 
-        console.log(message);
-
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJob,
             uri: Uri.file(message.fileName), // TODO we need to check if this is correct
@@ -119,7 +120,7 @@ export class OnnxWrapper {
     protected _onStandardError(
         data: any,
     ): void {
-        const str = data.toString()
+        const str = data.toString();
         const json = JSON.parse(str);
 
         const message = decodeOrThrow(

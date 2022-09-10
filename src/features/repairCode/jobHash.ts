@@ -1,7 +1,7 @@
 import {buildHash, IntuitaRange} from "../../utilities";
 import {JobHash} from "../moveTopLevelNode/jobHash";
 
-export const buildCodeRepairJobHash = (
+export const buildRepairCodeJobHash = (
     fileName: string,
     range: IntuitaRange,
     replacement: string,

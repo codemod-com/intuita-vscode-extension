@@ -1,4 +1,4 @@
-import { Configuration } from "../../configuration";
+import {Configuration} from "../../configuration";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
@@ -7,7 +7,6 @@ import {
     calculateCharacterIndex,
     calculateLastPosition,
     calculatePosition,
-    getSeparator,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
@@ -15,15 +14,17 @@ import {
 import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
-import { buildMoveTopLevelNodeJobHash, JobHash } from "./jobHash";
-import { buildFileNameHash, FileNameHash } from "./fileNameHash";
-import { MessageBus, MessageKind } from "../../messageBus";
-import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
-import { buildFileUri, buildJobUri } from "../../fileSystems/uris";
-import { getOrOpenTextDocuments } from "../../components/vscodeUtilities";
-import {RepairCodeFact} from "../repairCode/factBuilder";
+import {buildMoveTopLevelNodeJobHash, JobHash} from "./jobHash";
+import {buildFileNameHash, FileNameHash} from "./fileNameHash";
+import {MessageBus, MessageKind} from "../../messageBus";
+import {FS_PATH_REG_EXP} from "../../fileSystems/intuitaFileSystem";
+import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
+import {getOrOpenTextDocuments} from "../../components/vscodeUtilities";
+import {buildRepairCodeFact, RepairCodeFact} from "../repairCode/factBuilder";
 import {FactKind} from "../../facts";
 import {executeRepairCodeCommand} from "../repairCode/commandExecutor";
+import {RepairCodeUserCommand} from "../repairCode/userCommand";
+import {buildRepairCodeJobHash} from "../repairCode/jobHash";
 
 export const enum JobKind {
     moveTopLevelNode = 1,
@@ -78,6 +79,62 @@ export class ExtensionStateManager {
             jobs: ReadonlyArray<IntuitaJob>,
         ) => void,
     ) {
+        this._messageBus.subscribe(
+            (message) => {
+                if (message.kind !== MessageKind.createRepairCodeJob) {
+                    return;
+                }
+
+                const fileName = message.uri.fsPath;
+
+                const fileNameHash = buildFileNameHash(fileName);
+
+                this._fileNames.set(
+                    fileNameHash,
+                    fileName
+                );
+
+                const command: RepairCodeUserCommand = {
+                    fileName,
+                    fileText: "", // TODO
+                    kind: "REPAIR_CODE",
+                    range: message.range,
+                    replacement: message.replacement,
+                }
+
+                const fact = buildRepairCodeFact(command);
+
+                this._factMap.set(fileNameHash, fact);
+
+                const jobHash = buildRepairCodeJobHash(
+                    fileName,
+                    message.range,
+                    message.replacement,
+                );
+
+                // TODO fix
+                this._jobHashMap.set(fileNameHash, new Set([jobHash ]));
+
+                const job: IntuitaJob = {
+                    kind: JobKind.repairCode,
+                    fileName,
+                    hash: jobHash,
+                    title: 'Test',
+                    range: message.range,
+                    replacement: message.replacement,
+                };
+
+                this._jobMap.set(
+                    job.hash,
+                    job,
+                );
+
+                this._setDiagnosticEntry(
+                    fileName,
+                    [ job ],
+                );
+            }
+        )
     }
 
     public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
