@@ -128,15 +128,13 @@ export const buildDidChangeDiagnosticsCallback = (
                 );
 
                 for (const { range } of diagnostics) {
-                    // TODO
-                    onnxWrapper.writeToStandardInput()
-
-                    // onnxWrapperProcess.stdin.write(JSON.stringify({
-                    //     kind: 'infer',
-                    //     fileName: uri.path,
-                    //     range, // TODO convert to IntuitaRange
-                    //     ...JSON.parse(data.stdout),
-                    // }));
+                    onnxWrapper.writeToStandardInput({
+                        kind: 'infer',
+                        fileName: uri.path,
+                        range,
+                        edges: [], // TODO fix
+                        ...JSON.parse(data.stdout),
+                    });
                 }
             }
         ));

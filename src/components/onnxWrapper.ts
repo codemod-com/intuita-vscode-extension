@@ -54,6 +54,7 @@ export const errorMessageCodec = buildTypeCodec({
 });
 
 export type Command = t.TypeOf<typeof commandCodec>;
+export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
 export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;
 export type ErrorMessage = t.TypeOf<typeof errorMessageCodec>;
 
@@ -83,14 +84,20 @@ export class OnnxWrapper {
         }
     }
 
-    public writeToStandardInput() {
-
+    public writeToStandardInput(
+        command: InferCommand,
+    ) {
+        if (this._process) {
+            this._process.stdin.write(
+                JSON.stringify(command)
+            );
+        }
     }
 
     protected _onStandardOutput(
         data: any,
     ): void {
-        const str = data.toString()
+        const str = data.toString();
         const json = JSON.parse(str);
 
         const message = decodeOrThrow(
