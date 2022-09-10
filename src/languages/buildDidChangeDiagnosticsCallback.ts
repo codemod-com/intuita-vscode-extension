@@ -4,8 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace } from "vscode";
 import { buildHash, isNeitherNullNorUndefined } from "../utilities";
-import {ChildProcessWithoutNullStreams} from "child_process";
-import { buildCodeRepairJobHash } from "../features/repairCode/jobHash";
+import {OnnxWrapper} from "../components/onnxWrapper";
 
 const promisifiedExec = promisify(exec);
 
@@ -16,7 +15,7 @@ type UriEnvelope = Readonly<{
 }>;
 
 export const buildDidChangeDiagnosticsCallback = (
-    onnxWrapperProcess: ChildProcessWithoutNullStreams,
+    onnxWrapper: OnnxWrapper,
 ) => async ({ uris }: DiagnosticChangeEvent) => {
     const { activeTextEditor } = window;
 
@@ -129,13 +128,16 @@ export const buildDidChangeDiagnosticsCallback = (
                 );
 
                 for (const { range } of diagnostics) {
-                    onnxWrapperProcess.stdin.write(JSON.stringify({
-                        kind: 'infer',
-                        fileName: uri.path,
-                        range, // TODO convert to IntuitaRange
-                        ...JSON.parse(data.stdout),
-                    }));
-                }                
+                    // TODO
+                    onnxWrapper.writeToStandardInput()
+
+                    // onnxWrapperProcess.stdin.write(JSON.stringify({
+                    //     kind: 'infer',
+                    //     fileName: uri.path,
+                    //     range, // TODO convert to IntuitaRange
+                    //     ...JSON.parse(data.stdout),
+                    // }));
+                }
             }
         ));
 }

@@ -6,7 +6,7 @@ import {
 	Range,
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
-import {areRepairCodeCommandAvailable, getConfiguration} from './configuration';
+import {getConfiguration} from './configuration';
 import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
@@ -15,18 +15,13 @@ import { MessageBus, MessageKind } from './messageBus';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
-import { spawn } from 'node:child_process';
-
-const commandsAvailable = areRepairCodeCommandAvailable();
-
-const onnxWrapperProcess = commandsAvailable
-	? spawn('intuita-onnx-wrapper')
-	: null;
+import {OnnxWrapper} from "./components/onnxWrapper";
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
 	const messageBus = new MessageBus(context.subscriptions);
+	const onnxWrapper = new OnnxWrapper(messageBus);
 
 	const configurationContainer = buildContainer(
 		getConfiguration()
@@ -272,27 +267,15 @@ export async function activate(
 
 	context.subscriptions.push(diagnosticCollection);
 
-	if (onnxWrapperProcess) {
-		onnxWrapperProcess.stderr.on('data', (data) => {
-			console.error(data.toString());
-		});
-
-		onnxWrapperProcess.stdout.on('data', (data) => {
-			console.log(data.toString());
-		});
-
-		context.subscriptions.push(
-			vscode.languages.onDidChangeDiagnostics(
-				buildDidChangeDiagnosticsCallback(
-					onnxWrapperProcess
-				),
+	context.subscriptions.push(
+		vscode.languages.onDidChangeDiagnostics(
+			buildDidChangeDiagnosticsCallback(
+				onnxWrapper,
 			),
-		);
-	}
+		),
+	);
 }
 
 export function deactivate() {
-	if (onnxWrapperProcess) {
-		onnxWrapperProcess.kill();
-	}
+	// TODO check if we need to kill the ONNX wrapper process here
 }

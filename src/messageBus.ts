@@ -1,13 +1,15 @@
 import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
+import { IntuitaRange } from './utilities';
 
 export const enum MessageKind {
     readingFileFailed = 0,
     writeFile = 1,
     deleteFile = 2,
     changePermissions = 3,
+    createRepairCodeJob = 4,
 }
 
-type Message = 
+type Message =
     | Readonly<{
         kind: MessageKind.readingFileFailed,
         uri: Uri,
@@ -26,6 +28,12 @@ type Message =
         kind: MessageKind.changePermissions,
         uri: Uri,
         permissions: FilePermission | null,
+    }>
+    | Readonly<{
+        kind: MessageKind.createRepairCodeJob,
+        uri: Uri,
+        range: IntuitaRange,
+        replacement: string,
     }>;
 
 export class MessageBus {

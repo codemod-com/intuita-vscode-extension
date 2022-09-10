@@ -3,7 +3,9 @@ import reporter from 'io-ts-reporters'
 import {areRepairCodeCommandAvailable} from "../configuration";
 import {spawn} from "node:child_process";
 import {ChildProcessWithoutNullStreams} from "child_process";
-import {MessageBus} from "../messageBus";
+import {MessageBus, MessageKind} from "../messageBus";
+import {Uri} from "vscode";
+import {IntuitaRange} from "../utilities";
 
 export const buildTypeCodec = <T extends t.Props>(props: T): t.ReadonlyC<t.ExactC<t.TypeC<T>>> =>
     t.readonly(t.exact(t.type(props)));
@@ -97,8 +99,12 @@ export class OnnxWrapper {
             json
         );
 
-        // TODO emit an event
-        this._messageBus.publish();
+        this._messageBus.publish({
+            kind: MessageKind.createRepairCodeJob,
+            uri: Uri.file(message.fileName), // TODO we need to check if this is correct
+            range: message.range,
+            replacement: message.results[0] ?? '',
+        });
     }
 
     protected _onStandardError(
