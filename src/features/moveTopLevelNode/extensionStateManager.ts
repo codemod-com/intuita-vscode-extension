@@ -25,43 +25,13 @@ import {FactKind} from "../../facts";
 import {executeRepairCodeCommand} from "../repairCode/commandExecutor";
 import {RepairCodeUserCommand} from "../repairCode/userCommand";
 import {buildRepairCodeJobHash} from "../repairCode/jobHash";
-
-export const enum JobKind {
-    moveTopLevelNode = 1,
-    repairCode = 2,
-}
-
-export type IntuitaJob =
-    | Readonly<{
-        kind: JobKind.moveTopLevelNode,
-        fileName: string,
-        hash: JobHash,
-        title: string,
-        range: IntuitaRange,
-        oldIndex: number,
-        newIndex: number,
-        score: [number, number],
-    }>
-    | Readonly<{
-        kind: JobKind.repairCode,
-        fileName: string,
-        hash: JobHash,
-        title: string,
-        range: IntuitaRange,
-        replacement: string,
-    }>;
+import {IntuitaJob, JobKind, JobOutput} from "../../jobs";
 
 export type IntuitaCodeAction = Readonly<{
     title: string,
     characterDifference: number,
     oldIndex: number,
     newIndex: number,
-}>;
-
-export type JobOutput = Readonly<{
-    text: string,
-    range: IntuitaRange,
-    position: IntuitaPosition,
 }>;
 
 export class ExtensionStateManager {
@@ -80,7 +50,7 @@ export class ExtensionStateManager {
         ) => void,
     ) {
         this._messageBus.subscribe(
-            (message) => {
+            async (message) => {
                 if (message.kind !== MessageKind.createRepairCodeJob) {
                     return;
                 }
@@ -94,13 +64,16 @@ export class ExtensionStateManager {
                     fileName
                 );
 
+                const textDocuments = await getOrOpenTextDocuments(fileName);
+                const fileText = textDocuments[0]?.getText() ?? '';
+
                 const command: RepairCodeUserCommand = {
                     fileName,
-                    fileText: "", // TODO
+                    fileText,
                     kind: "REPAIR_CODE",
                     range: message.range,
                     replacement: message.replacement,
-                }
+                };
 
                 const fact = buildRepairCodeFact(command);
 
@@ -134,7 +107,7 @@ export class ExtensionStateManager {
                     [ job ],
                 );
             }
-        )
+        );
     }
 
     public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {

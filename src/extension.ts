@@ -7,7 +7,7 @@ import {
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
-import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager} from "./features/moveTopLevelNode/extensionStateManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
@@ -16,6 +16,8 @@ import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDia
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
+import {getOrOpenTextDocuments} from "./components/vscodeUtilities";
+import {IntuitaJob} from "./jobs";
 
 export async function activate(
 	context: vscode.ExtensionContext,

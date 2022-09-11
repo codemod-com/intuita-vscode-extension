@@ -1,11 +1,12 @@
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
 import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
-import {ExtensionStateManager, JobOutput} from "../features/moveTopLevelNode/extensionStateManager";
+import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
 import {IntuitaFileSystem} from "../fileSystems/intuitaFileSystem";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
 import {buildJobUri} from "../fileSystems/uris";
+import {JobOutput} from "../jobs";
 
 export const buildMoveTopLevelNodeCommand = (
     configurationContainer: Container<Configuration>,
