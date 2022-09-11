@@ -1,6 +1,7 @@
 import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, isNeitherNullNorUndefined} from "../utilities";
+import {JobOutput} from "../jobs";
 
 export interface Job {
     fileName: string;
@@ -77,4 +78,9 @@ export abstract class JobManager<FACT, JOB extends Job> {
 
         // TODO factor in diagnostic entry and messageBus
     }
+
+    public abstract executeJob(
+        jobHash: JobHash,
+        characterDifference: number,
+    ): JobOutput;
 }

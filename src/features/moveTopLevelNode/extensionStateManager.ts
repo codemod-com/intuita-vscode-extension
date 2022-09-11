@@ -20,12 +20,9 @@ import {MessageBus, MessageKind} from "../../messageBus";
 import {FS_PATH_REG_EXP} from "../../fileSystems/intuitaFileSystem";
 import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
 import {getOrOpenTextDocuments} from "../../components/vscodeUtilities";
-import {buildRepairCodeFact, RepairCodeFact} from "../repairCode/factBuilder";
 import {FactKind} from "../../facts";
-import {executeRepairCodeCommand} from "../repairCode/commandExecutor";
-import {RepairCodeUserCommand} from "../repairCode/userCommand";
-import {buildRepairCodeJobHash} from "../repairCode/jobHash";
-import {IntuitaJob, JobKind, JobOutput} from "../../jobs";
+import {JobKind, JobOutput} from "../../jobs";
+import {JobManager} from "../../components/jobManager";
 
 export type IntuitaCodeAction = Readonly<{
     title: string,
@@ -34,158 +31,87 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
-export class ExtensionStateManager {
-    protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<FileNameHash, MoveTopLevelNodeFact | RepairCodeFact>();
-    protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
-    protected _rejectedJobHashes = new Set<JobHash>();
-    protected _jobMap = new Map<JobHash, IntuitaJob>;
+type MoveTopLevelNodeJob = Readonly<{
+    kind: JobKind.moveTopLevelNode,
+    fileName: string,
+    hash: JobHash,
+    title: string,
+    range: IntuitaRange,
+    oldIndex: number,
+    newIndex: number,
+    score: [number, number],
+}>;
 
+export class ExtensionStateManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
         protected readonly _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            jobs: ReadonlyArray<IntuitaJob>,
+            jobs: ReadonlyArray<MoveTopLevelNodeJob>,
         ) => void,
     ) {
-        this._messageBus.subscribe(
-            async (message) => {
-                if (message.kind !== MessageKind.createRepairCodeJob) {
-                    return;
-                }
+        super();
 
-                const fileName = message.uri.fsPath;
-
-                const fileNameHash = buildFileNameHash(fileName);
-
-                this._fileNames.set(
-                    fileNameHash,
-                    fileName
-                );
-
-                const textDocuments = await getOrOpenTextDocuments(fileName);
-                const fileText = textDocuments[0]?.getText() ?? '';
-
-                const command: RepairCodeUserCommand = {
-                    fileName,
-                    fileText,
-                    kind: "REPAIR_CODE",
-                    range: message.range,
-                    replacement: message.replacement,
-                };
-
-                const fact = buildRepairCodeFact(command);
-
-                this._factMap.set(fileNameHash, fact);
-
-                const jobHash = buildRepairCodeJobHash(
-                    fileName,
-                    message.range,
-                    message.replacement,
-                );
-
-                // TODO fix
-                this._jobHashMap.set(fileNameHash, new Set([jobHash ]));
-
-                const job: IntuitaJob = {
-                    kind: JobKind.repairCode,
-                    fileName,
-                    hash: jobHash,
-                    title: 'Test',
-                    range: message.range,
-                    replacement: message.replacement,
-                };
-
-                this._jobMap.set(
-                    job.hash,
-                    job,
-                );
-
-                this._setDiagnosticEntry(
-                    fileName,
-                    [ job ],
-                );
-            }
-        );
-    }
-
-    public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
-        return this._fileNames.get(fileNameHash) ?? null;
-    }
-
-    public getFileNameFromJobHash(
-        jobHash: JobHash,
-    ): string | null {
-        return this._jobMap.get(jobHash)?.fileName ?? null;
-    }
-
-    public getFileJobs(): ReadonlyArray<ReadonlyArray<IntuitaJob>> {
-        return Array.from(this._fileNames.keys()).map(
-            (fileNameHash) => {
-                const fact = this._factMap.get(fileNameHash);
-                const jobHashes = this._jobHashMap.get(fileNameHash);
-
-                assertsNeitherNullOrUndefined(fact);
-                assertsNeitherNullOrUndefined(jobHashes);
-
-                return Array.from(jobHashes).map(
-                    (jobHash) => {
-                        if (this._rejectedJobHashes.has(jobHash)) {
-                            return null;
-                        }
-
-                        return this._jobMap.get(jobHash);
-                    },
-                )
-                    .filter(isNeitherNullNorUndefined);
-            },
-        );
-    }
-
-    public rejectJob(
-        jobHash: JobHash,
-    ) {
-        const entries = Array.from(this._jobHashMap.entries());
-
-        const entry = entries.find(([ _, jobHashes]) => {
-            return jobHashes.has(jobHash);
-        });
-
-        assertsNeitherNullOrUndefined(entry);
-
-        const [ fileNameHash, jobHashes ] = entry;
-
-        const fileName = this._fileNames.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(fileName);
-
-        jobHashes.delete(jobHash);
-
-        this._rejectedJobHashes.add(jobHash);
-        this._jobMap.delete(jobHash);
-
-        const jobs = Array.from(jobHashes).map(
-            (jobHash) => {
-                return this._jobMap.get(jobHash);
-            },
-        )
-            .filter(isNeitherNullNorUndefined);
-
-        this._setDiagnosticEntry(
-            fileName,
-            jobs,
-        );
-
-        const uri = buildJobUri(jobHash);
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.changePermissions,
-                uri,
-                permissions: vscode.FilePermission.Readonly,
-            },
-        );
+        // this._messageBus.subscribe(
+        //     async (message) => {
+        //         if (message.kind !== MessageKind.createRepairCodeJob) {
+        //             return;
+        //         }
+        //
+        //         const fileName = message.uri.fsPath;
+        //
+        //         const fileNameHash = buildFileNameHash(fileName);
+        //
+        //         this._fileNames.set(
+        //             fileNameHash,
+        //             fileName
+        //         );
+        //
+        //         const textDocuments = await getOrOpenTextDocuments(fileName);
+        //         const fileText = textDocuments[0]?.getText() ?? '';
+        //
+        //         const command: RepairCodeUserCommand = {
+        //             fileName,
+        //             fileText,
+        //             kind: "REPAIR_CODE",
+        //             range: message.range,
+        //             replacement: message.replacement,
+        //         };
+        //
+        //         const fact = buildRepairCodeFact(command);
+        //
+        //         this._factMap.set(fileNameHash, fact);
+        //
+        //         const jobHash = buildRepairCodeJobHash(
+        //             fileName,
+        //             message.range,
+        //             message.replacement,
+        //         );
+        //
+        //         // TODO fix
+        //         this._jobHashMap.set(fileNameHash, new Set([jobHash ]));
+        //
+        //         const job: IntuitaJob = {
+        //             kind: JobKind.repairCode,
+        //             fileName,
+        //             hash: jobHash,
+        //             title: 'Test',
+        //             range: message.range,
+        //             replacement: message.replacement,
+        //         };
+        //
+        //         this._jobMap.set(
+        //             job.hash,
+        //             job,
+        //         );
+        //
+        //         this._setDiagnosticEntry(
+        //             fileName,
+        //             [ job ],
+        //         );
+        //     }
+        // );
     }
 
     public onFileTextChanged(
@@ -211,7 +137,7 @@ export class ExtensionStateManager {
             return;
         }
 
-        const jobs: ReadonlyArray<IntuitaJob> = fact.solutions.map<IntuitaJob | null>(
+        const jobs: ReadonlyArray<MoveTopLevelNodeJob> = fact.solutions.map<MoveTopLevelNodeJob | null>(
             (solution) => {
                 const { oldIndex, newIndex, score } = solution;
 
@@ -418,7 +344,7 @@ export class ExtensionStateManager {
             .filter(isNeitherNullNorUndefined);
     }
 
-    public executeJob(
+    public override executeJob(
         jobHash: JobHash,
         characterDifference: number,
     ): JobOutput {
@@ -428,68 +354,32 @@ export class ExtensionStateManager {
             throw new Error('Could not find a job with the specified hash');
         }
 
-        if (job.kind === JobKind.moveTopLevelNode) {
-            const {
-                fileName,
-                oldIndex,
-                newIndex,
-            } = job;
+        const {
+            fileName,
+            oldIndex,
+            newIndex,
+        } = job;
 
-            const fileNameHash = buildFileNameHash(fileName);
-
-            const fact = this._factMap.get(fileNameHash);
-
-            assertsNeitherNullOrUndefined(fact);
-
-            if(fact.kind !== FactKind.moveTopLevelNode) {
-                throw new Error('Could not find a moveTopLevelNode fact with the specified hash');
-            }
-
-            const execution = executeMoveTopLevelNodeAstCommandHelper(
-                oldIndex,
-                newIndex,
-                characterDifference,
-                fact.stringNodes,
-                fact.separator,
-            );
-
-            const { text, line, character } = execution;
-
-            const lastPosition = calculateLastPosition(text, fact.separator);
-
-            const range: IntuitaRange = [
-                0,
-                0,
-                lastPosition[0],
-                lastPosition[1],
-            ];
-
-            const position: IntuitaPosition = [
-                line,
-                character,
-            ];
-
-            return {
-                range,
-                text,
-                position,
-            };
-        }
-
-        // if (job.kind === JobKind.repairCode) {
-        const fileNameHash = buildFileNameHash(job.fileName);
+        const fileNameHash = buildFileNameHash(fileName);
 
         const fact = this._factMap.get(fileNameHash);
 
         assertsNeitherNullOrUndefined(fact);
 
-        if (fact.kind !== FactKind.repairCode) {
-            throw new Error('Could not find a repairCode fact with the specified hash');
+        if(fact.kind !== FactKind.moveTopLevelNode) {
+            throw new Error('Could not find a moveTopLevelNode fact with the specified hash');
         }
 
-        const { text, line, character } = executeRepairCodeCommand(fact);
+        const execution = executeMoveTopLevelNodeAstCommandHelper(
+            oldIndex,
+            newIndex,
+            characterDifference,
+            fact.stringNodes,
+            fact.separator,
+        );
 
-        // TODO revisit it
+        const { text, line, character } = execution;
+
         const lastPosition = calculateLastPosition(text, fact.separator);
 
         const range: IntuitaRange = [
@@ -509,6 +399,40 @@ export class ExtensionStateManager {
             text,
             position,
         };
+
+        // if (job.kind === JobKind.repairCode) {
+        // const fileNameHash = buildFileNameHash(job.fileName);
+        //
+        // const fact = this._factMap.get(fileNameHash);
+        //
+        // assertsNeitherNullOrUndefined(fact);
+        //
+        // if (fact.kind !== FactKind.repairCode) {
+        //     throw new Error('Could not find a repairCode fact with the specified hash');
+        // }
+        //
+        // const { text, line, character } = executeRepairCodeCommand(fact);
+        //
+        // // TODO revisit it
+        // const lastPosition = calculateLastPosition(text, fact.separator);
+        //
+        // const range: IntuitaRange = [
+        //     0,
+        //     0,
+        //     lastPosition[0],
+        //     lastPosition[1],
+        // ];
+        //
+        // const position: IntuitaPosition = [
+        //     line,
+        //     character,
+        // ];
+        //
+        // return {
+        //     range,
+        //     text,
+        //     position,
+        // };
     }
 
     public async onReadingFileFailed (
