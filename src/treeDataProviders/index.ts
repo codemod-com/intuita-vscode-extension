@@ -5,6 +5,8 @@ import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
 import { buildHash, IntuitaRange, isNeitherNullNorUndefined } from "../utilities";
+import {RepairCodeJobManager} from "../features/repairCode/repairCodeJobManager";
+import {Job} from "../components/jobManager";
 
 type Element =
     | Readonly<{
@@ -23,6 +25,7 @@ type Element =
 
 export const buildTreeDataProvider = (
     moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
+    repairCodeJobManager: RepairCodeJobManager,
 ) => {
     const _onDidChangeTreeData = new EventEmitter<Element | undefined | null | void>();
 
@@ -31,7 +34,10 @@ export const buildTreeDataProvider = (
             if (element === undefined) {
                 const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-                const fileJobs = moveTopLevelNodeJobManager.getFileJobs();
+                const fileJobs = [
+                    ...moveTopLevelNodeJobManager.getFileJobs(),
+                    ...repairCodeJobManager.getFileJobs(),
+                ];
 
                 const elements: Element[] = fileJobs
                     .map(

@@ -16,6 +16,7 @@ import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDia
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
+import {RepairCodeJob, RepairCodeJobManager} from "./features/repairCode/repairCodeJobManager";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -63,15 +64,27 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
-	const treeDataProvider = buildTreeDataProvider(moveTopLevelNodeJobManager);
+	const repairCodeJobManager = new RepairCodeJobManager(
+		messageBus,
+		_setDiagnosticEntry,
+	);
+
+	const treeDataProvider = buildTreeDataProvider(
+		moveTopLevelNodeJobManager,
+		repairCodeJobManager,
+	);
 
 	function _setDiagnosticEntry(
 		fileName: string,
-		jobs: ReadonlyArray<MoveTopLevelNodeJob>,
+		jobs: ReadonlyArray<MoveTopLevelNodeJob | RepairCodeJob>,
 	) {
+		const uri = vscode.Uri.parse(fileName);
+
+		diagnosticCollection.get(uri);
+
 		const diagnostics = jobs
 			.map(
-				({ title, range: intuitaRange }) => {
+				({ kind, title, range: intuitaRange }) => {
 					const startPosition = new Position(
 						intuitaRange[0],
 						intuitaRange[1],
@@ -87,18 +100,22 @@ export async function activate(
 						endPosition,
 					);
 
-					return new Diagnostic(
+					const diagnostic = new Diagnostic(
 						range,
 						title,
 						DiagnosticSeverity.Information
 					);
+
+					diagnostic.code = kind.valueOf();
+
+					return diagnostic;
 				}
 			);
 
 		diagnosticCollection.clear();
 
 		diagnosticCollection.set(
-			vscode.Uri.parse(fileName),
+			uri,
 			diagnostics,
 		);
 

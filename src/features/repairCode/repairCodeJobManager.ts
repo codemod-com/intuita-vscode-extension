@@ -10,7 +10,7 @@ import {RepairCodeUserCommand} from "./userCommand";
 import {buildRepairCodeJobHash} from "./jobHash";
 import {executeRepairCodeCommand} from "./commandExecutor";
 
-type RepairCodeJob = Readonly<{
+export type RepairCodeJob = Readonly<{
     kind: JobKind.repairCode,
     fileName: string,
     hash: JobHash,
