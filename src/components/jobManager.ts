@@ -9,7 +9,7 @@ export interface Job {
 
 export abstract class JobManager<FACT, JOB extends Job> {
     protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<FileNameHash, FACT>();
+    protected _factMap = new Map<JobHash, FACT>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
     protected _jobMap = new Map<JobHash, JOB>;
@@ -27,24 +27,26 @@ export abstract class JobManager<FACT, JOB extends Job> {
     public getFileJobs(): ReadonlyArray<ReadonlyArray<JOB>> {
         return Array.from(this._fileNames.keys()).map(
             (fileNameHash) => {
-                const fact = this._factMap.get(fileNameHash);
-                const jobHashes = this._jobHashMap.get(fileNameHash);
-
-                assertsNeitherNullOrUndefined(fact);
-                assertsNeitherNullOrUndefined(jobHashes);
-
-                return Array.from(jobHashes).map(
-                    (jobHash) => {
-                        if (this._rejectedJobHashes.has(jobHash)) {
-                            return null;
-                        }
-
-                        return this._jobMap.get(jobHash);
-                    },
-                )
-                    .filter(isNeitherNullNorUndefined);
+                return this._getFileJobs(fileNameHash);
             },
         );
+    }
+
+    protected _getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<JOB> {
+        const jobHashes = this._jobHashMap.get(fileNameHash);
+
+        assertsNeitherNullOrUndefined(jobHashes);
+
+        return Array.from(jobHashes).map(
+            (jobHash) => {
+                if (this._rejectedJobHashes.has(jobHash)) {
+                    return null;
+                }
+
+                return this._jobMap.get(jobHash);
+            },
+        )
+            .filter(isNeitherNullNorUndefined);
     }
 
     public rejectJob(

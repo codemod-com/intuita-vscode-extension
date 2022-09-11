@@ -61,22 +61,25 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
 
                 const fact = buildRepairCodeFact(command);
 
-                this._factMap.set(fileNameHash, fact);
-
                 const jobHash = buildRepairCodeJobHash(
                     fileName,
                     message.range,
                     message.replacement,
                 );
 
+                this._factMap.set(jobHash, fact);
+
                 // TODO fix
-                this._jobHashMap.set(fileNameHash, new Set([jobHash ]));
+                const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+                jobHashes.add(jobHash);
+
+                this._jobHashMap.set(fileNameHash, jobHashes);
 
                 const job: RepairCodeJob = {
                     kind: JobKind.repairCode,
                     fileName,
                     hash: jobHash,
-                    title: 'Test',
+                    title: 'Test' + message.range.toString(),
                     range: message.range,
                     replacement: message.replacement,
                 };
@@ -86,10 +89,12 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
                     job,
                 );
 
+                const jobs = this._getFileJobs(fileNameHash);
+
                 this._setDiagnosticEntry(
                     fileName,
                     JobKind.repairCode,
-                    [ job ],
+                    jobs,
                 );
             }
         );
@@ -97,13 +102,9 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
 
     public override executeJob(jobHash: JobHash): JobOutput {
         const job = this._jobMap.get(jobHash);
+        const fact = this._factMap.get(jobHash);
 
         assertsNeitherNullOrUndefined(job);
-
-        const fileNameHash = buildFileNameHash(job.fileName);
-
-        const fact = this._factMap.get(fileNameHash);
-
         assertsNeitherNullOrUndefined(fact);
 
         const { text, line, character } = executeRepairCodeCommand(fact);

@@ -132,11 +132,14 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         const oldJobHashes = this._jobHashMap.get(fileNameHash);
 
         this._fileNames.set(fileNameHash, fileName);
-        this._factMap.set(fileNameHash, fact);
 
         const jobHashes = new Set(
             jobs.map(({ hash }) => hash)
         );
+
+        jobHashes.forEach((jobHash) => {
+            this._factMap.set(jobHash, fact);
+        });
 
         this._jobHashMap.set(fileNameHash, jobHashes);
 
@@ -197,14 +200,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
     ): ReadonlyArray<IntuitaCodeAction> {
         const fileNameHash = buildFileNameHash(fileName);
 
-        const fact = this._factMap.get(fileNameHash);
         const jobHashes = this._jobHashMap.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(fact);
-
-        if (fact.kind !== FactKind.moveTopLevelNode) {
-            return [];
-        }
 
         assertsNeitherNullOrUndefined(jobHashes);
 
@@ -230,7 +226,11 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
                 },
             )
             .map(
-                ({ title }) => {
+                ({ title, hash }) => {
+                    const fact = this._factMap.get(hash);
+    
+                    assertsNeitherNullOrUndefined(fact);
+
                     const characterIndex = calculateCharacterIndex(
                         fact.separator,
                         fact.lengths,
@@ -332,9 +332,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             newIndex,
         } = job;
 
-        const fileNameHash = buildFileNameHash(fileName);
-
-        const fact = this._factMap.get(fileNameHash);
+        const fact = this._factMap.get(jobHash);
 
         assertsNeitherNullOrUndefined(fact);
 
