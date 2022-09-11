@@ -37,8 +37,6 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
                     return;
                 }
 
-                console.log('ABCD');
-
                 const fileName = message.uri.fsPath;
 
                 const fileNameHash = buildFileNameHash(fileName);
@@ -69,7 +67,6 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
 
                 this._factMap.set(jobHash, fact);
 
-                // TODO fix
                 const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
                 jobHashes.add(jobHash);
 
