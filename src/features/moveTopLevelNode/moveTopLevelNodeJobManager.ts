@@ -284,6 +284,35 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             .filter(isNeitherNullNorUndefined);
     }
 
+    public override rejectJob(
+        jobHash: JobHash,
+    ) {
+        const {
+            fileName,
+            jobs
+        } = super.rejectJob(jobHash);
+
+        this._setDiagnosticEntry(
+            fileName,
+            jobs,
+        );
+
+        const uri = buildJobUri(jobHash);
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.changePermissions,
+                uri,
+                permissions: vscode.FilePermission.Readonly,
+            },
+        );
+
+        return {
+            fileName,
+            jobs,
+        };
+    }
+
     public override executeJob(
         jobHash: JobHash,
         characterDifference: number,

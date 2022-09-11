@@ -76,7 +76,10 @@ export abstract class JobManager<FACT, JOB extends Job> {
         )
             .filter(isNeitherNullNorUndefined);
 
-        // TODO factor in diagnostic entry and messageBus
+        return {
+            fileName,
+            jobs,
+        };
     }
 
     public abstract executeJob(
