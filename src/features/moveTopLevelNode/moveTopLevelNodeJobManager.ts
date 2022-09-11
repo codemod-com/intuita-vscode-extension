@@ -52,66 +52,6 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         ) => void,
     ) {
         super();
-
-        // this._messageBus.subscribe(
-        //     async (message) => {
-        //         if (message.kind !== MessageKind.createRepairCodeJob) {
-        //             return;
-        //         }
-        //
-        //         const fileName = message.uri.fsPath;
-        //
-        //         const fileNameHash = buildFileNameHash(fileName);
-        //
-        //         this._fileNames.set(
-        //             fileNameHash,
-        //             fileName
-        //         );
-        //
-        //         const textDocuments = await getOrOpenTextDocuments(fileName);
-        //         const fileText = textDocuments[0]?.getText() ?? '';
-        //
-        //         const command: RepairCodeUserCommand = {
-        //             fileName,
-        //             fileText,
-        //             kind: "REPAIR_CODE",
-        //             range: message.range,
-        //             replacement: message.replacement,
-        //         };
-        //
-        //         const fact = buildRepairCodeFact(command);
-        //
-        //         this._factMap.set(fileNameHash, fact);
-        //
-        //         const jobHash = buildRepairCodeJobHash(
-        //             fileName,
-        //             message.range,
-        //             message.replacement,
-        //         );
-        //
-        //         // TODO fix
-        //         this._jobHashMap.set(fileNameHash, new Set([jobHash ]));
-        //
-        //         const job: IntuitaJob = {
-        //             kind: JobKind.repairCode,
-        //             fileName,
-        //             hash: jobHash,
-        //             title: 'Test',
-        //             range: message.range,
-        //             replacement: message.replacement,
-        //         };
-        //
-        //         this._jobMap.set(
-        //             job.hash,
-        //             job,
-        //         );
-        //
-        //         this._setDiagnosticEntry(
-        //             fileName,
-        //             [ job ],
-        //         );
-        //     }
-        // );
     }
 
     public onFileTextChanged(
@@ -399,40 +339,6 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             text,
             position,
         };
-
-        // if (job.kind === JobKind.repairCode) {
-        // const fileNameHash = buildFileNameHash(job.fileName);
-        //
-        // const fact = this._factMap.get(fileNameHash);
-        //
-        // assertsNeitherNullOrUndefined(fact);
-        //
-        // if (fact.kind !== FactKind.repairCode) {
-        //     throw new Error('Could not find a repairCode fact with the specified hash');
-        // }
-        //
-        // const { text, line, character } = executeRepairCodeCommand(fact);
-        //
-        // // TODO revisit it
-        // const lastPosition = calculateLastPosition(text, fact.separator);
-        //
-        // const range: IntuitaRange = [
-        //     0,
-        //     0,
-        //     lastPosition[0],
-        //     lastPosition[1],
-        // ];
-        //
-        // const position: IntuitaPosition = [
-        //     line,
-        //     character,
-        // ];
-        //
-        // return {
-        //     range,
-        //     text,
-        //     position,
-        // };
     }
 
     public async onReadingFileFailed (
