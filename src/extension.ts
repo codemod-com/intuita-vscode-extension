@@ -17,6 +17,7 @@ import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
 import {RepairCodeJob, RepairCodeJobManager} from "./features/repairCode/repairCodeJobManager";
+import {JobKind} from "./jobs";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -76,13 +77,15 @@ export async function activate(
 
 	function _setDiagnosticEntry(
 		fileName: string,
+		jobKind: JobKind,
 		jobs: ReadonlyArray<MoveTopLevelNodeJob | RepairCodeJob>,
 	) {
 		const uri = vscode.Uri.parse(fileName);
 
-		diagnosticCollection.get(uri);
+		const oldDiagnostics = (diagnosticCollection.get(uri) ?? [])
+			.filter((diagnostic) => diagnostic.code !== jobKind);
 
-		const diagnostics = jobs
+		const newDiagnostics = jobs
 			.map(
 				({ kind, title, range: intuitaRange }) => {
 					const startPosition = new Position(
@@ -116,7 +119,7 @@ export async function activate(
 
 		diagnosticCollection.set(
 			uri,
-			diagnostics,
+			oldDiagnostics.concat(newDiagnostics),
 		);
 
 		treeDataProvider._onDidChangeTreeData.fire();

@@ -25,6 +25,7 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
         protected readonly _messageBus: MessageBus,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
+            jobKind: JobKind,
             jobs: ReadonlyArray<RepairCodeJob>,
         ) => void,
     ) {
@@ -85,6 +86,7 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
 
                 this._setDiagnosticEntry(
                     fileName,
+                    JobKind.repairCode,
                     [ job ],
                 );
             }

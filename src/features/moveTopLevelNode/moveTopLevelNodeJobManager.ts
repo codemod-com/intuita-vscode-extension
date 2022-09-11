@@ -48,6 +48,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
+            jobKind: JobKind,
             jobs: ReadonlyArray<MoveTopLevelNodeJob>,
         ) => void,
     ) {
@@ -148,6 +149,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
 
         this._setDiagnosticEntry(
             fileName,
+            JobKind.moveTopLevelNode,
             jobs,
         );
 
@@ -294,6 +296,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
 
         this._setDiagnosticEntry(
             fileName,
+            JobKind.moveTopLevelNode,
             jobs,
         );
 
