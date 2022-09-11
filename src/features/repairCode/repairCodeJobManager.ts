@@ -37,6 +37,8 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
                     return;
                 }
 
+                console.log('ABCD');
+
                 const fileName = message.uri.fsPath;
 
                 const fileNameHash = buildFileNameHash(fileName);

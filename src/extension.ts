@@ -83,7 +83,7 @@ export async function activate(
 		const uri = vscode.Uri.parse(fileName);
 
 		const oldDiagnostics = (diagnosticCollection.get(uri) ?? [])
-			.filter((diagnostic) => diagnostic.code !== jobKind);
+			.filter((diagnostic) => diagnostic.code !== jobKind.valueOf());
 
 		const newDiagnostics = jobs
 			.map(
@@ -110,6 +110,7 @@ export async function activate(
 					);
 
 					diagnostic.code = kind.valueOf();
+					diagnostic.source = 'intuita';
 
 					return diagnostic;
 				}

@@ -14,6 +14,23 @@ type UriEnvelope = Readonly<{
     diagnostics: Diagnostic[],
 }>;
 
+const buildDiagnosticHash = (
+    diagnostic: Diagnostic,
+): string => {
+    return buildHash(
+        [
+            diagnostic.message,
+            String(diagnostic.range.start.line),
+            String(diagnostic.range.start.character),
+            String(diagnostic.range.end.line),
+            String(diagnostic.range.end.character),
+            String(diagnostic.source),
+        ].join(',')
+    );
+}
+
+const foundHashes = new Set<string>();
+
 export const buildDidChangeDiagnosticsCallback = (
     onnxWrapper: OnnxWrapper,
 ) => async ({ uris }: DiagnosticChangeEvent) => {
@@ -45,6 +62,9 @@ export const buildDidChangeDiagnosticsCallback = (
                     .getDiagnostics(uri)
                     .filter(
                         ({ source }) => source === 'ts'
+                    )
+                    .filter(
+                        (diagnostic) => !foundHashes.has(buildDiagnosticHash(diagnostic))
                     );
 
                 const workspaceFolder = workspace.getWorkspaceFolder(uri);
@@ -127,7 +147,11 @@ export const buildDidChangeDiagnosticsCallback = (
                     }
                 );
 
-                for (const { range } of diagnostics) {
+                for (const diagnostic of diagnostics) {
+                    foundHashes.add(buildDiagnosticHash(diagnostic));
+
+                    const { range } = diagnostic;
+
                     onnxWrapper.writeToStandardInput({
                         kind: 'infer',
                         fileName: uri.path,

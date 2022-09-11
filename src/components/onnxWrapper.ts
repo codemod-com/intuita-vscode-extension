@@ -111,7 +111,7 @@ export class OnnxWrapper {
 
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJob,
-            uri: Uri.file(message.fileName), // TODO we need to check if this is correct
+            uri: Uri.parse(message.fileName), // TODO we need to check if this is correct
             range: message.range,
             replacement: message.results[0] ?? '',
         });
