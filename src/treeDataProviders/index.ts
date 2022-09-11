@@ -22,7 +22,7 @@ type Element =
     }>;
 
 export const buildTreeDataProvider = (
-    extensionStateManager: MoveTopLevelNodeJobManager,
+    moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
 ) => {
     const _onDidChangeTreeData = new EventEmitter<Element | undefined | null | void>();
 
@@ -31,7 +31,7 @@ export const buildTreeDataProvider = (
             if (element === undefined) {
                 const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-                const fileJobs = extensionStateManager.getFileJobs();
+                const fileJobs = moveTopLevelNodeJobManager.getFileJobs();
 
                 const elements: Element[] = fileJobs
                     .map(

@@ -57,13 +57,13 @@ export async function activate(
 			'typescript'
 		);
 
-	const extensionStateManager = new MoveTopLevelNodeJobManager(
+	const moveTopLevelNodeJobManager = new MoveTopLevelNodeJobManager(
 		messageBus,
 		configurationContainer,
 		_setDiagnosticEntry,
 	);
 
-	const treeDataProvider = buildTreeDataProvider(extensionStateManager);
+	const treeDataProvider = buildTreeDataProvider(moveTopLevelNodeJobManager);
 
 	function _setDiagnosticEntry(
 		fileName: string,
@@ -109,7 +109,7 @@ export async function activate(
 		(message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
 				setImmediate(
-					() => extensionStateManager.onReadingFileFailed(
+					() => moveTopLevelNodeJobManager.onReadingFileFailed(
 						message.uri,
 					),
 				);
@@ -135,7 +135,7 @@ export async function activate(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
 			new MoveTopLevelNodeActionProvider(
-				extensionStateManager,
+				moveTopLevelNodeJobManager,
 			)
 		));
 
@@ -143,7 +143,7 @@ export async function activate(
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
 	) => {
-		extensionStateManager
+		moveTopLevelNodeJobManager
 			.onFileTextChanged(
 				document,
 			);
@@ -217,7 +217,7 @@ export async function activate(
 					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				extensionStateManager.rejectJob(
+				moveTopLevelNodeJobManager.rejectJob(
 					jobHash as JobHash,
 				);
 			}
@@ -242,7 +242,7 @@ export async function activate(
 			buildMoveTopLevelNodeCommand(
 				configurationContainer,
 				intuitaFileSystem,
-				extensionStateManager,
+				moveTopLevelNodeJobManager,
 			),
 		),
 	);
@@ -258,7 +258,7 @@ export async function activate(
 					return;
 				}
 
-				extensionStateManager
+				moveTopLevelNodeJobManager
 					.onFileTextChanged(
 						document,
 					);

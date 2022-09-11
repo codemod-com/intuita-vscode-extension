@@ -11,7 +11,7 @@ import {JobOutput} from "../jobs";
 export const buildMoveTopLevelNodeCommand = (
     configurationContainer: Container<Configuration>,
     intuitaFileSystem: IntuitaFileSystem,
-    extensionStateManager: MoveTopLevelNodeJobManager,
+    moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
 ) => {
     const getJobOutput = (
         jobHash: JobHash,
@@ -21,7 +21,7 @@ export const buildMoveTopLevelNodeCommand = (
         );
 
         if (!content) {
-            return extensionStateManager
+            return moveTopLevelNodeJobManager
                 .executeJob(
                     jobHash,
                     0,
@@ -57,7 +57,7 @@ export const buildMoveTopLevelNodeCommand = (
             throw new Error('The job hash argument must be a number.');
         }
 
-        const fileName = extensionStateManager.getFileNameFromJobHash(jobHash as JobHash);
+        const fileName = moveTopLevelNodeJobManager.getFileNameFromJobHash(jobHash as JobHash);
 
         assertsNeitherNullOrUndefined(fileName);
 
@@ -163,7 +163,7 @@ export const buildMoveTopLevelNodeCommand = (
             );
 
         if (allTextDocuments[0]) {
-            extensionStateManager
+            moveTopLevelNodeJobManager
                 .onFileTextChanged(
                     allTextDocuments[0],
                 );

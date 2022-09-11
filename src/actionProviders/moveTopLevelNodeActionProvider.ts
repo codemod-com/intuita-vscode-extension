@@ -66,7 +66,7 @@ export const buildTitle = (
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
     public constructor(
-        protected _extensionStateManager: MoveTopLevelNodeJobManager,
+        protected _moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
     ) {
     }
 
@@ -80,7 +80,7 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
         const fileCharacter = range.start.character;
 
         const intuitaCodeActions = this
-            ._extensionStateManager
+            ._moveTopLevelNodeJobManager
             .findCodeActions(
                 fileName,
                 [
