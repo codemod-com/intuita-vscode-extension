@@ -130,8 +130,16 @@ export async function activate(
 	messageBus.subscribe(
 		(message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
+				// TODO introduce distinction between move and repair
+
 				setImmediate(
 					() => moveTopLevelNodeJobManager.onReadingFileFailed(
+						message.uri,
+					),
+				);
+
+				setImmediate(
+					() => repairCodeJobManager.onReadingFileFailed(
 						message.uri,
 					),
 				);

@@ -4,11 +4,13 @@ import {assertsNeitherNullOrUndefined, calculateLastPosition, IntuitaPosition, I
 import {JobKind, JobOutput} from "../../jobs";
 import {JobManager} from "../../components/jobManager";
 import {buildRepairCodeFact, RepairCodeFact} from "./factBuilder";
-import {buildFileNameHash} from "../moveTopLevelNode/fileNameHash";
+import {buildFileNameHash, FileNameHash} from "../moveTopLevelNode/fileNameHash";
 import {getOrOpenTextDocuments} from "../../components/vscodeUtilities";
 import {RepairCodeUserCommand} from "./userCommand";
 import {buildRepairCodeJobHash} from "./jobHash";
 import {executeRepairCodeCommand} from "./commandExecutor";
+import { FilePermission, Uri } from "vscode";
+import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
 
 export type RepairCodeJob = Readonly<{
     kind: JobKind.repairCode,
@@ -118,5 +120,66 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
             text,
             position,
         };
+    }
+
+    public async onReadingFileFailed (
+        uri: Uri
+    ) {
+        if (uri.scheme !== 'intuita') {
+            return;
+        }
+
+        const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
+
+        if (!regExpExecArray) {
+            throw new Error(`The fsPath of the URI (${uri.fsPath}) does not belong to the Intuita File System`);
+        }
+
+        const directory = regExpExecArray[1];
+
+        const permissions = directory === 'files'
+            ? FilePermission.Readonly
+            : null;
+
+        const fileName = directory === 'files'
+            ? this.getFileNameFromFileNameHash(
+                regExpExecArray[2] as FileNameHash
+            )
+            : this.getFileNameFromJobHash(
+                regExpExecArray[2] as JobHash
+            );
+
+		assertsNeitherNullOrUndefined(fileName);
+
+        const textDocument = await getOrOpenTextDocuments(fileName);
+        let text = textDocument[0]?.getText();
+
+        assertsNeitherNullOrUndefined(text);
+
+		if (directory === 'jobs') {
+			const result = this
+				.executeJob(
+					regExpExecArray[2] as JobHash,
+				);
+
+			if (result) {
+				text = result.text;
+			}
+		}
+
+        if (!text) {
+            return;
+        }
+
+        const content = Buffer.from(text);
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.writeFile,
+                uri,
+                content,
+                permissions,
+            },
+        );
     }
 }

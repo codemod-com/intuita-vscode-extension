@@ -407,6 +407,10 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
 			}
 		}
 
+        if (!text) {
+            return;
+        }
+
         const content = Buffer.from(text);
 
         this._messageBus.publish(
