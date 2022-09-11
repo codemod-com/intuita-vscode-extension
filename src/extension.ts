@@ -18,6 +18,7 @@ import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
 import {RepairCodeJob, RepairCodeJobManager} from "./features/repairCode/repairCodeJobManager";
 import {JobKind} from "./jobs";
+import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -77,15 +78,15 @@ export async function activate(
 
 	function _setDiagnosticEntry(
 		fileName: string,
-		jobKind: JobKind,
-		jobs: ReadonlyArray<MoveTopLevelNodeJob | RepairCodeJob>,
 	) {
 		const uri = vscode.Uri.parse(fileName);
 
-		const oldDiagnostics = (diagnosticCollection.get(uri) ?? [])
-			.filter((diagnostic) => diagnostic.code !== jobKind.valueOf());
+		const jobs = [
+			...moveTopLevelNodeJobManager._getFileJobs(buildFileNameHash(fileName)),
+			...repairCodeJobManager._getFileJobs(buildFileNameHash(fileName))
+		];
 
-		const newDiagnostics = jobs
+		const diagnostics = jobs
 			.map(
 				({ kind, title, range: intuitaRange }) => {
 					const startPosition = new Position(
@@ -120,7 +121,7 @@ export async function activate(
 
 		diagnosticCollection.set(
 			uri,
-			oldDiagnostics.concat(newDiagnostics),
+			diagnostics,
 		);
 
 		treeDataProvider._onDidChangeTreeData.fire();
@@ -138,12 +139,12 @@ export async function activate(
 		},
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerTreeDataProvider(
-			'explorerIntuitaViewId',
-			treeDataProvider
-		)
-	);
+	// context.subscriptions.push(
+	// 	vscode.window.registerTreeDataProvider(
+	// 		'explorerIntuitaViewId',
+	// 		treeDataProvider
+	// 	)
+	// );
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(

@@ -32,10 +32,8 @@ export abstract class JobManager<FACT, JOB extends Job> {
         );
     }
 
-    protected _getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<JOB> {
-        const jobHashes = this._jobHashMap.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(jobHashes);
+    public _getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<JOB> {
+        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         return Array.from(jobHashes).map(
             (jobHash) => {

@@ -25,8 +25,6 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
         protected readonly _messageBus: MessageBus,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            jobKind: JobKind,
-            jobs: ReadonlyArray<RepairCodeJob>,
         ) => void,
     ) {
         super();
@@ -86,13 +84,7 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
                     job,
                 );
 
-                const jobs = this._getFileJobs(fileNameHash);
-
-                this._setDiagnosticEntry(
-                    fileName,
-                    JobKind.repairCode,
-                    jobs,
-                );
+                this._setDiagnosticEntry(fileName);
             }
         );
     }

@@ -1,12 +1,11 @@
 import { join } from "node:path";
-import { EventEmitter, MarkdownString, ProviderResult, TreeItem, TreeItemCollapsibleState, Uri, workspace } from "vscode";
+import { EventEmitter, MarkdownString, ProviderResult, TreeDataProvider, TreeItem, TreeItemCollapsibleState, Uri, workspace } from "vscode";
 import { MoveTopLevelNodeJobManager } from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
 import { buildHash, IntuitaRange, isNeitherNullNorUndefined } from "../utilities";
 import {RepairCodeJobManager} from "../features/repairCode/repairCodeJobManager";
-import {Job} from "../components/jobManager";
 
 type Element =
     | Readonly<{
@@ -26,7 +25,7 @@ type Element =
 export const buildTreeDataProvider = (
     moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
     repairCodeJobManager: RepairCodeJobManager,
-) => {
+): TreeDataProvider<Element> & { _onDidChangeTreeData: EventEmitter<Element | undefined | null | void> } => {
     const _onDidChangeTreeData = new EventEmitter<Element | undefined | null | void>();
 
     return {
@@ -76,16 +75,14 @@ export const buildTreeDataProvider = (
                     )
                     .filter(isNeitherNullNorUndefined);
 
-                return Promise.resolve(elements);
+                return elements;
             }
 
             if (element.kind === 'DIAGNOSTIC') {
-                return Promise.resolve([]);
+                return [];
             }
 
-            return Promise.resolve(
-                element.children.slice()
-            );
+            return element.children.slice();
         },
         getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
             const treeItem = new TreeItem(

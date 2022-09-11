@@ -48,8 +48,6 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _setDiagnosticEntry: (
             fileName: string,
-            jobKind: JobKind,
-            jobs: ReadonlyArray<MoveTopLevelNodeJob>,
         ) => void,
     ) {
         super();
@@ -150,11 +148,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             );
         });
 
-        this._setDiagnosticEntry(
-            fileName,
-            JobKind.moveTopLevelNode,
-            jobs,
-        );
+        this._setDiagnosticEntry(fileName);
 
         oldJobHashes?.forEach(
             (oldJobHash) => {
@@ -294,11 +288,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             jobs
         } = super.rejectJob(jobHash);
 
-        this._setDiagnosticEntry(
-            fileName,
-            JobKind.moveTopLevelNode,
-            jobs,
-        );
+        this._setDiagnosticEntry(fileName);
 
         const uri = buildJobUri(jobHash);
 
