@@ -24,6 +24,10 @@ export abstract class JobManager<FACT, JOB extends Job> {
         return this._jobMap.get(jobHash)?.fileName ?? null;
     }
 
+    public getFileNames() {
+        return Array.from(this._fileNames.values());
+    }
+
     public getFileJobs(): ReadonlyArray<ReadonlyArray<JOB>> {
         return Array.from(this._fileNames.keys()).map(
             (fileNameHash) => {

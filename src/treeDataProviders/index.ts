@@ -33,49 +33,48 @@ export const buildTreeDataProvider = (
             if (element === undefined) {
                 const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-                const fileJobs = [
-                    ...moveTopLevelNodeJobManager.getFileJobs(),
-                    ...repairCodeJobManager.getFileJobs(),
-                ];
+                const fileNames = new Set<string>([
+                    ...moveTopLevelNodeJobManager.getFileNames(),
+                    ...repairCodeJobManager.getFileNames(),
+                ])
 
-                const elements: Element[] = fileJobs
-                    .map(
-                        (jobs) => {
-                            const [ job ] = jobs;
+                return Array.from(fileNames).map(
+                    (fileName) => {
+                        const uri = Uri.parse(fileName);
+                        const label: string = fileName.replace(rootPath, '');
 
-                            if (!job) {
-                                return null;
-                            }
+                        const fileNameHash = buildFileNameHash(fileName);
 
-                            const { fileName } = job;
+                        const jobs = [
+                            ...moveTopLevelNodeJobManager._getFileJobs(
+                                fileNameHash
+                            ),
+                            ...repairCodeJobManager._getFileJobs(
+                                fileNameHash
+                            ),
+                        ];
 
-                            const label: string = fileName.replace(rootPath, '');
-                            const uri = Uri.parse(fileName);
+                        const children: Element[] = jobs
+                            .map(
+                                (diagnostic) => {
+                                    return {
+                                        kind: 'DIAGNOSTIC' as const,
+                                        label: diagnostic.title,
+                                        fileName,
+                                        uri,
+                                        range: diagnostic.range,
+                                        hash: diagnostic.hash,
+                                    };
+                                }
+                            );
 
-                            const children: Element[] = jobs
-                                .map(
-                                    (diagnostic) => {
-                                        return {
-                                            kind: 'DIAGNOSTIC' as const,
-                                            label: diagnostic.title,
-                                            fileName,
-                                            uri,
-                                            range: diagnostic.range,
-                                            hash: diagnostic.hash,
-                                        };
-                                    }
-                                );
-
-                            return {
-                                kind: 'FILE' as const,
-                                label,
-                                children,
-                            };
-                        }
-                    )
-                    .filter(isNeitherNullNorUndefined);
-
-                return elements;
+                        return {
+                            kind: 'FILE' as const,
+                            label,
+                            children,
+                        };
+                    }
+                );
             }
 
             if (element.kind === 'DIAGNOSTIC') {
@@ -90,6 +89,8 @@ export const buildTreeDataProvider = (
             );
 
             treeItem.id = buildHash(element.label);
+
+            console.log(treeItem.id, element.label);
 
             treeItem.collapsibleState = element.kind === 'FILE'
                 ? TreeItemCollapsibleState.Collapsed
