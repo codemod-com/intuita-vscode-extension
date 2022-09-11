@@ -19,7 +19,7 @@ type RepairCodeJob = Readonly<{
     replacement: string,
 }>;
 
-export class RepairCodeJobStateManager extends JobManager<RepairCodeFact, RepairCodeJob> {
+export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJob> {
 
     public constructor(
         protected readonly _messageBus: MessageBus,
