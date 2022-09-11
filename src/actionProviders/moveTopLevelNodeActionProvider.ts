@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
-import {ExtensionStateManager} from "../features/moveTopLevelNode/extensionStateManager";
+import {MoveTopLevelNodeJobManager} from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
 import { buildMoveTopLevelNodeJobHash } from '../features/moveTopLevelNode/jobHash';
 import { buildFileUri, buildJobUri } from '../fileSystems/uris';
@@ -66,7 +66,7 @@ export const buildTitle = (
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
     public constructor(
-        protected _extensionStateManager: ExtensionStateManager,
+        protected _extensionStateManager: MoveTopLevelNodeJobManager,
     ) {
     }
 

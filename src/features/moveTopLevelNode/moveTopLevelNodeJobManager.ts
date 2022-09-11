@@ -31,7 +31,7 @@ export type IntuitaCodeAction = Readonly<{
     newIndex: number,
 }>;
 
-type MoveTopLevelNodeJob = Readonly<{
+export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,
     fileName: string,
     hash: JobHash,
@@ -42,7 +42,7 @@ type MoveTopLevelNodeJob = Readonly<{
     score: [number, number],
 }>;
 
-export class ExtensionStateManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
+export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
         protected readonly _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,

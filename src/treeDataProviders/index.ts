@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { EventEmitter, MarkdownString, ProviderResult, TreeItem, TreeItemCollapsibleState, Uri, workspace } from "vscode";
-import { ExtensionStateManager } from "../features/moveTopLevelNode/extensionStateManager";
+import { MoveTopLevelNodeJobManager } from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
@@ -22,7 +22,7 @@ type Element =
     }>;
 
 export const buildTreeDataProvider = (
-    extensionStateManager: ExtensionStateManager,
+    extensionStateManager: MoveTopLevelNodeJobManager,
 ) => {
     const _onDidChangeTreeData = new EventEmitter<Element | undefined | null | void>();
 
@@ -30,23 +30,23 @@ export const buildTreeDataProvider = (
         getChildren(element: Element | undefined): ProviderResult<Element[]> {
             if (element === undefined) {
                 const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-    
+
                 const fileJobs = extensionStateManager.getFileJobs();
-    
+
                 const elements: Element[] = fileJobs
                     .map(
                         (jobs) => {
                             const [ job ] = jobs;
-    
+
                             if (!job) {
                                 return null;
                             }
-    
+
                             const { fileName } = job;
-    
+
                             const label: string = fileName.replace(rootPath, '');
                             const uri = Uri.parse(fileName);
-    
+
                             const children: Element[] = jobs
                                 .map(
                                     (diagnostic) => {
@@ -60,7 +60,7 @@ export const buildTreeDataProvider = (
                                         };
                                     }
                                 );
-    
+
                             return {
                                 kind: 'FILE' as const,
                                 label,
@@ -69,14 +69,14 @@ export const buildTreeDataProvider = (
                         }
                     )
                     .filter(isNeitherNullNorUndefined);
-    
+
                 return Promise.resolve(elements);
             }
-    
+
             if (element.kind === 'DIAGNOSTIC') {
                 return Promise.resolve([]);
             }
-    
+
             return Promise.resolve(
                 element.children.slice()
             );
@@ -85,13 +85,13 @@ export const buildTreeDataProvider = (
             const treeItem = new TreeItem(
                 element.label,
             );
-    
+
             treeItem.id = buildHash(element.label);
-    
+
             treeItem.collapsibleState = element.kind === 'FILE'
                 ? TreeItemCollapsibleState.Collapsed
                 : TreeItemCollapsibleState.None;
-    
+
             treeItem.iconPath = join(
                 __filename,
                 '..',
@@ -99,22 +99,22 @@ export const buildTreeDataProvider = (
                 'resources',
                 element.kind === 'FILE' ? 'ts2.svg' : 'bluelightbulb.svg'
             );
-    
+
             if (element.kind === 'DIAGNOSTIC') {
                 treeItem.contextValue = 'intuitaJob';
-    
+
                 const tooltip = new MarkdownString(
                     'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)'
                 );
-    
+
                 tooltip.isTrusted = true;
-    
+
                 treeItem.tooltip = tooltip;
-    
+
                 const fileNameHash = buildFileNameHash(
                     element.fileName,
                 );
-    
+
                 treeItem.command = {
                     title: 'Diff View',
                     command: 'vscode.diff',
@@ -125,7 +125,7 @@ export const buildTreeDataProvider = (
                     ]
                 };
             }
-    
+
             return treeItem;
         },
         onDidChangeTreeData: _onDidChangeTreeData.event,

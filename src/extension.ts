@@ -7,7 +7,7 @@ import {
 } from 'vscode';
 import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
-import {ExtensionStateManager} from "./features/moveTopLevelNode/extensionStateManager";
+import {MoveTopLevelNodeJobManager, MoveTopLevelNodeJob} from "./features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
@@ -16,8 +16,6 @@ import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDia
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
-import {getOrOpenTextDocuments} from "./components/vscodeUtilities";
-import {IntuitaJob} from "./jobs";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -59,7 +57,7 @@ export async function activate(
 			'typescript'
 		);
 
-	const extensionStateManager = new ExtensionStateManager(
+	const extensionStateManager = new MoveTopLevelNodeJobManager(
 		messageBus,
 		configurationContainer,
 		_setDiagnosticEntry,
@@ -69,9 +67,9 @@ export async function activate(
 
 	function _setDiagnosticEntry(
 		fileName: string,
-		intuitaJobs: ReadonlyArray<IntuitaJob>
+		jobs: ReadonlyArray<MoveTopLevelNodeJob>,
 	) {
-		const diagnostics = intuitaJobs
+		const diagnostics = jobs
 			.map(
 				({ title, range: intuitaRange }) => {
 					const startPosition = new Position(
