@@ -147,12 +147,12 @@ export async function activate(
 		},
 	);
 
-	// context.subscriptions.push(
-	// 	vscode.window.registerTreeDataProvider(
-	// 		'explorerIntuitaViewId',
-	// 		treeDataProvider
-	// 	)
-	// );
+	context.subscriptions.push(
+		vscode.window.registerTreeDataProvider(
+			'explorerIntuitaViewId',
+			treeDataProvider
+		)
+	);
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
