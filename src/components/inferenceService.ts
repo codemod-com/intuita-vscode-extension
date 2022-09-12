@@ -123,7 +123,6 @@ export class InferenceService {
         data: any,
     ): void {
         const str = data.toString();
-        console.log('ABCD', str);
 
         const json = JSON.parse(str);
 
