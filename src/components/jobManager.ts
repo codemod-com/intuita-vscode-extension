@@ -6,7 +6,7 @@ import {FilePermission, Uri} from "vscode";
 import {FS_PATH_REG_EXP} from "../fileSystems/intuitaFileSystem";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
-import {buildJobUri} from "../fileSystems/uris";
+import {buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
 
 export interface Job {
     fileName: string;
@@ -109,29 +109,15 @@ export abstract class JobManager<FACT, JOB extends Job> {
     public async onReadingFileFailed (
         uri: Uri
     ) {
-        if (uri.scheme !== 'intuita') {
+        const destructedUri = destructIntuitaFileSystemUri(uri);
+
+        if (!destructedUri) {
             return;
         }
 
-        const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
-
-        if (!regExpExecArray) {
-            throw new Error(`The fsPath of the URI (${uri.fsPath}) does not belong to the Intuita File System`);
-        }
-
-        const directory = regExpExecArray[1];
-
-        const permissions = directory === 'files'
-            ? FilePermission.Readonly
-            : null;
-
-        const fileName = directory === 'files'
-            ? this.getFileNameFromFileNameHash(
-                regExpExecArray[2] as FileNameHash
-            )
-            : this.getFileNameFromJobHash(
-                regExpExecArray[2] as JobHash
-            );
+        const fileName = destructedUri.directory === 'files'
+            ? this.getFileNameFromFileNameHash(destructedUri.fileNameHash)
+            : this.getFileNameFromJobHash(destructedUri.jobHash);
 
         assertsNeitherNullOrUndefined(fileName);
 
@@ -140,10 +126,10 @@ export abstract class JobManager<FACT, JOB extends Job> {
 
         assertsNeitherNullOrUndefined(text);
 
-        if (directory === 'jobs') {
+        if (destructedUri.directory === 'jobs') {
             const result = this
                 .executeJob(
-                    regExpExecArray[2] as JobHash,
+                    destructedUri.jobHash,
                     0,
                 );
 
@@ -157,6 +143,10 @@ export abstract class JobManager<FACT, JOB extends Job> {
         }
 
         const content = Buffer.from(text);
+
+        const permissions = destructedUri.directory === 'files'
+            ? FilePermission.Readonly
+            : null;
 
         this._messageBus.publish(
             {
