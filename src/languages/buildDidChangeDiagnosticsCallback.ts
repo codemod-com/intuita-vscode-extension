@@ -152,7 +152,7 @@ export const buildDidChangeDiagnosticsCallback = (
 
                     const { range } = diagnostic;
 
-                    onnxWrapper.writeToStandardInput({
+                    await onnxWrapper.writeToStandardInput({
                         kind: 'infer',
                         fileName: uri.path,
                         range: [

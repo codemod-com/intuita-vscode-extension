@@ -103,12 +103,25 @@ export class OnnxWrapper {
         }
     }
 
-    public writeToStandardInput(
+    public async writeToStandardInput(
         command: InferCommand,
     ) {
-        this._process?.stdin.write(
-            JSON.stringify(command)
-        );
+        return new Promise<void>((resolve, reject) => {
+            if (!this._process) {
+                return resolve();
+            }
+
+            this._process.stdin.write(
+                JSON.stringify(command),
+                (error) => {
+                    if (!error) {
+                        return resolve();
+                    }
+
+                    return reject(error);
+                },
+            );
+        });
     }
 
     public kill(): void {
