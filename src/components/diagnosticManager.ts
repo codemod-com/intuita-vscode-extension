@@ -1,6 +1,6 @@
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
 import {InferenceService} from "./inferenceService";
-import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
+import {DiagnosticChangeEvent, languages, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
 import {mkdirSync, writeFileSync} from "node:fs";
