@@ -10,13 +10,13 @@ import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
-import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {InferenceService} from "./components/inferenceService";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
 import {DiagnosticManager} from "./components/diagnosticManager";
+import {acceptJob} from "./components/acceptJob";
 
 const messageBus = new MessageBus();
 const inferenceService = new InferenceService(messageBus);
@@ -198,7 +198,7 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			buildMoveTopLevelNodeCommand(
+			acceptJob(
 				configurationContainer,
 				intuitaFileSystem,
 				jobManager,
