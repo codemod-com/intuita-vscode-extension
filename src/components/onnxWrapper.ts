@@ -1,10 +1,10 @@
 import * as t from 'io-ts'
 import reporter from 'io-ts-reporters'
-import {areRepairCodeCommandAvailable} from "../configuration";
-import {spawn} from "node:child_process";
+import {execSync, spawn} from "node:child_process";
 import {ChildProcessWithoutNullStreams} from "child_process";
 import {MessageBus, MessageKind} from "../messageBus";
 import {Uri} from "vscode";
+import {type} from "node:os";
 
 export const buildTypeCodec = <T extends t.Props>(props: T): t.ReadonlyC<t.ExactC<t.TypeC<T>>> =>
     t.readonly(t.exact(t.type(props)));
@@ -57,6 +57,22 @@ export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
 export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;
 export type ErrorMessage = t.TypeOf<typeof errorMessageCodec>;
 
+const areRepairCodeCommandsAvailable = () => {
+    const operatingSystemName = type();
+
+    if (operatingSystemName !== 'Linux' && operatingSystemName !== 'Darwin') {
+        return false;
+    }
+
+    try {
+        execSync('which joern-parse joern-vectors intuita-onnx-wrapper');
+
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export class OnnxWrapper {
     protected readonly _messageBus: MessageBus;
     protected readonly _process: ChildProcessWithoutNullStreams | null;
@@ -64,7 +80,7 @@ export class OnnxWrapper {
     public constructor(
         messageBus: MessageBus
     ) {
-        const commandsAvailable = areRepairCodeCommandAvailable();
+        const commandsAvailable = areRepairCodeCommandsAvailable();
 
         this._messageBus = messageBus;
 
@@ -107,13 +123,14 @@ export class OnnxWrapper {
 
         const message = decodeOrThrow(
             inferredMessageCodec,
-            () => new Error(''), // TODO fix
+            (report) =>
+                new Error(`Could not decode the inferred message: ${report.join()}`),
             json
         );
 
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJob,
-            uri: Uri.parse(message.fileName), // TODO we need to check if this is correct
+            uri: Uri.parse(message.fileName),
             range: message.range,
             replacement: message.results[0] ?? '',
         });
@@ -127,7 +144,8 @@ export class OnnxWrapper {
 
         const message = decodeOrThrow(
             errorMessageCodec,
-            () => new Error(''), // TODO fix
+            (report) =>
+                new Error(`Could not decode the error message: ${report.join()}`),
             json
         );
 

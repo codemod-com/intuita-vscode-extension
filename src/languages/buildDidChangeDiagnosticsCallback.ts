@@ -27,7 +27,7 @@ const buildDiagnosticHash = (
             String(diagnostic.source),
         ].join(',')
     );
-}
+};
 
 const foundHashes = new Set<string>();
 

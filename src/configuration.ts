@@ -1,24 +1,10 @@
-import { execSync } from 'node:child_process';
-import { type } from 'node:os';
 import * as vscode from 'vscode';
-import { DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER, TopLevelNodeKind, TopLevelNodeModifier } from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
-
-// TODO move to onnx wrapper
-export const areRepairCodeCommandAvailable = () => {
-    const operatingSystemName = type();
-
-    if (operatingSystemName !== 'Linux' && operatingSystemName !== 'Darwin') {
-        return false;
-    }
-
-    try {
-        execSync('which joern-parse joern-vectors intuita-onnx-wrapper');
-
-        return true;
-    } catch {
-        return false;
-    }
-};
+import {
+    DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
+    DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER,
+    TopLevelNodeKind,
+    TopLevelNodeModifier
+} from './features/moveTopLevelNode/2_factBuilders/topLevelNode';
 
 export const getConfiguration = () => {
     const configuration = vscode.workspace.getConfiguration(
