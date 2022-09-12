@@ -1,4 +1,3 @@
-import {Configuration} from "../../configuration";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
 import {
@@ -172,6 +171,3 @@ export const calculateCharacterDifference = (
 
     return characterIndex - topLevelNode.triviaStart;
 };
-
-export class MoveTopLevelNodeJobManager extends JobManager{
-}

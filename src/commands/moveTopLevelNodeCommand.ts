@@ -1,17 +1,17 @@
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
 import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
-import {MoveTopLevelNodeJobManager} from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import {IntuitaFileSystem} from "../fileSystems/intuitaFileSystem";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
 import {buildJobUri} from "../fileSystems/uris";
 import {JobOutput} from "../jobs";
+import {JobManager} from "../components/jobManager";
 
 export const buildMoveTopLevelNodeCommand = (
     configurationContainer: Container<Configuration>,
     intuitaFileSystem: IntuitaFileSystem,
-    moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
+    jobManager: JobManager,
 ) => {
     const getJobOutput = (
         jobHash: JobHash,
@@ -22,7 +22,7 @@ export const buildMoveTopLevelNodeCommand = (
         );
 
         if (!content) {
-            return moveTopLevelNodeJobManager
+            return jobManager
                 .executeJob(
                     jobHash,
                     characterDifference,
@@ -58,7 +58,7 @@ export const buildMoveTopLevelNodeCommand = (
             throw new Error('The job hash argument must be a number.');
         }
 
-        const fileName = moveTopLevelNodeJobManager.getFileNameFromJobHash(jobHash as JobHash);
+        const fileName = jobManager.getFileNameFromJobHash(jobHash as JobHash);
 
         assertsNeitherNullOrUndefined(fileName);
 
@@ -167,7 +167,7 @@ export const buildMoveTopLevelNodeCommand = (
             );
 
         if (allTextDocuments[0]) {
-            moveTopLevelNodeJobManager
+            jobManager
                 .onFileTextChanged(
                     allTextDocuments[0],
                 );

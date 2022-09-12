@@ -1,7 +1,6 @@
 import {JobHash} from "../moveTopLevelNode/jobHash";
 import {IntuitaRange} from "../../utilities";
 import {JobKind} from "../../jobs";
-import {JobManager} from "../../components/jobManager";
 
 export type RepairCodeJob = Readonly<{
     kind: JobKind.repairCode,
@@ -11,6 +10,3 @@ export type RepairCodeJob = Readonly<{
     range: IntuitaRange,
     replacement: string,
 }>;
-
-export class RepairCodeJobManager extends JobManager {
-}
