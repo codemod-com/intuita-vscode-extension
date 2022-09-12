@@ -91,7 +91,7 @@ export const buildTitle = (
     return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
 };
 
-const buildMoveTopLevelNodeJobs = (
+export const buildMoveTopLevelNodeJobs = (
     userCommand: MoveTopLevelNodeUserCommand,
     fact: MoveTopLevelNodeFact,
     rejectedJobHashes: ReadonlySet<JobHash>,
@@ -174,103 +174,4 @@ export const calculateCharacterDifference = (
 };
 
 export class MoveTopLevelNodeJobManager extends JobManager{
-    public constructor(
-        _messageBus: MessageBus,
-        protected readonly _configurationContainer: Container<Configuration>,
-        _setDiagnosticEntry: (
-            fileName: string,
-        ) => void,
-    ) {
-        super(_messageBus, _setDiagnosticEntry);
-    }
-
-    public onFileTextChanged(
-        document: vscode.TextDocument,
-    ) {
-        if (document.uri.scheme !== 'file') {
-            return;
-        }
-
-        const { fileName } = document;
-        const fileText = document.getText();
-
-        const userCommand: MoveTopLevelNodeUserCommand = {
-            kind: 'MOVE_TOP_LEVEL_NODE',
-            fileName,
-            fileText,
-            options: this._configurationContainer.get(),
-        };
-
-        const fact = buildMoveTopLevelNodeFact(userCommand);
-
-        if (!fact) {
-            return;
-        }
-
-        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
-
-        const fileNameHash = buildFileNameHash(fileName);
-
-        const oldJobHashes = this._jobHashMap.get(fileNameHash);
-
-        this._fileNames.set(fileNameHash, fileName);
-
-        const jobHashes = new Set(
-            jobs.map(({ hash }) => hash)
-        );
-
-        jobHashes.forEach((jobHash) => {
-            this._factMap.set(jobHash, fact);
-        });
-
-        this._jobHashMap.set(fileNameHash, jobHashes);
-
-        jobs.forEach((job) => {
-            this._jobMap.set(
-                job.hash,
-                job,
-            );
-        });
-
-        this._setDiagnosticEntry(fileName);
-
-        oldJobHashes?.forEach(
-            (oldJobHash) => {
-                if (jobHashes.has(oldJobHash)) {
-                    return;
-                }
-
-                const uri = buildJobUri(oldJobHash);
-
-                this._messageBus.publish(
-                    {
-                        kind: MessageKind.deleteFile,
-                        uri,
-                    },
-                );
-            },
-        );
-
-        const uri = buildFileUri(fileNameHash);
-
-        // TODO check all the jobs
-
-        if (jobs.length === 0) {
-            this._messageBus.publish(
-                {
-                    kind: MessageKind.deleteFile,
-                    uri,
-                },
-            );
-        } else {
-            this._messageBus.publish(
-                {
-                    kind: MessageKind.writeFile,
-                    uri,
-                    content: Buffer.from(fileText),
-                    permissions: vscode.FilePermission.Readonly,
-                },
-            );
-        }
-    }
 }

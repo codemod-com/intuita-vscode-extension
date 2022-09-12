@@ -7,28 +7,31 @@ import {
     isNeitherNullNorUndefined
 } from "../utilities";
 import {JobKind, JobOutput} from "../jobs";
-import {FilePermission, Uri} from "vscode";
+import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
-import {buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
+import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
 import {
+    buildMoveTopLevelNodeJobs,
     calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import {RepairCodeJob} from "../features/repairCode/repairCodeJobManager";
-import {RepairCodeFact} from "../features/repairCode/factBuilder";
-import {MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
+import {buildRepairCodeFact, RepairCodeFact} from "../features/repairCode/factBuilder";
+import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
 import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
 import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
+import {RepairCodeUserCommand} from "../features/repairCode/userCommand";
+import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
+import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
+import {Container} from "../container";
+import {Configuration} from "../configuration";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
 
 export abstract class JobManager {
-    protected _messageBus: MessageBus;
-    protected _setDiagnosticEntry: (fileName: string) => void;
-
     protected _fileNames = new Map<FileNameHash, string>();
     protected _factMap = new Map<JobHash, Fact>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
@@ -36,11 +39,68 @@ export abstract class JobManager {
     protected _jobMap = new Map<JobHash, Job>;
 
     public constructor(
-        messageBus: MessageBus,
-        setDiagnosticEntry: (fileName: string) => void,
+        protected readonly _messageBus: MessageBus,
+        protected readonly _configurationContainer: Container<Configuration>,
+        protected readonly _setDiagnosticEntry: (fileName: string) => void,
     ) {
-        this._messageBus = messageBus;
-        this._setDiagnosticEntry = setDiagnosticEntry;
+        this._messageBus.subscribe(
+            async (message) => {
+                if (message.kind !== MessageKind.createRepairCodeJob) {
+                    return;
+                }
+
+                const fileName = message.uri.fsPath;
+
+                const fileNameHash = buildFileNameHash(fileName);
+
+                this._fileNames.set(
+                    fileNameHash,
+                    fileName
+                );
+
+                const textDocuments = await getOrOpenTextDocuments(fileName);
+                const fileText = textDocuments[0]?.getText() ?? '';
+
+                const command: RepairCodeUserCommand = {
+                    fileName,
+                    fileText,
+                    kind: "REPAIR_CODE",
+                    range: message.range,
+                    replacement: message.replacement,
+                };
+
+                const fact = buildRepairCodeFact(command);
+
+                const jobHash = buildRepairCodeJobHash(
+                    fileName,
+                    message.range,
+                    message.replacement,
+                );
+
+                this._factMap.set(jobHash, fact);
+
+                const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+                jobHashes.add(jobHash);
+
+                this._jobHashMap.set(fileNameHash, jobHashes);
+
+                const job: RepairCodeJob = {
+                    kind: JobKind.repairCode,
+                    fileName,
+                    hash: jobHash,
+                    title: 'Test' + message.range.toString(),
+                    range: message.range,
+                    replacement: message.replacement,
+                };
+
+                this._jobMap.set(
+                    job.hash,
+                    job,
+                );
+
+                this._setDiagnosticEntry(fileName);
+            }
+        );
     }
 
     public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
@@ -259,5 +319,95 @@ export abstract class JobManager {
                 }
             )
             .filter(isNeitherNullNorUndefined);
+    }
+
+    public onFileTextChanged(
+        document: TextDocument,
+    ) {
+        if (document.uri.scheme !== 'file') {
+            return;
+        }
+
+        const { fileName } = document;
+        const fileText = document.getText();
+
+        const userCommand: MoveTopLevelNodeUserCommand = {
+            kind: 'MOVE_TOP_LEVEL_NODE',
+            fileName,
+            fileText,
+            options: this._configurationContainer.get(),
+        };
+
+        const fact = buildMoveTopLevelNodeFact(userCommand);
+
+        if (!fact) {
+            return;
+        }
+
+        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
+
+        const fileNameHash = buildFileNameHash(fileName);
+
+        const oldJobHashes = this._jobHashMap.get(fileNameHash);
+
+        this._fileNames.set(fileNameHash, fileName);
+
+        const jobHashes = new Set(
+            jobs.map(({ hash }) => hash)
+        );
+
+        jobHashes.forEach((jobHash) => {
+            this._factMap.set(jobHash, fact);
+        });
+
+        this._jobHashMap.set(fileNameHash, jobHashes);
+
+        jobs.forEach((job) => {
+            this._jobMap.set(
+                job.hash,
+                job,
+            );
+        });
+
+        this._setDiagnosticEntry(fileName);
+
+        oldJobHashes?.forEach(
+            (oldJobHash) => {
+                if (jobHashes.has(oldJobHash)) {
+                    return;
+                }
+
+                const uri = buildJobUri(oldJobHash);
+
+                this._messageBus.publish(
+                    {
+                        kind: MessageKind.deleteFile,
+                        uri,
+                    },
+                );
+            },
+        );
+
+        const uri = buildFileUri(fileNameHash);
+
+        // TODO check all the jobs
+
+        if (jobs.length === 0) {
+            this._messageBus.publish(
+                {
+                    kind: MessageKind.deleteFile,
+                    uri,
+                },
+            );
+        } else {
+            this._messageBus.publish(
+                {
+                    kind: MessageKind.writeFile,
+                    uri,
+                    content: Buffer.from(fileText),
+                    permissions: FilePermission.Readonly,
+                },
+            );
+        }
     }
 }
