@@ -63,7 +63,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        // assert.approximately(score, 0.0357, 0.0001);
+        assert.approximately(score[0], 0.0, 0.0001);
     });
 
     it('should return a positive number for an array with 2 unordered elements', () => {
@@ -82,7 +82,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        // assert.approximately(score, 0.4285, 0.0001);
+        assert.approximately(score[0], 0, 0.0001);
     });
 
     it('should return a positive number for an array with 3 unordered elements', () => {
@@ -105,7 +105,7 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        // assert.approximately(score, 0.3928, 0.0001);
+        assert.approximately(score[0], 0, 0.0001);
     });
 
     it('should return a positive number for an array with 8 unordered elements', () => {
@@ -125,6 +125,6 @@ describe('calculateNodesScore', function() {
             DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
         );
 
-        // assert.approximately(score, 0.2653, 0.0001);
+        assert.approximately(score[0], 0.0, 0.0001);
     });
 });

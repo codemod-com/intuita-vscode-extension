@@ -1,10 +1,23 @@
-import { Disposable, Event, EventEmitter, FileChangeEvent, FileChangeType, FilePermission, FileStat, FileSystemError, FileSystemProvider, FileType, Uri } from "vscode";
-import { MessageBus, MessageKind } from "../messageBus";
+import {
+    Disposable,
+    Event,
+    EventEmitter,
+    FileChangeEvent,
+    FileChangeType,
+    FilePermission,
+    FileStat,
+    FileSystemError,
+    FileSystemProvider,
+    FileType,
+    Uri
+} from "vscode";
+import {MessageBus, MessageKind} from "./messageBus";
+import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
+import {JobHash} from "../features/moveTopLevelNode/jobHash";
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 export const FS_PATH_REG_EXP = /\/(jobs|files)\/([a-zA-Z0-9\-_]{27})\.(tsx|jsx|ts|js)/;
 
-// type IntuitaFile = Uint8Array;
 type IntuitaFile = Readonly<{
     content: Uint8Array,
     permissions: FilePermission | null,
@@ -96,7 +109,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
     }
 
     createDirectory(_: Uri): void {
-        
+
     }
 
     public readNullableFile(uri: Uri): Uint8Array | null {
@@ -123,7 +136,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
         return content ?? LOADING_MESSAGE;
     }
-    
+
     writeFile(
         uri: Uri,
         content: Uint8Array,
@@ -240,3 +253,49 @@ export class IntuitaFileSystem implements FileSystemProvider {
         );
     }
 }
+
+export const buildJobUri = (
+    jobHash: JobHash,
+): Uri => {
+    return Uri.parse(
+        `intuita:/jobs/${jobHash}.ts`,
+        true,
+    );
+};
+export const buildFileUri = (
+    fileNameHash: FileNameHash,
+): Uri => {
+    return Uri.parse(
+        `intuita:/files/${fileNameHash}.ts`,
+        true,
+    );
+};
+export const destructIntuitaFileSystemUri = (uri: Uri) => {
+    if (uri.scheme !== 'intuita') {
+        return null;
+    }
+
+    const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
+
+    if (!regExpExecArray) {
+        return null;
+    }
+
+    const directory = regExpExecArray[1];
+
+    if (directory === 'files') {
+        return {
+            directory: 'files' as const,
+            fileNameHash: regExpExecArray[2] as FileNameHash,
+        };
+    }
+
+    if (directory === 'jobs') {
+        return {
+            directory: 'jobs' as const,
+            jobHash: regExpExecArray[2] as JobHash,
+        };
+    }
+
+    return null;
+};
