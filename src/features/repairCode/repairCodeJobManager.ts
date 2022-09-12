@@ -3,14 +3,13 @@ import {JobHash} from "../moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, calculateLastPosition, IntuitaPosition, IntuitaRange} from "../../utilities";
 import {JobKind, JobOutput} from "../../jobs";
 import {JobManager} from "../../components/jobManager";
-import {buildRepairCodeFact, RepairCodeFact} from "./factBuilder";
-import {buildFileNameHash, FileNameHash} from "../moveTopLevelNode/fileNameHash";
+import {buildRepairCodeFact} from "./factBuilder";
+import {buildFileNameHash} from "../moveTopLevelNode/fileNameHash";
 import {getOrOpenTextDocuments} from "../../components/vscodeUtilities";
 import {RepairCodeUserCommand} from "./userCommand";
 import {buildRepairCodeJobHash} from "./jobHash";
 import {executeRepairCodeCommand} from "./commandExecutor";
-import { FilePermission, Uri } from "vscode";
-import { FS_PATH_REG_EXP } from "../../fileSystems/intuitaFileSystem";
+import {FactKind} from "../../facts";
 
 export type RepairCodeJob = Readonly<{
     kind: JobKind.repairCode,
@@ -21,7 +20,7 @@ export type RepairCodeJob = Readonly<{
     replacement: string,
 }>;
 
-export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJob> {
+export class RepairCodeJobManager extends JobManager {
 
     public constructor(
         _messageBus: MessageBus,
@@ -95,6 +94,10 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
 
         assertsNeitherNullOrUndefined(job);
         assertsNeitherNullOrUndefined(fact);
+
+        if (fact.kind !== FactKind.repairCode) {
+            throw new Error('not implemented');
+        }
 
         const { text, line, character } = executeRepairCodeCommand(fact);
 

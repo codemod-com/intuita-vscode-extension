@@ -1,25 +1,32 @@
-import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
+import {buildFileNameHash, FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {assertsNeitherNullOrUndefined, isNeitherNullNorUndefined} from "../utilities";
+import {assertsNeitherNullOrUndefined, IntuitaPosition, isNeitherNullNorUndefined} from "../utilities";
 import {JobOutput} from "../jobs";
 import {FilePermission, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
 import {buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
+import {
+    calculateCharacterDifference,
+    MoveTopLevelNodeJob
+} from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
+import {RepairCodeJob} from "../features/repairCode/repairCodeJobManager";
+import {RepairCodeFact} from "../features/repairCode/factBuilder";
+import {MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
+import {FactKind} from "../facts";
 
-export interface Job {
-    fileName: string;
-}
+type Job = MoveTopLevelNodeJob | RepairCodeJob;
+type Fact = MoveTopLevelNodeFact | RepairCodeFact;
 
-export abstract class JobManager<FACT, JOB extends Job> {
+export abstract class JobManager {
     protected _messageBus: MessageBus;
     protected _setDiagnosticEntry: (fileName: string) => void;
 
     protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<JobHash, FACT>();
+    protected _factMap = new Map<JobHash, Fact>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
-    protected _jobMap = new Map<JobHash, JOB>;
+    protected _jobMap = new Map<JobHash, Job>;
 
     public constructor(
         messageBus: MessageBus,
@@ -43,7 +50,7 @@ export abstract class JobManager<FACT, JOB extends Job> {
         return Array.from(this._fileNames.values());
     }
 
-    public getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<JOB> {
+    public getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<Job> {
         const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         return Array.from(jobHashes).map(
@@ -153,5 +160,53 @@ export abstract class JobManager<FACT, JOB extends Job> {
                 permissions,
             },
         );
+    }
+
+    public findCodeActions(
+        fileName: string,
+        position: IntuitaPosition,
+    ): ReadonlyArray<Job & { characterDifference: number }> {
+        const fileNameHash = buildFileNameHash(fileName);
+
+        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+
+        const jobs = Array.from(jobHashes.keys()).map(
+            (jobHash) => {
+                if (this._rejectedJobHashes.has(jobHash)) {
+                    return null;
+                }
+
+                return this._jobMap.get(jobHash);
+            }
+        )
+            .filter(isNeitherNullNorUndefined);
+
+
+        return jobs
+            .filter(
+                ({ range }) => {
+                    return range[0] <= position[0]
+                        && range[2] >= position[0]
+                        && range[1] <= position[1]
+                        && range[3] >= position[1];
+                },
+            )
+            .map(
+                (job) => {
+                    const fact = this._factMap.get(job.hash);
+
+                    assertsNeitherNullOrUndefined(fact);
+
+                    const characterDifference = fact.kind === FactKind.moveTopLevelNode
+                        ? calculateCharacterDifference(fact, position)
+                        : 0;
+
+                    return {
+                        ...job,
+                        characterDifference,
+                    };
+                }
+            )
+            .filter(isNeitherNullNorUndefined);
     }
 }

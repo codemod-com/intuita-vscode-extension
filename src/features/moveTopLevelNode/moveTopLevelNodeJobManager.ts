@@ -20,13 +20,7 @@ import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
 import {JobKind, JobOutput} from "../../jobs";
 import {JobManager} from "../../components/jobManager";
 import {Solution} from "./2_factBuilders/solutions";
-
-export type IntuitaCodeAction = Readonly<{
-    title: string,
-    characterDifference: number,
-    oldIndex: number,
-    newIndex: number,
-}>;
+import {FactKind} from "../../facts";
 
 export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,
@@ -152,7 +146,34 @@ const buildMoveTopLevelNodeJobs = (
         .filter(isNeitherNullNorUndefined);
 };
 
-export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
+export const calculateCharacterDifference = (
+    fact: MoveTopLevelNodeFact,
+    position: IntuitaPosition,
+): number => {
+    const characterIndex = calculateCharacterIndex(
+        fact.separator,
+        fact.lengths,
+        position[0],
+        position[1],
+    );
+
+    const topLevelNodeIndex = fact
+        .topLevelNodes
+        .findIndex(
+            (topLevelNode) => {
+                return topLevelNode.triviaStart <= characterIndex
+                    && characterIndex <= topLevelNode.triviaEnd;
+            }
+        );
+
+    const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
+
+    assertsNeitherNullOrUndefined(topLevelNode);
+
+    return characterIndex - topLevelNode.triviaStart;
+};
+
+export class MoveTopLevelNodeJobManager extends JobManager{
     public constructor(
         _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,
@@ -253,76 +274,6 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         }
     }
 
-    public findCodeActions(
-        fileName: string,
-        position: IntuitaPosition,
-    ): ReadonlyArray<IntuitaCodeAction> {
-        const fileNameHash = buildFileNameHash(fileName);
-
-        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
-
-        const jobs = Array.from(jobHashes.keys()).map(
-            (jobHash) => {
-                if (this._rejectedJobHashes.has(jobHash)) {
-                    return null;
-                }
-
-                return this._jobMap.get(jobHash);
-            }
-        )
-            .filter(isNeitherNullNorUndefined);
-
-
-        return jobs
-            .filter(
-                ({ range }) => {
-                    return range[0] <= position[0]
-                        && range[2] >= position[0]
-                        && range[1] <= position[1]
-                        && range[3] >= position[1];
-                },
-            )
-            .map(
-                (job) => {
-                    const fact = this._factMap.get(job.hash);
-
-                    assertsNeitherNullOrUndefined(fact);
-
-                    const characterIndex = calculateCharacterIndex(
-                        fact.separator,
-                        fact.lengths,
-                        position[0],
-                        position[1],
-                    );
-
-                    const topLevelNodeIndex = fact
-                        .topLevelNodes
-                        .findIndex(
-                        (topLevelNode) => {
-                            return topLevelNode.triviaStart <= characterIndex
-                                && characterIndex <= topLevelNode.triviaEnd;
-                        }
-                    );
-
-                    const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
-
-                    if (topLevelNodeIndex === -1 || topLevelNode === null) {
-                        return null;
-                    }
-
-                    const characterDifference = characterIndex - topLevelNode.triviaStart;
-
-                    return {
-                        title: job.title,
-                        characterDifference,
-                        oldIndex: job.oldIndex,
-                        newIndex: job.newIndex,
-                    };
-                }
-            )
-            .filter(isNeitherNullNorUndefined);
-    }
-
     public override executeJob(
         jobHash: JobHash,
         characterDifference: number,
@@ -333,40 +284,45 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
         assertsNeitherNullOrUndefined(job);
         assertsNeitherNullOrUndefined(fact);
 
-        const {
-            oldIndex,
-            newIndex,
-        } = job;
+        // TODO
+        if (job.kind === JobKind.moveTopLevelNode && fact.kind === FactKind.moveTopLevelNode) {
+            const {
+                oldIndex,
+                newIndex,
+            } = job;
 
-        const execution = executeMoveTopLevelNodeAstCommandHelper(
-            oldIndex,
-            newIndex,
-            characterDifference,
-            fact.stringNodes,
-            fact.separator,
-        );
+            const execution = executeMoveTopLevelNodeAstCommandHelper(
+                oldIndex,
+                newIndex,
+                characterDifference,
+                fact.stringNodes,
+                fact.separator,
+            );
 
-        const { text, line, character } = execution;
+            const { text, line, character } = execution;
 
-        // TODO revisit it
-        const lastPosition = calculateLastPosition(text, fact.separator);
+            // TODO revisit it
+            const lastPosition = calculateLastPosition(text, fact.separator);
 
-        const range: IntuitaRange = [
-            0,
-            0,
-            lastPosition[0],
-            lastPosition[1],
-        ];
+            const range: IntuitaRange = [
+                0,
+                0,
+                lastPosition[0],
+                lastPosition[1],
+            ];
 
-        const position: IntuitaPosition = [
-            line,
-            character,
-        ];
+            const position: IntuitaPosition = [
+                line,
+                character,
+            ];
 
-        return {
-            range,
-            text,
-            position,
-        };
+            return {
+                range,
+                text,
+                position,
+            };
+        }
+
+        throw new Error('Not implemented');
     }
 }
