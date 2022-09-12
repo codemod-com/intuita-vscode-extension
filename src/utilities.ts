@@ -6,6 +6,8 @@ type NeitherNullNorUndefined<T> = [T] extends null | undefined ? never : T;
 export type IntuitaPosition = Readonly<[number, number]>;
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
+export type IntuitaSimpleRange = Readonly<{start: number, end: number}>;
+
 export function isNeitherNullNorUndefined<T>(
     value: NeitherNullNorUndefined<T> | null | undefined
 ): value is NeitherNullNorUndefined<T> {
@@ -19,13 +21,6 @@ export function assertsNeitherNullOrUndefined<T>(
         throw new Error('The value cannot be null or undefined')
     }
 }
-
-export type SourceFileExecution = Readonly<{
-    name: string,
-    text: string,
-    line: number,
-    character: number,
-}>;
 
 export const buildHash = (data: string) =>
     createHash('ripemd160')
@@ -129,4 +124,29 @@ export const getSeparator = (text: string): string => {
     return text.includes('\r\n')
         ? '\r\n'
         : '\n';
+};
+
+export const buildIntuitaSimpleRange = (
+    separator: string,
+    lengths: ReadonlyArray<number>,
+    range: IntuitaRange,
+): IntuitaSimpleRange => {
+    const start = calculateCharacterIndex(
+        separator,
+        lengths,
+        range[0],
+        range[1],
+    );
+
+    const end = calculateCharacterIndex(
+        separator,
+        lengths,
+        range[2],
+        range[3],
+    );
+
+    return {
+        start,
+        end,
+    };
 };

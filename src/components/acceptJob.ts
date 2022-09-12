@@ -1,35 +1,37 @@
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {assertsNeitherNullOrUndefined, calculateLastPosition, IntuitaRange} from "../utilities";
+import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
 import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
-import {ExtensionStateManager, JobOutput} from "../features/moveTopLevelNode/extensionStateManager";
-import {IntuitaFileSystem} from "../fileSystems/intuitaFileSystem";
+import {buildJobUri, IntuitaFileSystem} from "./intuitaFileSystem";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
-import {buildJobUri} from "../fileSystems/uris";
+import {JobOutput} from "../jobs";
+import {JobManager} from "./jobManager";
 
-export const buildMoveTopLevelNodeCommand = (
+export const acceptJob = (
     configurationContainer: Container<Configuration>,
     intuitaFileSystem: IntuitaFileSystem,
-    extensionStateManager: ExtensionStateManager,
+    jobManager: JobManager,
 ) => {
     const getJobOutput = (
         jobHash: JobHash,
+        characterDifference: number,
     ): JobOutput | null => {
         const content = intuitaFileSystem.readNullableFile(
             buildJobUri(jobHash as JobHash),
         );
 
         if (!content) {
-            return extensionStateManager
+            return jobManager
                 .executeJob(
                     jobHash,
-                    0,
+                    characterDifference,
                 );
         }
 
         const text = content.toString();
+        const separator = getSeparator(text);
 
-        const position = calculateLastPosition(text, '\n');
+        const position = calculateLastPosition(text, separator);
 
         const range: IntuitaRange = [
             0,
@@ -46,20 +48,36 @@ export const buildMoveTopLevelNodeCommand = (
         };
     };
 
-    return async (jobHash: unknown, characterDifference: unknown) => {
-        if (typeof jobHash !== 'string') {
-            throw new Error('The job hash argument must be a string.');
+    return async (arg0: unknown, arg1: unknown) => {
+        // factor in tree-data commands and regular commands
+
+        let jobHash: string;
+        let characterDifference: number;
+
+        if (typeof arg0 === 'object' && arg0) {
+            jobHash = (arg0 as any).hash;
+            characterDifference = 0;
+        } else {
+            if (typeof arg0 !== 'string') {
+                throw new Error('The job hash argument must be a string');
+            }
+    
+            if (typeof arg1 !== 'number') {
+                throw new Error('The characterDifference argument must be a number');
+            }
+
+            jobHash = arg0;
+            characterDifference = arg1;
         }
 
-        if (typeof characterDifference !== 'number') {
-            throw new Error('The job hash argument must be a number.');
-        }
-
-        const fileName = extensionStateManager.getFileNameFromJobHash(jobHash as JobHash);
+        const fileName = jobManager.getFileNameFromJobHash(jobHash as JobHash);
 
         assertsNeitherNullOrUndefined(fileName);
 
-        const result = getJobOutput(jobHash as JobHash);
+        const result = getJobOutput(
+            jobHash as JobHash,
+            characterDifference
+        );
 
         assertsNeitherNullOrUndefined(result);
 
@@ -161,7 +179,7 @@ export const buildMoveTopLevelNodeCommand = (
             );
 
         if (allTextDocuments[0]) {
-            extensionStateManager
+            jobManager
                 .onFileTextChanged(
                     allTextDocuments[0],
                 );

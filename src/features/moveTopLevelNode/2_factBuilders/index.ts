@@ -5,8 +5,10 @@ import {getStringNodes, StringNode} from "./stringNodes";
 import {buildTopLevelNodes} from "./buildTopLevelNodes";
 import {calculateLengths, calculateLines, getSeparator, isNeitherNullNorUndefined} from "../../../utilities";
 import { SolutionHash } from "../solutionHash";
+import {FactKind} from "../../../facts";
 
 export type MoveTopLevelNodeFact = Readonly<{
+    kind: FactKind.moveTopLevelNode,
     separator: string,
     topLevelNodes: ReadonlyArray<TopLevelNode>,
     lengths: ReadonlyArray<number>,
@@ -66,6 +68,7 @@ export const buildMoveTopLevelNodeFact = (
         });
 
     return {
+        kind: FactKind.moveTopLevelNode,
         separator,
         topLevelNodes,
         lengths,

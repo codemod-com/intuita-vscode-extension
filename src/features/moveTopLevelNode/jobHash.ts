@@ -2,7 +2,7 @@ import { buildHash } from "../../utilities";
 
 export type JobHash = string & { __type: 'JobHash' };
 
-export const buildJobHash = (
+export const buildMoveTopLevelNodeJobHash = (
     fileName: string,
     oldIndex: number,
     newIndex: number,
@@ -18,4 +18,4 @@ export const buildJobHash = (
     );
 
     return hash as JobHash;
-}
+};

@@ -5,21 +5,28 @@ import {
 	Position,
 	Range,
 } from 'vscode';
-import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
-import {ExtensionStateManager, IntuitaJob} from "./features/moveTopLevelNode/extensionStateManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
-import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
-import { MessageBus, MessageKind } from './messageBus';
-import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
-import { buildTreeDataProvider } from './treeDataProviders';
-import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
+import { IntuitaFileSystem } from './components/intuitaFileSystem';
+import { MessageBus, MessageKind } from './components/messageBus';
+import {InferenceService} from "./components/inferenceService";
+import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
+import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
+import {JobManager} from "./components/jobManager";
+import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
+import {DiagnosticManager} from "./components/diagnosticManager";
+import {acceptJob} from "./components/acceptJob";
+
+const messageBus = new MessageBus();
+const inferenceService = new InferenceService(messageBus);
 
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
-	const messageBus = new MessageBus(context.subscriptions);
+	messageBus.setDisposables(context.subscriptions);
+	
+	const diagnosticManager = new DiagnosticManager(inferenceService);
 
 	const configurationContainer = buildContainer(
 		getConfiguration()
@@ -55,21 +62,24 @@ export async function activate(
 			'typescript'
 		);
 
-	const extensionStateManager = new ExtensionStateManager(
+	const jobManager = new JobManager(
 		messageBus,
 		configurationContainer,
 		_setDiagnosticEntry,
 	);
 
-	const treeDataProvider = buildTreeDataProvider(extensionStateManager);
+	const treeDataProvider = new IntuitaTreeDataProvider(jobManager);
 
 	function _setDiagnosticEntry(
 		fileName: string,
-		intuitaJobs: ReadonlyArray<IntuitaJob>
 	) {
-		const diagnostics = intuitaJobs
+		const uri = vscode.Uri.parse(fileName);
+
+		const jobs = jobManager.getFileJobs(buildFileNameHash(fileName));
+
+		const diagnostics = jobs
 			.map(
-				({ title, range: intuitaRange }) => {
+				({ kind, title, range: intuitaRange }) => {
 					const startPosition = new Position(
 						intuitaRange[0],
 						intuitaRange[1],
@@ -80,34 +90,39 @@ export async function activate(
 						intuitaRange[3],
 					);
 
-					const range = new Range(
+					const vscodeRange = new Range(
 						startPosition,
 						endPosition,
 					);
 
-					return new Diagnostic(
-						range,
+					const diagnostic = new Diagnostic(
+						vscodeRange,
 						title,
 						DiagnosticSeverity.Information
 					);
+
+					diagnostic.code = kind.valueOf();
+					diagnostic.source = 'intuita';
+
+					return diagnostic;
 				}
 			);
 
 		diagnosticCollection.clear();
 
 		diagnosticCollection.set(
-			vscode.Uri.parse(fileName),
+			uri,
 			diagnostics,
 		);
 
-		treeDataProvider._onDidChangeTreeData.fire();
+		treeDataProvider.eventEmitter.fire();
 	}
 
 	messageBus.subscribe(
 		(message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
 				setImmediate(
-					() => extensionStateManager.onReadingFileFailed(
+					() => jobManager.onReadingFileFailed(
 						message.uri,
 					),
 				);
@@ -132,8 +147,8 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
-			new MoveTopLevelNodeActionProvider(
-				extensionStateManager,
+			new IntuitaCodeActionProvider(
+				jobManager,
 			)
 		));
 
@@ -141,7 +156,9 @@ export async function activate(
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
 	) => {
-		extensionStateManager
+		diagnosticManager.clearHashes();
+
+		jobManager
 			.onFileTextChanged(
 				document,
 			);
@@ -185,21 +202,11 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			async (args) => {
-				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
-					? args.hash
-					: null;
-
-				if (jobHash === null) {
-					throw new Error('Did not pass the job hash argument "hash".');
-				}
-
-				await vscode.commands.executeCommand(
-					'intuita.moveTopLevelNode',
-					jobHash,
-					0, // characterDifference
-				);
-			}
+			acceptJob(
+				configurationContainer,
+				intuitaFileSystem,
+				jobManager,
+			),
 		)
 	);
 
@@ -215,7 +222,7 @@ export async function activate(
 					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				extensionStateManager.rejectJob(
+				jobManager.rejectJob(
 					jobHash as JobHash,
 				);
 			}
@@ -235,17 +242,6 @@ export async function activate(
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.moveTopLevelNode',
-			buildMoveTopLevelNodeCommand(
-				configurationContainer,
-				intuitaFileSystem,
-				extensionStateManager,
-			),
-		),
-	);
-
-	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(
 			async ({ document })=> {
 				const { uri } = document;
@@ -256,7 +252,7 @@ export async function activate(
 					return;
 				}
 
-				extensionStateManager
+				jobManager
 					.onFileTextChanged(
 						document,
 					);
@@ -267,12 +263,12 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(
-			buildDidChangeDiagnosticsCallback(
-				configurationContainer,
-			),
+			(event) => diagnosticManager
+				.onDiagnosticChangeEvent(event),
 		),
 	);
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	inferenceService.kill();
+}
