@@ -44,13 +44,13 @@ export type MoveTopLevelNodeJob = Readonly<{
 
 export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
-        protected readonly _messageBus: MessageBus,
+        _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,
-        protected readonly _setDiagnosticEntry: (
+        _setDiagnosticEntry: (
             fileName: string,
         ) => void,
     ) {
-        super();
+        super(_messageBus, _setDiagnosticEntry);
     }
 
     public onFileTextChanged(
@@ -222,7 +222,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             .map(
                 ({ title, hash }) => {
                     const fact = this._factMap.get(hash);
-    
+
                     assertsNeitherNullOrUndefined(fact);
 
                     const characterIndex = calculateCharacterIndex(
@@ -280,55 +280,20 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             .filter(isNeitherNullNorUndefined);
     }
 
-    public override rejectJob(
-        jobHash: JobHash,
-    ) {
-        const {
-            fileName,
-            jobs
-        } = super.rejectJob(jobHash);
-
-        this._setDiagnosticEntry(fileName);
-
-        const uri = buildJobUri(jobHash);
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.changePermissions,
-                uri,
-                permissions: vscode.FilePermission.Readonly,
-            },
-        );
-
-        return {
-            fileName,
-            jobs,
-        };
-    }
-
     public override executeJob(
         jobHash: JobHash,
         characterDifference: number,
     ): JobOutput {
         const job = this._jobMap.get(jobHash);
+        const fact = this._factMap.get(jobHash);
 
-        if (!job) {
-            throw new Error('Could not find a job with the specified hash');
-        }
+        assertsNeitherNullOrUndefined(job);
+        assertsNeitherNullOrUndefined(fact);
 
         const {
-            fileName,
             oldIndex,
             newIndex,
         } = job;
-
-        const fact = this._factMap.get(jobHash);
-
-        assertsNeitherNullOrUndefined(fact);
-
-        if(fact.kind !== FactKind.moveTopLevelNode) {
-            throw new Error('Could not find a moveTopLevelNode fact with the specified hash');
-        }
 
         const execution = executeMoveTopLevelNodeAstCommandHelper(
             oldIndex,
@@ -340,6 +305,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
 
         const { text, line, character } = execution;
 
+        // TODO revisit it
         const lastPosition = calculateLastPosition(text, fact.separator);
 
         const range: IntuitaRange = [
@@ -359,67 +325,5 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             text,
             position,
         };
-    }
-
-    public async onReadingFileFailed (
-        uri: vscode.Uri
-    ) {
-        if (uri.scheme !== 'intuita') {
-            return;
-        }
-
-        const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
-
-        if (!regExpExecArray) {
-            throw new Error(`The fsPath of the URI (${uri.fsPath}) does not belong to the Intuita File System`);
-        }
-
-        const directory = regExpExecArray[1];
-
-        const permissions = directory === 'files'
-            ? vscode.FilePermission.Readonly
-            : null;
-
-        const fileName = directory === 'files'
-            ? this.getFileNameFromFileNameHash(
-                regExpExecArray[2] as FileNameHash
-            )
-            : this.getFileNameFromJobHash(
-                regExpExecArray[2] as JobHash
-            );
-
-		assertsNeitherNullOrUndefined(fileName);
-
-        const textDocument = await getOrOpenTextDocuments(fileName);
-        let text = textDocument[0]?.getText();
-
-        assertsNeitherNullOrUndefined(text);
-
-		if (directory === 'jobs') {
-			const result = this
-				.executeJob(
-					regExpExecArray[2] as JobHash,
-					0,
-				);
-
-			if (result) {
-				text = result.text;
-			}
-		}
-
-        if (!text) {
-            return;
-        }
-
-        const content = Buffer.from(text);
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.writeFile,
-                uri,
-                content,
-                permissions,
-            },
-        );
     }
 }

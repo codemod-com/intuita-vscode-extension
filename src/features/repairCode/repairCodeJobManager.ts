@@ -24,12 +24,10 @@ export type RepairCodeJob = Readonly<{
 export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJob> {
 
     public constructor(
-        protected readonly _messageBus: MessageBus,
-        protected readonly _setDiagnosticEntry: (
-            fileName: string,
-        ) => void,
+        _messageBus: MessageBus,
+        _setDiagnosticEntry: (fileName: string) => void,
     ) {
-        super();
+        super(_messageBus, _setDiagnosticEntry);
 
         this._messageBus.subscribe(
             async (message) => {
@@ -120,66 +118,5 @@ export class RepairCodeJobManager extends JobManager<RepairCodeFact, RepairCodeJ
             text,
             position,
         };
-    }
-
-    public async onReadingFileFailed (
-        uri: Uri
-    ) {
-        if (uri.scheme !== 'intuita') {
-            return;
-        }
-
-        const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
-
-        if (!regExpExecArray) {
-            throw new Error(`The fsPath of the URI (${uri.fsPath}) does not belong to the Intuita File System`);
-        }
-
-        const directory = regExpExecArray[1];
-
-        const permissions = directory === 'files'
-            ? FilePermission.Readonly
-            : null;
-
-        const fileName = directory === 'files'
-            ? this.getFileNameFromFileNameHash(
-                regExpExecArray[2] as FileNameHash
-            )
-            : this.getFileNameFromJobHash(
-                regExpExecArray[2] as JobHash
-            );
-
-		assertsNeitherNullOrUndefined(fileName);
-
-        const textDocument = await getOrOpenTextDocuments(fileName);
-        let text = textDocument[0]?.getText();
-
-        assertsNeitherNullOrUndefined(text);
-
-		if (directory === 'jobs') {
-			const result = this
-				.executeJob(
-					regExpExecArray[2] as JobHash,
-				);
-
-			if (result) {
-				text = result.text;
-			}
-		}
-
-        if (!text) {
-            return;
-        }
-
-        const content = Buffer.from(text);
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.writeFile,
-                uri,
-                content,
-                permissions,
-            },
-        );
     }
 }

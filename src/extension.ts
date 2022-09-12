@@ -82,8 +82,8 @@ export async function activate(
 		const uri = vscode.Uri.parse(fileName);
 
 		const jobs = [
-			...moveTopLevelNodeJobManager._getFileJobs(buildFileNameHash(fileName)),
-			...repairCodeJobManager._getFileJobs(buildFileNameHash(fileName))
+			...moveTopLevelNodeJobManager.getFileJobs(buildFileNameHash(fileName)),
+			...repairCodeJobManager.getFileJobs(buildFileNameHash(fileName))
 		];
 
 		const diagnostics = jobs

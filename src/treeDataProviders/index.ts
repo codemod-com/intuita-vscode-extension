@@ -46,10 +46,10 @@ export const buildTreeDataProvider = (
                         const fileNameHash = buildFileNameHash(fileName);
 
                         const jobs = [
-                            ...moveTopLevelNodeJobManager._getFileJobs(
+                            ...moveTopLevelNodeJobManager.getFileJobs(
                                 fileNameHash
                             ),
-                            ...repairCodeJobManager._getFileJobs(
+                            ...repairCodeJobManager.getFileJobs(
                                 fileNameHash
                             ),
                         ];
