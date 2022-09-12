@@ -74,7 +74,6 @@ export class JobManager {
                 const jobHash = buildRepairCodeJobHash(
                     fileName,
                     message.range,
-                    message.replacement,
                 );
 
                 this._factMap.set(jobHash, fact);

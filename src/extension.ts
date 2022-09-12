@@ -25,6 +25,8 @@ export async function activate(
 	context: vscode.ExtensionContext,
 ) {
 	messageBus.setDisposables(context.subscriptions);
+	
+	const diagnosticManager = new DiagnosticManager(inferenceService);
 
 	const configurationContainer = buildContainer(
 		getConfiguration()
@@ -88,13 +90,13 @@ export async function activate(
 						intuitaRange[3],
 					);
 
-					const range = new Range(
+					const vscodeRange = new Range(
 						startPosition,
 						endPosition,
 					);
 
 					const diagnostic = new Diagnostic(
-						range,
+						vscodeRange,
 						title,
 						DiagnosticSeverity.Information
 					);
@@ -154,6 +156,8 @@ export async function activate(
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
 	) => {
+		diagnosticManager.clearHashes();
+
 		jobManager
 			.onFileTextChanged(
 				document,
@@ -256,8 +260,6 @@ export async function activate(
 		);
 
 	context.subscriptions.push(diagnosticCollection);
-
-	const diagnosticManager = new DiagnosticManager(inferenceService);
 
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(

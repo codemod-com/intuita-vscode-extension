@@ -4,17 +4,15 @@ import {JobHash} from "../moveTopLevelNode/jobHash";
 export const buildRepairCodeJobHash = (
     fileName: string,
     range: IntuitaRange,
-    replacement: string,
 ): JobHash => {
-    const data = {
+    const data = [
         fileName,
-        range,
-        replacement,
-    };
+        ...range,
+    ]
+        .map((value) => String(value))
+        .join(',');
 
-    const hash = buildHash(
-        JSON.stringify(data),
-    );
+    const hash = buildHash(data);
 
     return hash as JobHash;
 };

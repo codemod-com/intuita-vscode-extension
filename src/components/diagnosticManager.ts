@@ -23,6 +23,10 @@ export class DiagnosticManager {
     ) {
     }
 
+    public clearHashes() {
+        this._hashes.clear();
+    }
+
     public async onDiagnosticChangeEvent(
         { uris }: DiagnosticChangeEvent,
     ): Promise<void> {
