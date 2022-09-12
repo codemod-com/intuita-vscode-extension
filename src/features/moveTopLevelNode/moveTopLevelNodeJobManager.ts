@@ -150,7 +150,7 @@ const buildMoveTopLevelNodeJobs = (
         }
     )
         .filter(isNeitherNullNorUndefined);
-}
+};
 
 export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
@@ -232,6 +232,8 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
 
         const uri = buildFileUri(fileNameHash);
 
+        // TODO check all the jobs
+
         if (jobs.length === 0) {
             this._messageBus.publish(
                 {
@@ -257,9 +259,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
     ): ReadonlyArray<IntuitaCodeAction> {
         const fileNameHash = buildFileNameHash(fileName);
 
-        const jobHashes = this._jobHashMap.get(fileNameHash);
-
-        assertsNeitherNullOrUndefined(jobHashes);
+        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         const jobs = Array.from(jobHashes.keys()).map(
             (jobHash) => {
@@ -283,8 +283,8 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
                 },
             )
             .map(
-                ({ title, hash }) => {
-                    const fact = this._factMap.get(hash);
+                (job) => {
+                    const fact = this._factMap.get(job.hash);
 
                     assertsNeitherNullOrUndefined(fact);
 
@@ -310,33 +310,13 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
                         return null;
                     }
 
-                    const solutions = fact
-                        .solutions
-                        .filter(isNeitherNullNorUndefined)
-                        .filter(
-                            (solution) => {
-                                return solution.oldIndex === topLevelNodeIndex;
-                            }
-                        );
-
-                    const solution = solutions[0] ?? null;
-
-                    if (solution === null) {
-                        return null;
-                    }
-
                     const characterDifference = characterIndex - topLevelNode.triviaStart;
 
-                    const {
-                        oldIndex,
-                        newIndex,
-                    } = solution;
-
                     return {
-                        title,
+                        title: job.title,
                         characterDifference,
-                        oldIndex,
-                        newIndex,
+                        oldIndex: job.oldIndex,
+                        newIndex: job.newIndex,
                     };
                 }
             )
