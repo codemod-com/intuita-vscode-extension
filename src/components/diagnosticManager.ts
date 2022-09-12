@@ -80,7 +80,11 @@ export class DiagnosticManager {
 
         await Promise.all(uriEnvelopes.map(
             async ({ uri, fsPath, diagnostics }) => {
-                const hash = buildHash(uri.toString());
+                const text = activeTextEditor
+                    .document
+                    .getText();
+
+                const hash = buildHash(text);
 
                 const directoryPath = join(
                     fsPath,
@@ -109,7 +113,7 @@ export class DiagnosticManager {
 
                 writeFileSync(
                     filePath,
-                    activeTextEditor.document.getText(),
+                    text,
                     { encoding: 'utf8', }
                 );
 
@@ -140,6 +144,8 @@ export class DiagnosticManager {
                         }
                     }
                 );
+
+                // TODO remove the .intuita / hash directory
 
                 for (const diagnostic of diagnostics) {
                     this._hashes.add(

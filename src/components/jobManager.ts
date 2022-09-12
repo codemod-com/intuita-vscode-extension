@@ -337,13 +337,28 @@ export class JobManager {
             return;
         }
 
-        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
-
         const fileNameHash = buildFileNameHash(fileName);
 
-        const oldJobHashes = this._jobHashMap.get(fileNameHash);
+        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         this._fileNames.set(fileNameHash, fileName);
+
+        const oldJobs = Array.from(oldJobHashes).map(
+            (jobHash) => {
+                const job = this._jobMap.get(jobHash);
+
+                if (job?.kind !== JobKind.repairCode) {
+                    return null;
+                }
+
+                return job;
+            }
+        ).filter(isNeitherNullNorUndefined);
+
+        const jobs = [
+            ...buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes),
+            ...oldJobs,
+        ];
 
         const jobHashes = new Set(
             jobs.map(({ hash }) => hash)
@@ -364,7 +379,7 @@ export class JobManager {
 
         this._setDiagnosticEntry(fileName);
 
-        oldJobHashes?.forEach(
+        oldJobHashes.forEach(
             (oldJobHash) => {
                 if (jobHashes.has(oldJobHash)) {
                     return;
@@ -382,8 +397,6 @@ export class JobManager {
         );
 
         const uri = buildFileUri(fileNameHash);
-
-        // TODO check all the jobs
 
         if (jobs.length === 0) {
             this._messageBus.publish(

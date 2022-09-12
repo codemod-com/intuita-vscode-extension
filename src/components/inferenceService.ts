@@ -29,7 +29,7 @@ export const inferCommandCodec = buildTypeCodec({
     fileName: t.string,
     range: t.tuple([t.number, t.number, t.number, t.number ]),
     dimToFeature: t.any, // TODO what's the schema here?
-    edges: t.any,
+    edges: t.any, // TODO what's the schema here?
     objects: t.any, // TODO what's the schema here?
     vectors: t.any, // TODO what's the schema here?
 });
