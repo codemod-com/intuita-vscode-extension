@@ -16,7 +16,7 @@ import {OnnxWrapper} from "./components/onnxWrapper";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
-import {IntuitaTreeDataProvider} from "./treeDataProviders";
+import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
 
 const messageBus = new MessageBus();
 const onnxWrapper = new OnnxWrapper(messageBus);

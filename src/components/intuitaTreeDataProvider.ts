@@ -14,7 +14,7 @@ import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
 import { buildHash, IntuitaRange } from "../utilities";
-import {JobManager} from "../components/jobManager";
+import {JobManager} from "./jobManager";
 
 type Element =
     | Readonly<{
@@ -42,50 +42,50 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
     }
 
     public getChildren(element: Element | undefined): ProviderResult<Element[]> {
-        if (element === undefined) {
-            const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-            const fileNames = new Set<string>(this._jobManager.getFileNames());
-
-            return Array.from(fileNames).map(
-                (fileName) => {
-                    const uri = Uri.parse(fileName);
-                    const label: string = fileName.replace(rootPath, '');
-
-                    const fileNameHash = buildFileNameHash(fileName);
-
-                    const jobs = this._jobManager.getFileJobs(
-                        fileNameHash
-                    );
-
-                    const children: Element[] = jobs
-                        .map(
-                            (diagnostic) => {
-                                return {
-                                    kind: 'DIAGNOSTIC' as const,
-                                    label: diagnostic.title,
-                                    fileName,
-                                    uri,
-                                    range: diagnostic.range,
-                                    hash: diagnostic.hash,
-                                };
-                            }
-                        );
-
-                    return {
-                        kind: 'FILE' as const,
-                        label,
-                        children,
-                    };
-                }
-            );
-        }
-
-        if (element.kind === 'DIAGNOSTIC') {
+        if (element?.kind === 'DIAGNOSTIC') {
             return [];
         }
 
-        return element.children.slice();
+        if (element?.kind === 'FILE') {
+            return element.children.slice();
+        }
+
+        const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+        const fileNames = new Set<string>(this._jobManager.getFileNames());
+
+        return Array.from(fileNames).map(
+            (fileName) => {
+                const uri = Uri.parse(fileName);
+                const label: string = fileName.replace(rootPath, '');
+
+                const fileNameHash = buildFileNameHash(fileName);
+
+                const jobs = this._jobManager.getFileJobs(
+                    fileNameHash
+                );
+
+                const children: Element[] = jobs
+                    .map(
+                        (diagnostic) => {
+                            return {
+                                kind: 'DIAGNOSTIC' as const,
+                                label: diagnostic.title,
+                                fileName,
+                                uri,
+                                range: diagnostic.range,
+                                hash: diagnostic.hash,
+                            };
+                        }
+                    );
+
+                return {
+                    kind: 'FILE' as const,
+                    label,
+                    children,
+                };
+            }
+        );
     }
 
     public getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
