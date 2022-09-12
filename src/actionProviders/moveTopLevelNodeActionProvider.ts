@@ -1,68 +1,8 @@
 import * as vscode from 'vscode';
-import { Solution } from '../features/moveTopLevelNode/2_factBuilders/solutions';
 import {MoveTopLevelNodeJobManager} from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
-import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
-import { buildMoveTopLevelNodeJobHash } from '../features/moveTopLevelNode/jobHash';
-import { buildFileUri, buildJobUri } from '../fileSystems/uris';
-
-const buildIdentifiersLabel = (
-    identifiers: ReadonlyArray<string>,
-    useHtml: boolean,
-): string => {
-    const label = identifiers.length > 1
-        ? `(${identifiers.join(' ,')})`
-        : identifiers.join('');
-
-    if (!useHtml) {
-        return label;
-    }
-
-    return `<b>${label}</b>`;
-};
-
-export const buildTitle = (
-    solution: Solution,
-    useHtml: boolean,
-): string | null => {
-    const {
-        nodes,
-        newIndex,
-    } = solution;
-
-    const node = nodes[newIndex];
-
-    if (!node) {
-        return null;
-    }
-
-    let nodeIdentifiersLabel = buildIdentifiersLabel(
-        Array.from(
-            node.identifiers
-        ),
-        useHtml,
-    );
-
-    const otherNode = newIndex === 0
-        ? nodes[1]
-        : nodes[newIndex - 1];
-
-    if (!otherNode) {
-        return null;
-    }
-
-    const orderLabel = newIndex === 0
-        ? 'before'
-        : 'after';
-
-    const otherIdentifiersLabel = buildIdentifiersLabel(
-        Array.from(
-            otherNode.identifiers
-        ),
-        useHtml,
-    );
-
-    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
-};
+import {buildFileNameHash} from '../features/moveTopLevelNode/fileNameHash';
+import {buildMoveTopLevelNodeJobHash} from '../features/moveTopLevelNode/jobHash';
+import {buildFileUri, buildJobUri} from '../fileSystems/uris';
 
 export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider<vscode.CodeAction> {
     public constructor(

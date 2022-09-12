@@ -1,7 +1,6 @@
 import {Configuration} from "../../configuration";
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
-import {buildTitle} from "../../actionProviders/moveTopLevelNodeActionProvider";
 import {
     assertsNeitherNullOrUndefined,
     calculateCharacterIndex,
@@ -20,6 +19,7 @@ import {MessageBus, MessageKind} from "../../messageBus";
 import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
 import {JobKind, JobOutput} from "../../jobs";
 import {JobManager} from "../../components/jobManager";
+import {Solution} from "./2_factBuilders/solutions";
 
 export type IntuitaCodeAction = Readonly<{
     title: string,
@@ -38,6 +38,64 @@ export type MoveTopLevelNodeJob = Readonly<{
     newIndex: number,
     score: [number, number],
 }>;
+
+const buildIdentifiersLabel = (
+    identifiers: ReadonlyArray<string>,
+    useHtml: boolean,
+): string => {
+    const label = identifiers.length > 1
+        ? `(${identifiers.join(' ,')})`
+        : identifiers.join('');
+
+    if (!useHtml) {
+        return label;
+    }
+
+    return `<b>${label}</b>`;
+};
+export const buildTitle = (
+    solution: Solution,
+    useHtml: boolean,
+): string | null => {
+    const {
+        nodes,
+        newIndex,
+    } = solution;
+
+    const node = nodes[newIndex];
+
+    if (!node) {
+        return null;
+    }
+
+    let nodeIdentifiersLabel = buildIdentifiersLabel(
+        Array.from(
+            node.identifiers
+        ),
+        useHtml,
+    );
+
+    const otherNode = newIndex === 0
+        ? nodes[1]
+        : nodes[newIndex - 1];
+
+    if (!otherNode) {
+        return null;
+    }
+
+    const orderLabel = newIndex === 0
+        ? 'before'
+        : 'after';
+
+    const otherIdentifiersLabel = buildIdentifiersLabel(
+        Array.from(
+            otherNode.identifiers
+        ),
+        useHtml,
+    );
+
+    return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
+};
 
 export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
