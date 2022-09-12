@@ -15,6 +15,7 @@ export const buildMoveTopLevelNodeCommand = (
 ) => {
     const getJobOutput = (
         jobHash: JobHash,
+        characterDifference: number,
     ): JobOutput | null => {
         const content = intuitaFileSystem.readNullableFile(
             buildJobUri(jobHash as JobHash),
@@ -24,7 +25,7 @@ export const buildMoveTopLevelNodeCommand = (
             return moveTopLevelNodeJobManager
                 .executeJob(
                     jobHash,
-                    0,
+                    characterDifference,
                 );
         }
 
@@ -61,7 +62,10 @@ export const buildMoveTopLevelNodeCommand = (
 
         assertsNeitherNullOrUndefined(fileName);
 
-        const result = getJobOutput(jobHash as JobHash);
+        const result = getJobOutput(
+            jobHash as JobHash,
+            characterDifference
+        );
 
         assertsNeitherNullOrUndefined(result);
 
