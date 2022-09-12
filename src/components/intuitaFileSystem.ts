@@ -11,7 +11,7 @@ import {
     FileType,
     Uri
 } from "vscode";
-import {MessageBus, MessageKind} from "../messageBus";
+import {MessageBus, MessageKind} from "./messageBus";
 import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 

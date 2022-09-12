@@ -2,7 +2,7 @@ import * as t from 'io-ts'
 import reporter from 'io-ts-reporters'
 import {execSync, spawn} from "node:child_process";
 import {ChildProcessWithoutNullStreams} from "child_process";
-import {MessageBus, MessageKind} from "../messageBus";
+import {MessageBus, MessageKind} from "./messageBus";
 import {Uri} from "vscode";
 import {type} from "node:os";
 

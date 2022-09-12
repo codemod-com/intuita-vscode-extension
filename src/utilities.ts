@@ -22,13 +22,6 @@ export function assertsNeitherNullOrUndefined<T>(
     }
 }
 
-export type SourceFileExecution = Readonly<{
-    name: string,
-    text: string,
-    line: number,
-    character: number,
-}>;
-
 export const buildHash = (data: string) =>
     createHash('ripemd160')
         .update(data)

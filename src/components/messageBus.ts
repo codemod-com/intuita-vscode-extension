@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
-import { IntuitaRange } from './utilities';
+import { IntuitaRange } from '../utilities';
 
 export const enum MessageKind {
     readingFileFailed = 0,

@@ -9,7 +9,7 @@ import {
 import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
-import {MessageBus, MessageKind} from "../messageBus";
+import {MessageBus, MessageKind} from "./messageBus";
 import {
     buildMoveTopLevelNodeJobs,
     calculateCharacterDifference,
