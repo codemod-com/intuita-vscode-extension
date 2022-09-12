@@ -10,12 +10,6 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "./messageBus";
-import {
-    buildMoveTopLevelNodeJobs,
-    calculateCharacterDifference,
-    MoveTopLevelNodeJob
-} from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
-import {RepairCodeJob} from "../features/repairCode/repairCodeJobManager";
 import {buildRepairCodeFact, RepairCodeFact} from "../features/repairCode/factBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
@@ -27,6 +21,12 @@ import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCo
 import {Container} from "../container";
 import {Configuration} from "../configuration";
 import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "./intuitaFileSystem";
+import {
+    buildMoveTopLevelNodeJobs,
+    calculateCharacterDifference,
+    MoveTopLevelNodeJob
+} from "../features/moveTopLevelNode/job";
+import {RepairCodeJob} from "../features/repairCode/job";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
