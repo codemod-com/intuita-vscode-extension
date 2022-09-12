@@ -1,7 +1,12 @@
 import {buildFileNameHash, FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {assertsNeitherNullOrUndefined, IntuitaPosition, isNeitherNullNorUndefined} from "../utilities";
-import {JobOutput} from "../jobs";
+import {
+    assertsNeitherNullOrUndefined,
+    calculateLastPosition,
+    IntuitaPosition, IntuitaRange,
+    isNeitherNullNorUndefined
+} from "../utilities";
+import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
@@ -14,6 +19,8 @@ import {RepairCodeJob} from "../features/repairCode/repairCodeJobManager";
 import {RepairCodeFact} from "../features/repairCode/factBuilder";
 import {MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
+import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
+import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
@@ -107,10 +114,54 @@ export abstract class JobManager {
         );
     }
 
-    public abstract executeJob(
+    public executeJob(
         jobHash: JobHash,
         characterDifference: number,
-    ): JobOutput;
+    ): JobOutput {
+        const job = this._jobMap.get(jobHash);
+        const fact = this._factMap.get(jobHash);
+
+        assertsNeitherNullOrUndefined(job);
+        assertsNeitherNullOrUndefined(fact);
+
+        let execution;
+
+        if (job.kind === JobKind.moveTopLevelNode && fact.kind === FactKind.moveTopLevelNode) {
+            execution = executeMoveTopLevelNodeAstCommandHelper(
+                job.oldIndex,
+                job.newIndex,
+                characterDifference,
+                fact.stringNodes,
+                fact.separator,
+            );
+        } else if (
+            job.kind === JobKind.repairCode && fact.kind === FactKind.repairCode
+        ) {
+            execution = executeRepairCodeCommand(fact);
+        } else {
+            throw new Error('');
+        }
+
+        const lastPosition = calculateLastPosition(execution.text, fact.separator);
+
+        const range: IntuitaRange = [
+            0,
+            0,
+            lastPosition[0],
+            lastPosition[1],
+        ];
+
+        const position: IntuitaPosition = [
+            execution.line,
+            execution.character,
+        ];
+
+        return {
+            range,
+            text: execution.text,
+            position,
+        };
+    }
 
     public async onReadingFileFailed (
         uri: Uri

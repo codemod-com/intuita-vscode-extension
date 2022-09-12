@@ -87,39 +87,4 @@ export class RepairCodeJobManager extends JobManager {
             }
         );
     }
-
-    public override executeJob(jobHash: JobHash): JobOutput {
-        const job = this._jobMap.get(jobHash);
-        const fact = this._factMap.get(jobHash);
-
-        assertsNeitherNullOrUndefined(job);
-        assertsNeitherNullOrUndefined(fact);
-
-        if (fact.kind !== FactKind.repairCode) {
-            throw new Error('not implemented');
-        }
-
-        const { text, line, character } = executeRepairCodeCommand(fact);
-
-        // TODO revisit it
-        const lastPosition = calculateLastPosition(text, fact.separator);
-
-        const range: IntuitaRange = [
-            0,
-            0,
-            lastPosition[0],
-            lastPosition[1],
-        ];
-
-        const position: IntuitaPosition = [
-            line,
-            character,
-        ];
-
-        return {
-            range,
-            text,
-            position,
-        };
-    }
 }
