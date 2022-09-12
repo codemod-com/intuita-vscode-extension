@@ -90,11 +90,13 @@ export class OnnxWrapper {
     public writeToStandardInput(
         command: InferCommand,
     ) {
-        if (this._process) {
-            this._process.stdin.write(
-                JSON.stringify(command)
-            );
-        }
+        this._process?.stdin.write(
+            JSON.stringify(command)
+        );
+    }
+
+    public kill(): void {
+        this._process?.kill();
     }
 
     protected _onStandardOutput(

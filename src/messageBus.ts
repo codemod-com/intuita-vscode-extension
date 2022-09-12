@@ -37,22 +37,24 @@ type Message =
     }>;
 
 export class MessageBus {
+    protected _disposables: Disposable[] | undefined = undefined;
     protected _emitter = new EventEmitter<Message>();
 
-    public constructor(
-        protected _disposables: Disposable[],
-    ) {
+    public setDisposables(
+        disposables: Disposable[]
+    ): void {
+        this._disposables = disposables;
     }
 
     subscribe(
         fn: (message: Message) => void,
-    ) {
+    ): void {
         this._emitter.event(fn, this._disposables);
     }
 
     publish(
         message: Message,
-    ) {
+    ): void {
         this._emitter.fire(message);
     }
 }

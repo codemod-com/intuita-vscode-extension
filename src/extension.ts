@@ -18,11 +18,13 @@ import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 
+const messageBus = new MessageBus();
+const onnxWrapper = new OnnxWrapper(messageBus);
+
 export async function activate(
 	context: vscode.ExtensionContext,
 ) {
-	const messageBus = new MessageBus(context.subscriptions);
-	const onnxWrapper = new OnnxWrapper(messageBus);
+	messageBus.setDisposables(context.subscriptions);
 
 	const configurationContainer = buildContainer(
 		getConfiguration()
@@ -267,5 +269,5 @@ export async function activate(
 }
 
 export function deactivate() {
-	// TODO check if we need to kill the ONNX wrapper process here
+	onnxWrapper.kill();
 }
