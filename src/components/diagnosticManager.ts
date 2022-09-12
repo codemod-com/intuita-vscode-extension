@@ -1,10 +1,11 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace } from "vscode";
-import { buildHash, isNeitherNullNorUndefined } from "../utilities";
-import {InferenceService} from "../components/inferenceService";
+import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
+import {InferenceService} from "./inferenceService";
+import {Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
+import {buildHash, isNeitherNullNorUndefined} from "../utilities";
+import {join} from "node:path";
+import {mkdirSync, writeFileSync} from "node:fs";
+import {promisify} from "node:util";
+import {exec} from "node:child_process";
 
 const promisifiedExec = promisify(exec);
 
@@ -14,75 +15,68 @@ type UriEnvelope = Readonly<{
     diagnostics: Diagnostic[],
 }>;
 
-const buildDiagnosticHash = (
-    diagnostic: Diagnostic,
-): string => {
-    return buildHash(
-        [
-            diagnostic.message,
-            String(diagnostic.range.start.line),
-            String(diagnostic.range.start.character),
-            String(diagnostic.range.end.line),
-            String(diagnostic.range.end.character),
-            String(diagnostic.source),
-        ].join(',')
-    );
-};
+export class DiagnosticManager {
+    protected readonly _hashes: Set<DiagnosticHash> = new Set();
 
-const foundHashes = new Set<string>();
-
-export const buildDidChangeDiagnosticsCallback = (
-    onnxWrapper: InferenceService,
-) => async ({ uris }: DiagnosticChangeEvent) => {
-    const { activeTextEditor } = window;
-
-    if (!activeTextEditor) {
-        console.error('There is no active text editor despite the changed diagnostics.');
-
-        return;
+    public constructor(
+        protected readonly _inferenceService: InferenceService,
+    ) {
     }
 
-    const activeUri = activeTextEditor.document.uri.toString();
+    public async onDiagnosticChangeEvent(
+        { uris }: DiagnosticChangeEvent,
+    ): Promise<void> {
+        const { activeTextEditor } = window;
 
-    if (activeUri.includes('.intuita')) {
-        console.log('The files within the .intuita directory won\'t be inspected.');
+        if (!activeTextEditor) {
+            console.error('There is no active text editor despite the changed diagnostics.');
 
-        return;
-    }
+            return;
+        }
 
-    const uriEnvelopes = uris
-        .filter(
-            (uri) => {
-                return activeUri === uri.toString();
-            },
-        )
-        .map(
-            (uri) => {
-                const diagnostics = languages
-                    .getDiagnostics(uri)
-                    .filter(
-                        ({ source }) => source === 'ts'
-                    )
-                    .filter(
-                        (diagnostic) => !foundHashes.has(buildDiagnosticHash(diagnostic))
-                    );
+        const activeUri = activeTextEditor.document.uri.toString();
 
-                const workspaceFolder = workspace.getWorkspaceFolder(uri);
-                const fsPath = workspaceFolder?.uri.fsPath;
+        if (activeUri.includes('.intuita')) {
+            console.log('The files within the .intuita directory won\'t be inspected.');
 
-                return {
-                    uri,
-                    diagnostics,
-                    fsPath,
-                };
-            },
-        )
-        .filter<UriEnvelope>(
-            (u): u is UriEnvelope => {
-                return isNeitherNullNorUndefined(u.fsPath)
-                    && u.diagnostics.length !== 0;
-            },
-        );
+            return;
+        }
+
+        const uriEnvelopes = uris
+            .filter(
+                (uri) => {
+                    return activeUri === uri.toString();
+                },
+            )
+            .map(
+                (uri) => {
+                    const diagnostics = languages
+                        .getDiagnostics(uri)
+                        .filter(
+                            ({ source }) => source === 'ts'
+                        )
+                        .filter(
+                            (diagnostic) => !this._hashes.has(
+                                buildDiagnosticHash(diagnostic)
+                            )
+                        );
+
+                    const workspaceFolder = workspace.getWorkspaceFolder(uri);
+                    const fsPath = workspaceFolder?.uri.fsPath;
+
+                    return {
+                        uri,
+                        diagnostics,
+                        fsPath,
+                    };
+                },
+            )
+            .filter<UriEnvelope>(
+                (u): u is UriEnvelope => {
+                    return isNeitherNullNorUndefined(u.fsPath)
+                        && u.diagnostics.length !== 0;
+                },
+            );
 
         await Promise.all(uriEnvelopes.map(
             async ({ uri, fsPath, diagnostics }) => {
@@ -148,11 +142,13 @@ export const buildDidChangeDiagnosticsCallback = (
                 );
 
                 for (const diagnostic of diagnostics) {
-                    foundHashes.add(buildDiagnosticHash(diagnostic));
+                    this._hashes.add(
+                        buildDiagnosticHash(diagnostic)
+                    );
 
                     const { range } = diagnostic;
 
-                    await onnxWrapper.writeToStandardInput({
+                    await this._inferenceService.writeToStandardInput({
                         kind: 'infer',
                         fileName: uri.path,
                         range: [
@@ -167,4 +163,5 @@ export const buildDidChangeDiagnosticsCallback = (
                 }
             }
         ));
-};
+    }
+}

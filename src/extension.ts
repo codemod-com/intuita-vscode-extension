@@ -10,13 +10,13 @@ import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
-import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {InferenceService} from "./components/inferenceService";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
+import {DiagnosticManager} from "./components/diagnosticManager";
 
 const messageBus = new MessageBus();
 const inferenceService = new InferenceService(messageBus);
@@ -257,11 +257,12 @@ export async function activate(
 
 	context.subscriptions.push(diagnosticCollection);
 
+	const diagnosticManager = new DiagnosticManager(inferenceService);
+
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(
-			buildDidChangeDiagnosticsCallback(
-				inferenceService,
-			),
+			(event) => diagnosticManager
+				.onDiagnosticChangeEvent(event),
 		),
 	);
 }
