@@ -97,6 +97,61 @@ export const buildTitle = (
     return `Move ${nodeIdentifiersLabel} ${orderLabel} ${otherIdentifiersLabel}`;
 };
 
+const buildMoveTopLevelNodeJobs = (
+    userCommand: MoveTopLevelNodeUserCommand,
+    fact: MoveTopLevelNodeFact,
+    rejectedJobHashes: ReadonlySet<JobHash>,
+): ReadonlyArray<MoveTopLevelNodeJob> => {
+    return fact.solutions.map<MoveTopLevelNodeJob | null>(
+        (solution) => {
+            const { oldIndex, newIndex } = solution;
+
+            const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
+
+            if (topLevelNode === null) {
+                return null;
+            }
+
+            const title = buildTitle(solution, false) ?? '';
+
+            const start = calculatePosition(
+                fact.separator,
+                fact.lengths,
+                topLevelNode.nodeStart,
+            );
+
+            const range: IntuitaRange = [
+                start[0],
+                start[1],
+                start[0],
+                fact.lengths[start[0]] ?? start[1],
+            ];
+
+            const hash = buildMoveTopLevelNodeJobHash(
+                userCommand.fileName,
+                oldIndex,
+                newIndex,
+            );
+
+            if (rejectedJobHashes.has(hash)) {
+                return null;
+            }
+
+            return {
+                kind: JobKind.moveTopLevelNode,
+                fileName: userCommand.fileName,
+                hash,
+                range,
+                title,
+                oldIndex,
+                newIndex,
+                score: solution.score,
+            };
+        }
+    )
+        .filter(isNeitherNullNorUndefined);
+}
+
 export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact, MoveTopLevelNodeJob>{
     public constructor(
         _messageBus: MessageBus,
@@ -131,54 +186,7 @@ export class MoveTopLevelNodeJobManager extends JobManager<MoveTopLevelNodeFact,
             return;
         }
 
-        const jobs: ReadonlyArray<MoveTopLevelNodeJob> = fact.solutions.map<MoveTopLevelNodeJob | null>(
-            (solution) => {
-                const { oldIndex, newIndex, score } = solution;
-
-                const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
-
-                if (topLevelNode === null) {
-                    return null;
-                }
-
-                const title = buildTitle(solution, false) ?? '';
-
-                const start = calculatePosition(
-                    fact.separator,
-                    fact.lengths,
-                    topLevelNode.nodeStart,
-                );
-
-                const range: IntuitaRange = [
-                    start[0],
-                    start[1],
-                    start[0],
-                    fact.lengths[start[0]] ?? start[1],
-                ];
-
-                const hash = buildMoveTopLevelNodeJobHash(
-                    fileName,
-                    oldIndex,
-                    newIndex,
-                );
-
-                if (this._rejectedJobHashes.has(hash)) {
-                    return null;
-                }
-
-                return {
-                    kind: JobKind.moveTopLevelNode,
-                    fileName,
-                    hash,
-                    range,
-                    title,
-                    oldIndex,
-                    newIndex,
-                    score,
-                };
-            }
-        )
-            .filter(isNeitherNullNorUndefined);
+        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
 
         const fileNameHash = buildFileNameHash(fileName);
 

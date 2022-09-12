@@ -89,6 +89,4 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 
         return Promise.resolve(codeActions);
     }
-
-
 }

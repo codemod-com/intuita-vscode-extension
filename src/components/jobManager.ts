@@ -3,7 +3,6 @@ import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, isNeitherNullNorUndefined} from "../utilities";
 import {JobOutput} from "../jobs";
 import {FilePermission, Uri} from "vscode";
-import {FS_PATH_REG_EXP} from "../fileSystems/intuitaFileSystem";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
 import {buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
@@ -138,9 +137,7 @@ export abstract class JobManager<FACT, JOB extends Job> {
             }
         }
 
-        if (!text) {
-            return;
-        }
+        assertsNeitherNullOrUndefined(text);
 
         const content = Buffer.from(text);
 
