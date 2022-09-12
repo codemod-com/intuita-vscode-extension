@@ -6,7 +6,6 @@ import {
 	Range,
 } from 'vscode';
 import {getConfiguration} from './configuration';
-import {MoveTopLevelNodeJobManager, MoveTopLevelNodeJob} from "./features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
@@ -15,10 +14,9 @@ import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDia
 import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
-import {RepairCodeJob, RepairCodeJobManager} from "./features/repairCode/repairCodeJobManager";
-import {JobKind} from "./jobs";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
+import {JobManager} from "./components/jobManager";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -60,20 +58,14 @@ export async function activate(
 			'typescript'
 		);
 
-	const moveTopLevelNodeJobManager = new MoveTopLevelNodeJobManager(
+	const jobManager = new JobManager(
 		messageBus,
 		configurationContainer,
 		_setDiagnosticEntry,
 	);
 
-	const repairCodeJobManager = new RepairCodeJobManager(
-		messageBus,
-		_setDiagnosticEntry,
-	);
-
 	const treeDataProvider = buildTreeDataProvider(
-		moveTopLevelNodeJobManager,
-		repairCodeJobManager,
+		jobManager,
 	);
 
 	function _setDiagnosticEntry(
@@ -81,10 +73,7 @@ export async function activate(
 	) {
 		const uri = vscode.Uri.parse(fileName);
 
-		const jobs = [
-			...moveTopLevelNodeJobManager.getFileJobs(buildFileNameHash(fileName)),
-			...repairCodeJobManager.getFileJobs(buildFileNameHash(fileName))
-		];
+		const jobs = jobManager.getFileJobs(buildFileNameHash(fileName));
 
 		const diagnostics = jobs
 			.map(
@@ -130,16 +119,8 @@ export async function activate(
 	messageBus.subscribe(
 		(message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
-				// TODO introduce distinction between move and repair
-
 				setImmediate(
-					() => moveTopLevelNodeJobManager.onReadingFileFailed(
-						message.uri,
-					),
-				);
-
-				setImmediate(
-					() => repairCodeJobManager.onReadingFileFailed(
+					() => jobManager.onReadingFileFailed(
 						message.uri,
 					),
 				);
@@ -165,7 +146,7 @@ export async function activate(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
 			new IntuitaCodeActionProvider(
-				moveTopLevelNodeJobManager,
+				jobManager,
 			)
 		));
 
@@ -173,7 +154,7 @@ export async function activate(
 	const activeTextEditorChangedCallback = (
 		document: vscode.TextDocument,
 	) => {
-		moveTopLevelNodeJobManager
+		jobManager
 			.onFileTextChanged(
 				document,
 			);
@@ -247,7 +228,7 @@ export async function activate(
 					throw new Error('Did not pass the job hash argument "hash".');
 				}
 
-				moveTopLevelNodeJobManager.rejectJob(
+				jobManager.rejectJob(
 					jobHash as JobHash,
 				);
 			}
@@ -272,7 +253,7 @@ export async function activate(
 			buildMoveTopLevelNodeCommand(
 				configurationContainer,
 				intuitaFileSystem,
-				moveTopLevelNodeJobManager,
+				jobManager,
 			),
 		),
 	);
@@ -288,7 +269,7 @@ export async function activate(
 					return;
 				}
 
-				moveTopLevelNodeJobManager
+				jobManager
 					.onFileTextChanged(
 						document,
 					);

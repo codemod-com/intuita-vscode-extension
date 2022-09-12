@@ -31,7 +31,7 @@ import {Configuration} from "../configuration";
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
 
-export abstract class JobManager {
+export class JobManager {
     protected _fileNames = new Map<FileNameHash, string>();
     protected _factMap = new Map<JobHash, Fact>();
     protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();

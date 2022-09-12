@@ -1,11 +1,10 @@
 import { join } from "node:path";
 import { EventEmitter, MarkdownString, ProviderResult, TreeDataProvider, TreeItem, TreeItemCollapsibleState, Uri, workspace } from "vscode";
-import { MoveTopLevelNodeJobManager } from "../features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import { buildFileUri, buildJobUri } from "../fileSystems/uris";
-import { buildHash, IntuitaRange, isNeitherNullNorUndefined } from "../utilities";
-import {RepairCodeJobManager} from "../features/repairCode/repairCodeJobManager";
+import { buildHash, IntuitaRange } from "../utilities";
+import {JobManager} from "../components/jobManager";
 
 type Element =
     | Readonly<{
@@ -23,8 +22,7 @@ type Element =
     }>;
 
 export const buildTreeDataProvider = (
-    moveTopLevelNodeJobManager: MoveTopLevelNodeJobManager,
-    repairCodeJobManager: RepairCodeJobManager,
+    jobManager: JobManager,
 ): TreeDataProvider<Element> & { _onDidChangeTreeData: EventEmitter<Element | undefined | null | void> } => {
     const _onDidChangeTreeData = new EventEmitter<Element | undefined | null | void>();
 
@@ -33,10 +31,7 @@ export const buildTreeDataProvider = (
             if (element === undefined) {
                 const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-                const fileNames = new Set<string>([
-                    ...moveTopLevelNodeJobManager.getFileNames(),
-                    ...repairCodeJobManager.getFileNames(),
-                ])
+                const fileNames = new Set<string>(jobManager.getFileNames());
 
                 return Array.from(fileNames).map(
                     (fileName) => {
@@ -45,14 +40,9 @@ export const buildTreeDataProvider = (
 
                         const fileNameHash = buildFileNameHash(fileName);
 
-                        const jobs = [
-                            ...moveTopLevelNodeJobManager.getFileJobs(
-                                fileNameHash
-                            ),
-                            ...repairCodeJobManager.getFileJobs(
-                                fileNameHash
-                            ),
-                        ];
+                        const jobs = jobManager.getFileJobs(
+                            fileNameHash
+                        );
 
                         const children: Element[] = jobs
                             .map(
@@ -135,5 +125,4 @@ export const buildTreeDataProvider = (
         onDidChangeTreeData: _onDidChangeTreeData.event,
         _onDidChangeTreeData,
     };
-}
-
+};
