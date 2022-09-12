@@ -40,6 +40,13 @@ export class DiagnosticManager {
             return;
         }
 
+        const { version } = activeTextEditor.document;
+
+        const isFileTheSame = (): boolean => {
+            return version === activeTextEditor.document.version
+                && activeUri === activeTextEditor.document.uri.toString();
+        }
+
         const text = activeTextEditor
             .document
             .getText();
@@ -113,6 +120,10 @@ export class DiagnosticManager {
             },
         );
 
+        if (!isFileTheSame()) {
+            return;
+        }
+
         // joern-slice (pass the error range)
 
         const end = Date.now();
@@ -128,6 +139,10 @@ export class DiagnosticManager {
                 }
             }
         );
+
+        if (!isFileTheSame()) {
+            return;
+        }
 
         // TODO remove the .intuita / hash directory
 
@@ -150,6 +165,10 @@ export class DiagnosticManager {
                 edges: [], // TODO fix
                 ...JSON.parse(data.stdout),
             });
+
+            if (!isFileTheSame()) {
+                return;
+            }
         }
     }
 }
