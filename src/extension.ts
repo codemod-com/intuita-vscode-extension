@@ -198,21 +198,11 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			async (args) => {
-				const jobHash: string | null = (typeof args === 'object' && typeof args.hash === 'string')
-					? args.hash
-					: null;
-
-				if (jobHash === null) {
-					throw new Error('Did not pass the job hash argument "hash".');
-				}
-
-				await vscode.commands.executeCommand(
-					'intuita.moveTopLevelNode',
-					jobHash,
-					0, // characterDifference
-				);
-			}
+			buildMoveTopLevelNodeCommand(
+				configurationContainer,
+				intuitaFileSystem,
+				jobManager,
+			),
 		)
 	);
 
@@ -244,17 +234,6 @@ export async function activate(
 					'intuita.topLevelNodeKindOrder',
 				);
 			}
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.moveTopLevelNode',
-			buildMoveTopLevelNodeCommand(
-				configurationContainer,
-				intuitaFileSystem,
-				jobManager,
-			),
 		),
 	);
 
