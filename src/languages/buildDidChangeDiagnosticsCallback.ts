@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Diagnostic, DiagnosticChangeEvent, languages, Uri, window, workspace } from "vscode";
 import { buildHash, isNeitherNullNorUndefined } from "../utilities";
-import {OnnxWrapper} from "../components/onnxWrapper";
+import {InferenceService} from "../components/inferenceService";
 
 const promisifiedExec = promisify(exec);
 
@@ -32,7 +32,7 @@ const buildDiagnosticHash = (
 const foundHashes = new Set<string>();
 
 export const buildDidChangeDiagnosticsCallback = (
-    onnxWrapper: OnnxWrapper,
+    onnxWrapper: InferenceService,
 ) => async ({ uris }: DiagnosticChangeEvent) => {
     const { activeTextEditor } = window;
 

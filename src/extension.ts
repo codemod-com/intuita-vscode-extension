@@ -12,14 +12,14 @@ import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
-import {OnnxWrapper} from "./components/onnxWrapper";
+import {InferenceService} from "./components/inferenceService";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
 
 const messageBus = new MessageBus();
-const onnxWrapper = new OnnxWrapper(messageBus);
+const inferenceService = new InferenceService(messageBus);
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -260,12 +260,12 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(
 			buildDidChangeDiagnosticsCallback(
-				onnxWrapper,
+				inferenceService,
 			),
 		),
 	);
 }
 
 export function deactivate() {
-	onnxWrapper.kill();
+	inferenceService.kill();
 }

@@ -24,10 +24,6 @@ export const decodeOrThrow = <A>(
     return validation.right;
 };
 
-export const exitCommandCodec = buildTypeCodec({
-    kind: t.literal('exit'),
-});
-
 export const inferCommandCodec = buildTypeCodec({
     kind: t.literal('infer'),
     fileName: t.string,
@@ -37,8 +33,6 @@ export const inferCommandCodec = buildTypeCodec({
     objects: t.any, // TODO what's the schema here?
     vectors: t.any, // TODO what's the schema here?
 });
-
-export const commandCodec = t.union([exitCommandCodec, inferCommandCodec]);
 
 export const inferredMessageCodec = buildTypeCodec({
     kind: t.literal('inferred'),
@@ -52,10 +46,7 @@ export const errorMessageCodec = buildTypeCodec({
     description: t.string,
 });
 
-export type Command = t.TypeOf<typeof commandCodec>;
 export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
-export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;
-export type ErrorMessage = t.TypeOf<typeof errorMessageCodec>;
 
 const areRepairCodeCommandsAvailable = () => {
     const operatingSystemName = type();
@@ -73,7 +64,7 @@ const areRepairCodeCommandsAvailable = () => {
     }
 };
 
-export class OnnxWrapper {
+export class InferenceService {
     protected readonly _messageBus: MessageBus;
     protected readonly _process: ChildProcessWithoutNullStreams | null;
 
