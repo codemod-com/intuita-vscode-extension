@@ -12,9 +12,9 @@ import {
 } from "vscode";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash";
-import { buildFileUri, buildJobUri } from "../fileSystems/uris";
 import { buildHash, IntuitaRange } from "../utilities";
 import {JobManager} from "./jobManager";
+import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 
 type Element =
     | Readonly<{

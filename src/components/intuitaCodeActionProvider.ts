@@ -9,8 +9,8 @@ import {
     TextDocument,
 } from "vscode";
 import {buildFileNameHash} from "../features/moveTopLevelNode/fileNameHash";
-import {buildFileUri, buildJobUri} from "../fileSystems/uris";
 import {JobManager} from "./jobManager";
+import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
     public constructor(

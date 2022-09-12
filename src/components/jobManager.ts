@@ -10,7 +10,6 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {MessageBus, MessageKind} from "../messageBus";
-import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "../fileSystems/uris";
 import {
     buildMoveTopLevelNodeJobs,
     calculateCharacterDifference,
@@ -27,6 +26,7 @@ import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
+import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "./intuitaFileSystem";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;

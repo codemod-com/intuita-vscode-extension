@@ -1,10 +1,9 @@
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
 import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
-import {IntuitaFileSystem} from "../fileSystems/intuitaFileSystem";
+import {buildJobUri, IntuitaFileSystem} from "../components/intuitaFileSystem";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
-import {buildJobUri} from "../fileSystems/uris";
 import {JobOutput} from "../jobs";
 import {JobManager} from "../components/jobManager";
 

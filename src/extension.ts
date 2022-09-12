@@ -8,7 +8,7 @@ import {
 import {getConfiguration} from './configuration';
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
-import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
+import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
