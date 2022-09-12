@@ -1,8 +1,7 @@
-import {FilePermission, Uri} from "vscode"
+import {Uri} from "vscode"
 import { FileNameHash } from "../features/moveTopLevelNode/fileNameHash";
 import { JobHash } from "../features/moveTopLevelNode/jobHash"
 import {FS_PATH_REG_EXP} from "./intuitaFileSystem";
-import {assertsNeitherNullOrUndefined} from "../utilities";
 
 export const buildJobUri = (
     jobHash: JobHash,

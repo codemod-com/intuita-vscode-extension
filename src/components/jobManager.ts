@@ -154,13 +154,6 @@ export class JobManager {
         this._rejectedJobHashes.add(jobHash);
         this._jobMap.delete(jobHash);
 
-        const jobs = Array.from(jobHashes).map(
-            (jobHash) => {
-                return this._jobMap.get(jobHash);
-            },
-        )
-            .filter(isNeitherNullNorUndefined);
-
         this._setDiagnosticEntry(fileName);
 
         const uri = buildJobUri(jobHash);

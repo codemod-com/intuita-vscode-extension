@@ -1,25 +1,16 @@
 import {MoveTopLevelNodeUserCommand} from "./1_userCommandBuilder";
-import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "./2_factBuilders";
+import {MoveTopLevelNodeFact} from "./2_factBuilders";
 import {
     assertsNeitherNullOrUndefined,
     calculateCharacterIndex,
-    calculateLastPosition,
     calculatePosition,
     IntuitaPosition,
     IntuitaRange,
     isNeitherNullNorUndefined
 } from "../../utilities";
-import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
-import * as vscode from "vscode";
-import {Container} from "../../container";
 import {buildMoveTopLevelNodeJobHash, JobHash} from "./jobHash";
-import {buildFileNameHash} from "./fileNameHash";
-import {MessageBus, MessageKind} from "../../messageBus";
-import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
-import {JobKind, JobOutput} from "../../jobs";
-import {JobManager} from "../../components/jobManager";
+import {JobKind} from "../../jobs";
 import {Solution} from "./2_factBuilders/solutions";
-import {FactKind} from "../../facts";
 
 export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,

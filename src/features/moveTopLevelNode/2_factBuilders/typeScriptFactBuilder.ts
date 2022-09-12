@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import {buildHash} from "../../../utilities";
 import { getTopLevelNodeProperties } from "./buildTypeScriptTopLevelNode";
-import {TopLevelNode, TopLevelNodeKind} from "./topLevelNode";
+import {TopLevelNode} from "./topLevelNode";
 
 export const getChildIdentifiers = (
     node: ts.Node

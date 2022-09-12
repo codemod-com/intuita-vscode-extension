@@ -1,4 +1,4 @@
-import { isBlock, isClassDeclaration, isEnumDeclaration, isExportDeclaration, isFunctionDeclaration, isImportDeclaration, isInterfaceDeclaration, isTypeAliasDeclaration, isVariableDeclaration, isVariableStatement, Node, SyntaxKind } from "typescript";
+import { isBlock, isClassDeclaration, isEnumDeclaration, isExportDeclaration, isFunctionDeclaration, isImportDeclaration, isInterfaceDeclaration, isTypeAliasDeclaration, isVariableStatement, Node, SyntaxKind } from "typescript";
 import { TopLevelNodeKind, TopLevelNodeModifier } from "./topLevelNode";
 
 const hasExportKeyword = (node: Node): boolean => {
@@ -66,7 +66,7 @@ export const getTopLevelNodeProperties = (
     ) {
         const exportKeyword = hasExportKeyword(node);
         const defaultKeyword = hasDefaultKeyword(node);
-        
+
         const modifier = getModifier({
             exportKeyword,
             defaultKeyword,
