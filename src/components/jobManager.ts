@@ -84,11 +84,13 @@ export class JobManager {
 
                 this._jobHashMap.set(fileNameHash, jobHashes);
 
+                const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
+
                 const job: RepairCodeJob = {
                     kind: JobKind.repairCode,
                     fileName,
                     hash: jobHash,
-                    title: 'Test' + message.range.toString(),
+                    title,
                     range: message.range,
                     replacement: message.replacement,
                 };
@@ -272,19 +274,7 @@ export class JobManager {
     ): ReadonlyArray<Job & { characterDifference: number }> {
         const fileNameHash = buildFileNameHash(fileName);
 
-        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
-
-        const jobs = Array.from(jobHashes.keys()).map(
-            (jobHash) => {
-                if (this._rejectedJobHashes.has(jobHash)) {
-                    return null;
-                }
-
-                return this._jobMap.get(jobHash);
-            }
-        )
-            .filter(isNeitherNullNorUndefined);
-
+        const jobs = this.getFileJobs(fileNameHash);
 
         return jobs
             .filter(

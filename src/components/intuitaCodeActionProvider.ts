@@ -23,17 +23,16 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
         document: TextDocument,
         range: Range | Selection,
     ): ProviderResult<(Command | CodeAction)[]> {
-        const stringUri = document.uri.toString();
+        const fileName = document.fileName;
+        const fileNameHash = buildFileNameHash(fileName);
 
         const jobs = this._jobManager.getCodeActionJobs(
-            stringUri,
+            fileName,
             [
                 range.start.line,
                 range.start.character,
-            ]
+            ],
         );
-
-        const fileNameHash = buildFileNameHash(stringUri);
 
         const codeActions = jobs.flatMap(
             (job) => {
