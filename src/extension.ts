@@ -11,12 +11,12 @@ import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './fileSystems/intuitaFileSystem';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildDidChangeDiagnosticsCallback } from './languages/buildDidChangeDiagnosticsCallback';
-import { buildTreeDataProvider } from './treeDataProviders';
 import {buildMoveTopLevelNodeCommand} from "./commands/moveTopLevelNodeCommand";
 import {OnnxWrapper} from "./components/onnxWrapper";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
+import {IntuitaTreeDataProvider} from "./treeDataProviders";
 
 const messageBus = new MessageBus();
 const onnxWrapper = new OnnxWrapper(messageBus);
@@ -66,9 +66,7 @@ export async function activate(
 		_setDiagnosticEntry,
 	);
 
-	const treeDataProvider = buildTreeDataProvider(
-		jobManager,
-	);
+	const treeDataProvider = new IntuitaTreeDataProvider(jobManager);
 
 	function _setDiagnosticEntry(
 		fileName: string,
@@ -115,7 +113,7 @@ export async function activate(
 			diagnostics,
 		);
 
-		treeDataProvider._onDidChangeTreeData.fire();
+		treeDataProvider.eventEmitter.fire();
 	}
 
 	messageBus.subscribe(
