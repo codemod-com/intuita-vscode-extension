@@ -13,7 +13,7 @@ const buildIdentifiersLabel = (
         ? `(${identifiers.join(' ,')})`
         : identifiers.join('');
 
-    if (useHtml === false) {
+    if (!useHtml) {
         return label;
     }
 
@@ -76,16 +76,13 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
 	): Thenable<vscode.CodeAction[]> {
 		const fileName = document.fileName;
 
-		const fileLine = range.start.line;
-        const fileCharacter = range.start.character;
-
         const intuitaCodeActions = this
             ._moveTopLevelNodeJobManager
             .findCodeActions(
                 fileName,
                 [
-                    fileLine,
-                    fileCharacter,
+                    range.start.line,
+                    range.start.character,
                 ],
             );
 
@@ -97,11 +94,6 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                     newIndex,
                     characterDifference
                 }) => {
-                    const codeAction = new vscode.CodeAction(
-                        title,
-                        vscode.CodeActionKind.QuickFix,
-                    );
-
                     const fileNameHash = buildFileNameHash(
                         fileName,
                     );
@@ -110,6 +102,11 @@ export class MoveTopLevelNodeActionProvider implements vscode.CodeActionProvider
                         fileName,
                         oldIndex,
                         newIndex,
+                    );
+
+                    const codeAction = new vscode.CodeAction(
+                        title,
+                        vscode.CodeActionKind.QuickFix,
                     );
 
                     codeAction.command = {

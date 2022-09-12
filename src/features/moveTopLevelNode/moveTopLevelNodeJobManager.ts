@@ -15,12 +15,9 @@ import {executeMoveTopLevelNodeAstCommandHelper} from "./4_astCommandExecutor";
 import * as vscode from "vscode";
 import {Container} from "../../container";
 import {buildMoveTopLevelNodeJobHash, JobHash} from "./jobHash";
-import {buildFileNameHash, FileNameHash} from "./fileNameHash";
+import {buildFileNameHash} from "./fileNameHash";
 import {MessageBus, MessageKind} from "../../messageBus";
-import {FS_PATH_REG_EXP} from "../../fileSystems/intuitaFileSystem";
 import {buildFileUri, buildJobUri} from "../../fileSystems/uris";
-import {getOrOpenTextDocuments} from "../../components/vscodeUtilities";
-import {FactKind} from "../../facts";
 import {JobKind, JobOutput} from "../../jobs";
 import {JobManager} from "../../components/jobManager";
 
