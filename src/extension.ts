@@ -5,7 +5,6 @@ import {
 	Position,
 	Range,
 } from 'vscode';
-import {MoveTopLevelNodeActionProvider} from './actionProviders/moveTopLevelNodeActionProvider';
 import {getConfiguration} from './configuration';
 import {MoveTopLevelNodeJobManager, MoveTopLevelNodeJob} from "./features/moveTopLevelNode/moveTopLevelNodeJobManager";
 import { buildContainer } from "./container";
@@ -19,6 +18,7 @@ import {OnnxWrapper} from "./components/onnxWrapper";
 import {RepairCodeJob, RepairCodeJobManager} from "./features/repairCode/repairCodeJobManager";
 import {JobKind} from "./jobs";
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
+import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 
 export async function activate(
 	context: vscode.ExtensionContext,
@@ -164,7 +164,7 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
-			new MoveTopLevelNodeActionProvider(
+			new IntuitaCodeActionProvider(
 				moveTopLevelNodeJobManager,
 			)
 		));

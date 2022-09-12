@@ -162,7 +162,7 @@ export abstract class JobManager {
         );
     }
 
-    public findCodeActions(
+    public getCodeActionJobs(
         fileName: string,
         position: IntuitaPosition,
     ): ReadonlyArray<Job & { characterDifference: number }> {

@@ -8,22 +8,9 @@ import {
     Selection,
     TextDocument,
 } from "vscode";
-import {IntuitaPosition} from "../utilities";
 import {buildFileNameHash} from "../features/moveTopLevelNode/fileNameHash";
-import { JobHash } from "../features/moveTopLevelNode/jobHash";
 import {buildFileUri, buildJobUri} from "../fileSystems/uris";
-
-interface Job {
-    hash: JobHash,
-    title: string
-}
-
-interface JobManager {
-    getCodeActionJobs(
-        stringUri: string,
-        position: IntuitaPosition,
-    ): ReadonlyArray<Job & { characterDifference: number }>;
-}
+import {JobManager} from "./jobManager";
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
     public constructor(
