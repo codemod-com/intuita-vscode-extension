@@ -48,13 +48,26 @@ export const acceptJob = (
         };
     };
 
-    return async (jobHash: unknown, characterDifference: unknown) => {
-        if (typeof jobHash !== 'string') {
-            throw new Error('The job hash argument must be a string.');
-        }
+    return async (arg0: unknown, arg1: unknown) => {
+        // factor in tree-data commands and regular commands
 
-        if (typeof characterDifference !== 'number') {
-            throw new Error('The job hash argument must be a number.');
+        let jobHash: string;
+        let characterDifference: number;
+
+        if (typeof arg0 === 'object' && arg0) {
+            jobHash = (arg0 as any).hash;
+            characterDifference = 0;
+        } else {
+            if (typeof arg0 !== 'string') {
+                throw new Error('The job hash argument must be a string');
+            }
+    
+            if (typeof arg1 !== 'number') {
+                throw new Error('The characterDifference argument must be a number');
+            }
+
+            jobHash = arg0;
+            characterDifference = arg1;
         }
 
         const fileName = jobManager.getFileNameFromJobHash(jobHash as JobHash);

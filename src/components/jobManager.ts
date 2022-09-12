@@ -343,22 +343,7 @@ export class JobManager {
 
         this._fileNames.set(fileNameHash, fileName);
 
-        const oldJobs = Array.from(oldJobHashes).map(
-            (jobHash) => {
-                const job = this._jobMap.get(jobHash);
-
-                if (job?.kind !== JobKind.repairCode) {
-                    return null;
-                }
-
-                return job;
-            }
-        ).filter(isNeitherNullNorUndefined);
-
-        const jobs = [
-            ...buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes),
-            ...oldJobs,
-        ];
+        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
 
         const jobHashes = new Set(
             jobs.map(({ hash }) => hash)
