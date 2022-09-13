@@ -1,20 +1,24 @@
+import Axios from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {InferenceService} from "./inferenceService";
-import {DiagnosticChangeEvent, languages, window, workspace} from "vscode";
+import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
 import {mkdirSync, writeFileSync} from "node:fs";
 import {promisify} from "node:util";
 import {exec} from "node:child_process";
+import {MessageBus, MessageKind} from "./messageBus";
 
 const promisifiedExec = promisify(exec);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
+    protected readonly commandsAvailable: boolean;
 
     public constructor(
-        protected readonly _inferenceService: InferenceService,
+        protected readonly _messageBus: MessageBus,
     ) {
+        this.commandsAvailable = areRepairCodeCommandsAvailable();
     }
 
     public clearHashes() {
@@ -24,6 +28,10 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         { uris }: DiagnosticChangeEvent,
     ): Promise<void> {
+        if (!this.commandsAvailable) {
+            return;
+        }
+
         const { activeTextEditor } = window;
 
         if (!activeTextEditor) {
@@ -32,9 +40,9 @@ export class DiagnosticManager {
             return;
         }
 
-        const activeUri = activeTextEditor.document.uri.toString();
+        const stringUri = activeTextEditor.document.uri.toString();
 
-        if (activeUri.includes('.intuita')) {
+        if (stringUri.includes('.intuita')) {
             console.log('The files within the .intuita directory won\'t be inspected.');
 
             return;
@@ -43,22 +51,16 @@ export class DiagnosticManager {
         const { version } = activeTextEditor.document;
 
         const isFileTheSame = (): boolean => {
-            return version === activeTextEditor.document.version
-                && activeUri === activeTextEditor.document.uri.toString();
-        }
+            return version === window.activeTextEditor?.document.version
+                && stringUri === window.activeTextEditor.document.uri.toString();
+        };
 
-        const text = activeTextEditor
-            .document
-            .getText();
-
-        const hash = buildHash(text);
-
-        const uri = uris.find((u) => activeUri === u.toString());
+        const uri = uris.find((u) => stringUri === u.toString());
 
         if (!uri) {
             return;
         }
-        
+
         const diagnostics = languages
             .getDiagnostics(uri)
             .filter(
@@ -71,29 +73,41 @@ export class DiagnosticManager {
             );
 
         const workspaceFolder = workspace.getWorkspaceFolder(uri);
-        const fsPath = workspaceFolder?.uri.fsPath;
+        const workspaceFsPath = workspaceFolder?.uri.fsPath;
 
-        if (!isNeitherNullNorUndefined(fsPath) || diagnostics.length === 0) {
+        if (!isNeitherNullNorUndefined(workspaceFsPath) || diagnostics.length === 0) {
             return;
         }
 
+        const hash = buildHash([
+            stringUri,
+            String(version),
+        ].join(','));
+
+        const text = activeTextEditor.document.getText();
+
         const directoryPath = join(
-            fsPath,
+            workspaceFsPath,
             `/.intuita/${hash}/`,
         );
 
         const filePath = join(
-            fsPath,
+            workspaceFsPath,
             `/.intuita/${hash}/index.ts`,
         );
 
         const cpgFilePath = join(
-            fsPath,
+            workspaceFsPath,
             `/.intuita/${hash}/cpg.bin`,
         );
 
+        const joernVectorPath = join(
+            workspaceFsPath,
+            `/.intuita/${hash}/joernVectors`,
+        );
+
         const vectorPath = join(
-            fsPath,
+            workspaceFsPath,
             `/.intuita/${hash}/vectors`,
         );
 
@@ -110,19 +124,7 @@ export class DiagnosticManager {
 
         const start = Date.now();
 
-        await promisifiedExec(
-            'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
-            {
-                env: {
-                    PARSE_INPUT: directoryPath,
-                    PARSE_OUTPUT: cpgFilePath,
-                },
-            },
-        );
-
-        if (!isFileTheSame()) {
-            return;
-        }
+        await this._executeJoernParse(directoryPath, cpgFilePath);
 
         // joern-slice (pass the error range)
 
@@ -130,14 +132,16 @@ export class DiagnosticManager {
 
         console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
 
-        const data = await promisifiedExec(
-            'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
-            {
-                env: {
-                    VECTOR_INPUT: cpgFilePath,
-                    VECTOR_OUTPUT: vectorPath,
-                }
-            }
+        if (!isFileTheSame()) {
+            return;
+        }
+
+        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath);
+
+        writeFileSync(
+            vectorPath,
+            data,
+            { encoding: 'utf8', }
         );
 
         if (!isFileTheSame()) {
@@ -153,7 +157,7 @@ export class DiagnosticManager {
 
             const { range } = diagnostic;
 
-            await this._inferenceService.writeToStandardInput({
+            const command: InferCommand = {
                 kind: 'infer',
                 fileName: uri.path,
                 range: [
@@ -162,13 +166,69 @@ export class DiagnosticManager {
                     range.end.line,
                     range.end.character,
                 ],
-                edges: [], // TODO fix
-                ...JSON.parse(data.stdout),
-            });
+                vectorPath,
+            };
+
+            try {
+                const response = await Axios.post(
+                'http://localhost:4000/infer',
+                command,
+                );
+
+                const message = decodeOrThrow(
+                    inferredMessageCodec,
+                    (report) =>
+                        new Error(`Could not decode the inferred message: ${report.join()}`),
+                    response.data,
+                );
+
+                this._messageBus.publish({
+                    kind: MessageKind.createRepairCodeJob,
+                    uri: Uri.parse(message.fileName),
+                    range: message.range,
+                    replacement: message.results[0] ?? '',
+                });
+            } catch (error) {
+                if (Axios.isAxiosError(error)) {
+                    console.error(error.response?.data);
+                }
+            }
 
             if (!isFileTheSame()) {
                 return;
             }
         }
+    }
+
+    protected async _executeJoernParse(
+        directoryPath: string,
+        cpgFilePath: string,
+    ): Promise<void> {
+        await promisifiedExec(
+            'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
+            {
+                env: {
+                    PARSE_INPUT: directoryPath,
+                    PARSE_OUTPUT: cpgFilePath,
+                },
+            },
+        );
+    }
+
+    protected async _executeJoernVectors(
+        cpgFilePath: string,
+        vectorPath: string,
+    ): Promise<string> {
+        const { stdout } = await promisifiedExec(
+            'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
+            {
+                env: {
+                    VECTOR_INPUT: cpgFilePath,
+                    VECTOR_OUTPUT: vectorPath,
+                }
+            }
+        );
+
+        return stdout;
     }
 }
