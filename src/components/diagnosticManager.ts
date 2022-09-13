@@ -1,20 +1,24 @@
+import Axios from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {InferenceService} from "./inferenceService";
-import {DiagnosticChangeEvent, languages, window, workspace} from "vscode";
+import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
 import {mkdirSync, writeFileSync} from "node:fs";
 import {promisify} from "node:util";
 import {exec} from "node:child_process";
+import {MessageBus, MessageKind} from "./messageBus";
 
 const promisifiedExec = promisify(exec);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
+    protected readonly commandsAvailable: boolean;
 
     public constructor(
-        protected readonly _inferenceService: InferenceService,
+        protected readonly _messageBus: MessageBus,
     ) {
+        this.commandsAvailable = areRepairCodeCommandsAvailable();
     }
 
     public clearHashes() {
@@ -24,6 +28,10 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         { uris }: DiagnosticChangeEvent,
     ): Promise<void> {
+        if (!this.commandsAvailable) {
+            return;
+        }
+
         const { activeTextEditor } = window;
 
         if (!activeTextEditor) {
@@ -93,6 +101,11 @@ export class DiagnosticManager {
             `/.intuita/${hash}/cpg.bin`,
         );
 
+        const joernVectorPath = join(
+            workspaceFsPath,
+            `/.intuita/${hash}/joernVectors`,
+        );
+
         const vectorPath = join(
             workspaceFsPath,
             `/.intuita/${hash}/vectors`,
@@ -120,14 +133,18 @@ export class DiagnosticManager {
         console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
 
         if (!isFileTheSame()) {
-            console.log('ABCD1')
             return;
         }
 
-        const data = await this._executeJoernVectors(cpgFilePath, vectorPath);
+        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath);
+
+        writeFileSync(
+            vectorPath,
+            data,
+            { encoding: 'utf8', }
+        );
 
         if (!isFileTheSame()) {
-            console.log('ABCD2')
             return;
         }
 
@@ -140,7 +157,7 @@ export class DiagnosticManager {
 
             const { range } = diagnostic;
 
-            await this._inferenceService.writeToStandardInput({
+            const command: InferCommand = {
                 kind: 'infer',
                 fileName: uri.path,
                 range: [
@@ -149,14 +166,33 @@ export class DiagnosticManager {
                     range.end.line,
                     range.end.character,
                 ],
-                // ...data,
-                dimToFeature: [],
-                vectors: [],
-                objects: [],
-                edges: [],
-            });
+                vectorPath,
+            };
 
-            console.log('written')
+            try {
+                const response = await Axios.post(
+                'http://localhost:4000/infer',
+                command,
+                );
+
+                const message = decodeOrThrow(
+                    inferredMessageCodec,
+                    (report) =>
+                        new Error(`Could not decode the inferred message: ${report.join()}`),
+                    response.data,
+                );
+
+                this._messageBus.publish({
+                    kind: MessageKind.createRepairCodeJob,
+                    uri: Uri.parse(message.fileName),
+                    range: message.range,
+                    replacement: message.results[0] ?? '',
+                });
+            } catch (error) {
+                if (Axios.isAxiosError(error)) {
+                    console.error(error.response?.data);
+                }
+            }
 
             if (!isFileTheSame()) {
                 return;
@@ -182,7 +218,7 @@ export class DiagnosticManager {
     protected async _executeJoernVectors(
         cpgFilePath: string,
         vectorPath: string,
-    ): Promise<any> {
+    ): Promise<string> {
         const { stdout } = await promisifiedExec(
             'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
             {
@@ -193,6 +229,6 @@ export class DiagnosticManager {
             }
         );
 
-        return JSON.parse(stdout);
+        return stdout;
     }
 }
