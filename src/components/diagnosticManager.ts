@@ -32,9 +32,9 @@ export class DiagnosticManager {
             return;
         }
 
-        const activeUri = activeTextEditor.document.uri.toString();
+        const stringUri = activeTextEditor.document.uri.toString();
 
-        if (activeUri.includes('.intuita')) {
+        if (stringUri.includes('.intuita')) {
             console.log('The files within the .intuita directory won\'t be inspected.');
 
             return;
@@ -43,22 +43,16 @@ export class DiagnosticManager {
         const { version } = activeTextEditor.document;
 
         const isFileTheSame = (): boolean => {
-            return version === activeTextEditor.document.version
-                && activeUri === activeTextEditor.document.uri.toString();
-        }
+            return version === window.activeTextEditor?.document.version
+                && stringUri === window.activeTextEditor.document.uri.toString();
+        };
 
-        const text = activeTextEditor
-            .document
-            .getText();
-
-        const hash = buildHash(text);
-
-        const uri = uris.find((u) => activeUri === u.toString());
+        const uri = uris.find((u) => stringUri === u.toString());
 
         if (!uri) {
             return;
         }
-        
+
         const diagnostics = languages
             .getDiagnostics(uri)
             .filter(
@@ -76,6 +70,13 @@ export class DiagnosticManager {
         if (!isNeitherNullNorUndefined(fsPath) || diagnostics.length === 0) {
             return;
         }
+
+        const hash = buildHash([
+            stringUri,
+            String(version),
+        ].join(','));
+
+        const text = activeTextEditor.document.getText();
 
         const directoryPath = join(
             fsPath,
