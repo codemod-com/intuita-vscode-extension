@@ -228,6 +228,7 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
+		"axios": "^0.27.2",
 		"fp-ts": "^2.12.3",
 		"io-ts": "^2.2.18",
 		"io-ts-reporters": "^2.0.1",
