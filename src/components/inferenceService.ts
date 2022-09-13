@@ -1,3 +1,4 @@
+import base64url from 'base64url';
 import * as t from 'io-ts'
 import reporter from 'io-ts-reporters'
 import {execSync, spawn} from "node:child_process";
@@ -67,6 +68,7 @@ const areRepairCodeCommandsAvailable = () => {
 export class InferenceService {
     protected readonly _messageBus: MessageBus;
     protected readonly _process: ChildProcessWithoutNullStreams | null;
+    protected readonly _separator = '++++';
 
     public constructor(
         messageBus: MessageBus
@@ -80,6 +82,10 @@ export class InferenceService {
             : null;
 
         if (this._process) {
+            this._process.on('error', (error) => {
+                console.error(error);
+            });
+
             this._process.stderr.on('data', (data) => {
                 this._onStandardError(data);
             });
@@ -102,8 +108,10 @@ export class InferenceService {
                 return resolve();
             }
 
+            const str = base64url.encode(JSON.stringify(command))
+
             this._process.stdin.write(
-                JSON.stringify(command),
+                str,
                 (error) => {
                     if (!error) {
                         return resolve();
@@ -120,40 +128,53 @@ export class InferenceService {
     }
 
     protected _onStandardOutput(
-        data: any,
+        data: Buffer,
     ): void {
-        const str = data.toString();
+        const stringifiedObjects = data
+            .toString()
+            .split(this._separator)
+            .filter((s) => s.length !== 0);
 
-        const json = JSON.parse(str);
+        for (const stringifiedObject of stringifiedObjects) {
+            const str = base64url.decode(stringifiedObject);
+            const json = JSON.parse(str);
 
-        const message = decodeOrThrow(
-            inferredMessageCodec,
-            (report) =>
-                new Error(`Could not decode the inferred message: ${report.join()}`),
-            json
-        );
-
-        this._messageBus.publish({
-            kind: MessageKind.createRepairCodeJob,
-            uri: Uri.parse(message.fileName),
-            range: message.range,
-            replacement: message.results[0] ?? '',
-        });
+            const message = decodeOrThrow(
+                inferredMessageCodec,
+                (report) =>
+                    new Error(`Could not decode the inferred message: ${report.join()}`),
+                json
+            );
+    
+            this._messageBus.publish({
+                kind: MessageKind.createRepairCodeJob,
+                uri: Uri.parse(message.fileName),
+                range: message.range,
+                replacement: message.results[0] ?? '',
+            });
+        }
     }
 
     protected _onStandardError(
-        data: any,
+        data: Buffer,
     ): void {
-        const str = data.toString();
-        const json = JSON.parse(str);
+        const stringifiedObjects = data
+            .toString()
+            .split(this._separator)
+            .filter((s) => s.length !== 0);
 
-        const message = decodeOrThrow(
-            errorMessageCodec,
-            (report) =>
-                new Error(`Could not decode the error message: ${report.join()}`),
-            json
-        );
+            for (const stringifiedObject of stringifiedObjects) {
+                const str = base64url.decode(stringifiedObject);
+                const json = JSON.parse(str);
+        
+            const message = decodeOrThrow(
+                errorMessageCodec,
+                (report) =>
+                    new Error(`Could not decode the error message: ${report.join()}`),
+                json
+            );
 
-        console.error(message.description);
+            console.error(message.description);
+        }
     }
 }

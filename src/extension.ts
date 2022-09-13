@@ -25,8 +25,10 @@ export async function activate(
 	context: vscode.ExtensionContext,
 ) {
 	messageBus.setDisposables(context.subscriptions);
-	
-	const diagnosticManager = new DiagnosticManager(inferenceService);
+
+	const diagnosticManager = new DiagnosticManager(
+		inferenceService
+	);
 
 	const configurationContainer = buildContainer(
 		getConfiguration()

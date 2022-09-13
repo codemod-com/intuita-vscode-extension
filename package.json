@@ -228,6 +228,7 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
+		"base64url": "^3.0.1",
 		"fp-ts": "^2.12.3",
 		"io-ts": "^2.2.18",
 		"io-ts-reporters": "^2.0.1",
