@@ -41,7 +41,6 @@ export class JobManager {
     public constructor(
         protected readonly _messageBus: MessageBus,
         protected readonly _configurationContainer: Container<Configuration>,
-        protected readonly _setDiagnosticEntry: (fileName: string) => void,
     ) {
         this._messageBus.subscribe(
             async (message) => {
@@ -115,7 +114,12 @@ export class JobManager {
         this._rejectedJobHashes.add(jobHash);
         this._jobMap.delete(jobHash);
 
-        this._setDiagnosticEntry(fileName);
+        this._messageBus.publish(
+            {
+                kind: MessageKind.updateDiagnostics,
+                fileName,
+            },
+        );
 
         const uri = buildJobUri(jobHash);
 
@@ -261,7 +265,12 @@ export class JobManager {
             );
         });
 
-        this._setDiagnosticEntry(fileName);
+        this._messageBus.publish(
+            {
+                kind: MessageKind.updateDiagnostics,
+                fileName,
+            },
+        );
 
         oldJobHashes.forEach(
             (oldJobHash) => {
@@ -404,6 +413,11 @@ export class JobManager {
             job,
         );
 
-        this._setDiagnosticEntry(fileName);
+        this._messageBus.publish(
+            {
+                kind: MessageKind.updateDiagnostics,
+                fileName,
+            },
+        );
     }
 }

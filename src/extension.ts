@@ -1,16 +1,9 @@
 import * as vscode from 'vscode';
-import {
-	Diagnostic,
-	DiagnosticSeverity,
-	Position,
-	Range,
-} from 'vscode';
 import {getConfiguration} from './configuration';
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus } from './components/messageBus';
-import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
@@ -65,58 +58,13 @@ export async function activate(
 	const jobManager = new JobManager(
 		messageBus,
 		configurationContainer,
-		_setDiagnosticEntry,
 	);
 
-	const treeDataProvider = new IntuitaTreeDataProvider(jobManager);
-
-	function _setDiagnosticEntry(
-		fileName: string,
-	) {
-		const uri = vscode.Uri.parse(fileName);
-
-		const jobs = jobManager.getFileJobs(buildFileNameHash(fileName));
-
-		const diagnostics = jobs
-			.map(
-				({ kind, title, range: intuitaRange }) => {
-					const startPosition = new Position(
-						intuitaRange[0],
-						intuitaRange[1],
-					);
-
-					const endPosition = new Position(
-						intuitaRange[2],
-						intuitaRange[3],
-					);
-
-					const vscodeRange = new Range(
-						startPosition,
-						endPosition,
-					);
-
-					const diagnostic = new Diagnostic(
-						vscodeRange,
-						title,
-						DiagnosticSeverity.Information
-					);
-
-					diagnostic.code = kind.valueOf();
-					diagnostic.source = 'intuita';
-
-					return diagnostic;
-				}
-			);
-
-		diagnosticCollection.clear();
-
-		diagnosticCollection.set(
-			uri,
-			diagnostics,
-		);
-
-		treeDataProvider.eventEmitter.fire();
-	}
+	const treeDataProvider = new IntuitaTreeDataProvider(
+		messageBus,
+		jobManager,
+		diagnosticCollection,
+	);
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(
