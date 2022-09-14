@@ -1,20 +1,25 @@
-import { join } from "node:path";
+import {join} from "node:path";
 import {
+    Diagnostic, DiagnosticCollection,
+    DiagnosticSeverity,
     Event,
     EventEmitter,
     MarkdownString,
+    Position,
     ProviderResult,
+    Range,
     TreeDataProvider,
     TreeItem,
     TreeItemCollapsibleState,
     Uri,
     workspace
 } from "vscode";
-import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
-import { JobHash } from "../features/moveTopLevelNode/jobHash";
-import { buildHash, IntuitaRange } from "../utilities";
+import {buildFileNameHash} from "../features/moveTopLevelNode/fileNameHash";
+import {JobHash} from "../features/moveTopLevelNode/jobHash";
+import {buildHash, IntuitaRange} from "../utilities";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
+import {MessageBus, MessageKind} from "./messageBus";
 
 type Element =
     | Readonly<{
@@ -36,9 +41,23 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
     public readonly onDidChangeTreeData: Event<void>;
 
     public constructor(
-        protected readonly _jobManager: JobManager
+        protected readonly _messageBus: MessageBus,
+        protected readonly _jobManager: JobManager,
+        protected readonly _diagnosticCollection: DiagnosticCollection,
     ) {
         this.onDidChangeTreeData = this.eventEmitter.event;
+
+        this._messageBus.subscribe(
+            (message) => {
+                if (message.kind === MessageKind.updateDiagnostics) {
+                    setImmediate(
+                        () => {
+                            this._setDiagnosticEntry(message.fileName);
+                        }
+                    );
+                }
+            }
+        );
     }
 
     public getChildren(element: Element | undefined): ProviderResult<Element[]> {
@@ -134,5 +153,53 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
         }
 
         return treeItem;
+    }
+
+    protected _setDiagnosticEntry(
+        fileName: string,
+    ) {
+        const uri = Uri.parse(fileName);
+
+        const jobs = this._jobManager.getFileJobs(buildFileNameHash(fileName));
+
+        const diagnostics = jobs
+            .map(
+                ({ kind, title, range: intuitaRange }) => {
+                    const startPosition = new Position(
+                        intuitaRange[0],
+                        intuitaRange[1],
+                    );
+
+                    const endPosition = new Position(
+                        intuitaRange[2],
+                        intuitaRange[3],
+                    );
+
+                    const vscodeRange = new Range(
+                        startPosition,
+                        endPosition,
+                    );
+
+                    const diagnostic = new Diagnostic(
+                        vscodeRange,
+                        title,
+                        DiagnosticSeverity.Information
+                    );
+
+                    diagnostic.code = kind.valueOf();
+                    diagnostic.source = 'intuita';
+
+                    return diagnostic;
+                }
+            );
+
+        this._diagnosticCollection.clear();
+
+        this._diagnosticCollection.set(
+            uri,
+            diagnostics,
+        );
+
+        this.eventEmitter.fire();
     }
 }
