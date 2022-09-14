@@ -9,7 +9,7 @@ import {getConfiguration} from './configuration';
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
-import { MessageBus, MessageKind } from './components/messageBus';
+import { MessageBus } from './components/messageBus';
 import { buildFileNameHash } from './features/moveTopLevelNode/fileNameHash';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
@@ -23,6 +23,12 @@ export async function activate(
 	context: vscode.ExtensionContext,
 ) {
 	messageBus.setDisposables(context.subscriptions);
+
+	const diagnosticCollection = vscode
+		.languages
+		.createDiagnosticCollection(
+			'typescript'
+		);
 
 	const diagnosticManager = new DiagnosticManager(
 		messageBus,
@@ -55,12 +61,6 @@ export async function activate(
 			}
 		)
 	);
-
-	const diagnosticCollection = vscode
-		.languages
-		.createDiagnosticCollection(
-			'typescript'
-		);
 
 	const jobManager = new JobManager(
 		messageBus,
@@ -117,18 +117,6 @@ export async function activate(
 
 		treeDataProvider.eventEmitter.fire();
 	}
-
-	messageBus.subscribe(
-		(message) => {
-			if (message.kind === MessageKind.readingFileFailed) {
-				setImmediate(
-					() => jobManager.onReadingFileFailed(
-						message.uri,
-					),
-				);
-			}
-		},
-	);
 
 	context.subscriptions.push(
 		vscode.window.registerTreeDataProvider(

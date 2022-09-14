@@ -9,7 +9,7 @@ import {
 import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
-import {MessageBus, MessageKind} from "./messageBus";
+import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildRepairCodeFact, RepairCodeFact} from "../features/repairCode/factBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
@@ -45,61 +45,21 @@ export class JobManager {
     ) {
         this._messageBus.subscribe(
             async (message) => {
-                if (message.kind !== MessageKind.createRepairCodeJob) {
-                    return;
+                if (message.kind === MessageKind.readingFileFailed) {
+                    setImmediate(
+                        () => this._onReadingFileFailed(
+                            message.uri,
+                        ),
+                    );
                 }
 
-                const fileName = message.uri.fsPath;
-
-                const fileNameHash = buildFileNameHash(fileName);
-
-                this._fileNames.set(
-                    fileNameHash,
-                    fileName
-                );
-
-                const textDocuments = await getOrOpenTextDocuments(fileName);
-                const fileText = textDocuments[0]?.getText() ?? '';
-
-                const command: RepairCodeUserCommand = {
-                    fileName,
-                    fileText,
-                    kind: "REPAIR_CODE",
-                    range: message.range,
-                    replacement: message.replacement,
-                };
-
-                const fact = buildRepairCodeFact(command);
-
-                const jobHash = buildRepairCodeJobHash(
-                    fileName,
-                    message.range,
-                );
-
-                this._factMap.set(jobHash, fact);
-
-                const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
-                jobHashes.add(jobHash);
-
-                this._jobHashMap.set(fileNameHash, jobHashes);
-
-                const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
-
-                const job: RepairCodeJob = {
-                    kind: JobKind.repairCode,
-                    fileName,
-                    hash: jobHash,
-                    title,
-                    range: message.range,
-                    replacement: message.replacement,
-                };
-
-                this._jobMap.set(
-                    job.hash,
-                    job,
-                );
-
-                this._setDiagnosticEntry(fileName);
+                if (message.kind === MessageKind.createRepairCodeJob) {
+                    setImmediate(
+                        () => this._onCreateRepairCodeJob(
+                            message,
+                        )
+                    );
+                }
             }
         );
     }
@@ -215,56 +175,6 @@ export class JobManager {
             text: execution.text,
             position,
         };
-    }
-
-    public async onReadingFileFailed (
-        uri: Uri
-    ) {
-        const destructedUri = destructIntuitaFileSystemUri(uri);
-
-        if (!destructedUri) {
-            return;
-        }
-
-        const fileName = destructedUri.directory === 'files'
-            ? this.getFileNameFromFileNameHash(destructedUri.fileNameHash)
-            : this.getFileNameFromJobHash(destructedUri.jobHash);
-
-        assertsNeitherNullOrUndefined(fileName);
-
-        const textDocument = await getOrOpenTextDocuments(fileName);
-        let text = textDocument[0]?.getText();
-
-        assertsNeitherNullOrUndefined(text);
-
-        if (destructedUri.directory === 'jobs') {
-            const result = this
-                .executeJob(
-                    destructedUri.jobHash,
-                    0,
-                );
-
-            if (result) {
-                text = result.text;
-            }
-        }
-
-        assertsNeitherNullOrUndefined(text);
-
-        const content = Buffer.from(text);
-
-        const permissions = destructedUri.directory === 'files'
-            ? FilePermission.Readonly
-            : null;
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.writeFile,
-                uri,
-                content,
-                permissions,
-            },
-        );
     }
 
     public getCodeActionJobs(
@@ -389,5 +299,111 @@ export class JobManager {
                 },
             );
         }
+    }
+
+    protected async _onReadingFileFailed (
+        uri: Uri
+    ) {
+        const destructedUri = destructIntuitaFileSystemUri(uri);
+
+        if (!destructedUri) {
+            return;
+        }
+
+        const fileName = destructedUri.directory === 'files'
+            ? this.getFileNameFromFileNameHash(destructedUri.fileNameHash)
+            : this.getFileNameFromJobHash(destructedUri.jobHash);
+
+        assertsNeitherNullOrUndefined(fileName);
+
+        const textDocument = await getOrOpenTextDocuments(fileName);
+        let text = textDocument[0]?.getText();
+
+        assertsNeitherNullOrUndefined(text);
+
+        if (destructedUri.directory === 'jobs') {
+            const result = this
+                .executeJob(
+                    destructedUri.jobHash,
+                    0,
+                );
+
+            if (result) {
+                text = result.text;
+            }
+        }
+
+        assertsNeitherNullOrUndefined(text);
+
+        const content = Buffer.from(text);
+
+        const permissions = destructedUri.directory === 'files'
+            ? FilePermission.Readonly
+            : null;
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.writeFile,
+                uri,
+                content,
+                permissions,
+            },
+        );
+    }
+
+    protected async _onCreateRepairCodeJob(
+        message: Message & { kind: MessageKind.createRepairCodeJob },
+    ) {
+        const fileName = message.uri.fsPath;
+
+        const fileNameHash = buildFileNameHash(fileName);
+
+        this._fileNames.set(
+            fileNameHash,
+            fileName
+        );
+
+        const textDocuments = await getOrOpenTextDocuments(fileName);
+        const fileText = textDocuments[0]?.getText() ?? '';
+
+        const command: RepairCodeUserCommand = {
+            fileName,
+            fileText,
+            kind: "REPAIR_CODE",
+            range: message.range,
+            replacement: message.replacement,
+        };
+
+        const fact = buildRepairCodeFact(command);
+
+        const jobHash = buildRepairCodeJobHash(
+            fileName,
+            message.range,
+        );
+
+        this._factMap.set(jobHash, fact);
+
+        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        jobHashes.add(jobHash);
+
+        this._jobHashMap.set(fileNameHash, jobHashes);
+
+        const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
+
+        const job: RepairCodeJob = {
+            kind: JobKind.repairCode,
+            fileName,
+            hash: jobHash,
+            title,
+            range: message.range,
+            replacement: message.replacement,
+        };
+
+        this._jobMap.set(
+            job.hash,
+            job,
+        );
+
+        this._setDiagnosticEntry(fileName);
     }
 }

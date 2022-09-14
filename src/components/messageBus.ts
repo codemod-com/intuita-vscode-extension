@@ -9,7 +9,7 @@ export const enum MessageKind {
     createRepairCodeJob = 4,
 }
 
-type Message =
+export type Message =
     | Readonly<{
         kind: MessageKind.readingFileFailed,
         uri: Uri,
