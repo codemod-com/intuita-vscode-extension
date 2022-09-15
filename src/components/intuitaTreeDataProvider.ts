@@ -20,6 +20,8 @@ import {buildHash, IntuitaRange} from "../utilities";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 import {MessageBus, MessageKind} from "./messageBus";
+import {MoveTopLevelNodeJob} from "../features/moveTopLevelNode/job";
+import {RepairCodeJob} from "../features/repairCode/job";
 
 type Element =
     | Readonly<{
@@ -34,6 +36,7 @@ type Element =
         hash: JobHash,
         fileName: string,
         range: IntuitaRange,
+        job: MoveTopLevelNodeJob | RepairCodeJob,
     }>;
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
@@ -86,14 +89,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 
                 const children: Element[] = jobs
                     .map(
-                        (diagnostic) => {
+                        (job) => {
                             return {
                                 kind: 'DIAGNOSTIC' as const,
-                                label: diagnostic.title,
+                                label: job.title,
                                 fileName,
                                 uri,
-                                range: diagnostic.range,
-                                hash: diagnostic.hash,
+                                range: job.range,
+                                hash: job.hash,
+                                job,
                             };
                         }
                     );
@@ -142,7 +146,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
                 command: 'vscode.diff',
                 arguments: [
                     buildFileUri(element.uri),
-                    buildJobUri(element.hash),
+                    buildJobUri(element.job),
                     'Proposed change',
                 ]
             };

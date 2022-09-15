@@ -60,7 +60,7 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
                     command: 'vscode.diff',
                     arguments: [
                         buildFileUri(document.uri),
-                        buildJobUri(job.hash),
+                        buildJobUri(job),
                     ],
                 };
 

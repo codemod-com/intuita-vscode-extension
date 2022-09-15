@@ -63,6 +63,9 @@ export class JobManager {
         );
     }
 
+    public getJob(jobHash: JobHash): Job | null {
+        return this._jobMap.get(jobHash) ?? null;
+    }
     public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
         return this._fileNames.get(fileNameHash) ?? null;
     }
@@ -95,6 +98,9 @@ export class JobManager {
     public rejectJob(
         jobHash: JobHash,
     ) {
+        const job = this.getJob(jobHash);
+        assertsNeitherNullOrUndefined(job);
+
         const entries = Array.from(this._jobHashMap.entries());
 
         const entry = entries.find(([ _, jobHashes]) => {
@@ -121,7 +127,7 @@ export class JobManager {
             },
         );
 
-        const uri = buildJobUri(jobHash);
+        const uri = buildJobUri(job);
 
         this._messageBus.publish(
             {
@@ -242,7 +248,7 @@ export class JobManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        // const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         this._fileNames.set(fileNameHash, fileName);
 
@@ -272,22 +278,22 @@ export class JobManager {
             },
         );
 
-        oldJobHashes.forEach(
-            (oldJobHash) => {
-                if (jobHashes.has(oldJobHash)) {
-                    return;
-                }
-
-                const uri = buildJobUri(oldJobHash);
-
-                this._messageBus.publish(
-                    {
-                        kind: MessageKind.deleteFile,
-                        uri,
-                    },
-                );
-            },
-        );
+        // oldJobHashes.forEach(
+        //     (oldJobHash) => {
+        //         if (jobHashes.has(oldJobHash)) {
+        //             return;
+        //         }
+        //
+        //         const uri = buildJobUri(oldJobHash);
+        //
+        //         this._messageBus.publish(
+        //             {
+        //                 kind: MessageKind.deleteFile,
+        //                 uri,
+        //             },
+        //         );
+        //     },
+        // );
 
         const uri = buildFileUri(document.uri);
 
