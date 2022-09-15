@@ -14,6 +14,7 @@ import {
 import {MessageBus, MessageKind} from "./messageBus";
 import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
+import {join} from "node:path";
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 export const FS_PATH_REG_EXP = /\/(jobs|files)\/([a-zA-Z0-9\-_]{27})\.(tsx|jsx|ts|js)/;
@@ -263,10 +264,17 @@ export const buildJobUri = (
     );
 };
 export const buildFileUri = (
-    fileNameHash: FileNameHash,
+    uri: Uri,
 ): Uri => {
+    const value = join(
+        'intuita:/files/',
+        uri.scheme,
+        '/',
+        uri.fsPath,
+    );
+
     return Uri.parse(
-        `intuita:/files/${fileNameHash}.ts`,
+        value,
         true,
     );
 };

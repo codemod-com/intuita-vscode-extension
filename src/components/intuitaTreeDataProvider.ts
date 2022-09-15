@@ -137,15 +137,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 
             treeItem.tooltip = tooltip;
 
-            const fileNameHash = buildFileNameHash(
-                element.fileName,
-            );
-
             treeItem.command = {
                 title: 'Diff View',
                 command: 'vscode.diff',
                 arguments: [
-                    buildFileUri(fileNameHash),
+                    buildFileUri(element.uri),
                     buildJobUri(element.hash),
                     'Proposed change',
                 ]

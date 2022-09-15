@@ -289,7 +289,7 @@ export class JobManager {
             },
         );
 
-        const uri = buildFileUri(fileNameHash);
+        const uri = buildFileUri(document.uri);
 
         if (jobs.length === 0) {
             this._messageBus.publish(
