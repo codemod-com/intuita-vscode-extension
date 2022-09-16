@@ -6,6 +6,8 @@ import {Container} from "../container";
 import {Configuration} from "../configuration";
 import {JobOutput} from "../jobs";
 import {JobManager} from "./jobManager";
+import {MoveTopLevelNodeJob} from "../features/moveTopLevelNode/job";
+import {RepairCodeJob} from "../features/repairCode/job";
 
 export const acceptJob = (
     configurationContainer: Container<Configuration>,
@@ -13,17 +15,17 @@ export const acceptJob = (
     jobManager: JobManager,
 ) => {
     const getJobOutput = (
-        jobHash: JobHash,
+        job: MoveTopLevelNodeJob | RepairCodeJob,
         characterDifference: number,
     ): JobOutput | null => {
         const content = intuitaFileSystem.readNullableFile(
-            buildJobUri(jobHash as JobHash),
+            buildJobUri(job),
         );
 
         if (!content) {
             return jobManager
                 .executeJob(
-                    jobHash,
+                    job.hash,
                     characterDifference,
                 );
         }
@@ -61,7 +63,7 @@ export const acceptJob = (
             if (typeof arg0 !== 'string') {
                 throw new Error('The job hash argument must be a string');
             }
-    
+
             if (typeof arg1 !== 'number') {
                 throw new Error('The characterDifference argument must be a number');
             }
@@ -70,12 +72,13 @@ export const acceptJob = (
             characterDifference = arg1;
         }
 
-        const fileName = jobManager.getFileNameFromJobHash(jobHash as JobHash);
+        const job = jobManager.getJob(jobHash as JobHash);
+        assertsNeitherNullOrUndefined(job);
 
-        assertsNeitherNullOrUndefined(fileName);
+        const { fileName } = job;
 
         const result = getJobOutput(
-            jobHash as JobHash,
+            job,
             characterDifference
         );
 

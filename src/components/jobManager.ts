@@ -20,13 +20,14 @@ import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
-import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "./intuitaFileSystem";
+import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 import {
     buildMoveTopLevelNodeJobs,
     calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/job";
 import {RepairCodeJob} from "../features/repairCode/job";
+import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
@@ -63,6 +64,9 @@ export class JobManager {
         );
     }
 
+    public getJob(jobHash: JobHash): Job | null {
+        return this._jobMap.get(jobHash) ?? null;
+    }
     public getFileNameFromFileNameHash(fileNameHash: FileNameHash): string | null {
         return this._fileNames.get(fileNameHash) ?? null;
     }
@@ -95,6 +99,9 @@ export class JobManager {
     public rejectJob(
         jobHash: JobHash,
     ) {
+        const job = this.getJob(jobHash);
+        assertsNeitherNullOrUndefined(job);
+
         const entries = Array.from(this._jobHashMap.entries());
 
         const entry = entries.find(([ _, jobHashes]) => {
@@ -121,7 +128,7 @@ export class JobManager {
             },
         );
 
-        const uri = buildJobUri(jobHash);
+        const uri = buildJobUri(job);
 
         this._messageBus.publish(
             {
@@ -277,9 +284,12 @@ export class JobManager {
                 if (jobHashes.has(oldJobHash)) {
                     return;
                 }
-
-                const uri = buildJobUri(oldJobHash);
-
+        
+                const uri = buildJobUri({
+                    fileName,
+                    hash: oldJobHash,
+                });
+        
                 this._messageBus.publish(
                     {
                         kind: MessageKind.deleteFile,
@@ -289,7 +299,7 @@ export class JobManager {
             },
         );
 
-        const uri = buildFileUri(fileNameHash);
+        const uri = buildFileUri(document.uri);
 
         if (jobs.length === 0) {
             this._messageBus.publish(
@@ -320,7 +330,7 @@ export class JobManager {
         }
 
         const fileName = destructedUri.directory === 'files'
-            ? this.getFileNameFromFileNameHash(destructedUri.fileNameHash)
+            ? destructedUri.fsPath
             : this.getFileNameFromJobHash(destructedUri.jobHash);
 
         assertsNeitherNullOrUndefined(fileName);

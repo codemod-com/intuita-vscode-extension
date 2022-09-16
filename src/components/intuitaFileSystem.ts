@@ -12,11 +12,11 @@ import {
     Uri
 } from "vscode";
 import {MessageBus, MessageKind} from "./messageBus";
-import {FileNameHash} from "../features/moveTopLevelNode/fileNameHash";
-import {JobHash} from "../features/moveTopLevelNode/jobHash";
+import {join} from "node:path";
+import {RepairCodeJob} from "../features/repairCode/job";
+import {MoveTopLevelNodeJob} from "../features/moveTopLevelNode/job";
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
-export const FS_PATH_REG_EXP = /\/(jobs|files)\/([a-zA-Z0-9\-_]{27})\.(tsx|jsx|ts|js)/;
 
 type IntuitaFile = Readonly<{
     content: Uint8Array,
@@ -255,47 +255,39 @@ export class IntuitaFileSystem implements FileSystemProvider {
 }
 
 export const buildJobUri = (
-    jobHash: JobHash,
+    job: { fileName: string, hash: string },
 ): Uri => {
+    const uri = Uri.file(job.fileName);
+
+    const jobTitle = `proposedChange_${job.hash}`;
+
+    const value = join(
+        'intuita:/vfs/jobs/',
+        uri.scheme,
+        '/',
+        uri.fsPath,
+        '/',
+        `${jobTitle}.ts`,
+    );
+
     return Uri.parse(
-        `intuita:/jobs/${jobHash}.ts`,
+        value,
         true,
     );
 };
+
 export const buildFileUri = (
-    fileNameHash: FileNameHash,
+    uri: Uri,
 ): Uri => {
+    const value = join(
+        'intuita:/vfs/files/',
+        uri.scheme,
+        '/',
+        uri.fsPath,
+    );
+
     return Uri.parse(
-        `intuita:/files/${fileNameHash}.ts`,
+        value,
         true,
     );
-};
-export const destructIntuitaFileSystemUri = (uri: Uri) => {
-    if (uri.scheme !== 'intuita') {
-        return null;
-    }
-
-    const regExpExecArray = FS_PATH_REG_EXP.exec(uri.fsPath);
-
-    if (!regExpExecArray) {
-        return null;
-    }
-
-    const directory = regExpExecArray[1];
-
-    if (directory === 'files') {
-        return {
-            directory: 'files' as const,
-            fileNameHash: regExpExecArray[2] as FileNameHash,
-        };
-    }
-
-    if (directory === 'jobs') {
-        return {
-            directory: 'jobs' as const,
-            jobHash: regExpExecArray[2] as JobHash,
-        };
-    }
-
-    return null;
 };

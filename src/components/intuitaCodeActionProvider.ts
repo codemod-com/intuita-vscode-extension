@@ -8,7 +8,6 @@ import {
     Selection,
     TextDocument,
 } from "vscode";
-import {buildFileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 
@@ -24,7 +23,6 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
         range: Range | Selection,
     ): ProviderResult<(Command | CodeAction)[]> {
         const fileName = document.fileName;
-        const fileNameHash = buildFileNameHash(fileName);
 
         const jobs = this._jobManager.getCodeActionJobs(
             fileName,
@@ -61,8 +59,8 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
                     title,
                     command: 'vscode.diff',
                     arguments: [
-                        buildFileUri(fileNameHash),
-                        buildJobUri(job.hash),
+                        buildFileUri(document.uri),
+                        buildJobUri(job),
                     ],
                 };
 
