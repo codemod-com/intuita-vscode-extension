@@ -255,7 +255,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 }
 
 export const buildJobUri = (
-    job: MoveTopLevelNodeJob | RepairCodeJob,
+    job: { fileName: string, hash: string },
 ): Uri => {
     const uri = Uri.file(job.fileName);
 

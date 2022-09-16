@@ -2,7 +2,7 @@ import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
 import {assert} from "chai";
 import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 
-describe.only('destructIntuitaFileSystemUri', () => {
+describe('destructIntuitaFileSystemUri', () => {
     it('destructIntuitaFileSystemUri', () => {
         const d = destructIntuitaFileSystemUri({
             scheme: 'intuita',

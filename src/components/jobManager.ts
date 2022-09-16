@@ -249,7 +249,7 @@ export class JobManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        // const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
 
         this._fileNames.set(fileNameHash, fileName);
 
@@ -279,22 +279,25 @@ export class JobManager {
             },
         );
 
-        // oldJobHashes.forEach(
-        //     (oldJobHash) => {
-        //         if (jobHashes.has(oldJobHash)) {
-        //             return;
-        //         }
-        //
-        //         const uri = buildJobUri(oldJobHash);
-        //
-        //         this._messageBus.publish(
-        //             {
-        //                 kind: MessageKind.deleteFile,
-        //                 uri,
-        //             },
-        //         );
-        //     },
-        // );
+        oldJobHashes.forEach(
+            (oldJobHash) => {
+                if (jobHashes.has(oldJobHash)) {
+                    return;
+                }
+        
+                const uri = buildJobUri({
+                    fileName,
+                    hash: oldJobHash,
+                });
+        
+                this._messageBus.publish(
+                    {
+                        kind: MessageKind.deleteFile,
+                        uri,
+                    },
+                );
+            },
+        );
 
         const uri = buildFileUri(document.uri);
 
