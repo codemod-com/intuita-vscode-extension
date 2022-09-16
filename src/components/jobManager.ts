@@ -20,13 +20,14 @@ import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
-import {buildFileUri, buildJobUri, destructIntuitaFileSystemUri} from "./intuitaFileSystem";
+import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 import {
     buildMoveTopLevelNodeJobs,
     calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/job";
 import {RepairCodeJob} from "../features/repairCode/job";
+import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
@@ -326,7 +327,7 @@ export class JobManager {
         }
 
         const fileName = destructedUri.directory === 'files'
-            ? this.getFileNameFromFileNameHash(destructedUri.fileNameHash)
+            ? destructedUri.fsPath
             : this.getFileNameFromJobHash(destructedUri.jobHash);
 
         assertsNeitherNullOrUndefined(fileName);
