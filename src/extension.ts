@@ -95,8 +95,7 @@ export async function activate(
 					return;
 				}
 
-				diagnosticManager.clearHashes();	
-				jobManager.clear();
+				diagnosticManager.clearHashes();
 			},
 		),
 	);
@@ -187,7 +186,7 @@ export async function activate(
 				}
 
 				diagnosticManager.clearHashes();
-				jobManager.clear();
+				jobManager.deleteFileName(document.fileName);
 			}),
 		);
 
