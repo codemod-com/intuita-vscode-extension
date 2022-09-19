@@ -16,7 +16,7 @@ import {
 } from "vscode";
 import {buildFileNameHash} from "../features/moveTopLevelNode/fileNameHash";
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {buildHash, IntuitaRange} from "../utilities";
+import {buildHash, IntuitaRange, isNeitherNullNorUndefined} from "../utilities";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 import {MessageBus, MessageKind} from "./messageBus";
@@ -102,13 +102,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
                         }
                     );
 
+                if (children.length === 0) {
+                    return null;
+                }
+
                 return {
                     kind: 'FILE' as const,
                     label,
                     children,
                 };
             }
-        );
+        ).filter(isNeitherNullNorUndefined);
     }
 
     public getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
