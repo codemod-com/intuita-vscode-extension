@@ -95,8 +95,7 @@ export async function activate(
 					return;
 				}
 
-				diagnosticManager.clearHashes();	
-				jobManager.clear();
+				diagnosticManager.clearHashes();
 			},
 		),
 	);
