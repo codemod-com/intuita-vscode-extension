@@ -64,22 +64,33 @@ export class JobManager {
         );
     }
 
-    public clear() {
-        const fileNames = Array.from(this._fileNames.values());
+    public deleteFileName(
+        fileName: string,
+    ) {
+        const fileNameHash = buildFileNameHash(fileName);
 
-        this._fileNames.clear();
-        this._factMap.clear();
-        this._jobHashMap.clear();
-        this._jobMap.clear();
-
-        for(const fileName of fileNames) {
-            this._messageBus.publish(
-                {
-                    kind: MessageKind.updateDiagnostics,
-                    fileName,
-                },
-            );
+        if (!this._fileNames.has(fileNameHash)) {
+            return;
         }
+
+        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+
+        this._fileNames.delete(fileNameHash);
+        this._jobHashMap.delete(fileNameHash);
+
+        jobHashes.forEach(
+            (jobHash) => {
+                this._factMap.delete(jobHash);
+                this._jobMap.delete(jobHash);
+            }
+        );
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.updateDiagnostics,
+                fileName,
+            },
+        );
     }
 
     public getJob(jobHash: JobHash): Job | null {
