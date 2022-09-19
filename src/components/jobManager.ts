@@ -64,6 +64,24 @@ export class JobManager {
         );
     }
 
+    public clear() {
+        const fileNames = Array.from(this._fileNames.values());
+
+        this._fileNames.clear();
+        this._factMap.clear();
+        this._jobHashMap.clear();
+        this._jobMap.clear();
+
+        for(const fileName of fileNames) {
+            this._messageBus.publish(
+                {
+                    kind: MessageKind.updateDiagnostics,
+                    fileName,
+                },
+            );
+        }
+    }
+
     public getJob(jobHash: JobHash): Job | null {
         return this._jobMap.get(jobHash) ?? null;
     }

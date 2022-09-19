@@ -88,27 +88,6 @@ export async function activate(
 			)
 		));
 
-
-	const activeTextEditorChangedCallback = (
-		document: vscode.TextDocument,
-	) => {
-		diagnosticManager.clearHashes();
-
-		jobManager
-			.onFileTextChanged(
-				document,
-			);
-	};
-
-	if (vscode.window.activeTextEditor) {
-		activeTextEditorChangedCallback(
-			vscode
-				.window
-				.activeTextEditor
-				.document,
-		);
-	}
-
 	context.subscriptions.push(
 		vscode.window.onDidChangeActiveTextEditor(
 			(textEditor) => {
@@ -116,10 +95,29 @@ export async function activate(
 					return;
 				}
 
-				return activeTextEditorChangedCallback(
-					textEditor
-						.document,
-				);
+				diagnosticManager.clearHashes();	
+				jobManager.clear();
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildMoveTopLevelNodeJobs',
+			() => {
+				const document = vscode
+					.window
+					.activeTextEditor
+					?.document;
+
+				if (!document) {
+					return;
+				}
+
+				jobManager
+					.onFileTextChanged(
+						document,
+					);
 			},
 		),
 	);
@@ -182,17 +180,15 @@ export async function activate(
 			async ({ document })=> {
 				const { uri } = document;
 
-				if (uri.scheme === 'intuita' && uri.path.startsWith('/jobs/')) {
+				if (uri.scheme === 'intuita' && uri.path.startsWith('/vfs/jobs/')) {
 					await document.save();
 
 					return;
 				}
 
-				jobManager
-					.onFileTextChanged(
-						document,
-					);
-			})
+				diagnosticManager.clearHashes();
+				jobManager.clear();
+			}),
 		);
 
 	context.subscriptions.push(diagnosticCollection);

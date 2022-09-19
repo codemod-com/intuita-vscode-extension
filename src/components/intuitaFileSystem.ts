@@ -13,8 +13,6 @@ import {
 } from "vscode";
 import {MessageBus, MessageKind} from "./messageBus";
 import {join} from "node:path";
-import {RepairCodeJob} from "../features/repairCode/job";
-import {MoveTopLevelNodeJob} from "../features/moveTopLevelNode/job";
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 
