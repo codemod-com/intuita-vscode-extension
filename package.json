@@ -40,6 +40,10 @@
 		],
 		"commands": [
 			{
+				"command": "intuita.buildMoveTopLevelNodeJobs",
+				"title": "Intuita: Build move-top-level-block recommendations"
+			},
+			{
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
