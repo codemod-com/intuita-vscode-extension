@@ -204,6 +204,7 @@ export class DiagnosticManager {
                 uri: Uri.parse(message.fileName),
                 range: message.range,
                 replacement: message.results[0] ?? '',
+                version,
             });
         }
     }

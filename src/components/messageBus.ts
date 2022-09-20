@@ -34,6 +34,7 @@ export type Message =
     | Readonly<{
         kind: MessageKind.createRepairCodeJob,
         uri: Uri,
+        version: number,
         range: IntuitaRange,
         replacement: string,
     }>

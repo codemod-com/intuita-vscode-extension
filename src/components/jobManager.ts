@@ -440,10 +440,23 @@ export class JobManager {
 
         this._factMap.set(jobHash, fact);
 
-        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
-        jobHashes.add(jobHash);
+        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        const newJobHashes = new Set<JobHash>();
 
-        this._jobHashMap.set(fileNameHash, jobHashes);
+        oldJobHashes.forEach(jobHash => {
+            const job = this._jobMap.get(jobHash);
+
+            if (job?.kind === JobKind.repairCode && job.version !== message.version) {
+                return;
+            }
+
+            newJobHashes.add(jobHash);
+        });
+
+        
+        newJobHashes.add(jobHash);
+
+        this._jobHashMap.set(fileNameHash, newJobHashes);
 
         const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
 
@@ -454,6 +467,7 @@ export class JobManager {
             title,
             range: message.range,
             replacement: message.replacement,
+            version: message.version,
         };
 
         this._jobMap.set(
