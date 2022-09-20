@@ -60,45 +60,7 @@ export class JobManager {
                         )
                     );
                 }
-
-                if (message.kind === MessageKind.textDocumentChanged) {
-                    setImmediate(
-                        () => {
-                            this.deleteFileName(message.uri);
-                        }
-                    )
-                }
             }
-        );
-    }
-
-    public deleteFileName(
-        uri: Uri,
-    ) {
-        const fileName = uri.fsPath;
-        const fileNameHash = buildFileNameHash(fileName);
-
-        if (!this._fileNames.has(fileNameHash)) {
-            return;
-        }
-
-        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
-
-        this._fileNames.delete(fileNameHash);
-        this._jobHashMap.delete(fileNameHash);
-
-        jobHashes.forEach(
-            (jobHash) => {
-                this._factMap.delete(jobHash);
-                this._jobMap.delete(jobHash);
-            }
-        );
-
-        this._messageBus.publish(
-            {
-                kind: MessageKind.updateDiagnostics,
-                fileName,
-            },
         );
     }
 
