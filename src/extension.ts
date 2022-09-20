@@ -89,18 +89,6 @@ export async function activate(
 		));
 
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveTextEditor(
-			(textEditor) => {
-				if (!textEditor) {
-					return;
-				}
-
-				diagnosticManager.clearHashes();
-			},
-		),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.buildMoveTopLevelNodeJobs',
 			() => {

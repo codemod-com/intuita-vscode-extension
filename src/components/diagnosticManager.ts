@@ -49,7 +49,15 @@ export class DiagnosticManager {
             stringUri
         );
 
-        abortController?.abort();
+        if (!abortController) {
+            return;
+        }
+
+        this._abortControllerMap.delete(stringUri);
+
+        if (!abortController.signal.aborted) {
+            abortController.abort();
+        }
     }
 
     public async onDiagnosticChangeEvent(
@@ -81,9 +89,12 @@ export class DiagnosticManager {
             return;
         }
 
-        const diagnostics = this._getDiagnostics(uri);
+        const {
+            newDiagnostics,
+            diagnosticNumber,
+        } = this._getDiagnostics(uri);
 
-        if (diagnostics.length === 0) {
+        if (!diagnosticNumber) {
             this._messageBus.publish({
                 kind: MessageKind.noTypeScriptDiagnostics,
                 uri,
@@ -175,7 +186,7 @@ export class DiagnosticManager {
         );
 
         // TODO remove the .intuita / hash directory
-        for (const diagnostic of diagnostics) {
+        for (const diagnostic of newDiagnostics) {
             this._hashes.add(
                 buildDiagnosticHash(diagnostic)
             );
@@ -214,16 +225,20 @@ export class DiagnosticManager {
     }
 
     protected _getDiagnostics(uri: Uri) {
-        return languages
+        const diagnostics = languages
             .getDiagnostics(uri)
             .filter(
                 ({ source }) => source === 'ts'
-            )
-            .filter(
+            );
+
+        return {
+            newDiagnostics: diagnostics.filter(
                 (diagnostic) => !this._hashes.has(
                     buildDiagnosticHash(diagnostic)
                 )
-            );
+            ),
+            diagnosticNumber: diagnostics.length,
+        };
     }
 
     protected async _executeJoernParse(

@@ -35,7 +35,8 @@ type Fact = MoveTopLevelNodeFact | RepairCodeFact;
 export class JobManager {
     protected _fileNames = new Map<FileNameHash, string>();
     protected _factMap = new Map<JobHash, Fact>();
-    protected _jobHashMap = new Map<FileNameHash, Set<JobHash>>();
+    protected _moveTopLevelBlockHashMap = new Map<FileNameHash, Set<JobHash>>();
+    protected _repairCodeHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
     protected _jobMap = new Map<JobHash, Job>;
 
@@ -90,9 +91,12 @@ export class JobManager {
     }
 
     public getFileJobs(fileNameHash: FileNameHash): ReadonlyArray<Job> {
-        const jobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        const set1 = this._moveTopLevelBlockHashMap.get(fileNameHash) ?? new Set();
+        const set2 = this._repairCodeHashMap.get(fileNameHash) ?? new Set();
 
-        return Array.from(jobHashes).map(
+        const jobHashes = [...set1, ...set2];
+
+        return jobHashes.map(
             (jobHash) => {
                 if (this._rejectedJobHashes.has(jobHash)) {
                     return null;
@@ -110,7 +114,10 @@ export class JobManager {
         const job = this.getJob(jobHash);
         assertsNeitherNullOrUndefined(job);
 
-        const entries = Array.from(this._jobHashMap.entries());
+        const entries = Array.from(this._moveTopLevelBlockHashMap.entries())
+            .concat(
+                Array.from(this._repairCodeHashMap.entries())
+            );
 
         const entry = entries.find(([ _, jobHashes]) => {
             return jobHashes.has(jobHash);
@@ -257,7 +264,7 @@ export class JobManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        const oldJobHashes = this._moveTopLevelBlockHashMap.get(fileNameHash) ?? new Set();
 
         this._fileNames.set(fileNameHash, fileName);
 
@@ -281,7 +288,7 @@ export class JobManager {
             this._factMap.set(jobHash, fact);
         });
 
-        this._jobHashMap.set(fileNameHash, newJobHashes);
+        this._moveTopLevelBlockHashMap.set(fileNameHash, newJobHashes);
 
         newJobs.forEach((job) => {
             this._jobMap.set(
@@ -420,7 +427,7 @@ export class JobManager {
 
         this._factMap.set(jobHash, fact);
 
-        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set();
+        const oldJobHashes = this._repairCodeHashMap.get(fileNameHash) ?? new Set();
         const newJobHashes = new Set<JobHash>();
 
         oldJobHashes.forEach(jobHash => {
@@ -436,7 +443,7 @@ export class JobManager {
         
         newJobHashes.add(jobHash);
 
-        this._jobHashMap.set(fileNameHash, newJobHashes);
+        this._repairCodeHashMap.set(fileNameHash, newJobHashes);
 
         const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
 
@@ -470,7 +477,13 @@ export class JobManager {
 
         const fileNameHash = buildFileNameHash(fileName);
 
-        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set<JobHash>();
+        const oldJobHashes = this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
+
+        if (!oldJobHashes.size) {
+            console.log('No repair code jobs to delete upon receiving no TypeScript diagnostics message');
+
+            return;
+        }
 
         const newJobHashes = new Set<JobHash>();
 
@@ -491,7 +504,10 @@ export class JobManager {
             }
         );
 
-        this._jobHashMap.set(fileNameHash, newJobHashes);
+        this._repairCodeHashMap.set(
+            fileNameHash,
+            newJobHashes,
+        );
 
         // outgoing
         this._messageBus.publish(
