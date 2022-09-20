@@ -60,6 +60,14 @@ export class JobManager {
                         )
                     );
                 }
+
+                if (message.kind === MessageKind.noTypeScriptDiagnostics) {
+                    setImmediate(
+                        () => this._onNoTypeScriptDiagnostics(
+                            message,
+                        ),
+                    );
+                }
             }
         );
     }
@@ -447,6 +455,45 @@ export class JobManager {
             job,
         );
 
+        this._messageBus.publish(
+            {
+                kind: MessageKind.updateDiagnostics,
+                fileName,
+            },
+        );
+    }
+
+    protected _onNoTypeScriptDiagnostics(
+        message: Message & { kind: MessageKind.noTypeScriptDiagnostics },
+    ) {
+        const fileName = message.uri.fsPath;
+
+        const fileNameHash = buildFileNameHash(fileName);
+
+        const oldJobHashes = this._jobHashMap.get(fileNameHash) ?? new Set<JobHash>();
+
+        const newJobHashes = new Set<JobHash>();
+
+        oldJobHashes.forEach(
+            (jobHash) => {
+                const job = this._jobMap.get(jobHash);
+
+                if (!job) {
+                    return;
+                }
+
+                if (job.kind !== JobKind.repairCode) {
+                    newJobHashes.add(jobHash);
+
+                    this._factMap.delete(jobHash);
+                    this._jobMap.delete(jobHash);
+                }
+            }
+        );
+
+        this._jobHashMap.set(fileNameHash, newJobHashes);
+
+        // outgoing
         this._messageBus.publish(
             {
                 kind: MessageKind.updateDiagnostics,

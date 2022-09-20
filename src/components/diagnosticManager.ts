@@ -84,6 +84,11 @@ export class DiagnosticManager {
         const diagnostics = this._getDiagnostics(uri);
 
         if (diagnostics.length === 0) {
+            this._messageBus.publish({
+                kind: MessageKind.noTypeScriptDiagnostics,
+                uri,
+            });
+
             return;
         }
 
@@ -170,7 +175,6 @@ export class DiagnosticManager {
         );
 
         // TODO remove the .intuita / hash directory
-
         for (const diagnostic of diagnostics) {
             this._hashes.add(
                 buildDiagnosticHash(diagnostic)

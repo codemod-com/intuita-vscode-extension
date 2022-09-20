@@ -7,8 +7,9 @@ export const enum MessageKind {
     deleteFile = 2,
     changePermissions = 3,
     createRepairCodeJob = 4,
-    updateDiagnostics = 5,
-    textDocumentChanged = 6,
+    noTypeScriptDiagnostics = 5,
+    updateDiagnostics = 6,
+    textDocumentChanged = 7,
 }
 
 export type Message =
@@ -37,6 +38,10 @@ export type Message =
         version: number,
         range: IntuitaRange,
         replacement: string,
+    }>
+    | Readonly<{
+        kind: MessageKind.noTypeScriptDiagnostics,
+        uri: Uri,
     }>
     | Readonly<{
         kind: MessageKind.updateDiagnostics,
