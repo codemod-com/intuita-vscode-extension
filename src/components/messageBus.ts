@@ -8,6 +8,7 @@ export const enum MessageKind {
     changePermissions = 3,
     createRepairCodeJob = 4,
     updateDiagnostics = 5,
+    textDocumentChanged = 6,
 }
 
 export type Message =
@@ -39,6 +40,10 @@ export type Message =
     | Readonly<{
         kind: MessageKind.updateDiagnostics,
         fileName: string,
+    }>
+    | Readonly<{
+        kind: MessageKind.textDocumentChanged,
+        uri: Uri,
     }>;
 
 export class MessageBus {

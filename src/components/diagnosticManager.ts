@@ -4,26 +4,50 @@ import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMes
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
-import {mkdirSync, writeFile, writeFileSync} from "node:fs";
+import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
 import {exec} from "node:child_process";
 import {MessageBus, MessageKind} from "./messageBus";
 
 const promisifiedExec = promisify(exec);
+const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
+    protected readonly _abortControllerMap: Map<string, AbortController> = new Map();
     protected readonly commandsAvailable: boolean;
 
     public constructor(
         protected readonly _messageBus: MessageBus,
     ) {
         this.commandsAvailable = areRepairCodeCommandsAvailable();
+
+        this._messageBus.subscribe(
+            (message) => {
+                if (message.kind === MessageKind.textDocumentChanged) {
+                    setImmediate(
+                        () => {
+                            this._onTextDocumentChanged(message.uri);
+                        },
+                    );
+                }
+            },
+        );
     }
 
     public clearHashes() {
         this._hashes.clear();
+    }
+
+    protected _onTextDocumentChanged(uri: Uri): void {
+        const stringUri = uri.toString();
+
+        const abortController = this._abortControllerMap.get(
+            stringUri
+        );
+
+        abortController?.abort();
     }
 
     public async onDiagnosticChangeEvent(
@@ -51,14 +75,7 @@ export class DiagnosticManager {
 
         const { version } = activeTextEditor.document;
 
-        const isFileTheSame = (): boolean => {
-            return version === window.activeTextEditor?.document.version
-                && stringUri === window.activeTextEditor.document.uri.toString();
-        };
-
         const uri = uris.find((u) => stringUri === u.toString());
-
-        const abortController = new AbortController();
 
         if (!uri) {
             return;
@@ -114,9 +131,13 @@ export class DiagnosticManager {
             `/.intuita/${hash}/vectors`,
         );
 
-        mkdirSync(
+        const abortController = new AbortController();
+
+        await promisifiedMkdir(
             directoryPath,
-            { recursive: true, },
+            {
+                recursive: true,
+            },
         );
 
         await promisifiedWriteFile(
@@ -138,10 +159,6 @@ export class DiagnosticManager {
 
         console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
 
-        if (!isFileTheSame()) {
-            return;
-        }
-
         const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath, abortController.signal);
 
         await promisifiedWriteFile(
@@ -152,10 +169,6 @@ export class DiagnosticManager {
                 encoding: 'utf8',
             },
         );
-
-        if (!isFileTheSame()) {
-            return;
-        }
 
         // TODO remove the .intuita / hash directory
 
@@ -193,32 +206,7 @@ export class DiagnosticManager {
                 range: message.range,
                 replacement: message.results[0] ?? '',
             });
-
-            if (!isFileTheSame()) {
-                return;
-            }
         }
-    }
-
-    protected async _infer(
-        command: InferCommand,
-        signal: AbortSignal,
-    ) {
-        try {
-            return await Axios.post(
-                'http://localhost:4000/infer',
-                command,
-                {
-                    signal,
-                },
-            );
-        } catch (error) {
-            if (Axios.isAxiosError(error)) {
-                console.error(error.response?.data);
-            }
-
-            throw error;
-        } 
     }
 
     protected async _executeJoernParse(
@@ -255,5 +243,26 @@ export class DiagnosticManager {
         );
 
         return stdout;
+    }
+
+    protected async _infer(
+        command: InferCommand,
+        signal: AbortSignal,
+    ) {
+        try {
+            return await Axios.post(
+                'http://localhost:4000/infer',
+                command,
+                {
+                    signal,
+                },
+            );
+        } catch (error) {
+            if (Axios.isAxiosError(error)) {
+                console.error(error.response?.data);
+            }
+
+            throw error;
+        } 
     }
 }

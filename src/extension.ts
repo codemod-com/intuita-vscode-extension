@@ -3,7 +3,7 @@ import {getConfiguration} from './configuration';
 import { buildContainer } from "./container";
 import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
-import { MessageBus } from './components/messageBus';
+import { MessageBus, MessageKind } from './components/messageBus';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
@@ -185,8 +185,14 @@ export async function activate(
 					return;
 				}
 
+				// TODO move to a respective event handler
 				diagnosticManager.clearHashes();
 				jobManager.deleteFileName(document.fileName);
+
+				messageBus.publish({
+					kind: MessageKind.textDocumentChanged,
+					uri,
+				});
 			}),
 		);
 
