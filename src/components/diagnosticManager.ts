@@ -4,12 +4,13 @@ import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMes
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
-import {mkdirSync, writeFileSync} from "node:fs";
+import {mkdirSync, writeFile, writeFileSync} from "node:fs";
 import {promisify} from "node:util";
 import {exec} from "node:child_process";
 import {MessageBus, MessageKind} from "./messageBus";
 
 const promisifiedExec = promisify(exec);
+const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
@@ -56,6 +57,8 @@ export class DiagnosticManager {
         };
 
         const uri = uris.find((u) => stringUri === u.toString());
+
+        const abortController = new AbortController();
 
         if (!uri) {
             return;
@@ -116,15 +119,18 @@ export class DiagnosticManager {
             { recursive: true, },
         );
 
-        writeFileSync(
+        await promisifiedWriteFile(
             filePath,
             text,
-            { encoding: 'utf8', }
+            {
+                signal: abortController.signal,
+                encoding: 'utf8',
+            },
         );
 
         const start = Date.now();
 
-        await this._executeJoernParse(directoryPath, cpgFilePath);
+        await this._executeJoernParse(directoryPath, cpgFilePath, abortController.signal);
 
         // joern-slice (pass the error range)
 
@@ -136,12 +142,15 @@ export class DiagnosticManager {
             return;
         }
 
-        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath);
+        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath, abortController.signal);
 
-        writeFileSync(
+        await promisifiedWriteFile(
             vectorPath,
             data,
-            { encoding: 'utf8', }
+            {
+                signal: abortController.signal,
+                encoding: 'utf8',
+            },
         );
 
         if (!isFileTheSame()) {
@@ -203,10 +212,12 @@ export class DiagnosticManager {
     protected async _executeJoernParse(
         directoryPath: string,
         cpgFilePath: string,
+        signal: AbortSignal,
     ): Promise<void> {
         await promisifiedExec(
             'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
             {
+                signal,
                 env: {
                     PARSE_INPUT: directoryPath,
                     PARSE_OUTPUT: cpgFilePath,
@@ -218,10 +229,12 @@ export class DiagnosticManager {
     protected async _executeJoernVectors(
         cpgFilePath: string,
         vectorPath: string,
+        signal: AbortSignal,
     ): Promise<string> {
         const { stdout } = await promisifiedExec(
             'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
             {
+                signal,
                 env: {
                     VECTOR_INPUT: cpgFilePath,
                     VECTOR_OUTPUT: vectorPath,
