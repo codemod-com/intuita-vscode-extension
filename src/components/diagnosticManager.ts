@@ -41,6 +41,8 @@ export class DiagnosticManager {
     }
 
     protected _onTextDocumentChanged(uri: Uri): void {
+        this.clearHashes();
+
         const stringUri = uri.toString();
 
         const abortController = this._abortControllerMap.get(

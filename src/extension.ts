@@ -185,10 +185,6 @@ export async function activate(
 					return;
 				}
 
-				// TODO move to a respective event handler
-				diagnosticManager.clearHashes();
-				jobManager.deleteFileName(document.fileName);
-
 				messageBus.publish({
 					kind: MessageKind.textDocumentChanged,
 					uri,

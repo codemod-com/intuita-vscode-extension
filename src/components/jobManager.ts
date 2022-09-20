@@ -60,13 +60,22 @@ export class JobManager {
                         )
                     );
                 }
+
+                if (message.kind === MessageKind.textDocumentChanged) {
+                    setImmediate(
+                        () => {
+                            this.deleteFileName(message.uri);
+                        }
+                    )
+                }
             }
         );
     }
 
     public deleteFileName(
-        fileName: string,
+        uri: Uri,
     ) {
+        const fileName = uri.fsPath;
         const fileNameHash = buildFileNameHash(fileName);
 
         if (!this._fileNames.has(fileNameHash)) {
