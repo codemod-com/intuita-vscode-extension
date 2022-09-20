@@ -79,16 +79,7 @@ export class DiagnosticManager {
             return;
         }
 
-        const diagnostics = languages
-            .getDiagnostics(uri)
-            .filter(
-                ({ source }) => source === 'ts'
-            )
-            .filter(
-                (diagnostic) => !this._hashes.has(
-                    buildDiagnosticHash(diagnostic)
-                )
-            );
+        const diagnostics = this._getDiagnostics(uri);
 
         if (diagnostics.length === 0) {
             return;
@@ -213,6 +204,19 @@ export class DiagnosticManager {
                 replacement: message.results[0] ?? '',
             });
         }
+    }
+
+    protected _getDiagnostics(uri: Uri) {
+        return languages
+            .getDiagnostics(uri)
+            .filter(
+                ({ source }) => source === 'ts'
+            )
+            .filter(
+                (diagnostic) => !this._hashes.has(
+                    buildDiagnosticHash(diagnostic)
+                )
+            );
     }
 
     protected async _executeJoernParse(
