@@ -51,7 +51,7 @@ export class DiagnosticManager {
     }
 
     public async onDiagnosticChangeEvent(
-        { uris }: DiagnosticChangeEvent,
+        event: DiagnosticChangeEvent,
     ): Promise<void> {
         if (!this.commandsAvailable) {
             return;
@@ -65,7 +65,9 @@ export class DiagnosticManager {
             return;
         }
 
-        const stringUri = activeTextEditor.document.uri.toString();
+        const { uri, version, getText } = activeTextEditor.document;
+
+        const stringUri = uri.toString();
 
         if (stringUri.includes('.intuita')) {
             console.log('The files within the .intuita directory won\'t be inspected.');
@@ -73,11 +75,7 @@ export class DiagnosticManager {
             return;
         }
 
-        const { version } = activeTextEditor.document;
-
-        const uri = uris.find((u) => stringUri === u.toString());
-
-        if (!uri) {
+        if(!event.uris.some((u) => stringUri === u.toString())) {
             return;
         }
 
@@ -92,19 +90,22 @@ export class DiagnosticManager {
                 )
             );
 
-        const workspaceFolder = workspace.getWorkspaceFolder(uri);
-        const workspaceFsPath = workspaceFolder?.uri.fsPath;
-
-        if (!isNeitherNullNorUndefined(workspaceFsPath) || diagnostics.length === 0) {
+        if (diagnostics.length === 0) {
             return;
         }
+
+        const workspaceFsPath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+
+        if (!isNeitherNullNorUndefined(workspaceFsPath)) {
+            return;
+        }
+
+        const text = getText();
 
         const hash = buildHash([
             stringUri,
             String(version),
         ].join(','));
-
-        const text = activeTextEditor.document.getText();
 
         const directoryPath = join(
             workspaceFsPath,
@@ -132,6 +133,11 @@ export class DiagnosticManager {
         );
 
         const abortController = new AbortController();
+        
+        this._abortControllerMap.set(
+            stringUri,
+            abortController,
+        );
 
         await promisifiedMkdir(
             directoryPath,
