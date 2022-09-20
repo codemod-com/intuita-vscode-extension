@@ -178,35 +178,47 @@ export class DiagnosticManager {
                 vectorPath,
             };
 
-            try {
-                const response = await Axios.post(
-                'http://localhost:4000/infer',
-                command,
-                );
+            const response = await this._infer(command, abortController.signal);
 
-                const message = decodeOrThrow(
-                    inferredMessageCodec,
-                    (report) =>
-                        new Error(`Could not decode the inferred message: ${report.join()}`),
-                    response.data,
-                );
+            const message = decodeOrThrow(
+                inferredMessageCodec,
+                (report) =>
+                    new Error(`Could not decode the inferred message: ${report.join()}`),
+                response.data,
+            );
 
-                this._messageBus.publish({
-                    kind: MessageKind.createRepairCodeJob,
-                    uri: Uri.parse(message.fileName),
-                    range: message.range,
-                    replacement: message.results[0] ?? '',
-                });
-            } catch (error) {
-                if (Axios.isAxiosError(error)) {
-                    console.error(error.response?.data);
-                }
-            }
+            this._messageBus.publish({
+                kind: MessageKind.createRepairCodeJob,
+                uri: Uri.parse(message.fileName),
+                range: message.range,
+                replacement: message.results[0] ?? '',
+            });
 
             if (!isFileTheSame()) {
                 return;
             }
         }
+    }
+
+    protected async _infer(
+        command: InferCommand,
+        signal: AbortSignal,
+    ) {
+        try {
+            return await Axios.post(
+                'http://localhost:4000/infer',
+                command,
+                {
+                    signal,
+                },
+            );
+        } catch (error) {
+            if (Axios.isAxiosError(error)) {
+                console.error(error.response?.data);
+            }
+
+            throw error;
+        } 
     }
 
     protected async _executeJoernParse(
