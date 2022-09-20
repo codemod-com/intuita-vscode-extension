@@ -253,19 +253,29 @@ export class JobManager {
 
         this._fileNames.set(fileNameHash, fileName);
 
-        const jobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
+        const newJobs = buildMoveTopLevelNodeJobs(userCommand, fact, this._rejectedJobHashes);
 
-        const jobHashes = new Set(
-            jobs.map(({ hash }) => hash)
+        const newJobHashes = new Set(
+            newJobs.map(({ hash }) => hash)
         );
 
-        jobHashes.forEach((jobHash) => {
+        oldJobHashes.forEach(
+            (jobHash) => {
+                const job = this._jobMap.get(jobHash);
+
+                if (job?.kind === JobKind.repairCode) {
+                    newJobHashes.add(jobHash);
+                }
+            }
+        );
+
+        newJobHashes.forEach((jobHash) => {
             this._factMap.set(jobHash, fact);
         });
 
-        this._jobHashMap.set(fileNameHash, jobHashes);
+        this._jobHashMap.set(fileNameHash, newJobHashes);
 
-        jobs.forEach((job) => {
+        newJobs.forEach((job) => {
             this._jobMap.set(
                 job.hash,
                 job,
@@ -281,7 +291,7 @@ export class JobManager {
 
         oldJobHashes.forEach(
             (oldJobHash) => {
-                if (jobHashes.has(oldJobHash)) {
+                if (newJobHashes.has(oldJobHash)) {
                     return;
                 }
         
@@ -301,7 +311,7 @@ export class JobManager {
 
         const uri = buildFileUri(document.uri);
 
-        if (jobs.length === 0) {
+        if (newJobs.length === 0) {
             this._messageBus.publish(
                 {
                     kind: MessageKind.deleteFile,
