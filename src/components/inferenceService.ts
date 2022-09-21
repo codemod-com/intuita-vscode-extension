@@ -37,9 +37,4 @@ export const inferredMessageCodec = buildTypeCodec({
     replacements: t.readonlyArray(replacementCodec),
 });
 
-export const errorMessageCodec = buildTypeCodec({
-    kind: t.literal('error'),
-    description: t.string,
-});
-
 export type InferCommand = t.TypeOf<typeof inferCommandCodec>;

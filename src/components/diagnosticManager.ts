@@ -99,9 +99,9 @@ export class DiagnosticManager {
             return;
         }
 
-        const workspaceFsPath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+        const workspacePath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
 
-        if (!isNeitherNullNorUndefined(workspaceFsPath)) {
+        if (!isNeitherNullNorUndefined(workspacePath)) {
             return;
         }
 
@@ -113,18 +113,13 @@ export class DiagnosticManager {
         ].join(','));
 
         const directoryPath = join(
-            workspaceFsPath,
+            workspacePath,
             `/.intuita/${hash}/`,
         );
 
         const filePath = join(
-            workspaceFsPath,
+            workspacePath,
             `/.intuita/${hash}/index.ts`,
-        );
-
-        const vectorPath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/vectors`,
         );
 
         const abortController = new AbortController();
@@ -150,43 +145,42 @@ export class DiagnosticManager {
             },
         );
 
-        // TODO remove the .intuita / hash directory
+        const lineNumbers = newDiagnostics
+            .map(({ range }) => String(range.start.line));
+
+        const command: InferCommand = {
+            kind: 'infer',
+            fileMetaHash: hash,
+            fileName: "", // TODO
+            lineNumbers,
+            workspacePath,
+        };
+
         for (const diagnostic of newDiagnostics) {
             this._hashes.add(
                 buildDiagnosticHash(diagnostic)
             );
-
-            const { range } = diagnostic;
-
-            const command: InferCommand = {
-                kind: 'infer',
-                fileName: uri.path,
-                range: [
-                    range.start.line,
-                    range.start.character,
-                    range.end.line,
-                    range.end.character,
-                ],
-                vectorPath,
-            };
-
-            const response = await this._infer(command, abortController.signal);
-
-            const message = decodeOrThrow(
-                inferredMessageCodec,
-                (report) =>
-                    new Error(`Could not decode the inferred message: ${report.join()}`),
-                response.data,
-            );
-
-            this._messageBus.publish({
-                kind: MessageKind.createRepairCodeJob,
-                uri: Uri.parse(message.fileName),
-                range: message.range,
-                replacement: message.results[0] ?? '',
-                version,
-            });
         }
+
+        const response = await this._infer(command, abortController.signal);
+
+        const message = decodeOrThrow(
+            inferredMessageCodec,
+            (report) =>
+                new Error(`Could not decode the inferred message: ${report.join()}`),
+            response.data,
+        );
+
+        // TODO rename the message kind to createRepairCodeJobs
+        this._messageBus.publish({
+            kind: MessageKind.createRepairCodeJob,
+            uri,
+            range: message.range,
+            replacement: message.results[0] ?? '',
+            version,
+        });
+
+        // TODO remove the .intuita / hash directory
     }
 
     protected _getDiagnostics(uri: Uri) {
