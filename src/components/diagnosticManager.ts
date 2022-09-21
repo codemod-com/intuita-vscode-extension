@@ -13,7 +13,7 @@ const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
-    protected readonly _abortControllerMap: Map<string, CancelTokenSource> = new Map();
+    protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(
         protected readonly _messageBus: MessageBus,
@@ -35,25 +35,25 @@ export class DiagnosticManager {
         this._hashes.clear();
     }
 
-    private _abort(uri: Uri) {
+    private _cancel(uri: Uri) {
         const stringUri = uri.toString();
 
-        const abortController = this._abortControllerMap.get(
+        const cancelTokenSource = this._cancelTokenSourceMap.get(
             stringUri
         );
 
-        if (!abortController) {
+        if (!cancelTokenSource) {
             return;
         }
 
-        this._abortControllerMap.delete(stringUri);
+        this._cancelTokenSourceMap.delete(stringUri);
 
-        abortController.cancel();
+        cancelTokenSource.cancel();
     }
 
     protected _onTextDocumentChanged(uri: Uri): void {
         this.clearHashes();
-        this._abort(uri);
+        this._cancel(uri);
     }
 
     public async onDiagnosticChangeEvent(
@@ -81,7 +81,7 @@ export class DiagnosticManager {
             return;
         }
 
-        this._abort(uri);
+        this._cancel(uri);
 
         const {
             newDiagnostics,
@@ -122,7 +122,7 @@ export class DiagnosticManager {
 
         const source = Axios.CancelToken.source();
 
-        this._abortControllerMap.set(
+        this._cancelTokenSourceMap.set(
             stringUri,
             source,
         );
@@ -168,13 +168,11 @@ export class DiagnosticManager {
             response.data,
         );
 
-        // TODO rename the message kind to createRepairCodeJobs
         this._messageBus.publish({
-            kind: MessageKind.createRepairCodeJob,
+            kind: MessageKind.createRepairCodeJobs,
             uri,
-            range: message.range,
-            replacement: message.results[0] ?? '',
             version,
+            replacements: message.replacements,
         });
 
         // TODO remove the .intuita / hash directory

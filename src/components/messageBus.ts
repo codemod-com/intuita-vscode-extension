@@ -1,12 +1,12 @@
 import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
-import { IntuitaRange } from '../utilities';
+import {Replacement} from "./inferenceService";
 
 export const enum MessageKind {
     readingFileFailed = 0,
     writeFile = 1,
     deleteFile = 2,
     changePermissions = 3,
-    createRepairCodeJob = 4,
+    createRepairCodeJobs = 4,
     noTypeScriptDiagnostics = 5,
     updateDiagnostics = 6,
     textDocumentChanged = 7,
@@ -33,11 +33,10 @@ export type Message =
         permissions: FilePermission | null,
     }>
     | Readonly<{
-        kind: MessageKind.createRepairCodeJob,
+        kind: MessageKind.createRepairCodeJobs,
         uri: Uri,
         version: number,
-        range: IntuitaRange,
-        replacement: string,
+        replacements: ReadonlyArray<Replacement>,
     }>
     | Readonly<{
         kind: MessageKind.noTypeScriptDiagnostics,

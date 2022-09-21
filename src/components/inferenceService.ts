@@ -38,3 +38,4 @@ export const inferredMessageCodec = buildTypeCodec({
 });
 
 export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
+export type Replacement = t.TypeOf<typeof replacementCodec>;
