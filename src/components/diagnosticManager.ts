@@ -1,36 +1,66 @@
-import Axios from 'axios';
+import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
-import {join} from "node:path";
-import {mkdirSync, writeFileSync} from "node:fs";
+import {basename, join} from "node:path";
+import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
-import {exec} from "node:child_process";
 import {MessageBus, MessageKind} from "./messageBus";
 
-const promisifiedExec = promisify(exec);
+const promisifiedMkdir = promisify(mkdir);
+const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
+    protected _counter: number = 0;
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
-    protected readonly commandsAvailable: boolean;
+    protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(
         protected readonly _messageBus: MessageBus,
     ) {
-        this.commandsAvailable = areRepairCodeCommandsAvailable();
+        this._messageBus.subscribe(
+            (message) => {
+                if (message.kind === MessageKind.textDocumentChanged) {
+                    setImmediate(
+                        () => {
+                            this._onTextDocumentChanged(message.uri);
+                        },
+                    );
+                }
+            },
+        );
     }
 
     public clearHashes() {
         this._hashes.clear();
     }
 
-    public async onDiagnosticChangeEvent(
-        { uris }: DiagnosticChangeEvent,
-    ): Promise<void> {
-        if (!this.commandsAvailable) {
+    private _cancel(uri: Uri) {
+        const stringUri = uri.toString();
+
+        const cancelTokenSource = this._cancelTokenSourceMap.get(
+            stringUri
+        );
+
+        if (!cancelTokenSource) {
             return;
         }
+
+        this._cancelTokenSourceMap.delete(stringUri);
+
+        cancelTokenSource.cancel();
+    }
+
+    protected _onTextDocumentChanged(uri: Uri): void {
+        this.clearHashes();
+        this._cancel(uri);
+    }
+
+    public async onDiagnosticChangeEvent(
+        event: DiagnosticChangeEvent,
+    ): Promise<void> {
+        const counter = ++this._counter;
 
         const { activeTextEditor } = window;
 
@@ -40,7 +70,9 @@ export class DiagnosticManager {
             return;
         }
 
-        const stringUri = activeTextEditor.document.uri.toString();
+        const { uri, version, getText } = activeTextEditor.document;
+
+        const stringUri = uri.toString();
 
         if (stringUri.includes('.intuita')) {
             console.log('The files within the .intuita directory won\'t be inspected.');
@@ -48,187 +80,150 @@ export class DiagnosticManager {
             return;
         }
 
-        const { version } = activeTextEditor.document;
-
-        const isFileTheSame = (): boolean => {
-            return version === window.activeTextEditor?.document.version
-                && stringUri === window.activeTextEditor.document.uri.toString();
-        };
-
-        const uri = uris.find((u) => stringUri === u.toString());
-
-        if (!uri) {
+        if(!event.uris.some((u) => stringUri === u.toString())) {
             return;
         }
 
-        const diagnostics = languages
-            .getDiagnostics(uri)
-            .filter(
-                ({ source }) => source === 'ts'
-            )
-            .filter(
-                (diagnostic) => !this._hashes.has(
-                    buildDiagnosticHash(diagnostic)
-                )
-            );
+        this._cancel(uri);
 
-        const workspaceFolder = workspace.getWorkspaceFolder(uri);
-        const workspaceFsPath = workspaceFolder?.uri.fsPath;
+        const {
+            newDiagnostics,
+            diagnosticNumber,
+        } = this._getDiagnostics(uri);
 
-        if (!isNeitherNullNorUndefined(workspaceFsPath) || diagnostics.length === 0) {
+        if (!diagnosticNumber) {
+            this._messageBus.publish({
+                kind: MessageKind.noTypeScriptDiagnostics,
+                uri,
+            });
+
             return;
         }
+
+        if (!newDiagnostics.length) {
+            return;
+        }
+
+        const workspacePath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+
+        if (!isNeitherNullNorUndefined(workspacePath)) {
+            return;
+        }
+
+        const text = getText();
+
+        const fileBaseName = basename(stringUri);
 
         const hash = buildHash([
             stringUri,
             String(version),
+            counter,
         ].join(','));
 
-        const text = activeTextEditor.document.getText();
-
         const directoryPath = join(
-            workspaceFsPath,
+            workspacePath,
             `/.intuita/${hash}/`,
         );
 
         const filePath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/index.ts`,
+            workspacePath,
+            `/.intuita/${hash}/${fileBaseName}`,
         );
 
-        const cpgFilePath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/cpg.bin`,
+        const source = Axios.CancelToken.source();
+
+        this._cancelTokenSourceMap.set(
+            stringUri,
+            source,
         );
 
-        const joernVectorPath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/joernVectors`,
-        );
-
-        const vectorPath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/vectors`,
-        );
-
-        mkdirSync(
+        await promisifiedMkdir(
             directoryPath,
-            { recursive: true, },
+            {
+                recursive: true,
+            },
         );
 
-        writeFileSync(
+        await promisifiedWriteFile(
             filePath,
             text,
-            { encoding: 'utf8', }
+            {
+                encoding: 'utf8',
+            },
         );
 
-        const start = Date.now();
-
-        await this._executeJoernParse(directoryPath, cpgFilePath);
-
-        // joern-slice (pass the error range)
-
-        const end = Date.now();
-
-        console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
-
-        if (!isFileTheSame()) {
-            return;
-        }
-
-        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath);
-
-        writeFileSync(
-            vectorPath,
-            data,
-            { encoding: 'utf8', }
+        const lineNumbers = new Set(
+            newDiagnostics.map(({ range }) => range.start.line)
         );
 
-        if (!isFileTheSame()) {
-            return;
-        }
+        const command: InferCommand = {
+            kind: 'infer',
+            fileMetaHash: hash,
+            filePath: stringUri,
+            lineNumbers: Array.from(lineNumbers),
+            workspacePath,
+        };
 
-        // TODO remove the .intuita / hash directory
+        const response = await this._infer(command, source.token);
 
-        for (const diagnostic of diagnostics) {
+        const message = decodeOrThrow(
+            inferredMessageCodec,
+            (report) =>
+                new Error(`Could not decode the inferred message: ${report.join()}`),
+            response.data,
+        );
+
+        for (const diagnostic of newDiagnostics) {
             this._hashes.add(
                 buildDiagnosticHash(diagnostic)
             );
+        }
 
-            const { range } = diagnostic;
+        this._messageBus.publish({
+            kind: MessageKind.createRepairCodeJobs,
+            uri,
+            version,
+            inferenceJobs: message.inferenceJobs,
+        });
 
-            const command: InferCommand = {
-                kind: 'infer',
-                fileName: uri.path,
-                range: [
-                    range.start.line,
-                    range.start.character,
-                    range.end.line,
-                    range.end.character,
-                ],
-                vectorPath,
-            };
+        // TODO remove the .intuita / hash directory
+    }
 
-            try {
-                const response = await Axios.post(
+    protected _getDiagnostics(uri: Uri) {
+        const diagnostics = languages
+            .getDiagnostics(uri)
+            .filter(
+                ({ source }) => source === 'ts'
+            );
+
+        return {
+            newDiagnostics: diagnostics.filter(
+                (diagnostic) => !this._hashes.has(
+                    buildDiagnosticHash(diagnostic)
+                )
+            ),
+            diagnosticNumber: diagnostics.length,
+        };
+    }
+
+    protected async _infer(
+        command: InferCommand,
+        cancelToken: CancelToken,
+    ) {
+        try {
+            return await Axios.post(
                 'http://localhost:4000/infer',
                 command,
-                );
-
-                const message = decodeOrThrow(
-                    inferredMessageCodec,
-                    (report) =>
-                        new Error(`Could not decode the inferred message: ${report.join()}`),
-                    response.data,
-                );
-
-                this._messageBus.publish({
-                    kind: MessageKind.createRepairCodeJob,
-                    uri: Uri.parse(message.fileName),
-                    range: message.range,
-                    replacement: message.results[0] ?? '',
-                });
-            } catch (error) {
-                if (Axios.isAxiosError(error)) {
-                    console.error(error.response?.data);
-                }
-            }
-
-            if (!isFileTheSame()) {
-                return;
-            }
-        }
-    }
-
-    protected async _executeJoernParse(
-        directoryPath: string,
-        cpgFilePath: string,
-    ): Promise<void> {
-        await promisifiedExec(
-            'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
-            {
-                env: {
-                    PARSE_INPUT: directoryPath,
-                    PARSE_OUTPUT: cpgFilePath,
+                {
+                    cancelToken,
                 },
-            },
-        );
-    }
-
-    protected async _executeJoernVectors(
-        cpgFilePath: string,
-        vectorPath: string,
-    ): Promise<string> {
-        const { stdout } = await promisifiedExec(
-            'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
-            {
-                env: {
-                    VECTOR_INPUT: cpgFilePath,
-                    VECTOR_OUTPUT: vectorPath,
-                }
+            );
+        } catch (error) {
+            if (Axios.isAxiosError(error)) {
+                console.error(error.response?.data);
             }
-        );
 
-        return stdout;
+            throw error;
+        }
     }
 }
