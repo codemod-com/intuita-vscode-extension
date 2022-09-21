@@ -440,7 +440,7 @@ export class JobManager {
                     inferenceJob.replacement,
                 );
 
-                const title = `Repair code on line ${inferenceJob.lineNumber}`;
+                const title = `Repair code on line ${inferenceJob.lineNumber+1}`;
 
                 const job: RepairCodeJob = {
                     kind: JobKind.repairCode,

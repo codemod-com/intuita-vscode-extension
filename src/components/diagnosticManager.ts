@@ -159,7 +159,7 @@ export class DiagnosticManager {
         const command: InferCommand = {
             kind: 'infer',
             fileMetaHash: hash,
-            fileBaseName,
+            filePath: stringUri,
             lineNumbers: Array.from(lineNumbers),
             workspacePath,
         };

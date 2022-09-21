@@ -22,7 +22,7 @@ export const decodeOrThrow = <A>(
 export const inferCommandCodec = buildTypeCodec({
     kind: t.literal('infer'),
     workspacePath: t.string,
-    fileBaseName: t.string, // e.g. "index.ts"
+    filePath: t.string,
     fileMetaHash: t.string,
     lineNumbers: t.readonlyArray(t.number), //0-indexed
 });
