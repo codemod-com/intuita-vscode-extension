@@ -1,13 +1,15 @@
 import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
-import { IntuitaRange } from '../utilities';
+import { InferenceJob } from "./inferenceService";
 
 export const enum MessageKind {
     readingFileFailed = 0,
     writeFile = 1,
     deleteFile = 2,
     changePermissions = 3,
-    createRepairCodeJob = 4,
-    updateDiagnostics = 5,
+    createRepairCodeJobs = 4,
+    noTypeScriptDiagnostics = 5,
+    updateDiagnostics = 6,
+    textDocumentChanged = 7,
 }
 
 export type Message =
@@ -31,14 +33,22 @@ export type Message =
         permissions: FilePermission | null,
     }>
     | Readonly<{
-        kind: MessageKind.createRepairCodeJob,
+        kind: MessageKind.createRepairCodeJobs,
         uri: Uri,
-        range: IntuitaRange,
-        replacement: string,
+        version: number,
+        inferenceJobs: ReadonlyArray<InferenceJob>,
+    }>
+    | Readonly<{
+        kind: MessageKind.noTypeScriptDiagnostics,
+        uri: Uri,
     }>
     | Readonly<{
         kind: MessageKind.updateDiagnostics,
         fileName: string,
+    }>
+    | Readonly<{
+        kind: MessageKind.textDocumentChanged,
+        uri: Uri,
     }>;
 
 export class MessageBus {
