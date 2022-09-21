@@ -1,7 +1,5 @@
-import * as t from 'io-ts'
-import reporter from 'io-ts-reporters'
-import {execSync} from "node:child_process";
-import {type} from "node:os";
+import * as t from 'io-ts';
+import reporter from 'io-ts-reporters';
 
 export const buildTypeCodec = <T extends t.Props>(props: T): t.ReadonlyC<t.ExactC<t.TypeC<T>>> =>
     t.readonly(t.exact(t.type(props)));
@@ -23,16 +21,20 @@ export const decodeOrThrow = <A>(
 
 export const inferCommandCodec = buildTypeCodec({
     kind: t.literal('infer'),
-    fileName: t.string,
-    range: t.tuple([t.number, t.number, t.number, t.number ]),
-    vectorPath: t.string,
+    workspacePath: t.string,
+    fileName: t.string, // e.g. "index.ts"
+    fileMetaHash: t.string,
+    lineNumbers: t.readonlyArray(t.string), //0-indexed
+});
+
+export const replacementCodec = buildTypeCodec({
+    lineNumber: t.string,
+    text: t.string,
 });
 
 export const inferredMessageCodec = buildTypeCodec({
     kind: t.literal('inferred'),
-    fileName: t.string,
-    range: t.tuple([t.number, t.number, t.number, t.number ]),
-    results: t.readonlyArray(t.string),
+    replacements: t.readonlyArray(replacementCodec),
 });
 
 export const errorMessageCodec = buildTypeCodec({
@@ -41,19 +43,3 @@ export const errorMessageCodec = buildTypeCodec({
 });
 
 export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
-
-export const areRepairCodeCommandsAvailable = () => {
-    const operatingSystemName = type();
-
-    if (operatingSystemName !== 'Linux' && operatingSystemName !== 'Darwin') {
-        return false;
-    }
-
-    try {
-        execSync('which joern-parse joern-vectors intuita-onnx-wrapper');
-
-        return true;
-    } catch {
-        return false;
-    }
-};

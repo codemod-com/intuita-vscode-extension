@@ -1,6 +1,6 @@
 import Axios from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {areRepairCodeCommandsAvailable, decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import { decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
@@ -16,13 +16,10 @@ const promisifiedWriteFile = promisify(writeFile);
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
     protected readonly _abortControllerMap: Map<string, AbortController> = new Map();
-    protected readonly commandsAvailable: boolean;
 
     public constructor(
         protected readonly _messageBus: MessageBus,
     ) {
-        this.commandsAvailable = areRepairCodeCommandsAvailable();
-
         this._messageBus.subscribe(
             (message) => {
                 if (message.kind === MessageKind.textDocumentChanged) {
@@ -66,10 +63,6 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         event: DiagnosticChangeEvent,
     ): Promise<void> {
-        if (!this.commandsAvailable) {
-            return;
-        }
-
         const { activeTextEditor } = window;
 
         if (!activeTextEditor) {
@@ -147,7 +140,7 @@ export class DiagnosticManager {
         );
 
         const abortController = new AbortController();
-        
+
         this._abortControllerMap.set(
             stringUri,
             abortController,
@@ -300,6 +293,6 @@ export class DiagnosticManager {
             }
 
             throw error;
-        } 
+        }
     }
 }
