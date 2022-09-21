@@ -1,9 +1,9 @@
 import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import { decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {buildHash, isNeitherNullNorUndefined} from "../utilities";
-import {join} from "node:path";
+import {basename, join} from "node:path";
 import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
 import {MessageBus, MessageKind} from "./messageBus";
@@ -12,6 +12,7 @@ const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
+    protected _counter: number = 0;
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
     protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
@@ -59,6 +60,8 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         event: DiagnosticChangeEvent,
     ): Promise<void> {
+        const counter = ++this._counter;
+
         const { activeTextEditor } = window;
 
         if (!activeTextEditor) {
@@ -97,6 +100,10 @@ export class DiagnosticManager {
             return;
         }
 
+        if (!newDiagnostics.length) {
+            return;
+        }
+
         const workspacePath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
 
         if (!isNeitherNullNorUndefined(workspacePath)) {
@@ -105,9 +112,12 @@ export class DiagnosticManager {
 
         const text = getText();
 
+        const fileBaseName = basename(stringUri);
+
         const hash = buildHash([
             stringUri,
             String(version),
+            counter,
         ].join(','));
 
         const directoryPath = join(
@@ -117,7 +127,7 @@ export class DiagnosticManager {
 
         const filePath = join(
             workspacePath,
-            `/.intuita/${hash}/index.ts`,
+            `/.intuita/${hash}/${fileBaseName}`,
         );
 
         const source = Axios.CancelToken.source();
@@ -142,22 +152,17 @@ export class DiagnosticManager {
             },
         );
 
-        const lineNumbers = newDiagnostics
-            .map(({ range }) => String(range.start.line));
+        const lineNumbers = new Set(
+            newDiagnostics.map(({ range }) => range.start.line)
+        );
 
         const command: InferCommand = {
             kind: 'infer',
             fileMetaHash: hash,
-            fileName: "", // TODO
-            lineNumbers,
+            fileBaseName,
+            lineNumbers: Array.from(lineNumbers),
             workspacePath,
         };
-
-        for (const diagnostic of newDiagnostics) {
-            this._hashes.add(
-                buildDiagnosticHash(diagnostic)
-            );
-        }
 
         const response = await this._infer(command, source.token);
 
@@ -168,11 +173,17 @@ export class DiagnosticManager {
             response.data,
         );
 
+        for (const diagnostic of newDiagnostics) {
+            this._hashes.add(
+                buildDiagnosticHash(diagnostic)
+            );
+        }
+
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJobs,
             uri,
             version,
-            replacements: message.replacements,
+            inferenceJobs: message.inferenceJobs,
         });
 
         // TODO remove the .intuita / hash directory

@@ -22,20 +22,21 @@ export const decodeOrThrow = <A>(
 export const inferCommandCodec = buildTypeCodec({
     kind: t.literal('infer'),
     workspacePath: t.string,
-    fileName: t.string, // e.g. "index.ts"
+    fileBaseName: t.string, // e.g. "index.ts"
     fileMetaHash: t.string,
-    lineNumbers: t.readonlyArray(t.string), //0-indexed
+    lineNumbers: t.readonlyArray(t.number), //0-indexed
 });
 
-export const replacementCodec = buildTypeCodec({
-    lineNumber: t.string,
-    text: t.string,
+export const inferenceJobCodec = buildTypeCodec({
+    lineNumber: t.number,
+    replacement: t.string,
 });
 
 export const inferredMessageCodec = buildTypeCodec({
     kind: t.literal('inferred'),
-    replacements: t.readonlyArray(replacementCodec),
+    inferenceJobs: t.readonlyArray(inferenceJobCodec),
 });
 
 export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
-export type Replacement = t.TypeOf<typeof replacementCodec>;
+export type InferenceJob = t.TypeOf<typeof inferenceJobCodec>;
+export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;

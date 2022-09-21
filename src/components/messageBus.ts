@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
-import {Replacement} from "./inferenceService";
+import { InferenceJob } from "./inferenceService";
 
 export const enum MessageKind {
     readingFileFailed = 0,
@@ -36,7 +36,7 @@ export type Message =
         kind: MessageKind.createRepairCodeJobs,
         uri: Uri,
         version: number,
-        replacements: ReadonlyArray<Replacement>,
+        inferenceJobs: ReadonlyArray<InferenceJob>,
     }>
     | Readonly<{
         kind: MessageKind.noTypeScriptDiagnostics,

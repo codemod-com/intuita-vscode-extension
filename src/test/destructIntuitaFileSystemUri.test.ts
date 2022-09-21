@@ -15,7 +15,7 @@ describe('destructIntuitaFileSystemUri', () => {
     });
 
     it('destructIntuitaFileSystemUri', () => {
-        const jobHash = buildRepairCodeJobHash('', [0, 0, 0, 0])
+        const jobHash = buildRepairCodeJobHash('', 0, '')
 
         const d = destructIntuitaFileSystemUri({
             scheme: 'intuita',

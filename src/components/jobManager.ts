@@ -2,7 +2,7 @@ import {buildFileNameHash, FileNameHash} from "../features/moveTopLevelNode/file
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {
     assertsNeitherNullOrUndefined,
-    calculateLastPosition,
+    calculateLastPosition, calculateLengths, calculateLines, getSeparator,
     IntuitaPosition, IntuitaRange,
     isNeitherNullNorUndefined
 } from "../utilities";
@@ -54,7 +54,7 @@ export class JobManager {
                     );
                 }
 
-                if (message.kind === MessageKind.createRepairCodeJob) {
+                if (message.kind === MessageKind.createRepairCodeJobs) {
                     setImmediate(
                         () => this._onCreateRepairCodeJob(
                             message,
@@ -309,12 +309,12 @@ export class JobManager {
                 if (newJobHashes.has(oldJobHash)) {
                     return;
                 }
-        
+
                 const uri = buildJobUri({
                     fileName,
                     hash: oldJobHash,
                 });
-        
+
                 this._messageBus.publish(
                     {
                         kind: MessageKind.deleteFile,
@@ -396,7 +396,7 @@ export class JobManager {
     }
 
     protected async _onCreateRepairCodeJob(
-        message: Message & { kind: MessageKind.createRepairCodeJob },
+        message: Message & { kind: MessageKind.createRepairCodeJobs },
     ) {
         const fileName = message.uri.fsPath;
 
@@ -410,57 +410,84 @@ export class JobManager {
         const textDocuments = await getOrOpenTextDocuments(fileName);
         const fileText = textDocuments[0]?.getText() ?? '';
 
-        const command: RepairCodeUserCommand = {
-            fileName,
-            fileText,
-            kind: "REPAIR_CODE",
-            range: message.range,
-            replacement: message.replacement,
-        };
+        // TODO we could possibly pass that to the user command
+        const separator = getSeparator(fileText);
+        const lines = calculateLines(fileText, separator);
+        const lengths = calculateLengths(lines);
 
-        const fact = buildRepairCodeFact(command);
+        const factsAndJobs = message.inferenceJobs.map(
+            (inferenceJob) => {
+                const range: IntuitaRange = [
+                    inferenceJob.lineNumber,
+                    0,
+                    inferenceJob.lineNumber,
+                    lengths[inferenceJob.lineNumber] ?? 0,
+                ];
 
-        const jobHash = buildRepairCodeJobHash(
-            fileName,
-            message.range,
+                const command: RepairCodeUserCommand = {
+                    fileName,
+                    fileText,
+                    kind: "REPAIR_CODE",
+                    range,
+                    replacement: inferenceJob.replacement,
+                };
+
+                const fact = buildRepairCodeFact(command);
+
+                const jobHash = buildRepairCodeJobHash(
+                    fileName,
+                    inferenceJob.lineNumber,
+                    inferenceJob.replacement,
+                );
+
+                const title = `Repair code on line ${inferenceJob.lineNumber}`;
+
+                const job: RepairCodeJob = {
+                    kind: JobKind.repairCode,
+                    fileName,
+                    hash: jobHash,
+                    title,
+                    range,
+                    replacement: inferenceJob.replacement,
+                    version: message.version,
+                };
+
+                return {
+                    fact,
+                    job,
+                };
+            },
         );
 
-        this._factMap.set(jobHash, fact);
-
-        const oldJobHashes = this._repairCodeHashMap.get(fileNameHash) ?? new Set();
         const newJobHashes = new Set<JobHash>();
 
-        oldJobHashes.forEach(jobHash => {
-            const job = this._jobMap.get(jobHash);
+        this._repairCodeHashMap
+            .get(fileNameHash)
+            ?.forEach(jobHash => {
+                const job = this._jobMap.get(jobHash);
 
-            if (job?.kind === JobKind.repairCode && job.version !== message.version) {
-                return;
-            }
+                if (job?.kind === JobKind.repairCode && job.version !== message.version) {
+                    return;
+                }
 
-            newJobHashes.add(jobHash);
+                newJobHashes.add(jobHash);
+            });
+
+        factsAndJobs.forEach(({ job, fact }) => {
+            newJobHashes.add(job.hash);
+
+            this._factMap.set(
+                job.hash,
+                fact,
+            );
+
+            this._jobMap.set(
+                job.hash,
+                job,
+            );
         });
 
-        
-        newJobHashes.add(jobHash);
-
         this._repairCodeHashMap.set(fileNameHash, newJobHashes);
-
-        const title = `Repair code on line ${message.range[0] + 1} at column ${message.range[1] + 1}`;
-
-        const job: RepairCodeJob = {
-            kind: JobKind.repairCode,
-            fileName,
-            hash: jobHash,
-            title,
-            range: message.range,
-            replacement: message.replacement,
-            version: message.version,
-        };
-
-        this._jobMap.set(
-            job.hash,
-            job,
-        );
 
         this._messageBus.publish(
             {
