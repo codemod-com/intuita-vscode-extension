@@ -40,9 +40,7 @@ export class DiagnosticManager {
         this._hashes.clear();
     }
 
-    protected _onTextDocumentChanged(uri: Uri): void {
-        this.clearHashes();
-
+    private _abort(uri: Uri) {
         const stringUri = uri.toString();
 
         const abortController = this._abortControllerMap.get(
@@ -58,6 +56,11 @@ export class DiagnosticManager {
         if (!abortController.signal.aborted) {
             abortController.abort();
         }
+    }
+
+    protected _onTextDocumentChanged(uri: Uri): void {
+        this.clearHashes();
+        this._abort(uri);
     }
 
     public async onDiagnosticChangeEvent(
@@ -88,6 +91,8 @@ export class DiagnosticManager {
         if(!event.uris.some((u) => stringUri === u.toString())) {
             return;
         }
+
+        this._abort(uri);
 
         const {
             newDiagnostics,

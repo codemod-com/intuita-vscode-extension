@@ -184,8 +184,15 @@ export async function activate(
 
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(
-			(event) => diagnosticManager
-				.onDiagnosticChangeEvent(event),
+			(event) => {
+				try {
+					diagnosticManager
+						.onDiagnosticChangeEvent(event)
+				} catch {
+					
+				}
+				
+			},
 		),
 	);
 }
