@@ -6,10 +6,8 @@ import {buildHash, isNeitherNullNorUndefined} from "../utilities";
 import {join} from "node:path";
 import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
-import {exec} from "node:child_process";
 import {MessageBus, MessageKind} from "./messageBus";
 
-const promisifiedExec = promisify(exec);
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
 
@@ -124,16 +122,6 @@ export class DiagnosticManager {
             `/.intuita/${hash}/index.ts`,
         );
 
-        const cpgFilePath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/cpg.bin`,
-        );
-
-        const joernVectorPath = join(
-            workspaceFsPath,
-            `/.intuita/${hash}/joernVectors`,
-        );
-
         const vectorPath = join(
             workspaceFsPath,
             `/.intuita/${hash}/vectors`,
@@ -156,27 +144,6 @@ export class DiagnosticManager {
         await promisifiedWriteFile(
             filePath,
             text,
-            {
-                signal: abortController.signal,
-                encoding: 'utf8',
-            },
-        );
-
-        const start = Date.now();
-
-        await this._executeJoernParse(directoryPath, cpgFilePath, abortController.signal);
-
-        // joern-slice (pass the error range)
-
-        const end = Date.now();
-
-        console.log(`Wrote the CPG for ${uri.toString()} within ${end - start} ms`);
-
-        const data = await this._executeJoernVectors(cpgFilePath, joernVectorPath, abortController.signal);
-
-        await promisifiedWriteFile(
-            vectorPath,
-            data,
             {
                 signal: abortController.signal,
                 encoding: 'utf8',
@@ -237,42 +204,6 @@ export class DiagnosticManager {
             ),
             diagnosticNumber: diagnostics.length,
         };
-    }
-
-    protected async _executeJoernParse(
-        directoryPath: string,
-        cpgFilePath: string,
-        signal: AbortSignal,
-    ): Promise<void> {
-        await promisifiedExec(
-            'joern-parse --output=$PARSE_OUTPUT $PARSE_INPUT',
-            {
-                signal,
-                env: {
-                    PARSE_INPUT: directoryPath,
-                    PARSE_OUTPUT: cpgFilePath,
-                },
-            },
-        );
-    }
-
-    protected async _executeJoernVectors(
-        cpgFilePath: string,
-        vectorPath: string,
-        signal: AbortSignal,
-    ): Promise<string> {
-        const { stdout } = await promisifiedExec(
-            'joern-vectors --out $VECTOR_OUTPUT --features $VECTOR_INPUT',
-            {
-                signal,
-                env: {
-                    VECTOR_INPUT: cpgFilePath,
-                    VECTOR_OUTPUT: vectorPath,
-                }
-            }
-        );
-
-        return stdout;
     }
 
     protected async _infer(
