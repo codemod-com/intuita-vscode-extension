@@ -1,4 +1,4 @@
-import Axios from 'axios';
+import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
 import { decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
@@ -13,7 +13,7 @@ const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
     protected readonly _hashes: Set<DiagnosticHash> = new Set();
-    protected readonly _abortControllerMap: Map<string, AbortController> = new Map();
+    protected readonly _abortControllerMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(
         protected readonly _messageBus: MessageBus,
@@ -48,9 +48,7 @@ export class DiagnosticManager {
 
         this._abortControllerMap.delete(stringUri);
 
-        if (!abortController.signal.aborted) {
-            abortController.abort();
-        }
+        abortController.cancel();
     }
 
     protected _onTextDocumentChanged(uri: Uri): void {
@@ -122,11 +120,11 @@ export class DiagnosticManager {
             `/.intuita/${hash}/index.ts`,
         );
 
-        const abortController = new AbortController();
+        const source = Axios.CancelToken.source();
 
         this._abortControllerMap.set(
             stringUri,
-            abortController,
+            source,
         );
 
         await promisifiedMkdir(
@@ -140,7 +138,6 @@ export class DiagnosticManager {
             filePath,
             text,
             {
-                signal: abortController.signal,
                 encoding: 'utf8',
             },
         );
@@ -162,7 +159,7 @@ export class DiagnosticManager {
             );
         }
 
-        const response = await this._infer(command, abortController.signal);
+        const response = await this._infer(command, source.token);
 
         const message = decodeOrThrow(
             inferredMessageCodec,
@@ -202,14 +199,14 @@ export class DiagnosticManager {
 
     protected async _infer(
         command: InferCommand,
-        signal: AbortSignal,
+        cancelToken: CancelToken,
     ) {
         try {
             return await Axios.post(
                 'http://localhost:4000/infer',
                 command,
                 {
-                    signal,
+                    cancelToken,
                 },
             );
         } catch (error) {
