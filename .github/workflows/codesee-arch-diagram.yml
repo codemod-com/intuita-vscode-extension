@@ -1,3 +1,4 @@
+# This workflow was added by CodeSee. Learn more at https://codesee.io/
 on:
   push:
     branches:
@@ -6,6 +7,8 @@ on:
     types: [opened, synchronize, reopened]
 
 name: CodeSee Map
+
+permissions: read-all
 
 jobs:
   test_map_action:
@@ -27,7 +30,7 @@ jobs:
         uses: Codesee-io/codesee-detect-languages-action@latest
 
       - name: Configure JDK 16
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         if: ${{ fromJSON(steps.detect-languages.outputs.languages).java }}
         with:
           java-version: '16'
@@ -36,7 +39,7 @@ jobs:
       # CodeSee Maps Go support uses a static binary so there's no setup step required.
 
       - name: Configure Node.js 14
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         if: ${{ fromJSON(steps.detect-languages.outputs.languages).javascript }}
         with:
           node-version: '14'
@@ -57,7 +60,7 @@ jobs:
       # We need the rust toolchain because it uses rustc and cargo to inspect the package
       - name: Configure Rust 1.x stable
         uses: actions-rs/toolchain@v1
-        if: ${{ fromJSON(steps.detect-languages.outputs.languages).rust }} 
+        if: ${{ fromJSON(steps.detect-languages.outputs.languages).rust }}
         with:
           toolchain: stable
 
