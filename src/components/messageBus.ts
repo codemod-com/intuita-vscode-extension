@@ -1,4 +1,4 @@
-import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
+import { Diagnostic, Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
 import { InferenceJob } from "./inferenceService";
 
 export const enum MessageKind {
@@ -10,6 +10,7 @@ export const enum MessageKind {
     noTypeScriptDiagnostics = 5,
     updateDiagnostics = 6,
     textDocumentChanged = 7,
+    ruleBasedCoreRepairDiagnosticsChanged = 8,
 }
 
 export type Message =
@@ -49,6 +50,13 @@ export type Message =
     | Readonly<{
         kind: MessageKind.textDocumentChanged,
         uri: Uri,
+    }>
+    | Readonly<{
+        kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged,
+        uri: Uri,
+        version: number,
+        text: string,
+        diagnostics: ReadonlyArray<Diagnostic>,
     }>;
 
 export class MessageBus {

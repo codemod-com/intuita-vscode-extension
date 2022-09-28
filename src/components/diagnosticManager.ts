@@ -1,12 +1,9 @@
 import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {decodeOrThrow, InferCommand, InferenceJob, inferredMessageCodec} from "./inferenceService";
+import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
 import {
     buildHash,
-    buildIntuitaSimpleRange, calculateLengths,
-    calculateLines,
-    getSeparator, IntuitaRange,
     isNeitherNullNorUndefined
 } from "../utilities";
 import {basename, join} from "node:path";
@@ -15,8 +12,6 @@ import {promisify} from "node:util";
 import {MessageBus, MessageKind} from "./messageBus";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
-import {extractKindsFromTs2345ErrorMessage} from "../features/repairCode/extractKindsFromTs2345ErrorMessage";
-import { buildReplacement } from '../features/repairCode/buildReplacement';
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
@@ -134,49 +129,12 @@ export class DiagnosticManager {
                 );
             }
 
-            const separator = getSeparator(text);
-            const lines = calculateLines(text, separator);
-            const lengths = calculateLengths(lines);
-
-            const inferenceJobs: ReadonlyArray<InferenceJob> = newDiagnostics.map(({ message, range }) => {
-                const kinds = extractKindsFromTs2345ErrorMessage(message);
-
-                if(!kinds) {
-                    return null;
-                }
-
-                const intuitaRange: IntuitaRange = [
-                    range.start.line,
-                    range.start.character,
-                    range.end.line,
-                    range.end.character,
-                ];
-
-                const intuitaSimpleRange = buildIntuitaSimpleRange(
-                    separator,
-                    lengths,
-                    intuitaRange,
-                );
-
-                const rangeText = text.slice(
-                    intuitaSimpleRange.start,
-                    intuitaSimpleRange.end,
-                );
-
-                const replacement = buildReplacement(rangeText, kinds.expected);
-
-                return {
-                    range: intuitaRange,
-                    replacement,
-                };
-            })
-                .filter(isNeitherNullNorUndefined);
-
             this._messageBus.publish({
-                kind: MessageKind.createRepairCodeJobs,
+                kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged,
                 uri,
                 version,
-                inferenceJobs,
+                text,
+                diagnostics: newDiagnostics,
             });
 
             return;

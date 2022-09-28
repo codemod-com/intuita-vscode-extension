@@ -2,6 +2,7 @@ import {buildFileNameHash, FileNameHash} from "../features/moveTopLevelNode/file
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {
     assertsNeitherNullOrUndefined,
+    buildIntuitaSimpleRange,
     calculateLastPosition, calculateLengths, calculateLines, getSeparator,
     IntuitaPosition, IntuitaRange,
     isNeitherNullNorUndefined
@@ -28,6 +29,9 @@ import {
 } from "../features/moveTopLevelNode/job";
 import {RepairCodeJob} from "../features/repairCode/job";
 import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
+import { extractKindsFromTs2345ErrorMessage } from "../features/repairCode/extractKindsFromTs2345ErrorMessage";
+import { buildReplacement } from "../features/repairCode/buildReplacement";
+import { InferenceJob } from "./inferenceService";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 type Fact = MoveTopLevelNodeFact | RepairCodeFact;
@@ -65,6 +69,14 @@ export class JobManager {
                 if (message.kind === MessageKind.noTypeScriptDiagnostics) {
                     setImmediate(
                         () => this._onNoTypeScriptDiagnostics(
+                            message,
+                        ),
+                    );
+                }
+
+                if (message.kind === MessageKind.ruleBasedCoreRepairDiagnosticsChanged) {
+                    setImmediate(
+                        () => this.onRuleBasedCoreRepairDiagnosticsChanged(
                             message,
                         ),
                     );
@@ -343,6 +355,56 @@ export class JobManager {
                 },
             );
         }
+    }
+
+    public onRuleBasedCoreRepairDiagnosticsChanged(
+        message: Message & { kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged },
+    ) {
+        const separator = getSeparator(message.text);
+        const lines = calculateLines(message.text, separator);
+        const lengths = calculateLengths(lines);
+
+        const inferenceJobs: ReadonlyArray<InferenceJob> = message.diagnostics
+            .map((diagnostic) => {
+                const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
+
+                if(!kinds) {
+                    return null;
+                }
+
+                const range: IntuitaRange = [
+                    diagnostic.range.start.line,
+                    diagnostic.range.start.character,
+                    diagnostic.range.end.line,
+                    diagnostic.range.end.character,
+                ];
+
+                const intuitaSimpleRange = buildIntuitaSimpleRange(
+                    separator,
+                    lengths,
+                    range,
+                );
+
+                const rangeText = message.text.slice(
+                    intuitaSimpleRange.start,
+                    intuitaSimpleRange.end,
+                );
+
+                const replacement = buildReplacement(rangeText, kinds.expected);
+
+                return {
+                    range,
+                    replacement,
+                };
+            })
+            .filter(isNeitherNullNorUndefined);
+
+        this._messageBus.publish({
+            kind: MessageKind.createRepairCodeJobs,
+            uri: message.uri,
+            version: message.version,
+            inferenceJobs,
+        });
     }
 
     protected async _onReadingFileFailed (
