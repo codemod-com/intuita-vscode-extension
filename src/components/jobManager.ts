@@ -399,6 +399,17 @@ export class JobManager {
             })
             .filter(isNeitherNullNorUndefined);
 
+        const uri = buildFileUri(message.uri);
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.writeFile,
+                uri,
+                content: Buffer.from(message.text),
+                permissions: FilePermission.Readonly,
+            },
+        );
+
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJobs,
             uri: message.uri,

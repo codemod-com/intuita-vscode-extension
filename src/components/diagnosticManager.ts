@@ -232,8 +232,6 @@ export class DiagnosticManager {
                         return true;
                     }
 
-                    console.log(code);
-
                     return code === '2345' || code === 2345;
                 }
             );
