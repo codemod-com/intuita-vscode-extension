@@ -16,6 +16,7 @@ import {MessageBus, MessageKind} from "./messageBus";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
 import {extractKindsFromTs2345ErrorMessage} from "../features/repairCode/extractKindsFromTs2345ErrorMessage";
+import { buildReplacement } from '../features/repairCode/buildReplacement';
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
@@ -134,7 +135,6 @@ export class DiagnosticManager {
             }
 
             const separator = getSeparator(text);
-
             const lines = calculateLines(text, separator);
             const lengths = calculateLengths(lines);
 
@@ -163,9 +163,11 @@ export class DiagnosticManager {
                     intuitaSimpleRange.end,
                 );
 
+                const replacement = buildReplacement(rangeText, kinds.expected);
+
                 return {
                     range: intuitaRange,
-                    replacement: rangeText,
+                    replacement,
                 };
             })
                 .filter(isNeitherNullNorUndefined);

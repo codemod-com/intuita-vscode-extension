@@ -17,7 +17,7 @@ export const extractKindsFromTs2345ErrorMessage = (
     }
 
     return {
-        expected: kinds[1],
-        received: kinds[0],
+        expected: kinds[1]!,
+        received: kinds[0]!,
     };
 };
