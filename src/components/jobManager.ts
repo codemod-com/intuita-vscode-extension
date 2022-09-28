@@ -417,12 +417,14 @@ export class JobManager {
 
         const factsAndJobs = message.inferenceJobs.map(
             (inferenceJob) => {
-                const range: IntuitaRange = [
-                    inferenceJob.lineNumber,
-                    0,
-                    inferenceJob.lineNumber,
-                    lengths[inferenceJob.lineNumber] ?? 0,
-                ];
+                const range: IntuitaRange = 'range' in inferenceJob
+                    ? inferenceJob.range
+                    : [
+                        inferenceJob.lineNumber,
+                        0,
+                        inferenceJob.lineNumber,
+                        lengths[inferenceJob.lineNumber] ?? 0,
+                    ];
 
                 const command: RepairCodeUserCommand = {
                     fileName,
@@ -436,11 +438,14 @@ export class JobManager {
 
                 const jobHash = buildRepairCodeJobHash(
                     fileName,
-                    inferenceJob.lineNumber,
-                    inferenceJob.replacement,
+                    inferenceJob,
                 );
 
-                const title = `Repair code on line ${inferenceJob.lineNumber+1}`;
+                const lineNumber = 'range' in inferenceJob
+                    ? inferenceJob.range[0]
+                    : inferenceJob.lineNumber;
+
+                const title = `Repair code on line ${lineNumber+1}`;
 
                 const job: RepairCodeJob = {
                     kind: JobKind.repairCode,
