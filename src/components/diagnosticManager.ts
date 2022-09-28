@@ -1,14 +1,21 @@
 import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
+import {decodeOrThrow, InferCommand, InferenceJob, inferredMessageCodec} from "./inferenceService";
 import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
-import {buildHash, isNeitherNullNorUndefined} from "../utilities";
+import {
+    buildHash,
+    buildIntuitaSimpleRange, calculateLengths,
+    calculateLines,
+    getSeparator, IntuitaRange,
+    isNeitherNullNorUndefined
+} from "../utilities";
 import {basename, join} from "node:path";
 import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
 import {MessageBus, MessageKind} from "./messageBus";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
+import {extractKindsFromTs2345ErrorMessage} from "../features/repairCode/extractKindsFromTs2345ErrorMessage";
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
@@ -63,9 +70,9 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         event: DiagnosticChangeEvent,
     ): Promise<void> {
-        if (this._configurationContainer.get().preferRuleBasedCodeRepair) {
-            return;
-        }
+        const {
+            preferRuleBasedCodeRepair,
+        } = this._configurationContainer.get();
 
         const counter = ++this._counter;
 
@@ -96,7 +103,7 @@ export class DiagnosticManager {
         const {
             newDiagnostics,
             diagnosticNumber,
-        } = this._getDiagnostics(uri);
+        } = this._getDiagnostics(uri, preferRuleBasedCodeRepair);
 
         if (!diagnosticNumber) {
             this._messageBus.publish({
@@ -118,6 +125,60 @@ export class DiagnosticManager {
         }
 
         const text = getText();
+
+        if (preferRuleBasedCodeRepair) {
+            for (const diagnostic of newDiagnostics) {
+                this._hashes.add(
+                    buildDiagnosticHash(diagnostic)
+                );
+            }
+
+            const separator = getSeparator(text);
+
+            const lines = calculateLines(text, separator);
+            const lengths = calculateLengths(lines);
+
+            const inferenceJobs: ReadonlyArray<InferenceJob> = newDiagnostics.map(({ message, range }) => {
+                const kinds = extractKindsFromTs2345ErrorMessage(message);
+
+                if(!kinds) {
+                    return null;
+                }
+
+                const intuitaRange: IntuitaRange = [
+                    range.start.line,
+                    range.start.character,
+                    range.end.line,
+                    range.end.character,
+                ];
+
+                const intuitaSimpleRange = buildIntuitaSimpleRange(
+                    separator,
+                    lengths,
+                    intuitaRange,
+                );
+
+                const rangeText = text.slice(
+                    intuitaSimpleRange.start,
+                    intuitaSimpleRange.end,
+                );
+
+                return {
+                    range: intuitaRange,
+                    replacement: rangeText,
+                };
+            })
+                .filter(isNeitherNullNorUndefined);
+
+            this._messageBus.publish({
+                kind: MessageKind.createRepairCodeJobs,
+                uri,
+                version,
+                inferenceJobs,
+            });
+
+            return;
+        }
 
         const fileBaseName = basename(stringUri);
 
@@ -196,11 +257,25 @@ export class DiagnosticManager {
         // TODO remove the .intuita / hash directory
     }
 
-    protected _getDiagnostics(uri: Uri) {
+    protected _getDiagnostics(
+        uri: Uri,
+        preferRuleBasedCodeRepair: boolean,
+    ) {
         const diagnostics = languages
             .getDiagnostics(uri)
             .filter(
                 ({ source }) => source === 'ts'
+            )
+            .filter(
+                ({ code }) => {
+                    if(!preferRuleBasedCodeRepair) {
+                        return true;
+                    }
+
+                    console.log(code);
+
+                    return code === '2345' || code === 2345;
+                }
             );
 
         return {

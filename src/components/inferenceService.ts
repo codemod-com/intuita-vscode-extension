@@ -33,7 +33,7 @@ export const inferenceJobCodec = t.union([
         replacement: t.string,
     }),
     buildTypeCodec({
-        range: t.tuple([t.number, t.number, t.number, t.number]),
+        range: t.readonly(t.tuple([t.number, t.number, t.number, t.number])),
         replacement: t.string,
     }),
 ]);
