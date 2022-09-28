@@ -7,6 +7,8 @@ import {basename, join} from "node:path";
 import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
 import {MessageBus, MessageKind} from "./messageBus";
+import {Container} from "../container";
+import {Configuration} from "../configuration";
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
@@ -17,6 +19,7 @@ export class DiagnosticManager {
     protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(
+        protected readonly _configurationContainer: Container<Configuration>,
         protected readonly _messageBus: MessageBus,
     ) {
         this._messageBus.subscribe(
@@ -60,6 +63,10 @@ export class DiagnosticManager {
     public async onDiagnosticChangeEvent(
         event: DiagnosticChangeEvent,
     ): Promise<void> {
+        if (this._configurationContainer.get().preferRuleBasedCodeRepair) {
+            return;
+        }
+
         const counter = ++this._counter;
 
         const { activeTextEditor } = window;

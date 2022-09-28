@@ -23,12 +23,13 @@ export async function activate(
 			'typescript'
 		);
 
-	const diagnosticManager = new DiagnosticManager(
-		messageBus,
-	);
-
 	const configurationContainer = buildContainer(
 		getConfiguration()
+	);
+
+	const diagnosticManager = new DiagnosticManager(
+		configurationContainer,
+		messageBus,
 	);
 
 	const intuitaFileSystem = new IntuitaFileSystem(
@@ -189,9 +190,9 @@ export async function activate(
 					diagnosticManager
 						.onDiagnosticChangeEvent(event)
 				} catch {
-					
+
 				}
-				
+
 			},
 		),
 	);
