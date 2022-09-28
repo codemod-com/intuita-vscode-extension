@@ -21,11 +21,14 @@ export const getConfiguration = () => {
 
     const minimumLines = configuration.get<number>('minimumLines') ?? 50;
 
+    const preferRuleBasedCodeRepair = configuration.get<boolean>('preferRuleBasedCodeRepair') ?? false;
+
     return {
         modifierOrder,
         kindOrder,
         saveDocumentOnJobAccept,
         minimumLines,
+        preferRuleBasedCodeRepair,
     };
 };
 
