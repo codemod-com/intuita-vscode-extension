@@ -11,12 +11,11 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
-import {buildRepairCodeFact, RepairCodeFact} from "../features/repairCode/factBuilder";
+import {RepairCodeFact} from "../features/repairCode/factBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
 import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
 import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
-import {RepairCodeUserCommand} from "../features/repairCode/userCommand";
 import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
@@ -522,7 +521,7 @@ export class JobManager {
 
         const factsAndJobs = message.inferenceJobs.map(
             (inferenceJob) => {
-                const range: IntuitaRange = 'range' in inferenceJob
+                const intuitaRange: IntuitaRange = 'range' in inferenceJob
                     ? inferenceJob.range
                     : [
                         inferenceJob.lineNumber,
@@ -531,18 +530,21 @@ export class JobManager {
                         lengths[inferenceJob.lineNumber] ?? 0,
                     ];
 
-                const command: RepairCodeUserCommand = {
-                    fileName,
-                    fileText,
-                    kind: "REPAIR_CODE",
-                    range,
-                    replacement: inferenceJob.replacement,
+                const range = buildIntuitaSimpleRange(
+                    separator,
+                    lengths,
+                    intuitaRange,
+                );
+
+                const fact: RepairCodeFact = {
+                    kind: FactKind.repairCode,
                     separator,
                     lines,
                     lengths,
+                    fileText,
+                    range,
+                    replacement: inferenceJob.replacement,
                 };
-
-                const fact = buildRepairCodeFact(command);
 
                 const jobHash = buildRepairCodeJobHash(
                     fileName,
@@ -560,7 +562,7 @@ export class JobManager {
                     fileName,
                     hash: jobHash,
                     title,
-                    range,
+                    range: intuitaRange,
                     replacement: inferenceJob.replacement,
                     version: message.version,
                 };
