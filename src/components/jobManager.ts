@@ -7,8 +7,8 @@ import {
     isNeitherNullNorUndefined
 } from "../utilities";
 import {JobKind, JobOutput} from "../jobs";
-import {FilePermission, TextDocument, Uri} from "vscode";
-import {getOrOpenTextDocuments} from "./vscodeUtilities";
+import {FilePermission, TextDocument, Uri, workspace} from "vscode";
+// import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {executeRepairCodeJob} from "../features/repairCode/executeRepairCodeJob";
@@ -409,10 +409,14 @@ export class JobManager {
             ? destructedUri.fsPath
             : this.getFileNameFromJobHash(destructedUri.jobHash);
 
-        assertsNeitherNullOrUndefined(fileName);
+        if (!fileName) {
+            console.debug('Could not get the file name from the provided URI');
 
-        const textDocument = await getOrOpenTextDocuments(fileName);
-        let text = textDocument[0]?.getText();
+            return;
+        }
+
+        const textDocument = await workspace.openTextDocument(Uri.parse(fileName));
+        let text = textDocument.getText();
 
         assertsNeitherNullOrUndefined(text);
 
@@ -451,8 +455,8 @@ export class JobManager {
     ) {
         const fileName = message.uri.fsPath;
 
-        const textDocuments = await getOrOpenTextDocuments(fileName);
-        const fileText = textDocuments[0]?.getText() ?? '';
+        const textDocument = await workspace.openTextDocument(Uri.parse(fileName));
+        const fileText = textDocument.getText() ?? '';
 
         const separator = getSeparator(fileText);
         const lines = calculateLines(fileText, separator);
