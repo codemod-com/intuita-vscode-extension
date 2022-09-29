@@ -9,7 +9,7 @@ import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
 import {InferredCodeRepairService} from "./components/inferredCodeRepairService";
 import {acceptJob} from "./components/acceptJob";
-import { DiagnosticManager } from './components/diagnosticManager2';
+import { DiagnosticManager } from './components/diagnosticManager';
 import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
 
 const messageBus = new MessageBus();
