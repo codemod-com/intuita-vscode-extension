@@ -100,7 +100,7 @@ export class DiagnosticManager {
             newDiagnostics,
             diagnosticNumber,
         } = this._getDiagnostics(uri, preferRuleBasedCodeRepair);
-
+        
         if (!diagnosticNumber) {
             this._messageBus.publish({
                 kind: MessageKind.noTypeScriptDiagnostics,
@@ -239,10 +239,6 @@ export class DiagnosticManager {
         return {
             newDiagnostics: diagnostics.filter(
                 (diagnostic) => {
-                    if (preferRuleBasedCodeRepair) {
-                        return true;
-                    }
-
                     return !this._hashes.has(
                         buildDiagnosticHash(diagnostic)
                     );
