@@ -180,7 +180,6 @@ export class JobManager {
                 job,
                 characterDifference,
                 fact.stringNodes,
-                fact.separator,
             );
         } else if (job.kind === JobKind.repairCode) {
             execution = executeRepairCodeCommand(job);
@@ -190,7 +189,7 @@ export class JobManager {
 
         const lastPosition = calculateLastPosition(
             execution.text,
-            fact && 'separator' in fact ? fact.separator : '\n' // TODO fix the separator retrieval
+            job.separator,
         );
 
         const range: IntuitaRange = [

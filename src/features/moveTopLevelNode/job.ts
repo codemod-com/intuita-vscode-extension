@@ -21,6 +21,7 @@ export type MoveTopLevelNodeJob = Readonly<{
     oldIndex: number,
     newIndex: number,
     score: [number, number],
+    separator: string,
 }>;
 
 const buildIdentifiersLabel = (
@@ -86,8 +87,8 @@ export const buildMoveTopLevelNodeJobs = (
     fact: MoveTopLevelNodeFact,
     rejectedJobHashes: ReadonlySet<JobHash>,
 ): ReadonlyArray<MoveTopLevelNodeJob> => {
-    return fact.solutions.map<MoveTopLevelNodeJob | null>(
-        (solution) => {
+    return fact.solutions.map(
+        (solution): MoveTopLevelNodeJob | null => {
             const { oldIndex, newIndex } = solution;
 
             const topLevelNode = fact.topLevelNodes[oldIndex] ?? null;
@@ -130,6 +131,7 @@ export const buildMoveTopLevelNodeJobs = (
                 oldIndex,
                 newIndex,
                 score: solution.score,
+                separator: fact.separator,
             };
         }
     )
