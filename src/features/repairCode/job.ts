@@ -10,7 +10,6 @@ export type RepairCodeJob = Readonly<{
     title: string,
     range: IntuitaRange,
     replacement: string,
-    // new properties
     fileText: string,
     simpleRange: IntuitaSimpleRange,
     separator: string,
