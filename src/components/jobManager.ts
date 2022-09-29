@@ -450,13 +450,6 @@ export class JobManager {
     ) {
         const fileName = message.uri.fsPath;
 
-        const fileNameHash = buildFileNameHash(fileName);
-
-        this._fileNames.set(
-            fileNameHash,
-            fileName
-        );
-
         const textDocuments = await getOrOpenTextDocuments(fileName);
         const fileText = textDocuments[0]?.getText() ?? '';
 
@@ -473,6 +466,25 @@ export class JobManager {
             message.version,
         );
 
+        return this._commitRepairCodeJobs(
+            fileName,
+            message.version,
+            jobs,
+        );
+    }
+
+    protected _commitRepairCodeJobs(
+        fileName: string,
+        version: number,
+        jobs: ReadonlyArray<RepairCodeJob>,
+    ) {
+        const fileNameHash = buildFileNameHash(fileName);
+
+        this._fileNames.set(
+            fileNameHash,
+            fileName
+        );
+
         const newJobHashes = new Set<JobHash>();
 
         this._repairCodeHashMap
@@ -480,7 +492,7 @@ export class JobManager {
             ?.forEach(jobHash => {
                 const job = this._jobMap.get(jobHash);
 
-                if (job?.kind === JobKind.repairCode && job.version !== message.version) {
+                if (job?.kind === JobKind.repairCode && job.version !== version) {
                     return;
                 }
 
