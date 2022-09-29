@@ -100,10 +100,10 @@ export class DiagnosticManager {
             newDiagnostics,
             diagnosticNumber,
         } = this._getDiagnostics(uri, preferRuleBasedCodeRepair);
-        
+
         if (!diagnosticNumber) {
             this._messageBus.publish({
-                kind: MessageKind.noTypeScriptDiagnostics,
+                kind: MessageKind.noExternalDiagnostics,
                 uri,
             });
 

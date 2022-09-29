@@ -2,20 +2,27 @@ import { Diagnostic, Disposable, EventEmitter, FilePermission, Uri } from 'vscod
 import { InferenceJob } from "./inferenceService";
 
 export const enum MessageKind {
+    /**
+     * the Intuita (virtual) file-system-related message kinds
+     */
     readingFileFailed = 0,
     writeFile = 1,
     deleteFile = 2,
     changePermissions = 3,
     createRepairCodeJobs = 4,
-    noTypeScriptDiagnostics = 5,
-    updateDiagnostics = 6,
-    textDocumentChanged = 7,
-    ruleBasedCoreRepairDiagnosticsChanged = 8,
     /**
      * the external diagnostics are such that come from 
      * e.g the TS Language Server
      */
-    newExternalDiagnostics = 9,
+    noExternalDiagnostics = 5,
+    newExternalDiagnostics = 6,
+    /**
+     * the internal diagnostics are such that come from
+     * the Intuita VSCode Extensions
+     */
+    updateInternalDiagnostics = 7,
+    textDocumentChanged = 8,
+    ruleBasedCoreRepairDiagnosticsChanged = 9, // TODO
 }
 
 export type Message =
@@ -45,11 +52,11 @@ export type Message =
         inferenceJobs: ReadonlyArray<InferenceJob>,
     }>
     | Readonly<{
-        kind: MessageKind.noTypeScriptDiagnostics,
+        kind: MessageKind.noExternalDiagnostics,
         uri: Uri,
     }>
     | Readonly<{
-        kind: MessageKind.updateDiagnostics,
+        kind: MessageKind.updateInternalDiagnostics,
         fileName: string,
     }>
     | Readonly<{

@@ -57,7 +57,7 @@ export class JobManager {
                     );
                 }
 
-                if (message.kind === MessageKind.noTypeScriptDiagnostics) {
+                if (message.kind === MessageKind.noExternalDiagnostics) {
                     setImmediate(
                         () => this._onNoTypeScriptDiagnostics(
                             message,
@@ -141,7 +141,7 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
@@ -290,7 +290,7 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
@@ -513,14 +513,14 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
     }
 
     protected _onNoTypeScriptDiagnostics(
-        message: Message & { kind: MessageKind.noTypeScriptDiagnostics },
+        message: Message & { kind: MessageKind.noExternalDiagnostics },
     ) {
         const fileName = message.uri.fsPath;
 
@@ -560,7 +560,7 @@ export class JobManager {
         // outgoing
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );

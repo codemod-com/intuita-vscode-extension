@@ -101,7 +101,7 @@ export class DiagnosticManager {
 
         if(diagnostics.length === 0) {
             this._messageBus.publish({
-                kind: MessageKind.noTypeScriptDiagnostics,
+                kind: MessageKind.noExternalDiagnostics,
                 uri,
             });
 
