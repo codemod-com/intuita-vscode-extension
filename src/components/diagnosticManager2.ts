@@ -25,11 +25,13 @@ const stringifyCode = (code: Diagnostic['code']): string => {
 
 const buildDiagnosticHash = (
     uri: Uri,
+    version: number,
     diagnostic: Diagnostic,
 ): DiagnosticHash => {
     return buildHash(
         [
             uri.toString(),
+            String(version),
             String(diagnostic.range.start.line),
             String(diagnostic.range.start.character),
             String(diagnostic.range.end.line),
@@ -108,7 +110,11 @@ export class DiagnosticManager {
 
         diagnostics.forEach(
             (diagnostic) => {
-                const hash = buildDiagnosticHash(uri, diagnostic);
+                const hash = buildDiagnosticHash(
+                    uri,
+                    version,
+                    diagnostic
+                );
 
                 if (this._seenHashes.has(hash)) {
                     return;
