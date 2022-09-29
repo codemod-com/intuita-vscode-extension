@@ -12,8 +12,8 @@ import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
-import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
-import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
+import {executeRepairCodeJob} from "../features/repairCode/executeRepairCodeJob";
+import {executeMoveTopLevelNodeJob} from "../features/moveTopLevelNode/executeMoveTopLevelNodeJob";
 import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
@@ -172,12 +172,12 @@ export class JobManager {
         let execution;
 
         if (job.kind === JobKind.moveTopLevelNode) {
-            execution = executeMoveTopLevelNodeAstCommandHelper(
+            execution = executeMoveTopLevelNodeJob(
                 job,
                 characterDifference,
             );
         } else if (job.kind === JobKind.repairCode) {
-            execution = executeRepairCodeCommand(job);
+            execution = executeRepairCodeJob(job);
         } else {
             throw new Error('');
         }

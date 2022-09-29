@@ -1,7 +1,7 @@
 import {calculateLines, moveElementInArray} from "../../utilities";
 import { MoveTopLevelNodeJob } from "./job";
 
-export const executeMoveTopLevelNodeAstCommandHelper = (
+export const executeMoveTopLevelNodeJob = (
     job: MoveTopLevelNodeJob,
     characterDifference: number,
 ) => {

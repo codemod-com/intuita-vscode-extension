@@ -1,7 +1,7 @@
 import { calculateLines } from "../../utilities";
 import { RepairCodeJob } from "./job";
 
-export const executeRepairCodeCommand = (
+export const executeRepairCodeJob = (
     fact: RepairCodeJob,
 ) => {
     const previousCharacters = fact.fileText
