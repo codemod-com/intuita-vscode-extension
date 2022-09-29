@@ -64,7 +64,7 @@ export class DiagnosticManager {
             return;
         }
 
-        const { uri } = activeTextEditor.document;
+        const { uri, getText } = activeTextEditor.document;
 
         const stringUri = uri.toString();
 
@@ -124,9 +124,12 @@ export class DiagnosticManager {
             return;
         }
 
+        const text = getText();
+
         this._messageBus.publish({
             kind: MessageKind.newExternalDiagnostics,
             uri,
+            text,
             diagnostics: newDiagnostics,
         });
     }

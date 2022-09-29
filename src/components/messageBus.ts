@@ -73,6 +73,7 @@ export type Message =
     | Readonly<{
         kind: MessageKind.newExternalDiagnostics,
         uri: Uri,
+        text: string,
         diagnostics: ReadonlyArray<Diagnostic>,
     }>;
 
