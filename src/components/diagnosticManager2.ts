@@ -1,8 +1,8 @@
-import { Diagnostic, DiagnosticChangeEvent, languages, TextEditor, Uri } from "vscode";
+import { Diagnostic, DiagnosticChangeEvent, TextEditor, Uri } from "vscode";
 import { buildHash } from "../utilities";
 import { MessageBus, MessageKind } from "./messageBus";
 
-export type DiagnosticHash = string & { __type: 'DiagnosticHash' };
+type DiagnosticHash = string & { __type: 'DiagnosticHash' };
 
 const stringifyCode = (code: Diagnostic['code']): string => {
     if (code === undefined) {
@@ -23,7 +23,7 @@ const stringifyCode = (code: Diagnostic['code']): string => {
     ].join(',');
 };
 
-export const buildDiagnosticHash = (
+const buildDiagnosticHash = (
     uri: Uri,
     diagnostic: Diagnostic,
 ): DiagnosticHash => {
@@ -42,12 +42,12 @@ export const buildDiagnosticHash = (
     ) as DiagnosticHash;
 };
 
-
 export class DiagnosticManager {
     protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
 
     public constructor(
         protected readonly _getActiveTextEditor: () => TextEditor | null,
+        protected readonly _getDiagnostics: (uri: Uri) => ReadonlyArray<Diagnostic>,
         protected readonly _messageBus: MessageBus,
     ) {
 
@@ -80,14 +80,10 @@ export class DiagnosticManager {
             return;
         }
 
-        const diagnostics = languages
-            .getDiagnostics(uri)
+        const diagnostics = this._getDiagnostics(uri)
             .filter(
-                ({ source }) => source === 'ts'
-            )
-            .filter(
-                ({ code }) => {
-                    if (!code) {
+                ({ source, code }) => {
+                    if (source !== 'ts' || !code) {
                         return false;
                     }
 
@@ -108,19 +104,25 @@ export class DiagnosticManager {
             return;
         }
 
-        const newDiagnostics = diagnostics.filter(
+        const newDiagnostics: Diagnostic[] = [];
+
+        diagnostics.forEach(
             (diagnostic) => {
                 const hash = buildDiagnosticHash(uri, diagnostic);
 
-                return !this._seenHashes.has(hash);
+                if (this._seenHashes.has(hash)) {
+                    return;
+                }
+
+                this._seenHashes.add(hash);
+
+                newDiagnostics.push(diagnostic);
             }
-        );
+        )
 
         if (newDiagnostics.length === 0) {
             return;
         }
-
-        // newDiagnostics.map((diagnostic) => const hash = buildDiagnosticHash(uri, diagnostic);)
 
         this._messageBus.publish({
             kind: MessageKind.newExternalDiagnostics,
