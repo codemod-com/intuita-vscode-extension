@@ -64,7 +64,7 @@ export class DiagnosticManager {
             return;
         }
 
-        const { uri, getText } = activeTextEditor.document;
+        const { uri, version, getText } = activeTextEditor.document;
 
         const stringUri = uri.toString();
 
@@ -130,6 +130,7 @@ export class DiagnosticManager {
             kind: MessageKind.newExternalDiagnostics,
             uri,
             text,
+            version,
             diagnostics: newDiagnostics,
         });
     }
