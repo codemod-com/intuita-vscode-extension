@@ -516,7 +516,6 @@ export class JobManager {
         const textDocuments = await getOrOpenTextDocuments(fileName);
         const fileText = textDocuments[0]?.getText() ?? '';
 
-        // TODO we could possibly pass that to the user command
         const separator = getSeparator(fileText);
         const lines = calculateLines(fileText, separator);
         const lengths = calculateLengths(lines);
@@ -539,6 +538,8 @@ export class JobManager {
                     range,
                     replacement: inferenceJob.replacement,
                     separator,
+                    lines,
+                    lengths,
                 };
 
                 const fact = buildRepairCodeFact(command);

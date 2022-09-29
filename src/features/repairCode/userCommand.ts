@@ -7,4 +7,6 @@ export type RepairCodeUserCommand = Readonly<{
     range: IntuitaRange,
     replacement: string,
     separator: string,
+    lines: ReadonlyArray<string>,
+    lengths: ReadonlyArray<number>,
 }>;

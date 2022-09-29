@@ -18,7 +18,7 @@ export function assertsNeitherNullOrUndefined<T>(
     value: NeitherNullNorUndefined<T> | null | undefined
 ): asserts value is NeitherNullNorUndefined<T> {
     if (value === null || value === undefined) {
-        throw new Error('The value cannot be null or undefined')
+        throw new Error('The value cannot be null or undefined');
     }
 }
 
@@ -62,7 +62,7 @@ export const calculateAverage = (
 export const calculateLines = (
     text: string,
     separator: string,
-) =>
+): ReadonlyArray<string> =>
     text.split(separator);
 
 export const calculateLengths = (lines: ReadonlyArray<string>) =>
