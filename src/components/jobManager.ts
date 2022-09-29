@@ -399,12 +399,45 @@ export class JobManager {
             })
             .filter(isNeitherNullNorUndefined);
 
-        const uri = buildFileUri(message.uri);
+        const fileUri = buildFileUri(message.uri);
+
+        const fileName = message.uri.fsPath;
+
+        const fileNameHash = buildFileNameHash(fileName);
+
+        const oldJobHashes = Array.from(this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>());
+
+        const jobUris = oldJobHashes.map(
+            (hash) => buildJobUri({
+                fileName,
+                hash,
+            }),
+        );
+
+        // job clean up
+        this._repairCodeHashMap.delete(fileNameHash);
+
+        oldJobHashes.forEach((jobHash) => {
+            this._factMap.delete(jobHash);
+            this._jobMap.delete(jobHash);
+        });
+
+        // send messages
+        jobUris.forEach(
+            (uri) => {
+                this._messageBus.publish(
+                    {
+                        kind: MessageKind.deleteFile,
+                        uri,
+                    },
+                );
+            },
+        );
 
         this._messageBus.publish(
             {
                 kind: MessageKind.writeFile,
-                uri,
+                uri: fileUri,
                 content: Buffer.from(message.text),
                 permissions: FilePermission.Readonly,
             },

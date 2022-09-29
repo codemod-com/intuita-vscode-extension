@@ -188,7 +188,7 @@ export async function activate(
 			(event) => {
 				try {
 					diagnosticManager
-						.onDiagnosticChangeEvent(event)
+						.onDiagnosticChangeEvent(event);
 				} catch {
 
 				}

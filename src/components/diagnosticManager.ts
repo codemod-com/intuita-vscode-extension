@@ -238,9 +238,15 @@ export class DiagnosticManager {
 
         return {
             newDiagnostics: diagnostics.filter(
-                (diagnostic) => !this._hashes.has(
-                    buildDiagnosticHash(diagnostic)
-                )
+                (diagnostic) => {
+                    if (preferRuleBasedCodeRepair) {
+                        return true;
+                    }
+
+                    return !this._hashes.has(
+                        buildDiagnosticHash(diagnostic)
+                    );
+                }
             ),
             diagnosticNumber: diagnostics.length,
         };
