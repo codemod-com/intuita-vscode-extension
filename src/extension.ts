@@ -103,7 +103,7 @@ export async function activate(
 				}
 
 				jobManager
-					.onFileTextChanged(
+					.buildMoveTopLevelNodeJobs(
 						document,
 					);
 			},

@@ -238,7 +238,7 @@ export class JobManager {
             .filter(isNeitherNullNorUndefined);
     }
 
-    public onFileTextChanged(
+    public buildMoveTopLevelNodeJobs(
         document: TextDocument,
     ) {
         if (document.uri.scheme !== 'file') {
