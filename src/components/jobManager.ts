@@ -8,7 +8,6 @@ import {
 } from "../utilities";
 import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri, workspace} from "vscode";
-// import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {executeRepairCodeJob} from "../features/repairCode/executeRepairCodeJob";
