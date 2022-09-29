@@ -1,7 +1,6 @@
 import Axios, {CancelToken, CancelTokenSource} from 'axios';
-import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
 import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
-import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
+import {Uri, workspace} from "vscode";
 import {
     buildHash,
     isNeitherNullNorUndefined
@@ -9,16 +8,15 @@ import {
 import {basename, join} from "node:path";
 import {mkdir, writeFile } from "node:fs";
 import {promisify} from "node:util";
-import {MessageBus, MessageKind} from "./messageBus";
+import {Message, MessageBus, MessageKind} from "./messageBus";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
+import { randomBytes } from 'node:crypto';
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
 
 export class DiagnosticManager {
-    protected _counter: number = 0;
-    protected readonly _hashes: Set<DiagnosticHash> = new Set();
     protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(
@@ -34,12 +32,16 @@ export class DiagnosticManager {
                         },
                     );
                 }
+
+                if (message.kind === MessageKind.newExternalDiagnostics) {
+                    setImmediate(
+                        () => {
+                            this._onNewExternalDiagnosticsMessage(message);
+                        },
+                    );
+                }
             },
         );
-    }
-
-    public clearHashes() {
-        this._hashes.clear();
     }
 
     private _cancel(uri: Uri) {
@@ -59,93 +61,36 @@ export class DiagnosticManager {
     }
 
     protected _onTextDocumentChanged(uri: Uri): void {
-        this.clearHashes();
         this._cancel(uri);
     }
 
-    public async onDiagnosticChangeEvent(
-        event: DiagnosticChangeEvent,
+    protected async _onNewExternalDiagnosticsMessage(
+        message: Message & { kind: MessageKind.newExternalDiagnostics }
     ): Promise<void> {
         const {
             preferRuleBasedCodeRepair,
         } = this._configurationContainer.get();
 
-        const counter = ++this._counter;
-
-        const { activeTextEditor } = window;
-
-        if (!activeTextEditor) {
-            console.error('There is no active text editor despite the changed diagnostics.');
-
+        if (preferRuleBasedCodeRepair) {
             return;
         }
 
-        const { uri, version, getText } = activeTextEditor.document;
+        this._cancel(message.uri);
 
-        const stringUri = uri.toString();
-
-        if (stringUri.includes('.intuita')) {
-            console.log('The files within the .intuita directory won\'t be inspected.');
-
-            return;
-        }
-
-        if(!event.uris.some((u) => stringUri === u.toString())) {
-            return;
-        }
-
-        this._cancel(uri);
-
-        const {
-            newDiagnostics,
-            diagnosticNumber,
-        } = this._getDiagnostics(uri, preferRuleBasedCodeRepair);
-
-        if (!diagnosticNumber) {
-            this._messageBus.publish({
-                kind: MessageKind.noExternalDiagnostics,
-                uri,
-            });
-
-            return;
-        }
-
-        if (!newDiagnostics.length) {
-            return;
-        }
-
-        const workspacePath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+        const workspacePath = workspace.getWorkspaceFolder(message.uri)?.uri.fsPath;
 
         if (!isNeitherNullNorUndefined(workspacePath)) {
             return;
         }
 
-        const text = getText();
-
-        if (preferRuleBasedCodeRepair) {
-            for (const diagnostic of newDiagnostics) {
-                this._hashes.add(
-                    buildDiagnosticHash(diagnostic)
-                );
-            }
-
-            this._messageBus.publish({
-                kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged,
-                uri,
-                version,
-                text,
-                diagnostics: newDiagnostics,
-            });
-
-            return;
-        }
+        const stringUri = message.uri.toString();
 
         const fileBaseName = basename(stringUri);
 
         const hash = buildHash([
             stringUri,
-            String(version),
-            counter,
+            String(message.version),
+            randomBytes(16).toString('base64url'),
         ].join(','));
 
         const directoryPath = join(
@@ -174,14 +119,14 @@ export class DiagnosticManager {
 
         await promisifiedWriteFile(
             filePath,
-            text,
+            message.text,
             {
                 encoding: 'utf8',
             },
         );
 
         const lineNumbers = new Set(
-            newDiagnostics.map(({ range }) => range.start.line)
+            message.diagnostics.map(({ range }) => range.start.line)
         );
 
         const command: InferCommand = {
@@ -194,58 +139,21 @@ export class DiagnosticManager {
 
         const response = await this._infer(command, source.token);
 
-        const message = decodeOrThrow(
+        const inferredMessage = decodeOrThrow(
             inferredMessageCodec,
             (report) =>
                 new Error(`Could not decode the inferred message: ${report.join()}`),
             response.data,
         );
 
-        for (const diagnostic of newDiagnostics) {
-            this._hashes.add(
-                buildDiagnosticHash(diagnostic)
-            );
-        }
-
         this._messageBus.publish({
             kind: MessageKind.createRepairCodeJobs,
-            uri,
-            version,
-            inferenceJobs: message.inferenceJobs,
+            uri: message.uri,
+            version: message.version,
+            inferenceJobs: inferredMessage.inferenceJobs,
         });
 
         // TODO remove the .intuita / hash directory
-    }
-
-    protected _getDiagnostics(
-        uri: Uri,
-        preferRuleBasedCodeRepair: boolean,
-    ) {
-        const diagnostics = languages
-            .getDiagnostics(uri)
-            .filter(
-                ({ source }) => source === 'ts'
-            )
-            .filter(
-                ({ code }) => {
-                    if(!preferRuleBasedCodeRepair) {
-                        return true;
-                    }
-
-                    return code === '2345' || code === 2345;
-                }
-            );
-
-        return {
-            newDiagnostics: diagnostics.filter(
-                (diagnostic) => {
-                    return !this._hashes.has(
-                        buildDiagnosticHash(diagnostic)
-                    );
-                }
-            ),
-            diagnosticNumber: diagnostics.length,
-        };
     }
 
     protected async _infer(
