@@ -12,7 +12,6 @@ import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
-import {FactKind} from "../facts";
 import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
 import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
 import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
@@ -232,8 +231,8 @@ export class JobManager {
 
                     assertsNeitherNullOrUndefined(fact);
 
-                    const characterDifference = fact.kind === FactKind.moveTopLevelNode
-                        ? calculateCharacterDifference(fact, position)
+                    const characterDifference = job.kind === JobKind.moveTopLevelNode
+                        ? calculateCharacterDifference(job, position)
                         : 0;
 
                     return {

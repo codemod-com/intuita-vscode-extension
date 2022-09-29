@@ -12,6 +12,7 @@ import {buildMoveTopLevelNodeJobHash, JobHash} from "./jobHash";
 import {JobKind} from "../../jobs";
 import {Solution} from "./2_factBuilders/solutions";
 import { StringNode } from "./2_factBuilders/stringNodes";
+import { TopLevelNode } from "./2_factBuilders/topLevelNode";
 
 export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,
@@ -24,6 +25,8 @@ export type MoveTopLevelNodeJob = Readonly<{
     score: [number, number],
     separator: string,
     stringNodes: ReadonlyArray<StringNode>,
+    lengths: ReadonlyArray<number>,
+    topLevelNodes: ReadonlyArray<TopLevelNode>,
 }>;
 
 const buildIdentifiersLabel = (
@@ -135,6 +138,8 @@ export const buildMoveTopLevelNodeJobs = (
                 score: solution.score,
                 separator: fact.separator,
                 stringNodes: fact.stringNodes,
+                lengths: fact.lengths,
+                topLevelNodes: fact.topLevelNodes,
             };
         }
     )
@@ -142,17 +147,17 @@ export const buildMoveTopLevelNodeJobs = (
 };
 
 export const calculateCharacterDifference = (
-    fact: MoveTopLevelNodeFact,
+    job: MoveTopLevelNodeJob,
     position: IntuitaPosition,
 ): number => {
     const characterIndex = calculateCharacterIndex(
-        fact.separator,
-        fact.lengths,
+        job.separator,
+        job.lengths,
         position[0],
         position[1],
     );
 
-    const topLevelNodeIndex = fact
+    const topLevelNodeIndex = job
         .topLevelNodes
         .findIndex(
             (topLevelNode) => {
@@ -161,7 +166,7 @@ export const calculateCharacterDifference = (
             }
         );
 
-    const topLevelNode = fact.topLevelNodes[topLevelNodeIndex] ?? null;
+    const topLevelNode = job.topLevelNodes[topLevelNodeIndex] ?? null;
 
     assertsNeitherNullOrUndefined(topLevelNode);
 
