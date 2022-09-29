@@ -539,8 +539,6 @@ export class JobManager {
                 const fact: RepairCodeFact = {
                     kind: FactKind.repairCode,
                     separator,
-                    lines,
-                    lengths,
                     fileText,
                     range,
                     replacement: inferenceJob.replacement,
