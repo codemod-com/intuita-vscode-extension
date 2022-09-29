@@ -11,6 +11,11 @@ export const enum MessageKind {
     updateDiagnostics = 6,
     textDocumentChanged = 7,
     ruleBasedCoreRepairDiagnosticsChanged = 8,
+    /**
+     * the external diagnostics are such that come from 
+     * e.g the TS Language Server
+     */
+    newExternalDiagnostics = 9,
 }
 
 export type Message =
@@ -56,6 +61,11 @@ export type Message =
         uri: Uri,
         version: number,
         text: string,
+        diagnostics: ReadonlyArray<Diagnostic>,
+    }>
+    | Readonly<{
+        kind: MessageKind.newExternalDiagnostics,
+        uri: Uri,
         diagnostics: ReadonlyArray<Diagnostic>,
     }>;
 
