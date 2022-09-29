@@ -11,7 +11,7 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
-import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
+import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
 import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
 import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
@@ -31,11 +31,9 @@ import { buildReplacement } from "../features/repairCode/buildReplacement";
 import { InferenceJob } from "./inferenceService";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
-type Fact = MoveTopLevelNodeFact;
 
 export class JobManager {
     protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<JobHash, Fact>();
     protected _moveTopLevelBlockHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _repairCodeHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
@@ -227,10 +225,6 @@ export class JobManager {
             )
             .map(
                 (job) => {
-                    const fact = this._factMap.get(job.hash);
-
-                    assertsNeitherNullOrUndefined(fact);
-
                     const characterDifference = job.kind === JobKind.moveTopLevelNode
                         ? calculateCharacterDifference(job, position)
                         : 0;
@@ -288,10 +282,6 @@ export class JobManager {
                 }
             }
         );
-
-        newJobHashes.forEach((jobHash) => {
-            this._factMap.set(jobHash, fact);
-        });
 
         this._moveTopLevelBlockHashMap.set(fileNameHash, newJobHashes);
 
@@ -411,7 +401,6 @@ export class JobManager {
         this._repairCodeHashMap.delete(fileNameHash);
 
         oldJobHashes.forEach((jobHash) => {
-            this._factMap.delete(jobHash);
             this._jobMap.delete(jobHash);
         });
 
@@ -617,7 +606,6 @@ export class JobManager {
                 if (job.kind !== JobKind.repairCode) {
                     newJobHashes.add(jobHash);
 
-                    this._factMap.delete(jobHash);
                     this._jobMap.delete(jobHash);
                 }
             }
