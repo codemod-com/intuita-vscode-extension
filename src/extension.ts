@@ -33,10 +33,11 @@ export async function activate(
 		() => vscode.window.activeTextEditor ?? null,
 		(uri) => vscode.languages.getDiagnostics(uri),
 		messageBus,
-	)
+	);
 
 	new InferredCodeRepairService(
 		configurationContainer,
+		(uri) => vscode.workspace.getWorkspaceFolder(uri) ?? null,
 		messageBus,
 	);
 

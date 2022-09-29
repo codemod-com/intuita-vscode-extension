@@ -1,6 +1,6 @@
 import Axios, {CancelToken, CancelTokenSource} from 'axios';
 import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
-import {Uri, workspace} from "vscode";
+import {Uri, WorkspaceFolder} from "vscode";
 import {
     buildHash,
     isNeitherNullNorUndefined
@@ -21,6 +21,7 @@ export class InferredCodeRepairService {
 
     public constructor(
         protected readonly _configurationContainer: Container<Configuration>,
+        protected readonly _getWorkspaceFolder: (uri: Uri) => WorkspaceFolder | null,
         protected readonly _messageBus: MessageBus,
     ) {
         this._messageBus.subscribe(
@@ -77,7 +78,7 @@ export class InferredCodeRepairService {
 
         this._cancel(message.uri);
 
-        const workspacePath = workspace.getWorkspaceFolder(message.uri)?.uri.fsPath;
+        const workspacePath = this._getWorkspaceFolder(message.uri)?.uri.fsPath;
 
         if (!isNeitherNullNorUndefined(workspacePath)) {
             return;
