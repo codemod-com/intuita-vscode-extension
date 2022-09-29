@@ -175,10 +175,9 @@ export class JobManager {
 
         let execution;
 
-        if (job.kind === JobKind.moveTopLevelNode && fact && fact.kind === FactKind.moveTopLevelNode) {
+        if (job.kind === JobKind.moveTopLevelNode && fact?.kind === FactKind.moveTopLevelNode) {
             execution = executeMoveTopLevelNodeAstCommandHelper(
-                job.oldIndex,
-                job.newIndex,
+                job,
                 characterDifference,
                 fact.stringNodes,
                 fact.separator,

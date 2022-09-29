@@ -1,9 +1,9 @@
 import {calculateLines, moveElementInArray} from "../../utilities";
 import { StringNode } from "./2_factBuilders/stringNodes";
+import { MoveTopLevelNodeJob } from "./job";
 
 export const executeMoveTopLevelNodeAstCommandHelper = (
-    oldIndex: number,
-    newIndex: number,
+    job: MoveTopLevelNodeJob,
     characterDifference: number,
     stringNodes: ReadonlyArray<StringNode>,
     separator: string,
@@ -14,8 +14,8 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
 
     const movedTopLevelNodeTexts = moveElementInArray(
         topLevelNodeTexts,
-        oldIndex,
-        newIndex,
+        job.oldIndex,
+        job.newIndex,
     );
 
     const newNodes = stringNodes
@@ -32,7 +32,7 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
                 return {
                     topLevelNodeIndex,
                     text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
-                    match: topLevelNodeIndex === newIndex,
+                    match: topLevelNodeIndex === job.newIndex,
                 };
             });
 
