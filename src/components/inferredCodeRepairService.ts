@@ -16,7 +16,7 @@ import { randomBytes } from 'node:crypto';
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
 
-export class DiagnosticManager {
+export class InferredCodeRepairService {
     protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
 
     public constructor(

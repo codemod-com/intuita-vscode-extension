@@ -7,7 +7,7 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
-import {DiagnosticManager} from "./components/diagnosticManager";
+import {InferredCodeRepairService} from "./components/inferredCodeRepairService";
 import {acceptJob} from "./components/acceptJob";
 
 const messageBus = new MessageBus();
@@ -27,7 +27,7 @@ export async function activate(
 		getConfiguration()
 	);
 
-	const diagnosticManager = new DiagnosticManager(
+	const diagnosticManager = new InferredCodeRepairService(
 		configurationContainer,
 		messageBus,
 	);
