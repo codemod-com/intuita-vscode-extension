@@ -10,13 +10,9 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
-import {buildRepairCodeFact, RepairCodeFact} from "../features/repairCode/factBuilder";
-import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
-import {FactKind} from "../facts";
-import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
-import {executeMoveTopLevelNodeAstCommandHelper} from "../features/moveTopLevelNode/4_astCommandExecutor";
-import {RepairCodeUserCommand} from "../features/repairCode/userCommand";
-import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
+import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
+import {executeRepairCodeJob} from "../features/repairCode/executeRepairCodeJob";
+import {executeMoveTopLevelNodeJob} from "../features/moveTopLevelNode/executeMoveTopLevelNodeJob";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
@@ -26,15 +22,14 @@ import {
     calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/job";
-import {RepairCodeJob} from "../features/repairCode/job";
+import {buildRepairCodeJobs, RepairCodeJob} from "../features/repairCode/job";
 import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
+import { buildRuleBasedRepairCodeJobs } from "../features/repairCode/buildRuleBasedRepairCodeJobs";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
-type Fact = MoveTopLevelNodeFact | RepairCodeFact;
 
 export class JobManager {
     protected _fileNames = new Map<FileNameHash, string>();
-    protected _factMap = new Map<JobHash, Fact>();
     protected _moveTopLevelBlockHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _repairCodeHashMap = new Map<FileNameHash, Set<JobHash>>();
     protected _rejectedJobHashes = new Set<JobHash>();
@@ -62,9 +57,17 @@ export class JobManager {
                     );
                 }
 
-                if (message.kind === MessageKind.noTypeScriptDiagnostics) {
+                if (message.kind === MessageKind.noExternalDiagnostics) {
                     setImmediate(
                         () => this._onNoTypeScriptDiagnostics(
+                            message,
+                        ),
+                    );
+                }
+
+                if (message.kind === MessageKind.ruleBasedCoreRepairDiagnosticsChanged) {
+                    setImmediate(
+                        () => this.onRuleBasedCoreRepairDiagnosticsChanged(
                             message,
                         ),
                     );
@@ -138,7 +141,7 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
@@ -159,30 +162,26 @@ export class JobManager {
         characterDifference: number,
     ): JobOutput {
         const job = this._jobMap.get(jobHash);
-        const fact = this._factMap.get(jobHash);
 
         assertsNeitherNullOrUndefined(job);
-        assertsNeitherNullOrUndefined(fact);
 
         let execution;
 
-        if (job.kind === JobKind.moveTopLevelNode && fact.kind === FactKind.moveTopLevelNode) {
-            execution = executeMoveTopLevelNodeAstCommandHelper(
-                job.oldIndex,
-                job.newIndex,
+        if (job.kind === JobKind.moveTopLevelNode) {
+            execution = executeMoveTopLevelNodeJob(
+                job,
                 characterDifference,
-                fact.stringNodes,
-                fact.separator,
             );
-        } else if (
-            job.kind === JobKind.repairCode && fact.kind === FactKind.repairCode
-        ) {
-            execution = executeRepairCodeCommand(fact);
+        } else if (job.kind === JobKind.repairCode) {
+            execution = executeRepairCodeJob(job);
         } else {
             throw new Error('');
         }
 
-        const lastPosition = calculateLastPosition(execution.text, fact.separator);
+        const lastPosition = calculateLastPosition(
+            execution.text,
+            job.separator,
+        );
 
         const range: IntuitaRange = [
             0,
@@ -222,12 +221,8 @@ export class JobManager {
             )
             .map(
                 (job) => {
-                    const fact = this._factMap.get(job.hash);
-
-                    assertsNeitherNullOrUndefined(fact);
-
-                    const characterDifference = fact.kind === FactKind.moveTopLevelNode
-                        ? calculateCharacterDifference(fact, position)
+                    const characterDifference = job.kind === JobKind.moveTopLevelNode
+                        ? calculateCharacterDifference(job, position)
                         : 0;
 
                     return {
@@ -239,7 +234,7 @@ export class JobManager {
             .filter(isNeitherNullNorUndefined);
     }
 
-    public onFileTextChanged(
+    public buildMoveTopLevelNodeJobs(
         document: TextDocument,
     ) {
         if (document.uri.scheme !== 'file') {
@@ -284,10 +279,6 @@ export class JobManager {
             }
         );
 
-        newJobHashes.forEach((jobHash) => {
-            this._factMap.set(jobHash, fact);
-        });
-
         this._moveTopLevelBlockHashMap.set(fileNameHash, newJobHashes);
 
         newJobs.forEach((job) => {
@@ -299,7 +290,7 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
@@ -343,6 +334,66 @@ export class JobManager {
                 },
             );
         }
+    }
+
+    public onRuleBasedCoreRepairDiagnosticsChanged(
+        message: Message & { kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged },
+    ) {
+        const fileName = message.uri.fsPath;
+
+        const jobs = buildRuleBasedRepairCodeJobs(
+            fileName,
+            message.text,
+            message.version,
+            message.diagnostics,
+        );
+
+        const fileUri = buildFileUri(message.uri);
+
+        const fileNameHash = buildFileNameHash(fileName);
+
+        const oldJobHashes = Array.from(this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>());
+
+        const jobUris = oldJobHashes.map(
+            (hash) => buildJobUri({
+                fileName,
+                hash,
+            }),
+        );
+
+        // job clean up
+        this._repairCodeHashMap.delete(fileNameHash);
+
+        oldJobHashes.forEach((jobHash) => {
+            this._jobMap.delete(jobHash);
+        });
+
+        // send messages
+        jobUris.forEach(
+            (uri) => {
+                this._messageBus.publish(
+                    {
+                        kind: MessageKind.deleteFile,
+                        uri,
+                    },
+                );
+            },
+        );
+
+        this._messageBus.publish(
+            {
+                kind: MessageKind.writeFile,
+                uri: fileUri,
+                content: Buffer.from(message.text),
+                permissions: FilePermission.Readonly,
+            },
+        );
+
+        this._commitRepairCodeJobs(
+            fileName,
+            message.version,
+            jobs,
+        );
     }
 
     protected async _onReadingFileFailed (
@@ -400,63 +451,39 @@ export class JobManager {
     ) {
         const fileName = message.uri.fsPath;
 
+        const textDocuments = await getOrOpenTextDocuments(fileName);
+        const fileText = textDocuments[0]?.getText() ?? '';
+
+        const separator = getSeparator(fileText);
+        const lines = calculateLines(fileText, separator);
+        const lengths = calculateLengths(lines);
+
+        const jobs = buildRepairCodeJobs(
+            fileName,
+            fileText,
+            message.inferenceJobs,
+            separator,
+            lengths,
+            message.version,
+        );
+
+        return this._commitRepairCodeJobs(
+            fileName,
+            message.version,
+            jobs,
+        );
+    }
+
+    protected _commitRepairCodeJobs(
+        fileName: string,
+        version: number,
+        jobs: ReadonlyArray<RepairCodeJob>,
+    ) {
         const fileNameHash = buildFileNameHash(fileName);
 
         this._fileNames.set(
             fileNameHash,
             fileName
-        );
-
-        const textDocuments = await getOrOpenTextDocuments(fileName);
-        const fileText = textDocuments[0]?.getText() ?? '';
-
-        // TODO we could possibly pass that to the user command
-        const separator = getSeparator(fileText);
-        const lines = calculateLines(fileText, separator);
-        const lengths = calculateLengths(lines);
-
-        const factsAndJobs = message.inferenceJobs.map(
-            (inferenceJob) => {
-                const range: IntuitaRange = [
-                    inferenceJob.lineNumber,
-                    0,
-                    inferenceJob.lineNumber,
-                    lengths[inferenceJob.lineNumber] ?? 0,
-                ];
-
-                const command: RepairCodeUserCommand = {
-                    fileName,
-                    fileText,
-                    kind: "REPAIR_CODE",
-                    range,
-                    replacement: inferenceJob.replacement,
-                };
-
-                const fact = buildRepairCodeFact(command);
-
-                const jobHash = buildRepairCodeJobHash(
-                    fileName,
-                    inferenceJob.lineNumber,
-                    inferenceJob.replacement,
-                );
-
-                const title = `Repair code on line ${inferenceJob.lineNumber+1}`;
-
-                const job: RepairCodeJob = {
-                    kind: JobKind.repairCode,
-                    fileName,
-                    hash: jobHash,
-                    title,
-                    range,
-                    replacement: inferenceJob.replacement,
-                    version: message.version,
-                };
-
-                return {
-                    fact,
-                    job,
-                };
-            },
         );
 
         const newJobHashes = new Set<JobHash>();
@@ -466,20 +493,15 @@ export class JobManager {
             ?.forEach(jobHash => {
                 const job = this._jobMap.get(jobHash);
 
-                if (job?.kind === JobKind.repairCode && job.version !== message.version) {
+                if (job?.kind === JobKind.repairCode && job.version !== version) {
                     return;
                 }
 
                 newJobHashes.add(jobHash);
             });
 
-        factsAndJobs.forEach(({ job, fact }) => {
+        jobs.forEach((job) => {
             newJobHashes.add(job.hash);
-
-            this._factMap.set(
-                job.hash,
-                fact,
-            );
 
             this._jobMap.set(
                 job.hash,
@@ -491,14 +513,14 @@ export class JobManager {
 
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );
     }
 
     protected _onNoTypeScriptDiagnostics(
-        message: Message & { kind: MessageKind.noTypeScriptDiagnostics },
+        message: Message & { kind: MessageKind.noExternalDiagnostics },
     ) {
         const fileName = message.uri.fsPath;
 
@@ -525,7 +547,6 @@ export class JobManager {
                 if (job.kind !== JobKind.repairCode) {
                     newJobHashes.add(jobHash);
 
-                    this._factMap.delete(jobHash);
                     this._jobMap.delete(jobHash);
                 }
             }
@@ -539,7 +560,7 @@ export class JobManager {
         // outgoing
         this._messageBus.publish(
             {
-                kind: MessageKind.updateDiagnostics,
+                kind: MessageKind.updateInternalDiagnostics,
                 fileName,
             },
         );

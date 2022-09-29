@@ -7,8 +7,10 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import {IntuitaCodeActionProvider} from "./components/intuitaCodeActionProvider";
 import {JobManager} from "./components/jobManager";
 import {IntuitaTreeDataProvider} from "./components/intuitaTreeDataProvider";
-import {DiagnosticManager} from "./components/diagnosticManager";
+import {InferredCodeRepairService} from "./components/inferredCodeRepairService";
 import {acceptJob} from "./components/acceptJob";
+import { DiagnosticManager } from './components/diagnosticManager';
+import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
 
 const messageBus = new MessageBus();
 
@@ -23,12 +25,24 @@ export async function activate(
 			'typescript'
 		);
 
+	const configurationContainer = buildContainer(
+		getConfiguration()
+	);
+
 	const diagnosticManager = new DiagnosticManager(
+		() => vscode.window.activeTextEditor ?? null,
+		(uri) => vscode.languages.getDiagnostics(uri),
+		messageBus,
+	)
+
+	new InferredCodeRepairService(
+		configurationContainer,
 		messageBus,
 	);
 
-	const configurationContainer = buildContainer(
-		getConfiguration()
+	new RuleBasedCoreRepairService(
+		configurationContainer,
+		messageBus,
 	);
 
 	const intuitaFileSystem = new IntuitaFileSystem(
@@ -102,7 +116,7 @@ export async function activate(
 				}
 
 				jobManager
-					.onFileTextChanged(
+					.buildMoveTopLevelNodeJobs(
 						document,
 					);
 			},
@@ -185,13 +199,8 @@ export async function activate(
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics(
 			(event) => {
-				try {
-					diagnosticManager
-						.onDiagnosticChangeEvent(event)
-				} catch {
-					
-				}
-				
+				diagnosticManager
+					.onDiagnosticChangeEvent(event);
 			},
 		),
 	);
