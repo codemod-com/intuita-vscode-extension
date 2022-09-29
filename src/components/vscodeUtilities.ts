@@ -1,17 +1,15 @@
 import { TextDocument, Uri, window, workspace } from "vscode";
 
-export const getTextDocuments = (
+const getTextDocuments = (
     fileName: string,
 ): ReadonlyArray<TextDocument> => {
-    const callback = (document: TextDocument) => {
-        return document.fileName === fileName;
-    };
-
     return window
         .visibleTextEditors
         .map(({ document}) => document)
         .concat(workspace.textDocuments)
-        .filter(callback);
+        .filter((document) => {
+            return document.fileName === fileName;
+        });
 };
 
 export const getOrOpenTextDocuments = async (
@@ -28,4 +26,4 @@ export const getOrOpenTextDocuments = async (
     );
 
     return [ openedTextDocument ];
-}
+};
