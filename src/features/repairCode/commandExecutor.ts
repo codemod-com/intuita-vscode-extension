@@ -1,9 +1,8 @@
 import { calculateLines } from "../../utilities";
-import {RepairCodeFact} from "./factBuilder";
 import { RepairCodeJob } from "./job";
 
 export const executeRepairCodeCommand = (
-    fact: RepairCodeFact | RepairCodeJob,
+    fact: RepairCodeJob,
 ) => {
     const previousCharacters = fact.fileText
         .slice(0, fact.simpleRange.start);

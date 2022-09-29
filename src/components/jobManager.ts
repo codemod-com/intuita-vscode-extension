@@ -11,7 +11,6 @@ import {JobKind, JobOutput} from "../jobs";
 import {FilePermission, TextDocument, Uri} from "vscode";
 import {getOrOpenTextDocuments} from "./vscodeUtilities";
 import {Message, MessageBus, MessageKind} from "./messageBus";
-import {RepairCodeFact} from "../features/repairCode/factBuilder";
 import {buildMoveTopLevelNodeFact, MoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {FactKind} from "../facts";
 import {executeRepairCodeCommand} from "../features/repairCode/commandExecutor";
@@ -33,7 +32,7 @@ import { buildReplacement } from "../features/repairCode/buildReplacement";
 import { InferenceJob } from "./inferenceService";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
-type Fact = MoveTopLevelNodeFact | RepairCodeFact;
+type Fact = MoveTopLevelNodeFact;
 
 export class JobManager {
     protected _fileNames = new Map<FileNameHash, string>();
@@ -173,11 +172,10 @@ export class JobManager {
         const fact = this._factMap.get(jobHash);
 
         assertsNeitherNullOrUndefined(job);
-        assertsNeitherNullOrUndefined(fact);
 
         let execution;
 
-        if (job.kind === JobKind.moveTopLevelNode && fact.kind === FactKind.moveTopLevelNode) {
+        if (job.kind === JobKind.moveTopLevelNode && fact && fact.kind === FactKind.moveTopLevelNode) {
             execution = executeMoveTopLevelNodeAstCommandHelper(
                 job.oldIndex,
                 job.newIndex,
@@ -185,15 +183,16 @@ export class JobManager {
                 fact.stringNodes,
                 fact.separator,
             );
-        } else if (
-            job.kind === JobKind.repairCode && fact.kind === FactKind.repairCode
-        ) {
-            execution = executeRepairCodeCommand(fact);
+        } else if (job.kind === JobKind.repairCode) {
+            execution = executeRepairCodeCommand(job);
         } else {
             throw new Error('');
         }
 
-        const lastPosition = calculateLastPosition(execution.text, fact.separator);
+        const lastPosition = calculateLastPosition(
+            execution.text,
+            fact && 'separator' in fact ? fact.separator : '\n' // TODO fix the separator retrieval
+        );
 
         const range: IntuitaRange = [
             0,
@@ -519,8 +518,8 @@ export class JobManager {
         const lines = calculateLines(fileText, separator);
         const lengths = calculateLengths(lines);
 
-        const factsAndJobs = message.inferenceJobs.map(
-            (inferenceJob) => {
+        const jobs = message.inferenceJobs.map(
+            (inferenceJob): RepairCodeJob => {
                 const intuitaRange: IntuitaRange = 'range' in inferenceJob
                     ? inferenceJob.range
                     : [
@@ -536,14 +535,6 @@ export class JobManager {
                     intuitaRange,
                 );
 
-                const fact: RepairCodeFact = {
-                    kind: FactKind.repairCode,
-                    separator,
-                    fileText,
-                    simpleRange: range,
-                    replacement: inferenceJob.replacement,
-                };
-
                 const jobHash = buildRepairCodeJobHash(
                     fileName,
                     inferenceJob,
@@ -555,7 +546,7 @@ export class JobManager {
 
                 const title = `Repair code on line ${lineNumber+1}`;
 
-                const job: RepairCodeJob = {
+                return {
                     kind: JobKind.repairCode,
                     fileName,
                     hash: jobHash,
@@ -566,11 +557,6 @@ export class JobManager {
                     fileText,
                     simpleRange: range,
                     separator,
-                };
-
-                return {
-                    fact,
-                    job,
                 };
             },
         );
@@ -589,13 +575,8 @@ export class JobManager {
                 newJobHashes.add(jobHash);
             });
 
-        factsAndJobs.forEach(({ job, fact }) => {
+        jobs.forEach((job) => {
             newJobHashes.add(job.hash);
-
-            this._factMap.set(
-                job.hash,
-                fact,
-            );
 
             this._jobMap.set(
                 job.hash,
