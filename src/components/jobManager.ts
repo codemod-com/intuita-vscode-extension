@@ -24,7 +24,7 @@ import {
 } from "../features/moveTopLevelNode/job";
 import {buildRepairCodeJobs, RepairCodeJob} from "../features/repairCode/job";
 import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
-import { buildInferenceJobs } from "../features/repairCode/buildInferenceJobs";
+import { buildRuleBasedRepairCodeJobs } from "../features/repairCode/buildRuleBasedRepairCodeJobs";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 
@@ -339,14 +339,16 @@ export class JobManager {
     public onRuleBasedCoreRepairDiagnosticsChanged(
         message: Message & { kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged },
     ) {
-        const inferenceJobs = buildInferenceJobs(
+        const fileName = message.uri.fsPath;
+
+        const jobs = buildRuleBasedRepairCodeJobs(
+            fileName,
             message.text,
+            message.version,
             message.diagnostics,
         );
 
         const fileUri = buildFileUri(message.uri);
-
-        const fileName = message.uri.fsPath;
 
         const fileNameHash = buildFileNameHash(fileName);
 
@@ -387,12 +389,11 @@ export class JobManager {
             },
         );
 
-        this._messageBus.publish({
-            kind: MessageKind.createRepairCodeJobs,
-            uri: message.uri,
-            version: message.version,
-            inferenceJobs,
-        });
+        this._commitRepairCodeJobs(
+            fileName,
+            message.version,
+            jobs,
+        );
     }
 
     protected async _onReadingFileFailed (

@@ -3,17 +3,20 @@ import { InferenceJob } from "../../components/inferenceService";
 import { buildIntuitaSimpleRange, calculateLengths, calculateLines, getSeparator, IntuitaRange, isNeitherNullNorUndefined } from "../../utilities";
 import { buildReplacement } from "./buildReplacement";
 import { extractKindsFromTs2345ErrorMessage } from "./extractKindsFromTs2345ErrorMessage";
+import { buildRepairCodeJobs, RepairCodeJob } from "./job";
 
-export const buildInferenceJobs = (
+export const buildRuleBasedRepairCodeJobs = (
+    name: string,
     text: string,
+    version: number,
     diagnostics: ReadonlyArray<Diagnostic>,
-) : ReadonlyArray<InferenceJob> => {
+) : ReadonlyArray<RepairCodeJob> => {
     const separator = getSeparator(text);
     const lines = calculateLines(text, separator);
     const lengths = calculateLengths(lines);
 
-    return diagnostics
-        .map((diagnostic) => {
+    const inferenceJobs = diagnostics
+        .map((diagnostic): InferenceJob | null => {
             const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
 
             if(!kinds) {
@@ -46,4 +49,13 @@ export const buildInferenceJobs = (
             };
         })
         .filter(isNeitherNullNorUndefined);
+
+    return buildRepairCodeJobs(
+        name,
+        text,
+        inferenceJobs,
+        separator,
+        lengths,
+        version,
+    );
 }   
