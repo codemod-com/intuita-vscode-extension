@@ -183,7 +183,7 @@ export const acceptJob = (
 
         if (allTextDocuments[0]) {
             jobManager
-                .onFileTextChanged(
+                .buildMoveTopLevelNodeJobs(
                     allTextDocuments[0],
                 );
         }

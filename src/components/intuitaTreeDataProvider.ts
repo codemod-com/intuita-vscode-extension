@@ -52,7 +52,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 
         this._messageBus.subscribe(
             (message) => {
-                if (message.kind === MessageKind.updateDiagnostics) {
+                if (message.kind === MessageKind.updateInternalDiagnostics) {
                     setImmediate(
                         () => {
                             this._setDiagnosticEntry(message.fileName);

@@ -1,24 +1,21 @@
 import {calculateLines, moveElementInArray} from "../../utilities";
-import { StringNode } from "./2_factBuilders/stringNodes";
+import { MoveTopLevelNodeJob } from "./job";
 
-export const executeMoveTopLevelNodeAstCommandHelper = (
-    oldIndex: number,
-    newIndex: number,
+export const executeMoveTopLevelNodeJob = (
+    job: MoveTopLevelNodeJob,
     characterDifference: number,
-    stringNodes: ReadonlyArray<StringNode>,
-    separator: string,
 ) => {
-    const topLevelNodeTexts = stringNodes
+    const topLevelNodeTexts = job.stringNodes
         .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
         .map(({ text }) => text);
 
     const movedTopLevelNodeTexts = moveElementInArray(
         topLevelNodeTexts,
-        oldIndex,
-        newIndex,
+        job.oldIndex,
+        job.newIndex,
     );
 
-    const newNodes = stringNodes
+    const newNodes = job.stringNodes
         .map(
             ({ topLevelNodeIndex, text}) => {
                 if (topLevelNodeIndex === null) {
@@ -32,7 +29,7 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
                 return {
                     topLevelNodeIndex,
                     text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
-                    match: topLevelNodeIndex === newIndex,
+                    match: topLevelNodeIndex === job.newIndex,
                 };
             });
 
@@ -47,11 +44,11 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
         .map(({ text }) => text)
         .join('');
 
-    const lines = calculateLines(initialText, separator);
+    const lines = calculateLines(initialText, job.separator);
 
     const nodeLines = (newNodes[index]?.text ?? '')
         .slice(0, characterDifference)
-        .split(separator);
+        .split(job.separator);
 
     const line = lines.length + nodeLines.length - 2;
     const character = nodeLines[nodeLines.length-1]?.length ?? 0;

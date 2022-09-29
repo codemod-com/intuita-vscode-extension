@@ -1,71 +1,67 @@
-import Axios, {CancelToken, CancelTokenSource} from 'axios';
-import {buildDiagnosticHash, DiagnosticHash} from "../hashes";
-import {decodeOrThrow, InferCommand, inferredMessageCodec} from "./inferenceService";
-import {DiagnosticChangeEvent, languages, Uri, window, workspace} from "vscode";
-import {buildHash, isNeitherNullNorUndefined} from "../utilities";
-import {basename, join} from "node:path";
-import {mkdir, writeFile } from "node:fs";
-import {promisify} from "node:util";
-import {MessageBus, MessageKind} from "./messageBus";
+import { Diagnostic, DiagnosticChangeEvent, TextEditor, Uri } from "vscode";
+import { buildHash } from "../utilities";
+import { MessageBus, MessageKind } from "./messageBus";
 
-const promisifiedMkdir = promisify(mkdir);
-const promisifiedWriteFile = promisify(writeFile);
+type DiagnosticHash = string & { __type: 'DiagnosticHash' };
+
+const stringifyCode = (code: Diagnostic['code']): string => {
+    if (code === undefined) {
+        return '';
+    }
+
+    if (typeof code === 'string') {
+        return code;
+    }
+
+    if (typeof code === 'number') {
+        return String(code);
+    }
+
+    return [
+        String(code.value),
+        code.target.toString(),
+    ].join(',');
+};
+
+const buildDiagnosticHash = (
+    uri: Uri,
+    version: number,
+    diagnostic: Diagnostic,
+): DiagnosticHash => {
+    return buildHash(
+        [
+            uri.toString(),
+            String(version),
+            String(diagnostic.range.start.line),
+            String(diagnostic.range.start.character),
+            String(diagnostic.range.end.line),
+            String(diagnostic.range.end.character),
+            diagnostic.message,
+            diagnostic.severity,
+            diagnostic.source ?? '',
+            stringifyCode(diagnostic.code),
+        ].join(',')
+    ) as DiagnosticHash;
+};
 
 export class DiagnosticManager {
-    protected _counter: number = 0;
-    protected readonly _hashes: Set<DiagnosticHash> = new Set();
-    protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> = new Map();
+    protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
 
     public constructor(
+        protected readonly _getActiveTextEditor: () => TextEditor | null,
+        protected readonly _getDiagnostics: (uri: Uri) => ReadonlyArray<Diagnostic>,
         protected readonly _messageBus: MessageBus,
     ) {
-        this._messageBus.subscribe(
-            (message) => {
-                if (message.kind === MessageKind.textDocumentChanged) {
-                    setImmediate(
-                        () => {
-                            this._onTextDocumentChanged(message.uri);
-                        },
-                    );
-                }
-            },
-        );
-    }
 
-    public clearHashes() {
-        this._hashes.clear();
-    }
-
-    private _cancel(uri: Uri) {
-        const stringUri = uri.toString();
-
-        const cancelTokenSource = this._cancelTokenSourceMap.get(
-            stringUri
-        );
-
-        if (!cancelTokenSource) {
-            return;
-        }
-
-        this._cancelTokenSourceMap.delete(stringUri);
-
-        cancelTokenSource.cancel();
-    }
-
-    protected _onTextDocumentChanged(uri: Uri): void {
-        this.clearHashes();
-        this._cancel(uri);
     }
 
     public async onDiagnosticChangeEvent(
         event: DiagnosticChangeEvent,
     ): Promise<void> {
-        const counter = ++this._counter;
-
-        const { activeTextEditor } = window;
+        const activeTextEditor = this._getActiveTextEditor();
 
         if (!activeTextEditor) {
-            console.error('There is no active text editor despite the changed diagnostics.');
+            console.debug('There is no active text editor despite the changed diagnostics.');
 
             return;
         }
@@ -75,155 +71,73 @@ export class DiagnosticManager {
         const stringUri = uri.toString();
 
         if (stringUri.includes('.intuita')) {
-            console.log('The files within the .intuita directory won\'t be inspected.');
+            console.debug('The files within the .intuita directory won\'t be inspected.');
 
             return;
         }
 
         if(!event.uris.some((u) => stringUri === u.toString())) {
+            console.debug('No diagnostic have changed for the active text editor\'s document');
+
             return;
         }
 
-        this._cancel(uri);
+        const diagnostics = this._getDiagnostics(uri)
+            .filter(
+                ({ source, code }) => {
+                    if (source !== 'ts' || !code) {
+                        return false;
+                    }
 
-        const {
-            newDiagnostics,
-            diagnosticNumber,
-        } = this._getDiagnostics(uri);
+                    if (typeof code === 'string' || typeof code === 'number') {
+                        return String(code) === '2345';
+                    }
 
-        if (!diagnosticNumber) {
+                    return String(code.value) === '2345';
+                },
+            );
+
+        if(diagnostics.length === 0) {
             this._messageBus.publish({
-                kind: MessageKind.noTypeScriptDiagnostics,
+                kind: MessageKind.noExternalDiagnostics,
                 uri,
             });
 
             return;
         }
 
-        if (!newDiagnostics.length) {
-            return;
-        }
+        const newDiagnostics: Diagnostic[] = [];
 
-        const workspacePath = workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+        diagnostics.forEach(
+            (diagnostic) => {
+                const hash = buildDiagnosticHash(
+                    uri,
+                    version,
+                    diagnostic
+                );
 
-        if (!isNeitherNullNorUndefined(workspacePath)) {
+                if (this._seenHashes.has(hash)) {
+                    return;
+                }
+
+                this._seenHashes.add(hash);
+
+                newDiagnostics.push(diagnostic);
+            }
+        )
+
+        if (newDiagnostics.length === 0) {
             return;
         }
 
         const text = getText();
 
-        const fileBaseName = basename(stringUri);
-
-        const hash = buildHash([
-            stringUri,
-            String(version),
-            counter,
-        ].join(','));
-
-        const directoryPath = join(
-            workspacePath,
-            `/.intuita/${hash}/`,
-        );
-
-        const filePath = join(
-            workspacePath,
-            `/.intuita/${hash}/${fileBaseName}`,
-        );
-
-        const source = Axios.CancelToken.source();
-
-        this._cancelTokenSourceMap.set(
-            stringUri,
-            source,
-        );
-
-        await promisifiedMkdir(
-            directoryPath,
-            {
-                recursive: true,
-            },
-        );
-
-        await promisifiedWriteFile(
-            filePath,
-            text,
-            {
-                encoding: 'utf8',
-            },
-        );
-
-        const lineNumbers = new Set(
-            newDiagnostics.map(({ range }) => range.start.line)
-        );
-
-        const command: InferCommand = {
-            kind: 'infer',
-            fileMetaHash: hash,
-            filePath: stringUri,
-            lineNumbers: Array.from(lineNumbers),
-            workspacePath,
-        };
-
-        const response = await this._infer(command, source.token);
-
-        const message = decodeOrThrow(
-            inferredMessageCodec,
-            (report) =>
-                new Error(`Could not decode the inferred message: ${report.join()}`),
-            response.data,
-        );
-
-        for (const diagnostic of newDiagnostics) {
-            this._hashes.add(
-                buildDiagnosticHash(diagnostic)
-            );
-        }
-
         this._messageBus.publish({
-            kind: MessageKind.createRepairCodeJobs,
+            kind: MessageKind.newExternalDiagnostics,
             uri,
+            text,
             version,
-            inferenceJobs: message.inferenceJobs,
+            diagnostics: newDiagnostics,
         });
-
-        // TODO remove the .intuita / hash directory
-    }
-
-    protected _getDiagnostics(uri: Uri) {
-        const diagnostics = languages
-            .getDiagnostics(uri)
-            .filter(
-                ({ source }) => source === 'ts'
-            );
-
-        return {
-            newDiagnostics: diagnostics.filter(
-                (diagnostic) => !this._hashes.has(
-                    buildDiagnosticHash(diagnostic)
-                )
-            ),
-            diagnosticNumber: diagnostics.length,
-        };
-    }
-
-    protected async _infer(
-        command: InferCommand,
-        cancelToken: CancelToken,
-    ) {
-        try {
-            return await Axios.post(
-                'http://localhost:4000/infer',
-                command,
-                {
-                    cancelToken,
-                },
-            );
-        } catch (error) {
-            if (Axios.isAxiosError(error)) {
-                console.error(error.response?.data);
-            }
-
-            throw error;
-        }
     }
 }

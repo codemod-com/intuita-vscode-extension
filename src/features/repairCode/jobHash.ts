@@ -1,15 +1,18 @@
 import {buildHash} from "../../utilities";
 import {JobHash} from "../moveTopLevelNode/jobHash";
+import {InferenceJob} from "../../components/inferenceService";
 
 export const buildRepairCodeJobHash = (
     fileName: string,
-    lineNumber: number,
-    replacement: string,
+    inferenceJob: InferenceJob,
 ): JobHash => {
     const data = [
         fileName,
-        String(lineNumber),
-        replacement,
+        'range' in inferenceJob
+            ? inferenceJob.range.map((r) => String(r)).join(',')
+            : String(inferenceJob.lineNumber)
+        ,
+        inferenceJob.replacement,
     ]
         .map((value) => String(value))
         .join(',');

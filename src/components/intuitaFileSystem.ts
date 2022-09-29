@@ -187,7 +187,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
         const fileName = uri.toString();
 
         if (!this._files.has(fileName)) {
-            throw FileSystemError.FileNotFound(uri);
+            return;
         }
 
         this._files.delete(

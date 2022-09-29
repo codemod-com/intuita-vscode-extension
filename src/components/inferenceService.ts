@@ -27,10 +27,16 @@ export const inferCommandCodec = buildTypeCodec({
     lineNumbers: t.readonlyArray(t.number), //0-indexed
 });
 
-export const inferenceJobCodec = buildTypeCodec({
-    lineNumber: t.number,
-    replacement: t.string,
-});
+export const inferenceJobCodec = t.union([
+    buildTypeCodec({
+        lineNumber: t.number,
+        replacement: t.string,
+    }),
+    buildTypeCodec({
+        range: t.readonly(t.tuple([t.number, t.number, t.number, t.number])),
+        replacement: t.string,
+    }),
+]);
 
 export const inferredMessageCodec = buildTypeCodec({
     kind: t.literal('inferred'),

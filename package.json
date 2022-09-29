@@ -151,6 +151,12 @@
 						"export",
 						"unknown"
 					]
+				},
+				"intuita.preferRuleBasedCodeRepair": {
+					"order": 4,
+					"type": "boolean",
+					"default": false,
+					"description": "Prefer the rule-based code repair over ML-based one"
 				}
 			}
 		},

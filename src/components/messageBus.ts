@@ -1,15 +1,28 @@
-import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
+import { Diagnostic, Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
 import { InferenceJob } from "./inferenceService";
 
 export const enum MessageKind {
+    /**
+     * the Intuita (virtual) file-system-related message kinds
+     */
     readingFileFailed = 0,
     writeFile = 1,
     deleteFile = 2,
     changePermissions = 3,
     createRepairCodeJobs = 4,
-    noTypeScriptDiagnostics = 5,
-    updateDiagnostics = 6,
-    textDocumentChanged = 7,
+    /**
+     * the external diagnostics are such that come from 
+     * e.g the TS Language Server
+     */
+    noExternalDiagnostics = 5,
+    newExternalDiagnostics = 6,
+    /**
+     * the internal diagnostics are such that come from
+     * the Intuita VSCode Extensions
+     */
+    updateInternalDiagnostics = 7,
+    textDocumentChanged = 8,
+    ruleBasedCoreRepairDiagnosticsChanged = 9, // TODO
 }
 
 export type Message =
@@ -39,16 +52,30 @@ export type Message =
         inferenceJobs: ReadonlyArray<InferenceJob>,
     }>
     | Readonly<{
-        kind: MessageKind.noTypeScriptDiagnostics,
+        kind: MessageKind.noExternalDiagnostics,
         uri: Uri,
     }>
     | Readonly<{
-        kind: MessageKind.updateDiagnostics,
+        kind: MessageKind.updateInternalDiagnostics,
         fileName: string,
     }>
     | Readonly<{
         kind: MessageKind.textDocumentChanged,
         uri: Uri,
+    }>
+    | Readonly<{
+        kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged,
+        uri: Uri,
+        version: number,
+        text: string,
+        diagnostics: ReadonlyArray<Diagnostic>,
+    }>
+    | Readonly<{
+        kind: MessageKind.newExternalDiagnostics,
+        uri: Uri,
+        version: number,
+        text: string,
+        diagnostics: ReadonlyArray<Diagnostic>,
     }>;
 
 export class MessageBus {
