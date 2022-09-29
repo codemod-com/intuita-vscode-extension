@@ -540,7 +540,7 @@ export class JobManager {
                     kind: FactKind.repairCode,
                     separator,
                     fileText,
-                    range,
+                    simpleRange: range,
                     replacement: inferenceJob.replacement,
                 };
 
@@ -563,6 +563,9 @@ export class JobManager {
                     range: intuitaRange,
                     replacement: inferenceJob.replacement,
                     version: message.version,
+                    fileText,
+                    simpleRange: range,
+                    separator,
                 };
 
                 return {

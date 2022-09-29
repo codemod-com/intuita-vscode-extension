@@ -8,6 +8,6 @@ export type RepairCodeFact = Readonly<{
     separator: string,
     // TODO remove fileText if possible
     fileText: string,
-    range: IntuitaSimpleRange,
+    simpleRange: IntuitaSimpleRange,
     replacement: string,
 }>;

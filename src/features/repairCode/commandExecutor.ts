@@ -1,14 +1,15 @@
 import { calculateLines } from "../../utilities";
 import {RepairCodeFact} from "./factBuilder";
+import { RepairCodeJob } from "./job";
 
 export const executeRepairCodeCommand = (
-    fact: RepairCodeFact,
+    fact: RepairCodeFact | RepairCodeJob,
 ) => {
     const previousCharacters = fact.fileText
-        .slice(0, fact.range.start);
+        .slice(0, fact.simpleRange.start);
 
     const afterCharacters = fact.fileText
-        .slice(fact.range.end);
+        .slice(fact.simpleRange.end);
 
     const text = previousCharacters.concat(
         fact.replacement,

@@ -1,5 +1,5 @@
 import {JobHash} from "../moveTopLevelNode/jobHash";
-import {IntuitaRange} from "../../utilities";
+import {IntuitaRange, IntuitaSimpleRange} from "../../utilities";
 import {JobKind} from "../../jobs";
 
 export type RepairCodeJob = Readonly<{
@@ -10,4 +10,8 @@ export type RepairCodeJob = Readonly<{
     title: string,
     range: IntuitaRange,
     replacement: string,
+    // new properties
+    fileText: string,
+    simpleRange: IntuitaSimpleRange,
+    separator: string,
 }>;
