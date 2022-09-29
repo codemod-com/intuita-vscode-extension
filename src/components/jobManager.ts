@@ -538,6 +538,7 @@ export class JobManager {
                     kind: "REPAIR_CODE",
                     range,
                     replacement: inferenceJob.replacement,
+                    separator,
                 };
 
                 const fact = buildRepairCodeFact(command);

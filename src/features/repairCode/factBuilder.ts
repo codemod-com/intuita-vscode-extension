@@ -3,7 +3,6 @@ import {
     buildIntuitaSimpleRange,
     calculateLengths,
     calculateLines,
-    getSeparator,
     IntuitaSimpleRange
 } from "../../utilities";
 import {FactKind} from "../../facts";
@@ -19,12 +18,11 @@ export type RepairCodeFact = Readonly<{
 export const buildRepairCodeFact = (
     userCommand: RepairCodeUserCommand,
 ): RepairCodeFact => {
-    const separator = getSeparator(userCommand.fileText);
-    const lines = calculateLines(userCommand.fileText, separator);
+    const lines = calculateLines(userCommand.fileText, userCommand.separator);
     const lengths = calculateLengths(lines);
 
     const range = buildIntuitaSimpleRange(
-        separator,
+        userCommand.separator,
         lengths,
         userCommand.range,
     );
@@ -34,6 +32,6 @@ export const buildRepairCodeFact = (
         fileText: userCommand.fileText,
         range,
         replacement: userCommand.replacement,
-        separator,
+        separator: userCommand.separator,
     };
 };
