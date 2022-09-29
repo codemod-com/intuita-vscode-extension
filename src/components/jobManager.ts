@@ -344,7 +344,10 @@ export class JobManager {
     public onRuleBasedCoreRepairDiagnosticsChanged(
         message: Message & { kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged },
     ) {
-        const inferenceJobs = buildInferenceJobs(message);
+        const inferenceJobs = buildInferenceJobs(
+            message.text,
+            message.diagnostics,
+        );
 
         const fileUri = buildFileUri(message.uri);
 

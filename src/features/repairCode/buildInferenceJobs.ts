@@ -1,17 +1,18 @@
+import { Diagnostic } from "vscode";
 import { InferenceJob } from "../../components/inferenceService";
-import { Message, MessageKind } from "../../components/messageBus";
 import { buildIntuitaSimpleRange, calculateLengths, calculateLines, getSeparator, IntuitaRange, isNeitherNullNorUndefined } from "../../utilities";
 import { buildReplacement } from "./buildReplacement";
 import { extractKindsFromTs2345ErrorMessage } from "./extractKindsFromTs2345ErrorMessage";
 
 export const buildInferenceJobs = (
-    message: Message & { kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged },
+    text: string,
+    diagnostics: ReadonlyArray<Diagnostic>,
 ) : ReadonlyArray<InferenceJob> => {
-    const separator = getSeparator(message.text);
-    const lines = calculateLines(message.text, separator);
+    const separator = getSeparator(text);
+    const lines = calculateLines(text, separator);
     const lengths = calculateLengths(lines);
 
-    return message.diagnostics
+    return diagnostics
         .map((diagnostic) => {
             const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
 
@@ -32,7 +33,7 @@ export const buildInferenceJobs = (
                 range,
             );
 
-            const rangeText = message.text.slice(
+            const rangeText = text.slice(
                 intuitaSimpleRange.start,
                 intuitaSimpleRange.end,
             );
