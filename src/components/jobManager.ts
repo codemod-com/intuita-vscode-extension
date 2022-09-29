@@ -2,7 +2,6 @@ import {buildFileNameHash, FileNameHash} from "../features/moveTopLevelNode/file
 import {JobHash} from "../features/moveTopLevelNode/jobHash";
 import {
     assertsNeitherNullOrUndefined,
-    buildIntuitaSimpleRange,
     calculateLastPosition, calculateLengths, calculateLines, getSeparator,
     IntuitaPosition, IntuitaRange,
     isNeitherNullNorUndefined
@@ -14,7 +13,6 @@ import {Message, MessageBus, MessageKind} from "./messageBus";
 import {buildMoveTopLevelNodeFact} from "../features/moveTopLevelNode/2_factBuilders";
 import {executeRepairCodeJob} from "../features/repairCode/executeRepairCodeJob";
 import {executeMoveTopLevelNodeJob} from "../features/moveTopLevelNode/executeMoveTopLevelNodeJob";
-import {buildRepairCodeJobHash} from "../features/repairCode/jobHash";
 import {MoveTopLevelNodeUserCommand} from "../features/moveTopLevelNode/1_userCommandBuilder";
 import {Container} from "../container";
 import {Configuration} from "../configuration";
@@ -24,11 +22,8 @@ import {
     calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/job";
-import {RepairCodeJob} from "../features/repairCode/job";
+import {buildRepairCodeJobs, RepairCodeJob} from "../features/repairCode/job";
 import {destructIntuitaFileSystemUri} from "../destructIntuitaFileSystemUri";
-import { extractKindsFromTs2345ErrorMessage } from "../features/repairCode/extractKindsFromTs2345ErrorMessage";
-import { buildReplacement } from "../features/repairCode/buildReplacement";
-import { InferenceJob } from "./inferenceService";
 import { buildInferenceJobs } from "../features/repairCode/buildInferenceJobs";
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
@@ -469,47 +464,13 @@ export class JobManager {
         const lines = calculateLines(fileText, separator);
         const lengths = calculateLengths(lines);
 
-        const jobs = message.inferenceJobs.map(
-            (inferenceJob): RepairCodeJob => {
-                const intuitaRange: IntuitaRange = 'range' in inferenceJob
-                    ? inferenceJob.range
-                    : [
-                        inferenceJob.lineNumber,
-                        0,
-                        inferenceJob.lineNumber,
-                        lengths[inferenceJob.lineNumber] ?? 0,
-                    ];
-
-                const range = buildIntuitaSimpleRange(
-                    separator,
-                    lengths,
-                    intuitaRange,
-                );
-
-                const jobHash = buildRepairCodeJobHash(
-                    fileName,
-                    inferenceJob,
-                );
-
-                const lineNumber = 'range' in inferenceJob
-                    ? inferenceJob.range[0]
-                    : inferenceJob.lineNumber;
-
-                const title = `Repair code on line ${lineNumber+1}`;
-
-                return {
-                    kind: JobKind.repairCode,
-                    fileName,
-                    hash: jobHash,
-                    title,
-                    range: intuitaRange,
-                    replacement: inferenceJob.replacement,
-                    version: message.version,
-                    fileText,
-                    simpleRange: range,
-                    separator,
-                };
-            },
+        const jobs = buildRepairCodeJobs(
+            fileName,
+            fileText,
+            message.inferenceJobs,
+            separator,
+            lengths,
+            message.version,
         );
 
         const newJobHashes = new Set<JobHash>();
