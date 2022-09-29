@@ -1,13 +1,11 @@
 import {calculateLines, moveElementInArray} from "../../utilities";
-import { StringNode } from "./2_factBuilders/stringNodes";
 import { MoveTopLevelNodeJob } from "./job";
 
 export const executeMoveTopLevelNodeAstCommandHelper = (
     job: MoveTopLevelNodeJob,
     characterDifference: number,
-    stringNodes: ReadonlyArray<StringNode>,
 ) => {
-    const topLevelNodeTexts = stringNodes
+    const topLevelNodeTexts = job.stringNodes
         .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
         .map(({ text }) => text);
 
@@ -17,7 +15,7 @@ export const executeMoveTopLevelNodeAstCommandHelper = (
         job.newIndex,
     );
 
-    const newNodes = stringNodes
+    const newNodes = job.stringNodes
         .map(
             ({ topLevelNodeIndex, text}) => {
                 if (topLevelNodeIndex === null) {

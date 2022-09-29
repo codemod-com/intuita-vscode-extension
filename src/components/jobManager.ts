@@ -169,17 +169,15 @@ export class JobManager {
         characterDifference: number,
     ): JobOutput {
         const job = this._jobMap.get(jobHash);
-        const fact = this._factMap.get(jobHash);
 
         assertsNeitherNullOrUndefined(job);
 
         let execution;
 
-        if (job.kind === JobKind.moveTopLevelNode && fact?.kind === FactKind.moveTopLevelNode) {
+        if (job.kind === JobKind.moveTopLevelNode) {
             execution = executeMoveTopLevelNodeAstCommandHelper(
                 job,
                 characterDifference,
-                fact.stringNodes,
             );
         } else if (job.kind === JobKind.repairCode) {
             execution = executeRepairCodeCommand(job);

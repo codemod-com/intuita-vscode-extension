@@ -11,6 +11,7 @@ import {
 import {buildMoveTopLevelNodeJobHash, JobHash} from "./jobHash";
 import {JobKind} from "../../jobs";
 import {Solution} from "./2_factBuilders/solutions";
+import { StringNode } from "./2_factBuilders/stringNodes";
 
 export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,
@@ -22,6 +23,7 @@ export type MoveTopLevelNodeJob = Readonly<{
     newIndex: number,
     score: [number, number],
     separator: string,
+    stringNodes: ReadonlyArray<StringNode>,
 }>;
 
 const buildIdentifiersLabel = (
@@ -132,6 +134,7 @@ export const buildMoveTopLevelNodeJobs = (
                 newIndex,
                 score: solution.score,
                 separator: fact.separator,
+                stringNodes: fact.stringNodes,
             };
         }
     )
