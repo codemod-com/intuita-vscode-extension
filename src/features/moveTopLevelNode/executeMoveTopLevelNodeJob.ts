@@ -1,61 +1,57 @@
-import {calculateLines, moveElementInArray} from "../../utilities";
-import { MoveTopLevelNodeJob } from "./job";
+import { calculateLines, moveElementInArray } from '../../utilities';
+import { MoveTopLevelNodeJob } from './job';
 
 export const executeMoveTopLevelNodeJob = (
-    job: MoveTopLevelNodeJob,
-    characterDifference: number,
+	job: MoveTopLevelNodeJob,
+	characterDifference: number,
 ) => {
-    const topLevelNodeTexts = job.stringNodes
-        .filter((stringNode) => stringNode.topLevelNodeIndex !== null)
-        .map(({ text }) => text);
+	const topLevelNodeTexts = job.stringNodes
+		.filter((stringNode) => stringNode.topLevelNodeIndex !== null)
+		.map(({ text }) => text);
 
-    const movedTopLevelNodeTexts = moveElementInArray(
-        topLevelNodeTexts,
-        job.oldIndex,
-        job.newIndex,
-    );
+	const movedTopLevelNodeTexts = moveElementInArray(
+		topLevelNodeTexts,
+		job.oldIndex,
+		job.newIndex,
+	);
 
-    const newNodes = job.stringNodes
-        .map(
-            ({ topLevelNodeIndex, text}) => {
-                if (topLevelNodeIndex === null) {
-                    return {
-                        topLevelNodeIndex,
-                        text,
-                        match: false,
-                    };
-                }
+	const newNodes = job.stringNodes.map(({ topLevelNodeIndex, text }) => {
+		if (topLevelNodeIndex === null) {
+			return {
+				topLevelNodeIndex,
+				text,
+				match: false,
+			};
+		}
 
-                return {
-                    topLevelNodeIndex,
-                    text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
-                    match: topLevelNodeIndex === job.newIndex,
-                };
-            });
+		return {
+			topLevelNodeIndex,
+			text: movedTopLevelNodeTexts[topLevelNodeIndex] ?? '',
+			match: topLevelNodeIndex === job.newIndex,
+		};
+	});
 
-    const text = newNodes
-        .map(({ text }) => text)
-        .join('');
+	const text = newNodes.map(({ text }) => text).join('');
 
-    const index = newNodes.findIndex(({ match }) => match);
+	const index = newNodes.findIndex(({ match }) => match);
 
-    const initialText = newNodes
-        .slice(0, index)
-        .map(({ text }) => text)
-        .join('');
+	const initialText = newNodes
+		.slice(0, index)
+		.map(({ text }) => text)
+		.join('');
 
-    const lines = calculateLines(initialText, job.separator);
+	const lines = calculateLines(initialText, job.separator);
 
-    const nodeLines = (newNodes[index]?.text ?? '')
-        .slice(0, characterDifference)
-        .split(job.separator);
+	const nodeLines = (newNodes[index]?.text ?? '')
+		.slice(0, characterDifference)
+		.split(job.separator);
 
-    const line = lines.length + nodeLines.length - 2;
-    const character = nodeLines[nodeLines.length-1]?.length ?? 0;
+	const line = lines.length + nodeLines.length - 2;
+	const character = nodeLines[nodeLines.length - 1]?.length ?? 0;
 
-    return {
-        text,
-        line,
-        character,
-    };
+	return {
+		text,
+		line,
+		character,
+	};
 };

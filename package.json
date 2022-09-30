@@ -215,7 +215,8 @@
 		"compile": "webpack",
 		"watch": "webpack --watch",
 		"package": "webpack --mode production --devtool hidden-source-map",
-		"lint": "eslint src --ext ts",
+		"lint": "eslint src --fix --ext ts",
+		"lint:prettier": "prettier --write .",
 		"test": "mocha"
 	},
 	"devDependencies": {
@@ -229,8 +230,11 @@
 		"@vscode/test-electron": "^2.1.5",
 		"chai": "^4.3.6",
 		"eslint": "^8.23.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-prettier": "^4.2.1",
 		"glob": "^8.0.3",
 		"mocha": "^10.0.0",
+		"prettier": "2.7.1",
 		"ts-loader": "^9.3.1",
 		"ts-node": "^10.9.1",
 		"umd-compat-loader": "^2.1.2",

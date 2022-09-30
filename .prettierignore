@@ -1,0 +1,6 @@
+dist
+img
+resources
+*.md
+*.yml
+*.json
