@@ -10,10 +10,24 @@ import {
 } from "vscode";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
-import { IntuitaPosition, isNeitherNullNorUndefined } from "../utilities";
+import { IntuitaPosition, IntuitaRange } from "../utilities";
 import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
-import { JobKind } from "../jobs";
 import { calculateCharacterDifference } from "../features/moveTopLevelNode/job";
+
+const buildIntuitaPosition = (
+    range: Range | Selection
+): IntuitaPosition => [
+    range.start.line,
+    range.start.character,
+];
+
+const isRangeWithinPosition = (
+    range: IntuitaRange,
+    position: IntuitaPosition
+): boolean => range[0] <= position[0]
+    && range[2] >= position[0]
+    && range[1] <= position[1]
+    && range[3] >= position[1];
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
     public constructor(
@@ -28,72 +42,52 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
     ): ProviderResult<(Command | CodeAction)[]> {
         const fileNameHash = buildFileNameHash(document.fileName);
 
-        const position: IntuitaPosition = [
-            range.start.line,
-            range.start.character,
-        ];
+        const position = buildIntuitaPosition(range);
 
-        const jobs = this._jobManager.getFileJobs(fileNameHash)
+        const codeActions = this._jobManager.getFileJobs(fileNameHash)
             .filter(
-                ({ range }) => {
-                    return range[0] <= position[0]
-                        && range[2] >= position[0]
-                        && range[1] <= position[1]
-                        && range[3] >= position[1];
-                },
+                ({ range }) => isRangeWithinPosition(range, position),
             )
-            .map(
+            .flatMap(
                 (job) => {
-                    const characterDifference = job.kind === JobKind.moveTopLevelNode
-                        ? calculateCharacterDifference(job, position)
-                        : 0;
+                    const characterDifference = calculateCharacterDifference(job, position);
 
-                    return {
-                        ...job,
-                        characterDifference,
+                    const quickFixCodeAction = new CodeAction(
+                        job.title,
+                        CodeActionKind.QuickFix,
+                    );
+
+                    quickFixCodeAction.command = {
+                        title: job.title,
+                        command: 'intuita.acceptJob',
+                        arguments: [
+                            job.hash,
+                            characterDifference,
+                        ],
                     };
+
+                    const title = `Show the difference: ${job.title}`;
+
+                    const showDifferenceCodeAction = new CodeAction(
+                        title,
+                        CodeActionKind.Empty,
+                    );
+
+                    showDifferenceCodeAction.command = {
+                        title,
+                        command: 'vscode.diff',
+                        arguments: [
+                            buildFileUri(document.uri),
+                            buildJobUri(job),
+                        ],
+                    };
+
+                    return [
+                        quickFixCodeAction,
+                        showDifferenceCodeAction,
+                    ];
                 }
-            )
-            .filter(isNeitherNullNorUndefined);
-
-        const codeActions = jobs.flatMap(
-            (job) => {
-                const quickFixCodeAction = new CodeAction(
-                    job.title,
-                    CodeActionKind.QuickFix,
-                );
-
-                quickFixCodeAction.command = {
-                    title: job.title,
-                    command: 'intuita.acceptJob',
-                    arguments: [
-                        job.hash,
-                        job.characterDifference,
-                    ],
-                };
-
-                const title = `Show the difference: ${job.title}`;
-
-                const showDifferenceCodeAction = new CodeAction(
-                    title,
-                    CodeActionKind.Empty,
-                );
-
-                showDifferenceCodeAction.command = {
-                    title,
-                    command: 'vscode.diff',
-                    arguments: [
-                        buildFileUri(document.uri),
-                        buildJobUri(job),
-                    ],
-                };
-
-                return [
-                    quickFixCodeAction,
-                    showDifferenceCodeAction,
-                ];
-            }
-        );
+            );
 
         return Promise.resolve(codeActions);
     }

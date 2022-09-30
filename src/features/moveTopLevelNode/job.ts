@@ -13,6 +13,7 @@ import {JobKind} from "../../jobs";
 import {Solution} from "./2_factBuilders/solutions";
 import { StringNode } from "./2_factBuilders/stringNodes";
 import { TopLevelNode } from "./2_factBuilders/topLevelNode";
+import { RepairCodeJob } from "../repairCode/job";
 
 export type MoveTopLevelNodeJob = Readonly<{
     kind: JobKind.moveTopLevelNode,
@@ -147,9 +148,13 @@ export const buildMoveTopLevelNodeJobs = (
 };
 
 export const calculateCharacterDifference = (
-    job: MoveTopLevelNodeJob,
+    job: MoveTopLevelNodeJob | RepairCodeJob,
     position: IntuitaPosition,
 ): number => {
+    if(job.kind !== JobKind.moveTopLevelNode) {
+        return 0;
+    }
+
     const characterIndex = calculateCharacterIndex(
         job.separator,
         job.lengths,
