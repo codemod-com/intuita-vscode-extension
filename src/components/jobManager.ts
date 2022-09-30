@@ -18,7 +18,6 @@ import {Configuration} from "../configuration";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
 import {
     buildMoveTopLevelNodeJobs,
-    calculateCharacterDifference,
     MoveTopLevelNodeJob
 } from "../features/moveTopLevelNode/job";
 import {buildRepairCodeJobs, RepairCodeJob} from "../features/repairCode/job";
@@ -199,38 +198,6 @@ export class JobManager {
             text: execution.text,
             position,
         };
-    }
-
-    public getCodeActionJobs(
-        fileName: string,
-        position: IntuitaPosition,
-    ): ReadonlyArray<Job & { characterDifference: number }> {
-        const fileNameHash = buildFileNameHash(fileName);
-
-        const jobs = this.getFileJobs(fileNameHash);
-
-        return jobs
-            .filter(
-                ({ range }) => {
-                    return range[0] <= position[0]
-                        && range[2] >= position[0]
-                        && range[1] <= position[1]
-                        && range[3] >= position[1];
-                },
-            )
-            .map(
-                (job) => {
-                    const characterDifference = job.kind === JobKind.moveTopLevelNode
-                        ? calculateCharacterDifference(job, position)
-                        : 0;
-
-                    return {
-                        ...job,
-                        characterDifference,
-                    };
-                }
-            )
-            .filter(isNeitherNullNorUndefined);
     }
 
     public buildMoveTopLevelNodeJobs(

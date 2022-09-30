@@ -10,6 +10,24 @@ import {
 } from "vscode";
 import {JobManager} from "./jobManager";
 import {buildFileUri, buildJobUri} from "./intuitaFileSystem";
+import { IntuitaPosition, IntuitaRange } from "../utilities";
+import { buildFileNameHash } from "../features/moveTopLevelNode/fileNameHash";
+import { calculateCharacterDifference } from "../features/moveTopLevelNode/job";
+
+const buildIntuitaPosition = (
+    range: Range | Selection
+): IntuitaPosition => [
+    range.start.line,
+    range.start.character,
+];
+
+const isRangeWithinPosition = (
+    range: IntuitaRange,
+    position: IntuitaPosition
+): boolean => range[0] <= position[0]
+    && range[2] >= position[0]
+    && range[1] <= position[1]
+    && range[3] >= position[1];
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
     public constructor(
@@ -22,54 +40,54 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
         document: TextDocument,
         range: Range | Selection,
     ): ProviderResult<(Command | CodeAction)[]> {
-        const fileName = document.fileName;
+        const fileNameHash = buildFileNameHash(document.fileName);
 
-        const jobs = this._jobManager.getCodeActionJobs(
-            fileName,
-            [
-                range.start.line,
-                range.start.character,
-            ],
-        );
+        const position = buildIntuitaPosition(range);
 
-        const codeActions = jobs.flatMap(
-            (job) => {
-                const quickFixCodeAction = new CodeAction(
-                    job.title,
-                    CodeActionKind.QuickFix,
-                );
+        const codeActions = this._jobManager.getFileJobs(fileNameHash)
+            .filter(
+                ({ range }) => isRangeWithinPosition(range, position),
+            )
+            .flatMap(
+                (job) => {
+                    const characterDifference = calculateCharacterDifference(job, position);
 
-                quickFixCodeAction.command = {
-                    title: job.title,
-                    command: 'intuita.acceptJob',
-                    arguments: [
-                        job.hash,
-                        job.characterDifference,
-                    ],
-                };
+                    const quickFixCodeAction = new CodeAction(
+                        job.title,
+                        CodeActionKind.QuickFix,
+                    );
 
-                const title = `Show the difference: ${job.title}`;
+                    quickFixCodeAction.command = {
+                        title: job.title,
+                        command: 'intuita.acceptJob',
+                        arguments: [
+                            job.hash,
+                            characterDifference,
+                        ],
+                    };
 
-                const showDifferenceCodeAction = new CodeAction(
-                    title,
-                    CodeActionKind.Empty,
-                );
+                    const title = `Show the difference: ${job.title}`;
 
-                showDifferenceCodeAction.command = {
-                    title,
-                    command: 'vscode.diff',
-                    arguments: [
-                        buildFileUri(document.uri),
-                        buildJobUri(job),
-                    ],
-                };
+                    const showDifferenceCodeAction = new CodeAction(
+                        title,
+                        CodeActionKind.Empty,
+                    );
 
-                return [
-                    quickFixCodeAction,
-                    showDifferenceCodeAction,
-                ];
-            }
-        );
+                    showDifferenceCodeAction.command = {
+                        title,
+                        command: 'vscode.diff',
+                        arguments: [
+                            buildFileUri(document.uri),
+                            buildJobUri(job),
+                        ],
+                    };
+
+                    return [
+                        quickFixCodeAction,
+                        showDifferenceCodeAction,
+                    ];
+                }
+            );
 
         return Promise.resolve(codeActions);
     }
