@@ -26,15 +26,35 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
         document: TextDocument,
         range: Range | Selection,
     ): ProviderResult<(Command | CodeAction)[]> {
-        const fileName = document.fileName;
+        const fileNameHash = buildFileNameHash(document.fileName);
 
-        const jobs = this._getCodeActionJobs(
-            fileName,
-            [
-                range.start.line,
-                range.start.character,
-            ],
-        );
+        const position: IntuitaPosition = [
+            range.start.line,
+            range.start.character,
+        ];
+
+        const jobs = this._jobManager.getFileJobs(fileNameHash)
+            .filter(
+                ({ range }) => {
+                    return range[0] <= position[0]
+                        && range[2] >= position[0]
+                        && range[1] <= position[1]
+                        && range[3] >= position[1];
+                },
+            )
+            .map(
+                (job) => {
+                    const characterDifference = job.kind === JobKind.moveTopLevelNode
+                        ? calculateCharacterDifference(job, position)
+                        : 0;
+
+                    return {
+                        ...job,
+                        characterDifference,
+                    };
+                }
+            )
+            .filter(isNeitherNullNorUndefined);
 
         const codeActions = jobs.flatMap(
             (job) => {
@@ -76,37 +96,5 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
         );
 
         return Promise.resolve(codeActions);
-    }
-
-    protected _getCodeActionJobs(
-        fileName: string,
-        position: IntuitaPosition,
-    ) {
-        const fileNameHash = buildFileNameHash(fileName);
-
-        const jobs = this._jobManager.getFileJobs(fileNameHash);
-
-        return jobs
-            .filter(
-                ({ range }) => {
-                    return range[0] <= position[0]
-                        && range[2] >= position[0]
-                        && range[1] <= position[1]
-                        && range[3] >= position[1];
-                },
-            )
-            .map(
-                (job) => {
-                    const characterDifference = job.kind === JobKind.moveTopLevelNode
-                        ? calculateCharacterDifference(job, position)
-                        : 0;
-
-                    return {
-                        ...job,
-                        characterDifference,
-                    };
-                }
-            )
-            .filter(isNeitherNullNorUndefined);
     }
 }
