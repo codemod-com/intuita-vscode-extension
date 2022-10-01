@@ -2,15 +2,8 @@ import * as t from 'io-ts';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
 import {
 	assertsNeitherNullOrUndefined,
-	calculateLastPosition,
-	getSeparator,
-	IntuitaRange,
 } from '../utilities';
-import { buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
-import { JobOutput } from '../jobs';
 import { JobManager } from './jobManager';
-import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
-import { RepairCodeJob } from '../features/repairCode/job';
 import { buildTypeCodec, mapValidationToEither } from './inferenceService';
 import { withFallback } from 'io-ts-types';
 import { pipe } from 'fp-ts/lib/function';
@@ -24,37 +17,9 @@ const argumentCodec = buildTypeCodec({
 });
 
 export const acceptJob = (
-	intuitaFileSystem: IntuitaFileSystem,
 	jobManager: JobManager,
 	messageBus: MessageBus,
 ) => {
-	const getJobOutput = (
-		job: MoveTopLevelNodeJob | RepairCodeJob,
-		characterDifference: number,
-	): JobOutput => {
-		// TODO we should rely on the executeJob return, the rest is not needed
-
-		const content = intuitaFileSystem.readNullableFile(buildJobUri(job));
-
-		if (!content) {
-			return jobManager.executeJob(job.hash, characterDifference);
-		}
-
-		const text = content.toString();
-		const separator = getSeparator(text);
-
-		const position = calculateLastPosition(text, separator);
-
-		// we are replacing the whole file
-		const range: IntuitaRange = [0, 0, position[0], position[1]];
-
-		return {
-			text,
-			position,
-			range,
-		};
-	};
-
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
@@ -77,8 +42,8 @@ export const acceptJob = (
 		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
 		assertsNeitherNullOrUndefined(job);
 
-		const jobOutput = getJobOutput(
-			job,
+		const jobOutput = jobManager.executeJob(
+			job.hash,
 			argumentEither.right.characterDifference,
 		);
 
@@ -88,7 +53,7 @@ export const acceptJob = (
 			kind: MessageKind.updateExternalFile,
 			uri,
 			jobOutput,
-		})
+		});
 
 		// editor operation should work as an event
 

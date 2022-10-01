@@ -117,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			acceptJob(intuitaFileSystem, jobManager, messageBus),
+			acceptJob(jobManager, messageBus),
 		),
 	);
 
