@@ -3,7 +3,7 @@ import { destructIntuitaFileSystemUri } from "../destructIntuitaFileSystemUri";
 import { JobManager } from "./jobManager";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 
-export class InternalService {
+export class FileService {
     public constructor(
         protected readonly _jobManager: JobManager,
         protected readonly _messageBus: MessageBus,
