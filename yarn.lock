@@ -1358,6 +1358,11 @@ io-ts-reporters@^2.0.1:
   dependencies:
     "@scarf/scarf" "^1.1.1"
 
+io-ts-types@^0.5.17:
+  version "0.5.17"
+  resolved "https://registry.yarnpkg.com/io-ts-types/-/io-ts-types-0.5.17.tgz#d58c115f699468d3e822cebebdadef95080f739f"
+  integrity sha512-W0zrePsFWAyBdvHj4b/LU4HaHfDiKQ0DvSYDeE5hgXYaEtTEqcyNTLGRcFSa32lZAQFQzyQRDVtN+B7MyBaXAw==
+
 io-ts@^2.2.18:
   version "2.2.18"
   resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-2.2.18.tgz#dfb41aded5f0e598ccf2a25a483c205444210173"

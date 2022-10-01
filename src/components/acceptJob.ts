@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
 import {
 	assertsNeitherNullOrUndefined,
@@ -21,6 +22,15 @@ import { JobOutput } from '../jobs';
 import { JobManager } from './jobManager';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
 import { RepairCodeJob } from '../features/repairCode/job';
+import { buildTypeCodec, mapValidationToEither } from './inferenceService';
+import { withFallback } from 'io-ts-types';
+import { pipe } from 'fp-ts/lib/function';
+import { orElse } from 'fp-ts/lib/Either';
+
+const argumentCodec = buildTypeCodec({
+	hash: t.string,
+	characterDifference: withFallback(t.number, 0),
+})
 
 export const acceptJob = (
 	configurationContainer: Container<Configuration>,
@@ -53,33 +63,27 @@ export const acceptJob = (
 
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
-		let jobHash: string;
-		let characterDifference: number;
+		const argumentEither = pipe(
+			argumentCodec.decode(arg0),
+			orElse(
+				() => argumentCodec.decode({
+					jobHash: arg0,
+					characterDifference: arg1,
+				})
+			),
+			mapValidationToEither,
+		);
 
-		if (typeof arg0 === 'object' && arg0) {
-			jobHash = arg0['hash'];
-			characterDifference = 0;
-		} else {
-			if (typeof arg0 !== 'string') {
-				throw new Error('The job hash argument must be a string');
-			}
-
-			if (typeof arg1 !== 'number') {
-				throw new Error(
-					'The characterDifference argument must be a number',
-				);
-			}
-
-			jobHash = arg0;
-			characterDifference = arg1;
+		if (argumentEither._tag === 'Left') {
+			throw new Error(`Could not decode acceptJob arguments: ${argumentEither.left}`);
 		}
 
-		const job = jobManager.getJob(jobHash as JobHash);
+		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
 		assertsNeitherNullOrUndefined(job);
 
 		const { fileName } = job;
 
-		const result = getJobOutput(job, characterDifference);
+		const result = getJobOutput(job, argumentEither.right.characterDifference);
 
 		assertsNeitherNullOrUndefined(result);
 
