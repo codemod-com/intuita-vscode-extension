@@ -91,15 +91,15 @@ export type Message =
 			diagnostics: ReadonlyArray<Diagnostic>;
 	  }>
 	| Readonly<{
-			kind: MessageKind.updateExternalFile,
+			kind: MessageKind.updateExternalFile;
 			uri: Uri;
-			jobOutput: JobOutput,
-	}>
+			jobOutput: JobOutput;
+	  }>
 	| Readonly<{
-			kind: MessageKind.externalFileUpdated,
-			uri: Uri,
-			text: string,
-	}>;
+			kind: MessageKind.externalFileUpdated;
+			uri: Uri;
+			text: string;
+	  }>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;

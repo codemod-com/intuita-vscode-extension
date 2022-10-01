@@ -1,38 +1,51 @@
-import { FilePermission, Position, Range, Selection, TextDocument, TextEditor, TextEditorRevealType, Uri, window, workspace } from "vscode";
-import { Configuration } from "../configuration";
-import { Container } from "../container";
-import { destructIntuitaFileSystemUri } from "../destructIntuitaFileSystemUri";
-import { JobManager } from "./jobManager";
-import { Message, MessageBus, MessageKind } from "./messageBus";
+import {
+	FilePermission,
+	Position,
+	Range,
+	Selection,
+	TextDocument,
+	TextEditor,
+	TextEditorRevealType,
+	Uri,
+	window,
+	workspace,
+} from 'vscode';
+import { Configuration } from '../configuration';
+import { Container } from '../container';
+import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
+import { JobManager } from './jobManager';
+import { Message, MessageBus, MessageKind } from './messageBus';
 
 export class FileService {
-    public constructor(
-        protected readonly _configurationContainer: Container<Configuration>,
-        protected readonly _jobManager: JobManager,
-        protected readonly _messageBus: MessageBus,
-        protected readonly _openTextDocument: (uri: Uri) => Promise<TextDocument> 
-    ) {
-        this._messageBus.subscribe(async (message) => {
-            if (message.kind === MessageKind.readingFileFailed) {
-                setImmediate(() => this._onReadingFileFailed(message));
-            }
+	public constructor(
+		protected readonly _configurationContainer: Container<Configuration>,
+		protected readonly _jobManager: JobManager,
+		protected readonly _messageBus: MessageBus,
+		protected readonly _openTextDocument: (
+			uri: Uri,
+		) => Promise<TextDocument>,
+	) {
+		this._messageBus.subscribe(async (message) => {
+			if (message.kind === MessageKind.readingFileFailed) {
+				setImmediate(() => this._onReadingFileFailed(message));
+			}
 
-            if (message.kind === MessageKind.updateExternalFile) {
-                setImmediate(() => this._onUpdateExternalFile(message));
-            }
-        });
-    }
+			if (message.kind === MessageKind.updateExternalFile) {
+				setImmediate(() => this._onUpdateExternalFile(message));
+			}
+		});
+	}
 
-    protected async _onReadingFileFailed(
-        message: Message & { kind: MessageKind.readingFileFailed },
-    ) {
+	protected async _onReadingFileFailed(
+		message: Message & { kind: MessageKind.readingFileFailed },
+	) {
 		const destructedUri = destructIntuitaFileSystemUri(message.uri);
 
 		if (!destructedUri) {
 			return;
 		}
 
-        const text = await this._getText(destructedUri);
+		const text = await this._getText(destructedUri);
 
 		const content = Buffer.from(text);
 
@@ -49,29 +62,27 @@ export class FileService {
 		});
 	}
 
-    protected async _getText(
-        destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
-    ): Promise<string> {
-        if (destructedUri.directory === 'jobs') {
-            return this._jobManager
-                .executeJob(destructedUri.jobHash, 0)
-                .text;
-        }
+	protected async _getText(
+		destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
+	): Promise<string> {
+		if (destructedUri.directory === 'jobs') {
+			return this._jobManager.executeJob(destructedUri.jobHash, 0).text;
+		}
 
-        const fileName = destructedUri.fsPath;
-        const uri = Uri.parse(fileName);
+		const fileName = destructedUri.fsPath;
+		const uri = Uri.parse(fileName);
 
-        const textDocument = await this._openTextDocument(uri);
+		const textDocument = await this._openTextDocument(uri);
 
-        return textDocument.getText();        
-    }
+		return textDocument.getText();
+	}
 
-    protected async _onUpdateExternalFile(
-        message: Message & { kind: MessageKind.updateExternalFile },
-    ) {
-        const stringUri = message.uri.toString();
+	protected async _onUpdateExternalFile(
+		message: Message & { kind: MessageKind.updateExternalFile },
+	) {
+		const stringUri = message.uri.toString();
 
-        const textEditors = window.visibleTextEditors.filter(({ document }) => {
+		const textEditors = window.visibleTextEditors.filter(({ document }) => {
 			return document.uri.toString() === stringUri;
 		});
 
@@ -84,8 +95,14 @@ export class FileService {
 		const activeTextEditor = window.activeTextEditor ?? null;
 
 		const range = new Range(
-			new Position(message.jobOutput.range[0], message.jobOutput.range[1]),
-			new Position(message.jobOutput.range[2], message.jobOutput.range[3]),
+			new Position(
+				message.jobOutput.range[0],
+				message.jobOutput.range[1],
+			),
+			new Position(
+				message.jobOutput.range[2],
+				message.jobOutput.range[3],
+			),
 		);
 
 		const { saveDocumentOnJobAccept } = this._configurationContainer.get();
@@ -129,7 +146,7 @@ export class FileService {
 			);
 		}
 
-        const allTextDocuments = textEditors
+		const allTextDocuments = textEditors
 			.map(({ document }) => document)
 			.concat(textDocuments);
 
@@ -142,9 +159,5 @@ export class FileService {
 			uri: message.uri,
 			text: allTextDocuments[0].getText(),
 		});
-
-        // if (allTextDocuments[0]) {
-		// 	this._jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
-		// }
-    }
+	}
 }

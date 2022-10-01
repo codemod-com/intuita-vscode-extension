@@ -63,7 +63,7 @@ export class JobManager {
 			}
 
 			if (message.kind === MessageKind.externalFileUpdated) {
-				setImmediate(() => this._externalFileUpdated(message))
+				setImmediate(() => this._externalFileUpdated(message));
 			}
 		});
 	}
@@ -143,15 +143,11 @@ export class JobManager {
 		});
 	}
 
-	public acceptJob(
-		jobHash: JobHash,
-		characterDifference: number,
-	) {
+	public acceptJob(jobHash: JobHash, characterDifference: number) {
 		// TODO implement
 		jobHash;
 		characterDifference;
 	}
-
 
 	public executeJob(
 		jobHash: JobHash,
@@ -265,7 +261,6 @@ export class JobManager {
 				kind: MessageKind.deleteFile,
 				uri: fileUri,
 			});
-
 		} else {
 			this._messageBus.publish({
 				kind: MessageKind.writeFile,
@@ -430,7 +425,7 @@ export class JobManager {
 	}
 
 	protected _externalFileUpdated(
-		message: Message & { kind: MessageKind.externalFileUpdated }
+		message: Message & { kind: MessageKind.externalFileUpdated },
 	) {
 		const fileName = message.uri.fsPath;
 		const fileNameHash = buildFileNameHash(fileName);

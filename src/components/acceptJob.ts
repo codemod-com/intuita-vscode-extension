@@ -1,8 +1,6 @@
 import * as t from 'io-ts';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
-import {
-	assertsNeitherNullOrUndefined,
-} from '../utilities';
+import { assertsNeitherNullOrUndefined } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildTypeCodec, mapValidationToEither } from './inferenceService';
 import { withFallback } from 'io-ts-types';
@@ -16,10 +14,7 @@ const argumentCodec = buildTypeCodec({
 	characterDifference: withFallback(t.number, 0),
 });
 
-export const acceptJob = (
-	jobManager: JobManager,
-	messageBus: MessageBus,
-) => {
+export const acceptJob = (jobManager: JobManager, messageBus: MessageBus) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
