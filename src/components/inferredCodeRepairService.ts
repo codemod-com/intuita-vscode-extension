@@ -1,8 +1,8 @@
 import Axios, { CancelToken, CancelTokenSource } from 'axios';
 import {
-	decodeOrThrow,
 	InferCommand,
 	inferredMessageCodec,
+	mapValidationToEither,
 } from './inferenceService';
 import { Uri, WorkspaceFolder } from 'vscode';
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
@@ -124,20 +124,23 @@ export class InferredCodeRepairService {
 
 		const response = await this._infer(command, source.token);
 
-		const inferredMessage = decodeOrThrow(
-			inferredMessageCodec,
-			(report) =>
-				new Error(
-					`Could not decode the inferred message: ${report.join()}`,
-				),
-			response.data,
+		const dataEither = mapValidationToEither(
+			inferredMessageCodec.decode(
+				response.data
+			)
 		);
+		
+		if (dataEither._tag === 'Left') {
+			throw new Error(
+				`Could not decode the inferred message: ${dataEither.left}`,
+			);
+		}
 
 		this._messageBus.publish({
 			kind: MessageKind.createRepairCodeJobs,
 			uri: message.uri,
 			version: message.version,
-			inferenceJobs: inferredMessage.inferenceJobs,
+			inferenceJobs: dataEither.right.inferenceJobs,
 		});
 
 		// TODO remove the .intuita / hash directory

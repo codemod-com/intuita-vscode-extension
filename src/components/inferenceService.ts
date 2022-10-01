@@ -18,21 +18,6 @@ export const mapValidationToEither = <A>(
 	return right(validation.right);
 }
 
-export const decodeOrThrow = <A>(
-	decoder: t.Decoder<unknown, A>,
-	buildError: (report: ReadonlyArray<string>) => Error,
-	i: unknown,
-): A => {
-	const validation = decoder.decode(i);
-
-	if (validation._tag === 'Left') {
-		const report = reporter.report(validation);
-		throw buildError(report);
-	}
-
-	return validation.right;
-};
-
 export const inferCommandCodec = buildTypeCodec({
 	kind: t.literal('infer'),
 	workspacePath: t.string,
