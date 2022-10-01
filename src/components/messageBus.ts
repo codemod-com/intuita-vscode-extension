@@ -5,6 +5,7 @@ import {
 	FilePermission,
 	Uri,
 } from 'vscode';
+import { JobOutput } from '../jobs';
 import { InferenceJob } from './inferenceService';
 
 export const enum MessageKind {
@@ -29,6 +30,11 @@ export const enum MessageKind {
 	updateInternalDiagnostics = 7,
 	textDocumentChanged = 8,
 	ruleBasedCoreRepairDiagnosticsChanged = 9, // TODO
+	/**
+	 * the external files exist outside of the extension's virtual file system
+	 */
+	updateExternalFile = 10,
+	externalFileUpdated = 11,
 }
 
 export type Message =
@@ -83,7 +89,12 @@ export type Message =
 			version: number;
 			text: string;
 			diagnostics: ReadonlyArray<Diagnostic>;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.updateExternalFile,
+			uri: Uri;
+			jobOutput: JobOutput,
+	}>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;

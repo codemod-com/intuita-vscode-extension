@@ -84,8 +84,6 @@ export const acceptJob = (
 		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
 		assertsNeitherNullOrUndefined(job);
 
-		const { fileName } = job;
-
 		const result = getJobOutput(
 			job,
 			argumentEither.right.characterDifference,
@@ -102,68 +100,10 @@ export const acceptJob = (
 		// do nothing if the file has not been given such jobs
 		// if it has, recalculate them
 
-		const textEditors = window.visibleTextEditors.filter(({ document }) => {
-			return document.fileName === fileName;
-		});
+		// TODO call message bus!
 
-		const textDocuments = workspace.textDocuments.filter((document) => {
-			return document.fileName === fileName;
-		});
-
-		const activeTextEditor = window.activeTextEditor ?? null;
-
-		const range = new Range(
-			new Position(result.range[0], result.range[1]),
-			new Position(result.range[2], result.range[3]),
-		);
-
-		const { saveDocumentOnJobAccept } = configurationContainer.get();
-
-		const changeTextEditor = async (textEditor: TextEditor) => {
-			await textEditor.edit((textEditorEdit) => {
-				textEditorEdit.replace(range, result.text);
-			});
-
-			if (!saveDocumentOnJobAccept) {
-				return;
-			}
-
-			return textEditor.document.save();
-		};
-
-		await Promise.all(textEditors.map(changeTextEditor));
-
-		if (textEditors.length === 0) {
-			textDocuments.forEach((textDocument) => {
-				window
-					// TODO we can add a range here
-					.showTextDocument(textDocument)
-					.then(changeTextEditor);
-			});
-		}
-
-		if (activeTextEditor?.document.fileName === fileName) {
-			const position = new Position(
-				result.position[0],
-				result.position[1],
-			);
-
-			const selection = new Selection(position, position);
-
-			activeTextEditor.selections = [selection];
-
-			activeTextEditor.revealRange(
-				new Range(position, position),
-				TextEditorRevealType.AtTop,
-			);
-		}
-
-		const allTextDocuments = textEditors
-			.map(({ document }) => document)
-			.concat(textDocuments);
-
-		if (allTextDocuments[0]) {
-			jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
-		}
+		// if (allTextDocuments[0]) {
+		// 	jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
+		// }
 	};
 };
