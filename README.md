@@ -1,9 +1,12 @@
-
 # Code Organizer For TypeScript
 
 Intuita helps you to arrange the order of TS code blocks based on your preference to **facilitate code comprehension, refactoring & code review**.
 
 <img src="https://user-images.githubusercontent.com/78109534/186076206-0d6461b3-6a05-4dd7-823e-4004e4dfc38c.png" width="50%"/>
+
+---
+
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 ---
 
