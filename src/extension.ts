@@ -58,6 +58,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const jobManager = new JobManager(messageBus, configurationContainer);
 
 	new FileService(
+		configurationContainer,
 		jobManager,
 		messageBus,
 		async (uri) => vscode.workspace.openTextDocument(uri),

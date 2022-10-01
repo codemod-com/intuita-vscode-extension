@@ -32,6 +32,8 @@ export const acceptJob = (
 		job: MoveTopLevelNodeJob | RepairCodeJob,
 		characterDifference: number,
 	): JobOutput => {
+		// TODO we should rely on the executeJob return, the rest is not needed
+
 		const content = intuitaFileSystem.readNullableFile(buildJobUri(job));
 
 		if (!content) {
@@ -93,9 +95,5 @@ export const acceptJob = (
 		// send event externalFileUpdated
 		// do nothing if the file has not been given such jobs
 		// if it has, recalculate them
-
-		// if (allTextDocuments[0]) {
-		// 	jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
-		// }
 	};
 };

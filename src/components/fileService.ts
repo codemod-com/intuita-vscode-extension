@@ -130,5 +130,9 @@ export class FileService {
         const allTextDocuments = textEditors
 			.map(({ document }) => document)
 			.concat(textDocuments);
+
+        if (allTextDocuments[0]) {
+			this._jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
+		}
     }
 }
