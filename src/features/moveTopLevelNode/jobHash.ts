@@ -1,21 +1,19 @@
-import { buildHash } from "../../utilities";
+import { buildHash } from '../../utilities';
 
 export type JobHash = string & { __type: 'JobHash' };
 
 export const buildMoveTopLevelNodeJobHash = (
-    fileName: string,
-    oldIndex: number,
-    newIndex: number,
+	fileName: string,
+	oldIndex: number,
+	newIndex: number,
 ): JobHash => {
-    const data = {
-        fileName,
-        oldIndex,
-        newIndex,
-    };
+	const data = {
+		fileName,
+		oldIndex,
+		newIndex,
+	};
 
-    const hash = buildHash(
-        JSON.stringify(data),
-    );
+	const hash = buildHash(JSON.stringify(data));
 
-    return hash as JobHash;
+	return hash as JobHash;
 };

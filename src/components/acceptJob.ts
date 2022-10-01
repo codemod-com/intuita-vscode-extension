@@ -1,191 +1,159 @@
-import {JobHash} from "../features/moveTopLevelNode/jobHash";
-import {assertsNeitherNullOrUndefined, calculateLastPosition, getSeparator, IntuitaRange} from "../utilities";
-import {Position, Range, Selection, TextEditor, TextEditorRevealType, window, workspace} from "vscode";
-import {buildJobUri, IntuitaFileSystem} from "./intuitaFileSystem";
-import {Container} from "../container";
-import {Configuration} from "../configuration";
-import {JobOutput} from "../jobs";
-import {JobManager} from "./jobManager";
-import {MoveTopLevelNodeJob} from "../features/moveTopLevelNode/job";
-import {RepairCodeJob} from "../features/repairCode/job";
+import * as t from 'io-ts';
+import { JobHash } from '../features/moveTopLevelNode/jobHash';
+import {
+	assertsNeitherNullOrUndefined,
+	calculateLastPosition,
+	getSeparator,
+	IntuitaRange,
+} from '../utilities';
+import {
+	Position,
+	Range,
+	Selection,
+	TextEditor,
+	TextEditorRevealType,
+	window,
+	workspace,
+} from 'vscode';
+import { buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
+import { Container } from '../container';
+import { Configuration } from '../configuration';
+import { JobOutput } from '../jobs';
+import { JobManager } from './jobManager';
+import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
+import { RepairCodeJob } from '../features/repairCode/job';
+import { buildTypeCodec, mapValidationToEither } from './inferenceService';
+import { withFallback } from 'io-ts-types';
+import { pipe } from 'fp-ts/lib/function';
+import { orElse } from 'fp-ts/lib/Either';
+
+const argumentCodec = buildTypeCodec({
+	hash: t.string,
+	characterDifference: withFallback(t.number, 0),
+});
 
 export const acceptJob = (
-    configurationContainer: Container<Configuration>,
-    intuitaFileSystem: IntuitaFileSystem,
-    jobManager: JobManager,
+	configurationContainer: Container<Configuration>,
+	intuitaFileSystem: IntuitaFileSystem,
+	jobManager: JobManager,
 ) => {
-    const getJobOutput = (
-        job: MoveTopLevelNodeJob | RepairCodeJob,
-        characterDifference: number,
-    ): JobOutput | null => {
-        const content = intuitaFileSystem.readNullableFile(
-            buildJobUri(job),
-        );
+	const getJobOutput = (
+		job: MoveTopLevelNodeJob | RepairCodeJob,
+		characterDifference: number,
+	): JobOutput | null => {
+		const content = intuitaFileSystem.readNullableFile(buildJobUri(job));
 
-        if (!content) {
-            return jobManager
-                .executeJob(
-                    job.hash,
-                    characterDifference,
-                );
-        }
+		if (!content) {
+			return jobManager.executeJob(job.hash, characterDifference);
+		}
 
-        const text = content.toString();
-        const separator = getSeparator(text);
+		const text = content.toString();
+		const separator = getSeparator(text);
 
-        const position = calculateLastPosition(text, separator);
+		const position = calculateLastPosition(text, separator);
 
-        const range: IntuitaRange = [
-            0,
-            0,
-            position[0],
-            position[1],
-        ];
+		const range: IntuitaRange = [0, 0, position[0], position[1]];
 
+		return {
+			text,
+			position,
+			range,
+		};
+	};
 
-        return {
-            text,
-            position,
-            range,
-        };
-    };
+	return async (arg0: unknown, arg1: unknown) => {
+		// factor in tree-data commands and regular commands
+		const argumentEither = pipe(
+			argumentCodec.decode(arg0),
+			orElse(() =>
+				argumentCodec.decode({
+					jobHash: arg0,
+					characterDifference: arg1,
+				}),
+			),
+			mapValidationToEither,
+		);
 
-    return async (arg0: unknown, arg1: unknown) => {
-        // factor in tree-data commands and regular commands
+		if (argumentEither._tag === 'Left') {
+			throw new Error(
+				`Could not decode acceptJob arguments: ${argumentEither.left}`,
+			);
+		}
 
-        let jobHash: string;
-        let characterDifference: number;
+		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
+		assertsNeitherNullOrUndefined(job);
 
-        if (typeof arg0 === 'object' && arg0) {
-            jobHash = (arg0 as any).hash;
-            characterDifference = 0;
-        } else {
-            if (typeof arg0 !== 'string') {
-                throw new Error('The job hash argument must be a string');
-            }
+		const { fileName } = job;
 
-            if (typeof arg1 !== 'number') {
-                throw new Error('The characterDifference argument must be a number');
-            }
+		const result = getJobOutput(
+			job,
+			argumentEither.right.characterDifference,
+		);
 
-            jobHash = arg0;
-            characterDifference = arg1;
-        }
+		assertsNeitherNullOrUndefined(result);
 
-        const job = jobManager.getJob(jobHash as JobHash);
-        assertsNeitherNullOrUndefined(job);
+		const textEditors = window.visibleTextEditors.filter(({ document }) => {
+			return document.fileName === fileName;
+		});
 
-        const { fileName } = job;
+		const textDocuments = workspace.textDocuments.filter((document) => {
+			return document.fileName === fileName;
+		});
 
-        const result = getJobOutput(
-            job,
-            characterDifference
-        );
+		const activeTextEditor = window.activeTextEditor ?? null;
 
-        assertsNeitherNullOrUndefined(result);
+		const range = new Range(
+			new Position(result.range[0], result.range[1]),
+			new Position(result.range[2], result.range[3]),
+		);
 
-        const textEditors = window
-            .visibleTextEditors
-            .filter(
-                ({ document }) => {
-                    return document.fileName === fileName;
-                },
-            );
+		const { saveDocumentOnJobAccept } = configurationContainer.get();
 
-        const textDocuments = workspace
-            .textDocuments
-            .filter(
-                (document) => {
-                    return document.fileName === fileName;
-                },
-            );
+		const changeTextEditor = async (textEditor: TextEditor) => {
+			await textEditor.edit((textEditorEdit) => {
+				textEditorEdit.replace(range, result.text);
+			});
 
-        const activeTextEditor = window.activeTextEditor ?? null;
+			if (!saveDocumentOnJobAccept) {
+				return;
+			}
 
-        const range = new Range(
-            new Position(
-                result.range[0],
-                result.range[1],
-            ),
-            new Position(
-                result.range[2],
-                result.range[3],
-            ),
-        );
+			return textEditor.document.save();
+		};
 
-        const {
-            saveDocumentOnJobAccept,
-        } = configurationContainer.get();
+		await Promise.all(textEditors.map(changeTextEditor));
 
-        const changeTextEditor = async (textEditor: TextEditor) => {
-            await textEditor.edit(
-                (textEditorEdit) => {
-                    textEditorEdit.replace(
-                        range,
-                        result.text,
-                    );
-                }
-            );
+		if (textEditors.length === 0) {
+			textDocuments.forEach((textDocument) => {
+				window
+					// TODO we can add a range here
+					.showTextDocument(textDocument)
+					.then(changeTextEditor);
+			});
+		}
 
-            if (!saveDocumentOnJobAccept) {
-                return;
-            }
+		if (activeTextEditor?.document.fileName === fileName) {
+			const position = new Position(
+				result.position[0],
+				result.position[1],
+			);
 
-            return textEditor.document.save();
-        };
+			const selection = new Selection(position, position);
 
-        await Promise.all(
-            textEditors.map(
-                changeTextEditor,
-            )
-        );
+			activeTextEditor.selections = [selection];
 
-        if (textEditors.length === 0) {
-            textDocuments.forEach(
-                (textDocument) => {
-                    window
-                        // TODO we can add a range here
-                        .showTextDocument(textDocument)
-                        .then(
-                            changeTextEditor,
-                        );
-                }
-            );
-        }
+			activeTextEditor.revealRange(
+				new Range(position, position),
+				TextEditorRevealType.AtTop,
+			);
+		}
 
-        if (activeTextEditor?.document.fileName === fileName) {
-            const position = new Position(
-                result.position[0],
-                result.position[1],
-            );
+		const allTextDocuments = textEditors
+			.map(({ document }) => document)
+			.concat(textDocuments);
 
-            const selection = new Selection(
-                position,
-                position
-            );
-
-            activeTextEditor.selections = [ selection ];
-
-            activeTextEditor.revealRange(
-                new Range(
-                    position,
-                    position
-                ),
-                TextEditorRevealType.AtTop,
-            );
-        }
-
-        const allTextDocuments = textEditors
-            .map(({ document }) => document)
-            .concat(
-                textDocuments
-            );
-
-        if (allTextDocuments[0]) {
-            jobManager
-                .buildMoveTopLevelNodeJobs(
-                    allTextDocuments[0],
-                );
-        }
-    };
+		if (allTextDocuments[0]) {
+			jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
+		}
+	};
 };

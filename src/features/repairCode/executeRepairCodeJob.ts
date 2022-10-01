@@ -1,28 +1,21 @@
-import { calculateLines } from "../../utilities";
-import { RepairCodeJob } from "./job";
+import { calculateLines } from '../../utilities';
+import { RepairCodeJob } from './job';
 
-export const executeRepairCodeJob = (
-    fact: RepairCodeJob,
-) => {
-    const previousCharacters = fact.fileText
-        .slice(0, fact.simpleRange.start);
+export const executeRepairCodeJob = (fact: RepairCodeJob) => {
+	const previousCharacters = fact.fileText.slice(0, fact.simpleRange.start);
 
-    const afterCharacters = fact.fileText
-        .slice(fact.simpleRange.end);
+	const afterCharacters = fact.fileText.slice(fact.simpleRange.end);
 
-    const text = previousCharacters.concat(
-        fact.replacement,
-        afterCharacters,
-    );
+	const text = previousCharacters.concat(fact.replacement, afterCharacters);
 
-    const lines = calculateLines(previousCharacters, fact.separator);
+	const lines = calculateLines(previousCharacters, fact.separator);
 
-    const line = lines.length;
-    const character = lines[lines.length - 1]?.length ?? 0;
+	const line = lines.length;
+	const character = lines[lines.length - 1]?.length ?? 0;
 
-    return {
-        text,
-        line,
-        character,
-    };
+	return {
+		text,
+		line,
+		character,
+	};
 };
