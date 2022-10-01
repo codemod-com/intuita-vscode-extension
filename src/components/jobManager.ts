@@ -34,6 +34,7 @@ type Job = MoveTopLevelNodeJob | RepairCodeJob;
 
 export class JobManager {
 	protected _fileNames = new Map<FileNameHash, string>();
+	protected _hasHadMoveTopLevelBlockJobs = new Set<FileNameHash>();
 	protected _moveTopLevelBlockHashMap = new Map<FileNameHash, Set<JobHash>>();
 	protected _repairCodeHashMap = new Map<FileNameHash, Set<JobHash>>();
 	protected _rejectedJobHashes = new Set<JobHash>();
@@ -226,6 +227,7 @@ export class JobManager {
 			}
 		});
 
+		this._hasHadMoveTopLevelBlockJobs.add(fileNameHash);
 		this._moveTopLevelBlockHashMap.set(fileNameHash, newJobHashes);
 
 		newJobs.forEach((job) => {
