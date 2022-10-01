@@ -52,6 +52,7 @@ export const acceptJob = (
 
 		const position = calculateLastPosition(text, separator);
 
+		// we are replacing the whole file
 		const range: IntuitaRange = [0, 0, position[0], position[1]];
 
 		return {
@@ -93,6 +94,14 @@ export const acceptJob = (
 		assertsNeitherNullOrUndefined(result);
 
 		// editor operation should work as an event
+
+		// track if a file has ever been given moveTopLevelNodeJobs
+		// send event updateExternalFile
+		// handle it in the fileService
+		// send event externalFileUpdated
+		// do nothing if the file has not been given such jobs
+		// if it has, recalculate them
+
 		const textEditors = window.visibleTextEditors.filter(({ document }) => {
 			return document.fileName === fileName;
 		});
