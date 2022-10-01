@@ -28,7 +28,6 @@ import {
 	MoveTopLevelNodeJob,
 } from '../features/moveTopLevelNode/job';
 import { buildRepairCodeJobs, RepairCodeJob } from '../features/repairCode/job';
-import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { buildRuleBasedRepairCodeJobs } from '../features/repairCode/buildRuleBasedRepairCodeJobs';
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
@@ -45,10 +44,6 @@ export class JobManager {
 		protected readonly _configurationContainer: Container<Configuration>,
 	) {
 		this._messageBus.subscribe(async (message) => {
-			if (message.kind === MessageKind.readingFileFailed) {
-				setImmediate(() => this._onReadingFileFailed(message.uri));
-			}
-
 			if (message.kind === MessageKind.createRepairCodeJobs) {
 				setImmediate(() => this._onCreateRepairCodeJob(message));
 			}
@@ -142,6 +137,14 @@ export class JobManager {
 			permissions: FilePermission.Readonly,
 		});
 	}
+
+	public acceptJob(
+		jobHash: JobHash,
+		characterDifference: number,
+	) {
+		// TODO implement
+	}
+
 
 	public executeJob(
 		jobHash: JobHash,
@@ -317,56 +320,6 @@ export class JobManager {
 		});
 
 		this._commitRepairCodeJobs(fileName, message.version, jobs);
-	}
-
-	protected async _onReadingFileFailed(uri: Uri) {
-		const destructedUri = destructIntuitaFileSystemUri(uri);
-
-		if (!destructedUri) {
-			return;
-		}
-
-		const fileName =
-			destructedUri.directory === 'files'
-				? destructedUri.fsPath
-				: this.getFileNameFromJobHash(destructedUri.jobHash);
-
-		if (!fileName) {
-			console.debug('Could not get the file name from the provided URI');
-
-			return;
-		}
-
-		const textDocument = await workspace.openTextDocument(
-			Uri.parse(fileName),
-		);
-		let text = textDocument.getText();
-
-		assertsNeitherNullOrUndefined(text);
-
-		if (destructedUri.directory === 'jobs') {
-			const result = this.executeJob(destructedUri.jobHash, 0);
-
-			if (result) {
-				text = result.text;
-			}
-		}
-
-		assertsNeitherNullOrUndefined(text);
-
-		const content = Buffer.from(text);
-
-		const permissions =
-			destructedUri.directory === 'files'
-				? FilePermission.Readonly
-				: null;
-
-		this._messageBus.publish({
-			kind: MessageKind.writeFile,
-			uri,
-			content,
-			permissions,
-		});
 	}
 
 	protected async _onCreateRepairCodeJob(
