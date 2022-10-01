@@ -94,6 +94,11 @@ export type Message =
 			kind: MessageKind.updateExternalFile,
 			uri: Uri;
 			jobOutput: JobOutput,
+	}>
+	| Readonly<{
+			kind: MessageKind.externalFileUpdated,
+			uri: Uri,
+			text: string,
 	}>;
 
 export class MessageBus {

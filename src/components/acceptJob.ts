@@ -55,9 +55,6 @@ export const acceptJob = (
 			jobOutput,
 		});
 
-		// editor operation should work as an event
-
-		// send event externalFileUpdated
 		// do nothing if the file has not been given such jobs
 		// if it has, recalculate them
 	};

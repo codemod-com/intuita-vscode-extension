@@ -79,6 +79,8 @@ export class FileService {
 			return document.uri.toString() === stringUri;
 		});
 
+		// TODO if the text editor is missing, just open the document!
+
 		const activeTextEditor = window.activeTextEditor ?? null;
 
 		const range = new Range(
@@ -131,8 +133,18 @@ export class FileService {
 			.map(({ document }) => document)
 			.concat(textDocuments);
 
-        if (allTextDocuments[0]) {
-			this._jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
+		if (!allTextDocuments[0]) {
+			return;
 		}
+
+		this._messageBus.publish({
+			kind: MessageKind.externalFileUpdated,
+			uri: message.uri,
+			text: allTextDocuments[0].getText(),
+		});
+
+        // if (allTextDocuments[0]) {
+		// 	this._jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
+		// }
     }
 }
