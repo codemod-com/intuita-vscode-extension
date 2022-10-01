@@ -54,6 +54,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.createRepairCodeJobs;
 			uri: Uri;
+			text: string;
 			version: number;
 			inferenceJobs: ReadonlyArray<InferenceJob>;
 	  }>

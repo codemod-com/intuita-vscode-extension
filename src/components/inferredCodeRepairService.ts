@@ -137,6 +137,7 @@ export class InferredCodeRepairService {
 		this._messageBus.publish({
 			kind: MessageKind.createRepairCodeJobs,
 			uri: message.uri,
+			text: message.text,
 			version: message.version,
 			inferenceJobs: dataEither.right.inferenceJobs,
 		});

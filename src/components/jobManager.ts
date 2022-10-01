@@ -14,7 +14,7 @@ import {
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { JobKind, JobOutput } from '../jobs';
-import { FilePermission, TextDocument, Uri, workspace } from 'vscode';
+import { FilePermission, TextDocument } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
@@ -329,18 +329,13 @@ export class JobManager {
 	) {
 		const fileName = message.uri.fsPath;
 
-		const textDocument = await workspace.openTextDocument(
-			Uri.parse(fileName),
-		);
-		const fileText = textDocument.getText() ?? '';
-
-		const separator = getSeparator(fileText);
-		const lines = calculateLines(fileText, separator);
+		const separator = getSeparator(message.text);
+		const lines = calculateLines(message.text, separator);
 		const lengths = calculateLengths(lines);
 
 		const jobs = buildRepairCodeJobs(
 			fileName,
-			fileText,
+			message.text,
 			message.inferenceJobs,
 			separator,
 			lengths,
