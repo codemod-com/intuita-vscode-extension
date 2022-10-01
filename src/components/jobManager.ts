@@ -143,12 +143,6 @@ export class JobManager {
 		});
 	}
 
-	public acceptJob(jobHash: JobHash, characterDifference: number) {
-		// TODO implement
-		jobHash;
-		characterDifference;
-	}
-
 	public executeJob(
 		jobHash: JobHash,
 		characterDifference: number,
