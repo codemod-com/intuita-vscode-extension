@@ -6,18 +6,7 @@ import {
 	getSeparator,
 	IntuitaRange,
 } from '../utilities';
-import {
-	Position,
-	Range,
-	Selection,
-	TextEditor,
-	TextEditorRevealType,
-	window,
-	workspace,
-} from 'vscode';
 import { buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
-import { Container } from '../container';
-import { Configuration } from '../configuration';
 import { JobOutput } from '../jobs';
 import { JobManager } from './jobManager';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
@@ -26,6 +15,8 @@ import { buildTypeCodec, mapValidationToEither } from './inferenceService';
 import { withFallback } from 'io-ts-types';
 import { pipe } from 'fp-ts/lib/function';
 import { orElse } from 'fp-ts/lib/Either';
+import { MessageBus, MessageKind } from './messageBus';
+import { Uri } from 'vscode';
 
 const argumentCodec = buildTypeCodec({
 	hash: t.string,
@@ -33,14 +24,14 @@ const argumentCodec = buildTypeCodec({
 });
 
 export const acceptJob = (
-	configurationContainer: Container<Configuration>,
 	intuitaFileSystem: IntuitaFileSystem,
 	jobManager: JobManager,
+	messageBus: MessageBus,
 ) => {
 	const getJobOutput = (
 		job: MoveTopLevelNodeJob | RepairCodeJob,
 		characterDifference: number,
-	): JobOutput | null => {
+	): JobOutput => {
 		const content = intuitaFileSystem.readNullableFile(buildJobUri(job));
 
 		if (!content) {
@@ -84,23 +75,24 @@ export const acceptJob = (
 		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
 		assertsNeitherNullOrUndefined(job);
 
-		const result = getJobOutput(
+		const jobOutput = getJobOutput(
 			job,
 			argumentEither.right.characterDifference,
 		);
 
-		assertsNeitherNullOrUndefined(result);
+		const uri = Uri.parse(job.fileName);
+
+		messageBus.publish({
+			kind: MessageKind.updateExternalFile,
+			uri,
+			jobOutput,
+		})
 
 		// editor operation should work as an event
 
-		// track if a file has ever been given moveTopLevelNodeJobs
-		// send event updateExternalFile
-		// handle it in the fileService
 		// send event externalFileUpdated
 		// do nothing if the file has not been given such jobs
 		// if it has, recalculate them
-
-		// TODO call message bus!
 
 		// if (allTextDocuments[0]) {
 		// 	jobManager.buildMoveTopLevelNodeJobs(allTextDocuments[0]);
