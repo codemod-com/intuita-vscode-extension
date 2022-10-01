@@ -5,18 +5,15 @@
         "ecmaVersion": 6,
         "sourceType": "module"
     },
-    "plugins": [
-        "@typescript-eslint",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
         "prettier"
     ],
-    "rules": {
-        "@typescript-eslint/naming-convention": "off",
-        "@typescript-eslint/semi": "warn",
-        "curly": "warn",
-        "eqeqeq": "warn",
-        "no-throw-literal": "warn",
-        "semi": "off"
-    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "ignorePatterns": [
         "out",
         "dist",

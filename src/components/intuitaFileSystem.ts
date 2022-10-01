@@ -56,8 +56,9 @@ export class IntuitaFileSystem implements FileSystemProvider {
 		});
 	}
 
-	watch(_: Uri): Disposable {
-		return new Disposable(() => {});
+	watch(): Disposable {
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		return new Disposable(function () {});
 	}
 
 	stat(uri: Uri): FileStat {

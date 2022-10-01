@@ -10,12 +10,17 @@ export const extractKindsFromTs2345ErrorMessage = (message: string) => {
 				kind === 'boolean' || kind === 'number' || kind === 'string',
 		);
 
-	if (kinds.length !== 2) {
+	const [
+		received,
+		expected,
+	] = kinds;
+
+	if (!received || !expected) {
 		return null;
 	}
 
 	return {
-		expected: kinds[1]!,
-		received: kinds[0]!,
+		received,
+		expected,
 	};
 };

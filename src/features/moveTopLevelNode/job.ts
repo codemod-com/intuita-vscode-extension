@@ -57,7 +57,7 @@ export const buildTitle = (
 		return null;
 	}
 
-	let nodeIdentifiersLabel = buildIdentifiersLabel(
+	const nodeIdentifiersLabel = buildIdentifiersLabel(
 		Array.from(node.identifiers),
 		useHtml,
 	);
