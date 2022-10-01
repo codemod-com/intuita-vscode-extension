@@ -1,3 +1,3 @@
 export const enum FactKind {
-    moveTopLevelNode = 1,
+	moveTopLevelNode = 1,
 }
