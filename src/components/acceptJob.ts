@@ -30,7 +30,7 @@ import { orElse } from 'fp-ts/lib/Either';
 const argumentCodec = buildTypeCodec({
 	hash: t.string,
 	characterDifference: withFallback(t.number, 0),
-})
+});
 
 export const acceptJob = (
 	configurationContainer: Container<Configuration>,
@@ -65,17 +65,19 @@ export const acceptJob = (
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
 			argumentCodec.decode(arg0),
-			orElse(
-				() => argumentCodec.decode({
+			orElse(() =>
+				argumentCodec.decode({
 					jobHash: arg0,
 					characterDifference: arg1,
-				})
+				}),
 			),
 			mapValidationToEither,
 		);
 
 		if (argumentEither._tag === 'Left') {
-			throw new Error(`Could not decode acceptJob arguments: ${argumentEither.left}`);
+			throw new Error(
+				`Could not decode acceptJob arguments: ${argumentEither.left}`,
+			);
 		}
 
 		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
@@ -83,7 +85,10 @@ export const acceptJob = (
 
 		const { fileName } = job;
 
-		const result = getJobOutput(job, argumentEither.right.characterDifference);
+		const result = getJobOutput(
+			job,
+			argumentEither.right.characterDifference,
+		);
 
 		assertsNeitherNullOrUndefined(result);
 

@@ -125,11 +125,9 @@ export class InferredCodeRepairService {
 		const response = await this._infer(command, source.token);
 
 		const dataEither = mapValidationToEither(
-			inferredMessageCodec.decode(
-				response.data
-			)
+			inferredMessageCodec.decode(response.data),
 		);
-		
+
 		if (dataEither._tag === 'Left') {
 			throw new Error(
 				`Could not decode the inferred message: ${dataEither.left}`,

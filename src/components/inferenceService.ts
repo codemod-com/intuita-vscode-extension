@@ -10,13 +10,11 @@ export const mapValidationToEither = <A>(
 	validation: t.Validation<A>,
 ): Either<string, A> => {
 	if (validation._tag === 'Left') {
-		return left(
-			reporter.report(validation).toString(),
-		)
+		return left(reporter.report(validation).toString());
 	}
 
 	return right(validation.right);
-}
+};
 
 export const inferCommandCodec = buildTypeCodec({
 	kind: t.literal('infer'),
