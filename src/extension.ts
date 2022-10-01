@@ -11,6 +11,7 @@ import { InferredCodeRepairService } from './components/inferredCodeRepairServic
 import { acceptJob } from './components/acceptJob';
 import { DiagnosticManager } from './components/diagnosticManager';
 import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
+import { InternalService } from './components/internalService';
 
 const messageBus = new MessageBus();
 
@@ -55,6 +56,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const jobManager = new JobManager(messageBus, configurationContainer);
+
+	new InternalService(
+		jobManager,
+		messageBus,
+	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		messageBus,

@@ -1,6 +1,5 @@
 import { FilePermission, Uri, workspace } from "vscode";
 import { destructIntuitaFileSystemUri } from "../destructIntuitaFileSystemUri";
-import { assertsNeitherNullOrUndefined } from "../utilities";
 import { JobManager } from "./jobManager";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 
@@ -25,32 +24,7 @@ export class InternalService {
 			return;
 		}
 
-		const fileName =
-			destructedUri.directory === 'files'
-				? destructedUri.fsPath
-				: this._jobManager.getFileNameFromJobHash(destructedUri.jobHash);
-
-		if (!fileName) {
-			console.debug('Could not get the file name from the provided URI');
-
-			return;
-		}
-
-        // replace with a _openTextDocument dependency
-		const textDocument = await workspace.openTextDocument(
-			Uri.parse(fileName),
-		);
-		
-        // move text into a function?
-        let text = textDocument.getText();
-
-		if (destructedUri.directory === 'jobs') {
-			const result = this._jobManager.executeJob(destructedUri.jobHash, 0);
-
-			text = result.text;
-		}
-
-		assertsNeitherNullOrUndefined(text);
+        const text = await this._getText(destructedUri);
 
 		const content = Buffer.from(text);
 
@@ -66,4 +40,22 @@ export class InternalService {
 			permissions,
 		});
 	}
+
+    protected async _getText(
+        destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
+    ): Promise<string> {
+        if (destructedUri.directory === 'jobs') {
+            return this._jobManager
+                .executeJob(destructedUri.jobHash, 0)
+                .text;
+        }
+
+        const fileName = destructedUri.fsPath;
+        const uri = Uri.parse(fileName);
+
+        // replace with a _openTextDocument dependency
+        const textDocument = await workspace.openTextDocument(uri);
+
+        return textDocument.getText();        
+    }
 }

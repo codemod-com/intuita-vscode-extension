@@ -143,6 +143,8 @@ export class JobManager {
 		characterDifference: number,
 	) {
 		// TODO implement
+		jobHash;
+		characterDifference;
 	}
 
 
