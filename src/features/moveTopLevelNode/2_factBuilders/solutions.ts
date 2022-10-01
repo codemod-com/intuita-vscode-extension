@@ -54,13 +54,18 @@ export const calculateSolution = (
 					kindOrder,
 				);
 
-				return [newNodes, newIndex, newScore] as const;
+				return {
+					newNodes,
+					newIndex,
+					newScore,
+				};
 			})
 			.filter(isNeitherNullNorUndefined)
-			.filter(([_, __, newScore]) => {
+
+			.filter(({ newScore }) => {
 				return compareScores(oldScore, newScore) > 0;
 			})
-			.map(([newNodes, newIndex, score]) => {
+			.map(({ newNodes, newIndex, newScore }) => {
 				const hash = buildSolutionHash(newNodes.map(({ id }) => id));
 
 				return {
@@ -68,7 +73,7 @@ export const calculateSolution = (
 					nodes: newNodes,
 					oldIndex,
 					newIndex,
-					score,
+					score: newScore,
 				};
 			})
 			.sort((a, b) => {

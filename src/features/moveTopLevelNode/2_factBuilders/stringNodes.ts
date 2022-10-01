@@ -18,15 +18,17 @@ export const getStringNodes = (
 				topLevelNodeIndex: null,
 			});
 		} else {
-			const previousNode = topLevelNodes[index - 1]!;
+			const previousNode = topLevelNodes[index - 1];
 
-			stringNodes.push({
-				text: fileText.slice(
-					previousNode.triviaEnd + 1,
-					topLevelNode.triviaStart,
-				),
-				topLevelNodeIndex: null,
-			});
+			if (previousNode) {
+				stringNodes.push({
+					text: fileText.slice(
+						previousNode.triviaEnd + 1,
+						topLevelNode.triviaStart,
+					),
+					topLevelNodeIndex: null,
+				});
+			}
 		}
 
 		stringNodes.push({

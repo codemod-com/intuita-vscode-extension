@@ -53,12 +53,11 @@ export const acceptJob = (
 
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
-
 		let jobHash: string;
 		let characterDifference: number;
 
 		if (typeof arg0 === 'object' && arg0) {
-			jobHash = (arg0 as any).hash;
+			jobHash = arg0['hash'];
 			characterDifference = 0;
 		} else {
 			if (typeof arg0 !== 'string') {

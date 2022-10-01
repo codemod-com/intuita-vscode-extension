@@ -111,6 +111,7 @@ export class JobManager {
 			this._moveTopLevelBlockHashMap.entries(),
 		).concat(Array.from(this._repairCodeHashMap.entries()));
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const entry = entries.find(([_, jobHashes]) => {
 			return jobHashes.has(jobHash);
 		});

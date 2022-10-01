@@ -166,4 +166,5 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 export function deactivate() {}

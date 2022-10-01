@@ -81,11 +81,12 @@ export class IntuitaFileSystem implements FileSystemProvider {
 		};
 	}
 
-	readDirectory(_: Uri): [string, FileType][] {
+	readDirectory(): [string, FileType][] {
 		return [];
 	}
 
-	createDirectory(_: Uri): void {}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	createDirectory(): void {}
 
 	public readNullableFile(uri: Uri): Uint8Array | null {
 		const fileName = uri.toString();
