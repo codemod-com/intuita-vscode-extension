@@ -60,6 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	new InternalService(
 		jobManager,
 		messageBus,
+		async (uri) => vscode.workspace.openTextDocument(uri),
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(

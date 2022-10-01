@@ -1,4 +1,4 @@
-import { FilePermission, Uri, workspace } from "vscode";
+import { FilePermission, TextDocument, Uri } from "vscode";
 import { destructIntuitaFileSystemUri } from "../destructIntuitaFileSystemUri";
 import { JobManager } from "./jobManager";
 import { Message, MessageBus, MessageKind } from "./messageBus";
@@ -7,6 +7,7 @@ export class InternalService {
     public constructor(
         protected readonly _jobManager: JobManager,
         protected readonly _messageBus: MessageBus,
+        protected readonly _openTextDocument: (uri: Uri) => Promise<TextDocument> 
     ) {
         this._messageBus.subscribe(async (message) => {
             if (message.kind === MessageKind.readingFileFailed) {
@@ -53,8 +54,7 @@ export class InternalService {
         const fileName = destructedUri.fsPath;
         const uri = Uri.parse(fileName);
 
-        // replace with a _openTextDocument dependency
-        const textDocument = await workspace.openTextDocument(uri);
+        const textDocument = await this._openTextDocument(uri);
 
         return textDocument.getText();        
     }

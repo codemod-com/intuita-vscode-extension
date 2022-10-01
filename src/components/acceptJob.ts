@@ -92,6 +92,7 @@ export const acceptJob = (
 
 		assertsNeitherNullOrUndefined(result);
 
+		// editor operation should work as an event
 		const textEditors = window.visibleTextEditors.filter(({ document }) => {
 			return document.fileName === fileName;
 		});
