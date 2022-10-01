@@ -101,7 +101,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				jobManager.buildMoveTopLevelNodeJobs(document);
+				jobManager.buildMoveTopLevelNodeJobs(
+					document.uri,
+					document.getText(),
+				);
 			},
 		),
 	);

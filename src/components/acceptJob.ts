@@ -54,8 +54,5 @@ export const acceptJob = (
 			uri,
 			jobOutput,
 		});
-
-		// do nothing if the file has not been given such jobs
-		// if it has, recalculate them
 	};
 };

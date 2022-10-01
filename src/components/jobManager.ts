@@ -14,7 +14,7 @@ import {
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { JobKind, JobOutput } from '../jobs';
-import { FilePermission, TextDocument } from 'vscode';
+import { FilePermission, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
@@ -60,6 +60,10 @@ export class JobManager {
 				setImmediate(() =>
 					this.onRuleBasedCoreRepairDiagnosticsChanged(message),
 				);
+			}
+
+			if (message.kind === MessageKind.externalFileUpdated) {
+				setImmediate(() => this._externalFileUpdated(message))
 			}
 		});
 	}
@@ -183,18 +187,17 @@ export class JobManager {
 		};
 	}
 
-	public buildMoveTopLevelNodeJobs(document: TextDocument) {
-		if (document.uri.scheme !== 'file') {
+	public buildMoveTopLevelNodeJobs(uri: Uri, text: string) {
+		if (uri.scheme !== 'file') {
 			return;
 		}
 
-		const { fileName } = document;
-		const fileText = document.getText();
+		const fileName = uri.fsPath;
 
 		const userCommand: MoveTopLevelNodeUserCommand = {
 			kind: 'MOVE_TOP_LEVEL_NODE',
 			fileName,
-			fileText,
+			fileText: text,
 			options: this._configurationContainer.get(),
 		};
 
@@ -255,18 +258,19 @@ export class JobManager {
 			});
 		});
 
-		const uri = buildFileUri(document.uri);
+		const fileUri = buildFileUri(uri);
 
 		if (newJobs.length === 0) {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
-				uri,
+				uri: fileUri,
 			});
+
 		} else {
 			this._messageBus.publish({
 				kind: MessageKind.writeFile,
-				uri,
-				content: Buffer.from(fileText),
+				uri: fileUri,
+				content: Buffer.from(text),
 				permissions: FilePermission.Readonly,
 			});
 		}
@@ -423,5 +427,18 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
 		});
+	}
+
+	protected _externalFileUpdated(
+		message: Message & { kind: MessageKind.externalFileUpdated }
+	) {
+		const fileName = message.uri.fsPath;
+		const fileNameHash = buildFileNameHash(fileName);
+
+		if (!this._hasHadMoveTopLevelBlockJobs.has(fileNameHash)) {
+			return;
+		}
+
+		this.buildMoveTopLevelNodeJobs(message.uri, message.text);
 	}
 }
