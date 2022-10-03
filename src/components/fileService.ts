@@ -126,13 +126,13 @@ export class FileService {
 		await Promise.all(textEditors.map(changeTextEditor));
 
 		if (textEditors.length === 0) {
-			textDocuments.forEach(async (textDocument) => {
+			for(const textDocument of textDocuments) {
 				const textEditor = await window
 					// TODO we can add a range here
 					.showTextDocument(textDocument);
 
 				await changeTextEditor(textEditor);
-			});
+			}
 		}
 
 		if (activeTextEditor?.document.uri.toString() === stringUri) {
