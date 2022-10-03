@@ -1,6 +1,7 @@
-import { Diagnostic, DiagnosticChangeEvent, TextEditor, Uri } from 'vscode';
+import { Diagnostic, DiagnosticChangeEvent, Uri } from 'vscode';
 import { buildHash } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
+import { VSCodeService } from './vscodeService';
 
 type DiagnosticHash = string & { __type: 'DiagnosticHash' };
 
@@ -45,17 +46,14 @@ export class DiagnosticManager {
 	protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
 
 	public constructor(
-		protected readonly _getActiveTextEditor: () => TextEditor | null,
-		protected readonly _getDiagnostics: (
-			uri: Uri,
-		) => ReadonlyArray<Diagnostic>,
 		protected readonly _messageBus: MessageBus,
+		protected readonly _vscodeService: VSCodeService,
 	) {}
 
 	public async onDiagnosticChangeEvent(
 		event: DiagnosticChangeEvent,
 	): Promise<void> {
-		const activeTextEditor = this._getActiveTextEditor();
+		const activeTextEditor = this._vscodeService.getActiveTextEditor();
 
 		if (!activeTextEditor) {
 			console.debug(
@@ -85,8 +83,9 @@ export class DiagnosticManager {
 			return;
 		}
 
-		const diagnostics = this._getDiagnostics(uri).filter(
-			({ source, code }) => {
+		const diagnostics = this._vscodeService
+			.getDiagnostics(uri)
+			.filter(({ source, code }) => {
 				if (source !== 'ts' || !code) {
 					return false;
 				}
@@ -96,8 +95,7 @@ export class DiagnosticManager {
 				}
 
 				return String(code.value) === '2345';
-			},
-		);
+			});
 
 		if (diagnostics.length === 0) {
 			this._messageBus.publish({
