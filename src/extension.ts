@@ -12,10 +12,20 @@ import { acceptJob } from './components/acceptJob';
 import { DiagnosticManager } from './components/diagnosticManager';
 import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
 import { FileService } from './components/fileService';
+import { VSCodeService } from './components/vscodeService';
 
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
+	const vscodeService: VSCodeService = {
+		openTextDocument: async (uri) => vscode.workspace.openTextDocument(uri),
+		getVisibleEditors: () => vscode.window.visibleTextEditors,
+		getTextDocuments: () => vscode.workspace.textDocuments,
+		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
+		showTextDocument: async (textDocument) => vscode.window.showTextDocument(textDocument),
+		getDiagnostics: (uri) => vscode.languages.getDiagnostics(uri),
+	};
+
 	messageBus.setDisposables(context.subscriptions);
 
 	const diagnosticCollection =
@@ -24,9 +34,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const configurationContainer = buildContainer(getConfiguration());
 
 	const diagnosticManager = new DiagnosticManager(
-		() => vscode.window.activeTextEditor ?? null,
-		(uri) => vscode.languages.getDiagnostics(uri),
 		messageBus,
+		vscodeService,
 	);
 
 	new InferredCodeRepairService(
@@ -61,11 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		configurationContainer,
 		jobManager,
 		messageBus,
-		async (uri) => vscode.workspace.openTextDocument(uri),
-		() => vscode.window.visibleTextEditors,
-		() => vscode.workspace.textDocuments,
-		() => vscode.window.activeTextEditor ?? null,
-		async (textDocument) => vscode.window.showTextDocument(textDocument),
+		vscodeService,
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(

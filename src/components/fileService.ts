@@ -3,31 +3,23 @@ import {
 	Position,
 	Range,
 	Selection,
-	TextDocument,
 	TextEditor,
 	TextEditorRevealType,
 	Uri,
-	window,
 } from 'vscode';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { JobManager } from './jobManager';
 import { Message, MessageBus, MessageKind } from './messageBus';
+import { VSCodeService } from './vscodeService';
 
 export class FileService {
 	public constructor(
 		protected readonly _configurationContainer: Container<Configuration>,
 		protected readonly _jobManager: JobManager,
 		protected readonly _messageBus: MessageBus,
-		protected readonly _openTextDocument: (
-			uri: Uri,
-		) => Promise<TextDocument>,
-		protected readonly _getVisibleEditors: () => ReadonlyArray<TextEditor>,
-		protected readonly _getTextDocuments: () => ReadonlyArray<TextDocument>,
-		protected readonly _getActiveTextEditor: () => TextEditor | null,
-		protected readonly _showTextDocument: (textDocument: TextDocument) => Promise<TextEditor>,
-
+		protected readonly _vscodeService: VSCodeService,
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
@@ -76,7 +68,7 @@ export class FileService {
 		const fileName = destructedUri.fsPath;
 		const uri = Uri.parse(fileName);
 
-		const textDocument = await this._openTextDocument(uri);
+		const textDocument = await this._vscodeService.openTextDocument(uri);
 
 		return textDocument.getText();
 	}
@@ -86,17 +78,17 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const textEditors = this._getVisibleEditors().filter(({ document }) => {
+		const textEditors = this._vscodeService.getVisibleEditors().filter(({ document }) => {
 			return document.uri.toString() === stringUri;
 		});
 
-		const textDocuments = this._getTextDocuments().filter((document) => {
+		const textDocuments = this._vscodeService.getTextDocuments().filter((document) => {
 			return document.uri.toString() === stringUri;
 		});
 
 		// TODO if the text editor is missing, just open the document!
 
-		const activeTextEditor = this._getActiveTextEditor();
+		const activeTextEditor = this._vscodeService.getActiveTextEditor();
 
 		const range = new Range(
 			new Position(
@@ -127,7 +119,7 @@ export class FileService {
 
 		if (textEditors.length === 0) {
 			for(const textDocument of textDocuments) {
-				const textEditor = await window
+				const textEditor = await this._vscodeService
 					// TODO we can add a range here
 					.showTextDocument(textDocument);
 
