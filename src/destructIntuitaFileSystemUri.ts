@@ -3,6 +3,8 @@ import { JobHash } from './features/moveTopLevelNode/jobHash';
 const FS_PATH_START_REG_EXP = /^\/vfs\/(jobs|files)\/([a-z]+)/;
 const FS_PATH_END_REG_EXP = /\/([a-zA-Z0-9-_=]+)\.(ts|tsx|js|jsx)$/;
 
+// call the function parseInternalUri
+// return type = ParsedInternalUri
 export const destructIntuitaFileSystemUri = (uri: {
 	scheme: string;
 	fsPath: string;

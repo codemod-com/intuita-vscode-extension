@@ -14,7 +14,7 @@ import {
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { JobKind, JobOutput } from '../jobs';
-import { FilePermission, TextDocument, Uri, workspace } from 'vscode';
+import { FilePermission, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { buildMoveTopLevelNodeFact } from '../features/moveTopLevelNode/2_factBuilders';
 import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
@@ -28,13 +28,13 @@ import {
 	MoveTopLevelNodeJob,
 } from '../features/moveTopLevelNode/job';
 import { buildRepairCodeJobs, RepairCodeJob } from '../features/repairCode/job';
-import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { buildRuleBasedRepairCodeJobs } from '../features/repairCode/buildRuleBasedRepairCodeJobs';
 
 type Job = MoveTopLevelNodeJob | RepairCodeJob;
 
 export class JobManager {
 	protected _fileNames = new Map<FileNameHash, string>();
+	protected _hasHadMoveTopLevelBlockJobs = new Set<FileNameHash>();
 	protected _moveTopLevelBlockHashMap = new Map<FileNameHash, Set<JobHash>>();
 	protected _repairCodeHashMap = new Map<FileNameHash, Set<JobHash>>();
 	protected _rejectedJobHashes = new Set<JobHash>();
@@ -45,10 +45,6 @@ export class JobManager {
 		protected readonly _configurationContainer: Container<Configuration>,
 	) {
 		this._messageBus.subscribe(async (message) => {
-			if (message.kind === MessageKind.readingFileFailed) {
-				setImmediate(() => this._onReadingFileFailed(message.uri));
-			}
-
 			if (message.kind === MessageKind.createRepairCodeJobs) {
 				setImmediate(() => this._onCreateRepairCodeJob(message));
 			}
@@ -64,6 +60,10 @@ export class JobManager {
 				setImmediate(() =>
 					this.onRuleBasedCoreRepairDiagnosticsChanged(message),
 				);
+			}
+
+			if (message.kind === MessageKind.externalFileUpdated) {
+				setImmediate(() => this._externalFileUpdated(message));
 			}
 		});
 	}
@@ -143,6 +143,52 @@ export class JobManager {
 		});
 	}
 
+	public acceptJob(
+		jobHash: JobHash,
+		characterDifference: number,
+	): void {
+		const job = this._jobMap.get(jobHash);
+
+		assertsNeitherNullOrUndefined(job);
+
+		const fileNameHash = buildFileNameHash(job.fileName);
+
+		const jobOutput = this.executeJob(jobHash, characterDifference);
+
+		// clean up the state
+		if (job.kind === JobKind.moveTopLevelNode) {
+			const jobHashes = this._moveTopLevelBlockHashMap.get(fileNameHash) ?? new Set();
+			jobHashes.delete(jobHash);
+
+			this._moveTopLevelBlockHashMap.set(fileNameHash, jobHashes);
+		} else if(job.kind === JobKind.repairCode) {
+			const jobHashes = this._repairCodeHashMap.get(fileNameHash) ?? new Set();
+			jobHashes.delete(jobHash);
+
+			this._repairCodeHashMap.set(fileNameHash, jobHashes);
+		}
+
+		this._jobMap.delete(jobHash);
+
+		// send messages
+		this._messageBus.publish({
+			kind: MessageKind.deleteFile,
+			uri: buildJobUri(job),
+		})
+
+		this._messageBus.publish({
+			kind: MessageKind.updateExternalFile,
+			uri: Uri.parse(job.fileName),
+			jobOutput,
+		});
+
+		
+		this._messageBus.publish({
+			kind: MessageKind.updateInternalDiagnostics,
+			fileName: job.fileName,
+		});
+	}
+
 	public executeJob(
 		jobHash: JobHash,
 		characterDifference: number,
@@ -177,18 +223,17 @@ export class JobManager {
 		};
 	}
 
-	public buildMoveTopLevelNodeJobs(document: TextDocument) {
-		if (document.uri.scheme !== 'file') {
+	public buildMoveTopLevelNodeJobs(uri: Uri, text: string) {
+		if (uri.scheme !== 'file') {
 			return;
 		}
 
-		const { fileName } = document;
-		const fileText = document.getText();
+		const fileName = uri.fsPath;
 
 		const userCommand: MoveTopLevelNodeUserCommand = {
 			kind: 'MOVE_TOP_LEVEL_NODE',
 			fileName,
-			fileText,
+			fileText: text,
 			options: this._configurationContainer.get(),
 		};
 
@@ -221,6 +266,7 @@ export class JobManager {
 			}
 		});
 
+		this._hasHadMoveTopLevelBlockJobs.add(fileNameHash);
 		this._moveTopLevelBlockHashMap.set(fileNameHash, newJobHashes);
 
 		newJobs.forEach((job) => {
@@ -248,18 +294,18 @@ export class JobManager {
 			});
 		});
 
-		const uri = buildFileUri(document.uri);
+		const fileUri = buildFileUri(uri);
 
 		if (newJobs.length === 0) {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
-				uri,
+				uri: fileUri,
 			});
 		} else {
 			this._messageBus.publish({
 				kind: MessageKind.writeFile,
-				uri,
-				content: Buffer.from(fileText),
+				uri: fileUri,
+				content: Buffer.from(text),
 				permissions: FilePermission.Readonly,
 			});
 		}
@@ -319,73 +365,18 @@ export class JobManager {
 		this._commitRepairCodeJobs(fileName, message.version, jobs);
 	}
 
-	protected async _onReadingFileFailed(uri: Uri) {
-		const destructedUri = destructIntuitaFileSystemUri(uri);
-
-		if (!destructedUri) {
-			return;
-		}
-
-		const fileName =
-			destructedUri.directory === 'files'
-				? destructedUri.fsPath
-				: this.getFileNameFromJobHash(destructedUri.jobHash);
-
-		if (!fileName) {
-			console.debug('Could not get the file name from the provided URI');
-
-			return;
-		}
-
-		const textDocument = await workspace.openTextDocument(
-			Uri.parse(fileName),
-		);
-		let text = textDocument.getText();
-
-		assertsNeitherNullOrUndefined(text);
-
-		if (destructedUri.directory === 'jobs') {
-			const result = this.executeJob(destructedUri.jobHash, 0);
-
-			if (result) {
-				text = result.text;
-			}
-		}
-
-		assertsNeitherNullOrUndefined(text);
-
-		const content = Buffer.from(text);
-
-		const permissions =
-			destructedUri.directory === 'files'
-				? FilePermission.Readonly
-				: null;
-
-		this._messageBus.publish({
-			kind: MessageKind.writeFile,
-			uri,
-			content,
-			permissions,
-		});
-	}
-
 	protected async _onCreateRepairCodeJob(
 		message: Message & { kind: MessageKind.createRepairCodeJobs },
 	) {
 		const fileName = message.uri.fsPath;
 
-		const textDocument = await workspace.openTextDocument(
-			Uri.parse(fileName),
-		);
-		const fileText = textDocument.getText() ?? '';
-
-		const separator = getSeparator(fileText);
-		const lines = calculateLines(fileText, separator);
+		const separator = getSeparator(message.text);
+		const lines = calculateLines(message.text, separator);
 		const lengths = calculateLengths(lines);
 
 		const jobs = buildRepairCodeJobs(
 			fileName,
-			fileText,
+			message.text,
 			message.inferenceJobs,
 			separator,
 			lengths,
@@ -471,5 +462,18 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
 		});
+	}
+
+	protected _externalFileUpdated(
+		message: Message & { kind: MessageKind.externalFileUpdated },
+	) {
+		const fileName = message.uri.fsPath;
+		const fileNameHash = buildFileNameHash(fileName);
+
+		if (!this._hasHadMoveTopLevelBlockJobs.has(fileNameHash)) {
+			return;
+		}
+
+		this.buildMoveTopLevelNodeJobs(message.uri, message.text);
 	}
 }
