@@ -4,7 +4,7 @@ import {
 	inferredMessageCodec,
 	mapValidationToEither,
 } from './inferenceService';
-import { Uri, WorkspaceFolder } from 'vscode';
+import { Uri } from 'vscode';
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { basename, join } from 'node:path';
 import { mkdir, writeFile } from 'node:fs';
@@ -13,6 +13,7 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
 import { randomBytes } from 'node:crypto';
+import { VSCodeService } from './vscodeService';
 
 const promisifiedMkdir = promisify(mkdir);
 const promisifiedWriteFile = promisify(writeFile);
@@ -23,10 +24,8 @@ export class InferredCodeRepairService {
 
 	public constructor(
 		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _getWorkspaceFolder: (
-			uri: Uri,
-		) => WorkspaceFolder | null,
 		protected readonly _messageBus: MessageBus,
+		protected readonly _vscodeService: VSCodeService,
 	) {
 		this._messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.textDocumentChanged) {
@@ -73,7 +72,7 @@ export class InferredCodeRepairService {
 
 		this._cancel(message.uri);
 
-		const workspacePath = this._getWorkspaceFolder(message.uri)?.uri.fsPath;
+		const workspacePath = this._vscodeService.getWorkspaceFolder(message.uri)?.uri.fsPath;
 
 		if (!isNeitherNullNorUndefined(workspacePath)) {
 			return;

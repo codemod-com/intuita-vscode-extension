@@ -41,8 +41,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	new InferredCodeRepairService(
 		configurationContainer,
-		(uri) => vscode.workspace.getWorkspaceFolder(uri) ?? null,
 		messageBus,
+		vscodeService,
 	);
 
 	new RuleBasedCoreRepairService(configurationContainer, messageBus);
