@@ -8,7 +8,6 @@ import {
 	TextEditorRevealType,
 	Uri,
 	window,
-	workspace,
 } from 'vscode';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -24,6 +23,11 @@ export class FileService {
 		protected readonly _openTextDocument: (
 			uri: Uri,
 		) => Promise<TextDocument>,
+		protected readonly _getVisibleEditors: () => ReadonlyArray<TextEditor>,
+		protected readonly _getTextDocuments: () => ReadonlyArray<TextDocument>,
+		protected readonly _getActiveTextEditor: () => TextEditor | null,
+		protected readonly _showTextDocument: (textDocument: TextDocument) => Promise<TextEditor>,
+
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
@@ -82,17 +86,17 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const textEditors = window.visibleTextEditors.filter(({ document }) => {
+		const textEditors = this._getVisibleEditors().filter(({ document }) => {
 			return document.uri.toString() === stringUri;
 		});
 
-		const textDocuments = workspace.textDocuments.filter((document) => {
+		const textDocuments = this._getTextDocuments().filter((document) => {
 			return document.uri.toString() === stringUri;
 		});
 
 		// TODO if the text editor is missing, just open the document!
 
-		const activeTextEditor = window.activeTextEditor ?? null;
+		const activeTextEditor = this._getActiveTextEditor();
 
 		const range = new Range(
 			new Position(
@@ -122,11 +126,12 @@ export class FileService {
 		await Promise.all(textEditors.map(changeTextEditor));
 
 		if (textEditors.length === 0) {
-			textDocuments.forEach((textDocument) => {
-				window
+			textDocuments.forEach(async (textDocument) => {
+				const textEditor = await window
 					// TODO we can add a range here
-					.showTextDocument(textDocument)
-					.then(changeTextEditor);
+					.showTextDocument(textDocument);
+
+				await changeTextEditor(textEditor);
 			});
 		}
 

@@ -62,6 +62,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		messageBus,
 		async (uri) => vscode.workspace.openTextDocument(uri),
+		() => vscode.window.visibleTextEditors,
+		() => vscode.workspace.textDocuments,
+		() => vscode.window.activeTextEditor ?? null,
+		async (textDocument) => vscode.window.showTextDocument(textDocument),
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
