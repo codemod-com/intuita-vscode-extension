@@ -78,13 +78,17 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const textEditors = this._vscodeService.getVisibleEditors().filter(({ document }) => {
-			return document.uri.toString() === stringUri;
-		});
+		const textEditors = this._vscodeService
+			.getVisibleEditors()
+			.filter(({ document }) => {
+				return document.uri.toString() === stringUri;
+			});
 
-		const textDocuments = this._vscodeService.getTextDocuments().filter((document) => {
-			return document.uri.toString() === stringUri;
-		});
+		const textDocuments = this._vscodeService
+			.getTextDocuments()
+			.filter((document) => {
+				return document.uri.toString() === stringUri;
+			});
 
 		// TODO if the text editor is missing, just open the document!
 
@@ -118,7 +122,7 @@ export class FileService {
 		await Promise.all(textEditors.map(changeTextEditor));
 
 		if (textEditors.length === 0) {
-			for(const textDocument of textDocuments) {
+			for (const textDocument of textDocuments) {
 				const textEditor = await this._vscodeService
 					// TODO we can add a range here
 					.showTextDocument(textDocument);

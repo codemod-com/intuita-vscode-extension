@@ -83,8 +83,9 @@ export class DiagnosticManager {
 			return;
 		}
 
-		const diagnostics = this._vscodeService.getDiagnostics(uri).filter(
-			({ source, code }) => {
+		const diagnostics = this._vscodeService
+			.getDiagnostics(uri)
+			.filter(({ source, code }) => {
 				if (source !== 'ts' || !code) {
 					return false;
 				}
@@ -94,8 +95,7 @@ export class DiagnosticManager {
 				}
 
 				return String(code.value) === '2345';
-			},
-		);
+			});
 
 		if (diagnostics.length === 0) {
 			this._messageBus.publish({

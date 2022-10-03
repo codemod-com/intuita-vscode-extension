@@ -22,9 +22,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		getVisibleEditors: () => vscode.window.visibleTextEditors,
 		getTextDocuments: () => vscode.workspace.textDocuments,
 		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
-		showTextDocument: async (textDocument) => vscode.window.showTextDocument(textDocument),
+		showTextDocument: async (textDocument) =>
+			vscode.window.showTextDocument(textDocument),
 		getDiagnostics: (uri) => vscode.languages.getDiagnostics(uri),
-		getWorkspaceFolder: (uri) => vscode.workspace.getWorkspaceFolder(uri) ?? null,
+		getWorkspaceFolder: (uri) =>
+			vscode.workspace.getWorkspaceFolder(uri) ?? null,
 	};
 
 	messageBus.setDisposables(context.subscriptions);
@@ -34,10 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const configurationContainer = buildContainer(getConfiguration());
 
-	const diagnosticManager = new DiagnosticManager(
-		messageBus,
-		vscodeService,
-	);
+	const diagnosticManager = new DiagnosticManager(messageBus, vscodeService);
 
 	new InferredCodeRepairService(
 		configurationContainer,

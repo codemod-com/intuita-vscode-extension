@@ -72,7 +72,9 @@ export class InferredCodeRepairService {
 
 		this._cancel(message.uri);
 
-		const workspacePath = this._vscodeService.getWorkspaceFolder(message.uri)?.uri.fsPath;
+		const workspacePath = this._vscodeService.getWorkspaceFolder(
+			message.uri,
+		)?.uri.fsPath;
 
 		if (!isNeitherNullNorUndefined(workspacePath)) {
 			return;
