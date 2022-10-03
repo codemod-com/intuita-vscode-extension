@@ -1,20 +1,17 @@
 import * as t from 'io-ts';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
-import { assertsNeitherNullOrUndefined } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildTypeCodec, mapValidationToEither } from './inferenceService';
 import { withFallback } from 'io-ts-types';
 import { pipe } from 'fp-ts/lib/function';
 import { orElse } from 'fp-ts/lib/Either';
-import { MessageBus, MessageKind } from './messageBus';
-import { Uri } from 'vscode';
 
 const argumentCodec = buildTypeCodec({
 	hash: t.string,
 	characterDifference: withFallback(t.number, 0),
 });
 
-export const acceptJob = (jobManager: JobManager, messageBus: MessageBus) => {
+export const acceptJob = (jobManager: JobManager) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
@@ -34,20 +31,9 @@ export const acceptJob = (jobManager: JobManager, messageBus: MessageBus) => {
 			);
 		}
 
-		const job = jobManager.getJob(argumentEither.right.hash as JobHash);
-		assertsNeitherNullOrUndefined(job);
-
-		const jobOutput = jobManager.executeJob(
-			job.hash,
+		jobManager.acceptJob(
+			argumentEither.right.hash as JobHash,
 			argumentEither.right.characterDifference,
 		);
-
-		const uri = Uri.parse(job.fileName);
-
-		messageBus.publish({
-			kind: MessageKind.updateExternalFile,
-			uri,
-			jobOutput,
-		});
 	};
 };
