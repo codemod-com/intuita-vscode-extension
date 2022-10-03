@@ -24,6 +24,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
 		showTextDocument: async (textDocument) => vscode.window.showTextDocument(textDocument),
 		getDiagnostics: (uri) => vscode.languages.getDiagnostics(uri),
+		getWorkspaceFolder: (uri) => vscode.workspace.getWorkspaceFolder(uri) ?? null,
 	};
 
 	messageBus.setDisposables(context.subscriptions);

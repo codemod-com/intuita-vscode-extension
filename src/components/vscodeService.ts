@@ -1,4 +1,4 @@
-import type { Diagnostic, TextDocument, TextEditor, Uri } from "vscode";
+import type { Diagnostic, TextDocument, TextEditor, Uri, WorkspaceFolder } from "vscode";
 
 export interface VSCodeService {
     readonly openTextDocument: (
@@ -11,4 +11,5 @@ export interface VSCodeService {
     readonly getDiagnostics: (
         uri: Uri,
     ) => ReadonlyArray<Diagnostic>,
+    readonly getWorkspaceFolder: (uri: Uri) => WorkspaceFolder | null,
 }
