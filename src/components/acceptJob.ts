@@ -15,10 +15,10 @@ export const acceptJob = (jobManager: JobManager) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
-			argumentCodec.decode({ hash: arg0 }),
+			argumentCodec.decode(arg0),
 			orElse(() =>
 				argumentCodec.decode({
-					jobHash: arg0,
+					hash: arg0,
 					characterDifference: arg1,
 				}),
 			),
