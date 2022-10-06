@@ -93,4 +93,59 @@ describe.only('buildReplacement', () => {
 
         assert.equal(replacement, 'String(numberVariable)');
     });
+
+    /**
+     * when we change a string into a boolean:
+        if the string is a false or true literal, add quotes
+        otherwise, use a wrapper
+     */
+    it('should change the \'false\' string into the false boolean', () => {
+        const replacement = buildReplacement({
+            text: '\'false\'',
+            receivedKind: 'string',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'false');
+    });
+
+    it('should change the \'true\' string into the true boolean', () => {
+        const replacement = buildReplacement({
+            text: '\'true\'',
+            receivedKind: 'string',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'true');
+    });
+
+    it('should change the "false" string into the false boolean', () => {
+        const replacement = buildReplacement({
+            text: '"false"',
+            receivedKind: 'string',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'false');
+    });
+
+    it('should change the "true" string into the false boolean', () => {
+        const replacement = buildReplacement({
+            text: '"true"',
+            receivedKind: 'string',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'true');
+    });
+
+    it('should change the stringVariable string into the wrapper boolean', () => {
+        const replacement = buildReplacement({
+            text: 'stringVariable',
+            receivedKind: 'string',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'Boolean(stringVariable)');
+    });
 });
