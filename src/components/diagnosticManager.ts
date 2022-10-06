@@ -52,7 +52,7 @@ const isDiagnosticSupported = ({ source, code }: Diagnostic): boolean => {
 	}
 
 	return String(code.value) === '2345';
-}
+};
 
 export class DiagnosticManager {
 	protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
@@ -63,19 +63,20 @@ export class DiagnosticManager {
 	) {}
 
 	public async handleDiagnostics() {
-		const uriDiagnosticsTuples = this._vscodeService.getDiagnostics()
-			.filter(
-				([uri,]) => {
-					const stringUri = uri.toString();
+		const uriDiagnosticsTuples = this._vscodeService
+			.getDiagnostics()
+			.filter(([uri]) => {
+				const stringUri = uri.toString();
 
-					return !stringUri.includes('.intuita')
-						&& !stringUri.includes('node_modules');
-				},
-			)
+				return (
+					!stringUri.includes('.intuita') &&
+					!stringUri.includes('node_modules')
+				);
+			})
 			.map(([uri, diagnostics]) => {
 				return [
 					uri,
-					diagnostics.filter(isDiagnosticSupported)
+					diagnostics.filter(isDiagnosticSupported),
 				] as const;
 			});
 
@@ -85,11 +86,13 @@ export class DiagnosticManager {
 					kind: MessageKind.noExternalDiagnostics,
 					uri,
 				});
-	
+
 				continue;
 			}
 
-			const textDocument = await this._vscodeService.openTextDocument(uri);
+			const textDocument = await this._vscodeService.openTextDocument(
+				uri,
+			);
 
 			const newDiagnostics: Diagnostic[] = [];
 
@@ -97,7 +100,7 @@ export class DiagnosticManager {
 				const hash = buildDiagnosticHash(
 					uri,
 					textDocument.version,
-					diagnostic
+					diagnostic,
 				);
 
 				if (this._seenHashes.has(hash)) {

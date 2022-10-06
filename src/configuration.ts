@@ -27,7 +27,8 @@ export const getConfiguration = () => {
 		configuration.get<boolean>('preferRuleBasedCodeRepair') ?? false;
 
 	const buildCodeRepairJobsOnDocumentSave =
-		configuration.get<boolean>('buildCodeRepairJobsOnDocumentSave') ?? false;
+		configuration.get<boolean>('buildCodeRepairJobsOnDocumentSave') ??
+		false;
 
 	return {
 		modifierOrder,

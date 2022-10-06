@@ -124,7 +124,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			async () => {
 				await diagnosticManager.handleDiagnostics();
 			},
-		)
+		),
 	);
 
 	context.subscriptions.push(
@@ -187,16 +187,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidSaveTextDocument(
-			async () => {
-				if (!configurationContainer.get().buildCodeRepairJobsOnDocumentSave) {
-					return;
-				};
+		vscode.workspace.onDidSaveTextDocument(async () => {
+			if (
+				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
+			) {
+				return;
+			}
 
-				await diagnosticManager.handleDiagnostics();
-			},
-		)
-	)
+			await diagnosticManager.handleDiagnostics();
+		}),
+	);
 
 	context.subscriptions.push(diagnosticCollection);
 }
