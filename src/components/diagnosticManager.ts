@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticChangeEvent, Uri } from 'vscode';
+import { Diagnostic, languages, Uri, workspace } from 'vscode';
 import { buildHash } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
 import { VSCodeService } from './vscodeService';
@@ -42,6 +42,18 @@ const buildDiagnosticHash = (
 	) as DiagnosticHash;
 };
 
+const isDiagnosticSupported = ({ source, code }: Diagnostic): boolean => {
+	if (source !== 'ts' || !code) {
+		return false;
+	}
+
+	if (typeof code === 'string' || typeof code === 'number') {
+		return String(code) === '2345';
+	}
+
+	return String(code.value) === '2345';
+}
+
 export class DiagnosticManager {
 	protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
 
@@ -50,88 +62,62 @@ export class DiagnosticManager {
 		protected readonly _vscodeService: VSCodeService,
 	) {}
 
-	public async onDiagnosticChangeEvent(
-		event: DiagnosticChangeEvent,
-	): Promise<void> {
-		const activeTextEditor = this._vscodeService.getActiveTextEditor();
+	public handleDiagnostics() {
+		const uriDiagnosticsTuples = languages.getDiagnostics();
 
-		if (!activeTextEditor) {
-			console.debug(
-				'There is no active text editor despite the changed diagnostics.',
-			);
-
-			return;
-		}
-
-		const { uri, version, getText } = activeTextEditor.document;
-
-		const stringUri = uri.toString();
-
-		if (stringUri.includes('.intuita')) {
-			console.debug(
-				"The files within the .intuita directory won't be inspected.",
-			);
-
-			return;
-		}
-
-		if (!event.uris.some((u) => stringUri === u.toString())) {
-			console.debug(
-				"No diagnostic have changed for the active text editor's document",
-			);
-
-			return;
-		}
-
-		const diagnostics = this._vscodeService
-			.getDiagnostics(uri)
-			.filter(({ source, code }) => {
-				if (source !== 'ts' || !code) {
-					return false;
+		uriDiagnosticsTuples
+			.filter(
+				([uri,]) => !uri.toString().includes('.intuita'),
+			)
+			.map(([uri, diagnostics]) => {
+				return [
+					uri,
+					diagnostics.filter(isDiagnosticSupported)
+				] as const;
+			})
+			.forEach(async ([uri, diagnostics]) => {
+				if (diagnostics.length === 0) {
+					this._messageBus.publish({
+						kind: MessageKind.noExternalDiagnostics,
+						uri,
+					});
+		
+					return;
 				}
 
-				if (typeof code === 'string' || typeof code === 'number') {
-					return String(code) === '2345';
+				const textDocument = await workspace.openTextDocument(uri);
+
+				const newDiagnostics: Diagnostic[] = [];
+
+				diagnostics.forEach((diagnostic) => {
+					const hash = buildDiagnosticHash(
+						uri,
+						textDocument.version,
+						diagnostic
+					);
+
+					if (this._seenHashes.has(hash)) {
+						return;
+					}
+
+					this._seenHashes.add(hash);
+
+					newDiagnostics.push(diagnostic);
+				});
+
+				if (newDiagnostics.length === 0) {
+					return;
 				}
 
-				return String(code.value) === '2345';
+				const text = textDocument.getText();
+
+				this._messageBus.publish({
+					kind: MessageKind.newExternalDiagnostics,
+					uri,
+					text,
+					version: textDocument.version,
+					diagnostics: newDiagnostics,
+				});
 			});
-
-		if (diagnostics.length === 0) {
-			this._messageBus.publish({
-				kind: MessageKind.noExternalDiagnostics,
-				uri,
-			});
-
-			return;
-		}
-
-		const newDiagnostics: Diagnostic[] = [];
-
-		diagnostics.forEach((diagnostic) => {
-			const hash = buildDiagnosticHash(uri, version, diagnostic);
-
-			if (this._seenHashes.has(hash)) {
-				return;
-			}
-
-			this._seenHashes.add(hash);
-
-			newDiagnostics.push(diagnostic);
-		});
-
-		if (newDiagnostics.length === 0) {
-			return;
-		}
-
-		const text = getText();
-
-		this._messageBus.publish({
-			kind: MessageKind.newExternalDiagnostics,
-			uri,
-			text,
-			version,
-			diagnostics: newDiagnostics,
-		});
 	}
 }

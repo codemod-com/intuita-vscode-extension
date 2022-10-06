@@ -122,7 +122,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.buildCodeRepairJobs',
 			() => {
-				// TODO: implement
+				diagnosticManager.handleDiagnostics();
 			},
 		)
 	);
@@ -187,12 +187,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(diagnosticCollection);
-
-	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics((event) => {
-			diagnosticManager.onDiagnosticChangeEvent(event);
-		}),
-	);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
