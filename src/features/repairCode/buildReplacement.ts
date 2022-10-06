@@ -39,6 +39,10 @@ export const buildReplacement = (
 	}
 
 	if (expectedKind === 'string') {
+		if (regexp.test(text)) {
+			return `'${text}'`;
+		}
+
 		return `String(${text})`;
 	}
 

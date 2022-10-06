@@ -52,9 +52,11 @@ describe.only('buildReplacement', () => {
         assert.equal(replacement, 'Number(stringVariable)');
     });
 
+    // test
+
     it('should change the 0 number into \'0\' string', () => {
         const replacement = buildReplacement({
-            text: '\'\'',
+            text: '0',
             receivedKind: 'number',
             expectedKind: 'string',
         });
@@ -89,6 +91,6 @@ describe.only('buildReplacement', () => {
             expectedKind: 'string',
         });
 
-        assert.equal(replacement, 'Number(numberVariable)');
+        assert.equal(replacement, 'String(numberVariable)');
     });
 });
