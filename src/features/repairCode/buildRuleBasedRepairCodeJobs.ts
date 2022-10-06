@@ -50,7 +50,11 @@ export const buildRuleBasedRepairCodeJobs = (
 				intuitaSimpleRange.end,
 			);
 
-			const replacement = buildReplacement(rangeText, kinds.expected);
+			const replacement = buildReplacement({
+				text: rangeText,
+				receivedKind: kinds.received, 
+				expectedKind: kinds.expected,
+			});
 
 			return {
 				range,
