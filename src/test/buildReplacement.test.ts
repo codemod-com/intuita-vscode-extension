@@ -148,4 +148,40 @@ describe.only('buildReplacement', () => {
 
         assert.equal(replacement, 'Boolean(stringVariable)');
     });
+
+    /**
+     * when we change a boolean into a string:
+        if the boolean is false, make it 'false'
+        if the boolean is true, make it 'true'
+     */
+
+    it('should change the false boolean into the false string', () => {
+        const replacement = buildReplacement({
+            text: 'false',
+            receivedKind: 'boolean',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, '\'false\'');
+    });
+
+    it('should change the true boolean into the true string', () => {
+        const replacement = buildReplacement({
+            text: 'true',
+            receivedKind: 'boolean',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, '\'true\'');
+    });
+
+    it('should change the booleanVariable boolean into the wrapped string', () => {
+        const replacement = buildReplacement({
+            text: 'booleanVariable',
+            receivedKind: 'boolean',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, 'String(booleanVariable)');
+    });
 });
