@@ -55,6 +55,16 @@ export const buildReplacement = (
 			}
 		}
 
+		if (receivedKind === 'boolean') {
+			if (text === 'false') {
+				return '0';
+			}
+
+			if (text === 'true') {
+				return '1';
+			}
+		}
+
 		return `Number(${text})`;
 	}
 
