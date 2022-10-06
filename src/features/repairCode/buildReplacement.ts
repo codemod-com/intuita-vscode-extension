@@ -49,6 +49,12 @@ export const buildReplacement = (
 	}
 
 	if (expectedKind === 'string') {
+		if (receivedKind === 'boolean') {
+			if (text === 'false' || text === 'true') {
+				return `'${text}'`;
+			}
+		}
+
 		if (regexp.test(text)) {
 			return `'${text}'`;
 		}

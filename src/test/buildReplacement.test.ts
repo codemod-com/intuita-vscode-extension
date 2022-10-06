@@ -155,7 +155,7 @@ describe.only('buildReplacement', () => {
         if the boolean is true, make it 'true'
      */
 
-    it('should change the false boolean into the false string', () => {
+    it('should change the false boolean into the "false" string', () => {
         const replacement = buildReplacement({
             text: 'false',
             receivedKind: 'boolean',
@@ -165,7 +165,7 @@ describe.only('buildReplacement', () => {
         assert.equal(replacement, '\'false\'');
     });
 
-    it('should change the true boolean into the true string', () => {
+    it('should change the true boolean into the "true" string', () => {
         const replacement = buildReplacement({
             text: 'true',
             receivedKind: 'boolean',
