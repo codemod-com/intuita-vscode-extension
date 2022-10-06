@@ -1,19 +1,17 @@
 type ReplacementArguments = Readonly<{
-	text: string,
-	receivedKind: 'boolean' | 'number' | 'string',
-	expectedKind: 'boolean' | 'number' | 'string',
+	text: string;
+	receivedKind: 'boolean' | 'number' | 'string';
+	expectedKind: 'boolean' | 'number' | 'string';
 }>;
 
 const regexp = /^(-|\+)?[0-9]+(.[0-9]+)?$/;
 
-export const buildReplacement = (
-	{
-		expectedKind,
-		receivedKind,
-		text,
-	}: ReplacementArguments,
-): string => {
-	const surroundedBySingleQuote = text.startsWith('\'') && text.endsWith('\'');
+export const buildReplacement = ({
+	expectedKind,
+	receivedKind,
+	text,
+}: ReplacementArguments): string => {
+	const surroundedBySingleQuote = text.startsWith("'") && text.endsWith("'");
 	const surroundedByDoubleQuote = text.startsWith('"') && text.endsWith('"');
 
 	if (expectedKind === 'boolean') {

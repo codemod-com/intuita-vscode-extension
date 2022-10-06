@@ -1,263 +1,234 @@
-import { assert } from "chai";
-import { buildReplacement } from "../features/repairCode/buildReplacement";
+import { assert } from 'chai';
+import { buildReplacement } from '../features/repairCode/buildReplacement';
 
-describe.only('buildReplacement', () => {
-    it('should change the \'\' string into the 0 number', () => {
-        const replacement = buildReplacement({
-            text: '\'\'',
-            receivedKind: 'string',
-            expectedKind: 'number',
-        });
+describe('buildReplacement', () => {
+	it("should change the '' string into the 0 number", () => {
+		const replacement = buildReplacement({
+			text: "''",
+			receivedKind: 'string',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, '0');
-    });
+		assert.equal(replacement, '0');
+	});
 
-    it('should change the \'-123456789.12345678\' string into the number', () => {
-        const replacement = buildReplacement({
-            text: '\'-123456789.12345678\'',
-            receivedKind: 'string',
-            expectedKind: 'number',
-        });
+	it("should change the '-123456789.12345678' string into the number", () => {
+		const replacement = buildReplacement({
+			text: "'-123456789.12345678'",
+			receivedKind: 'string',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, '-123456789.12345678');
-    });
+		assert.equal(replacement, '-123456789.12345678');
+	});
 
-    it('should change the \'20\' string into the 20 number', () => {
-        const replacement = buildReplacement({
-            text: '\'20\'',
-            receivedKind: 'string',
-            expectedKind: 'number',
-        });
+	it("should change the '20' string into the 20 number", () => {
+		const replacement = buildReplacement({
+			text: "'20'",
+			receivedKind: 'string',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, '20');
-    });
+		assert.equal(replacement, '20');
+	});
 
-    it('should change the "20" string into the 20 number', () => {
-        const replacement = buildReplacement({
-            text: '"20"',
-            receivedKind: 'string',
-            expectedKind: 'number',
-        });
+	it('should change the "20" string into the 20 number', () => {
+		const replacement = buildReplacement({
+			text: '"20"',
+			receivedKind: 'string',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, '20');
-    });
+		assert.equal(replacement, '20');
+	});
 
-    it('should change the stringVariable string into the wrapped number', () => {
-        const replacement = buildReplacement({
-            text: 'stringVariable',
-            receivedKind: 'string',
-            expectedKind: 'number',
-        });
+	it('should change the stringVariable string into the wrapped number', () => {
+		const replacement = buildReplacement({
+			text: 'stringVariable',
+			receivedKind: 'string',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, 'Number(stringVariable)');
-    });
+		assert.equal(replacement, 'Number(stringVariable)');
+	});
 
-    // test
+	it("should change the 0 number into '0' string", () => {
+		const replacement = buildReplacement({
+			text: '0',
+			receivedKind: 'number',
+			expectedKind: 'string',
+		});
 
-    it('should change the 0 number into \'0\' string', () => {
-        const replacement = buildReplacement({
-            text: '0',
-            receivedKind: 'number',
-            expectedKind: 'string',
-        });
+		assert.equal(replacement, "'0'");
+	});
 
-        assert.equal(replacement, '\'0\'');
-    });
+	it("should change the -123456789.123456789 number into '-123456789.123456789' string", () => {
+		const replacement = buildReplacement({
+			text: '-123456789.123456789',
+			receivedKind: 'number',
+			expectedKind: 'string',
+		});
 
-    it('should change the -123456789.123456789 number into \'-123456789.123456789\' string', () => {
-        const replacement = buildReplacement({
-            text: '-123456789.123456789',
-            receivedKind: 'number',
-            expectedKind: 'string',
-        });
+		assert.equal(replacement, "'-123456789.123456789'");
+	});
 
-        assert.equal(replacement, '\'-123456789.123456789\'');
-    });
+	it("should change the 20 number into the '20' string", () => {
+		const replacement = buildReplacement({
+			text: '20',
+			receivedKind: 'number',
+			expectedKind: 'string',
+		});
 
-    it('should change the 20 number into the \'20\' string', () => {
-        const replacement = buildReplacement({
-            text: '20',
-            receivedKind: 'number',
-            expectedKind: 'string',
-        });
+		assert.equal(replacement, "'20'");
+	});
 
-        assert.equal(replacement, '\'20\'');
-    });
+	it('should change the numberVariable number into the wrapper string', () => {
+		const replacement = buildReplacement({
+			text: 'numberVariable',
+			receivedKind: 'number',
+			expectedKind: 'string',
+		});
 
-    it('should change the numberVariable number into the wrapper string', () => {
-        const replacement = buildReplacement({
-            text: 'numberVariable',
-            receivedKind: 'number',
-            expectedKind: 'string',
-        });
+		assert.equal(replacement, 'String(numberVariable)');
+	});
 
-        assert.equal(replacement, 'String(numberVariable)');
-    });
+	it("should change the 'false' string into the false boolean", () => {
+		const replacement = buildReplacement({
+			text: "'false'",
+			receivedKind: 'string',
+			expectedKind: 'boolean',
+		});
 
-    /**
-     * when we change a string into a boolean:
-        if the string is a false or true literal, add quotes
-        otherwise, use a wrapper
-     */
-    it('should change the \'false\' string into the false boolean', () => {
-        const replacement = buildReplacement({
-            text: '\'false\'',
-            receivedKind: 'string',
-            expectedKind: 'boolean',
-        });
+		assert.equal(replacement, 'false');
+	});
 
-        assert.equal(replacement, 'false');
-    });
+	it("should change the 'true' string into the true boolean", () => {
+		const replacement = buildReplacement({
+			text: "'true'",
+			receivedKind: 'string',
+			expectedKind: 'boolean',
+		});
 
-    it('should change the \'true\' string into the true boolean', () => {
-        const replacement = buildReplacement({
-            text: '\'true\'',
-            receivedKind: 'string',
-            expectedKind: 'boolean',
-        });
+		assert.equal(replacement, 'true');
+	});
 
-        assert.equal(replacement, 'true');
-    });
+	it('should change the "false" string into the false boolean', () => {
+		const replacement = buildReplacement({
+			text: '"false"',
+			receivedKind: 'string',
+			expectedKind: 'boolean',
+		});
 
-    it('should change the "false" string into the false boolean', () => {
-        const replacement = buildReplacement({
-            text: '"false"',
-            receivedKind: 'string',
-            expectedKind: 'boolean',
-        });
+		assert.equal(replacement, 'false');
+	});
 
-        assert.equal(replacement, 'false');
-    });
+	it('should change the "true" string into the false boolean', () => {
+		const replacement = buildReplacement({
+			text: '"true"',
+			receivedKind: 'string',
+			expectedKind: 'boolean',
+		});
 
-    it('should change the "true" string into the false boolean', () => {
-        const replacement = buildReplacement({
-            text: '"true"',
-            receivedKind: 'string',
-            expectedKind: 'boolean',
-        });
+		assert.equal(replacement, 'true');
+	});
 
-        assert.equal(replacement, 'true');
-    });
+	it('should change the stringVariable string into the wrapper boolean', () => {
+		const replacement = buildReplacement({
+			text: 'stringVariable',
+			receivedKind: 'string',
+			expectedKind: 'boolean',
+		});
 
-    it('should change the stringVariable string into the wrapper boolean', () => {
-        const replacement = buildReplacement({
-            text: 'stringVariable',
-            receivedKind: 'string',
-            expectedKind: 'boolean',
-        });
+		assert.equal(replacement, 'Boolean(stringVariable)');
+	});
 
-        assert.equal(replacement, 'Boolean(stringVariable)');
-    });
+	it('should change the false boolean into the "false" string', () => {
+		const replacement = buildReplacement({
+			text: 'false',
+			receivedKind: 'boolean',
+			expectedKind: 'string',
+		});
 
-    /**
-     * when we change a boolean into a string:
-        if the boolean is false, make it 'false'
-        if the boolean is true, make it 'true'
-     */
+		assert.equal(replacement, "'false'");
+	});
 
-    it('should change the false boolean into the "false" string', () => {
-        const replacement = buildReplacement({
-            text: 'false',
-            receivedKind: 'boolean',
-            expectedKind: 'string',
-        });
+	it('should change the true boolean into the "true" string', () => {
+		const replacement = buildReplacement({
+			text: 'true',
+			receivedKind: 'boolean',
+			expectedKind: 'string',
+		});
 
-        assert.equal(replacement, '\'false\'');
-    });
+		assert.equal(replacement, "'true'");
+	});
 
-    it('should change the true boolean into the "true" string', () => {
-        const replacement = buildReplacement({
-            text: 'true',
-            receivedKind: 'boolean',
-            expectedKind: 'string',
-        });
+	it('should change the booleanVariable boolean into the wrapped string', () => {
+		const replacement = buildReplacement({
+			text: 'booleanVariable',
+			receivedKind: 'boolean',
+			expectedKind: 'string',
+		});
 
-        assert.equal(replacement, '\'true\'');
-    });
+		assert.equal(replacement, 'String(booleanVariable)');
+	});
 
-    it('should change the booleanVariable boolean into the wrapped string', () => {
-        const replacement = buildReplacement({
-            text: 'booleanVariable',
-            receivedKind: 'boolean',
-            expectedKind: 'string',
-        });
+	it('should change the 0 number into the false boolean', () => {
+		const replacement = buildReplacement({
+			text: '0',
+			receivedKind: 'number',
+			expectedKind: 'boolean',
+		});
 
-        assert.equal(replacement, 'String(booleanVariable)');
-    });
+		assert.equal(replacement, 'false');
+	});
 
-    /**
-     * when we change a number into a boolean
+	it('should change the -123456789.123456789 number into the true boolean', () => {
+		const replacement = buildReplacement({
+			text: '-123456789.123456789',
+			receivedKind: 'number',
+			expectedKind: 'boolean',
+		});
 
-        if the number is the 0 literal, make it false
+		assert.equal(replacement, 'true');
+	});
 
-        if the number is another number literal, make it true
+	it('should change the numberVariable number into the wrapper boolean', () => {
+		const replacement = buildReplacement({
+			text: 'numberVariable',
+			receivedKind: 'number',
+			expectedKind: 'boolean',
+		});
 
-        otherwise, use a wrapper
-     */
+		assert.equal(replacement, 'Boolean(numberVariable)');
+	});
 
-    it('should change the 0 number into the false boolean', () => {
-        const replacement = buildReplacement({
-            text: '0',
-            receivedKind: 'number',
-            expectedKind: 'boolean',
-        });
+	it('should change the false boolean into the 0 number', () => {
+		const replacement = buildReplacement({
+			text: 'false',
+			receivedKind: 'boolean',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, 'false');
-    });
+		assert.equal(replacement, '0');
+	});
 
-    it('should change the -123456789.123456789 number into the true boolean', () => {
-        const replacement = buildReplacement({
-            text: '-123456789.123456789',
-            receivedKind: 'number',
-            expectedKind: 'boolean',
-        });
+	it('should change the true boolean into the 1 number', () => {
+		const replacement = buildReplacement({
+			text: 'true',
+			receivedKind: 'boolean',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, 'true');
-    });
+		assert.equal(replacement, '1');
+	});
 
-    it('should change the numberVariable number into the wrapper boolean', () => {
-        const replacement = buildReplacement({
-            text: 'numberVariable',
-            receivedKind: 'number',
-            expectedKind: 'boolean',
-        });
+	it('should change the booleanVariable boolean into the wrapper number', () => {
+		const replacement = buildReplacement({
+			text: 'true',
+			receivedKind: 'boolean',
+			expectedKind: 'number',
+		});
 
-        assert.equal(replacement, 'Boolean(numberVariable)');
-    });
-
-    /**
-     * when we change a boolean into a number:
-        if the boolean is false, make it 0
-        if the boolean is true, make it 1
-     */
-
-    it('should change the false boolean into the 0 number', () => {
-        const replacement = buildReplacement({
-            text: 'false',
-            receivedKind: 'boolean',
-            expectedKind: 'number',
-        });
-
-        assert.equal(replacement, '0');
-    });
-
-    it('should change the true boolean into the 1 number', () => {
-        const replacement = buildReplacement({
-            text: 'true',
-            receivedKind: 'boolean',
-            expectedKind: 'number',
-        });
-
-        assert.equal(replacement, '1');
-    });
-
-    it('should change the booleanVariable boolean into the wrapper number', () => {
-        const replacement = buildReplacement({
-            text: 'true',
-            receivedKind: 'boolean',
-            expectedKind: 'number',
-        });
-
-        assert.equal(replacement, '1');
-    });
+		assert.equal(replacement, '1');
+	});
 });

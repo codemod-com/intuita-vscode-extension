@@ -52,7 +52,7 @@ export const buildRuleBasedRepairCodeJobs = (
 
 			const replacement = buildReplacement({
 				text: rangeText,
-				receivedKind: kinds.received, 
+				receivedKind: kinds.received,
 				expectedKind: kinds.expected,
 			});
 
