@@ -51,4 +51,44 @@ describe.only('buildReplacement', () => {
 
         assert.equal(replacement, 'Number(stringVariable)');
     });
+
+    it('should change the 0 number into \'0\' string', () => {
+        const replacement = buildReplacement({
+            text: '\'\'',
+            receivedKind: 'number',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, '\'0\'');
+    });
+
+    it('should change the -123456789.123456789 number into \'-123456789.123456789\' string', () => {
+        const replacement = buildReplacement({
+            text: '-123456789.123456789',
+            receivedKind: 'number',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, '\'-123456789.123456789\'');
+    });
+
+    it('should change the 20 number into the \'20\' string', () => {
+        const replacement = buildReplacement({
+            text: '20',
+            receivedKind: 'number',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, '\'20\'');
+    });
+
+    it('should change the numberVariable number into the wrapper string', () => {
+        const replacement = buildReplacement({
+            text: 'numberVariable',
+            receivedKind: 'number',
+            expectedKind: 'string',
+        });
+
+        assert.equal(replacement, 'Number(numberVariable)');
+    });
 });
