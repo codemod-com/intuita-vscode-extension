@@ -63,7 +63,7 @@ export class DiagnosticManager {
 	) {}
 
 	public async handleDiagnostics() {
-		const uriDiagnosticsTuples = languages.getDiagnostics()
+		const uriDiagnosticsTuples = this._vscodeService.getDiagnostics()
 			.filter(
 				([uri,]) => {
 					const stringUri = uri.toString();
