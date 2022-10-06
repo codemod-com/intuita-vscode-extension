@@ -13,15 +13,25 @@ export const buildReplacement = (
 		text,
 	}: ReplacementArguments,
 ): string => {
+	const surroundedBySingleQuote = text.startsWith('\'') && text.endsWith('\'');
+	const surroundedByDoubleQuote = text.startsWith('"') && text.endsWith('"');
+
 	if (expectedKind === 'boolean') {
+		if (receivedKind === 'string') {
+			if (surroundedBySingleQuote || surroundedByDoubleQuote) {
+				const value = text.slice(1, text.length - 1);
+
+				if (value === 'false' || value === 'true') {
+					return value;
+				}
+			}
+		}
+
 		return `Boolean(${text})`;
 	}
 
 	if (expectedKind === 'number') {
 		if (receivedKind === 'string') {
-			const surroundedBySingleQuote = text.startsWith('\'') && text.endsWith('\'');
-			const surroundedByDoubleQuote = text.startsWith('"') && text.endsWith('"');
-
 			if (surroundedBySingleQuote || surroundedByDoubleQuote) {
 				const value = text.slice(1, text.length - 1);
 
