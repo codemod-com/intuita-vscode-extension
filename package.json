@@ -44,6 +44,10 @@
 				"title": "Intuita: Build move-top-level-block recommendations"
 			},
 			{
+				"command": "intuita.buildCodeRepairJobs",
+				"title": "Intuita: Build code-repair recommendations"
+			},
+			{
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
@@ -60,6 +64,12 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
+				"intuita.buildCodeRepairJobsOnDocumentSave": {
+					"order": -1,
+					"type": "boolean",
+					"default": false,
+					"description": "Build code-repair recommendations after saving a document"
+				},
 				"intuita.saveDocumentOnJobAccept": {
 					"order": 0,
 					"type": "boolean",

@@ -14,6 +14,8 @@ export interface VSCodeService {
 	readonly showTextDocument: (
 		textDocument: TextDocument,
 	) => Promise<TextEditor>;
-	readonly getDiagnostics: (uri: Uri) => ReadonlyArray<Diagnostic>;
+	readonly getDiagnostics: () => ReadonlyArray<
+		[Uri, ReadonlyArray<Diagnostic>]
+	>;
 	readonly getWorkspaceFolder: (uri: Uri) => WorkspaceFolder | null;
 }

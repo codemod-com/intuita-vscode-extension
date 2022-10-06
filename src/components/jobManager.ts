@@ -143,10 +143,7 @@ export class JobManager {
 		});
 	}
 
-	public acceptJob(
-		jobHash: JobHash,
-		characterDifference: number,
-	): void {
+	public acceptJob(jobHash: JobHash, characterDifference: number): void {
 		const job = this._jobMap.get(jobHash);
 
 		assertsNeitherNullOrUndefined(job);
@@ -157,12 +154,14 @@ export class JobManager {
 
 		// clean up the state
 		if (job.kind === JobKind.moveTopLevelNode) {
-			const jobHashes = this._moveTopLevelBlockHashMap.get(fileNameHash) ?? new Set();
+			const jobHashes =
+				this._moveTopLevelBlockHashMap.get(fileNameHash) ?? new Set();
 			jobHashes.delete(jobHash);
 
 			this._moveTopLevelBlockHashMap.set(fileNameHash, jobHashes);
-		} else if(job.kind === JobKind.repairCode) {
-			const jobHashes = this._repairCodeHashMap.get(fileNameHash) ?? new Set();
+		} else if (job.kind === JobKind.repairCode) {
+			const jobHashes =
+				this._repairCodeHashMap.get(fileNameHash) ?? new Set();
 			jobHashes.delete(jobHash);
 
 			this._repairCodeHashMap.set(fileNameHash, jobHashes);
@@ -174,7 +173,7 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.deleteFile,
 			uri: buildJobUri(job),
-		})
+		});
 
 		this._messageBus.publish({
 			kind: MessageKind.updateExternalFile,
@@ -182,7 +181,6 @@ export class JobManager {
 			jobOutput,
 		});
 
-		
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName: job.fileName,
