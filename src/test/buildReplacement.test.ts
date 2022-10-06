@@ -224,4 +224,40 @@ describe.only('buildReplacement', () => {
 
         assert.equal(replacement, 'Boolean(numberVariable)');
     });
+
+    /**
+     * when we change a boolean into a number:
+        if the boolean is false, make it 0
+        if the boolean is true, make it 1
+     */
+
+    it('should change the false boolean into the 0 number', () => {
+        const replacement = buildReplacement({
+            text: 'false',
+            receivedKind: 'boolean',
+            expectedKind: 'number',
+        });
+
+        assert.equal(replacement, '0');
+    });
+
+    it('should change the true boolean into the 1 number', () => {
+        const replacement = buildReplacement({
+            text: 'true',
+            receivedKind: 'boolean',
+            expectedKind: 'number',
+        });
+
+        assert.equal(replacement, '1');
+    });
+
+    it('should change the booleanVariable boolean into the wrapper number', () => {
+        const replacement = buildReplacement({
+            text: 'true',
+            receivedKind: 'boolean',
+            expectedKind: 'number',
+        });
+
+        assert.equal(replacement, '1');
+    });
 });
