@@ -24,7 +24,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
 		showTextDocument: async (textDocument) =>
 			vscode.window.showTextDocument(textDocument),
-		getDiagnostics: (uri) => vscode.languages.getDiagnostics(uri),
+		getDiagnostics: () => vscode.languages.getDiagnostics(),
 		getWorkspaceFolder: (uri) =>
 			vscode.workspace.getWorkspaceFolder(uri) ?? null,
 	};
@@ -119,6 +119,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildCodeRepairJobs',
+			async () => {
+				await diagnosticManager.handleDiagnostics();
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.requestFeature', () => {
 			vscode.env.openExternal(
 				vscode.Uri.parse('https://feedback.intuita.io/'),
@@ -177,13 +186,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	context.subscriptions.push(diagnosticCollection);
-
 	context.subscriptions.push(
-		vscode.languages.onDidChangeDiagnostics((event) => {
-			diagnosticManager.onDiagnosticChangeEvent(event);
+		vscode.workspace.onDidSaveTextDocument(async () => {
+			if (
+				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
+			) {
+				return;
+			}
+
+			await diagnosticManager.handleDiagnostics();
 		}),
 	);
+
+	context.subscriptions.push(diagnosticCollection);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

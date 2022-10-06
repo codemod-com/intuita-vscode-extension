@@ -26,12 +26,17 @@ export const getConfiguration = () => {
 	const preferRuleBasedCodeRepair =
 		configuration.get<boolean>('preferRuleBasedCodeRepair') ?? false;
 
+	const buildCodeRepairJobsOnDocumentSave =
+		configuration.get<boolean>('buildCodeRepairJobsOnDocumentSave') ??
+		false;
+
 	return {
 		modifierOrder,
 		kindOrder,
 		saveDocumentOnJobAccept,
 		minimumLines,
 		preferRuleBasedCodeRepair,
+		buildCodeRepairJobsOnDocumentSave,
 	};
 };
 
