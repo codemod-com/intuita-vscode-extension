@@ -62,10 +62,8 @@ export class DiagnosticManager {
 		protected readonly _vscodeService: VSCodeService,
 	) {}
 
-	public handleDiagnostics() {
-		const uriDiagnosticsTuples = languages.getDiagnostics();
-
-		uriDiagnosticsTuples
+	public async handleDiagnostics() {
+		const uriDiagnosticsTuples = languages.getDiagnostics()
 			.filter(
 				([uri,]) => {
 					const stringUri = uri.toString();
@@ -80,49 +78,50 @@ export class DiagnosticManager {
 					diagnostics.filter(isDiagnosticSupported)
 				] as const;
 			})
-			.forEach(async ([uri, diagnostics]) => {
-				if (diagnostics.length === 0) {
-					this._messageBus.publish({
-						kind: MessageKind.noExternalDiagnostics,
-						uri,
-					});
-		
-					return;
-				}
 
-				const textDocument = await workspace.openTextDocument(uri);
-
-				const newDiagnostics: Diagnostic[] = [];
-
-				diagnostics.forEach((diagnostic) => {
-					const hash = buildDiagnosticHash(
-						uri,
-						textDocument.version,
-						diagnostic
-					);
-
-					if (this._seenHashes.has(hash)) {
-						return;
-					}
-
-					this._seenHashes.add(hash);
-
-					newDiagnostics.push(diagnostic);
-				});
-
-				if (newDiagnostics.length === 0) {
-					return;
-				}
-
-				const text = textDocument.getText();
-
+		for (const [uri, diagnostics] of uriDiagnosticsTuples) {
+			if (diagnostics.length === 0) {
 				this._messageBus.publish({
-					kind: MessageKind.newExternalDiagnostics,
+					kind: MessageKind.noExternalDiagnostics,
 					uri,
-					text,
-					version: textDocument.version,
-					diagnostics: newDiagnostics,
 				});
+	
+				return;
+			}
+
+			const textDocument = await workspace.openTextDocument(uri);
+
+			const newDiagnostics: Diagnostic[] = [];
+
+			diagnostics.forEach((diagnostic) => {
+				const hash = buildDiagnosticHash(
+					uri,
+					textDocument.version,
+					diagnostic
+				);
+
+				if (this._seenHashes.has(hash)) {
+					return;
+				}
+
+				this._seenHashes.add(hash);
+
+				newDiagnostics.push(diagnostic);
 			});
+
+			if (newDiagnostics.length === 0) {
+				return;
+			}
+
+			const text = textDocument.getText();
+
+			this._messageBus.publish({
+				kind: MessageKind.newExternalDiagnostics,
+				uri,
+				text,
+				version: textDocument.version,
+				diagnostics: newDiagnostics,
+			});
+		}
 	}
 }

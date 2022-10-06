@@ -121,8 +121,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.buildCodeRepairJobs',
-			() => {
-				diagnosticManager.handleDiagnostics();
+			async () => {
+				await diagnosticManager.handleDiagnostics();
 			},
 		)
 	);
@@ -188,12 +188,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.workspace.onDidSaveTextDocument(
-			() => {
+			async () => {
 				if (!configurationContainer.get().buildCodeRepairJobsOnDocumentSave) {
 					return;
 				};
 
-				diagnosticManager.handleDiagnostics();
+				await diagnosticManager.handleDiagnostics();
 			},
 		)
 	)
