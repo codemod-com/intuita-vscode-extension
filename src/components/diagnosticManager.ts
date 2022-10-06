@@ -1,4 +1,4 @@
-import { Diagnostic, languages, Uri, workspace } from 'vscode';
+import { Diagnostic, Uri } from 'vscode';
 import { buildHash } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
 import { VSCodeService } from './vscodeService';
@@ -89,7 +89,7 @@ export class DiagnosticManager {
 				return;
 			}
 
-			const textDocument = await workspace.openTextDocument(uri);
+			const textDocument = await this._vscodeService.openTextDocument(uri);
 
 			const newDiagnostics: Diagnostic[] = [];
 
