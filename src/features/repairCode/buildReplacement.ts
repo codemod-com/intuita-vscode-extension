@@ -27,6 +27,16 @@ export const buildReplacement = (
 			}
 		}
 
+		if (receivedKind === 'number') {
+			if (text === '0') {
+				return 'false';
+			}
+
+			if (regexp.test(text)) {
+				return 'true';
+			}
+		}
+
 		return `Boolean(${text})`;
 	}
 
