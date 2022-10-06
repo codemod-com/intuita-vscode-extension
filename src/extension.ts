@@ -186,6 +186,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	context.subscriptions.push(
+		vscode.workspace.onDidSaveTextDocument(
+			() => {
+				if (!configurationContainer.get().buildCodeRepairJobsOnDocumentSave) {
+					return;
+				};
+
+				diagnosticManager.handleDiagnostics();
+			},
+		)
+	)
+
 	context.subscriptions.push(diagnosticCollection);
 }
 

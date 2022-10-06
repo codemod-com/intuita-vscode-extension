@@ -67,7 +67,12 @@ export class DiagnosticManager {
 
 		uriDiagnosticsTuples
 			.filter(
-				([uri,]) => !uri.toString().includes('.intuita'),
+				([uri,]) => {
+					const stringUri = uri.toString();
+
+					return !stringUri.includes('.intuita')
+						&& !stringUri.includes('node_modules');
+				},
 			)
 			.map(([uri, diagnostics]) => {
 				return [
