@@ -119,6 +119,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildCodeRepairJobs',
+			() => {
+				// TODO: implement
+			},
+		)
+	);
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.requestFeature', () => {
 			vscode.env.openExternal(
 				vscode.Uri.parse('https://feedback.intuita.io/'),
