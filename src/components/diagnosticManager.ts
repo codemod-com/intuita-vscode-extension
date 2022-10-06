@@ -77,7 +77,7 @@ export class DiagnosticManager {
 					uri,
 					diagnostics.filter(isDiagnosticSupported)
 				] as const;
-			})
+			});
 
 		for (const [uri, diagnostics] of uriDiagnosticsTuples) {
 			if (diagnostics.length === 0) {
@@ -86,7 +86,7 @@ export class DiagnosticManager {
 					uri,
 				});
 	
-				return;
+				continue;
 			}
 
 			const textDocument = await this._vscodeService.openTextDocument(uri);
@@ -110,7 +110,7 @@ export class DiagnosticManager {
 			});
 
 			if (newDiagnostics.length === 0) {
-				return;
+				continue;
 			}
 
 			const text = textDocument.getText();
