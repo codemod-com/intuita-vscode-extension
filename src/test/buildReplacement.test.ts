@@ -184,4 +184,44 @@ describe.only('buildReplacement', () => {
 
         assert.equal(replacement, 'String(booleanVariable)');
     });
+
+    /**
+     * when we change a number into a boolean
+
+        if the number is the 0 literal, make it false
+
+        if the number is another number literal, make it true
+
+        otherwise, use a wrapper
+     */
+
+    it('should change the 0 number into the false boolean', () => {
+        const replacement = buildReplacement({
+            text: '0',
+            receivedKind: 'number',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'false');
+    });
+
+    it('should change the -123456789.123456789 number into the true boolean', () => {
+        const replacement = buildReplacement({
+            text: '-123456789.123456789',
+            receivedKind: 'number',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'true');
+    });
+
+    it('should change the numberVariable number into the wrapper boolean', () => {
+        const replacement = buildReplacement({
+            text: 'numberVariable',
+            receivedKind: 'number',
+            expectedKind: 'boolean',
+        });
+
+        assert.equal(replacement, 'Boolean(numberVariable)');
+    });
 });
