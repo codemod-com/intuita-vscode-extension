@@ -137,56 +137,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		// 	return element.children.slice();
 		// }
 
-		// const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-		// const fileNames = new Set<string>(this._jobManager.getFileNames());
-
-		// return Array.from(fileNames)
-		// 	.map((fileName): Element | null => {
-		// 		const uri = Uri.parse(fileName);
-		// 		const label: string = fileName.replace(rootPath, '');
-
-		// 		const fileNameHash = buildFileNameHash(fileName);
-
-		// 		const jobs = this._jobManager.getFileJobs(fileNameHash);
-
-		// 		const children: DiagnosticElement[] = jobs.map((job) => {
-		// 			const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
-		// 				kind: 'DIAGNOSTIC' as const,
-		// 				label: job.title,
-		// 				fileName,
-		// 				uri,
-		// 				range: job.range,
-		// 				jobHash: job.hash,
-		// 				job,
-		// 			}
-
-		// 			const hash = buildElementHash(hashlessElement);
-
-		// 			return {
-		// 				...hashlessElement,
-		// 				hash,
-		// 			};
-		// 		});
-
-		// 		if (children.length === 0) {
-		// 			return null;
-		// 		}
-
-		// 		const hashlessElement: Omit<FileElement, 'hash'> = {
-		// 			kind: 'FILE' as const,
-		// 			label,
-		// 			children
-		// 		};
-
-		// 		const hash = buildElementHash(hashlessElement);
-
-		// 		return {
-		// 			...hashlessElement,
-		// 			hash,
-		// 		};
-		// 	})
-		// 	.filter(isNeitherNullNorUndefined);
+		
 	}
 
 	public getTreeItem(elementHash: ElementHash): TreeItem | Thenable<TreeItem> {
@@ -276,6 +227,65 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this._diagnosticCollection.set(uri, diagnostics);
 
 		// create the elements
+
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+		const fileNames = new Set<string>(this._jobManager.getFileNames());
+
+		const fileElements = Array.from(fileNames)
+			.map((fileName): FileElement | null => {
+				const uri = Uri.parse(fileName);
+				const label: string = fileName.replace(rootPath, '');
+
+				const fileNameHash = buildFileNameHash(fileName);
+
+				const jobs = this._jobManager.getFileJobs(fileNameHash);
+
+				const children: DiagnosticElement[] = jobs.map((job) => {
+					const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
+						kind: 'DIAGNOSTIC' as const,
+						label: job.title,
+						fileName,
+						uri,
+						range: job.range,
+						jobHash: job.hash,
+						job,
+					}
+
+					const hash = buildElementHash(hashlessElement);
+
+					return {
+						...hashlessElement,
+						hash,
+					};
+				});
+
+				if (children.length === 0) {
+					return null;
+				}
+
+				const hashlessElement: Omit<FileElement, 'hash'> = {
+					kind: 'FILE' as const,
+					label,
+					children
+				};
+
+				const hash = buildElementHash(hashlessElement);
+
+				return {
+					...hashlessElement,
+					hash,
+				};
+			})
+			.filter(isNeitherNullNorUndefined);
+
+		const rootElement: RootElement = {
+			hash: '' as ElementHash,
+			kind: 'ROOT',
+			children: fileElements,
+		};
+
+		// end
 
 		this.eventEmitter.fire();
 
