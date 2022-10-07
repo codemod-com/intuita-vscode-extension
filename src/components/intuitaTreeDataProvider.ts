@@ -286,6 +286,25 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		};
 
 		// end
+		
+		// start
+		this._elementMap.clear();
+
+		this._elementMap.set(rootElement.hash, rootElement);
+
+		rootElement.children.forEach(
+			(fileElement) => {
+				this._elementMap.set(fileElement.hash, fileElement);
+
+				fileElement.children.forEach(
+					(diagnosticElement) => {
+						this._elementMap.set(diagnosticElement.hash, diagnosticElement);
+					}
+				)
+			}
+		)
+
+		// end
 
 		this.eventEmitter.fire();
 
