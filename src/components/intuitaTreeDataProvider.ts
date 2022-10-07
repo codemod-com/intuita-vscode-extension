@@ -30,6 +30,28 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
 import { RepairCodeJob } from '../features/repairCode/job';
 
+const buildDiagnostic = ({ kind, title, range: intuitaRange }: MoveTopLevelNodeJob | RepairCodeJob): Diagnostic => {
+	const startPosition = new Position(
+		intuitaRange[0],
+		intuitaRange[1],
+	);
+
+	const endPosition = new Position(intuitaRange[2], intuitaRange[3]);
+
+	const vscodeRange = new Range(startPosition, endPosition);
+
+	const diagnostic = new Diagnostic(
+		vscodeRange,
+		title,
+		DiagnosticSeverity.Information,
+	);
+
+	diagnostic.code = kind.valueOf();
+	diagnostic.source = 'intuita';
+
+	return diagnostic;
+}
+
 type ElementHash = string & { __type: 'ElementHash' };
 
 type DiagnosticElement = Readonly<{
@@ -87,6 +109,43 @@ export const buildElementHash = (
 	)
 
 	return hash as ElementHash;
+}
+
+const buildDiagnosticElement = (job: MoveTopLevelNodeJob | RepairCodeJob): DiagnosticElement => {
+	const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
+		kind: 'DIAGNOSTIC' as const,
+		label: job.title,
+		fileName: job.fileName,
+		uri: Uri.parse(job.fileName),
+		range: job.range,
+		jobHash: job.hash,
+		job,
+	}
+
+	const hash = buildElementHash(hashlessElement);
+
+	return {
+		...hashlessElement,
+		hash,
+	};
+}
+
+const buildFileElement = (
+	label: string,
+	children: ReadonlyArray<DiagnosticElement>,
+): FileElement => {
+	const hashlessElement: Omit<FileElement, 'hash'> = {
+		kind: 'FILE' as const,
+		label,
+		children
+	};
+
+	const hash = buildElementHash(hashlessElement);
+
+	return {
+		...hashlessElement,
+		hash,
+	};
 }
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
@@ -194,82 +253,33 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const jobs = this._jobManager.getFileJobs(buildFileNameHash(message.fileName));
 
-		const diagnostics = jobs.map(({ kind, title, range: intuitaRange }) => {
-			const startPosition = new Position(
-				intuitaRange[0],
-				intuitaRange[1],
-			);
-
-			const endPosition = new Position(intuitaRange[2], intuitaRange[3]);
-
-			const vscodeRange = new Range(startPosition, endPosition);
-
-			const diagnostic = new Diagnostic(
-				vscodeRange,
-				title,
-				DiagnosticSeverity.Information,
-			);
-
-			diagnostic.code = kind.valueOf();
-			diagnostic.source = 'intuita';
-
-			return diagnostic;
-		});
+		const diagnostics = jobs.map((job) => buildDiagnostic(job));
 
 		this._diagnosticCollection.clear();
 
 		this._diagnosticCollection.set(uri, diagnostics);
 
 		// create the elements
-
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
 		const fileNames = new Set<string>(this._jobManager.getFileNames());
 
 		const fileElements = Array.from(fileNames)
 			.map((fileName): FileElement | null => {
-				const uri = Uri.parse(fileName);
 				const label: string = fileName.replace(rootPath, '');
 
 				const fileNameHash = buildFileNameHash(fileName);
 
 				const jobs = this._jobManager.getFileJobs(fileNameHash);
 
-				const children: DiagnosticElement[] = jobs.map((job) => {
-					const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
-						kind: 'DIAGNOSTIC' as const,
-						label: job.title,
-						fileName,
-						uri,
-						range: job.range,
-						jobHash: job.hash,
-						job,
-					}
-
-					const hash = buildElementHash(hashlessElement);
-
-					return {
-						...hashlessElement,
-						hash,
-					};
-				});
+				const children: DiagnosticElement[] = jobs
+					.map((job) => buildDiagnosticElement(job));
 
 				if (children.length === 0) {
 					return null;
 				}
 
-				const hashlessElement: Omit<FileElement, 'hash'> = {
-					kind: 'FILE' as const,
-					label,
-					children
-				};
-
-				const hash = buildElementHash(hashlessElement);
-
-				return {
-					...hashlessElement,
-					hash,
-				};
+				return buildFileElement(label, children);
 			})
 			.filter(isNeitherNullNorUndefined);
 
@@ -310,17 +320,23 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.eventEmitter.fire();
 
 		if (message.showTheFirstJob && jobs[0]) {
+			const job = jobs[0];
+			const diagnosticElement = buildDiagnosticElement(job);
+
 			setImmediate(
 				async () => {
 					await commands.executeCommand(
 						'vscode.diff',
 						buildFileUri(uri),
-						buildJobUri(jobs[0]!),
+						buildJobUri(job),
 						'Proposed change',
 					);
 
-					if (this._reveal && hash) {
-						await this._reveal(hash, { select: true, focus: true });
+					if (this._reveal) {
+						await this._reveal(
+							diagnosticElement.hash,
+							{ select: true, focus: true }
+						);
 					}
 				},
 			)
