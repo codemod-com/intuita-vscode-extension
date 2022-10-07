@@ -15,6 +15,7 @@ import {
 	TreeItemCollapsibleState,
 	TreeView,
 	Uri,
+	window,
 	workspace,
 } from 'vscode';
 import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
@@ -310,24 +311,40 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const job = jobs[0];
 		const diagnosticElement = buildDiagnosticElement(job);
 
-		setImmediate(
-			async () => {
-				await commands.executeCommand(
-					'vscode.diff',
-					buildFileUri(uri),
-					buildJobUri(job),
-					'Proposed change',
-				);
+		const showTheFirstJob = async () => {
+			await commands.executeCommand(
+				'vscode.diff',
+				buildFileUri(uri),
+				buildJobUri(job),
+				'Proposed change',
+			);
 
-				if (!this._reveal) {
-					return;
-				}
-				
-				await this._reveal(
-					diagnosticElement.hash,
-					{ select: true, focus: true }
-				);
-			},
-		);
+			if (!this._reveal) {
+				return;
+			}
+			
+			await this._reveal(
+				diagnosticElement.hash,
+				{ select: true, focus: true }
+			);
+		}
+		
+		if (message.trigger === 'didSave') {
+			window.showInformationMessage(
+				`Generated ${jobs.length} core-repair recommendations`,
+				'Show the first recommendation',
+			)
+				.then(async (response) => {
+					if (!response) {
+						return;
+					}
+	
+					await showTheFirstJob();
+				})
+
+			return;
+		};
+
+		setImmediate(showTheFirstJob);
 	}
 }
