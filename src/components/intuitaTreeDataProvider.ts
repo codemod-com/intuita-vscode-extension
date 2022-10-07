@@ -42,7 +42,6 @@ type DiagnosticElement = Readonly<{
 	job: MoveTopLevelNodeJob | RepairCodeJob;
 }>;
 
-
 type FileElement = Readonly<{
 	hash: ElementHash,
 	kind: 'FILE';
@@ -50,7 +49,14 @@ type FileElement = Readonly<{
 	children: ReadonlyArray<DiagnosticElement>;
 }>;
 
+type RootElement = Readonly<{
+	hash: ElementHash,
+	kind: 'ROOT';
+	children: ReadonlyArray<FileElement>;
+}>;
+
 type Element =
+	| RootElement
 	| FileElement
 	| DiagnosticElement;
 
@@ -82,9 +88,10 @@ export const buildElementHash = (
 	return hash as ElementHash;
 }
 
-export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
+export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
+	protected readonly _elementMap = new Map<ElementHash, Element>();
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,
@@ -108,69 +115,91 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 	// }
 
 	public getChildren(
-		element: Element | undefined,
-	): ProviderResult<Element[]> {
-		if (element?.kind === 'DIAGNOSTIC') {
+		elementHash: ElementHash | undefined,
+	): ProviderResult<ElementHash[]> {
+		const element = this._elementMap.get((elementHash ?? '') as ElementHash);
+
+		if (!element) {
 			return [];
 		}
 
-		if (element?.kind === 'FILE') {
-			return element.children.slice();
+		if (element.kind === 'DIAGNOSTIC') {
+			return [];
 		}
 
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+		return element.children.map((childElement) => childElement.hash);
 
-		const fileNames = new Set<string>(this._jobManager.getFileNames());
+		// if (element?.kind === 'DIAGNOSTIC') {
+		// 	return [];
+		// }
 
-		return Array.from(fileNames)
-			.map((fileName): Element | null => {
-				const uri = Uri.parse(fileName);
-				const label: string = fileName.replace(rootPath, '');
+		// if (element?.kind === 'FILE') {
+		// 	return element.children.slice();
+		// }
 
-				const fileNameHash = buildFileNameHash(fileName);
+		// const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-				const jobs = this._jobManager.getFileJobs(fileNameHash);
+		// const fileNames = new Set<string>(this._jobManager.getFileNames());
 
-				const children: DiagnosticElement[] = jobs.map((job) => {
-					const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
-						kind: 'DIAGNOSTIC' as const,
-						label: job.title,
-						fileName,
-						uri,
-						range: job.range,
-						jobHash: job.hash,
-						job,
-					}
+		// return Array.from(fileNames)
+		// 	.map((fileName): Element | null => {
+		// 		const uri = Uri.parse(fileName);
+		// 		const label: string = fileName.replace(rootPath, '');
 
-					const hash = buildElementHash(hashlessElement);
+		// 		const fileNameHash = buildFileNameHash(fileName);
 
-					return {
-						...hashlessElement,
-						hash,
-					};
-				});
+		// 		const jobs = this._jobManager.getFileJobs(fileNameHash);
 
-				if (children.length === 0) {
-					return null;
-				}
+		// 		const children: DiagnosticElement[] = jobs.map((job) => {
+		// 			const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
+		// 				kind: 'DIAGNOSTIC' as const,
+		// 				label: job.title,
+		// 				fileName,
+		// 				uri,
+		// 				range: job.range,
+		// 				jobHash: job.hash,
+		// 				job,
+		// 			}
 
-				const hashlessElement: Omit<FileElement, 'hash'> = {
-					kind: 'FILE' as const,
-					label,
-					children
-				};
+		// 			const hash = buildElementHash(hashlessElement);
 
-				const hash = buildElementHash(hashlessElement);
+		// 			return {
+		// 				...hashlessElement,
+		// 				hash,
+		// 			};
+		// 		});
 
-				return {
-					...hashlessElement,
-					hash,
-				};
-			})
-			.filter(isNeitherNullNorUndefined);
+		// 		if (children.length === 0) {
+		// 			return null;
+		// 		}
+
+		// 		const hashlessElement: Omit<FileElement, 'hash'> = {
+		// 			kind: 'FILE' as const,
+		// 			label,
+		// 			children
+		// 		};
+
+		// 		const hash = buildElementHash(hashlessElement);
+
+		// 		return {
+		// 			...hashlessElement,
+		// 			hash,
+		// 		};
+		// 	})
+		// 	.filter(isNeitherNullNorUndefined);
 	}
 
-	public getTreeItem(element: Element): TreeItem | Thenable<TreeItem> {
+	public getTreeItem(elementHash: ElementHash): TreeItem | Thenable<TreeItem> {
+		const element = this._elementMap.get(elementHash);
+
+		if (!element) {
+			throw new Error(`Could not find an element with hash ${elementHash}`);
+		}
+
+		if (element.kind === 'ROOT') {
+			throw new Error(`Cannot get a tree item for the root element`);
+		}
+
 		const treeItem = new TreeItem(element.label);
 
 		treeItem.id = buildHash(element.label);
@@ -245,6 +274,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 		this._diagnosticCollection.clear();
 
 		this._diagnosticCollection.set(uri, diagnostics);
+
+		// create the elements
 
 		this.eventEmitter.fire();
 
