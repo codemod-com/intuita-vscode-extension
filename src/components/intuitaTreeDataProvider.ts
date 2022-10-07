@@ -92,6 +92,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 	protected readonly _elementMap = new Map<ElementHash, Element>();
+	protected readonly _childParentMap = new Map<ElementHash, ElementHash>();
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,
@@ -109,35 +110,20 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		});
 	}
 
-	// public getParent(element: Element): ProviderResult<Element> {
-	// 	// TODO implement!
-	// 	return null;
-	// }
+	public getParent(elementHash: ElementHash): ProviderResult<ElementHash> {
+		return this._childParentMap.get(elementHash);
+	}
 
 	public getChildren(
 		elementHash: ElementHash | undefined,
 	): ProviderResult<ElementHash[]> {
 		const element = this._elementMap.get((elementHash ?? '') as ElementHash);
 
-		if (!element) {
-			return [];
-		}
-
-		if (element.kind === 'DIAGNOSTIC') {
+		if (!element || element.kind === 'DIAGNOSTIC') {
 			return [];
 		}
 
 		return element.children.map((childElement) => childElement.hash);
-
-		// if (element?.kind === 'DIAGNOSTIC') {
-		// 	return [];
-		// }
-
-		// if (element?.kind === 'FILE') {
-		// 	return element.children.slice();
-		// }
-
-		
 	}
 
 	public getTreeItem(elementHash: ElementHash): TreeItem | Thenable<TreeItem> {
