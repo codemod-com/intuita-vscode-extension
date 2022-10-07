@@ -29,21 +29,58 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
 import { RepairCodeJob } from '../features/repairCode/job';
 
+type ElementHash = string & { __type: 'ElementHash' };
+
+type DiagnosticElement = Readonly<{
+	hash: ElementHash,
+	kind: 'DIAGNOSTIC';
+	label: string;
+	uri: Uri;
+	jobHash: JobHash;
+	fileName: string;
+	range: IntuitaRange;
+	job: MoveTopLevelNodeJob | RepairCodeJob;
+}>;
+
+
+type FileElement = Readonly<{
+	hash: ElementHash,
+	kind: 'FILE';
+	label: string;
+	children: ReadonlyArray<DiagnosticElement>;
+}>;
+
 type Element =
-	| Readonly<{
-			kind: 'FILE';
-			label: string;
-			children: ReadonlyArray<Element>;
-	  }>
-	| Readonly<{
-			kind: 'DIAGNOSTIC';
-			label: string;
-			uri: Uri;
-			jobHash: JobHash;
-			fileName: string;
-			range: IntuitaRange;
-			job: MoveTopLevelNodeJob | RepairCodeJob;
-	  }>;
+	| FileElement
+	| DiagnosticElement;
+
+export const buildElementHash = (
+	element: Omit<FileElement, 'hash'> | Omit<DiagnosticElement, 'hash'>
+): ElementHash => {
+	if (element.kind === 'FILE') {
+		const hash = buildHash(
+			[
+				element.kind,
+				element.label,
+			].join(',')
+		);
+
+		return hash as ElementHash;
+	}
+
+	const hash = buildHash(
+		[
+			element.kind,
+			element.label,
+			element.uri,
+			element.jobHash,
+			element.fileName,
+			...element.range.map((r) => String(r))
+		].join(',')
+	)
+
+	return hash as ElementHash;
+}
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 	public readonly eventEmitter = new EventEmitter<void>();
@@ -86,7 +123,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 		const fileNames = new Set<string>(this._jobManager.getFileNames());
 
 		return Array.from(fileNames)
-			.map((fileName) => {
+			.map((fileName): Element | null => {
 				const uri = Uri.parse(fileName);
 				const label: string = fileName.replace(rootPath, '');
 
@@ -94,8 +131,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 
 				const jobs = this._jobManager.getFileJobs(fileNameHash);
 
-				const children: Element[] = jobs.map((job) => {
-					return {
+				const children: DiagnosticElement[] = jobs.map((job) => {
+					const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
 						kind: 'DIAGNOSTIC' as const,
 						label: job.title,
 						fileName,
@@ -103,6 +140,13 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 						range: job.range,
 						jobHash: job.hash,
 						job,
+					}
+
+					const hash = buildElementHash(hashlessElement);
+
+					return {
+						...hashlessElement,
+						hash,
 					};
 				});
 
@@ -110,10 +154,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 					return null;
 				}
 
-				return {
+				const hashlessElement: Omit<FileElement, 'hash'> = {
 					kind: 'FILE' as const,
 					label,
-					children,
+					children
+				};
+
+				const hash = buildElementHash(hashlessElement);
+
+				return {
+					...hashlessElement,
+					hash,
 				};
 			})
 			.filter(isNeitherNullNorUndefined);
