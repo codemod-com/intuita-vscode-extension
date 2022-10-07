@@ -7,7 +7,7 @@ import { pipe } from 'fp-ts/lib/function';
 import { orElse } from 'fp-ts/lib/Either';
 
 const argumentCodec = buildTypeCodec({
-	hash: t.string,
+	jobHash: t.string,
 	characterDifference: withFallback(t.number, 0),
 });
 
@@ -18,7 +18,7 @@ export const acceptJob = (jobManager: JobManager) => {
 			argumentCodec.decode(arg0),
 			orElse(() =>
 				argumentCodec.decode({
-					hash: arg0,
+					jobHash: arg0,
 					characterDifference: arg1,
 				}),
 			),
@@ -32,7 +32,7 @@ export const acceptJob = (jobManager: JobManager) => {
 		}
 
 		jobManager.acceptJob(
-			argumentEither.right.hash as JobHash,
+			argumentEither.right.jobHash as JobHash,
 			argumentEither.right.characterDifference,
 		);
 	};

@@ -39,7 +39,7 @@ type Element =
 			kind: 'DIAGNOSTIC';
 			label: string;
 			uri: Uri;
-			hash: JobHash;
+			jobHash: JobHash;
 			fileName: string;
 			range: IntuitaRange;
 			job: MoveTopLevelNodeJob | RepairCodeJob;
@@ -64,6 +64,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 			}
 		});
 	}
+
+	// public getParent(element: Element): ProviderResult<Element> {
+	// 	// TODO implement!
+	// 	return null;
+	// }
 
 	public getChildren(
 		element: Element | undefined,
@@ -96,7 +101,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 						fileName,
 						uri,
 						range: job.range,
-						hash: job.hash,
+						jobHash: job.hash,
 						job,
 					};
 				});
