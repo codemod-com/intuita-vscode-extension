@@ -127,7 +127,7 @@ export class DiagnosticManager {
 				text,
 				version: textDocument.version,
 				diagnostics: newDiagnostics,
-				triggeredByUri,
+				triggeredByThisUri: triggeredByUri,
 			});
 		}
 	}

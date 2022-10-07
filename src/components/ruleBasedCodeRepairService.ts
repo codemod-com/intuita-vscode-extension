@@ -32,7 +32,7 @@ export class RuleBasedCoreRepairService {
 			version: message.version,
 			text: message.text,
 			diagnostics: message.diagnostics,
-			triggeredByUri: message.triggeredByUri,
+			triggeredByThisUri: message.triggeredByThisUri,
 		});
 	}
 }
