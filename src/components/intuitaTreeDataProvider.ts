@@ -13,6 +13,7 @@ import {
 	TreeDataProvider,
 	TreeItem,
 	TreeItemCollapsibleState,
+	TreeView,
 	Uri,
 	workspace,
 } from 'vscode';
@@ -93,6 +94,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly onDidChangeTreeData: Event<void>;
 	protected readonly _elementMap = new Map<ElementHash, Element>();
 	protected readonly _childParentMap = new Map<ElementHash, ElementHash>();
+	protected _reveal: TreeView<ElementHash>['reveal'] | null = null;
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,
@@ -108,6 +110,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				});
 			}
 		});
+	}
+
+	public setReveal(
+		reveal: TreeView<ElementHash>['reveal']
+	) {
+		this._reveal = reveal;
 	}
 
 	public getParent(elementHash: ElementHash): ProviderResult<ElementHash> {
@@ -278,13 +286,20 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this._elementMap.set(rootElement.hash, rootElement);
 
+		let hash: ElementHash | null = null;
+
 		rootElement.children.forEach(
 			(fileElement) => {
 				this._elementMap.set(fileElement.hash, fileElement);
 
 				fileElement.children.forEach(
 					(diagnosticElement) => {
+						if (!hash) {
+							hash = diagnosticElement.hash;
+						}
+
 						this._elementMap.set(diagnosticElement.hash, diagnosticElement);
+						this._childParentMap.set(diagnosticElement.hash, fileElement.hash);
 					}
 				)
 			}
@@ -295,12 +310,20 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.eventEmitter.fire();
 
 		if (message.showTheFirstJob && jobs[0]) {
-			await commands.executeCommand(
-				'vscode.diff',
-				buildFileUri(uri),
-				buildJobUri(jobs[0]),
-				'Proposed change',
-			);
+			setImmediate(
+				async () => {
+					await commands.executeCommand(
+						'vscode.diff',
+						buildFileUri(uri),
+						buildJobUri(jobs[0]!),
+						'Proposed change',
+					);
+
+					if (this._reveal && hash) {
+						await this._reveal(hash, { select: true, focus: true });
+					}
+				},
+			)
 		}
 	}
 }

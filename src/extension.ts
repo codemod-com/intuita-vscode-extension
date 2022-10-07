@@ -89,6 +89,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		{treeDataProvider},
 	)
 
+	treeDataProvider.setReveal(intuitaTreeView.reveal)
+
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
 
