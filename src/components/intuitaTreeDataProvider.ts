@@ -144,26 +144,44 @@ const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
 const buildRootElement = (
 	oldRootElement: Element | null,
-	fileElement: FileElement,
+	action: { kind: 'upsert', fileElement: FileElement } | { kind: 'delete', label: string },
 ): RootElement => {
 	if (oldRootElement === null || oldRootElement.kind !== 'ROOT') {
+		const children = action.kind === 'upsert'
+			? [ action.fileElement ]
+			: [];
+
 		return {
 			hash: ROOT_ELEMENT_HASH,
 			kind: 'ROOT',
-			children: [ fileElement ],
+			children,
 		};
 	}
 
+	if (action.kind === 'delete') {
+		const children = oldRootElement.children.filter(
+			(childFileElement) => {
+				return childFileElement.label !== action.label;
+			}
+		);
+
+		return {
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children,
+		}
+	}
+
 	const index = oldRootElement.children.findIndex(
-		(childFileElement) => childFileElement.label === fileElement.label,
+		(childFileElement) => childFileElement.label === action.fileElement.label,
 	);
 
 	const children = index === -1
-		? [...oldRootElement.children, fileElement]
+		? [...oldRootElement.children, action.fileElement]
 		: oldRootElement.children.map(
 			(childFileElement) => {
-				if (childFileElement.label === fileElement.label) {
-					return fileElement;
+				if (childFileElement.label === action.fileElement.label) {
+					return action.fileElement;
 				}
 
 				return childFileElement;
