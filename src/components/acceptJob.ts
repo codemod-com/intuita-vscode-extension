@@ -1,35 +1,26 @@
-import * as t from 'io-ts';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
 import { JobManager } from './jobManager';
-import { buildTypeCodec, mapValidationToEither } from './inferenceService';
-import { withFallback } from 'io-ts-types';
-import { pipe } from 'fp-ts/lib/function';
-
-const argumentCodec = buildTypeCodec({
-	jobHash: t.string,
-	characterDifference: withFallback(t.number, 0),
-});
 
 export const acceptJob = (jobManager: JobManager) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
-		const argumentEither = pipe(
-			argumentCodec.decode({
-				jobHash: arg0,
-				characterDifference: arg1,
-			}),
-			mapValidationToEither,
-		);
+		const jobHash = typeof arg0 === 'string'
+			? arg0
+			: null;
 
-		if (argumentEither._tag === 'Left') {
+		if (jobHash === null) {
 			throw new Error(
-				`Could not decode acceptJob arguments: ${argumentEither.left}`,
+				`Could not decode the first positional arguments: it should have been a string`,
 			);
 		}
 
+		const characterDifference = typeof arg1 === 'number'
+			? arg1
+			: 0;
+
 		jobManager.acceptJob(
-			argumentEither.right.jobHash as JobHash,
-			argumentEither.right.characterDifference,
+			jobHash as JobHash,
+			characterDifference,
 		);		
 	};
 };
