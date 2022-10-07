@@ -315,31 +315,34 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			}
 		)
 
-		// end
-
+		// update the UX state
 		this.eventEmitter.fire();
 
-		if (message.showTheFirstJob && jobs[0]) {
-			const job = jobs[0];
-			const diagnosticElement = buildDiagnosticElement(job);
-
-			setImmediate(
-				async () => {
-					await commands.executeCommand(
-						'vscode.diff',
-						buildFileUri(uri),
-						buildJobUri(job),
-						'Proposed change',
-					);
-
-					if (this._reveal) {
-						await this._reveal(
-							diagnosticElement.hash,
-							{ select: true, focus: true }
-						);
-					}
-				},
-			)
+		if (!message.showTheFirstJob || !jobs[0]) {
+			return;
 		}
+
+		const job = jobs[0];
+		const diagnosticElement = buildDiagnosticElement(job);
+
+		setImmediate(
+			async () => {
+				await commands.executeCommand(
+					'vscode.diff',
+					buildFileUri(uri),
+					buildJobUri(job),
+					'Proposed change',
+				);
+
+				if (!this._reveal) {
+					return;
+				}
+				
+				await this._reveal(
+					diagnosticElement.hash,
+					{ select: true, focus: true }
+				);
+			},
+		);
 	}
 }
