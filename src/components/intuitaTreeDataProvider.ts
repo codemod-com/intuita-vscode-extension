@@ -309,32 +309,18 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		// create the elements
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		// const fileNames = new Set<string>(this._jobManager.getFileNames());
+		const label: string = message.fileName.replace(rootPath, '');
 
-		// const fileElements = Array.from(fileNames)
-		// 	.map((fileName): FileElement | null => {
-		// 		const label: string = fileName.replace(rootPath, '');
+		const children: DiagnosticElement[] = jobs
+			.map((job) => buildDiagnosticElement(job));
 
-		// 		const fileNameHash = buildFileNameHash(fileName);
-
-		// 		const jobs = this._jobManager.getFileJobs(fileNameHash);
-
-		// 		const children: DiagnosticElement[] = jobs
-		// 			.map((job) => buildDiagnosticElement(job));
-
-		// 		if (children.length === 0) {
-		// 			return null;
-		// 		}
-
-		// 		return buildFileElement(label, children);
-		// 	})
-		// 	.filter(isNeitherNullNorUndefined);
-
-		const fileElements 
+		const action = children.length === 0
+			? { kind: 'delete' as const, label }
+			: { kind: 'upsert' as const, fileElement: buildFileElement(label, children) }
 
 		const rootElement = buildRootElement(
 			this._elementMap.get('' as ElementHash) ?? null,
-			fileElements,
+			action,
 		);
 
 		// end
