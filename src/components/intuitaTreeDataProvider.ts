@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import {
+	commands,
 	Diagnostic,
 	DiagnosticCollection,
 	DiagnosticSeverity,
@@ -24,7 +25,7 @@ import {
 } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
-import { MessageBus, MessageKind } from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
 import { RepairCodeJob } from '../features/repairCode/job';
 
@@ -57,8 +58,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 
 		this._messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateInternalDiagnostics) {
-				setImmediate(() => {
-					this._setDiagnosticEntry(message.fileName);
+				setImmediate(async () => {
+					await this._setDiagnosticEntry(message);
 				});
 			}
 		});
@@ -156,10 +157,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 		return treeItem;
 	}
 
-	protected _setDiagnosticEntry(fileName: string) {
-		const uri = Uri.parse(fileName);
+	protected async _setDiagnosticEntry(
+		message: Message & { kind: MessageKind.updateInternalDiagnostics },
+	) {
+		const uri = Uri.parse(message.fileName);
 
-		const jobs = this._jobManager.getFileJobs(buildFileNameHash(fileName));
+		const jobs = this._jobManager.getFileJobs(buildFileNameHash(message.fileName));
 
 		const diagnostics = jobs.map(({ kind, title, range: intuitaRange }) => {
 			const startPosition = new Position(
@@ -188,5 +191,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<Element> {
 		this._diagnosticCollection.set(uri, diagnostics);
 
 		this.eventEmitter.fire();
+
+		if (message.showTheFirstJob && jobs[0]) {
+			await commands.executeCommand(
+				'vscode.diff',
+				buildFileUri(uri),
+				buildJobUri(jobs[0]),
+				'Proposed change',
+			);
+		}
 	}
 }
