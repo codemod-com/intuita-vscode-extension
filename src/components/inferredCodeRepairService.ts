@@ -141,6 +141,7 @@ export class InferredCodeRepairService {
 			text: message.text,
 			version: message.version,
 			inferenceJobs: dataEither.right.inferenceJobs,
+			triggeredByUri: message.triggeredByUri,
 		});
 
 		// TODO remove the .intuita / hash directory

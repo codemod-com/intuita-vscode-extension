@@ -63,6 +63,7 @@ export type Message =
 			text: string;
 			version: number;
 			inferenceJobs: ReadonlyArray<InferenceJob>;
+			triggeredByUri: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.noExternalDiagnostics;
@@ -71,6 +72,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.updateInternalDiagnostics;
 			fileName: string;
+			showTheFirstJob: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.textDocumentChanged;
@@ -82,6 +84,7 @@ export type Message =
 			version: number;
 			text: string;
 			diagnostics: ReadonlyArray<Diagnostic>;
+			triggeredByUri: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.newExternalDiagnostics;
@@ -89,6 +92,7 @@ export type Message =
 			version: number;
 			text: string;
 			diagnostics: ReadonlyArray<Diagnostic>;
+			triggeredByUri: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;

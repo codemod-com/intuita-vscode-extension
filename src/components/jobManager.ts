@@ -132,6 +132,7 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
+			showTheFirstJob: false,
 		});
 
 		const uri = buildJobUri(job);
@@ -184,6 +185,7 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName: job.fileName,
+			showTheFirstJob: true,
 		});
 	}
 
@@ -274,6 +276,7 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
+			showTheFirstJob: false,
 		});
 
 		oldJobHashes.forEach((oldJobHash) => {
@@ -360,7 +363,7 @@ export class JobManager {
 			permissions: FilePermission.Readonly,
 		});
 
-		this._commitRepairCodeJobs(fileName, message.version, jobs);
+		this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByUri);
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -381,13 +384,14 @@ export class JobManager {
 			message.version,
 		);
 
-		return this._commitRepairCodeJobs(fileName, message.version, jobs);
+		return this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByUri);
 	}
 
 	protected _commitRepairCodeJobs(
 		fileName: string,
 		version: number,
 		jobs: ReadonlyArray<RepairCodeJob>,
+		showTheFirstJob: boolean,
 	) {
 		const fileNameHash = buildFileNameHash(fileName);
 
@@ -415,6 +419,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
+			showTheFirstJob,
 			fileName,
 		});
 	}
@@ -459,6 +464,7 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
+			showTheFirstJob: false,
 		});
 	}
 
