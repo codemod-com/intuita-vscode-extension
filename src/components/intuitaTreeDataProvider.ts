@@ -296,18 +296,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this._elementMap.set(rootElement.hash, rootElement);
 
-		let hash: ElementHash | null = null;
-
 		rootElement.children.forEach(
 			(fileElement) => {
 				this._elementMap.set(fileElement.hash, fileElement);
 
 				fileElement.children.forEach(
 					(diagnosticElement) => {
-						if (!hash) {
-							hash = diagnosticElement.hash;
-						}
-
 						this._elementMap.set(diagnosticElement.hash, diagnosticElement);
 						this._childParentMap.set(diagnosticElement.hash, fileElement.hash);
 					}
