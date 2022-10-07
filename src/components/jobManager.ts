@@ -366,7 +366,13 @@ export class JobManager {
 			permissions: FilePermission.Readonly,
 		});
 
-		this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri, message.trigger);
+		this._commitRepairCodeJobs(
+			fileName,
+			message.version,
+			jobs,
+			message.triggeredByThisUri,
+			message.trigger,
+		);
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -387,7 +393,13 @@ export class JobManager {
 			message.version,
 		);
 
-		return this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri, message.trigger);
+		return this._commitRepairCodeJobs(
+			fileName,
+			message.version,
+			jobs,
+			message.triggeredByThisUri,
+			message.trigger,
+		);
 	}
 
 	protected _commitRepairCodeJobs(

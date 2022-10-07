@@ -4,9 +4,7 @@ import { JobManager } from './jobManager';
 export const acceptJob = (jobManager: JobManager) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
-		const jobHash = typeof arg0 === 'string'
-			? arg0
-			: null;
+		const jobHash = typeof arg0 === 'string' ? arg0 : null;
 
 		if (jobHash === null) {
 			throw new Error(
@@ -14,13 +12,8 @@ export const acceptJob = (jobManager: JobManager) => {
 			);
 		}
 
-		const characterDifference = typeof arg1 === 'number'
-			? arg1
-			: 0;
+		const characterDifference = typeof arg1 === 'number' ? arg1 : 0;
 
-		jobManager.acceptJob(
-			jobHash as JobHash,
-			characterDifference,
-		);		
+		jobManager.acceptJob(jobHash as JobHash, characterDifference);
 	};
 };

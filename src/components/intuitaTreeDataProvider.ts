@@ -20,22 +20,19 @@ import {
 } from 'vscode';
 import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
 import { JobHash } from '../features/moveTopLevelNode/jobHash';
-import {
-	buildHash,
-	IntuitaRange,
-	isNeitherNullNorUndefined,
-} from '../utilities';
+import { buildHash, IntuitaRange } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
 import { RepairCodeJob } from '../features/repairCode/job';
 
-const buildDiagnostic = ({ kind, title, range: intuitaRange }: MoveTopLevelNodeJob | RepairCodeJob): Diagnostic => {
-	const startPosition = new Position(
-		intuitaRange[0],
-		intuitaRange[1],
-	);
+const buildDiagnostic = ({
+	kind,
+	title,
+	range: intuitaRange,
+}: MoveTopLevelNodeJob | RepairCodeJob): Diagnostic => {
+	const startPosition = new Position(intuitaRange[0], intuitaRange[1]);
 
 	const endPosition = new Position(intuitaRange[2], intuitaRange[3]);
 
@@ -51,12 +48,12 @@ const buildDiagnostic = ({ kind, title, range: intuitaRange }: MoveTopLevelNodeJ
 	diagnostic.source = 'intuita';
 
 	return diagnostic;
-}
+};
 
 type ElementHash = string & { __type: 'ElementHash' };
 
 type DiagnosticElement = Readonly<{
-	hash: ElementHash,
+	hash: ElementHash;
 	kind: 'DIAGNOSTIC';
 	label: string;
 	uri: Uri;
@@ -67,33 +64,25 @@ type DiagnosticElement = Readonly<{
 }>;
 
 type FileElement = Readonly<{
-	hash: ElementHash,
+	hash: ElementHash;
 	kind: 'FILE';
 	label: string;
 	children: ReadonlyArray<DiagnosticElement>;
 }>;
 
 type RootElement = Readonly<{
-	hash: ElementHash,
+	hash: ElementHash;
 	kind: 'ROOT';
 	children: ReadonlyArray<FileElement>;
 }>;
 
-type Element =
-	| RootElement
-	| FileElement
-	| DiagnosticElement;
+type Element = RootElement | FileElement | DiagnosticElement;
 
 export const buildElementHash = (
-	element: Omit<FileElement, 'hash'> | Omit<DiagnosticElement, 'hash'>
+	element: Omit<FileElement, 'hash'> | Omit<DiagnosticElement, 'hash'>,
 ): ElementHash => {
 	if (element.kind === 'FILE') {
-		const hash = buildHash(
-			[
-				element.kind,
-				element.label,
-			].join(',')
-		);
+		const hash = buildHash([element.kind, element.label].join(','));
 
 		return hash as ElementHash;
 	}
@@ -101,9 +90,11 @@ export const buildElementHash = (
 	const hash = element.jobHash;
 
 	return hash as unknown as ElementHash;
-}
+};
 
-const buildDiagnosticElement = (job: MoveTopLevelNodeJob | RepairCodeJob): DiagnosticElement => {
+const buildDiagnosticElement = (
+	job: MoveTopLevelNodeJob | RepairCodeJob,
+): DiagnosticElement => {
 	const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
 		kind: 'DIAGNOSTIC' as const,
 		label: job.title,
@@ -112,7 +103,7 @@ const buildDiagnosticElement = (job: MoveTopLevelNodeJob | RepairCodeJob): Diagn
 		range: job.range,
 		jobHash: job.hash,
 		job,
-	}
+	};
 
 	const hash = buildElementHash(hashlessElement);
 
@@ -120,7 +111,7 @@ const buildDiagnosticElement = (job: MoveTopLevelNodeJob | RepairCodeJob): Diagn
 		...hashlessElement,
 		hash,
 	};
-}
+};
 
 const buildFileElement = (
 	label: string,
@@ -129,7 +120,7 @@ const buildFileElement = (
 	const hashlessElement: Omit<FileElement, 'hash'> = {
 		kind: 'FILE' as const,
 		label,
-		children
+		children,
 	};
 
 	const hash = buildElementHash(hashlessElement);
@@ -138,18 +129,18 @@ const buildFileElement = (
 		...hashlessElement,
 		hash,
 	};
-}
+};
 
 const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
 const buildRootElement = (
 	oldRootElement: Element | null,
-	action: { kind: 'upsert', fileElement: FileElement } | { kind: 'delete', label: string },
+	action:
+		| { kind: 'upsert'; fileElement: FileElement }
+		| { kind: 'delete'; label: string },
 ): RootElement => {
 	if (oldRootElement === null || oldRootElement.kind !== 'ROOT') {
-		const children = action.kind === 'upsert'
-			? [ action.fileElement ]
-			: [];
+		const children = action.kind === 'upsert' ? [action.fileElement] : [];
 
 		return {
 			hash: ROOT_ELEMENT_HASH,
@@ -159,41 +150,39 @@ const buildRootElement = (
 	}
 
 	if (action.kind === 'delete') {
-		const children = oldRootElement.children.filter(
-			(childFileElement) => {
-				return childFileElement.label !== action.label;
-			}
-		);
+		const children = oldRootElement.children.filter((childFileElement) => {
+			return childFileElement.label !== action.label;
+		});
 
 		return {
 			hash: ROOT_ELEMENT_HASH,
 			kind: 'ROOT',
 			children,
-		}
+		};
 	}
 
 	const index = oldRootElement.children.findIndex(
-		(childFileElement) => childFileElement.label === action.fileElement.label,
+		(childFileElement) =>
+			childFileElement.label === action.fileElement.label,
 	);
 
-	const children = index === -1
-		? [...oldRootElement.children, action.fileElement]
-		: oldRootElement.children.map(
-			(childFileElement) => {
-				if (childFileElement.label === action.fileElement.label) {
-					return action.fileElement;
-				}
+	const children =
+		index === -1
+			? [...oldRootElement.children, action.fileElement]
+			: oldRootElement.children.map((childFileElement) => {
+					if (childFileElement.label === action.fileElement.label) {
+						return action.fileElement;
+					}
 
-				return childFileElement;
-			}
-		);
+					return childFileElement;
+			  });
 
 	return {
 		hash: ROOT_ELEMENT_HASH,
 		kind: 'ROOT',
 		children,
-	}
-}
+	};
+};
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();
@@ -218,9 +207,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		});
 	}
 
-	public setReveal(
-		reveal: TreeView<ElementHash>['reveal']
-	) {
+	public setReveal(reveal: TreeView<ElementHash>['reveal']) {
 		this._reveal = reveal;
 	}
 
@@ -231,7 +218,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public getChildren(
 		elementHash: ElementHash | undefined,
 	): ProviderResult<ElementHash[]> {
-		const element = this._elementMap.get((elementHash ?? '') as ElementHash);
+		const element = this._elementMap.get(
+			(elementHash ?? '') as ElementHash,
+		);
 
 		if (!element || element.kind === 'DIAGNOSTIC') {
 			return [];
@@ -240,11 +229,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return element.children.map((childElement) => childElement.hash);
 	}
 
-	public getTreeItem(elementHash: ElementHash): TreeItem | Thenable<TreeItem> {
+	public getTreeItem(
+		elementHash: ElementHash,
+	): TreeItem | Thenable<TreeItem> {
 		const element = this._elementMap.get(elementHash);
 
 		if (!element) {
-			throw new Error(`Could not find an element with hash ${elementHash}`);
+			throw new Error(
+				`Could not find an element with hash ${elementHash}`,
+			);
 		}
 
 		if (element.kind === 'ROOT') {
@@ -301,16 +294,23 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const label: string = message.fileName.replace(rootPath, '');
 
-		const jobs = this._jobManager.getFileJobs(buildFileNameHash(message.fileName));
+		const jobs = this._jobManager.getFileJobs(
+			buildFileNameHash(message.fileName),
+		);
 
 		const diagnostics = jobs.map((job) => buildDiagnostic(job));
 
-		const children: DiagnosticElement[] = jobs
-			.map((job) => buildDiagnosticElement(job));
+		const children: DiagnosticElement[] = jobs.map((job) =>
+			buildDiagnosticElement(job),
+		);
 
-		const action = children.length === 0
-			? { kind: 'delete' as const, label }
-			: { kind: 'upsert' as const, fileElement: buildFileElement(label, children) }
+		const action =
+			children.length === 0
+				? { kind: 'delete' as const, label }
+				: {
+						kind: 'upsert' as const,
+						fileElement: buildFileElement(label, children),
+				  };
 
 		const rootElement = buildRootElement(
 			this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
@@ -326,18 +326,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this._elementMap.clear();
 		this._elementMap.set(rootElement.hash, rootElement);
 
-		rootElement.children.forEach(
-			(fileElement) => {
-				this._elementMap.set(fileElement.hash, fileElement);
+		rootElement.children.forEach((fileElement) => {
+			this._elementMap.set(fileElement.hash, fileElement);
 
-				fileElement.children.forEach(
-					(diagnosticElement) => {
-						this._elementMap.set(diagnosticElement.hash, diagnosticElement);
-						this._childParentMap.set(diagnosticElement.hash, fileElement.hash);
-					}
-				)
-			}
-		)
+			fileElement.children.forEach((diagnosticElement) => {
+				this._elementMap.set(diagnosticElement.hash, diagnosticElement);
+				this._childParentMap.set(
+					diagnosticElement.hash,
+					fileElement.hash,
+				);
+			});
+		});
 
 		// update the UX state
 		this.eventEmitter.fire();
@@ -360,28 +359,29 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			if (!this._reveal) {
 				return;
 			}
-			
-			await this._reveal(
-				diagnosticElement.hash,
-				{ select: true, focus: true }
-			);
-		}
-		
+
+			await this._reveal(diagnosticElement.hash, {
+				select: true,
+				focus: true,
+			});
+		};
+
 		if (message.trigger === 'didSave') {
-			window.showInformationMessage(
-				`Generated ${jobs.length} core-repair recommendations`,
-				'Show the first recommendation',
-			)
+			window
+				.showInformationMessage(
+					`Generated ${jobs.length} core-repair recommendations`,
+					'Show the first recommendation',
+				)
 				.then(async (response) => {
 					if (!response) {
 						return;
 					}
-	
+
 					await showTheFirstJob();
-				})
+				});
 
 			return;
-		};
+		}
 
 		setImmediate(showTheFirstJob);
 	}

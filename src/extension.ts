@@ -81,15 +81,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const explorerTreeView = vscode.window.createTreeView(
 		'explorerIntuitaViewId',
-		{treeDataProvider},
+		{ treeDataProvider },
 	);
 
-	const intuitaTreeView = vscode.window.createTreeView(
-		'intuitaViewId',
-		{treeDataProvider},
-	)
+	const intuitaTreeView = vscode.window.createTreeView('intuitaViewId', {
+		treeDataProvider,
+	});
 
-	treeDataProvider.setReveal(intuitaTreeView.reveal)
+	treeDataProvider.setReveal(intuitaTreeView.reveal);
 
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
@@ -123,7 +122,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.buildCodeRepairJobs',
 			async () => {
-				const uri = vscode.window.activeTextEditor?.document.uri ?? null;
+				const uri =
+					vscode.window.activeTextEditor?.document.uri ?? null;
 
 				await diagnosticManager.handleDiagnostics(uri, 'onCommand');
 			},
@@ -148,12 +148,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.rejectJob', async (arg0) => {
 			const jobHash: string | null =
-				typeof arg0 === 'string'
-					? arg0
-					: null;
+				typeof arg0 === 'string' ? arg0 : null;
 
 			if (jobHash === null) {
-				throw new Error(`Did not pass the element argument "${jobHash}".`);
+				throw new Error(
+					`Did not pass the element argument "${jobHash}".`,
+				);
 			}
 
 			jobManager.rejectJob(jobHash as JobHash);

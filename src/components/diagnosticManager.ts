@@ -120,7 +120,7 @@ export class DiagnosticManager {
 			}
 
 			const text = textDocument.getText();
-			const triggeredByUri = uri.toString() === triggerUri?.toString()
+			const triggeredByUri = uri.toString() === triggerUri?.toString();
 
 			this._messageBus.publish({
 				kind: MessageKind.newExternalDiagnostics,
