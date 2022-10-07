@@ -125,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			async () => {
 				const uri = vscode.window.activeTextEditor?.document.uri ?? null;
 
-				await diagnosticManager.handleDiagnostics(uri);
+				await diagnosticManager.handleDiagnostics(uri, 'onCommand');
 			},
 		),
 	);
@@ -197,7 +197,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			await diagnosticManager.handleDiagnostics(document.uri);
+			await diagnosticManager.handleDiagnostics(document.uri, 'didSave');
 		}),
 	);
 

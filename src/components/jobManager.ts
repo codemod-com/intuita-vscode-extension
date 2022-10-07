@@ -133,6 +133,7 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
 			showTheFirstJob: false,
+			trigger: 'onCommand',
 		});
 
 		const uri = buildJobUri(job);
@@ -186,6 +187,7 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName: job.fileName,
 			showTheFirstJob: true,
+			trigger: 'onCommand',
 		});
 	}
 
@@ -277,6 +279,7 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
 			showTheFirstJob: false,
+			trigger: 'onCommand',
 		});
 
 		oldJobHashes.forEach((oldJobHash) => {
@@ -363,7 +366,7 @@ export class JobManager {
 			permissions: FilePermission.Readonly,
 		});
 
-		this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri);
+		this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri, message.trigger);
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -384,7 +387,7 @@ export class JobManager {
 			message.version,
 		);
 
-		return this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri);
+		return this._commitRepairCodeJobs(fileName, message.version, jobs, message.triggeredByThisUri, message.trigger);
 	}
 
 	protected _commitRepairCodeJobs(
@@ -392,6 +395,7 @@ export class JobManager {
 		version: number,
 		jobs: ReadonlyArray<RepairCodeJob>,
 		showTheFirstJob: boolean,
+		trigger: 'didSave' | 'onCommand',
 	) {
 		const fileNameHash = buildFileNameHash(fileName);
 
@@ -421,6 +425,7 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			showTheFirstJob,
 			fileName,
+			trigger,
 		});
 	}
 
@@ -465,6 +470,7 @@ export class JobManager {
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
 			showTheFirstJob: false,
+			trigger: 'onCommand',
 		});
 	}
 
