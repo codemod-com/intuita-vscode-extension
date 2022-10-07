@@ -140,6 +140,43 @@ const buildFileElement = (
 	};
 }
 
+const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
+
+const buildRootElement = (
+	oldRootElement: Element | null,
+	fileElement: FileElement,
+): RootElement => {
+	if (oldRootElement === null || oldRootElement.kind !== 'ROOT') {
+		return {
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: [ fileElement ],
+		};
+	}
+
+	const index = oldRootElement.children.findIndex(
+		(childFileElement) => childFileElement.label === fileElement.label,
+	);
+
+	const children = index === -1
+		? [...oldRootElement.children, fileElement]
+		: oldRootElement.children.map(
+			(childFileElement) => {
+				if (childFileElement.label === fileElement.label) {
+					return fileElement;
+				}
+
+				return childFileElement;
+			}
+		);
+
+	return {
+		hash: ROOT_ELEMENT_HASH,
+		kind: 'ROOT',
+		children,
+	}
+}
+
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
@@ -254,32 +291,33 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		// create the elements
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		const fileNames = new Set<string>(this._jobManager.getFileNames());
+		// const fileNames = new Set<string>(this._jobManager.getFileNames());
 
-		const fileElements = Array.from(fileNames)
-			.map((fileName): FileElement | null => {
-				const label: string = fileName.replace(rootPath, '');
+		// const fileElements = Array.from(fileNames)
+		// 	.map((fileName): FileElement | null => {
+		// 		const label: string = fileName.replace(rootPath, '');
 
-				const fileNameHash = buildFileNameHash(fileName);
+		// 		const fileNameHash = buildFileNameHash(fileName);
 
-				const jobs = this._jobManager.getFileJobs(fileNameHash);
+		// 		const jobs = this._jobManager.getFileJobs(fileNameHash);
 
-				const children: DiagnosticElement[] = jobs
-					.map((job) => buildDiagnosticElement(job));
+		// 		const children: DiagnosticElement[] = jobs
+		// 			.map((job) => buildDiagnosticElement(job));
 
-				if (children.length === 0) {
-					return null;
-				}
+		// 		if (children.length === 0) {
+		// 			return null;
+		// 		}
 
-				return buildFileElement(label, children);
-			})
-			.filter(isNeitherNullNorUndefined);
+		// 		return buildFileElement(label, children);
+		// 	})
+		// 	.filter(isNeitherNullNorUndefined);
 
-		const rootElement: RootElement = {
-			hash: '' as ElementHash,
-			kind: 'ROOT',
-			children: fileElements,
-		};
+		const fileElements 
+
+		const rootElement = buildRootElement(
+			this._elementMap.get('' as ElementHash) ?? null,
+			fileElements,
+		);
 
 		// end
 		
