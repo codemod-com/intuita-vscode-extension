@@ -147,6 +147,8 @@ export class JobManager {
 	public acceptJob(jobHash: JobHash, characterDifference: number): void {
 		const job = this._jobMap.get(jobHash);
 
+		console.log('ABCD', Array.from(this._jobMap.keys()), jobHash);
+
 		assertsNeitherNullOrUndefined(job);
 
 		const fileNameHash = buildFileNameHash(job.fileName);
@@ -317,6 +319,8 @@ export class JobManager {
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
 		},
 	) {
+		console.log('HERE', message);
+
 		const fileName = message.uri.fsPath;
 
 		const jobs = buildRuleBasedRepairCodeJobs(
@@ -341,10 +345,14 @@ export class JobManager {
 			}),
 		);
 
+		// TODO TODO TODO
+
 		// job clean up
 		this._repairCodeHashMap.delete(fileNameHash);
 
 		oldJobHashes.forEach((jobHash) => {
+			console.log("DELETING", jobHash);
+
 			this._jobMap.delete(jobHash);
 		});
 

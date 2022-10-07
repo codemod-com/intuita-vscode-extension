@@ -53,6 +53,8 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 					CodeActionKind.QuickFix,
 				);
 
+				console.log('JOB', job);
+
 				quickFixCodeAction.command = {
 					title: job.title,
 					command: 'intuita.acceptJob',

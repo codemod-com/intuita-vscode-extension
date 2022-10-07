@@ -97,18 +97,9 @@ export const buildElementHash = (
 		return hash as ElementHash;
 	}
 
-	const hash = buildHash(
-		[
-			element.kind,
-			element.label,
-			element.uri,
-			element.jobHash,
-			element.fileName,
-			...element.range.map((r) => String(r))
-		].join(',')
-	)
+	const hash = element.jobHash;
 
-	return hash as ElementHash;
+	return hash as unknown as ElementHash;
 }
 
 const buildDiagnosticElement = (job: MoveTopLevelNodeJob | RepairCodeJob): DiagnosticElement => {

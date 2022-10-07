@@ -4,7 +4,6 @@ import { JobManager } from './jobManager';
 import { buildTypeCodec, mapValidationToEither } from './inferenceService';
 import { withFallback } from 'io-ts-types';
 import { pipe } from 'fp-ts/lib/function';
-import { orElse } from 'fp-ts/lib/Either';
 
 const argumentCodec = buildTypeCodec({
 	jobHash: t.string,
@@ -15,13 +14,10 @@ export const acceptJob = (jobManager: JobManager) => {
 	return async (arg0: unknown, arg1: unknown) => {
 		// factor in tree-data commands and regular commands
 		const argumentEither = pipe(
-			argumentCodec.decode(arg0),
-			orElse(() =>
-				argumentCodec.decode({
-					jobHash: arg0,
-					characterDifference: arg1,
-				}),
-			),
+			argumentCodec.decode({
+				jobHash: arg0,
+				characterDifference: arg1,
+			}),
 			mapValidationToEither,
 		);
 
@@ -34,6 +30,6 @@ export const acceptJob = (jobManager: JobManager) => {
 		jobManager.acceptJob(
 			argumentEither.right.jobHash as JobHash,
 			argumentEither.right.characterDifference,
-		);
+		);		
 	};
 };
