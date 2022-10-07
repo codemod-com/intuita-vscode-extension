@@ -297,19 +297,13 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		message: Message & { kind: MessageKind.updateInternalDiagnostics },
 	) {
 		const uri = Uri.parse(message.fileName);
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+		const label: string = message.fileName.replace(rootPath, '');
 
 		const jobs = this._jobManager.getFileJobs(buildFileNameHash(message.fileName));
 
 		const diagnostics = jobs.map((job) => buildDiagnostic(job));
-
-		this._diagnosticCollection.clear();
-
-		this._diagnosticCollection.set(uri, diagnostics);
-
-		// create the elements
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-		const label: string = message.fileName.replace(rootPath, '');
 
 		const children: DiagnosticElement[] = jobs
 			.map((job) => buildDiagnosticElement(job));
@@ -319,15 +313,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			: { kind: 'upsert' as const, fileElement: buildFileElement(label, children) }
 
 		const rootElement = buildRootElement(
-			this._elementMap.get('' as ElementHash) ?? null,
+			this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
 			action,
 		);
 
-		// end
-		
-		// start
-		this._elementMap.clear();
+		// update collections
+		this._diagnosticCollection.clear();
+		this._diagnosticCollection.set(uri, diagnostics);
 
+		this._childParentMap.clear();
+
+		this._elementMap.clear();
 		this._elementMap.set(rootElement.hash, rootElement);
 
 		rootElement.children.forEach(
