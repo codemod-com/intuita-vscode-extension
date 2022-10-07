@@ -122,10 +122,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.buildCodeRepairJobs',
 			async () => {
-				const uri =
-					vscode.window.activeTextEditor?.document.uri ?? null;
-
-				await diagnosticManager.handleDiagnostics(uri, 'onCommand');
+				await diagnosticManager.handleDiagnostics('onCommand');
 			},
 		),
 	);
@@ -190,14 +187,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidSaveTextDocument(async (document) => {
+		vscode.workspace.onDidSaveTextDocument(async () => {
 			if (
 				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
 			) {
 				return;
 			}
 
-			await diagnosticManager.handleDiagnostics(document.uri, 'didSave');
+			await diagnosticManager.handleDiagnostics('didSave');
 		}),
 	);
 

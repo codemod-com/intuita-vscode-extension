@@ -141,7 +141,6 @@ export class InferredCodeRepairService {
 			text: message.text,
 			version: message.version,
 			inferenceJobs: dataEither.right.inferenceJobs,
-			triggeredByThisUri: message.triggeredByThisUri,
 			trigger: message.trigger,
 		});
 

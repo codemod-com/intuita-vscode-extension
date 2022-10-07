@@ -63,7 +63,6 @@ export class DiagnosticManager {
 	) {}
 
 	public async handleDiagnostics(
-		triggerUri: Uri | null,
 		trigger: 'didSave' | 'onCommand',
 	) {
 		const uriDiagnosticsTuples = this._vscodeService
@@ -120,7 +119,6 @@ export class DiagnosticManager {
 			}
 
 			const text = textDocument.getText();
-			const triggeredByUri = uri.toString() === triggerUri?.toString();
 
 			this._messageBus.publish({
 				kind: MessageKind.newExternalDiagnostics,
@@ -128,7 +126,6 @@ export class DiagnosticManager {
 				text,
 				version: textDocument.version,
 				diagnostics: newDiagnostics,
-				triggeredByThisUri: triggeredByUri,
 				trigger,
 			});
 		}

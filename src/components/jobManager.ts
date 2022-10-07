@@ -132,7 +132,6 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
-			showTheFirstJob: false,
 			trigger: 'onCommand',
 		});
 
@@ -186,7 +185,6 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName: job.fileName,
-			showTheFirstJob: true,
 			trigger: 'onCommand',
 		});
 	}
@@ -278,7 +276,6 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
-			showTheFirstJob: false,
 			trigger: 'onCommand',
 		});
 
@@ -370,7 +367,6 @@ export class JobManager {
 			fileName,
 			message.version,
 			jobs,
-			message.triggeredByThisUri,
 			message.trigger,
 		);
 	}
@@ -397,7 +393,6 @@ export class JobManager {
 			fileName,
 			message.version,
 			jobs,
-			message.triggeredByThisUri,
 			message.trigger,
 		);
 	}
@@ -406,7 +401,6 @@ export class JobManager {
 		fileName: string,
 		version: number,
 		jobs: ReadonlyArray<RepairCodeJob>,
-		showTheFirstJob: boolean,
 		trigger: 'didSave' | 'onCommand',
 	) {
 		const fileNameHash = buildFileNameHash(fileName);
@@ -435,7 +429,6 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			showTheFirstJob,
 			fileName,
 			trigger,
 		});
@@ -481,7 +474,6 @@ export class JobManager {
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
 			fileName,
-			showTheFirstJob: false,
 			trigger: 'onCommand',
 		});
 	}
