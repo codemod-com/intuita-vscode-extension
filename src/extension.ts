@@ -79,19 +79,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		diagnosticCollection,
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerTreeDataProvider(
-			'explorerIntuitaViewId',
-			treeDataProvider,
-		),
+	const explorerTreeView = vscode.window.createTreeView(
+		'explorerIntuitaViewId',
+		{treeDataProvider},
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerTreeDataProvider(
-			'intuitaViewId',
-			treeDataProvider,
-		),
-	);
+	const intuitaTreeView = vscode.window.createTreeView(
+		'intuitaViewId',
+		{treeDataProvider},
+	)
+
+	context.subscriptions.push(explorerTreeView);
+	context.subscriptions.push(intuitaTreeView);
 
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
