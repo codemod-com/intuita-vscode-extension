@@ -1,6 +1,6 @@
 import { Diagnostic, Uri } from 'vscode';
 import { buildHash } from '../utilities';
-import { MessageBus, MessageKind } from './messageBus';
+import { MessageBus, MessageKind, NewExternalDiagnostic } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 type DiagnosticHash = string & { __type: 'DiagnosticHash' };
@@ -82,13 +82,18 @@ export class DiagnosticManager {
 				] as const;
 			});
 
+		if (uriDiagnosticsTuples.length === 0) {
+			return;
+		}
+
+		const noExternalDiagnosticsUri: ReadonlyArray<Uri> = uriDiagnosticsTuples
+			.filter(([uri, diagnostics]) => diagnostics.length === 0)
+			.map(([uri]) => uri);
+
+		const newExternalDiagnostics: NewExternalDiagnostic[] = [];
+
 		for (const [uri, diagnostics] of uriDiagnosticsTuples) {
 			if (diagnostics.length === 0) {
-				this._messageBus.publish({
-					kind: MessageKind.noExternalDiagnostics,
-					uri,
-				});
-
 				continue;
 			}
 
@@ -120,14 +125,19 @@ export class DiagnosticManager {
 
 			const text = textDocument.getText();
 
-			this._messageBus.publish({
-				kind: MessageKind.newExternalDiagnostics,
+			newExternalDiagnostics.push({
 				uri,
 				text,
 				version: textDocument.version,
 				diagnostics: newDiagnostics,
-				trigger,
 			});
 		}
+
+		this._messageBus.publish({
+			kind: MessageKind.externalDiagnostics,
+			noExternalDiagnosticsUri,
+			newExternalDiagnostics,
+			trigger,
+		})
 	}
 }

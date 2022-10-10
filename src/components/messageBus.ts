@@ -35,7 +35,19 @@ export const enum MessageKind {
 	 */
 	updateExternalFile = 10,
 	externalFileUpdated = 11,
+	/**
+	 * the external diagnostics are such that come from
+	 * e.g the TS Language Server
+	 */
+	externalDiagnostics = 12,
 }
+
+export type NewExternalDiagnostic = Readonly<{
+	uri: Uri,
+	version: number,
+	text: string,
+	diagnostics: ReadonlyArray<Diagnostic>,
+}>;
 
 export type Message =
 	| Readonly<{
@@ -103,7 +115,13 @@ export type Message =
 			kind: MessageKind.externalFileUpdated;
 			uri: Uri;
 			text: string;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.externalDiagnostics,
+			noExternalDiagnosticsUri: ReadonlyArray<Uri>,
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
+			trigger: 'didSave' | 'onCommand',
+	}>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;
