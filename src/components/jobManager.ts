@@ -50,7 +50,7 @@ export class JobManager {
 			}
 
 			if (message.kind === MessageKind.externalDiagnostics) {
-				setImmediate(() => this._onNoTypeScriptDiagnostics(message));
+				setImmediate(() => this._onExternalDiagnostics(message));
 			}
 
 			if (
@@ -131,7 +131,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
+			fileNames: [ fileName ],
 			trigger: 'onCommand',
 		});
 
@@ -184,7 +184,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName: job.fileName,
+			fileNames: [ job.fileName ],
 			trigger: 'onCommand',
 		});
 	}
@@ -275,7 +275,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
+			fileNames: [ fileName ],
 			trigger: 'onCommand',
 		});
 
@@ -436,7 +436,7 @@ export class JobManager {
 		});
 	}
 
-	protected _onNoTypeScriptDiagnostics(
+	protected _onExternalDiagnostics(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	) {
 		const fileNames = message.noExternalDiagnosticsUri.map((uri) => uri.fsPath);
@@ -472,14 +472,14 @@ export class JobManager {
 			});
 	
 			this._repairCodeHashMap.set(fileNameHash, newJobHashes);
-	
-			// outgoing
-			this._messageBus.publish({
-				kind: MessageKind.updateInternalDiagnostics,
-				fileName,
-				trigger: 'onCommand',
-			});
 		}
+
+		// outgoing
+		this._messageBus.publish({
+			kind: MessageKind.updateInternalDiagnostics,
+			fileNames,
+			trigger: 'onCommand',
+		});
 	}
 
 	protected _externalFileUpdated(
