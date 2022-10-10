@@ -318,12 +318,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		);
 
 		// update collections
-		this._diagnosticCollection.clear();
 		this._diagnosticCollection.set(uri, diagnostics);
 
+		this._elementMap.clear();
 		this._childParentMap.clear();
 
-		this._elementMap.clear();
 		this._elementMap.set(rootElement.hash, rootElement);
 
 		rootElement.children.forEach((fileElement) => {
