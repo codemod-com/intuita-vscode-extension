@@ -368,9 +368,14 @@ export class JobManager {
 				fileName,
 				newExternalDiagnostic.version,
 				jobs,
-				message.trigger,
 			);
 		}
+
+		this._messageBus.publish({
+			kind: MessageKind.updateInternalDiagnostics,
+			fileNames: message.newExternalDiagnostics.map(({ uri }) => uri.fsPath),
+			trigger: message.trigger,
+		});
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -391,19 +396,23 @@ export class JobManager {
 			message.version,
 		);
 
-		return this._commitRepairCodeJobs(
+		this._commitRepairCodeJobs(
 			fileName,
 			message.version,
 			jobs,
-			message.trigger,
 		);
+
+		this._messageBus.publish({
+			kind: MessageKind.updateInternalDiagnostics,
+			fileNames: [ fileName ],
+			trigger: message.trigger,
+		});
 	}
 
 	protected _commitRepairCodeJobs(
 		fileName: string,
 		version: number,
 		jobs: ReadonlyArray<RepairCodeJob>,
-		trigger: 'didSave' | 'onCommand',
 	) {
 		const fileNameHash = buildFileNameHash(fileName);
 
@@ -428,12 +437,6 @@ export class JobManager {
 		});
 
 		this._repairCodeHashMap.set(fileNameHash, newJobHashes);
-
-		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
-			trigger,
-		});
 	}
 
 	protected _onExternalDiagnostics(

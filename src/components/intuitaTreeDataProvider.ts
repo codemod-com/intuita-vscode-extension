@@ -289,53 +289,65 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	protected async _setDiagnosticEntry(
 		message: Message & { kind: MessageKind.updateInternalDiagnostics },
 	) {
-		const uri = Uri.parse(message.fileName);
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+		let jobCount = 0;
 
-		const label: string = message.fileName.replace(rootPath, '');
-
-		const jobs = this._jobManager.getFileJobs(
-			buildFileNameHash(message.fileName),
-		);
-
-		const diagnostics = jobs.map((job) => buildDiagnostic(job));
-
-		const children: DiagnosticElement[] = jobs.map((job) =>
-			buildDiagnosticElement(job),
-		);
-
-		const action =
-			children.length === 0
-				? { kind: 'delete' as const, label }
-				: {
-						kind: 'upsert' as const,
-						fileElement: buildFileElement(label, children),
-				  };
-
-		const rootElement = buildRootElement(
-			this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
-			action,
-		);
-
-		// update collections
-		this._diagnosticCollection.set(uri, diagnostics);
-
-		this._elementMap.clear();
-		this._childParentMap.clear();
-
-		this._elementMap.set(rootElement.hash, rootElement);
-
-		rootElement.children.forEach((fileElement) => {
-			this._elementMap.set(fileElement.hash, fileElement);
-
-			fileElement.children.forEach((diagnosticElement) => {
-				this._elementMap.set(diagnosticElement.hash, diagnosticElement);
-				this._childParentMap.set(
-					diagnosticElement.hash,
-					fileElement.hash,
-				);
+		for (const fileName of message.fileNames) {
+			const uri = Uri.parse(fileName);
+			const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+	
+			const label: string = fileName.replace(rootPath, '');
+	
+			const jobs = this._jobManager.getFileJobs(
+				buildFileNameHash(fileName),
+			);
+	
+			const diagnostics = jobs.map((job) => buildDiagnostic(job));
+	
+			const children: DiagnosticElement[] = jobs.map((job) =>
+				buildDiagnosticElement(job),
+			);
+	
+			const action =
+				children.length === 0
+					? { kind: 'delete' as const, label }
+					: {
+							kind: 'upsert' as const,
+							fileElement: buildFileElement(label, children),
+					  };
+	
+			const rootElement = buildRootElement(
+				this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
+				action,
+			);
+	
+			// update collections
+			this._diagnosticCollection.set(uri, diagnostics);
+	
+			this._elementMap.clear();
+			this._childParentMap.clear();
+	
+			this._elementMap.set(rootElement.hash, rootElement);
+	
+			rootElement.children.forEach((fileElement) => {
+				this._elementMap.set(fileElement.hash, fileElement);
+	
+				fileElement.children.forEach((diagnosticElement) => {
+					this._elementMap.set(diagnosticElement.hash, diagnosticElement);
+					this._childParentMap.set(
+						diagnosticElement.hash,
+						fileElement.hash,
+					);
+				});
 			});
-		});
+
+			jobCount += jobs.length;
+		}
+
+		const rootElement = this._elementMap.get(ROOT_ELEMENT_HASH);
+
+		if (!rootElement || rootElement.kind !== 'ROOT') {
+			return;
+		}
 
 		const diagnosticElement = rootElement
 			.children
@@ -370,7 +382,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (message.trigger === 'didSave') {
 			window
 				.showInformationMessage(
-					`Generated ${jobs.length} core-repair recommendations`,
+					`Generated ${jobCount} core-repair recommendations`,
 					'Show the first recommendation',
 				)
 				.then(async (response) => {
