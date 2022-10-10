@@ -77,10 +77,10 @@ export type Message =
 			inferenceJobs: ReadonlyArray<InferenceJob>;
 			trigger: 'didSave' | 'onCommand';
 	  }>
-	| Readonly<{
-			kind: MessageKind.noExternalDiagnostics;
-			uri: Uri;
-	  }>
+	// | Readonly<{
+	// 		kind: MessageKind.noExternalDiagnostics;
+	// 		uri: Uri;
+	//   }>
 	| Readonly<{
 			kind: MessageKind.updateInternalDiagnostics;
 			fileName: string;
@@ -92,20 +92,17 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
-			uri: Uri;
-			version: number;
-			text: string;
-			diagnostics: ReadonlyArray<Diagnostic>;
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
 			trigger: 'didSave' | 'onCommand';
 	  }>
-	| Readonly<{
-			kind: MessageKind.newExternalDiagnostics;
-			uri: Uri;
-			version: number;
-			text: string;
-			diagnostics: ReadonlyArray<Diagnostic>;
-			trigger: 'didSave' | 'onCommand';
-	  }>
+	// | Readonly<{
+	// 		kind: MessageKind.newExternalDiagnostics;
+	// 		uri: Uri;
+	// 		version: number;
+	// 		text: string;
+	// 		diagnostics: ReadonlyArray<Diagnostic>;
+	// 		trigger: 'didSave' | 'onCommand';
+	//   }>
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;
 			uri: Uri;

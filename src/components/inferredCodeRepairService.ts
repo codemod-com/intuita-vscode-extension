@@ -34,9 +34,9 @@ export class InferredCodeRepairService {
 				});
 			}
 
-			if (message.kind === MessageKind.newExternalDiagnostics) {
+			if (message.kind === MessageKind.externalDiagnostics) {
 				setImmediate(() => {
-					this._onNewExternalDiagnosticsMessage(message);
+					this._onExternalDiagnosticsMessage(message);
 				});
 			}
 		});
@@ -60,8 +60,8 @@ export class InferredCodeRepairService {
 		this._cancel(uri);
 	}
 
-	protected async _onNewExternalDiagnosticsMessage(
-		message: Message & { kind: MessageKind.newExternalDiagnostics },
+	protected async _onExternalDiagnosticsMessage(
+		message: Message & { kind: MessageKind.externalDiagnostics },
 	): Promise<void> {
 		const { preferRuleBasedCodeRepair } =
 			this._configurationContainer.get();
@@ -70,79 +70,82 @@ export class InferredCodeRepairService {
 			return;
 		}
 
-		this._cancel(message.uri);
+		for (const newExternalDiagnostic of message.newExternalDiagnostics) {
+			this._cancel(newExternalDiagnostic.uri);
 
-		const workspacePath = this._vscodeService.getWorkspaceFolder(
-			message.uri,
-		)?.uri.fsPath;
-
-		if (!isNeitherNullNorUndefined(workspacePath)) {
-			return;
-		}
-
-		const stringUri = message.uri.toString();
-
-		const fileBaseName = basename(stringUri);
-
-		const hash = buildHash(
-			[
-				stringUri,
-				String(message.version),
-				randomBytes(16).toString('base64url'),
-			].join(','),
-		);
-
-		const directoryPath = join(workspacePath, `/.intuita/${hash}/`);
-
-		const filePath = join(
-			workspacePath,
-			`/.intuita/${hash}/${fileBaseName}`,
-		);
-
-		const source = Axios.CancelToken.source();
-
-		this._cancelTokenSourceMap.set(stringUri, source);
-
-		await promisifiedMkdir(directoryPath, {
-			recursive: true,
-		});
-
-		await promisifiedWriteFile(filePath, message.text, {
-			encoding: 'utf8',
-		});
-
-		const lineNumbers = new Set(
-			message.diagnostics.map(({ range }) => range.start.line),
-		);
-
-		const command: InferCommand = {
-			kind: 'infer',
-			fileMetaHash: hash,
-			filePath: stringUri,
-			lineNumbers: Array.from(lineNumbers),
-			workspacePath,
-		};
-
-		const response = await this._infer(command, source.token);
-
-		const dataEither = mapValidationToEither(
-			inferredMessageCodec.decode(response.data),
-		);
-
-		if (dataEither._tag === 'Left') {
-			throw new Error(
-				`Could not decode the inferred message: ${dataEither.left}`,
+			const workspacePath = this._vscodeService.getWorkspaceFolder(
+				newExternalDiagnostic.uri,
+			)?.uri.fsPath;
+	
+			if (!isNeitherNullNorUndefined(workspacePath)) {
+				return;
+			}
+	
+			const stringUri = newExternalDiagnostic.uri.toString();
+	
+			const fileBaseName = basename(stringUri);
+	
+			const hash = buildHash(
+				[
+					stringUri,
+					String(newExternalDiagnostic.version),
+					randomBytes(16).toString('base64url'),
+				].join(','),
 			);
+	
+			const directoryPath = join(workspacePath, `/.intuita/${hash}/`);
+	
+			const filePath = join(
+				workspacePath,
+				`/.intuita/${hash}/${fileBaseName}`,
+			);
+	
+			const source = Axios.CancelToken.source();
+	
+			this._cancelTokenSourceMap.set(stringUri, source);
+	
+			await promisifiedMkdir(directoryPath, {
+				recursive: true,
+			});
+	
+			await promisifiedWriteFile(filePath, newExternalDiagnostic.text, {
+				encoding: 'utf8',
+			});
+	
+			const lineNumbers = new Set(
+				newExternalDiagnostic.diagnostics.map(({ range }) => range.start.line),
+			);
+	
+			const command: InferCommand = {
+				kind: 'infer',
+				fileMetaHash: hash,
+				filePath: stringUri,
+				lineNumbers: Array.from(lineNumbers),
+				workspacePath,
+			};
+	
+			const response = await this._infer(command, source.token);
+	
+			const dataEither = mapValidationToEither(
+				inferredMessageCodec.decode(response.data),
+			);
+	
+			if (dataEither._tag === 'Left') {
+				throw new Error(
+					`Could not decode the inferred message: ${dataEither.left}`,
+				);
+			}
+	
+			// TODO check if it works like that
+			this._messageBus.publish({
+				kind: MessageKind.createRepairCodeJobs,
+				uri: newExternalDiagnostic.uri,
+				text: newExternalDiagnostic.text,
+				version: newExternalDiagnostic.version,
+				inferenceJobs: dataEither.right.inferenceJobs,
+				trigger: message.trigger,
+			});
 		}
-
-		this._messageBus.publish({
-			kind: MessageKind.createRepairCodeJobs,
-			uri: message.uri,
-			text: message.text,
-			version: message.version,
-			inferenceJobs: dataEither.right.inferenceJobs,
-			trigger: message.trigger,
-		});
 
 		// TODO remove the .intuita / hash directory
 	}

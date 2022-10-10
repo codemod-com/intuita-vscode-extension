@@ -49,7 +49,7 @@ export class JobManager {
 				setImmediate(() => this._onCreateRepairCodeJob(message));
 			}
 
-			if (message.kind === MessageKind.noExternalDiagnostics) {
+			if (message.kind === MessageKind.externalDiagnostics) {
 				setImmediate(() => this._onNoTypeScriptDiagnostics(message));
 			}
 
@@ -435,11 +435,10 @@ export class JobManager {
 	}
 
 	protected _onNoTypeScriptDiagnostics(
-		message: Message & { kind: MessageKind.noExternalDiagnostics },
+		message: Message & { kind: MessageKind.externalDiagnostics },
 	) {
-		const fileName = message.uri.fsPath;
-
-		const fileNameHash = buildFileNameHash(fileName);
+		const fileNames = message.noExternalDiagnosticsUri.map((uri) => uri.fsPath);
+		const fileNameHashes = fileNames.map(fileName => buildFileNameHash(fileName));
 
 		const oldJobHashes =
 			this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
