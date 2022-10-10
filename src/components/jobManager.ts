@@ -317,58 +317,60 @@ export class JobManager {
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
 		},
 	) {
-		const fileName = message.uri.fsPath;
+		for(const newExternalDiagnostic of message.newExternalDiagnostics) {
+			const fileName = newExternalDiagnostic.uri.fsPath;
 
-		const jobs = buildRuleBasedRepairCodeJobs(
-			fileName,
-			message.text,
-			message.version,
-			message.diagnostics,
-		);
-
-		const fileUri = buildFileUri(message.uri);
-
-		const fileNameHash = buildFileNameHash(fileName);
-
-		const oldJobHashes = Array.from(
-			this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>(),
-		);
-
-		const jobUris = oldJobHashes.map((hash) =>
-			buildJobUri({
+			const jobs = buildRuleBasedRepairCodeJobs(
 				fileName,
-				hash,
-			}),
-		);
+				newExternalDiagnostic.text,
+				newExternalDiagnostic.version,
+				newExternalDiagnostic.diagnostics,
+			);
 
-		// job clean up
-		this._repairCodeHashMap.delete(fileNameHash);
+			const fileUri = buildFileUri(newExternalDiagnostic.uri);
 
-		oldJobHashes.forEach((jobHash) => {
-			this._jobMap.delete(jobHash);
-		});
+			const fileNameHash = buildFileNameHash(fileName);
 
-		// send messages
-		jobUris.forEach((uri) => {
-			this._messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri,
+			const oldJobHashes = Array.from(
+				this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>(),
+			);
+
+			const jobUris = oldJobHashes.map((hash) =>
+				buildJobUri({
+					fileName,
+					hash,
+				}),
+			);
+
+			// job clean up
+			this._repairCodeHashMap.delete(fileNameHash);
+
+			oldJobHashes.forEach((jobHash) => {
+				this._jobMap.delete(jobHash);
 			});
-		});
 
-		this._messageBus.publish({
-			kind: MessageKind.writeFile,
-			uri: fileUri,
-			content: Buffer.from(message.text),
-			permissions: FilePermission.Readonly,
-		});
+			// send messages
+			jobUris.forEach((uri) => {
+				this._messageBus.publish({
+					kind: MessageKind.deleteFile,
+					uri,
+				});
+			});
 
-		this._commitRepairCodeJobs(
-			fileName,
-			message.version,
-			jobs,
-			message.trigger,
-		);
+			this._messageBus.publish({
+				kind: MessageKind.writeFile,
+				uri: fileUri,
+				content: Buffer.from(newExternalDiagnostic.text),
+				permissions: FilePermission.Readonly,
+			});
+
+			this._commitRepairCodeJobs(
+				fileName,
+				newExternalDiagnostic.version,
+				jobs,
+				message.trigger,
+			);
+		}
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -438,43 +440,46 @@ export class JobManager {
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	) {
 		const fileNames = message.noExternalDiagnosticsUri.map((uri) => uri.fsPath);
-		const fileNameHashes = fileNames.map(fileName => buildFileNameHash(fileName));
 
-		const oldJobHashes =
-			this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
+		for (const fileName of fileNames) {
+			const fileNameHash = buildFileNameHash(fileName);
 
-		if (!oldJobHashes.size) {
-			console.log(
-				'No repair code jobs to delete upon receiving no TypeScript diagnostics message',
-			);
-
-			return;
-		}
-
-		const newJobHashes = new Set<JobHash>();
-
-		oldJobHashes.forEach((jobHash) => {
-			const job = this._jobMap.get(jobHash);
-
-			if (!job) {
+			const oldJobHashes =
+				this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
+	
+			if (!oldJobHashes.size) {
+				console.log(
+					'No repair code jobs to delete upon receiving no TypeScript diagnostics message',
+				);
+	
 				return;
 			}
-
-			if (job.kind !== JobKind.repairCode) {
-				newJobHashes.add(jobHash);
-
-				this._jobMap.delete(jobHash);
-			}
-		});
-
-		this._repairCodeHashMap.set(fileNameHash, newJobHashes);
-
-		// outgoing
-		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
-			trigger: 'onCommand',
-		});
+	
+			const newJobHashes = new Set<JobHash>();
+	
+			oldJobHashes.forEach((jobHash) => {
+				const job = this._jobMap.get(jobHash);
+	
+				if (!job) {
+					return;
+				}
+	
+				if (job.kind !== JobKind.repairCode) {
+					newJobHashes.add(jobHash);
+	
+					this._jobMap.delete(jobHash);
+				}
+			});
+	
+			this._repairCodeHashMap.set(fileNameHash, newJobHashes);
+	
+			// outgoing
+			this._messageBus.publish({
+				kind: MessageKind.updateInternalDiagnostics,
+				fileName,
+				trigger: 'onCommand',
+			});
+		}
 	}
 
 	protected _externalFileUpdated(

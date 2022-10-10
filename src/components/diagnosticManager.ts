@@ -87,7 +87,7 @@ export class DiagnosticManager {
 		}
 
 		const noExternalDiagnosticsUri: ReadonlyArray<Uri> = uriDiagnosticsTuples
-			.filter(([uri, diagnostics]) => diagnostics.length === 0)
+			.filter(([_, diagnostics]) => diagnostics.length === 0)
 			.map(([uri]) => uri);
 
 		const newExternalDiagnostics: NewExternalDiagnostic[] = [];
