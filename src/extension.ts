@@ -22,8 +22,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		getVisibleEditors: () => vscode.window.visibleTextEditors,
 		getTextDocuments: () => vscode.workspace.textDocuments,
 		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
-		showTextDocument: async (textDocument) =>
-			vscode.window.showTextDocument(textDocument),
 		getDiagnostics: () => vscode.languages.getDiagnostics(),
 		getWorkspaceFolder: (uri) =>
 			vscode.workspace.getWorkspaceFolder(uri) ?? null,
