@@ -18,12 +18,6 @@ export const enum MessageKind {
 	changePermissions = 3,
 	createRepairCodeJobs = 4,
 	/**
-	 * the external diagnostics are such that come from
-	 * e.g the TS Language Server
-	 */
-	noExternalDiagnostics = 5,
-	newExternalDiagnostics = 6,
-	/**
 	 * the internal diagnostics are such that come from
 	 * the Intuita VSCode Extensions
 	 */
@@ -48,6 +42,8 @@ export type NewExternalDiagnostic = Readonly<{
 	text: string,
 	diagnostics: ReadonlyArray<Diagnostic>,
 }>;
+
+export type Trigger = 'didSave' | 'onCommand';
 
 export type Message =
 	| Readonly<{
@@ -75,12 +71,12 @@ export type Message =
 			text: string;
 			version: number;
 			inferenceJobs: ReadonlyArray<InferenceJob>;
-			trigger: 'didSave' | 'onCommand';
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateInternalDiagnostics;
 			fileNames: ReadonlyArray<string>;
-			trigger: 'didSave' | 'onCommand';
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.textDocumentChanged;
@@ -89,7 +85,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
 			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
-			trigger: 'didSave' | 'onCommand';
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;
@@ -105,7 +101,7 @@ export type Message =
 			kind: MessageKind.externalDiagnostics,
 			noExternalDiagnosticsUri: ReadonlyArray<Uri>,
 			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
-			trigger: 'didSave' | 'onCommand',
+			trigger: Trigger,
 	}>;
 
 export class MessageBus {
