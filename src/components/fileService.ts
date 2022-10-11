@@ -3,9 +3,10 @@ import {
 	Position,
 	Range,
 	Selection,
-	TextEditor,
 	TextEditorRevealType,
 	Uri,
+	workspace,
+	WorkspaceEdit,
 } from 'vscode';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -78,34 +79,34 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const activeTextEditor = this._vscodeService.getActiveTextEditor();
+		const document = await this._vscodeService.openTextDocument(message.uri);
+
+		const { lineCount } = document;
 
 		const range = new Range(
 			new Position(
-				message.jobOutput.range[0],
-				message.jobOutput.range[1],
+				0,
+				0,
 			),
 			new Position(
-				message.jobOutput.range[2],
-				message.jobOutput.range[3],
+				lineCount !== 0 ? lineCount - 1 : 0,
+				lineCount !== 0 ? document.lineAt(lineCount - 1).range.end.character : 0,
 			),
 		);
 
+		const workspaceEdit = new WorkspaceEdit();
+
+		workspaceEdit.replace(message.uri, range, message.jobOutput.text);
+
+		await workspace.applyEdit(workspaceEdit);
+
 		const { saveDocumentOnJobAccept } = this._configurationContainer.get();
 
-		const textDocument = await this._vscodeService.openTextDocument(message.uri);
-
-		const textEditor = await this._vscodeService
-			.showTextDocument(textDocument);
-
-		// TODO save the next version as the one that contains the job output
-		await textEditor.edit((textEditorEdit) => {
-			textEditorEdit.replace(range, message.jobOutput.text);
-		});
-
-		if (!saveDocumentOnJobAccept) {
-			await textEditor.document.save();
+		if (saveDocumentOnJobAccept) {
+			await document.save();
 		}
+
+		const activeTextEditor = this._vscodeService.getActiveTextEditor();
 
 		if (activeTextEditor?.document.uri.toString() === stringUri) {
 			const position = new Position(
@@ -126,7 +127,7 @@ export class FileService {
 		this._messageBus.publish({
 			kind: MessageKind.externalFileUpdated,
 			uri: message.uri,
-			text: textDocument.getText(),
+			text: document.getText(),
 		});
 	}
 }
