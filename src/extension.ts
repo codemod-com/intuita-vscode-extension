@@ -79,19 +79,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		diagnosticCollection,
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerTreeDataProvider(
-			'explorerIntuitaViewId',
-			treeDataProvider,
-		),
+	const explorerTreeView = vscode.window.createTreeView(
+		'explorerIntuitaViewId',
+		{ treeDataProvider },
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerTreeDataProvider(
-			'intuitaViewId',
-			treeDataProvider,
-		),
-	);
+	const intuitaTreeView = vscode.window.createTreeView('intuitaViewId', {
+		treeDataProvider,
+	});
+
+	treeDataProvider.setReveal(explorerTreeView.reveal);
+
+	context.subscriptions.push(explorerTreeView);
+	context.subscriptions.push(intuitaTreeView);
 
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider(
@@ -122,7 +122,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.buildCodeRepairJobs',
 			async () => {
-				await diagnosticManager.handleDiagnostics();
+				await diagnosticManager.handleDiagnostics('onCommand');
 			},
 		),
 	);
@@ -143,14 +143,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.rejectJob', async (args) => {
+		vscode.commands.registerCommand('intuita.rejectJob', async (arg0) => {
 			const jobHash: string | null =
-				typeof args === 'object' && typeof args.hash === 'string'
-					? args.hash
-					: null;
+				typeof arg0 === 'string' ? arg0 : null;
 
 			if (jobHash === null) {
-				throw new Error('Did not pass the job hash argument "hash".');
+				throw new Error(
+					`Did not pass the element argument "${jobHash}".`,
+				);
 			}
 
 			jobManager.rejectJob(jobHash as JobHash);
@@ -194,7 +194,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			await diagnosticManager.handleDiagnostics();
+			await diagnosticManager.handleDiagnostics('didSave');
 		}),
 	);
 

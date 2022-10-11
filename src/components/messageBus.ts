@@ -18,12 +18,6 @@ export const enum MessageKind {
 	changePermissions = 3,
 	createRepairCodeJobs = 4,
 	/**
-	 * the external diagnostics are such that come from
-	 * e.g the TS Language Server
-	 */
-	noExternalDiagnostics = 5,
-	newExternalDiagnostics = 6,
-	/**
 	 * the internal diagnostics are such that come from
 	 * the Intuita VSCode Extensions
 	 */
@@ -35,7 +29,21 @@ export const enum MessageKind {
 	 */
 	updateExternalFile = 10,
 	externalFileUpdated = 11,
+	/**
+	 * the external diagnostics are such that come from
+	 * e.g the TS Language Server
+	 */
+	externalDiagnostics = 12,
 }
+
+export type NewExternalDiagnostic = Readonly<{
+	uri: Uri;
+	version: number;
+	text: string;
+	diagnostics: ReadonlyArray<Diagnostic>;
+}>;
+
+export type Trigger = 'didSave' | 'onCommand';
 
 export type Message =
 	| Readonly<{
@@ -63,14 +71,12 @@ export type Message =
 			text: string;
 			version: number;
 			inferenceJobs: ReadonlyArray<InferenceJob>;
-	  }>
-	| Readonly<{
-			kind: MessageKind.noExternalDiagnostics;
-			uri: Uri;
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateInternalDiagnostics;
-			fileName: string;
+			fileNames: ReadonlyArray<string>;
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.textDocumentChanged;
@@ -78,17 +84,8 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
-			uri: Uri;
-			version: number;
-			text: string;
-			diagnostics: ReadonlyArray<Diagnostic>;
-	  }>
-	| Readonly<{
-			kind: MessageKind.newExternalDiagnostics;
-			uri: Uri;
-			version: number;
-			text: string;
-			diagnostics: ReadonlyArray<Diagnostic>;
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
+			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;
@@ -99,6 +96,12 @@ export type Message =
 			kind: MessageKind.externalFileUpdated;
 			uri: Uri;
 			text: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.externalDiagnostics;
+			noExternalDiagnosticsUri: ReadonlyArray<Uri>;
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
+			trigger: Trigger;
 	  }>;
 
 export class MessageBus {
