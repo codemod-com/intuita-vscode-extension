@@ -1,6 +1,11 @@
 import { Diagnostic, Uri } from 'vscode';
 import { buildHash } from '../utilities';
-import { MessageBus, MessageKind, NewExternalDiagnostic, Trigger } from './messageBus';
+import {
+	MessageBus,
+	MessageKind,
+	NewExternalDiagnostic,
+	Trigger,
+} from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 type DiagnosticHash = string & { __type: 'DiagnosticHash' };

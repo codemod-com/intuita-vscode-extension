@@ -3,9 +3,10 @@ import {
 	Position,
 	Range,
 	Selection,
-	TextEditor,
 	TextEditorRevealType,
 	Uri,
+	workspace,
+	WorkspaceEdit,
 } from 'vscode';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -20,6 +21,7 @@ export class FileService {
 		protected readonly _jobManager: JobManager,
 		protected readonly _messageBus: MessageBus,
 		protected readonly _vscodeService: VSCodeService,
+		protected readonly _uriStringToVersionMap: Map<string, number>,
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
@@ -78,58 +80,37 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const textEditors = this._vscodeService
-			.getVisibleEditors()
-			.filter(({ document }) => {
-				return document.uri.toString() === stringUri;
-			});
+		const document = await this._vscodeService.openTextDocument(
+			message.uri,
+		);
 
-		const textDocuments = this._vscodeService
-			.getTextDocuments()
-			.filter((document) => {
-				return document.uri.toString() === stringUri;
-			});
-
-		// TODO if the text editor is missing, just open the document!
-
-		const activeTextEditor = this._vscodeService.getActiveTextEditor();
+		const { lineCount } = document;
 
 		const range = new Range(
+			new Position(0, 0),
 			new Position(
-				message.jobOutput.range[0],
-				message.jobOutput.range[1],
-			),
-			new Position(
-				message.jobOutput.range[2],
-				message.jobOutput.range[3],
+				lineCount !== 0 ? lineCount - 1 : 0,
+				lineCount !== 0
+					? document.lineAt(lineCount - 1).range.end.character
+					: 0,
 			),
 		);
 
+		const workspaceEdit = new WorkspaceEdit();
+
+		workspaceEdit.replace(message.uri, range, message.jobOutput.text);
+
+		this._uriStringToVersionMap.set(stringUri, document.version + 1);
+
+		await workspace.applyEdit(workspaceEdit);
+
 		const { saveDocumentOnJobAccept } = this._configurationContainer.get();
 
-		const changeTextEditor = async (textEditor: TextEditor) => {
-			await textEditor.edit((textEditorEdit) => {
-				textEditorEdit.replace(range, message.jobOutput.text);
-			});
-
-			if (!saveDocumentOnJobAccept) {
-				return;
-			}
-
-			return textEditor.document.save();
-		};
-
-		await Promise.all(textEditors.map(changeTextEditor));
-
-		if (textEditors.length === 0) {
-			for (const textDocument of textDocuments) {
-				const textEditor = await this._vscodeService
-					// TODO we can add a range here
-					.showTextDocument(textDocument);
-
-				await changeTextEditor(textEditor);
-			}
+		if (saveDocumentOnJobAccept) {
+			await document.save();
 		}
+
+		const activeTextEditor = this._vscodeService.getActiveTextEditor();
 
 		if (activeTextEditor?.document.uri.toString() === stringUri) {
 			const position = new Position(
@@ -147,18 +128,10 @@ export class FileService {
 			);
 		}
 
-		const allTextDocuments = textEditors
-			.map(({ document }) => document)
-			.concat(textDocuments);
-
-		if (!allTextDocuments[0]) {
-			return;
-		}
-
 		this._messageBus.publish({
 			kind: MessageKind.externalFileUpdated,
 			uri: message.uri,
-			text: allTextDocuments[0].getText(),
+			text: document.getText(),
 		});
 	}
 }

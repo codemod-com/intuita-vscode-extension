@@ -11,9 +11,6 @@ export interface VSCodeService {
 	readonly getVisibleEditors: () => ReadonlyArray<TextEditor>;
 	readonly getTextDocuments: () => ReadonlyArray<TextDocument>;
 	readonly getActiveTextEditor: () => TextEditor | null;
-	readonly showTextDocument: (
-		textDocument: TextDocument,
-	) => Promise<TextEditor>;
 	readonly getDiagnostics: () => ReadonlyArray<
 		[Uri, ReadonlyArray<Diagnostic>]
 	>;

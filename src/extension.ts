@@ -22,8 +22,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		getVisibleEditors: () => vscode.window.visibleTextEditors,
 		getTextDocuments: () => vscode.workspace.textDocuments,
 		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
-		showTextDocument: async (textDocument) =>
-			vscode.window.showTextDocument(textDocument),
 		getDiagnostics: () => vscode.languages.getDiagnostics(),
 		getWorkspaceFolder: (uri) =>
 			vscode.workspace.getWorkspaceFolder(uri) ?? null,
@@ -66,11 +64,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(messageBus, configurationContainer);
 
+	const uriStringToVersionMap = new Map<string, number>();
+
 	new FileService(
 		configurationContainer,
 		jobManager,
 		messageBus,
 		vscodeService,
+		uriStringToVersionMap,
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
@@ -187,10 +188,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidSaveTextDocument(async () => {
+		vscode.workspace.onDidSaveTextDocument(async (document) => {
 			if (
 				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
 			) {
+				return;
+			}
+
+			const version = uriStringToVersionMap.get(document.uri.toString());
+
+			if (version !== null && version === document.version) {
 				return;
 			}
 
