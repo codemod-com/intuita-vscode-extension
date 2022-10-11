@@ -80,18 +80,19 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const document = await this._vscodeService.openTextDocument(message.uri);
+		const document = await this._vscodeService.openTextDocument(
+			message.uri,
+		);
 
 		const { lineCount } = document;
 
 		const range = new Range(
-			new Position(
-				0,
-				0,
-			),
+			new Position(0, 0),
 			new Position(
 				lineCount !== 0 ? lineCount - 1 : 0,
-				lineCount !== 0 ? document.lineAt(lineCount - 1).range.end.character : 0,
+				lineCount !== 0
+					? document.lineAt(lineCount - 1).range.end.character
+					: 0,
 			),
 		);
 
