@@ -1,6 +1,6 @@
 import { Diagnostic, Uri } from 'vscode';
 import { buildHash } from '../utilities';
-import { MessageBus, MessageKind, NewExternalDiagnostic } from './messageBus';
+import { MessageBus, MessageKind, NewExternalDiagnostic, Trigger } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 type DiagnosticHash = string & { __type: 'DiagnosticHash' };
@@ -62,7 +62,7 @@ export class DiagnosticManager {
 		protected readonly _vscodeService: VSCodeService,
 	) {}
 
-	public async handleDiagnostics(trigger: 'didSave' | 'onCommand') {
+	public async handleDiagnostics(trigger: Trigger) {
 		const uriDiagnosticsTuples = this._vscodeService
 			.getDiagnostics()
 			.filter(([uri]) => {
