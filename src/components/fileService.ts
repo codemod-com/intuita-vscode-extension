@@ -78,20 +78,6 @@ export class FileService {
 	) {
 		const stringUri = message.uri.toString();
 
-		const textEditors = this._vscodeService
-			.getVisibleEditors()
-			.filter(({ document }) => {
-				return document.uri.toString() === stringUri;
-			});
-
-		const textDocuments = this._vscodeService
-			.getTextDocuments()
-			.filter((document) => {
-				return document.uri.toString() === stringUri;
-			});
-
-		// TODO if the text editor is missing, just open the document!
-
 		const activeTextEditor = this._vscodeService.getActiveTextEditor();
 
 		const range = new Range(
@@ -107,28 +93,18 @@ export class FileService {
 
 		const { saveDocumentOnJobAccept } = this._configurationContainer.get();
 
-		const changeTextEditor = async (textEditor: TextEditor) => {
-			await textEditor.edit((textEditorEdit) => {
-				textEditorEdit.replace(range, message.jobOutput.text);
-			});
+		const textDocument = await this._vscodeService.openTextDocument(message.uri);
 
-			if (!saveDocumentOnJobAccept) {
-				return;
-			}
+		const textEditor = await this._vscodeService
+			.showTextDocument(textDocument);
 
-			return textEditor.document.save();
-		};
+		// TODO save the next version as the one that contains the job output
+		await textEditor.edit((textEditorEdit) => {
+			textEditorEdit.replace(range, message.jobOutput.text);
+		});
 
-		await Promise.all(textEditors.map(changeTextEditor));
-
-		if (textEditors.length === 0) {
-			for (const textDocument of textDocuments) {
-				const textEditor = await this._vscodeService
-					// TODO we can add a range here
-					.showTextDocument(textDocument);
-
-				await changeTextEditor(textEditor);
-			}
+		if (!saveDocumentOnJobAccept) {
+			await textEditor.document.save();
 		}
 
 		if (activeTextEditor?.document.uri.toString() === stringUri) {
@@ -147,18 +123,10 @@ export class FileService {
 			);
 		}
 
-		const allTextDocuments = textEditors
-			.map(({ document }) => document)
-			.concat(textDocuments);
-
-		if (!allTextDocuments[0]) {
-			return;
-		}
-
 		this._messageBus.publish({
 			kind: MessageKind.externalFileUpdated,
 			uri: message.uri,
-			text: allTextDocuments[0].getText(),
+			text: textDocument.getText(),
 		});
 	}
 }

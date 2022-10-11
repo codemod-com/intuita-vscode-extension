@@ -1,6 +1,7 @@
 import type {
 	Diagnostic,
 	TextDocument,
+	TextDocumentShowOptions,
 	TextEditor,
 	Uri,
 	WorkspaceFolder,
@@ -13,6 +14,7 @@ export interface VSCodeService {
 	readonly getActiveTextEditor: () => TextEditor | null;
 	readonly showTextDocument: (
 		textDocument: TextDocument,
+		options?: TextDocumentShowOptions,
 	) => Promise<TextEditor>;
 	readonly getDiagnostics: () => ReadonlyArray<
 		[Uri, ReadonlyArray<Diagnostic>]
