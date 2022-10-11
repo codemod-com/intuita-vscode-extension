@@ -8,16 +8,16 @@ export class RuleBasedCoreRepairService {
 		protected readonly _messageBus: MessageBus,
 	) {
 		this._messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.newExternalDiagnostics) {
+			if (message.kind === MessageKind.externalDiagnostics) {
 				setImmediate(() => {
-					this._onNewExternalDiagnosticsMessage(message);
+					this._onExternalDiagnosticsMessage(message);
 				});
 			}
 		});
 	}
 
-	protected _onNewExternalDiagnosticsMessage(
-		message: Message & { kind: MessageKind.newExternalDiagnostics },
+	protected _onExternalDiagnosticsMessage(
+		message: Message & { kind: MessageKind.externalDiagnostics },
 	): void {
 		const { preferRuleBasedCodeRepair } =
 			this._configurationContainer.get();
@@ -28,10 +28,8 @@ export class RuleBasedCoreRepairService {
 
 		this._messageBus.publish({
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged,
-			uri: message.uri,
-			version: message.version,
-			text: message.text,
-			diagnostics: message.diagnostics,
+			newExternalDiagnostics: message.newExternalDiagnostics,
+			trigger: message.trigger,
 		});
 	}
 }

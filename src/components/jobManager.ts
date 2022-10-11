@@ -49,8 +49,8 @@ export class JobManager {
 				setImmediate(() => this._onCreateRepairCodeJob(message));
 			}
 
-			if (message.kind === MessageKind.noExternalDiagnostics) {
-				setImmediate(() => this._onNoTypeScriptDiagnostics(message));
+			if (message.kind === MessageKind.externalDiagnostics) {
+				setImmediate(() => this._onExternalDiagnostics(message));
 			}
 
 			if (
@@ -131,7 +131,8 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
+			fileNames: [fileName],
+			trigger: 'onCommand',
 		});
 
 		const uri = buildJobUri(job);
@@ -183,7 +184,8 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName: job.fileName,
+			fileNames: [job.fileName],
+			trigger: 'onCommand',
 		});
 	}
 
@@ -273,7 +275,8 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
+			fileNames: [fileName],
+			trigger: 'onCommand',
 		});
 
 		oldJobHashes.forEach((oldJobHash) => {
@@ -314,53 +317,67 @@ export class JobManager {
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
 		},
 	) {
-		const fileName = message.uri.fsPath;
+		for (const newExternalDiagnostic of message.newExternalDiagnostics) {
+			const fileName = newExternalDiagnostic.uri.fsPath;
 
-		const jobs = buildRuleBasedRepairCodeJobs(
-			fileName,
-			message.text,
-			message.version,
-			message.diagnostics,
-		);
-
-		const fileUri = buildFileUri(message.uri);
-
-		const fileNameHash = buildFileNameHash(fileName);
-
-		const oldJobHashes = Array.from(
-			this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>(),
-		);
-
-		const jobUris = oldJobHashes.map((hash) =>
-			buildJobUri({
+			const jobs = buildRuleBasedRepairCodeJobs(
 				fileName,
-				hash,
-			}),
-		);
+				newExternalDiagnostic.text,
+				newExternalDiagnostic.version,
+				newExternalDiagnostic.diagnostics,
+			);
 
-		// job clean up
-		this._repairCodeHashMap.delete(fileNameHash);
+			const fileUri = buildFileUri(newExternalDiagnostic.uri);
 
-		oldJobHashes.forEach((jobHash) => {
-			this._jobMap.delete(jobHash);
-		});
+			const fileNameHash = buildFileNameHash(fileName);
 
-		// send messages
-		jobUris.forEach((uri) => {
-			this._messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri,
+			const oldJobHashes = Array.from(
+				this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>(),
+			);
+
+			const jobUris = oldJobHashes.map((hash) =>
+				buildJobUri({
+					fileName,
+					hash,
+				}),
+			);
+
+			// job clean up
+			this._repairCodeHashMap.delete(fileNameHash);
+
+			oldJobHashes.forEach((jobHash) => {
+				this._jobMap.delete(jobHash);
 			});
-		});
+
+			// send messages
+			jobUris.forEach((uri) => {
+				this._messageBus.publish({
+					kind: MessageKind.deleteFile,
+					uri,
+				});
+			});
+
+			this._messageBus.publish({
+				kind: MessageKind.writeFile,
+				uri: fileUri,
+				content: Buffer.from(newExternalDiagnostic.text),
+				permissions: FilePermission.Readonly,
+			});
+
+			this._commitRepairCodeJobs(
+				fileName,
+				newExternalDiagnostic.version,
+				jobs,
+			);
+		}
 
 		this._messageBus.publish({
-			kind: MessageKind.writeFile,
-			uri: fileUri,
-			content: Buffer.from(message.text),
-			permissions: FilePermission.Readonly,
+			kind: MessageKind.updateInternalDiagnostics,
+			fileNames: message.newExternalDiagnostics.map(
+				({ uri }) => uri.fsPath,
+			),
+			trigger: message.trigger,
 		});
-
-		this._commitRepairCodeJobs(fileName, message.version, jobs);
 	}
 
 	protected async _onCreateRepairCodeJob(
@@ -381,7 +398,13 @@ export class JobManager {
 			message.version,
 		);
 
-		return this._commitRepairCodeJobs(fileName, message.version, jobs);
+		this._commitRepairCodeJobs(fileName, message.version, jobs);
+
+		this._messageBus.publish({
+			kind: MessageKind.updateInternalDiagnostics,
+			fileNames: [fileName],
+			trigger: message.trigger,
+		});
 	}
 
 	protected _commitRepairCodeJobs(
@@ -412,53 +435,53 @@ export class JobManager {
 		});
 
 		this._repairCodeHashMap.set(fileNameHash, newJobHashes);
-
-		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
-		});
 	}
 
-	protected _onNoTypeScriptDiagnostics(
-		message: Message & { kind: MessageKind.noExternalDiagnostics },
+	protected _onExternalDiagnostics(
+		message: Message & { kind: MessageKind.externalDiagnostics },
 	) {
-		const fileName = message.uri.fsPath;
+		const fileNames = message.noExternalDiagnosticsUri.map(
+			(uri) => uri.fsPath,
+		);
 
-		const fileNameHash = buildFileNameHash(fileName);
+		for (const fileName of fileNames) {
+			const fileNameHash = buildFileNameHash(fileName);
 
-		const oldJobHashes =
-			this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
+			const oldJobHashes =
+				this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
 
-		if (!oldJobHashes.size) {
-			console.log(
-				'No repair code jobs to delete upon receiving no TypeScript diagnostics message',
-			);
+			if (!oldJobHashes.size) {
+				console.log(
+					'No repair code jobs to delete upon receiving no TypeScript diagnostics message',
+				);
 
-			return;
-		}
-
-		const newJobHashes = new Set<JobHash>();
-
-		oldJobHashes.forEach((jobHash) => {
-			const job = this._jobMap.get(jobHash);
-
-			if (!job) {
 				return;
 			}
 
-			if (job.kind !== JobKind.repairCode) {
-				newJobHashes.add(jobHash);
+			const newJobHashes = new Set<JobHash>();
 
-				this._jobMap.delete(jobHash);
-			}
-		});
+			oldJobHashes.forEach((jobHash) => {
+				const job = this._jobMap.get(jobHash);
 
-		this._repairCodeHashMap.set(fileNameHash, newJobHashes);
+				if (!job) {
+					return;
+				}
+
+				if (job.kind !== JobKind.repairCode) {
+					newJobHashes.add(jobHash);
+
+					this._jobMap.delete(jobHash);
+				}
+			});
+
+			this._repairCodeHashMap.set(fileNameHash, newJobHashes);
+		}
 
 		// outgoing
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileName,
+			fileNames,
+			trigger: 'onCommand',
 		});
 	}
 
