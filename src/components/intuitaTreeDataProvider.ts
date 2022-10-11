@@ -135,47 +135,47 @@ const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
 const buildRootElement = (
 	oldRootElement: Element | null,
-	action:
-		| { kind: 'upsert'; fileElement: FileElement }
-		| { kind: 'delete'; label: string },
+	deleteLabels: string[],
+	upsertFileElements: FileElement[],
 ): RootElement => {
 	if (oldRootElement === null || oldRootElement.kind !== 'ROOT') {
-		const children = action.kind === 'upsert' ? [action.fileElement] : [];
-
 		return {
 			hash: ROOT_ELEMENT_HASH,
 			kind: 'ROOT',
-			children,
+			children: upsertFileElements,
 		};
 	}
 
-	if (action.kind === 'delete') {
-		const children = oldRootElement.children.filter((childFileElement) => {
-			return childFileElement.label !== action.label;
-		});
+	const children: FileElement[] = [];
+	const upsertedLabels: string[] = [];
 
-		return {
-			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
-			children,
-		};
-	}
+	oldRootElement.children.forEach(
+		(fileElement) => {
+			if (deleteLabels.find(label => fileElement.label === label)) {
+				return;
+			}
 
-	const index = oldRootElement.children.findIndex(
-		(childFileElement) =>
-			childFileElement.label === action.fileElement.label,
+			const upsertFileElement = upsertFileElements.find(({label}) => fileElement.label === label);
+
+			if (!upsertFileElement) {
+				children.push(fileElement);
+				return;
+			}
+
+			children.push(upsertFileElement);
+			upsertedLabels.push(upsertFileElement.label);
+		}
 	);
 
-	const children =
-		index === -1
-			? [...oldRootElement.children, action.fileElement]
-			: oldRootElement.children.map((childFileElement) => {
-					if (childFileElement.label === action.fileElement.label) {
-						return action.fileElement;
-					}
+	upsertFileElements.forEach(
+		(fileElement) => {
+			if (upsertedLabels.find((label) => fileElement.label === label)) {
+				return;
+			}
 
-					return childFileElement;
-			  });
+			children.push(fileElement);
+		}
+	)
 
 	return {
 		hash: ROOT_ELEMENT_HASH,
@@ -290,64 +290,62 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		message: Message & { kind: MessageKind.updateInternalDiagnostics },
 	) {
 		let jobCount = 0;
+		const deleteLabels: string[] = [];
+		const upsertFileElements: FileElement[] = [];
 
 		for (const fileName of message.fileNames) {
+			const jobs = this._jobManager.getFileJobs(
+				buildFileNameHash(fileName),
+			);
+
 			const uri = Uri.parse(fileName);
 			const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 	
 			const label: string = fileName.replace(rootPath, '');
-	
-			const jobs = this._jobManager.getFileJobs(
-				buildFileNameHash(fileName),
-			);
 	
 			const diagnostics = jobs.map((job) => buildDiagnostic(job));
 	
 			const children: DiagnosticElement[] = jobs.map((job) =>
 				buildDiagnosticElement(job),
 			);
-	
-			const action =
-				children.length === 0
-					? { kind: 'delete' as const, label }
-					: {
-							kind: 'upsert' as const,
-							fileElement: buildFileElement(label, children),
-					  };
-	
-			const rootElement = buildRootElement(
-				this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
-				action,
-			);
-	
-			// update collections
-			this._diagnosticCollection.set(uri, diagnostics);
-	
-			this._elementMap.clear();
-			this._childParentMap.clear();
-	
-			this._elementMap.set(rootElement.hash, rootElement);
-	
-			rootElement.children.forEach((fileElement) => {
-				this._elementMap.set(fileElement.hash, fileElement);
-	
-				fileElement.children.forEach((diagnosticElement) => {
-					this._elementMap.set(diagnosticElement.hash, diagnosticElement);
-					this._childParentMap.set(
-						diagnosticElement.hash,
-						fileElement.hash,
-					);
-				});
-			});
 
+			// set out of the loop variables
 			jobCount += jobs.length;
+
+			if (children.length === 0) {
+				deleteLabels.push(label);
+			} else {
+				upsertFileElements.push(
+					buildFileElement(label, children),
+				);
+			}
+
+			this._diagnosticCollection.set(uri, diagnostics);
 		}
 
-		const rootElement = this._elementMap.get(ROOT_ELEMENT_HASH);
+		const rootElement = buildRootElement(
+			this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
+			deleteLabels,
+			upsertFileElements,
+		);
+	
+		// update collections
+		this._elementMap.clear();
+		this._childParentMap.clear();
 
-		if (!rootElement || rootElement.kind !== 'ROOT') {
-			return;
-		}
+		this._elementMap.set(rootElement.hash, rootElement);
+
+		rootElement.children.forEach((fileElement) => {
+			this._elementMap.set(fileElement.hash, fileElement);
+
+			fileElement.children.forEach((diagnosticElement) => {
+				this._elementMap.set(diagnosticElement.hash, diagnosticElement);
+				this._childParentMap.set(
+					diagnosticElement.hash,
+					fileElement.hash,
+				);
+			});
+		});
 
 		const diagnosticElement = rootElement
 			.children
