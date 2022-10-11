@@ -76,15 +76,15 @@ export class InferredCodeRepairService {
 			const workspacePath = this._vscodeService.getWorkspaceFolder(
 				newExternalDiagnostic.uri,
 			)?.uri.fsPath;
-	
+
 			if (!isNeitherNullNorUndefined(workspacePath)) {
 				return;
 			}
-	
+
 			const stringUri = newExternalDiagnostic.uri.toString();
-	
+
 			const fileBaseName = basename(stringUri);
-	
+
 			const hash = buildHash(
 				[
 					stringUri,
@@ -92,30 +92,32 @@ export class InferredCodeRepairService {
 					randomBytes(16).toString('base64url'),
 				].join(','),
 			);
-	
+
 			const directoryPath = join(workspacePath, `/.intuita/${hash}/`);
-	
+
 			const filePath = join(
 				workspacePath,
 				`/.intuita/${hash}/${fileBaseName}`,
 			);
-	
+
 			const source = Axios.CancelToken.source();
-	
+
 			this._cancelTokenSourceMap.set(stringUri, source);
-	
+
 			await promisifiedMkdir(directoryPath, {
 				recursive: true,
 			});
-	
+
 			await promisifiedWriteFile(filePath, newExternalDiagnostic.text, {
 				encoding: 'utf8',
 			});
-	
+
 			const lineNumbers = new Set(
-				newExternalDiagnostic.diagnostics.map(({ range }) => range.start.line),
+				newExternalDiagnostic.diagnostics.map(
+					({ range }) => range.start.line,
+				),
 			);
-	
+
 			const command: InferCommand = {
 				kind: 'infer',
 				fileMetaHash: hash,
@@ -123,19 +125,19 @@ export class InferredCodeRepairService {
 				lineNumbers: Array.from(lineNumbers),
 				workspacePath,
 			};
-	
+
 			const response = await this._infer(command, source.token);
-	
+
 			const dataEither = mapValidationToEither(
 				inferredMessageCodec.decode(response.data),
 			);
-	
+
 			if (dataEither._tag === 'Left') {
 				throw new Error(
 					`Could not decode the inferred message: ${dataEither.left}`,
 				);
 			}
-	
+
 			// TODO check if it works like that
 			this._messageBus.publish({
 				kind: MessageKind.createRepairCodeJobs,

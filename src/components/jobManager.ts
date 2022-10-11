@@ -131,7 +131,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileNames: [ fileName ],
+			fileNames: [fileName],
 			trigger: 'onCommand',
 		});
 
@@ -184,7 +184,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileNames: [ job.fileName ],
+			fileNames: [job.fileName],
 			trigger: 'onCommand',
 		});
 	}
@@ -275,7 +275,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileNames: [ fileName ],
+			fileNames: [fileName],
 			trigger: 'onCommand',
 		});
 
@@ -317,7 +317,7 @@ export class JobManager {
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
 		},
 	) {
-		for(const newExternalDiagnostic of message.newExternalDiagnostics) {
+		for (const newExternalDiagnostic of message.newExternalDiagnostics) {
 			const fileName = newExternalDiagnostic.uri.fsPath;
 
 			const jobs = buildRuleBasedRepairCodeJobs(
@@ -373,7 +373,9 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileNames: message.newExternalDiagnostics.map(({ uri }) => uri.fsPath),
+			fileNames: message.newExternalDiagnostics.map(
+				({ uri }) => uri.fsPath,
+			),
 			trigger: message.trigger,
 		});
 	}
@@ -396,15 +398,11 @@ export class JobManager {
 			message.version,
 		);
 
-		this._commitRepairCodeJobs(
-			fileName,
-			message.version,
-			jobs,
-		);
+		this._commitRepairCodeJobs(fileName, message.version, jobs);
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
-			fileNames: [ fileName ],
+			fileNames: [fileName],
 			trigger: message.trigger,
 		});
 	}
@@ -442,38 +440,40 @@ export class JobManager {
 	protected _onExternalDiagnostics(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	) {
-		const fileNames = message.noExternalDiagnosticsUri.map((uri) => uri.fsPath);
+		const fileNames = message.noExternalDiagnosticsUri.map(
+			(uri) => uri.fsPath,
+		);
 
 		for (const fileName of fileNames) {
 			const fileNameHash = buildFileNameHash(fileName);
 
 			const oldJobHashes =
 				this._repairCodeHashMap.get(fileNameHash) ?? new Set<JobHash>();
-	
+
 			if (!oldJobHashes.size) {
 				console.log(
 					'No repair code jobs to delete upon receiving no TypeScript diagnostics message',
 				);
-	
+
 				return;
 			}
-	
+
 			const newJobHashes = new Set<JobHash>();
-	
+
 			oldJobHashes.forEach((jobHash) => {
 				const job = this._jobMap.get(jobHash);
-	
+
 				if (!job) {
 					return;
 				}
-	
+
 				if (job.kind !== JobKind.repairCode) {
 					newJobHashes.add(jobHash);
-	
+
 					this._jobMap.delete(jobHash);
 				}
 			});
-	
+
 			this._repairCodeHashMap.set(fileNameHash, newJobHashes);
 		}
 

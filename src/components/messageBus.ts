@@ -37,10 +37,10 @@ export const enum MessageKind {
 }
 
 export type NewExternalDiagnostic = Readonly<{
-	uri: Uri,
-	version: number,
-	text: string,
-	diagnostics: ReadonlyArray<Diagnostic>,
+	uri: Uri;
+	version: number;
+	text: string;
+	diagnostics: ReadonlyArray<Diagnostic>;
 }>;
 
 export type Trigger = 'didSave' | 'onCommand';
@@ -84,7 +84,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
-			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -98,11 +98,11 @@ export type Message =
 			text: string;
 	  }>
 	| Readonly<{
-			kind: MessageKind.externalDiagnostics,
-			noExternalDiagnosticsUri: ReadonlyArray<Uri>,
-			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>,
-			trigger: Trigger,
-	}>;
+			kind: MessageKind.externalDiagnostics;
+			noExternalDiagnosticsUri: ReadonlyArray<Uri>;
+			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
+			trigger: Trigger;
+	  }>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;

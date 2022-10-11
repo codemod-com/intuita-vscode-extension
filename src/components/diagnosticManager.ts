@@ -62,9 +62,7 @@ export class DiagnosticManager {
 		protected readonly _vscodeService: VSCodeService,
 	) {}
 
-	public async handleDiagnostics(
-		trigger: 'didSave' | 'onCommand',
-	) {
+	public async handleDiagnostics(trigger: 'didSave' | 'onCommand') {
 		const uriDiagnosticsTuples = this._vscodeService
 			.getDiagnostics()
 			.filter(([uri]) => {
@@ -86,9 +84,10 @@ export class DiagnosticManager {
 			return;
 		}
 
-		const noExternalDiagnosticsUri: ReadonlyArray<Uri> = uriDiagnosticsTuples
-			.filter(([_, diagnostics]) => diagnostics.length === 0)
-			.map(([uri]) => uri);
+		const noExternalDiagnosticsUri: ReadonlyArray<Uri> =
+			uriDiagnosticsTuples
+				.filter((tuple) => tuple[1].length === 0)
+				.map(([uri]) => uri);
 
 		const newExternalDiagnostics: NewExternalDiagnostic[] = [];
 
@@ -138,6 +137,6 @@ export class DiagnosticManager {
 			noExternalDiagnosticsUri,
 			newExternalDiagnostics,
 			trigger,
-		})
+		});
 	}
 }

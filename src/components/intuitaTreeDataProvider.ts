@@ -149,33 +149,31 @@ const buildRootElement = (
 	const children: FileElement[] = [];
 	const upsertedLabels: string[] = [];
 
-	oldRootElement.children.forEach(
-		(fileElement) => {
-			if (deleteLabels.find(label => fileElement.label === label)) {
-				return;
-			}
-
-			const upsertFileElement = upsertFileElements.find(({label}) => fileElement.label === label);
-
-			if (!upsertFileElement) {
-				children.push(fileElement);
-				return;
-			}
-
-			children.push(upsertFileElement);
-			upsertedLabels.push(upsertFileElement.label);
+	oldRootElement.children.forEach((fileElement) => {
+		if (deleteLabels.find((label) => fileElement.label === label)) {
+			return;
 		}
-	);
 
-	upsertFileElements.forEach(
-		(fileElement) => {
-			if (upsertedLabels.find((label) => fileElement.label === label)) {
-				return;
-			}
+		const upsertFileElement = upsertFileElements.find(
+			({ label }) => fileElement.label === label,
+		);
 
+		if (!upsertFileElement) {
 			children.push(fileElement);
+			return;
 		}
-	)
+
+		children.push(upsertFileElement);
+		upsertedLabels.push(upsertFileElement.label);
+	});
+
+	upsertFileElements.forEach((fileElement) => {
+		if (upsertedLabels.find((label) => fileElement.label === label)) {
+			return;
+		}
+
+		children.push(fileElement);
+	});
 
 	return {
 		hash: ROOT_ELEMENT_HASH,
@@ -300,11 +298,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 			const uri = Uri.parse(fileName);
 			const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-	
+
 			const label: string = fileName.replace(rootPath, '');
-	
+
 			const diagnostics = jobs.map((job) => buildDiagnostic(job));
-	
+
 			const children: DiagnosticElement[] = jobs.map((job) =>
 				buildDiagnosticElement(job),
 			);
@@ -315,9 +313,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			if (children.length === 0) {
 				deleteLabels.push(label);
 			} else {
-				upsertFileElements.push(
-					buildFileElement(label, children),
-				);
+				upsertFileElements.push(buildFileElement(label, children));
 			}
 
 			this._diagnosticCollection.set(uri, diagnostics);
@@ -328,7 +324,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			deleteLabels,
 			upsertFileElements,
 		);
-	
+
 		// update collections
 		this._elementMap.clear();
 		this._childParentMap.clear();
@@ -347,10 +343,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			});
 		});
 
-		const diagnosticElement = rootElement
-			.children
-			.flatMap((fileElement) => fileElement.children)
-			[0];
+		const diagnosticElement = rootElement.children.flatMap(
+			(fileElement) => fileElement.children,
+		)[0];
 
 		// update the UX state
 		this.eventEmitter.fire();
