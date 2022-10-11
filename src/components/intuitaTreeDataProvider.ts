@@ -201,7 +201,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this._messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateInternalDiagnostics) {
 				setImmediate(async () => {
-					await this._setDiagnosticEntry(message);
+					await this._onUpdateInternalDiagnostics(message);
 				});
 			}
 		});
@@ -286,7 +286,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return treeItem;
 	}
 
-	protected async _setDiagnosticEntry(
+	protected async _onUpdateInternalDiagnostics(
 		message: Message & { kind: MessageKind.updateInternalDiagnostics },
 	) {
 		let jobCount = 0;
