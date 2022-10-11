@@ -21,6 +21,7 @@ export class FileService {
 		protected readonly _jobManager: JobManager,
 		protected readonly _messageBus: MessageBus,
 		protected readonly _vscodeService: VSCodeService,
+		protected readonly _uriStringToVersionMap: Map<string, number>,
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
@@ -97,6 +98,8 @@ export class FileService {
 		const workspaceEdit = new WorkspaceEdit();
 
 		workspaceEdit.replace(message.uri, range, message.jobOutput.text);
+
+		this._uriStringToVersionMap.set(stringUri, document.version + 1);
 
 		await workspace.applyEdit(workspaceEdit);
 
