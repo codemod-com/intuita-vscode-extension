@@ -22,7 +22,11 @@ import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/execute
 import { MoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import { buildFileUri, buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
+import {
+	buildFileUri,
+	buildJobUri,
+	IntuitaFileSystem,
+} from './intuitaFileSystem';
 import {
 	buildMoveTopLevelNodeJobs,
 	MoveTopLevelNodeJob,
@@ -194,12 +198,14 @@ export class JobManager {
 		job: MoveTopLevelNodeJob | RepairCodeJob,
 		characterDifference: number,
 	): JobOutput {
-		const content = this._intuitaFileSystem.readNullableFile(buildJobUri(job));
-	
+		const content = this._intuitaFileSystem.readNullableFile(
+			buildJobUri(job),
+		);
+
 		if (!content) {
 			return this.executeJob(job.hash, characterDifference);
 		}
-	
+
 		const text = content.toString();
 		const separator = getSeparator(text);
 

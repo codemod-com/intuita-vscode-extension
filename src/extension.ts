@@ -62,7 +62,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const jobManager = new JobManager(messageBus, configurationContainer, intuitaFileSystem);
+	const jobManager = new JobManager(
+		messageBus,
+		configurationContainer,
+		intuitaFileSystem,
+	);
 
 	const uriStringToVersionMap = new Map<string, number>();
 
@@ -174,7 +178,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.onDidChangeTextDocument(async ({ document }) => {
 			const { uri } = document;
 
-			if (uri.scheme === 'vscode-userdata' || (uri.scheme === 'file' && uri.path.includes('.vscode'))) {
+			if (
+				uri.scheme === 'vscode-userdata' ||
+				(uri.scheme === 'file' && uri.path.includes('.vscode'))
+			) {
 				return;
 			}
 
@@ -195,7 +202,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.onDidSaveTextDocument(async (document) => {
 			const { uri } = document;
 
-			if (uri.scheme === 'vscode-userdata' || (uri.scheme === 'file' && uri.path.includes('.vscode'))) {
+			if (
+				uri.scheme === 'vscode-userdata' ||
+				(uri.scheme === 'file' && uri.path.includes('.vscode'))
+			) {
 				return;
 			}
 
