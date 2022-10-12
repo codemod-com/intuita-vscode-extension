@@ -174,6 +174,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.onDidChangeTextDocument(async ({ document }) => {
 			const { uri } = document;
 
+			if (uri.scheme === 'vscode-userdata' || (uri.scheme === 'file' && uri.path.includes('.vscode'))) {
+				return;
+			}
+
 			if (uri.scheme === 'intuita' && uri.path.startsWith('/vfs/jobs/')) {
 				await document.save();
 
@@ -189,6 +193,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.workspace.onDidSaveTextDocument(async (document) => {
+			const { uri } = document;
+
+			if (uri.scheme === 'vscode-userdata' || (uri.scheme === 'file' && uri.path.includes('.vscode'))) {
+				return;
+			}
+
 			if (
 				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
 			) {

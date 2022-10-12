@@ -372,7 +372,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			});
 		};
 
-		if (message.trigger === 'didSave') {
+		if (message.trigger === 'didSave' && jobCount !== 0) {
 			window
 				.showInformationMessage(
 					`Generated ${jobCount} core-repair recommendations`,
