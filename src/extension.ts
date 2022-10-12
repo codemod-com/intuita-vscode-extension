@@ -62,7 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const jobManager = new JobManager(messageBus, configurationContainer);
+	const jobManager = new JobManager(messageBus, configurationContainer, intuitaFileSystem);
 
 	const uriStringToVersionMap = new Map<string, number>();
 

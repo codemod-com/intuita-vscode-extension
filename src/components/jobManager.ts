@@ -22,7 +22,7 @@ import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/execute
 import { MoveTopLevelNodeUserCommand } from '../features/moveTopLevelNode/1_userCommandBuilder';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import { buildFileUri, buildJobUri } from './intuitaFileSystem';
+import { buildFileUri, buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
 import {
 	buildMoveTopLevelNodeJobs,
 	MoveTopLevelNodeJob,
@@ -43,6 +43,7 @@ export class JobManager {
 	public constructor(
 		protected readonly _messageBus: MessageBus,
 		protected readonly _configurationContainer: Container<Configuration>,
+		protected readonly _intuitaFileSystem: IntuitaFileSystem,
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.createRepairCodeJobs) {
@@ -151,7 +152,7 @@ export class JobManager {
 
 		const fileNameHash = buildFileNameHash(job.fileName);
 
-		const jobOutput = this.executeJob(jobHash, characterDifference);
+		const jobOutput = this.buildJobOutput(job, characterDifference);
 
 		// clean up the state
 		if (job.kind === JobKind.moveTopLevelNode) {
@@ -187,6 +188,30 @@ export class JobManager {
 			fileNames: [job.fileName],
 			trigger: 'onCommand',
 		});
+	}
+
+	public buildJobOutput(
+		job: MoveTopLevelNodeJob | RepairCodeJob,
+		characterDifference: number,
+	): JobOutput {
+		const content = this._intuitaFileSystem.readNullableFile(buildJobUri(job));
+	
+		if (!content) {
+			return this.executeJob(job.hash, characterDifference);
+		}
+	
+		const text = content.toString();
+		const separator = getSeparator(text);
+
+		const position = calculateLastPosition(text, separator);
+
+		const range: IntuitaRange = [0, 0, position[0], position[1]];
+
+		return {
+			text,
+			position,
+			range,
+		};
 	}
 
 	public executeJob(
