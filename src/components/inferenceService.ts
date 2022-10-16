@@ -16,14 +16,6 @@ export const mapValidationToEither = <A>(
 	return right(validation.right);
 };
 
-export const inferCommandCodec = buildTypeCodec({
-	kind: t.literal('infer'),
-	workspacePath: t.string,
-	filePath: t.string,
-	fileMetaHash: t.string,
-	lineNumbers: t.readonlyArray(t.number), //0-indexed
-});
-
 export const inferenceJobCodec = t.union([
 	buildTypeCodec({
 		lineNumber: t.number,
@@ -40,6 +32,5 @@ export const inferredMessageCodec = buildTypeCodec({
 	inferenceJobs: t.readonlyArray(inferenceJobCodec),
 });
 
-export type InferCommand = t.TypeOf<typeof inferCommandCodec>;
 export type InferenceJob = t.TypeOf<typeof inferenceJobCodec>;
 export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;

@@ -1,22 +1,15 @@
 import Axios, { CancelToken, CancelTokenSource } from 'axios';
 import {
-	InferCommand,
 	inferredMessageCodec,
 	mapValidationToEither,
 } from './inferenceService';
 import { Uri } from 'vscode';
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
-import { basename, join } from 'node:path';
-import { mkdir, writeFile } from 'node:fs';
-import { promisify } from 'node:util';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import { randomBytes } from 'node:crypto';
 import { VSCodeService } from './vscodeService';
-
-const promisifiedMkdir = promisify(mkdir);
-const promisifiedWriteFile = promisify(writeFile);
+import * as FormData from 'form-data';
 
 export class InferredCodeRepairService {
 	protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> =
@@ -82,35 +75,11 @@ export class InferredCodeRepairService {
 			}
 
 			const stringUri = newExternalDiagnostic.uri.toString();
-
-			const fileBaseName = basename(stringUri);
-
-			const hash = buildHash(
-				[
-					stringUri,
-					String(newExternalDiagnostic.version),
-					randomBytes(16).toString('base64url'),
-				].join(','),
-			);
-
-			const directoryPath = join(workspacePath, `/.intuita/${hash}/`);
-
-			const filePath = join(
-				workspacePath,
-				`/.intuita/${hash}/${fileBaseName}`,
-			);
+			const uriHash = buildHash(stringUri);
 
 			const source = Axios.CancelToken.source();
 
 			this._cancelTokenSourceMap.set(stringUri, source);
-
-			await promisifiedMkdir(directoryPath, {
-				recursive: true,
-			});
-
-			await promisifiedWriteFile(filePath, newExternalDiagnostic.text, {
-				encoding: 'utf8',
-			});
 
 			const lineNumbers = new Set(
 				newExternalDiagnostic.diagnostics.map(
@@ -118,15 +87,12 @@ export class InferredCodeRepairService {
 				),
 			);
 
-			const command: InferCommand = {
-				kind: 'infer',
-				fileMetaHash: hash,
-				filePath: stringUri,
-				lineNumbers: Array.from(lineNumbers),
-				workspacePath,
-			};
-
-			const response = await this._infer(command, source.token);
+			const response = await this._infer(
+				uriHash,
+				Buffer.from(newExternalDiagnostic.text),
+				Array.from(lineNumbers),
+				source.token,
+			);
 
 			const dataEither = mapValidationToEither(
 				inferredMessageCodec.decode(response.data),
@@ -148,14 +114,23 @@ export class InferredCodeRepairService {
 				trigger: message.trigger,
 			});
 		}
-
-		// TODO remove the .intuita / hash directory
 	}
 
-	protected async _infer(command: InferCommand, cancelToken: CancelToken) {
+	protected async _infer(
+		uriHash: string,
+		buffer: Buffer,
+		lineNumbers: number[],
+		cancelToken: CancelToken,
+	) {
 		try {
-			return await Axios.post('http://localhost:4000/infer', command, {
+			const formData = new FormData();
+			formData.append('uriHash', uriHash);
+			formData.append('file', buffer, { filename: 'index.ts' });
+			formData.append('lineNumbers', lineNumbers.join(','));
+
+			return await Axios.post('http://localhost:49674/infer', formData, {
 				cancelToken,
+				headers: formData.getHeaders(),
 			});
 		} catch (error) {
 			if (Axios.isAxiosError(error)) {
