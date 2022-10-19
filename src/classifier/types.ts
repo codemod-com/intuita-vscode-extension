@@ -1,9 +1,9 @@
-import { IntuitaRange } from '../utilities';
+import { IntuitaSimpleRange } from '../utilities';
 
 export interface ClassifierDiagnostic {
 	readonly code: string;
 	readonly message: string;
-	readonly range: IntuitaRange;
+	readonly range: IntuitaSimpleRange;
 }
 
 export const enum CaseKind {
@@ -13,5 +13,5 @@ export const enum CaseKind {
 
 export interface Classification {
 	kind: CaseKind;
-	replacementRange: IntuitaRange;
+	replacementRange: IntuitaSimpleRange;
 }

@@ -1,9 +1,9 @@
 import * as ts from 'typescript';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join } from 'path';    
 import { CaseKind, ClassifierDiagnostic } from '../../classifier/types';
 import { classify } from '../../classifier/classify';
-import { assertsNeitherNullOrUndefined } from '../../utilities';
+import { assertsNeitherNullOrUndefined, buildIntuitaSimpleRange, calculateLengths, calculateLines, getSeparator } from '../../utilities';
 import { assert } from 'chai';
 
 describe.only('Classifier', () => {
@@ -11,6 +11,10 @@ describe.only('Classifier', () => {
 		const text = readFileSync(join(__dirname, './code.txt')).toString(
 			'utf8',
 		);
+
+        const separator = getSeparator(text);
+        const lines = calculateLines(text, separator);
+        const lengths = calculateLengths(lines);
 
 		const sourceFile = ts.createSourceFile(
 			'index.ts',
@@ -25,15 +29,21 @@ describe.only('Classifier', () => {
 		);
 
 		const diagnostics = entries.map((entry): ClassifierDiagnostic => {
+            const range = buildIntuitaSimpleRange(
+                separator,
+                lengths,
+                [
+					entry.startLineNumber - 1,
+					entry.startColumn - 1,
+					entry.endLineNumber - 1,
+					entry.endColumn - 1,
+				]
+            )
+
 			return {
 				code: entry.code,
 				message: entry.message,
-				range: [
-					entry.startLineNumber,
-					entry.startColumnNumber,
-					entry.endLineNumber,
-					entry.endColumnNumber,
-				],
+				range,
 			};
 		});
 
@@ -49,27 +59,42 @@ describe.only('Classifier', () => {
 
 		assert.deepEqual(classifiers[0], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: [0, 0, 0, 0],
+			replacementRange: {
+                start: 0,
+                end: 0,
+            },
 		});
 
 		assert.deepEqual(classifiers[1], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: [0, 0, 0, 0],
+			replacementRange: {
+                start: 0,
+                end: 0,
+            },
 		});
 
 		assert.deepEqual(classifiers[2], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: [0, 0, 0, 0],
+			replacementRange: {
+                start: 0,
+                end: 0,
+            },
 		});
 
 		assert.deepEqual(classifiers[3], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: [0, 0, 0, 0],
+			replacementRange: {
+                start: 0,
+                end: 0,
+            },
 		});
 
 		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: [0, 0, 0, 0],
+			replacementRange: {
+                start: 0,
+                end: 0,
+            },
 		});
 	});
 });
