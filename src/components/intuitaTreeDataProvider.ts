@@ -12,6 +12,7 @@ import {
 	Range,
 	TreeDataProvider,
 	TreeItem,
+	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
 	Uri,
@@ -242,7 +243,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			throw new Error(`Cannot get a tree item for the root element`);
 		}
 
-		const treeItem = new TreeItem(element.label);
+		const treeItem = new TreeItem2(element.label);
 
 		treeItem.id = buildHash(element.label);
 
