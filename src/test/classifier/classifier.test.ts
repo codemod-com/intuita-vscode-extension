@@ -41,7 +41,7 @@ describe.only('Classifier', () => {
             )
 
 			return {
-				code: entry.code,
+				code: String(entry.code),
 				message: entry.message,
 				range,
 			};
