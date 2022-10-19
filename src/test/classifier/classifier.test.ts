@@ -1,9 +1,15 @@
 import * as ts from 'typescript';
 import { readFileSync } from 'fs';
-import { join } from 'path';    
+import { join } from 'path';
 import { CaseKind, ClassifierDiagnostic } from '../../classifier/types';
 import { classify } from '../../classifier/classify';
-import { assertsNeitherNullOrUndefined, buildIntuitaSimpleRange, calculateLengths, calculateLines, getSeparator } from '../../utilities';
+import {
+	assertsNeitherNullOrUndefined,
+	buildIntuitaSimpleRange,
+	calculateLengths,
+	calculateLines,
+	getSeparator,
+} from '../../utilities';
 import { assert } from 'chai';
 
 describe('Classifier', () => {
@@ -12,9 +18,9 @@ describe('Classifier', () => {
 			'utf8',
 		);
 
-        const separator = getSeparator(text);
-        const lines = calculateLines(text, separator);
-        const lengths = calculateLengths(lines);
+		const separator = getSeparator(text);
+		const lines = calculateLines(text, separator);
+		const lengths = calculateLengths(lines);
 
 		const sourceFile = ts.createSourceFile(
 			'index.ts',
@@ -29,16 +35,12 @@ describe('Classifier', () => {
 		);
 
 		const diagnostics = entries.map((entry): ClassifierDiagnostic => {
-            const range = buildIntuitaSimpleRange(
-                separator,
-                lengths,
-                [
-					entry.startLineNumber - 1,
-					entry.startColumn - 1,
-					entry.endLineNumber - 1,
-					entry.endColumn - 1,
-				]
-            )
+			const range = buildIntuitaSimpleRange(separator, lengths, [
+				entry.startLineNumber - 1,
+				entry.startColumn - 1,
+				entry.endLineNumber - 1,
+				entry.endColumn - 1,
+			]);
 
 			return {
 				code: String(entry.code),
@@ -60,56 +62,56 @@ describe('Classifier', () => {
 		assert.deepEqual(classifiers[0], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacement: {
-                range: {
-                    start: 173,
-                    end: 198,
-                },
-                text: '\n\nObject.assign(a, { b })',
-            },
+				range: {
+					start: 173,
+					end: 198,
+				},
+				text: '\n\nObject.assign(a, { b })',
+			},
 		});
 
 		assert.deepEqual(classifiers[1], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacement: {
-                range: {
-                    start: 199,
-                    end: 224,
-                },
-                text: '\n\nObject.assign(b, { c })',
-            },
+				range: {
+					start: 199,
+					end: 224,
+				},
+				text: '\n\nObject.assign(b, { c })',
+			},
 		});
 
 		assert.deepEqual(classifiers[2], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacement: {
-                range: {
-                    start: 224,
-                    end: 246,
-                },
-                text: '\n\nObject.assign(c, {})',
-            },
+				range: {
+					start: 224,
+					end: 246,
+				},
+				text: '\n\nObject.assign(c, {})',
+			},
 		});
 
 		assert.deepEqual(classifiers[3], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacement: {
-                range: {
-                    start: 246,
-                    end: 271,
-                },
-                text: '\n\nObject.assign(d, { c })',
-            },
+				range: {
+					start: 246,
+					end: 271,
+				},
+				text: '\n\nObject.assign(d, { c })',
+			},
 		});
 
 		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacement: {
-                range: {
-                    start: 271,
-                    end: 296,
-                },
-                text: '\n\nObject.assign(e, { c })',
-            },
+				range: {
+					start: 271,
+					end: 296,
+				},
+				text: '\n\nObject.assign(e, { c })',
+			},
 		});
 	});
 });
