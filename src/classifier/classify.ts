@@ -1,9 +1,44 @@
 import * as ts from 'typescript';
 import { IntuitaSimpleRange } from '../utilities';
-import { CaseKind, Classification, ClassifierDiagnostic } from './types';
+import { CaseKind, Classification, ClassifierDiagnostic, Replacement } from './types';
 
 const isRangeWithinNode = (node: ts.Node, range: IntuitaSimpleRange) =>
     node.getFullStart() <= range.start && node.getEnd() >= range.end;
+
+const getTs2769ObjectAssignReplacement = (node: ts.Node): Replacement | null => {
+    if (!ts.isCallExpression(node.parent)) {
+        return null;
+    }
+
+    const callExpression = node.parent;
+
+    if (callExpression.arguments.length < 2) {
+        return null;
+    }
+
+    if (!ts.isPropertyAccessExpression(callExpression.expression)) {
+        return null;
+    }
+
+    const pae = callExpression.expression;
+
+    const expressionText = pae.expression.getText();
+    const nameText = pae.name.getText();
+
+    if (expressionText !== 'Object' || nameText !== 'assign') {
+        return null;
+    }
+
+    const range = {
+        start: callExpression.getFullStart(),
+        end: callExpression.getEnd(),
+    }
+
+    return {
+        range,
+        text: callExpression.getFullText(),
+    };
+}
 
 export const classify = (
 	sourceFile: ts.SourceFile,
@@ -11,10 +46,11 @@ export const classify = (
 ): Classification => {
     const otherClassification: Classification = {
 		kind: CaseKind.OTHER,
-		replacementRange: diagnostic.range,
+		replacement: {
+            range: diagnostic.range,
+            text: sourceFile.getFullText().slice(diagnostic.range.start, diagnostic.range.end),
+        }
 	};
-
-    console.log(diagnostic.code);
 
     if (diagnostic.code !== '2769') {
         return otherClassification;
@@ -48,8 +84,13 @@ export const classify = (
         return otherClassification;
     }
 
-    if (ts.isCallExpression(node.parent)) {
-        const callExpression = node.parent;
+    const replacement = getTs2769ObjectAssignReplacement(node);
+
+    if (replacement) {
+        return {
+            kind: CaseKind.TS2369_OBJECT_ASSIGN,
+		    replacement,
+        }
     }
 
     return otherClassification;

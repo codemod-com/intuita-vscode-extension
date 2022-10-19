@@ -11,7 +11,12 @@ export const enum CaseKind {
 	TS2369_OBJECT_ASSIGN = 2,
 }
 
+export interface Replacement {
+	readonly range: IntuitaSimpleRange;
+	readonly text: string;
+}
+
 export interface Classification {
 	kind: CaseKind;
-	replacementRange: IntuitaSimpleRange;
+	replacement: Replacement;
 }

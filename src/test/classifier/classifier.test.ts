@@ -6,7 +6,7 @@ import { classify } from '../../classifier/classify';
 import { assertsNeitherNullOrUndefined, buildIntuitaSimpleRange, calculateLengths, calculateLines, getSeparator } from '../../utilities';
 import { assert } from 'chai';
 
-describe.only('Classifier', () => {
+describe('Classifier', () => {
 	it('should classify correctly', () => {
 		const text = readFileSync(join(__dirname, './code.txt')).toString(
 			'utf8',
@@ -59,41 +59,56 @@ describe.only('Classifier', () => {
 
 		assert.deepEqual(classifiers[0], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: {
-                start: 0,
-                end: 0,
+			replacement: {
+                range: {
+                    start: 173,
+                    end: 198,
+                },
+                text: '\n\nObject.assign(a, { b })',
             },
 		});
 
 		assert.deepEqual(classifiers[1], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: {
-                start: 0,
-                end: 0,
+			replacement: {
+                range: {
+                    start: 199,
+                    end: 224,
+                },
+                text: '\n\nObject.assign(b, { c })',
             },
 		});
 
 		assert.deepEqual(classifiers[2], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: {
-                start: 0,
-                end: 0,
+			replacement: {
+                range: {
+                    start: 224,
+                    end: 246,
+                },
+                text: '\n\nObject.assign(c, {})',
             },
 		});
 
 		assert.deepEqual(classifiers[3], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: {
-                start: 0,
-                end: 0,
+			replacement: {
+                range: {
+                    start: 246,
+                    end: 271,
+                },
+                text: '\n\nObject.assign(d, { c })',
             },
 		});
 
 		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange: {
-                start: 0,
-                end: 0,
+			replacement: {
+                range: {
+                    start: 271,
+                    end: 296,
+                },
+                text: '\n\nObject.assign(e, { c })',
             },
 		});
 	});
