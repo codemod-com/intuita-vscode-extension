@@ -1,43 +1,56 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import * as ts from 'typescript';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 // import { Diagnostic, Position, Range } from "vscode";
-import type { ClassifierDiagnostic } from "../../classifier/types";
+import { CaseKind, ClassifierDiagnostic } from '../../classifier/types';
+import { classify } from '../../classifier/classify';
+import { assertsNeitherNullOrUndefined } from '../../utilities';
+import { assert } from 'chai';
 
 describe.only('Classifier', () => {
-    it('should classify correctly', () => {
-        // const code = readFileSync(join(__dirname, './code.txt')).toString('utf8');
+	it('should classify correctly', () => {
+		const text = readFileSync(join(__dirname, './code.txt')).toString(
+			'utf8',
+		);
 
-        const entries: any[] = JSON.parse(readFileSync(join(__dirname, './diagnostics.txt')).toString('utf8'));
+		const sourceFile = ts.createSourceFile(
+			'index.ts',
+			text,
+			ts.ScriptTarget.ES5,
+			true,
+			ts.ScriptKind.TS,
+		);
 
-        const diagnostics = entries.map(
-            (entry): ClassifierDiagnostic => {
-                return {
-                    code: entry.code,
-                    message: entry.message,
-                    range: [
-                        entry.startLineNumber,
-                        entry.startColumnNumber,
-                        entry.endLineNumber,
-                        entry.endColumnNumber,
-                    ],
-                }
+		const entries: any[] = JSON.parse(
+			readFileSync(join(__dirname, './diagnostics.txt')).toString('utf8'),
+		);
 
-                // const diagnostic = new Diagnostic(
-                //     new Range(
-                //         new Position(entry.startLineNumber, entry.startColumnNumber),
-                //         new Position(entry.endLineNumber, entry.endColumnNumber),
-                //     ),
-                //     entry.message,
-                // );
+		const diagnostics = entries.map((entry): ClassifierDiagnostic => {
+			return {
+				code: entry.code,
+				message: entry.message,
+				range: [
+					entry.startLineNumber,
+					entry.startColumnNumber,
+					entry.endLineNumber,
+					entry.endColumnNumber,
+				],
+			};
+		});
 
-                // diagnostic.code = entry.code;
-                // diagnostic.source = entry.source;
-                // diagnostic.severity = entry.severity;
+		const classifiers = diagnostics.map((diagnostic) =>
+			classify(sourceFile, diagnostic),
+		);
 
-                // return diagnostic;
-            }
-        );
+		assertsNeitherNullOrUndefined(classifiers[0]);
+		assertsNeitherNullOrUndefined(classifiers[1]);
+		assertsNeitherNullOrUndefined(classifiers[2]);
+		assertsNeitherNullOrUndefined(classifiers[3]);
+		assertsNeitherNullOrUndefined(classifiers[4]);
 
-        console.log(diagnostics);
-    });
-})
+		assert.deepEqual(classifiers[0], {
+			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			replacementRange: [0, 0, 0, 0],
+		});
+	});
+});

@@ -6,21 +6,30 @@ import { TopLevelNode } from './topLevelNode';
 const factory = ts.factory;
 
 const block = factory.createBlock(
-	[factory.createExpressionStatement(factory.createPropertyAccessExpression(
-	  factory.createIdentifier("error"),
-	  factory.createIdentifier("message")
-	))],
-	true
-  )
+	[
+		factory.createExpressionStatement(
+			factory.createPropertyAccessExpression(
+				factory.createIdentifier('error'),
+				factory.createIdentifier('message'),
+			),
+		),
+	],
+	true,
+);
 
 // console.log(block.getText())
 
-const resultFile = ts.createSourceFile("someFileName.ts", "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+const resultFile = ts.createSourceFile(
+	'someFileName.ts',
+	'',
+	ts.ScriptTarget.Latest,
+	/*setParentNodes*/ false,
+	ts.ScriptKind.TS,
+);
 const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 
 const result = printer.printNode(ts.EmitHint.Unspecified, block, resultFile);
 console.log(result);
-
 
 export const getChildIdentifiers = (node: ts.Node): ReadonlyArray<string> => {
 	if (ts.isIdentifier(node)) {
