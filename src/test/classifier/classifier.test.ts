@@ -1,7 +1,6 @@
 import * as ts from 'typescript';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-// import { Diagnostic, Position, Range } from "vscode";
 import { CaseKind, ClassifierDiagnostic } from '../../classifier/types';
 import { classify } from '../../classifier/classify';
 import { assertsNeitherNullOrUndefined } from '../../utilities';
@@ -49,6 +48,26 @@ describe.only('Classifier', () => {
 		assertsNeitherNullOrUndefined(classifiers[4]);
 
 		assert.deepEqual(classifiers[0], {
+			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			replacementRange: [0, 0, 0, 0],
+		});
+
+		assert.deepEqual(classifiers[1], {
+			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			replacementRange: [0, 0, 0, 0],
+		});
+
+		assert.deepEqual(classifiers[2], {
+			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			replacementRange: [0, 0, 0, 0],
+		});
+
+		assert.deepEqual(classifiers[3], {
+			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			replacementRange: [0, 0, 0, 0],
+		});
+
+		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacementRange: [0, 0, 0, 0],
 		});
