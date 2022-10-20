@@ -1,4 +1,5 @@
-import type { Diagnostic, Uri } from 'vscode';
+import type { Diagnostic } from 'vscode';
+import type { UriHash } from '../uris/types';
 import {
 	buildHash,
 	buildIntuitaRange,
@@ -26,7 +27,7 @@ const stringifyCode = (code: Diagnostic['code']): string => {
 };
 
 export const buildDiagnosticHashIngredients = (
-	uri: Uri,
+	uriHash: UriHash,
 	diagnostic: Diagnostic,
 	fileText: string,
 ): DiagnosticHashIngredients => {
@@ -45,7 +46,7 @@ export const buildDiagnosticHashIngredients = (
 	const rangeText = fileText.slice(range.start, range.end);
 
 	return {
-		uri,
+		uriHash,
 		range,
 		code,
 		message: diagnostic.message,
@@ -62,7 +63,7 @@ export const buildDiagnosticHash = (
 
 	return buildHash(
 		[
-			ingredients.uri.toString(),
+			ingredients.uriHash,
 			String(ingredients.range.start),
 			String(ingredients.range.end),
 			ingredients.code,

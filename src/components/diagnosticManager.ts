@@ -4,6 +4,7 @@ import {
 	buildDiagnosticHashIngredients,
 } from '../diagnostics/buildDiagnosticHash';
 import { DiagnosticHash } from '../diagnostics/types';
+import { buildUriHash } from '../uris/buildUriHash';
 import {
 	MessageBus,
 	MessageKind,
@@ -74,9 +75,11 @@ export class DiagnosticManager {
 
 			const newDiagnostics: Diagnostic[] = [];
 
+			const uriHash = buildUriHash(uri);
+
 			diagnostics.forEach((diagnostic) => {
 				const ingredients = buildDiagnosticHashIngredients(
-					uri,
+					uriHash,
 					diagnostic,
 					text,
 				);
