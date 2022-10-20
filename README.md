@@ -1,37 +1,37 @@
-# Automate The Boring & Move Fast
+# Automate The Boring & Move Fast.
 
-:warning: This extension is in <kbd> Closed Beta</kbd>!  Get in touch with us if you want to be an early adopter! :warning:
 
-Intuita is an AI assistant :robot: that "taskifies" & automates the boring coding so that you can remain in our creative flow and ship better code faster. :rocket: 
+⚠️ This extension is in <kbd> Closed Beta</kbd>!  Get in touch with us if you want to be an early adopter! ⚠️
+---
 
-As for the first use case, Intuita helps you **update dependencies with ease** (e.g., moving from TypeScript v2 to v4).
+- Intuita is an AI assistant 🤖 that "taskifies" & automates the boring coding so that you can remain in our creative flow and ship 🚀 better code faster!
+- As for the first use case, Intuita helps you **update dependencies with ease**, e.g., moving from TypeScript v2 to v4.
 
-## How It Works
+## How It Works 🪄
 
-1. Update a major library, framework, or any other dependency to the latest version.
+1. Update a major library, framework, or any other dependency to the latest version (or check out [this demo](https://github.com/intuita-inc/demo-repo/tree/gpp/ts2769)).
 2. Some or many places break.
 3. Intuita categorizes those issues so you can fix them in batches quickly & easily.
 
 ![Screen Shot 2022-10-19 at 6 21 58 PM](https://user-images.githubusercontent.com/78109534/196834622-e84de2d4-bcfa-4bac-9360-3f6d15cd12e2.png)
+---
+## Why Do I Need It 🤔
 
-
-
-## Why Do I Need It
-
-- Updating dependencies in large codebases is a big pain. Instead of focusing on building new features, you need to swim through thousands of lines of code and logs to fix those mechanical errors.
+- Making changes to large codebases is a big pain. Instead of focusing on building new features, you need to swim through thousands of lines of code and logs to fix those mechanical errors.
 - With Intuita, you will save time and, more importantly, preserve your mental energy for bigger problems!
-- Research has shown that more than 40% of developers' time is wasted on code maintenance & Intuita is here to help you with those tedious tasks.
+- Research has shown that **more than 40% of developers' time is wasted on code maintenance** & Intuita is here to help you with those tedious tasks.
 
-## Intuita Is For You
+## Intuita Is For You ♥️
 
-- **If you are a developer in a fast-paced tech company**, you will resonate the most with this extension. And if you are not working on relatively large projects, we still hope you like the Problem categorization feature and use the extension just for that, until we have more for you!
-  - Stay tuned! Intuita is an **open-source and extensible** platform. We will cover more use cases down the road that might interest you (such as advanced refactoring not supported in other IDEs, automated bug fixes, code optimization, modularization, organization, vulnerability fix, test case generation, and literally anything you wish you did not have to spend time on.)
+- **If you are a developer in a fast-paced tech company**, you will resonate the most with this extension. 
+- And if you are not working on relatively large projects, we still hope you like the Problem categorization feature and use the extension just for that, until we have more features for you!
+  - Stay tuned! Intuita is an **open-source and extensible** platform. We will cover more use cases down the road (such as advanced refactoring not supported in other IDEs, automated bug fixes, code optimization, modularization, organization, vulnerability fix, test case generation, and literally anything you wish you did not have to spend time on.)
 
-<img src="https://user-images.githubusercontent.com/78109534/196842149-f801b47f-027a-4b31-a0a6-644bf0364cdb.png" width="480">     <img src="https://user-images.githubusercontent.com/78109534/196842649-6ffb5cd8-c59a-447d-a9ea-4e9501631bca.png" width="480">
+<img src="https://user-images.githubusercontent.com/78109534/196842149-f801b47f-027a-4b31-a0a6-644bf0364cdb.png" width="450">     <img src="https://user-images.githubusercontent.com/78109534/196842649-6ffb5cd8-c59a-447d-a9ea-4e9501631bca.png" width="450">
 
 
 
-## How Can I Ask For More?
+## How Can I Ask For More? 🎁
 
 - First, a little bit about us:
   - We are a team of scientists, engineers, designers, and product managers passionate about **automating the boring coding for millions of developers worldwide**, one use case at a time.
