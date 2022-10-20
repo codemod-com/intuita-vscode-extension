@@ -4,15 +4,14 @@ import {
 	CaseKind,
 	Classification,
 	ClassifierDiagnostic,
-	Replacement,
 } from './types';
 
 const isRangeWithinNode = (node: ts.Node, range: IntuitaSimpleRange) =>
 	node.getFullStart() <= range.start && node.getEnd() >= range.end;
 
-const getTs2769ObjectAssignReplacement = (
+const getTs2769ObjectAssignReplacementRange = (
 	node: ts.Node,
-): Replacement | null => {
+): IntuitaSimpleRange | null => {
 	if (!ts.isCallExpression(node.parent)) {
 		return null;
 	}
@@ -36,14 +35,9 @@ const getTs2769ObjectAssignReplacement = (
 		return null;
 	}
 
-	const range = {
+	return {
 		start: callExpression.getFullStart(),
 		end: callExpression.getEnd(),
-	};
-
-	return {
-		range,
-		text: callExpression.getFullText(),
 	};
 };
 
@@ -75,12 +69,7 @@ export const classify = (
 ): Classification => {
 	const otherClassification: Classification = {
 		kind: CaseKind.OTHER,
-		replacement: {
-			range: diagnostic.range,
-			text: sourceFile
-				.getFullText()
-				.slice(diagnostic.range.start, diagnostic.range.end),
-		},
+		replacementRange: diagnostic.range,
 	};
 
 	if (diagnostic.code !== '2769') {
@@ -93,12 +82,12 @@ export const classify = (
 		return otherClassification;
 	}
 
-	const replacement = getTs2769ObjectAssignReplacement(node);
+	const replacementRange = getTs2769ObjectAssignReplacementRange(node);
 
-	if (replacement) {
+	if (replacementRange) {
 		return {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement,
+			replacementRange,
 		};
 	}
 

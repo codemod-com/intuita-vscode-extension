@@ -61,57 +61,42 @@ describe('Classifier', () => {
 
 		assert.deepEqual(classifiers[0], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement: {
-				range: {
-					start: 173,
-					end: 198,
-				},
-				text: '\n\nObject.assign(a, { b })',
+			replacementRange: {
+				start: 173,
+				end: 198,
 			},
 		});
 
 		assert.deepEqual(classifiers[1], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement: {
-				range: {
+			replacementRange: {
 					start: 199,
 					end: 224,
 				},
-				text: '\n\nObject.assign(b, { c })',
-			},
 		});
 
 		assert.deepEqual(classifiers[2], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement: {
-				range: {
+			replacementRange: {
 					start: 224,
 					end: 246,
-				},
-				text: '\n\nObject.assign(c, {})',
-			},
+				}
 		});
 
 		assert.deepEqual(classifiers[3], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement: {
-				range: {
+			replacementRange: {
 					start: 246,
 					end: 271,
-				},
-				text: '\n\nObject.assign(d, { c })',
-			},
+				}
 		});
 
 		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacement: {
-				range: {
+			replacementRange: {
 					start: 271,
 					end: 296,
-				},
-				text: '\n\nObject.assign(e, { c })',
-			},
+				}
 		});
 	});
 });
