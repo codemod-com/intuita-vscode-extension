@@ -27,6 +27,10 @@ As for the first use case, Intuita helps you **update dependencies with ease** (
 - **If you are a developer in a fast-paced tech company**, you will resonate the most with this extension. And if you are not working on relatively large projects, we still hope you like the Problem categorization feature and use the extension just for that, until we have more for you!
   - Stay tuned! Intuita is an **open-source and extensible** platform. We will cover more use cases down the road that might interest you (such as advanced refactoring not supported in other IDEs, automated bug fixes, code optimization, modularization, organization, vulnerability fix, test case generation, and literally anything you wish you did not have to spend time on.)
 
+<img src="https://user-images.githubusercontent.com/78109534/196842149-f801b47f-027a-4b31-a0a6-644bf0364cdb.png" width="480">     <img src="https://user-images.githubusercontent.com/78109534/196842649-6ffb5cd8-c59a-447d-a9ea-4e9501631bca.png" width="480">
+
+
+
 ## How Can I Ask For More?
 
 - First, a little bit about us:
