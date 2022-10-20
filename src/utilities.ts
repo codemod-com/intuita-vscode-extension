@@ -1,5 +1,6 @@
 // the [T] is intentional (for distributive types)
 import { createHash } from 'crypto';
+import type { Range } from 'vscode';
 
 type NeitherNullNorUndefined<T> = [T] extends null | undefined ? never : T;
 
@@ -108,6 +109,13 @@ export const calculateLastPosition = (
 export const getSeparator = (text: string): string => {
 	return text.includes('\r\n') ? '\r\n' : '\n';
 };
+
+export const buildIntuitaRange = (range: Range): IntuitaRange => [
+	range.start.line,
+	range.start.character,
+	range.end.line,
+	range.end.character,
+];
 
 export const buildIntuitaSimpleRange = (
 	separator: string,

@@ -1,5 +1,9 @@
 import { Diagnostic, Uri } from 'vscode';
-import { buildHash } from '../utilities';
+import {
+	buildDiagnosticHash,
+	buildDiagnosticHashIngredients,
+} from '../diagnostics/buildDiagnosticHash';
+import { DiagnosticHash } from '../diagnostics/types';
 import {
 	MessageBus,
 	MessageKind,
@@ -7,45 +11,6 @@ import {
 	Trigger,
 } from './messageBus';
 import { VSCodeService } from './vscodeService';
-
-type DiagnosticHash = string & { __type: 'DiagnosticHash' };
-
-const stringifyCode = (code: Diagnostic['code']): string => {
-	if (code === undefined) {
-		return '';
-	}
-
-	if (typeof code === 'string') {
-		return code;
-	}
-
-	if (typeof code === 'number') {
-		return String(code);
-	}
-
-	return [String(code.value), code.target.toString()].join(',');
-};
-
-const buildDiagnosticHash = (
-	uri: Uri,
-	version: number,
-	diagnostic: Diagnostic,
-): DiagnosticHash => {
-	return buildHash(
-		[
-			uri.toString(),
-			String(version),
-			String(diagnostic.range.start.line),
-			String(diagnostic.range.start.character),
-			String(diagnostic.range.end.line),
-			String(diagnostic.range.end.character),
-			diagnostic.message,
-			diagnostic.severity,
-			diagnostic.source ?? '',
-			stringifyCode(diagnostic.code),
-		].join(','),
-	) as DiagnosticHash;
-};
 
 const isDiagnosticSupported = ({ source, code }: Diagnostic): boolean => {
 	if (source !== 'ts' || !code) {
@@ -105,14 +70,18 @@ export class DiagnosticManager {
 				uri,
 			);
 
+			const text = textDocument.getText();
+
 			const newDiagnostics: Diagnostic[] = [];
 
 			diagnostics.forEach((diagnostic) => {
-				const hash = buildDiagnosticHash(
+				const ingredients = buildDiagnosticHashIngredients(
 					uri,
-					textDocument.version,
 					diagnostic,
+					text,
 				);
+
+				const hash = buildDiagnosticHash(ingredients);
 
 				if (this._seenHashes.has(hash)) {
 					return;
@@ -126,8 +95,6 @@ export class DiagnosticManager {
 			if (newDiagnostics.length === 0) {
 				continue;
 			}
-
-			const text = textDocument.getText();
 
 			newExternalDiagnostics.push({
 				uri,
