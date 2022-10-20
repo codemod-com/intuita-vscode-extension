@@ -70,23 +70,21 @@ export const classify = (
 		replacementRange: diagnostic.range,
 	};
 
-	if (diagnostic.code !== '2769') {
-		return otherClassification;
-	}
-
 	const node = getNode(sourceFile, diagnostic.range);
 
 	if (node === null) {
 		return otherClassification;
 	}
 
-	const replacementRange = getTs2769ObjectAssignReplacementRange(node);
+	if (diagnostic.code === '2769') {
+		const replacementRange = getTs2769ObjectAssignReplacementRange(node);
 
-	if (replacementRange) {
-		return {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
-			replacementRange,
-		};
+		if (replacementRange) {
+			return {
+				kind: CaseKind.TS2769_OBJECT_ASSIGN,
+				replacementRange,
+			};
+		}
 	}
 
 	return otherClassification;

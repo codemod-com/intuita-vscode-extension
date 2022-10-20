@@ -8,7 +8,7 @@ export interface ClassifierDiagnostic {
 
 export const enum CaseKind {
 	OTHER = 1,
-	TS2369_OBJECT_ASSIGN = 2,
+	TS2769_OBJECT_ASSIGN = 2,
 }
 
 export interface Classification {

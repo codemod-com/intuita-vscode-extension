@@ -60,7 +60,7 @@ describe('Classifier', () => {
 		assertsNeitherNullOrUndefined(classifiers[4]);
 
 		assert.deepEqual(classifiers[0], {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			kind: CaseKind.TS2769_OBJECT_ASSIGN,
 			replacementRange: {
 				start: 175,
 				end: 198,
@@ -68,7 +68,7 @@ describe('Classifier', () => {
 		});
 
 		assert.deepEqual(classifiers[1], {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			kind: CaseKind.TS2769_OBJECT_ASSIGN,
 			replacementRange: {
 				start: 201,
 				end: 224,
@@ -76,7 +76,7 @@ describe('Classifier', () => {
 		});
 
 		assert.deepEqual(classifiers[2], {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			kind: CaseKind.TS2769_OBJECT_ASSIGN,
 			replacementRange: {
 				start: 226,
 				end: 246,
@@ -84,7 +84,7 @@ describe('Classifier', () => {
 		});
 
 		assert.deepEqual(classifiers[3], {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			kind: CaseKind.TS2769_OBJECT_ASSIGN,
 			replacementRange: {
 				start: 248,
 				end: 271,
@@ -92,7 +92,7 @@ describe('Classifier', () => {
 		});
 
 		assert.deepEqual(classifiers[4], {
-			kind: CaseKind.TS2369_OBJECT_ASSIGN,
+			kind: CaseKind.TS2769_OBJECT_ASSIGN,
 			replacementRange: {
 				start: 273,
 				end: 296,
