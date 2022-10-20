@@ -1,10 +1,6 @@
 import * as ts from 'typescript';
 import { IntuitaSimpleRange } from '../utilities';
-import {
-	CaseKind,
-	Classification,
-	ClassifierDiagnostic,
-} from './types';
+import { CaseKind, Classification, ClassifierDiagnostic } from './types';
 
 const isRangeWithinNode = (node: ts.Node, range: IntuitaSimpleRange) =>
 	node.getFullStart() <= range.start && node.getEnd() >= range.end;

@@ -70,33 +70,33 @@ describe('Classifier', () => {
 		assert.deepEqual(classifiers[1], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacementRange: {
-					start: 201,
-					end: 224,
-				},
+				start: 201,
+				end: 224,
+			},
 		});
 
 		assert.deepEqual(classifiers[2], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacementRange: {
-					start: 226,
-					end: 246,
-				}
+				start: 226,
+				end: 246,
+			},
 		});
 
 		assert.deepEqual(classifiers[3], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacementRange: {
-					start: 248,
-					end: 271,
-				}
+				start: 248,
+				end: 271,
+			},
 		});
 
 		assert.deepEqual(classifiers[4], {
 			kind: CaseKind.TS2369_OBJECT_ASSIGN,
 			replacementRange: {
-					start: 273,
-					end: 296,
-				}
+				start: 273,
+				end: 296,
+			},
 		});
 	});
 });
