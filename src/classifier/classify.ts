@@ -14,20 +14,19 @@ const getTs2769ObjectAssignReplacementRange = (
 
 	const callExpression = node.parent;
 
-	if (callExpression.arguments.length < 2) {
-		return null;
-	}
-
-	if (!ts.isPropertyAccessExpression(callExpression.expression)) {
+	if (
+		callExpression.arguments.length < 2 ||
+		!ts.isPropertyAccessExpression(callExpression.expression)
+	) {
 		return null;
 	}
 
 	const pae = callExpression.expression;
 
-	const expressionText = pae.expression.getText();
-	const nameText = pae.name.getText();
-
-	if (expressionText !== 'Object' || nameText !== 'assign') {
+	if (
+		pae.expression.getText() !== 'Object' ||
+		pae.name.getText() !== 'assign'
+	) {
 		return null;
 	}
 
