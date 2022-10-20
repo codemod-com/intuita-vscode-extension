@@ -36,7 +36,9 @@ const getTs2769ObjectAssignReplacementRange = (
 	}
 
 	return {
-		start: callExpression.getFullStart(),
+		// we do not take trivia (comments, whitespaces, etc.)
+		// into account when generating replacement ranges
+		start: callExpression.getStart(),
 		end: callExpression.getEnd(),
 	};
 };
