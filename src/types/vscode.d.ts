@@ -7,17 +7,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 declare module 'vscode' {
-
 	export class TreeItem2 extends TreeItem {
 		/**
 		 * [TreeItemCheckboxState](#TreeItemCheckboxState) of the tree item.
 		 */
-		checkboxState?: TreeItemCheckboxState | { readonly state: TreeItemCheckboxState; readonly tooltip?: string };
+		checkboxState?:
+			| TreeItemCheckboxState
+			| {
+					readonly state: TreeItemCheckboxState;
+					readonly tooltip?: string;
+			  };
 	}
 
 	/**
-	* Checkbox state of the tree item
-	*/
+	 * Checkbox state of the tree item
+	 */
 	export enum TreeItemCheckboxState {
 		/**
 		 * Determines an item is unchecked
@@ -26,23 +30,23 @@ declare module 'vscode' {
 		/**
 		 * Determines an item is checked
 		 */
-		Checked = 1
+		Checked = 1,
 	}
 
 	/**
-	* A data provider that provides tree data
-	*/
+	 * A data provider that provides tree data
+	 */
 	export interface TreeView<T> {
 		/**
-		* An event to signal that an element or root has either been checked or unchecked.
-		*/
+		 * An event to signal that an element or root has either been checked or unchecked.
+		 */
 		onDidChangeCheckboxState: Event<TreeCheckboxChangeEvent<T>>;
 	}
 
 	export interface TreeCheckboxChangeEvent<T> {
 		/**
-		* The item that was checked or unchecked.
-		*/
+		 * The item that was checked or unchecked.
+		 */
 		readonly items: ReadonlyArray<[T, TreeItemCheckboxState]>;
 	}
 }
