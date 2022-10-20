@@ -5,6 +5,10 @@
 	"version": "0.4.1",
 	"publisher": "Intuita",
 	"icon": "img/intuitasq128.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/intuita-inc/intuita-vscode-extension"
+	},
 	"engines": {
 		"vscode": "^1.72.0"
 	},
