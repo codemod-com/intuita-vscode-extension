@@ -1,4 +1,3 @@
-import type { Diagnostic } from 'vscode';
 import type { UriHash } from '../uris/types';
 import {
 	buildHash,
@@ -8,9 +7,10 @@ import {
 	calculateLines,
 	getSeparator,
 } from '../utilities';
+import { VscodeDiagnostic } from '../vscode/types';
 import type { DiagnosticHash, DiagnosticHashIngredients } from './types';
 
-const stringifyCode = (code: Diagnostic['code']): string => {
+const stringifyCode = (code: VscodeDiagnostic['code']): string => {
 	if (code === undefined) {
 		return '';
 	}
@@ -28,7 +28,7 @@ const stringifyCode = (code: Diagnostic['code']): string => {
 
 export const buildDiagnosticHashIngredients = (
 	uriHash: UriHash,
-	diagnostic: Diagnostic,
+	diagnostic: VscodeDiagnostic,
 	fileText: string,
 ): DiagnosticHashIngredients => {
 	const separator = getSeparator(fileText);
