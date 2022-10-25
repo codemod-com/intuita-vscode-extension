@@ -1,5 +1,9 @@
 import { assert } from 'chai';
-import { buildReplacement } from '../features/repairCode/buildReplacement';
+import {
+	buildReplacement,
+	buildTs2769ObjectAssignReplacement,
+} from '../features/repairCode/buildReplacement';
+import { factory } from 'typescript';
 
 describe('buildReplacement', () => {
 	it("should change the '' string into the 0 number", () => {
@@ -230,5 +234,68 @@ describe('buildReplacement', () => {
 		});
 
 		assert.equal(replacement, '1');
+	});
+});
+
+describe('buildTs2769ObjectAssignReplacement', () => {
+	it('should return a proper string for Object.assign(a,{b:c},d)', () => {
+		const replacement = buildTs2769ObjectAssignReplacement([
+			factory.createIdentifier('a'),
+			factory.createObjectLiteralExpression([
+				factory.createPropertyAssignment(
+					factory.createIdentifier('b'),
+					factory.createNumericLiteral('c'),
+				),
+			]),
+			factory.createIdentifier('d'),
+		]);
+
+		assert.equal(replacement, 'a = Object.assign({}, a, { b: c }, d)');
+	});
+
+	it('should return a proper string for Object.assign(a.b,c(d))', () => {
+		const replacement = buildTs2769ObjectAssignReplacement([
+			factory.createPropertyAccessExpression(
+				factory.createIdentifier('a'),
+				factory.createIdentifier('b'),
+			),
+			factory.createCallExpression(
+				factory.createIdentifier('c'),
+				undefined,
+				[factory.createIdentifier('d')],
+			),
+		]);
+
+		assert.equal(replacement, 'a.b = Object.assign({}, a.b, c(d))');
+	});
+
+	it('should return a proper multine string for Object.assign(a.b,{c:true,d:e.f})', () => {
+		const replacement = buildTs2769ObjectAssignReplacement([
+			factory.createPropertyAccessExpression(
+				factory.createIdentifier('a'),
+				factory.createIdentifier('b'),
+			),
+			factory.createObjectLiteralExpression(
+				[
+					factory.createPropertyAssignment(
+						factory.createIdentifier('c'),
+						factory.createTrue(),
+					),
+					factory.createPropertyAssignment(
+						factory.createIdentifier('d'),
+						factory.createPropertyAccessExpression(
+							factory.createIdentifier('e'),
+							factory.createIdentifier('f'),
+						),
+					),
+				],
+				true,
+			),
+		]);
+
+		assert.equal(
+			replacement,
+			'a.b = Object.assign({}, a.b, {\n    c: true,\n    d: e.f\n})',
+		);
 	});
 });

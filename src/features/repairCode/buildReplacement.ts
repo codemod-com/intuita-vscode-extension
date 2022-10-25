@@ -1,3 +1,15 @@
+import * as ts from 'typescript';
+import {
+	createPrinter,
+	createSourceFile,
+	EmitHint,
+	factory,
+	NewLineKind,
+	ScriptKind,
+	ScriptTarget,
+	SyntaxKind,
+} from 'typescript';
+
 type ReplacementArguments = Readonly<{
 	text: string;
 	receivedKind: 'boolean' | 'number' | 'string';
@@ -81,4 +93,44 @@ export const buildReplacement = ({
 	}
 
 	return text;
+};
+
+export const buildTs2769ObjectAssignReplacement = (
+	callExpressionArguments: ReadonlyArray<ts.Expression>,
+): string => {
+	const firstArgument = callExpressionArguments[0];
+
+	if (!firstArgument) {
+		throw new Error('The call expression must have at least one argument');
+	}
+
+	const callExpression = factory.createCallExpression(
+		factory.createPropertyAccessExpression(
+			factory.createIdentifier('Object'),
+			factory.createIdentifier('assign'),
+		),
+		undefined,
+		[
+			factory.createObjectLiteralExpression([], false),
+			...callExpressionArguments,
+		],
+	);
+
+	const binaryExpression = factory.createBinaryExpression(
+		firstArgument,
+		factory.createToken(SyntaxKind.EqualsToken),
+		callExpression,
+	);
+
+	const file = createSourceFile(
+		'index.ts',
+		'',
+		ScriptTarget.Latest,
+		false,
+		ScriptKind.TS,
+	);
+
+	const printer = createPrinter({ newLine: NewLineKind.LineFeed });
+
+	return printer.printNode(EmitHint.Expression, binaryExpression, file);
 };
