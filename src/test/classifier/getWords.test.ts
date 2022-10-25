@@ -1,14 +1,9 @@
 import * as ts from 'typescript';
-import {
-	buildBagOfWords,
-	calculateCosineSimilarity,
-	getWords,
-	normalizeBagsOfWords,
-} from '../../classifier/similarity';
+import { calculateSimilarity } from '../../classifier/similarity';
 import { assert } from 'chai';
 
 describe('calculateCosineSimilarity', () => {
-	it('should calculate correct similarity', () => {
+	it('should calculate correct similarity for two Object.assign() statements', () => {
 		const leftSourceFile = ts.createSourceFile(
 			'index.ts',
 			`Object.assign({ a: 1 }, test1)`,
@@ -25,28 +20,52 @@ describe('calculateCosineSimilarity', () => {
 			ts.ScriptKind.TS,
 		);
 
-		const leftWords = getWords(leftSourceFile);
-		const rightWords = getWords(rightSourceFile);
+		const similarity = calculateSimilarity(leftSourceFile, rightSourceFile);
 
-		assert.deepEqual(leftWords, ['Object', 'assign', 'a', '1', 'test1']);
-		assert.deepEqual(rightWords, ['Object', 'assign', 'b', '1', 'test2']);
+		assert.approximately(similarity, 0.91, 0.01);
+	});
 
-		const leftBagOfWords = buildBagOfWords(leftWords);
-		const rightBagOfWords = buildBagOfWords(rightWords);
-
-		assert.equal(leftBagOfWords.size, 5);
-		assert.equal(rightBagOfWords.size, 5);
-
-		const [leftVector, rightVector] = normalizeBagsOfWords(
-			leftBagOfWords,
-			rightBagOfWords,
+	it('should calculate correct similarity for an Object.assign() vs a function statements', () => {
+		const leftSourceFile = ts.createSourceFile(
+			'index.ts',
+			`Object.assign({ a: 1 }, test1)`,
+			ts.ScriptTarget.ES5,
+			true,
+			ts.ScriptKind.TS,
 		);
 
-		assert.deepEqual(leftVector, [1, 1, 1, 1, 1, 0, 0]);
-		assert.deepEqual(rightVector, [1, 1, 0, 1, 0, 1, 1]);
+		const rightSourceFile = ts.createSourceFile(
+			'index.ts',
+			`function a() { return 1 }`,
+			ts.ScriptTarget.ES5,
+			true,
+			ts.ScriptKind.TS,
+		);
 
-		const similarity = calculateCosineSimilarity(leftVector, rightVector);
+		const similarity = calculateSimilarity(leftSourceFile, rightSourceFile);
 
-		assert.approximately(similarity, 0.6, 0.01);
+		assert.approximately(similarity, 0.21, 0.01);
+	});
+
+	it('should calculate correct similarity for two functions statement', () => {
+		const leftSourceFile = ts.createSourceFile(
+			'index.ts',
+			`function x(a: number) { return 1 };`,
+			ts.ScriptTarget.ES5,
+			true,
+			ts.ScriptKind.TS,
+		);
+
+		const rightSourceFile = ts.createSourceFile(
+			'index.ts',
+			`function y(b: number) { return 2 };`,
+			ts.ScriptTarget.ES5,
+			true,
+			ts.ScriptKind.TS,
+		);
+
+		const similarity = calculateSimilarity(leftSourceFile, rightSourceFile);
+
+		assert.approximately(similarity, 0.86, 0.01);
 	});
 });

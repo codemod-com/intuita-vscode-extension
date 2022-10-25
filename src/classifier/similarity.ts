@@ -1,23 +1,30 @@
 import * as ts from 'typescript';
+import { buildHash } from '../utilities';
 
 export const getWords = (rootNode: ts.Node): ReadonlyArray<string> => {
 	const words: string[] = [];
 
-	const appendWords = (node: ts.Node) => {
+	const appendWords = (node: ts.Node, level: number) => {
+		let hash: string;
+
 		if (
 			ts.isIdentifier(node) ||
 			ts.isNumericLiteral(node) ||
 			ts.isStringLiteral(node)
 		) {
-			words.push(node.text);
+			hash = buildHash(`${node.kind},${level},${node.text}`);
+		} else {
+			hash = buildHash(`${node.kind},${level}`);
 		}
 
+		words.push(hash);
+
 		for (const childNode of node.getChildren()) {
-			appendWords(childNode);
+			appendWords(childNode, level + 1);
 		}
 	};
 
-	appendWords(rootNode);
+	appendWords(rootNode, 0);
 
 	return words;
 };
@@ -89,4 +96,22 @@ export const calculateCosineSimilarity = (
 		buildEuclideanNorm(leftVector) /
 		buildEuclideanNorm(rightVector)
 	);
+};
+
+export const calculateSimilarity = (
+	leftNode: ts.Node,
+	rightNode: ts.Node,
+): number => {
+	const leftWords = getWords(leftNode);
+	const rightWords = getWords(rightNode);
+
+	const leftBagOfWords = buildBagOfWords(leftWords);
+	const rightBagOfWords = buildBagOfWords(rightWords);
+
+	const [leftVector, rightVector] = normalizeBagsOfWords(
+		leftBagOfWords,
+		rightBagOfWords,
+	);
+
+	return calculateCosineSimilarity(leftVector, rightVector);
 };
