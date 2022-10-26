@@ -8,23 +8,8 @@ import {
 	getSeparator,
 } from '../utilities';
 import { VscodeDiagnostic } from '../vscode/types';
+import { stringifyCode } from './stringifyCode';
 import type { DiagnosticHash, DiagnosticHashIngredients } from './types';
-
-const stringifyCode = (code: VscodeDiagnostic['code']): string => {
-	if (code === undefined) {
-		return '';
-	}
-
-	if (typeof code === 'string') {
-		return code;
-	}
-
-	if (typeof code === 'number') {
-		return String(code);
-	}
-
-	return [String(code.value), code.target.toString()].join(',');
-};
 
 export const buildDiagnosticHashIngredients = (
 	uriHash: UriHash,

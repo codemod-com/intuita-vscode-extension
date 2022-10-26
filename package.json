@@ -64,6 +64,14 @@
 			{
 				"command": "intuita.rejectJob",
 				"title": "✗ Reject"
+			},
+			{
+				"command": "intuita.acceptCase",
+				"title": "✓ Accept"
+			},
+			{
+				"command": "intuita.rejectCase",
+				"title": "✗ Reject"
 			}
 		],
 		"configuration": {
@@ -213,12 +221,22 @@
 			"view/item/context": [
 				{
 					"command": "intuita.acceptJob",
-					"when": "viewItem == intuitaJob",
+					"when": "viewItem == jobElement",
 					"group": "inline"
 				},
 				{
 					"command": "intuita.rejectJob",
-					"when": "viewItem == intuitaJob",
+					"when": "viewItem == jobElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.acceptCase",
+					"when": "viewItem == caseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectCase",
+					"when": "viewItem == caseElement",
 					"group": "inline"
 				}
 			]

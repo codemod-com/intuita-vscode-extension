@@ -1,13 +1,14 @@
 import * as ts from 'typescript';
+import { CaseKind } from '../cases/types';
 import { IntuitaSimpleRange } from '../utilities';
-import { CaseKind, Classification, ClassifierDiagnostic } from './types';
+import { Classification, ClassifierDiagnostic } from './types';
 
 const isRangeWithinNode = (node: ts.Node, range: IntuitaSimpleRange) =>
-	node.getFullStart() <= range.start && node.getEnd() >= range.end;
+	node.getStart() <= range.start && node.getEnd() >= range.end;
 
-const getTs2769ObjectAssignReplacementRange = (
+const getTs2769ObjectAssignReplacementNode = (
 	node: ts.Node,
-): IntuitaSimpleRange | null => {
+): ts.CallExpression | null => {
 	if (!ts.isCallExpression(node.parent)) {
 		return null;
 	}
@@ -30,12 +31,7 @@ const getTs2769ObjectAssignReplacementRange = (
 		return null;
 	}
 
-	return {
-		// we do not take trivia (comments, whitespaces, etc.)
-		// into account when generating replacement ranges
-		start: callExpression.getStart(),
-		end: callExpression.getEnd(),
-	};
+	return callExpression;
 };
 
 const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
@@ -45,10 +41,6 @@ const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
 
 	const children = node.getChildren();
 
-	if (children.length === 0) {
-		return node;
-	}
-
 	for (const child of children) {
 		const result = getNode(child, range);
 
@@ -57,34 +49,32 @@ const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
 		}
 	}
 
-	return null;
+	return node;
 };
 
 export const classify = (
 	sourceFile: ts.SourceFile,
 	diagnostic: ClassifierDiagnostic,
 ): Classification => {
-	const otherClassification: Classification = {
-		kind: CaseKind.OTHER,
-		replacementRange: diagnostic.range,
-	};
-
 	const node = getNode(sourceFile, diagnostic.range);
 
-	if (node === null) {
-		return otherClassification;
+	if (!node) {
+		throw new Error('Could not find the node for the diagnostic range');
 	}
 
 	if (diagnostic.code === '2769') {
-		const replacementRange = getTs2769ObjectAssignReplacementRange(node);
+		const callExpression = getTs2769ObjectAssignReplacementNode(node);
 
-		if (replacementRange) {
+		if (callExpression) {
 			return {
 				kind: CaseKind.TS2769_OBJECT_ASSIGN,
-				replacementRange,
+				node: callExpression,
 			};
 		}
 	}
 
-	return otherClassification;
+	return {
+		kind: CaseKind.OTHER,
+		node,
+	};
 };

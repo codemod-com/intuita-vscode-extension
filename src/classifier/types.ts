@@ -1,17 +1,29 @@
-import { IntuitaSimpleRange } from '../utilities';
+import type { Node, CallExpression } from 'typescript';
+import type { CaseKind } from '../cases/types';
+import type { InferenceJob } from '../components/inferenceService';
+import type { EnhancedDiagnostic } from '../components/messageBus';
+import type { File } from '../files/types';
+import type { IntuitaSimpleRange } from '../utilities';
 
-export interface ClassifierDiagnostic {
-	readonly code: string;
-	readonly message: string;
-	readonly range: IntuitaSimpleRange;
-}
+export type ClassifierDiagnostic = Readonly<{
+	code: string;
+	message: string;
+	range: IntuitaSimpleRange;
+}>;
 
-export const enum CaseKind {
-	OTHER = 1,
-	TS2769_OBJECT_ASSIGN = 2,
-}
+export type Classification =
+	| Readonly<{
+			kind: CaseKind.OTHER;
+			node: Node;
+	  }>
+	| Readonly<{
+			kind: CaseKind.TS2769_OBJECT_ASSIGN;
+			node: CallExpression;
+	  }>;
 
-export interface Classification {
-	kind: CaseKind;
-	replacementRange: IntuitaSimpleRange;
-}
+export type JobIngredients = Readonly<{
+	classification: Classification;
+	enhancedDiagnostic: EnhancedDiagnostic;
+	file: File;
+	inferenceJob: InferenceJob;
+}>;

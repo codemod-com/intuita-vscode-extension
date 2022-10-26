@@ -1,67 +1,49 @@
-import { JobHash } from '../moveTopLevelNode/jobHash';
-import {
-	buildIntuitaSimpleRange,
-	IntuitaRange,
-	IntuitaSimpleRange,
-} from '../../utilities';
-import { JobKind } from '../../jobs';
-import { InferenceJob } from '../../components/inferenceService';
-import { buildRepairCodeJobHash } from './jobHash';
+import { buildIntuitaSimpleRange, IntuitaRange } from '../../utilities';
+import type { InferenceJob } from '../../components/inferenceService';
+import { JobHash, JobKind, RepairCodeJob } from '../../jobs/types';
+import type { File } from '../../files/types';
+import { DiagnosticHash } from '../../diagnostics/types';
 
-export type RepairCodeJob = Readonly<{
-	kind: JobKind.repairCode;
-	fileName: string;
-	version: number;
-	hash: JobHash;
-	title: string;
-	range: IntuitaRange;
-	replacement: string;
-	fileText: string;
-	simpleRange: IntuitaSimpleRange;
-	separator: string;
-}>;
+export const buildRepairCodeJob = (
+	file: File,
+	diagnosticHash: DiagnosticHash,
+	inferenceJob: InferenceJob,
+): RepairCodeJob => {
+	const fileName = file.uri.fsPath;
 
-export const buildRepairCodeJobs = (
-	fileName: string,
-	fileText: string,
-	inferenceJobs: ReadonlyArray<InferenceJob>,
-	separator: string,
-	lengths: ReadonlyArray<number>,
-	version: number,
-): ReadonlyArray<RepairCodeJob> => {
-	return inferenceJobs.map((inferenceJob): RepairCodeJob => {
-		const intuitaRange: IntuitaRange =
-			'range' in inferenceJob
-				? inferenceJob.range
-				: [
-						inferenceJob.lineNumber,
-						0,
-						inferenceJob.lineNumber,
-						lengths[inferenceJob.lineNumber] ?? 0,
-				  ];
+	const intuitaRange: IntuitaRange =
+		'range' in inferenceJob
+			? inferenceJob.range
+			: [
+					inferenceJob.lineNumber,
+					0,
+					inferenceJob.lineNumber,
+					file.lengths[inferenceJob.lineNumber] ?? 0,
+			  ];
 
-		const range = buildIntuitaSimpleRange(separator, lengths, intuitaRange);
+	const range = buildIntuitaSimpleRange(
+		file.separator,
+		file.lengths,
+		intuitaRange,
+	);
 
-		const jobHash = buildRepairCodeJobHash(fileName, inferenceJob);
+	const lineNumber =
+		'range' in inferenceJob
+			? inferenceJob.range[0]
+			: inferenceJob.lineNumber;
 
-		const lineNumber =
-			'range' in inferenceJob
-				? inferenceJob.range[0]
-				: inferenceJob.lineNumber;
+	const title = `Repair code on line ${lineNumber + 1}`;
 
-		const title = `Repair code on line ${lineNumber + 1}`;
-
-		return {
-			kind: JobKind.repairCode,
-			fileName,
-			hash: jobHash,
-			title,
-			range: intuitaRange,
-			replacement: inferenceJob.replacement,
-			version,
-			fileText,
-			simpleRange: range,
-			separator,
-		};
-	});
+	return {
+		kind: JobKind.repairCode,
+		fileName,
+		hash: diagnosticHash as unknown as JobHash,
+		title,
+		range: intuitaRange,
+		replacement: inferenceJob.replacement,
+		version: file.version,
+		fileText: file.text,
+		simpleRange: range,
+		separator: file.separator,
+	};
 };

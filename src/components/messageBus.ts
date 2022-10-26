@@ -5,8 +5,11 @@ import {
 	FilePermission,
 	Uri,
 } from 'vscode';
-import { JobOutput } from '../jobs';
-import { InferenceJob } from './inferenceService';
+import type { CaseHash, CaseWithJobHashes } from '../cases/types';
+import type { DiagnosticHash } from '../diagnostics/types';
+import type { File } from '../files/types';
+import type { Job, JobHash, JobOutput } from '../jobs/types';
+import type { UriHash } from '../uris/types';
 
 export const enum MessageKind {
 	/**
@@ -16,31 +19,39 @@ export const enum MessageKind {
 	writeFile = 1,
 	deleteFile = 2,
 	changePermissions = 3,
-	createRepairCodeJobs = 4,
+
+	/**
+	 * the external files exist outside of the extension's virtual file system
+	 */
+	updateExternalFile = 4,
+	externalFileUpdated = 5,
+
+	/**
+	 * the external diagnostics are such that come from
+	 * e.g the TS Language Server
+	 */
+	externalDiagnostics = 6,
+
 	/**
 	 * the internal diagnostics are such that come from
 	 * the Intuita VSCode Extensions
 	 */
 	updateInternalDiagnostics = 7,
-	textDocumentChanged = 8,
-	ruleBasedCoreRepairDiagnosticsChanged = 9, // TODO
-	/**
-	 * the external files exist outside of the extension's virtual file system
-	 */
-	updateExternalFile = 10,
-	externalFileUpdated = 11,
-	/**
-	 * the external diagnostics are such that come from
-	 * e.g the TS Language Server
-	 */
-	externalDiagnostics = 12,
+
+	/** cases and jobs */
+	upsertCases = 8,
+	upsertJobs = 9,
+	rejectCase = 10,
+	rejectJobs = 11,
+	acceptCase = 12,
+	acceptJobs = 13,
+	jobsAccepted = 14,
 }
 
-export type NewExternalDiagnostic = Readonly<{
+export type EnhancedDiagnostic = Readonly<{
 	uri: Uri;
-	version: number;
-	text: string;
-	diagnostics: ReadonlyArray<Diagnostic>;
+	diagnostic: Diagnostic;
+	hash: DiagnosticHash;
 }>;
 
 export type Trigger = 'didSave' | 'onCommand';
@@ -66,25 +77,7 @@ export type Message =
 			permissions: FilePermission | null;
 	  }>
 	| Readonly<{
-			kind: MessageKind.createRepairCodeJobs;
-			uri: Uri;
-			text: string;
-			version: number;
-			inferenceJobs: ReadonlyArray<InferenceJob>;
-			trigger: Trigger;
-	  }>
-	| Readonly<{
 			kind: MessageKind.updateInternalDiagnostics;
-			fileNames: ReadonlyArray<string>;
-			trigger: Trigger;
-	  }>
-	| Readonly<{
-			kind: MessageKind.textDocumentChanged;
-			uri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.ruleBasedCoreRepairDiagnosticsChanged;
-			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -95,13 +88,55 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.externalFileUpdated;
 			uri: Uri;
-			text: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.externalDiagnostics;
-			noExternalDiagnosticsUri: ReadonlyArray<Uri>;
-			newExternalDiagnostics: ReadonlyArray<NewExternalDiagnostic>;
+			uriHashFileMap: ReadonlyMap<UriHash, File>;
+			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
+			inactiveHashes: ReadonlyArray<DiagnosticHash>;
 			trigger: Trigger;
+	  }>
+	| Readonly<{
+			kind: MessageKind.upsertCases;
+			uriHashFileMap: ReadonlyMap<UriHash, File>;
+			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
+			jobs: ReadonlyArray<Job>;
+			inactiveHashes: ReadonlyArray<JobHash | DiagnosticHash>;
+			trigger: Trigger;
+	  }>
+	| Readonly<{
+			kind: MessageKind.upsertJobs;
+			uriHashFileMap: ReadonlyMap<UriHash, File>;
+			jobs: ReadonlyArray<Job>;
+			inactiveHashes: ReadonlyArray<JobHash | DiagnosticHash>;
+			trigger: Trigger;
+	  }>
+	| Readonly<{
+			kind: MessageKind.rejectCase;
+			caseHash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: MessageKind.rejectJobs;
+			jobHashes: ReadonlyArray<JobHash>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.acceptCase;
+			caseHash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: MessageKind.acceptJobs;
+			caseHash: CaseHash;
+			jobHashes: ReadonlyArray<JobHash>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.acceptJobs;
+			jobHash: JobHash;
+			characterDifference: number;
+	  }>
+	| Readonly<{
+			kind: MessageKind.jobsAccepted;
+			caseHash: CaseHash | null;
+			jobHashes: ReadonlyArray<JobHash>;
 	  }>;
 
 export class MessageBus {

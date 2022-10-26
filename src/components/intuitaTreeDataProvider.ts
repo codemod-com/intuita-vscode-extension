@@ -19,20 +19,67 @@ import {
 	window,
 	workspace,
 } from 'vscode';
-import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
-import { JobHash } from '../features/moveTopLevelNode/jobHash';
-import { buildHash, IntuitaRange } from '../utilities';
+import {
+	assertsNeitherNullOrUndefined,
+	calculateCharacterIndex,
+	IntuitaPosition,
+	isNeitherNullNorUndefined,
+} from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { MoveTopLevelNodeJob } from '../features/moveTopLevelNode/job';
-import { RepairCodeJob } from '../features/repairCode/job';
+import { CaseWithJobHashes } from '../cases/types';
+import {
+	CaseElement,
+	DiagnosticElement,
+	Element,
+	ElementHash,
+	FileElement,
+	RootElement,
+} from '../elements/types';
+import { buildDiagnosticElement } from '../elements/buildDiagnosticElement';
+import { buildFileElement } from '../elements/buildFileElement';
+import { getFirstDiagnosticElement } from '../elements/getFirstDiagnosticElement';
+import { buildCaseElement } from '../elements/buildCaseElement';
+import { Job, JobHash, JobKind } from '../jobs/types';
+import type { CaseManager } from '../cases/caseManager';
+
+export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
+
+export const calculateCharacterDifference = (
+	job: Job,
+	position: IntuitaPosition,
+): number => {
+	if (job.kind !== JobKind.moveTopLevelNode) {
+		return 0;
+	}
+
+	const characterIndex = calculateCharacterIndex(
+		job.separator,
+		job.lengths,
+		position[0],
+		position[1],
+	);
+
+	const topLevelNodeIndex = job.topLevelNodes.findIndex((topLevelNode) => {
+		return (
+			topLevelNode.triviaStart <= characterIndex &&
+			characterIndex <= topLevelNode.triviaEnd
+		);
+	});
+
+	const topLevelNode = job.topLevelNodes[topLevelNodeIndex] ?? null;
+
+	assertsNeitherNullOrUndefined(topLevelNode);
+
+	return characterIndex - topLevelNode.triviaStart;
+};
 
 const buildDiagnostic = ({
 	kind,
 	title,
 	range: intuitaRange,
-}: MoveTopLevelNodeJob | RepairCodeJob): Diagnostic => {
+}: Job): Diagnostic => {
 	const startPosition = new Position(intuitaRange[0], intuitaRange[1]);
 
 	const endPosition = new Position(intuitaRange[2], intuitaRange[3]);
@@ -51,136 +98,15 @@ const buildDiagnostic = ({
 	return diagnostic;
 };
 
-type ElementHash = string & { __type: 'ElementHash' };
-
-type DiagnosticElement = Readonly<{
-	hash: ElementHash;
-	kind: 'DIAGNOSTIC';
-	label: string;
-	uri: Uri;
-	jobHash: JobHash;
-	fileName: string;
-	range: IntuitaRange;
-	job: MoveTopLevelNodeJob | RepairCodeJob;
-}>;
-
-type FileElement = Readonly<{
-	hash: ElementHash;
-	kind: 'FILE';
-	label: string;
-	children: ReadonlyArray<DiagnosticElement>;
-}>;
-
-type RootElement = Readonly<{
-	hash: ElementHash;
-	kind: 'ROOT';
-	children: ReadonlyArray<FileElement>;
-}>;
-
-type Element = RootElement | FileElement | DiagnosticElement;
-
-export const buildElementHash = (
-	element: Omit<FileElement, 'hash'> | Omit<DiagnosticElement, 'hash'>,
-): ElementHash => {
-	if (element.kind === 'FILE') {
-		const hash = buildHash([element.kind, element.label].join(','));
-
-		return hash as ElementHash;
+const getElementIconBaseName = (kind: Element['kind']): string => {
+	switch (kind) {
+		case 'CASE':
+			return 'coderepair.svg';
+		case 'FILE':
+			return 'ts2.svg';
+		default:
+			return 'bluelightbulb.svg';
 	}
-
-	const hash = element.jobHash;
-
-	return hash as unknown as ElementHash;
-};
-
-const buildDiagnosticElement = (
-	job: MoveTopLevelNodeJob | RepairCodeJob,
-): DiagnosticElement => {
-	const hashlessElement: Omit<DiagnosticElement, 'hash'> = {
-		kind: 'DIAGNOSTIC' as const,
-		label: job.title,
-		fileName: job.fileName,
-		uri: Uri.parse(job.fileName),
-		range: job.range,
-		jobHash: job.hash,
-		job,
-	};
-
-	const hash = buildElementHash(hashlessElement);
-
-	return {
-		...hashlessElement,
-		hash,
-	};
-};
-
-const buildFileElement = (
-	label: string,
-	children: ReadonlyArray<DiagnosticElement>,
-): FileElement => {
-	const hashlessElement: Omit<FileElement, 'hash'> = {
-		kind: 'FILE' as const,
-		label,
-		children,
-	};
-
-	const hash = buildElementHash(hashlessElement);
-
-	return {
-		...hashlessElement,
-		hash,
-	};
-};
-
-const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-
-const buildRootElement = (
-	oldRootElement: Element | null,
-	deleteLabels: string[],
-	upsertFileElements: FileElement[],
-): RootElement => {
-	if (oldRootElement === null || oldRootElement.kind !== 'ROOT') {
-		return {
-			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
-			children: upsertFileElements,
-		};
-	}
-
-	const children: FileElement[] = [];
-	const upsertedLabels: string[] = [];
-
-	oldRootElement.children.forEach((fileElement) => {
-		if (deleteLabels.find((label) => fileElement.label === label)) {
-			return;
-		}
-
-		const upsertFileElement = upsertFileElements.find(
-			({ label }) => fileElement.label === label,
-		);
-
-		if (!upsertFileElement) {
-			children.push(fileElement);
-			return;
-		}
-
-		children.push(upsertFileElement);
-		upsertedLabels.push(upsertFileElement.label);
-	});
-
-	upsertFileElements.forEach((fileElement) => {
-		if (upsertedLabels.find((label) => fileElement.label === label)) {
-			return;
-		}
-
-		children.push(fileElement);
-	});
-
-	return {
-		hash: ROOT_ELEMENT_HASH,
-		kind: 'ROOT',
-		children,
-	};
 };
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
@@ -188,9 +114,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly onDidChangeTreeData: Event<void>;
 	protected readonly _elementMap = new Map<ElementHash, Element>();
 	protected readonly _childParentMap = new Map<ElementHash, ElementHash>();
+	protected readonly _activeJobHashes = new Set<JobHash>();
 	protected _reveal: TreeView<ElementHash>['reveal'] | null = null;
 
 	public constructor(
+		protected readonly _caseManager: CaseManager,
 		protected readonly _messageBus: MessageBus,
 		protected readonly _jobManager: JobManager,
 		protected readonly _diagnosticCollection: DiagnosticCollection,
@@ -221,11 +149,29 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			(elementHash ?? '') as ElementHash,
 		);
 
-		if (!element || element.kind === 'DIAGNOSTIC') {
+		if (!element) {
 			return [];
 		}
 
-		return element.children.map((childElement) => childElement.hash);
+		const hasChildren = (element: CaseElement | FileElement) =>
+			element.children.length;
+		const getHash = (
+			element: CaseElement | FileElement | DiagnosticElement,
+		) => element.hash;
+
+		if (element.kind === 'ROOT') {
+			return element.children.filter(hasChildren).map(getHash);
+		}
+
+		if (element.kind === 'CASE') {
+			return element.children.filter(hasChildren).map(getHash);
+		}
+
+		if (element.kind === 'FILE') {
+			return element.children.map(getHash);
+		}
+
+		return [];
 	}
 
 	public getTreeItem(
@@ -245,10 +191,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const treeItem = new TreeItem2(element.label);
 
-		treeItem.id = buildHash(element.label);
+		treeItem.id = element.hash;
 
 		treeItem.collapsibleState =
-			element.kind === 'FILE'
+			element.kind === 'FILE' || element.kind === 'CASE'
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None;
 
@@ -257,11 +203,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			'..',
 			'..',
 			'resources',
-			element.kind === 'FILE' ? 'ts2.svg' : 'bluelightbulb.svg',
+			getElementIconBaseName(element.kind),
 		);
 
 		if (element.kind === 'DIAGNOSTIC') {
-			treeItem.contextValue = 'intuitaJob';
+			treeItem.contextValue = 'jobElement';
 
 			const tooltip = new MarkdownString(
 				'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)',
@@ -282,71 +228,39 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			};
 		}
 
+		if (element.kind === 'CASE') {
+			treeItem.contextValue = 'caseElement';
+		}
+
 		return treeItem;
 	}
 
 	protected async _onUpdateInternalDiagnostics(
 		message: Message & { kind: MessageKind.updateInternalDiagnostics },
 	) {
-		let jobCount = 0;
-		const deleteLabels: string[] = [];
-		const upsertFileElements: FileElement[] = [];
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		for (const fileName of message.fileNames) {
-			const jobs = this._jobManager.getFileJobs(
-				buildFileNameHash(fileName),
-			);
+		const caseDtos = this._caseManager.getCasesWithJobHashes();
 
-			const uri = Uri.parse(fileName);
-			const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+		const jobMap = this._buildJobMap(caseDtos);
 
-			const label: string = fileName.replace(rootPath, '');
+		const caseElements = this.buildCaseElements(rootPath, caseDtos, jobMap);
 
-			const diagnostics = jobs.map((job) => buildDiagnostic(job));
+		this.setDiagnostics(jobMap);
 
-			const children: DiagnosticElement[] = jobs.map((job) =>
-				buildDiagnosticElement(job),
-			);
-
-			// set out of the loop variables
-			jobCount += jobs.length;
-
-			if (children.length === 0) {
-				deleteLabels.push(label);
-			} else {
-				upsertFileElements.push(buildFileElement(label, children));
-			}
-
-			this._diagnosticCollection.set(uri, diagnostics);
-		}
-
-		const rootElement = buildRootElement(
-			this._elementMap.get(ROOT_ELEMENT_HASH) ?? null,
-			deleteLabels,
-			upsertFileElements,
-		);
+		const rootElement: RootElement = {
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: caseElements,
+		};
 
 		// update collections
 		this._elementMap.clear();
 		this._childParentMap.clear();
 
-		this._elementMap.set(rootElement.hash, rootElement);
+		this._setElement(rootElement);
 
-		rootElement.children.forEach((fileElement) => {
-			this._elementMap.set(fileElement.hash, fileElement);
-
-			fileElement.children.forEach((diagnosticElement) => {
-				this._elementMap.set(diagnosticElement.hash, diagnosticElement);
-				this._childParentMap.set(
-					diagnosticElement.hash,
-					fileElement.hash,
-				);
-			});
-		});
-
-		const diagnosticElement = rootElement.children.flatMap(
-			(fileElement) => fileElement.children,
-		)[0];
+		const diagnosticElement = getFirstDiagnosticElement(rootElement);
 
 		// update the UX state
 		this.eventEmitter.fire();
@@ -373,10 +287,34 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			});
 		};
 
-		if (message.trigger === 'didSave' && jobCount !== 0) {
+		const inactiveJobHashes: JobHash[] = [];
+		const oldActiveJobHashCount = this._activeJobHashes.size;
+
+		for (const jobHash of this._activeJobHashes) {
+			if (!jobMap.has(jobHash)) {
+				inactiveJobHashes.push(jobHash);
+			}
+		}
+
+		for (const jobHash of jobMap.keys()) {
+			this._activeJobHashes.add(jobHash);
+		}
+
+		for (const jobHash of inactiveJobHashes) {
+			this._activeJobHashes.delete(jobHash);
+		}
+
+		const newActiveJobHashCount = this._activeJobHashes.size;
+
+		if (
+			message.trigger === 'didSave' &&
+			newActiveJobHashCount > oldActiveJobHashCount
+		) {
 			window
 				.showInformationMessage(
-					`Generated ${jobCount} core-repair recommendations`,
+					`Generated ${
+						newActiveJobHashCount - oldActiveJobHashCount
+					} core-repair recommendations`,
 					'Show the first recommendation',
 				)
 				.then(async (response) => {
@@ -390,6 +328,81 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			return;
 		}
 
-		setImmediate(showTheFirstJob);
+		if (message.trigger === 'onCommand') {
+			setImmediate(showTheFirstJob);
+		}
+	}
+
+	protected _setElement(element: Element) {
+		this._elementMap.set(element.hash, element);
+
+		if (!('children' in element)) {
+			return;
+		}
+
+		element.children.forEach((childElement) => {
+			this._childParentMap.set(childElement.hash, element.hash);
+
+			this._setElement(childElement);
+		});
+	}
+
+	protected _buildJobMap(
+		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+	): ReadonlyMap<JobHash, Job> {
+		const jobs = caseDtos.flatMap((caseDto) =>
+			caseDto.jobHashes
+				.map((jobHash) => this._jobManager.getJob(jobHash))
+				.filter(isNeitherNullNorUndefined),
+		);
+
+		const entries = jobs.map((job) => [job.hash, job] as const);
+
+		return new Map(entries);
+	}
+
+	protected buildCaseElements(
+		rootPath: string,
+		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+		jobMap: ReadonlyMap<JobHash, Job>,
+	): ReadonlyArray<CaseElement> {
+		return caseDtos.map((caseDto): CaseElement => {
+			const jobs = caseDto.jobHashes
+				.map((jobHash) => jobMap.get(jobHash))
+				.filter(isNeitherNullNorUndefined);
+
+			const fileNames = Array.from(
+				new Set(jobs.map((job) => job.fileName)),
+			);
+
+			const children = fileNames.map((fileName): FileElement => {
+				const label = fileName.replace(rootPath, '');
+
+				const children = jobs
+					.filter((job) => job.fileName === fileName)
+					.map((job) => buildDiagnosticElement(job));
+
+				return buildFileElement(caseDto.hash, label, children);
+			});
+
+			return buildCaseElement(caseDto, children);
+		});
+	}
+
+	// TODO separate creation from setup
+	protected setDiagnostics(jobMap: ReadonlyMap<JobHash, Job>): void {
+		const jobs = Array.from(jobMap.values());
+
+		const fileNames = Array.from(new Set(jobs.map((job) => job.fileName)));
+
+		fileNames.forEach((fileName) => {
+			const diagnostics = jobs
+				.filter((job) => job.fileName === fileName)
+				.map((job) => buildDiagnostic(job));
+
+			const uri = Uri.parse(fileName);
+
+			this._diagnosticCollection.set(uri, diagnostics);
+		});
 	}
 }
