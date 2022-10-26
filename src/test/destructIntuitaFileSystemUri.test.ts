@@ -1,6 +1,5 @@
 import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { assert } from 'chai';
-import { buildRepairCodeJobHash } from '../features/repairCode/jobHash';
 
 describe('destructIntuitaFileSystemUri', () => {
 	it('destructIntuitaFileSystemUri', () => {
@@ -15,10 +14,7 @@ describe('destructIntuitaFileSystemUri', () => {
 	});
 
 	it('destructIntuitaFileSystemUri', () => {
-		const jobHash = buildRepairCodeJobHash('', {
-			lineNumber: 0,
-			replacement: '',
-		});
+		const jobHash = 'nBGFpcXp_FRhKAiXfuj1SLIljTE';
 
 		const d = destructIntuitaFileSystemUri({
 			scheme: 'intuita',

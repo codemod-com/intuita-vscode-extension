@@ -1,32 +1,26 @@
-import { Diagnostic, Uri } from 'vscode';
+import { Diagnostic } from 'vscode';
 import {
 	buildDiagnosticHash,
 	buildDiagnosticHashIngredients,
 } from '../diagnostics/buildDiagnosticHash';
 import { DiagnosticHash } from '../diagnostics/types';
+import { buildFile } from '../files/buildFile';
+import { File } from '../files/types';
 import { buildUriHash } from '../uris/buildUriHash';
+import { UriHash } from '../uris/types';
 import {
+	EnhancedDiagnostic,
 	MessageBus,
 	MessageKind,
-	NewExternalDiagnostic,
 	Trigger,
 } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
-const isDiagnosticSupported = ({ source, code }: Diagnostic): boolean => {
-	if (source !== 'ts' || !code) {
-		return false;
-	}
-
-	if (typeof code === 'string' || typeof code === 'number') {
-		return String(code) === '2345';
-	}
-
-	return String(code.value) === '2345';
-};
+const isDiagnosticSupported = ({ source, severity }: Diagnostic): boolean =>
+	source === 'ts' && severity === 0;
 
 export class DiagnosticManager {
-	protected readonly _seenHashes: Set<DiagnosticHash> = new Set();
+	protected readonly _activeHashes: Set<DiagnosticHash> = new Set();
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,
@@ -34,7 +28,79 @@ export class DiagnosticManager {
 	) {}
 
 	public async handleDiagnostics(trigger: Trigger) {
-		const uriDiagnosticsTuples = this._vscodeService
+		const uriDiagnosticsTuples = this._getUriDiagnosticsTuples();
+
+		const enhancedDiagnostics: EnhancedDiagnostic[] = [];
+		const hashes = new Set<DiagnosticHash>();
+
+		const uriHashFileMap = new Map<UriHash, File>();
+
+		// assumption: all URIs are unique (by the virtue of the VSCode API)
+		for (const [uri, diagnostics] of uriDiagnosticsTuples) {
+			if (diagnostics.length === 0) {
+				continue;
+			}
+
+			const uriHash = buildUriHash(uri);
+
+			const textDocument = await this._vscodeService.openTextDocument(
+				uri,
+			);
+
+			const text = textDocument.getText();
+
+			const file = buildFile(uri, text, textDocument.version);
+
+			uriHashFileMap.set(uriHash, file);
+
+			diagnostics.forEach((diagnostic) => {
+				const ingredients = buildDiagnosticHashIngredients(
+					uriHash,
+					diagnostic,
+					text,
+				);
+
+				const hash = buildDiagnosticHash(ingredients);
+
+				enhancedDiagnostics.push({
+					uri,
+					diagnostic,
+					hash,
+				});
+
+				hashes.add(hash);
+			});
+		}
+
+		const inactiveHashes: DiagnosticHash[] = [];
+
+		this._activeHashes.forEach((hash) => {
+			if (hashes.has(hash)) {
+				return;
+			}
+
+			inactiveHashes.push(hash);
+		});
+
+		inactiveHashes.forEach((hash) => {
+			this._activeHashes.delete(hash);
+		});
+
+		hashes.forEach((hash) => {
+			this._activeHashes.add(hash);
+		});
+
+		this._messageBus.publish({
+			kind: MessageKind.externalDiagnostics,
+			uriHashFileMap,
+			enhancedDiagnostics,
+			inactiveHashes,
+			trigger,
+		});
+	}
+
+	protected _getUriDiagnosticsTuples = () => {
+		return this._vscodeService
 			.getDiagnostics()
 			.filter(([uri]) => {
 				const stringUri = uri.toString();
@@ -50,68 +116,5 @@ export class DiagnosticManager {
 					diagnostics.filter(isDiagnosticSupported),
 				] as const;
 			});
-
-		if (uriDiagnosticsTuples.length === 0) {
-			return;
-		}
-
-		const noExternalDiagnosticsUri: ReadonlyArray<Uri> =
-			uriDiagnosticsTuples
-				.filter((tuple) => tuple[1].length === 0)
-				.map(([uri]) => uri);
-
-		const newExternalDiagnostics: NewExternalDiagnostic[] = [];
-
-		for (const [uri, diagnostics] of uriDiagnosticsTuples) {
-			if (diagnostics.length === 0) {
-				continue;
-			}
-
-			const textDocument = await this._vscodeService.openTextDocument(
-				uri,
-			);
-
-			const text = textDocument.getText();
-
-			const newDiagnostics: Diagnostic[] = [];
-
-			const uriHash = buildUriHash(uri);
-
-			diagnostics.forEach((diagnostic) => {
-				const ingredients = buildDiagnosticHashIngredients(
-					uriHash,
-					diagnostic,
-					text,
-				);
-
-				const hash = buildDiagnosticHash(ingredients);
-
-				if (this._seenHashes.has(hash)) {
-					return;
-				}
-
-				this._seenHashes.add(hash);
-
-				newDiagnostics.push(diagnostic);
-			});
-
-			if (newDiagnostics.length === 0) {
-				continue;
-			}
-
-			newExternalDiagnostics.push({
-				uri,
-				text,
-				version: textDocument.version,
-				diagnostics: newDiagnostics,
-			});
-		}
-
-		this._messageBus.publish({
-			kind: MessageKind.externalDiagnostics,
-			noExternalDiagnosticsUri,
-			newExternalDiagnostics,
-			trigger,
-		});
-	}
+	};
 }

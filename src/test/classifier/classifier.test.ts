@@ -1,7 +1,6 @@
 import * as ts from 'typescript';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { CaseKind, ClassifierDiagnostic } from '../../classifier/types';
 import { classify } from '../../classifier/classify';
 import {
 	assertsNeitherNullOrUndefined,
@@ -11,6 +10,8 @@ import {
 	getSeparator,
 } from '../../utilities';
 import { assert } from 'chai';
+import { CaseKind } from '../../cases/types';
+import { ClassifierDiagnostic } from '../../classifier/types';
 
 describe('Classifier', () => {
 	it('should classify correctly', () => {
@@ -59,44 +60,25 @@ describe('Classifier', () => {
 		assertsNeitherNullOrUndefined(classifiers[3]);
 		assertsNeitherNullOrUndefined(classifiers[4]);
 
-		assert.deepEqual(classifiers[0], {
-			kind: CaseKind.TS2769_OBJECT_ASSIGN,
-			replacementRange: {
-				start: 175,
-				end: 198,
-			},
-		});
+		assert.equal(classifiers[0].kind, CaseKind.TS2769_OBJECT_ASSIGN);
+		assert.equal(classifiers[1].kind, CaseKind.TS2769_OBJECT_ASSIGN);
+		assert.equal(classifiers[2].kind, CaseKind.TS2769_OBJECT_ASSIGN);
+		assert.equal(classifiers[3].kind, CaseKind.TS2769_OBJECT_ASSIGN);
+		assert.equal(classifiers[4].kind, CaseKind.TS2769_OBJECT_ASSIGN);
 
-		assert.deepEqual(classifiers[1], {
-			kind: CaseKind.TS2769_OBJECT_ASSIGN,
-			replacementRange: {
-				start: 201,
-				end: 224,
-			},
-		});
+		assert.deepEqual(classifiers[0].node.getStart(), 175);
+		assert.deepEqual(classifiers[0].node.getEnd(), 198);
 
-		assert.deepEqual(classifiers[2], {
-			kind: CaseKind.TS2769_OBJECT_ASSIGN,
-			replacementRange: {
-				start: 226,
-				end: 246,
-			},
-		});
+		assert.deepEqual(classifiers[1].node.getStart(), 201);
+		assert.deepEqual(classifiers[1].node.getEnd(), 224);
 
-		assert.deepEqual(classifiers[3], {
-			kind: CaseKind.TS2769_OBJECT_ASSIGN,
-			replacementRange: {
-				start: 248,
-				end: 271,
-			},
-		});
+		assert.deepEqual(classifiers[2].node.getStart(), 226);
+		assert.deepEqual(classifiers[2].node.getEnd(), 246);
 
-		assert.deepEqual(classifiers[4], {
-			kind: CaseKind.TS2769_OBJECT_ASSIGN,
-			replacementRange: {
-				start: 273,
-				end: 296,
-			},
-		});
+		assert.deepEqual(classifiers[3].node.getStart(), 248);
+		assert.deepEqual(classifiers[3].node.getEnd(), 271);
+
+		assert.deepEqual(classifiers[4].node.getStart(), 273);
+		assert.deepEqual(classifiers[4].node.getEnd(), 296);
 	});
 });

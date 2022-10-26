@@ -1,4 +1,4 @@
-import type { JobHash } from '../features/moveTopLevelNode/jobHash';
+import { JobHash } from '../jobs/types';
 import type { UriHash } from '../uris/types';
 import type { IntuitaSimpleRange } from '../utilities';
 

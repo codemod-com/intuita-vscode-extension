@@ -131,7 +131,6 @@ export class FileService {
 		this._messageBus.publish({
 			kind: MessageKind.externalFileUpdated,
 			uri: message.uri,
-			text: document.getText(),
 		});
 	}
 }

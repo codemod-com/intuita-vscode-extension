@@ -1,18 +1,20 @@
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { JobHash } from './features/moveTopLevelNode/jobHash';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
 import { IntuitaCodeActionProvider } from './components/intuitaCodeActionProvider';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { InferredCodeRepairService } from './components/inferredCodeRepairService';
-import { acceptJob } from './components/acceptJob';
 import { DiagnosticManager } from './components/diagnosticManager';
 import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
 import { FileService } from './components/fileService';
 import { VSCodeService } from './components/vscodeService';
+import { JobHash } from './jobs/types';
+import { CaseManager } from './cases/caseManager';
+import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
+import { CaseHash } from './cases/types';
 
 const messageBus = new MessageBus();
 
@@ -35,14 +37,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const configurationContainer = buildContainer(getConfiguration());
 
 	const diagnosticManager = new DiagnosticManager(messageBus, vscodeService);
-
-	new InferredCodeRepairService(
-		configurationContainer,
-		messageBus,
-		vscodeService,
-	);
-
-	new RuleBasedCoreRepairService(configurationContainer, messageBus);
 
 	const intuitaFileSystem = new IntuitaFileSystem(messageBus);
 
@@ -68,6 +62,20 @@ export async function activate(context: vscode.ExtensionContext) {
 		intuitaFileSystem,
 	);
 
+	const caseManager = new CaseManager(messageBus, jobManager);
+
+	new InferredCodeRepairService(
+		caseManager,
+		configurationContainer,
+		messageBus,
+	);
+
+	new RuleBasedCoreRepairService(
+		caseManager,
+		configurationContainer,
+		messageBus,
+	);
+
 	const uriStringToVersionMap = new Map<string, number>();
 
 	new FileService(
@@ -79,6 +87,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
+		caseManager,
 		messageBus,
 		jobManager,
 		diagnosticCollection,
@@ -92,6 +101,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTreeView = vscode.window.createTreeView('intuitaViewId', {
 		treeDataProvider,
 	});
+
+	const moveTopLevelBlocksService = new MoveTopLevelBlocksService(
+		caseManager,
+		jobManager,
+		messageBus,
+		configurationContainer,
+		vscodeService,
+	);
 
 	treeDataProvider.setReveal(explorerTreeView.reveal);
 
@@ -115,9 +132,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				jobManager.buildMoveTopLevelNodeJobs(
+				moveTopLevelBlocksService.onBuildMoveTopLevelBlockCasesAndJobsCommand(
 					document.uri,
 					document.getText(),
+					document.version,
+					'onCommand',
 				);
 			},
 		),
@@ -143,7 +162,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			acceptJob(jobManager),
+			async (arg0: unknown, arg1: unknown) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				const characterDifference = typeof arg1 === 'number' ? arg1 : 0;
+
+				messageBus.publish({
+					kind: MessageKind.acceptJobs,
+					jobHash: jobHash as JobHash,
+					characterDifference,
+				});
+			},
 		),
 	);
 
@@ -153,12 +188,45 @@ export async function activate(context: vscode.ExtensionContext) {
 				typeof arg0 === 'string' ? arg0 : null;
 
 			if (jobHash === null) {
-				throw new Error(
-					`Did not pass the element argument "${jobHash}".`,
-				);
+				throw new Error('Did not pass the jobHash into the command.');
 			}
 
-			jobManager.rejectJob(jobHash as JobHash);
+			messageBus.publish({
+				kind: MessageKind.rejectJobs,
+				jobHashes: [jobHash as JobHash],
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
+			const caseHash: string | null =
+				typeof arg0 === 'string' ? arg0 : null;
+
+			if (caseHash === null) {
+				throw new Error('Did not pass the caseHash into the command.');
+			}
+
+			messageBus.publish({
+				kind: MessageKind.acceptCase,
+				caseHash: caseHash as CaseHash,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.rejectCase', async (arg0) => {
+			const caseHash: string | null =
+				typeof arg0 === 'string' ? arg0 : null;
+
+			if (caseHash === null) {
+				throw new Error('Did not pass the caseHash into the command.');
+			}
+
+			messageBus.publish({
+				kind: MessageKind.rejectCase,
+				caseHash: caseHash as CaseHash,
+			});
 		}),
 	);
 
@@ -192,7 +260,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			messageBus.publish({
-				kind: MessageKind.textDocumentChanged,
+				kind: MessageKind.externalFileUpdated,
 				uri,
 			});
 		}),

@@ -1,6 +1,5 @@
+import { JobHash } from '../../jobs/types';
 import { buildHash } from '../../utilities';
-
-export type JobHash = string & { __type: 'JobHash' };
 
 export const buildMoveTopLevelNodeJobHash = (
 	fileName: string,

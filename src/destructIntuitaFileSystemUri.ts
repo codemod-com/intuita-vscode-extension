@@ -1,4 +1,4 @@
-import { JobHash } from './features/moveTopLevelNode/jobHash';
+import { JobHash } from './jobs/types';
 
 const FS_PATH_START_REG_EXP = /^\/vfs\/(jobs|files)\/([a-z]+)/;
 const FS_PATH_END_REG_EXP = /\/([a-zA-Z0-9-_=]+)\.(ts|tsx|js|jsx)$/;

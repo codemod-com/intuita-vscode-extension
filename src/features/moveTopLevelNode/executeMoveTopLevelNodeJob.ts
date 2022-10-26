@@ -1,5 +1,5 @@
+import type { MoveTopLevelNodeJob } from '../../jobs/types';
 import { calculateLines, moveElementInArray } from '../../utilities';
-import { MoveTopLevelNodeJob } from './job';
 
 export const executeMoveTopLevelNodeJob = (
 	job: MoveTopLevelNodeJob,
