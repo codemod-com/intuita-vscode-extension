@@ -117,6 +117,42 @@ export const buildIntuitaRange = (range: VscodeRange): IntuitaRange => [
 	range.end.character,
 ];
 
+export const buildIntuitaRangeFromSimpleRange = (
+	separator: string,
+	lengths: ReadonlyArray<number>,
+	simpleRange: IntuitaSimpleRange,
+): IntuitaRange => {
+	const range: [number, number, number, number] = [0, 0, 0, 0];
+
+	let count = 0;
+	let lineCount = 0;
+
+	for (const length of lengths) {
+		if (
+			count < simpleRange.start &&
+			simpleRange.start < count + length + separator.length
+		) {
+			range[0] = lineCount;
+			range[1] = simpleRange.start - count;
+		}
+
+		if (
+			count < simpleRange.end &&
+			simpleRange.end < count + length + separator.length
+		) {
+			range[2] = lineCount;
+			range[3] = simpleRange.end - count;
+
+			break;
+		}
+
+		++lineCount;
+		count += length + separator.length;
+	}
+
+	return range;
+};
+
 export const buildIntuitaSimpleRange = (
 	separator: string,
 	lengths: ReadonlyArray<number>,
