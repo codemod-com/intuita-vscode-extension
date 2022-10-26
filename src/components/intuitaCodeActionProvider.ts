@@ -11,8 +11,8 @@ import {
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { IntuitaPosition, IntuitaRange } from '../utilities';
-import { buildFileNameHash } from '../features/moveTopLevelNode/fileNameHash';
-import { calculateCharacterDifference } from '../features/moveTopLevelNode/job';
+import { calculateCharacterDifference } from './intuitaTreeDataProvider';
+import { buildUriHash } from '../uris/buildUriHash';
 
 const buildIntuitaPosition = (range: Range | Selection): IntuitaPosition => [
 	range.start.line,
@@ -35,12 +35,12 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 		document: TextDocument,
 		range: Range | Selection,
 	): ProviderResult<(Command | CodeAction)[]> {
-		const fileNameHash = buildFileNameHash(document.fileName);
+		const uri = buildUriHash(document.uri);
 
 		const position = buildIntuitaPosition(range);
 
 		const codeActions = this._jobManager
-			.getFileJobs(fileNameHash)
+			.getFileJobs(uri)
 			.filter(({ range }) => isRangeWithinPosition(range, position))
 			.flatMap((job) => {
 				const characterDifference = calculateCharacterDifference(

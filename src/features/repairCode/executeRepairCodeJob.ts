@@ -1,5 +1,5 @@
+import type { RepairCodeJob } from '../../jobs/types';
 import { calculateLines } from '../../utilities';
-import { RepairCodeJob } from './job';
 
 export const executeRepairCodeJob = (fact: RepairCodeJob) => {
 	const previousCharacters = fact.fileText.slice(0, fact.simpleRange.start);

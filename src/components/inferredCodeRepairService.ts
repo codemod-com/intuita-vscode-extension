@@ -4,26 +4,37 @@ import {
 	mapValidationToEither,
 } from './inferenceService';
 import { Uri } from 'vscode';
-import { buildHash, isNeitherNullNorUndefined } from '../utilities';
-import { Message, MessageBus, MessageKind } from './messageBus';
+import {
+	EnhancedDiagnostic,
+	Message,
+	MessageBus,
+	MessageKind,
+} from './messageBus';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import { VSCodeService } from './vscodeService';
 import * as FormData from 'form-data';
+import { buildUriHash } from '../uris/buildUriHash';
+import { UriHash } from '../uris/types';
+import { buildCases } from '../classifier/buildCases';
+import { CaseManager } from '../cases/caseManager';
+import { JobIngredients } from '../classifier/types';
+import { buildClassifierDiagnostic } from '../classifier/buildClassifierDiagnostic';
+import { classify } from '../classifier/classify';
+import { File } from '../files/types';
 
 export class InferredCodeRepairService {
-	protected readonly _cancelTokenSourceMap: Map<string, CancelTokenSource> =
+	protected readonly _cancelTokenSourceMap: Map<UriHash, CancelTokenSource> =
 		new Map();
 
 	public constructor(
+		protected readonly _caseManager: CaseManager,
 		protected readonly _configurationContainer: Container<Configuration>,
 		protected readonly _messageBus: MessageBus,
-		protected readonly _vscodeService: VSCodeService,
 	) {
 		this._messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.textDocumentChanged) {
+			if (message.kind === MessageKind.externalFileUpdated) {
 				setImmediate(() => {
-					this._onTextDocumentChanged(message.uri);
+					this._onExternalFileUpdatedMessage(message.uri);
 				});
 			}
 
@@ -35,22 +46,20 @@ export class InferredCodeRepairService {
 		});
 	}
 
-	private _cancel(uri: Uri) {
-		const stringUri = uri.toString();
-
-		const cancelTokenSource = this._cancelTokenSourceMap.get(stringUri);
+	private _cancel(uriHash: UriHash) {
+		const cancelTokenSource = this._cancelTokenSourceMap.get(uriHash);
 
 		if (!cancelTokenSource) {
 			return;
 		}
 
-		this._cancelTokenSourceMap.delete(stringUri);
+		this._cancelTokenSourceMap.delete(uriHash);
 
 		cancelTokenSource.cancel();
 	}
 
-	protected _onTextDocumentChanged(uri: Uri): void {
-		this._cancel(uri);
+	protected _onExternalFileUpdatedMessage(uri: Uri): void {
+		this._cancel(buildUriHash(uri));
 	}
 
 	protected async _onExternalDiagnosticsMessage(
@@ -63,57 +72,86 @@ export class InferredCodeRepairService {
 			return;
 		}
 
-		for (const newExternalDiagnostic of message.newExternalDiagnostics) {
-			this._cancel(newExternalDiagnostic.uri);
-
-			const workspacePath = this._vscodeService.getWorkspaceFolder(
-				newExternalDiagnostic.uri,
-			)?.uri.fsPath;
-
-			if (!isNeitherNullNorUndefined(workspacePath)) {
-				return;
-			}
-
-			const stringUri = newExternalDiagnostic.uri.toString();
-			const uriHash = buildHash(stringUri);
-
-			const source = Axios.CancelToken.source();
-
-			this._cancelTokenSourceMap.set(stringUri, source);
-
-			const lineNumbers = new Set(
-				newExternalDiagnostic.diagnostics.map(
-					({ range }) => range.start.line,
+		const jobIngredients = await Promise.all(
+			message.enhancedDiagnostics.map((enhancedDiagnostic) =>
+				this._buildJobIngredients(
+					message.uriHashFileMap,
+					enhancedDiagnostic,
 				),
-			);
+			),
+		);
 
-			const response = await this._infer(
-				uriHash,
-				Buffer.from(newExternalDiagnostic.text),
-				Array.from(lineNumbers),
-				source.token,
-			);
+		const { casesWithJobHashes, jobs } = buildCases(
+			this._caseManager.getCasesWithJobHashes(),
+			jobIngredients,
+		);
 
-			const dataEither = mapValidationToEither(
-				inferredMessageCodec.decode(response.data),
-			);
+		this._messageBus.publish({
+			kind: MessageKind.upsertCases,
+			uriHashFileMap: message.uriHashFileMap,
+			casesWithJobHashes,
+			jobs,
+			inactiveHashes: message.inactiveHashes,
+			trigger: message.trigger,
+		});
+	}
 
-			if (dataEither._tag === 'Left') {
-				throw new Error(
-					`Could not decode the inferred message: ${dataEither.left}`,
-				);
-			}
+	protected async _buildJobIngredients(
+		uriHashFileMap: ReadonlyMap<UriHash, File>,
+		enhancedDiagnostic: EnhancedDiagnostic,
+	): Promise<JobIngredients> {
+		const uriHash = buildUriHash(enhancedDiagnostic.uri);
+		const file = uriHashFileMap.get(uriHash) ?? null;
 
-			// TODO check if it works like that
-			this._messageBus.publish({
-				kind: MessageKind.createRepairCodeJobs,
-				uri: newExternalDiagnostic.uri,
-				text: newExternalDiagnostic.text,
-				version: newExternalDiagnostic.version,
-				inferenceJobs: dataEither.right.inferenceJobs,
-				trigger: message.trigger,
-			});
+		if (file === null) {
+			throw new Error('Could not find a File for the provided uriHash');
 		}
+
+		this._cancel(uriHash);
+
+		const source = Axios.CancelToken.source();
+
+		this._cancelTokenSourceMap.set(uriHash, source);
+
+		const lineNumbers = [enhancedDiagnostic.diagnostic.range.start.line];
+
+		const response = await this._infer(
+			uriHash,
+			Buffer.from(file.text),
+			Array.from(lineNumbers),
+			source.token,
+		);
+
+		const dataEither = mapValidationToEither(
+			inferredMessageCodec.decode(response.data),
+		);
+
+		if (dataEither._tag === 'Left') {
+			throw new Error(
+				`Could not decode the inferred message: ${dataEither.left}`,
+			);
+		}
+
+		const { inferenceJobs } = dataEither.right;
+
+		if (!inferenceJobs[0]) {
+			throw new Error(`Could not find any inference jobs`);
+		}
+
+		const classifierDiagnostic = buildClassifierDiagnostic(
+			file.separator,
+			file.lengths,
+			enhancedDiagnostic.diagnostic,
+		);
+
+		const classification = classify(file.sourceFile, classifierDiagnostic);
+
+		return {
+			classification,
+			enhancedDiagnostic,
+			file,
+			inferenceJob: inferenceJobs[0],
+		};
 	}
 
 	protected async _infer(
