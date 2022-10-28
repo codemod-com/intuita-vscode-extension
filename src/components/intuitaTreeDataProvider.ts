@@ -209,13 +209,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (element.kind === 'DIAGNOSTIC') {
 			treeItem.contextValue = 'jobElement';
 
-			const tooltip = new MarkdownString(
-				'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)',
-			);
+			if (element.job.kind === JobKind.moveTopLevelNode) {
+				const tooltip = new MarkdownString(
+					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)',
+				);
 
-			tooltip.isTrusted = true;
+				tooltip.isTrusted = true;
 
-			treeItem.tooltip = tooltip;
+				treeItem.tooltip = tooltip;
+			}
 
 			treeItem.command = {
 				title: 'Diff View',
