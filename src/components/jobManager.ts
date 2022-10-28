@@ -125,6 +125,13 @@ export class JobManager {
 	protected _onUpsertJobsMessage(
 		message: Message & { kind: MessageKind.upsertJobs },
 	) {
+		message.inactiveHashes.forEach((diagnosticHash) => {
+			const jobHash = diagnosticHash as unknown as JobHash;
+
+			this._uriHashJobHashSetManager.deleteRightHash(jobHash);
+			this._jobMap.delete(jobHash);
+		});
+
 		for (const job of message.jobs) {
 			if (this._rejectedJobHashes.has(job.hash)) {
 				continue;
@@ -137,13 +144,6 @@ export class JobManager {
 
 			this._uriHashJobHashSetManager.upsert(uriHash, job.hash);
 		}
-
-		message.inactiveHashes.forEach((diagnosticHash) => {
-			const jobHash = diagnosticHash as unknown as JobHash;
-
-			this._uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this._jobMap.delete(jobHash);
-		});
 
 		this._messageBus.publish({
 			kind: MessageKind.updateInternalDiagnostics,
@@ -160,13 +160,21 @@ export class JobManager {
 			'characterDifference' in message ? message.characterDifference : 0;
 		const caseHash = 'caseHash' in message ? message.caseHash : null;
 
-		const acceptedJobHashes: JobHash[] = [];
 		const uriHashes = new Set<UriHash>();
+
+		const acceptedJobs: {
+			uri: Uri;
+			jobHash: JobHash;
+			jobUri: Uri;
+			jobOutput: JobOutput;
+		}[] = [];
 
 		for (const jobHash of jobHashes) {
 			const job = this._jobMap.get(jobHash);
 
-			assertsNeitherNullOrUndefined(job);
+			if (!job) {
+				continue;
+			}
 
 			const uri = Uri.parse(job.fileName); // TODO job should have an URI
 			const uriHash = buildUriHash(uri);
@@ -180,28 +188,35 @@ export class JobManager {
 
 			const jobOutput = this.buildJobOutput(job, characterDifference);
 
-			// clean up the state
 			this._uriHashJobHashSetManager.delete(uriHash, jobHash);
 			this._jobMap.delete(jobHash);
 
-			acceptedJobHashes.push(jobHash);
+			acceptedJobs.push({
+				uri,
+				jobHash,
+				jobUri: buildJobUri(job),
+				jobOutput,
+			});
+		}
 
-			// send messages
+		acceptedJobs.forEach(({ jobUri }) => {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
-				uri: buildJobUri(job),
+				uri: jobUri,
 			});
+		});
 
+		acceptedJobs.forEach(({ uri, jobOutput }) => {
 			this._messageBus.publish({
 				kind: MessageKind.updateExternalFile,
 				uri,
 				jobOutput,
 			});
-		}
+		});
 
 		this._messageBus.publish({
 			kind: MessageKind.jobsAccepted,
-			jobHashes: acceptedJobHashes,
+			jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
 			caseHash,
 		});
 	}
