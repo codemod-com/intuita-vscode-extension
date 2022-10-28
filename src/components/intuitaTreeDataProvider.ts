@@ -1,21 +1,16 @@
 import { join } from 'node:path';
 import {
 	commands,
-	Diagnostic,
 	DiagnosticCollection,
-	DiagnosticSeverity,
 	Event,
 	EventEmitter,
 	MarkdownString,
-	Position,
 	ProviderResult,
-	Range,
 	TreeDataProvider,
 	TreeItem,
 	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
-	Uri,
 	window,
 	workspace,
 } from 'vscode';
@@ -73,29 +68,6 @@ export const calculateCharacterDifference = (
 	assertsNeitherNullOrUndefined(topLevelNode);
 
 	return characterIndex - topLevelNode.triviaStart;
-};
-
-const buildDiagnostic = ({
-	kind,
-	title,
-	range: intuitaRange,
-}: Job): Diagnostic => {
-	const startPosition = new Position(intuitaRange[0], intuitaRange[1]);
-
-	const endPosition = new Position(intuitaRange[2], intuitaRange[3]);
-
-	const vscodeRange = new Range(startPosition, endPosition);
-
-	const diagnostic = new Diagnostic(
-		vscodeRange,
-		title,
-		DiagnosticSeverity.Information,
-	);
-
-	diagnostic.code = kind.valueOf();
-	diagnostic.source = 'intuita';
-
-	return diagnostic;
 };
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
@@ -248,7 +220,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const caseElements = this.buildCaseElements(rootPath, caseDtos, jobMap);
 
-		this.setDiagnostics(jobMap);
+		// this.setDiagnostics(jobMap);
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
@@ -388,23 +360,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			});
 
 			return buildCaseElement(caseDto, children);
-		});
-	}
-
-	// TODO separate creation from setup
-	protected setDiagnostics(jobMap: ReadonlyMap<JobHash, Job>): void {
-		const jobs = Array.from(jobMap.values());
-
-		const fileNames = Array.from(new Set(jobs.map((job) => job.fileName)));
-
-		fileNames.forEach((fileName) => {
-			const diagnostics = jobs
-				.filter((job) => job.fileName === fileName)
-				.map((job) => buildDiagnostic(job));
-
-			const uri = Uri.parse(fileName);
-
-			this._diagnosticCollection.set(uri, diagnostics);
 		});
 	}
 }
