@@ -7,6 +7,7 @@ export enum CaseKind {
 	OTHER = 1,
 	TS2769_OBJECT_ASSIGN = 2,
 	MOVE_TOP_LEVEL_BLOCKS = 3,
+	TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE = 4,
 }
 
 export type Case = Readonly<{

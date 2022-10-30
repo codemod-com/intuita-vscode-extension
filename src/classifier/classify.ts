@@ -34,6 +34,44 @@ const getTs2769ObjectAssignReplacementNode = (
 	return callExpression;
 };
 
+const getTs2322NextJSImageComponentExcessiveAttribute = (
+	node: ts.Node,
+): ts.JsxAttribute | null => {
+	if (!ts.isIdentifier(node) || node.text !== 'layout') {
+		return null;
+	}
+
+	const parent = node.parent;
+
+	if (!ts.isJsxAttribute(parent)) {
+		return null;
+	}
+
+	const grandParent = node.parent.parent;
+
+	if (!ts.isJsxAttributes(grandParent)) {
+		return null;
+	}
+
+	const greatGrandParent = grandParent.parent;
+
+	if (!ts.isJsxSelfClosingElement(greatGrandParent)) {
+		return null;
+	}
+
+	const { tagName } = greatGrandParent;
+
+	if (!ts.isIdentifier(tagName)) {
+		return null;
+	}
+
+	if (tagName.text !== 'Image') {
+		return null;
+	}
+
+	return parent;
+};
+
 const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
 	if (!isRangeWithinNode(node, range)) {
 		return null;
@@ -69,6 +107,18 @@ export const classify = (
 			return {
 				kind: CaseKind.TS2769_OBJECT_ASSIGN,
 				node: callExpression,
+			};
+		}
+	}
+
+	if (diagnostic.code === '2322') {
+		const replacementNode =
+			getTs2322NextJSImageComponentExcessiveAttribute(node);
+
+		if (replacementNode) {
+			return {
+				kind: CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE,
+				node: replacementNode,
 			};
 		}
 	}
