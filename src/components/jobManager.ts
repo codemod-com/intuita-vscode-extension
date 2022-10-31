@@ -4,6 +4,7 @@ import {
 	getSeparator,
 	IntuitaPosition,
 	IntuitaRange,
+	IntuitaSimpleRange,
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { FilePermission, Uri } from 'vscode';
@@ -13,10 +14,11 @@ import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/execute
 import { Container } from '../container';
 import { Configuration } from '../configuration';
 import { buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
-import { Job, JobHash, JobKind, JobOutput } from '../jobs/types';
+import { Job, JobHash, JobKind, JobOutput, RepairCodeJob } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+import { VSCodeService } from './vscodeService';
 
 export class JobManager {
 	protected _uriHashJobHashSetManager = new LeftRightHashSetManager<
@@ -30,6 +32,7 @@ export class JobManager {
 		protected readonly _messageBus: MessageBus,
 		protected readonly _configurationContainer: Container<Configuration>,
 		protected readonly _intuitaFileSystem: IntuitaFileSystem,
+		protected readonly _vscodeService: VSCodeService,
 	) {
 		this._messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.upsertJobs) {
@@ -151,6 +154,46 @@ export class JobManager {
 		});
 	}
 
+	protected async buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>) {
+		const sortedJobs = Array.from(jobs).sort((a, b) => b.simpleRange.start - a.simpleRange.start);
+
+		const firstJob = sortedJobs[0];
+
+		if (!firstJob) {
+			return null;
+		}
+
+		const uri = Uri.parse(firstJob.fileName); // TODO jobs should have URI
+
+		const document = await this._vscodeService.openTextDocument(uri);
+
+		const text = document.getText();
+
+		const replacements: [IntuitaSimpleRange, string][] = [];
+
+		for (const job of sortedJobs) {
+			const jobOutput = this.buildJobOutput(job, 0);
+
+			const start = job.simpleRange.start;
+			const end = job.simpleRange.end + (jobOutput.text.length - text.length);
+
+			const replacement = jobOutput.text.slice(start, end);
+
+			replacements.push([job.simpleRange, replacement]);
+		}
+
+		let newText: string = '';
+		let shift: number = 0;
+
+		for (const [range, replacement] of replacements) {
+			newText = newText.slice(0, range.start + shift) + replacement + newText.slice(range.end + shift);
+
+			shift += replacement.length - (range.end - range.start);
+		}
+
+		return newText;
+	}
+
 	protected _onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
@@ -162,65 +205,67 @@ export class JobManager {
 
 		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
 
-		const uriHashes = new Set<UriHash>();
+		const leftHashes = manager.getLeftHashes();
 
-		const acceptedJobs: {
-			uri: Uri;
-			jobHash: JobHash;
-			jobUri: Uri;
-			jobOutput: JobOutput;
-		}[] = [];
+		// const uriHashes = new Set<UriHash>();
 
-		for (const jobHash of jobHashes) {
-			const job = this._jobMap.get(jobHash);
+		// const acceptedJobs: {
+		// 	uri: Uri;
+		// 	jobHash: JobHash;
+		// 	jobUri: Uri;
+		// 	jobOutput: JobOutput;
+		// }[] = [];
 
-			if (!job) {
-				continue;
-			}
+		// for (const jobHash of jobHashes) {
+		// 	const job = this._jobMap.get(jobHash);
 
-			const uri = Uri.parse(job.fileName); // TODO job should have an URI
-			const uriHash = buildUriHash(uri);
+		// 	if (!job) {
+		// 		continue;
+		// 	}
 
-			if (uriHashes.has(uriHash)) {
-				console.warn('This URI has been already observed.');
-				continue;
-			}
+		// 	const uri = Uri.parse(job.fileName); // TODO job should have an URI
+		// 	const uriHash = buildUriHash(uri);
 
-			uriHashes.add(uriHash);
+		// 	if (uriHashes.has(uriHash)) {
+		// 		console.warn('This URI has been already observed.');
+		// 		continue;
+		// 	}
 
-			const jobOutput = this.buildJobOutput(job, characterDifference);
+		// 	uriHashes.add(uriHash);
 
-			this._uriHashJobHashSetManager.delete(uriHash, jobHash);
-			this._jobMap.delete(jobHash);
+		// 	const jobOutput = this.buildJobOutput(job, characterDifference);
 
-			acceptedJobs.push({
-				uri,
-				jobHash,
-				jobUri: buildJobUri(job),
-				jobOutput,
-			});
-		}
+		// 	this._uriHashJobHashSetManager.delete(uriHash, jobHash);
+		// 	this._jobMap.delete(jobHash);
 
-		acceptedJobs.forEach(({ jobUri }) => {
-			this._messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri: jobUri,
-			});
-		});
+		// 	acceptedJobs.push({
+		// 		uri,
+		// 		jobHash,
+		// 		jobUri: buildJobUri(job),
+		// 		jobOutput,
+		// 	});
+		// }
 
-		acceptedJobs.forEach(({ uri, jobOutput }) => {
-			this._messageBus.publish({
-				kind: MessageKind.updateExternalFile,
-				uri,
-				jobOutput,
-			});
-		});
+		// acceptedJobs.forEach(({ jobUri }) => {
+		// 	this._messageBus.publish({
+		// 		kind: MessageKind.deleteFile,
+		// 		uri: jobUri,
+		// 	});
+		// });
 
-		this._messageBus.publish({
-			kind: MessageKind.jobsAccepted,
-			jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
-			caseHash,
-		});
+		// acceptedJobs.forEach(({ uri, jobOutput }) => {
+		// 	this._messageBus.publish({
+		// 		kind: MessageKind.updateExternalFile,
+		// 		uri,
+		// 		jobOutput,
+		// 	});
+		// });
+
+		// this._messageBus.publish({
+		// 	kind: MessageKind.jobsAccepted,
+		// 	jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
+		// 	caseHash,
+		// });
 	}
 
 	protected _onRejectJobsMessage(
