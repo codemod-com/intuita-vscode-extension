@@ -4,7 +4,7 @@ import { buildClassifierDiagnostic } from '../classifier/buildClassifierDiagnost
 import { classify } from '../classifier/classify';
 import type { Configuration } from '../configuration';
 import type { Container } from '../container';
-import { buildInferenceJob } from '../features/repairCode/buildInferenceJob';
+import { buildReplacementEnvelope } from '../features/repairCode/buildReplacementEnvelope';
 import { buildUriHash } from '../uris/buildUriHash';
 import { assertsNeitherNullOrUndefined } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
@@ -52,7 +52,7 @@ export class RuleBasedCoreRepairService {
 					classifierDiagnostic,
 				);
 
-				const inferenceJob = buildInferenceJob(
+				const inferenceJob = buildReplacementEnvelope(
 					file,
 					enhancedDiagnostic.diagnostic,
 					classification,

@@ -2,14 +2,14 @@ import { JobManager } from '../components/jobManager';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { Case, CaseWithJobHashes, CaseHash } from './types';
+import { Case, CaseWithJobHashes, CaseHash, CaseKind } from './types';
 
 export class CaseManager {
 	protected readonly _cases = new Map<CaseHash, Case>();
 	protected readonly _caseHashJobHashSetManager = new LeftRightHashSetManager<
 		CaseHash,
 		JobHash
-	>();
+	>(new Set());
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,
@@ -55,17 +55,24 @@ export class CaseManager {
 	}
 
 	public getCasesWithJobHashes(): ReadonlyArray<CaseWithJobHashes> {
-		return Array.from(this._cases.values()).map((_case) => {
-			const jobHashes =
-				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
-					_case.hash,
-				);
+		return Array.from(this._cases.values())
+			.map((_case) => {
+				const jobHashes =
+					this._caseHashJobHashSetManager.getRightHashesByLeftHash(
+						_case.hash,
+					);
 
-			return {
-				..._case,
-				jobHashes,
-			};
-		});
+				return {
+					..._case,
+					jobHashes,
+				};
+			})
+			.sort((caseA, caseB) => {
+				const caseAWeight = Number(caseA.kind === CaseKind.OTHER);
+				const caseBWeight = Number(caseB.kind === CaseKind.OTHER);
+
+				return caseAWeight - caseBWeight;
+			});
 	}
 
 	protected async _onUpsertCasesMessage(
@@ -118,21 +125,18 @@ export class CaseManager {
 	protected async _onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		if (message.caseHash) {
-			for (const jobHash of message.jobHashes) {
-				this._caseHashJobHashSetManager.delete(
-					message.caseHash,
-					jobHash,
-				);
-			}
+		for (const jobHash of message.deletedJobHashes) {
+			this._caseHashJobHashSetManager.deleteRightHash(jobHash);
+		}
 
+		for (const kase of this._cases.values()) {
 			const jobHashes =
 				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
-					message.caseHash,
+					kase.hash,
 				);
 
 			if (!jobHashes.length) {
-				this._cases.delete(message.caseHash);
+				this._cases.delete(kase.hash);
 			}
 		}
 

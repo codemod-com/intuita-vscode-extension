@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { CaseKind } from '../cases/types';
+import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 import { IntuitaSimpleRange } from '../utilities';
 import { Classification, ClassifierDiagnostic } from './types';
 
@@ -72,6 +73,28 @@ const getTs2322NextJSImageComponentExcessiveAttribute = (
 	return parent;
 };
 
+const getTs2741NextJSImageComponentMissingAttribute = (
+	node: ts.Node,
+): ts.JsxSelfClosingElement | null => {
+	const { parent } = node;
+
+	if (!ts.isJsxSelfClosingElement(parent)) {
+		return null;
+	}
+
+	const { tagName } = parent;
+
+	if (!ts.isIdentifier(tagName)) {
+		return null;
+	}
+
+	if (tagName.text !== 'Image') {
+		return null;
+	}
+
+	return parent;
+};
+
 const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
 	if (!isRangeWithinNode(node, range)) {
 		return null;
@@ -94,37 +117,70 @@ export const classify = (
 	sourceFile: ts.SourceFile,
 	diagnostic: ClassifierDiagnostic,
 ): Classification => {
-	const node = getNode(sourceFile, diagnostic.range);
+	const errorNode = getNode(sourceFile, diagnostic.range);
 
-	if (!node) {
-		throw new Error('Could not find the node for the diagnostic range');
+	if (!errorNode) {
+		throw new Error(
+			'Could not find the error node for the diagnostic range',
+		);
 	}
 
-	if (diagnostic.code === '2769') {
-		const callExpression = getTs2769ObjectAssignReplacementNode(node);
+	switch (diagnostic.code) {
+		case '2769': {
+			const node = getTs2769ObjectAssignReplacementNode(errorNode);
 
-		if (callExpression) {
-			return {
-				kind: CaseKind.TS2769_OBJECT_ASSIGN,
-				node: callExpression,
-			};
+			if (node) {
+				return {
+					kind: CaseKind.TS2769_OBJECT_ASSIGN,
+					node,
+				};
+			}
+
+			break;
 		}
-	}
+		case '2322': {
+			const node =
+				getTs2322NextJSImageComponentExcessiveAttribute(errorNode);
 
-	if (diagnostic.code === '2322') {
-		const replacementNode =
-			getTs2322NextJSImageComponentExcessiveAttribute(node);
+			if (node) {
+				return {
+					kind: CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT,
+					node,
+				};
+			}
 
-		if (replacementNode) {
-			return {
-				kind: CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE,
-				node: replacementNode,
-			};
+			break;
+		}
+		case '2741': {
+			const node =
+				getTs2741NextJSImageComponentMissingAttribute(errorNode);
+
+			if (node) {
+				return {
+					kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT,
+					node,
+				};
+			}
+
+			break;
+		}
+		case '2345': {
+			const kinds = extractKindsFromTs2345ErrorMessage(
+				diagnostic.message,
+			);
+
+			if (kinds) {
+				return {
+					kind: CaseKind.TS2345_PRIMITIVES,
+					kinds,
+					node: errorNode,
+				};
+			}
 		}
 	}
 
 	return {
 		kind: CaseKind.OTHER,
-		node,
+		node: errorNode,
 	};
 };

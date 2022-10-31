@@ -5,9 +5,11 @@ export type CaseHash = string & { readonly __CaseHash: '__CaseHash' };
 
 export enum CaseKind {
 	OTHER = 1,
-	TS2769_OBJECT_ASSIGN = 2,
-	MOVE_TOP_LEVEL_BLOCKS = 3,
-	TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE = 4,
+	MOVE_TOP_LEVEL_BLOCKS,
+	TS2322_NEXTJS_IMAGE_LAYOUT,
+	TS2345_PRIMITIVES,
+	TS2741_NEXTJS_IMAGE_ALT,
+	TS2769_OBJECT_ASSIGN,
 }
 
 export type Case = Readonly<{

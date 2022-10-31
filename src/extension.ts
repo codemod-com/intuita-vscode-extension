@@ -60,6 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		configurationContainer,
 		intuitaFileSystem,
+		vscodeService,
 	);
 
 	const caseManager = new CaseManager(messageBus, jobManager);
