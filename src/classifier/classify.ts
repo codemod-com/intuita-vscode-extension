@@ -120,10 +120,12 @@ export const classify = (
 	const errorNode = getNode(sourceFile, diagnostic.range);
 
 	if (!errorNode) {
-		throw new Error('Could not find the error node for the diagnostic range');
+		throw new Error(
+			'Could not find the error node for the diagnostic range',
+		);
 	}
 
-	switch(diagnostic.code) {
+	switch (diagnostic.code) {
 		case '2769': {
 			const node = getTs2769ObjectAssignReplacementNode(errorNode);
 
@@ -137,7 +139,8 @@ export const classify = (
 			break;
 		}
 		case '2322': {
-			const node = getTs2322NextJSImageComponentExcessiveAttribute(errorNode);
+			const node =
+				getTs2322NextJSImageComponentExcessiveAttribute(errorNode);
 
 			if (node) {
 				return {
@@ -149,7 +152,8 @@ export const classify = (
 			break;
 		}
 		case '2741': {
-			const node = getTs2741NextJSImageComponentMissingAttribute(errorNode);
+			const node =
+				getTs2741NextJSImageComponentMissingAttribute(errorNode);
 
 			if (node) {
 				return {
@@ -161,14 +165,16 @@ export const classify = (
 			break;
 		}
 		case '2345': {
-			const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
+			const kinds = extractKindsFromTs2345ErrorMessage(
+				diagnostic.message,
+			);
 
 			if (kinds) {
 				return {
 					kind: CaseKind.TS2345_PRIMITIVES,
 					kinds,
 					node: errorNode,
-				}
+				};
 			}
 		}
 	}

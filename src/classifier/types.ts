@@ -1,4 +1,9 @@
-import type { Node, CallExpression, JsxAttribute, JsxSelfClosingElement } from 'typescript';
+import type {
+	Node,
+	CallExpression,
+	JsxAttribute,
+	JsxSelfClosingElement,
+} from 'typescript';
 import type { CaseKind } from '../cases/types';
 import type { ReplacementEnvelope } from '../components/inferenceService';
 import type { EnhancedDiagnostic } from '../components/messageBus';
@@ -28,12 +33,14 @@ export type Classification =
 	| Readonly<{
 			kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT;
 			node: JsxSelfClosingElement;
-	}>
+	  }>
 	| Readonly<{
-			kind: CaseKind.TS2345_PRIMITIVES,
+			kind: CaseKind.TS2345_PRIMITIVES;
 			node: Node;
-			kinds: NonNullable<ReturnType<typeof extractKindsFromTs2345ErrorMessage>>;
-	}>;
+			kinds: NonNullable<
+				ReturnType<typeof extractKindsFromTs2345ErrorMessage>
+			>;
+	  }>;
 
 export type JobIngredients = Readonly<{
 	classification: Classification;

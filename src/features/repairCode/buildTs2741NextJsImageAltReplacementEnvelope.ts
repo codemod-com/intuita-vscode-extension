@@ -1,9 +1,17 @@
-import { createPrinter, createSourceFile, EmitHint, factory, NewLineKind, ScriptKind, ScriptTarget } from "typescript";
-import { CaseKind } from "../../cases/types";
-import type { Classification } from "../../classifier/types";
-import type { ReplacementEnvelope } from "../../components/inferenceService";
-import type { File } from "../../files/types";
-import { buildIntuitaRangeFromSimpleRange } from "../../utilities";
+import {
+	createPrinter,
+	createSourceFile,
+	EmitHint,
+	factory,
+	NewLineKind,
+	ScriptKind,
+	ScriptTarget,
+} from 'typescript';
+import { CaseKind } from '../../cases/types';
+import type { Classification } from '../../classifier/types';
+import type { ReplacementEnvelope } from '../../components/inferenceService';
+import type { File } from '../../files/types';
+import { buildIntuitaRangeFromSimpleRange } from '../../utilities';
 
 export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	file: File,
@@ -33,14 +41,14 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 			classification.node,
 			classification.node.tagName,
 			classification.node.typeArguments,
-			factory.createJsxAttributes(
-				[
-					jsxAttribute,
-				]
-			)
-		)
-	
-		const replacement = printer.printNode(EmitHint.Expression, jsxSelfClosingElement, sourceFile);
+			factory.createJsxAttributes([jsxAttribute]),
+		);
+
+		const replacement = printer.printNode(
+			EmitHint.Expression,
+			jsxSelfClosingElement,
+			sourceFile,
+		);
 
 		const start = classification.node.getStart();
 		const end = classification.node.getEnd();
@@ -69,10 +77,14 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	const width = lastAttribute.getLeadingTriviaWidth();
 	const triviaText = lastAttribute.getFullText().slice(0, width);
 
-	const replacement = printer.printNode(EmitHint.Unspecified, jsxAttribute, sourceFile);
+	const replacement = printer.printNode(
+		EmitHint.Unspecified,
+		jsxAttribute,
+		sourceFile,
+	);
 
 	return {
 		range,
 		replacement: `${triviaText}${replacement}`,
 	};
-}
+};

@@ -134,4 +134,3 @@ export const buildTs2769ObjectAssignReplacement = (
 
 	return printer.printNode(EmitHint.Expression, binaryExpression, file);
 };
-

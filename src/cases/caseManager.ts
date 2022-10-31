@@ -55,23 +55,24 @@ export class CaseManager {
 	}
 
 	public getCasesWithJobHashes(): ReadonlyArray<CaseWithJobHashes> {
-		return Array.from(this._cases.values()).map((_case) => {
-			const jobHashes =
-				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
-					_case.hash,
-				);
+		return Array.from(this._cases.values())
+			.map((_case) => {
+				const jobHashes =
+					this._caseHashJobHashSetManager.getRightHashesByLeftHash(
+						_case.hash,
+					);
 
-			return {
-				..._case,
-				jobHashes,
-			};
-		})
-		.sort((caseA, caseB) => {
-			const caseAWeight = Number(caseA.kind === CaseKind.OTHER);
-			const caseBWeight = Number(caseB.kind === CaseKind.OTHER);
+				return {
+					..._case,
+					jobHashes,
+				};
+			})
+			.sort((caseA, caseB) => {
+				const caseAWeight = Number(caseA.kind === CaseKind.OTHER);
+				const caseBWeight = Number(caseB.kind === CaseKind.OTHER);
 
-			return caseAWeight - caseBWeight;
-		});
+				return caseAWeight - caseBWeight;
+			});
 	}
 
 	protected async _onUpsertCasesMessage(

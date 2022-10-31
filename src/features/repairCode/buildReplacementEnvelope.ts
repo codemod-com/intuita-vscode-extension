@@ -2,10 +2,7 @@ import { CaseKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 import type { File } from '../../files/types';
-import {
-	buildIntuitaRange,
-	buildIntuitaSimpleRange,
-} from '../../utilities';
+import { buildIntuitaRange, buildIntuitaSimpleRange } from '../../utilities';
 import type { VscodeDiagnostic } from '../../vscode/types';
 import { buildTs2322NextJsImageLayoutReplacementEnvelope } from './buildTs2322NextJsImageLayoutReplacementEnvelope';
 import { buildTs2345PrimitivesReplacementEnvelope } from './buildTs2345PrimitivesReplacementEnvelope';
@@ -18,16 +15,10 @@ export const buildReplacementEnvelope = (
 	classification: Classification,
 ): ReplacementEnvelope => {
 	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
-		return buildTs2769ObjectAssignReplacementEnvelope(
-			file,
-			classification,
-		)
+		return buildTs2769ObjectAssignReplacementEnvelope(file, classification);
 	}
 
-	if (
-		classification.kind ===
-		CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT
-	) {
+	if (classification.kind === CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(
 			file,
 			classification,
