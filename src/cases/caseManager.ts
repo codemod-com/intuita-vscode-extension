@@ -9,7 +9,7 @@ export class CaseManager {
 	protected readonly _caseHashJobHashSetManager = new LeftRightHashSetManager<
 		CaseHash,
 		JobHash
-	>();
+	>(new Set());
 
 	public constructor(
 		protected readonly _messageBus: MessageBus,

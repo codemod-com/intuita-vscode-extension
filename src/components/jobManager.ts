@@ -22,7 +22,7 @@ export class JobManager {
 	protected _uriHashJobHashSetManager = new LeftRightHashSetManager<
 		UriHash,
 		JobHash
-	>();
+	>(new Set());
 	protected _rejectedJobHashes = new Set<JobHash>();
 	protected _jobMap = new Map<JobHash, Job>();
 
@@ -159,6 +159,8 @@ export class JobManager {
 		const characterDifference =
 			'characterDifference' in message ? message.characterDifference : 0;
 		const caseHash = 'caseHash' in message ? message.caseHash : null;
+
+		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
 
 		const uriHashes = new Set<UriHash>();
 

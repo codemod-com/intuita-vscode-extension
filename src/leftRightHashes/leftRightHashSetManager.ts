@@ -1,6 +1,40 @@
 export class LeftRightHashSetManager<L extends string, R extends string> {
 	protected _set = new Set<string>();
 
+	public constructor(set: Set<string>) {
+		this._set = set;
+	}
+
+	public buildByRightHashes(
+		rightHashes: Set<R>,
+	) {
+		const set = new Set<string>();
+
+		this._set.forEach((leftRightHash) => {
+			const rightHash = leftRightHash.slice(leftRightHash.length / 2) as R;
+
+			if (!rightHashes.has(rightHash)) {
+				return;
+			}
+
+			set.add(leftRightHash);
+		});
+
+		return new LeftRightHashSetManager<L, R>(set);
+	}
+
+	public getLeftHashes(): Set<L> {
+		const set = new Set<L>();
+
+		this._set.forEach((leftRightHash) => {
+			const leftHash = leftRightHash.slice(0, leftRightHash.length / 2) as L;
+
+			set.add(leftHash);
+		});
+
+		return set;
+	}
+
 	public getRightHashes(): ReadonlyArray<R> {
 		const rightHashes: R[] = [];
 
