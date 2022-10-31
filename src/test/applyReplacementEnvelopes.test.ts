@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { ReplacementEnvelope } from '../components/inferenceService';
 import { applyReplacementEnvelopes } from '../jobs/applyReplacementEnvelopes';
 
-describe.only('applyReplacementEnvelopes', () => {
+describe('applyReplacementEnvelopes', () => {
 	const oldText = '01234567890123456789012345678901234567890123456789';
 
 	it('should do 0 replacements for no replacement envelopes', () => {
