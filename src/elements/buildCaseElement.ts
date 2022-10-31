@@ -21,9 +21,15 @@ const buildLabelHeader = (kase: Case): string => {
 export const buildCaseElement = (
 	kase: Case,
 	children: ReadonlyArray<FileElement>,
-): CaseElement => ({
-	kind: 'CASE',
-	label: `${buildLabelHeader(kase)} (${children.length})`,
-	children,
-	hash: kase.hash as unknown as ElementHash,
-});
+): CaseElement => {
+	const count = children
+		.map((fileElement) => fileElement.children.length)
+		.reduce((a, b) => a + b, 0);
+
+	return {
+		kind: 'CASE',
+		label: `${buildLabelHeader(kase)} (${count})`,
+		children,
+		hash: kase.hash as unknown as ElementHash,
+	};
+};
