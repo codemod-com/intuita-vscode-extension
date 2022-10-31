@@ -1,4 +1,5 @@
-import type { CallExpression } from "typescript";
+import { CaseKind } from "../../cases/types";
+import type { Classification } from "../../classifier/types";
 import type { ReplacementEnvelope } from "../../components/inferenceService";
 import type { File } from "../../files/types";
 import { buildIntuitaRangeFromSimpleRange } from "../../utilities";
@@ -6,10 +7,10 @@ import { buildTs2769ObjectAssignReplacement } from "./buildReplacement";
 
 export const buildTs2769ObjectAssignReplacementEnvelope = (
     file: File,
-    node: CallExpression,
+    classification: Classification & { kind: CaseKind.TS2769_OBJECT_ASSIGN },
 ): ReplacementEnvelope => {
-    const start = node.getStart();
-    const end = node.getEnd();
+    const start = classification.node.getStart();
+    const end = classification.node.getEnd();
 
     const range = buildIntuitaRangeFromSimpleRange(
         file.separator,
@@ -18,7 +19,7 @@ export const buildTs2769ObjectAssignReplacementEnvelope = (
     );
 
     const replacement = buildTs2769ObjectAssignReplacement(
-        node.arguments,
+        classification.node.arguments,
     );
 
     return {

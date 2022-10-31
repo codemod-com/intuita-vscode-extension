@@ -20,7 +20,7 @@ export const buildReplacementEnvelope = (
 	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
 		return buildTs2769ObjectAssignReplacementEnvelope(
 			file,
-			classification.node,
+			classification,
 		)
 	}
 
@@ -30,7 +30,7 @@ export const buildReplacementEnvelope = (
 	) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(
 			file,
-			classification.node,
+			classification,
 		);
 	}
 
