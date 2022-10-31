@@ -45,20 +45,20 @@ export const buildReplacementEnvelope = (
 		);
 	}
 
-	const intuitaRange = buildIntuitaRange(diagnostic.range);
-
-	const intuitaSimpleRange = buildIntuitaSimpleRange(
-		file.separator,
-		file.lengths,
-		intuitaRange,
-	);
-
-	const rangeText = file.text.slice(
-		intuitaSimpleRange.start,
-		intuitaSimpleRange.end,
-	);
-
 	if (stringifyCode(diagnostic.code) === '2345') {
+		const intuitaRange = buildIntuitaRange(diagnostic.range);
+
+		const intuitaSimpleRange = buildIntuitaSimpleRange(
+			file.separator,
+			file.lengths,
+			intuitaRange,
+		);
+
+		const rangeText = file.text.slice(
+			intuitaSimpleRange.start,
+			intuitaSimpleRange.end,
+		);
+
 		const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
 
 		if (kinds) {
@@ -74,6 +74,19 @@ export const buildReplacementEnvelope = (
 			};
 		}
 	}
+
+	const intuitaRange = buildIntuitaRange(diagnostic.range);
+
+	const intuitaSimpleRange = buildIntuitaSimpleRange(
+		file.separator,
+		file.lengths,
+		intuitaRange,
+	);
+
+	const rangeText = file.text.slice(
+		intuitaSimpleRange.start,
+		intuitaSimpleRange.end,
+	);
 
 	return {
 		range: intuitaRange,
