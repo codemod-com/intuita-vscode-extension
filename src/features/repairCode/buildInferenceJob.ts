@@ -44,7 +44,7 @@ export const buildInferenceJob = (
 		classification.kind ===
 		CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE
 	) {
-		const start = classification.node.getStart();
+		const start = classification.node.getFullStart();
 		const end = classification.node.getEnd();
 
 		const range = buildIntuitaRangeFromSimpleRange(
