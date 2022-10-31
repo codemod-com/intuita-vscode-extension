@@ -2,7 +2,7 @@ import { JobManager } from '../components/jobManager';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { Case, CaseWithJobHashes, CaseHash } from './types';
+import { Case, CaseWithJobHashes, CaseHash, CaseKind } from './types';
 
 export class CaseManager {
 	protected readonly _cases = new Map<CaseHash, Case>();
@@ -65,6 +65,12 @@ export class CaseManager {
 				..._case,
 				jobHashes,
 			};
+		})
+		.sort((caseA, caseB) => {
+			const caseAWeight = Number(caseA.kind === CaseKind.OTHER);
+			const caseBWeight = Number(caseB.kind === CaseKind.OTHER);
+
+			return caseAWeight - caseBWeight;
 		});
 	}
 
