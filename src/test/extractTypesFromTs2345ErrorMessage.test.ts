@@ -1,4 +1,4 @@
-import { extractKindsFromTs2345ErrorMessage } from '../features/repairCode/extractKindsFromTs2345ErrorMessage';
+import { extractKindsFromTs2345ErrorMessage } from '../classifier/extractKindsFromTs2345ErrorMessage';
 import { assert } from 'chai';
 import { assertsNeitherNullOrUndefined } from '../utilities';
 

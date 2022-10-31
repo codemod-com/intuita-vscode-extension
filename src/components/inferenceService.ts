@@ -16,21 +16,15 @@ export const mapValidationToEither = <A>(
 	return right(validation.right);
 };
 
-export const inferenceJobCodec = t.union([
-	buildTypeCodec({
-		lineNumber: t.number,
-		replacement: t.string,
-	}),
-	buildTypeCodec({
-		range: t.readonly(t.tuple([t.number, t.number, t.number, t.number])),
-		replacement: t.string,
-	}),
-]);
+export const replacementEnvelopeCodec = buildTypeCodec({
+	range: buildTypeCodec({ start: t.number, end: t.number }),
+	replacement: t.string,
+});
 
 export const inferredMessageCodec = buildTypeCodec({
 	kind: t.literal('inferred'),
-	inferenceJobs: t.readonlyArray(inferenceJobCodec),
+	inferenceJobs: t.readonlyArray(replacementEnvelopeCodec),
 });
 
-export type InferenceJob = t.TypeOf<typeof inferenceJobCodec>;
+export type ReplacementEnvelope = t.TypeOf<typeof replacementEnvelopeCodec>;
 export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;
