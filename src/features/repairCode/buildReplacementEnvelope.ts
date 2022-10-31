@@ -37,7 +37,7 @@ export const buildReplacementEnvelope = (
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_ALT) {
 		return buildTs2741NextJsImageAltReplacementEnvelope(
 			file,
-			classification.node,
+			classification,
 		);
 	}
 

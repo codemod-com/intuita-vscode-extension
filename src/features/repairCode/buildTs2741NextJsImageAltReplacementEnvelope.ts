@@ -1,11 +1,13 @@
-import { createPrinter, createSourceFile, EmitHint, factory, JsxSelfClosingElement, NewLineKind, ScriptKind, ScriptTarget } from "typescript";
+import { createPrinter, createSourceFile, EmitHint, factory, NewLineKind, ScriptKind, ScriptTarget } from "typescript";
+import { CaseKind } from "../../cases/types";
+import type { Classification } from "../../classifier/types";
 import type { ReplacementEnvelope } from "../../components/inferenceService";
 import type { File } from "../../files/types";
 import { buildIntuitaRangeFromSimpleRange } from "../../utilities";
 
 export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	file: File,
-	node: JsxSelfClosingElement,
+	classification: Classification & { kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT },
 ): ReplacementEnvelope => {
 	const sourceFile = createSourceFile(
 		'index.ts',
@@ -22,15 +24,15 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 		factory.createStringLiteral('', true),
 	);
 
-	const { properties } = node.attributes;
+	const { properties } = classification.node.attributes;
 
 	const lastAttribute = properties[properties.length - 1];
 
 	if (!lastAttribute) {
 		const jsxSelfClosingElement = factory.updateJsxSelfClosingElement(
-			node,
-			node.tagName,
-			node.typeArguments,
+			classification.node,
+			classification.node.tagName,
+			classification.node.typeArguments,
 			factory.createJsxAttributes(
 				[
 					jsxAttribute,
@@ -40,8 +42,8 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	
 		const replacement = printer.printNode(EmitHint.Expression, jsxSelfClosingElement, sourceFile);
 
-		const start = node.getStart();
-		const end = node.getEnd();
+		const start = classification.node.getStart();
+		const end = classification.node.getEnd();
 
 		const range = buildIntuitaRangeFromSimpleRange(
 			file.separator,
