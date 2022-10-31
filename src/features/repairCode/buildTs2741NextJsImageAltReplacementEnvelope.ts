@@ -10,11 +10,8 @@ import {
 import { CaseKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
-import type { File } from '../../files/types';
-import { buildIntuitaRangeFromSimpleRange } from '../../utilities';
 
 export const buildTs2741NextJsImageAltReplacementEnvelope = (
-	file: File,
 	classification: Classification & { kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT },
 ): ReplacementEnvelope => {
 	const sourceFile = createSourceFile(
@@ -53,26 +50,14 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 		const start = classification.node.getStart();
 		const end = classification.node.getEnd();
 
-		const range = buildIntuitaRangeFromSimpleRange(
-			file.separator,
-			file.lengths,
-			{ start, end },
-		);
-
 		return {
-			range,
+			range: { start, end },
 			replacement,
 		};
 	}
 
 	const start = lastAttribute.getEnd();
 	const end = start;
-
-	const range = buildIntuitaRangeFromSimpleRange(
-		file.separator,
-		file.lengths,
-		{ start, end },
-	);
 
 	const width = lastAttribute.getLeadingTriviaWidth();
 	const triviaText = lastAttribute.getFullText().slice(0, width);
@@ -84,7 +69,7 @@ export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	);
 
 	return {
-		range,
+		range: { start, end },
 		replacement: `${triviaText}${replacement}`,
 	};
 };

@@ -31,7 +31,7 @@ export const buildTs2345PrimitivesReplacementEnvelope = (
 	});
 
 	return {
-		range: intuitaRange,
+		range: intuitaSimpleRange,
 		replacement,
 	};
 };

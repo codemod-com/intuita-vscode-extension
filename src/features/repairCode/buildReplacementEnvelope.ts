@@ -15,19 +15,17 @@ export const buildReplacementEnvelope = (
 	classification: Classification,
 ): ReplacementEnvelope => {
 	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
-		return buildTs2769ObjectAssignReplacementEnvelope(file, classification);
+		return buildTs2769ObjectAssignReplacementEnvelope(classification);
 	}
 
 	if (classification.kind === CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(
-			file,
 			classification,
 		);
 	}
 
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_ALT) {
 		return buildTs2741NextJsImageAltReplacementEnvelope(
-			file,
 			classification,
 		);
 	}
@@ -54,7 +52,7 @@ export const buildReplacementEnvelope = (
 	);
 
 	return {
-		range: intuitaRange,
+		range: intuitaSimpleRange,
 		replacement: rangeText,
 	};
 };
