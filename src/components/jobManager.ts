@@ -156,8 +156,76 @@ export class JobManager {
 		});
 	}
 
-	protected async buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>): Promise<JobOutput | null> {
-		const sortedJobs = Array.from(jobs).sort((a, b) => b.simpleRange.start - a.simpleRange.start);
+	protected async _onAcceptJobsMessage(
+		message: Message & { kind: MessageKind.acceptJobs },
+	) {
+		const jobHashes =
+			'jobHashes' in message ? message.jobHashes : [message.jobHash];
+		const characterDifference =
+			'characterDifference' in message ? message.characterDifference : 0;
+		const caseHash = 'caseHash' in message ? message.caseHash : null;
+
+		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
+		const uriHashes = manager.getLeftHashes();
+
+		const uriJobOutputs: [Uri, JobOutput][] = [];
+		const acceptedJobs: {
+			jobHash: JobHash;
+			jobUri: Uri;
+		}[] = [];
+ 
+		for (const uriHash of uriHashes) {
+			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
+
+			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
+				.filter(isNeitherNullNorUndefined)
+				.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode)
+
+			const jobOutput = await this._buildRepairCodeJobsOutput(new Set(jobs), characterDifference);
+
+			if (!jobOutput) {
+				continue;
+			}
+	
+			for (const job of jobs) {
+				this._uriHashJobHashSetManager.delete(uriHash, job.hash);
+				this._jobMap.delete(job.hash);
+
+				const uri = Uri.parse(job.fileName); // TODO job should have an URI
+
+				uriJobOutputs.push([uri, jobOutput]);
+
+				acceptedJobs.push({
+					jobHash: job.hash,
+					jobUri: buildJobUri(job),
+				});
+			}	
+		}
+		
+		acceptedJobs.forEach(({ jobUri }) => {
+			this._messageBus.publish({
+				kind: MessageKind.deleteFile,
+				uri: jobUri,
+			});
+		});
+
+		uriJobOutputs.forEach(([uri, jobOutput]) => {
+			this._messageBus.publish({
+				kind: MessageKind.updateExternalFile,
+				uri,
+				jobOutput,
+			});
+		});
+
+		this._messageBus.publish({
+			kind: MessageKind.jobsAccepted,
+			jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
+			caseHash,
+		});
+	}
+
+	protected async _buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>, characterDifference: number): Promise<JobOutput | null> {
+		const sortedJobs = Array.from(jobs).sort((a, b) => a.simpleRange.start - b.simpleRange.start);
 
 		const firstJob = sortedJobs[0];
 
@@ -174,7 +242,7 @@ export class JobManager {
 		const replacementEnvelopes: ReplacementEnvelope[] = [];
 
 		for (const job of sortedJobs) {
-			const jobOutput = this.buildJobOutput(job, 0);
+			const jobOutput = this.buildJobOutput(job, characterDifference);
 
 			const start = job.simpleRange.start;
 			const end = job.simpleRange.end + (jobOutput.text.length - documentText.length);
@@ -200,90 +268,6 @@ export class JobManager {
 			position,
 			range,
 		};
-	}
-
-	protected _onAcceptJobsMessage(
-		message: Message & { kind: MessageKind.acceptJobs },
-	) {
-		const jobHashes =
-			'jobHashes' in message ? message.jobHashes : [message.jobHash];
-		const characterDifference =
-			'characterDifference' in message ? message.characterDifference : 0;
-		const caseHash = 'caseHash' in message ? message.caseHash : null;
-
-		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
-
-		const uriHashes = manager.getLeftHashes();
-
-		for (const uriHash of uriHashes) {
-			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
-
-			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
-				.filter(isNeitherNullNorUndefined)
-				.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode)
-
-			const text = this.buildRepairCodeJobsOutput(new Set(jobs));
-		}
-
-		// const uriHashes = new Set<UriHash>();
-
-		// const acceptedJobs: {
-		// 	uri: Uri;
-		// 	jobHash: JobHash;
-		// 	jobUri: Uri;
-		// 	jobOutput: JobOutput;
-		// }[] = [];
-
-		// for (const jobHash of jobHashes) {
-		// 	const job = this._jobMap.get(jobHash);
-
-		// 	if (!job) {
-		// 		continue;
-		// 	}
-
-		// 	const uri = Uri.parse(job.fileName); // TODO job should have an URI
-		// 	const uriHash = buildUriHash(uri);
-
-		// 	if (uriHashes.has(uriHash)) {
-		// 		console.warn('This URI has been already observed.');
-		// 		continue;
-		// 	}
-
-		// 	uriHashes.add(uriHash);
-
-		// 	const jobOutput = this.buildJobOutput(job, characterDifference);
-
-		// 	this._uriHashJobHashSetManager.delete(uriHash, jobHash);
-		// 	this._jobMap.delete(jobHash);
-
-		// 	acceptedJobs.push({
-		// 		uri,
-		// 		jobHash,
-		// 		jobUri: buildJobUri(job),
-		// 		jobOutput,
-		// 	});
-		// }
-
-		// acceptedJobs.forEach(({ jobUri }) => {
-		// 	this._messageBus.publish({
-		// 		kind: MessageKind.deleteFile,
-		// 		uri: jobUri,
-		// 	});
-		// });
-
-		// acceptedJobs.forEach(({ uri, jobOutput }) => {
-		// 	this._messageBus.publish({
-		// 		kind: MessageKind.updateExternalFile,
-		// 		uri,
-		// 		jobOutput,
-		// 	});
-		// });
-
-		// this._messageBus.publish({
-		// 	kind: MessageKind.jobsAccepted,
-		// 	jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
-		// 	caseHash,
-		// });
 	}
 
 	protected _onRejectJobsMessage(
