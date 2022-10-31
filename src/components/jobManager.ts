@@ -169,16 +169,15 @@ export class JobManager {
 		const uriHashes = manager.getLeftHashes();
 
 		const uriJobOutputs: [Uri, JobOutput][] = [];
-		const acceptedJobs: {
-			jobHash: JobHash;
-			jobUri: Uri;
-		}[] = [];
+		const jobUris: Uri[] = [];
+		const acceptedJobHashes: JobHash[] = [];
  
 		for (const uriHash of uriHashes) {
 			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
 
 			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
 				.filter(isNeitherNullNorUndefined)
+				// TODO this makes other job kinds non-workable
 				.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode)
 
 			const jobOutput = await this._buildRepairCodeJobsOutput(new Set(jobs), characterDifference);
@@ -190,19 +189,21 @@ export class JobManager {
 			for (const job of jobs) {
 				this._uriHashJobHashSetManager.delete(uriHash, job.hash);
 				this._jobMap.delete(job.hash);
+	
+				jobUris.push(buildJobUri(job));
+				acceptedJobHashes.push(job.hash);
+			}
 
-				const uri = Uri.parse(job.fileName); // TODO job should have an URI
+			const firstJob = jobs[0];
+
+			if (firstJob) {
+				const uri = Uri.parse(firstJob.fileName); // TODO job should have an URI
 
 				uriJobOutputs.push([uri, jobOutput]);
-
-				acceptedJobs.push({
-					jobHash: job.hash,
-					jobUri: buildJobUri(job),
-				});
-			}	
+			}
 		}
 		
-		acceptedJobs.forEach(({ jobUri }) => {
+		jobUris.forEach((jobUri) => {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
 				uri: jobUri,
@@ -219,7 +220,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.jobsAccepted,
-			jobHashes: acceptedJobs.map(({ jobHash }) => jobHash),
+			jobHashes: acceptedJobHashes,
 			caseHash,
 		});
 	}
