@@ -192,10 +192,8 @@ export class JobManager {
 				deletedJobHashes.add(job.hash);
 			}
 
-			const firstJob = jobs[0];
-
-			if (firstJob) {
-				const uri = Uri.parse(firstJob.fileName); // TODO job should have an URI
+			if (jobs[0]) {
+				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
 
 				uriJobOutputs.push([uri, jobOutput]);
 			}

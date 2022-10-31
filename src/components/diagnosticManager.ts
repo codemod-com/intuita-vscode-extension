@@ -10,6 +10,7 @@ import { buildUriHash } from '../uris/buildUriHash';
 import { UriHash } from '../uris/types';
 import {
 	EnhancedDiagnostic,
+	Message,
 	MessageBus,
 	MessageKind,
 	Trigger,
@@ -25,7 +26,19 @@ export class DiagnosticManager {
 	public constructor(
 		protected readonly _messageBus: MessageBus,
 		protected readonly _vscodeService: VSCodeService,
-	) {}
+	) {
+		_messageBus.subscribe(
+			(message) => {
+				if (message.kind === MessageKind.jobsAccepted) {
+					setImmediate(
+						() => {
+							this._onJobAcceptedMessage(message);
+						}
+					)
+				}
+			}
+		)
+	}
 
 	public async handleDiagnostics(trigger: Trigger) {
 		const uriDiagnosticsTuples = this._getUriDiagnosticsTuples();
@@ -117,4 +130,12 @@ export class DiagnosticManager {
 				] as const;
 			});
 	};
+
+	protected async _onJobAcceptedMessage(
+		message: Message & { kind: MessageKind.jobsAccepted },
+	) {
+		for(const jobHash of message.deletedJobHashes) {
+			this._activeHashes.delete(jobHash as unknown as DiagnosticHash);
+		}
+	}
 }
