@@ -4,7 +4,6 @@ import {
 	getSeparator,
 	IntuitaPosition,
 	IntuitaRange,
-	IntuitaSimpleRange,
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { FilePermission, Uri } from 'vscode';
@@ -163,14 +162,13 @@ export class JobManager {
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
 		const characterDifference =
 			'characterDifference' in message ? message.characterDifference : 0;
-		const caseHash = 'caseHash' in message ? message.caseHash : null;
 
 		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
 		const uriHashes = manager.getLeftHashes();
 
 		const uriJobOutputs: [Uri, JobOutput][] = [];
 		const jobUris: Uri[] = [];
-		const acceptedJobHashes: JobHash[] = [];
+		const deletedJobHashes = new Set<JobHash>();
  
 		for (const uriHash of uriHashes) {
 			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
@@ -191,7 +189,7 @@ export class JobManager {
 				this._jobMap.delete(job.hash);
 	
 				jobUris.push(buildJobUri(job));
-				acceptedJobHashes.push(job.hash);
+				deletedJobHashes.add(job.hash);
 			}
 
 			const firstJob = jobs[0];
@@ -201,8 +199,23 @@ export class JobManager {
 
 				uriJobOutputs.push([uri, jobOutput]);
 			}
+
+			const otherJobHashes = this._uriHashJobHashSetManager.getRightHashesByLeftHash(uriHash);
+
+			for (const jobHash of otherJobHashes) {
+				const job = this._jobMap.get(jobHash);
+
+				if (job) {
+					jobUris.push(buildJobUri(job));
+				}
+
+				this._uriHashJobHashSetManager.delete(uriHash, jobHash);
+				this._jobMap.delete(jobHash);
+
+				deletedJobHashes.add(jobHash);
+			}
 		}
-		
+	
 		jobUris.forEach((jobUri) => {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
@@ -220,8 +233,7 @@ export class JobManager {
 
 		this._messageBus.publish({
 			kind: MessageKind.jobsAccepted,
-			jobHashes: acceptedJobHashes,
-			caseHash,
+			deletedJobHashes,
 		});
 	}
 

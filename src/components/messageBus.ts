@@ -125,7 +125,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptJobs;
-			caseHash: CaseHash;
 			jobHashes: ReadonlyArray<JobHash>;
 	  }>
 	| Readonly<{
@@ -135,8 +134,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
-			caseHash: CaseHash | null;
-			jobHashes: ReadonlyArray<JobHash>;
+			deletedJobHashes: ReadonlySet<JobHash>;
 	  }>;
 
 export class MessageBus {

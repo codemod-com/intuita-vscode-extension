@@ -125,21 +125,16 @@ export class CaseManager {
 	protected async _onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		if (message.caseHash) {
-			for (const jobHash of message.jobHashes) {
-				this._caseHashJobHashSetManager.delete(
-					message.caseHash,
-					jobHash,
-				);
-			}
+		
+		for (const jobHash of message.deletedJobHashes) {
+			this._caseHashJobHashSetManager.deleteRightHash(jobHash);
+		}
 
-			const jobHashes =
-				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
-					message.caseHash,
-				);
+		for (const kase of this._cases.values()) {
+			const jobHashes = this._caseHashJobHashSetManager.getRightHashesByLeftHash(kase.hash);
 
 			if (!jobHashes.length) {
-				this._cases.delete(message.caseHash);
+				this._cases.delete(kase.hash);
 			}
 		}
 
