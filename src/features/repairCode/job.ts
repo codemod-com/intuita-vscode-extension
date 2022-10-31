@@ -1,5 +1,5 @@
 import { buildIntuitaSimpleRange, IntuitaRange } from '../../utilities';
-import type { InferenceJob } from '../../components/inferenceService';
+import type { ReplacementEnvelope } from '../../components/inferenceService';
 import { JobHash, JobKind, RepairCodeJob } from '../../jobs/types';
 import type { File } from '../../files/types';
 import { DiagnosticHash } from '../../diagnostics/types';
@@ -7,7 +7,7 @@ import { DiagnosticHash } from '../../diagnostics/types';
 export const buildRepairCodeJob = (
 	file: File,
 	diagnosticHash: DiagnosticHash,
-	inferenceJob: InferenceJob,
+	inferenceJob: ReplacementEnvelope,
 ): RepairCodeJob => {
 	const fileName = file.uri.fsPath;
 

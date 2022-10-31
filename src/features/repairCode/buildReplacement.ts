@@ -9,7 +9,7 @@ import {
 	ScriptTarget,
 	SyntaxKind,
 } from 'typescript';
-import { InferenceJob } from '../../components/inferenceService';
+import { ReplacementEnvelope } from '../../components/inferenceService';
 import { File } from '../../files/types';
 import { buildIntuitaRangeFromSimpleRange } from '../../utilities';
 
@@ -141,7 +141,7 @@ export const buildTs2769ObjectAssignReplacement = (
 export const buildTs2741NextJsImageComponentMissingAttributeInferenceJob = (
 	file: File,
 	node: ts.JsxSelfClosingElement,
-): InferenceJob => {
+): ReplacementEnvelope => {
 	const sourceFile = createSourceFile(
 		'index.ts',
 		'',

@@ -1,6 +1,6 @@
 import { CaseKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
-import type { InferenceJob } from '../../components/inferenceService';
+import type { ReplacementEnvelope } from '../../components/inferenceService';
 import { stringifyCode } from '../../diagnostics/stringifyCode';
 import type { File } from '../../files/types';
 import {
@@ -20,7 +20,7 @@ export const buildInferenceJob = (
 	file: File,
 	diagnostic: VscodeDiagnostic,
 	classification: Classification,
-): InferenceJob => {
+): ReplacementEnvelope => {
 	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
 		const start = classification.node.getStart();
 		const end = classification.node.getEnd();

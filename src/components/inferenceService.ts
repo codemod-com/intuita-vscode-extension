@@ -16,7 +16,7 @@ export const mapValidationToEither = <A>(
 	return right(validation.right);
 };
 
-export const inferenceJobCodec = t.union([
+export const replacementEnvelopeCodec = t.union([
 	buildTypeCodec({
 		lineNumber: t.number,
 		replacement: t.string,
@@ -29,8 +29,8 @@ export const inferenceJobCodec = t.union([
 
 export const inferredMessageCodec = buildTypeCodec({
 	kind: t.literal('inferred'),
-	inferenceJobs: t.readonlyArray(inferenceJobCodec),
+	inferenceJobs: t.readonlyArray(replacementEnvelopeCodec),
 });
 
-export type InferenceJob = t.TypeOf<typeof inferenceJobCodec>;
+export type ReplacementEnvelope = t.TypeOf<typeof replacementEnvelopeCodec>;
 export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;

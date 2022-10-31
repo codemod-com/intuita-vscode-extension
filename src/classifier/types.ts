@@ -1,6 +1,6 @@
 import type { Node, CallExpression, JsxAttribute, JsxSelfClosingElement } from 'typescript';
 import type { CaseKind } from '../cases/types';
-import type { InferenceJob } from '../components/inferenceService';
+import type { ReplacementEnvelope } from '../components/inferenceService';
 import type { EnhancedDiagnostic } from '../components/messageBus';
 import type { File } from '../files/types';
 import type { IntuitaSimpleRange } from '../utilities';
@@ -33,5 +33,5 @@ export type JobIngredients = Readonly<{
 	classification: Classification;
 	enhancedDiagnostic: EnhancedDiagnostic;
 	file: File;
-	inferenceJob: InferenceJob;
+	inferenceJob: ReplacementEnvelope;
 }>;
