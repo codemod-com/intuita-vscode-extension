@@ -1,20 +1,16 @@
 import { CaseKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
-import { stringifyCode } from '../../diagnostics/stringifyCode';
 import type { File } from '../../files/types';
 import {
 	buildIntuitaRange,
 	buildIntuitaSimpleRange,
 } from '../../utilities';
 import type { VscodeDiagnostic } from '../../vscode/types';
-import {
-	buildReplacement,
-} from './buildReplacement';
 import { buildTs2322NextJsImageLayoutReplacementEnvelope } from './buildTs2322NextJsImageLayoutReplacementEnvelope';
+import { buildTs2345PrimitivesReplacementEnvelope } from './buildTs2345PrimitivesReplacementEnvelope';
 import { buildTs2741NextJsImageAltReplacementEnvelope } from './buildTs2741NextJsImageAltReplacementEnvelope';
 import { buildTs2769ObjectAssignReplacementEnvelope } from './buildTs2769ObjectAssignReplacementEnvelope';
-import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 
 export const buildReplacementEnvelope = (
 	file: File,
@@ -30,7 +26,7 @@ export const buildReplacementEnvelope = (
 
 	if (
 		classification.kind ===
-		CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE
+		CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT
 	) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(
 			file,
@@ -38,41 +34,19 @@ export const buildReplacementEnvelope = (
 		);
 	}
 
-	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE) {
+	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_ALT) {
 		return buildTs2741NextJsImageAltReplacementEnvelope(
 			file,
 			classification.node,
 		);
 	}
 
-	if (stringifyCode(diagnostic.code) === '2345') {
-		const intuitaRange = buildIntuitaRange(diagnostic.range);
-
-		const intuitaSimpleRange = buildIntuitaSimpleRange(
-			file.separator,
-			file.lengths,
-			intuitaRange,
+	if (classification.kind === CaseKind.TS2345_PRIMITIVES) {
+		return buildTs2345PrimitivesReplacementEnvelope(
+			file,
+			diagnostic,
+			classification,
 		);
-
-		const rangeText = file.text.slice(
-			intuitaSimpleRange.start,
-			intuitaSimpleRange.end,
-		);
-
-		const kinds = extractKindsFromTs2345ErrorMessage(diagnostic.message);
-
-		if (kinds) {
-			const replacement = buildReplacement({
-				text: rangeText,
-				receivedKind: kinds.received,
-				expectedKind: kinds.expected,
-			});
-
-			return {
-				range: intuitaRange,
-				replacement,
-			};
-		}
 	}
 
 	const intuitaRange = buildIntuitaRange(diagnostic.range);

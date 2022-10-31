@@ -7,7 +7,7 @@ const buildLabel = (kase: Case): string => {
 			return 'Case: Move Top-Level Blocks';
 		case CaseKind.TS2769_OBJECT_ASSIGN:
 			return 'Case: TS2769 with Object.assign';
-		case CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE:
+		case CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT:
 			return 'Case: TS2322 with Next.js Image Component Excessive Attribute';
 		default:
 			return `Case: TS${kase.code}`;

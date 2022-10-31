@@ -141,7 +141,7 @@ export const classify = (
 
 			if (node) {
 				return {
-					kind: CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE,
+					kind: CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT,
 					node,
 				};
 			}
@@ -153,7 +153,7 @@ export const classify = (
 
 			if (node) {
 				return {
-					kind: CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE,
+					kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT,
 					node,
 				};
 			}
