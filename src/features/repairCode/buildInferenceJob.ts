@@ -60,10 +60,24 @@ export const buildInferenceJob = (
 	}
 
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE) {
-		// TODO fix
+		const { properties } = classification.node.attributes;
 
-		const start = classification.node.getFullStart();
-		const end = classification.node.getEnd();
+		if (properties.length === 0) {
+			
+		}
+
+		// TODO handle the case without attributes
+		const lastAttribute = properties[properties.length - 1];
+
+		if (!lastAttribute) {
+			throw new Error('No last attribute');
+		}
+
+		const width = lastAttribute.getLeadingTriviaWidth();
+		const triviaText = lastAttribute.getFullText().slice(0, width);
+
+		const start = lastAttribute.getEnd();
+		const end = start;
 
 		const range = buildIntuitaRangeFromSimpleRange(
 			file.separator,
@@ -73,7 +87,7 @@ export const buildInferenceJob = (
 
 		return {
 			range,
-			replacement: '',
+			replacement: `${triviaText}alt=\'\'`,
 		};
 	}
 
