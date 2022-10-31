@@ -11,6 +11,7 @@ import {
 import type { VscodeDiagnostic } from '../../vscode/types';
 import {
 	buildReplacement,
+	buildTs2741NextJsImageComponentMissingAttributeInferenceJob,
 	buildTs2769ObjectAssignReplacement,
 } from './buildReplacement';
 import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
@@ -60,35 +61,10 @@ export const buildInferenceJob = (
 	}
 
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE) {
-		const { properties } = classification.node.attributes;
-
-		if (properties.length === 0) {
-			
-		}
-
-		// TODO handle the case without attributes
-		const lastAttribute = properties[properties.length - 1];
-
-		if (!lastAttribute) {
-			throw new Error('No last attribute');
-		}
-
-		const width = lastAttribute.getLeadingTriviaWidth();
-		const triviaText = lastAttribute.getFullText().slice(0, width);
-
-		const start = lastAttribute.getEnd();
-		const end = start;
-
-		const range = buildIntuitaRangeFromSimpleRange(
-			file.separator,
-			file.lengths,
-			{ start, end },
+		return buildTs2741NextJsImageComponentMissingAttributeInferenceJob(
+			file,
+			classification.node,
 		);
-
-		return {
-			range,
-			replacement: `${triviaText}alt=\'\'`,
-		};
 	}
 
 	const intuitaRange = buildIntuitaRange(diagnostic.range);
