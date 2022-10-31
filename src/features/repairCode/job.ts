@@ -11,7 +11,11 @@ export const buildRepairCodeJob = (
 ): RepairCodeJob => {
 	const fileName = file.uri.fsPath;
 
-	const range = buildIntuitaRangeFromSimpleRange(file.separator, file.lengths, replacementEnvelope.range);
+	const range = buildIntuitaRangeFromSimpleRange(
+		file.separator,
+		file.lengths,
+		replacementEnvelope.range,
+	);
 
 	const title = `Repair code on line ${range[0] + 1}`;
 

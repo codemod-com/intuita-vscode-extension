@@ -19,15 +19,11 @@ export const buildReplacementEnvelope = (
 	}
 
 	if (classification.kind === CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT) {
-		return buildTs2322NextJsImageLayoutReplacementEnvelope(
-			classification,
-		);
+		return buildTs2322NextJsImageLayoutReplacementEnvelope(classification);
 	}
 
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_ALT) {
-		return buildTs2741NextJsImageAltReplacementEnvelope(
-			classification,
-		);
+		return buildTs2741NextJsImageAltReplacementEnvelope(classification);
 	}
 
 	if (classification.kind === CaseKind.TS2345_PRIMITIVES) {

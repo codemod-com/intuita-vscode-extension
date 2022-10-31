@@ -156,8 +156,10 @@ export class JobManager {
 	}
 
 	protected *_getUriHashesWithJobHashes(jobHashes: ReadonlySet<JobHash>) {
-		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
-		
+		const manager = this._uriHashJobHashSetManager.buildByRightHashes(
+			new Set(jobHashes),
+		);
+
 		const uriHashes = manager.getLeftHashes();
 
 		for (const uriHash of uriHashes) {
@@ -166,7 +168,7 @@ export class JobManager {
 			yield {
 				uriHash,
 				jobHashes,
-			}
+			};
 		}
 	}
 
@@ -181,32 +183,48 @@ export class JobManager {
 		const uriJobOutputs: [Uri, JobOutput][] = [];
 		const jobUris: Uri[] = [];
 		const deletedJobHashes = new Set<JobHash>();
- 
-		for (const { uriHash, jobHashes } of this._getUriHashesWithJobHashes(new Set(messageJobHashes))) {
-			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
-				.filter(isNeitherNullNorUndefined)
+
+		for (const { uriHash, jobHashes } of this._getUriHashesWithJobHashes(
+			new Set(messageJobHashes),
+		)) {
+			const jobs = jobHashes
+				.map((jobHash) => this._jobMap.get(jobHash))
+				.filter(isNeitherNullNorUndefined);
 
 			let jobOutput: JobOutput | null = null;
-				
-			if (jobs.length === 1 && jobs[0] && jobs[0].kind === JobKind.moveTopLevelNode) {
+
+			if (
+				jobs.length === 1 &&
+				jobs[0] &&
+				jobs[0].kind === JobKind.moveTopLevelNode
+			) {
 				jobOutput = this.buildJobOutput(jobs[0], characterDifference);
 			} else {
-				const repairCodeJobs = jobs.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode);
+				const repairCodeJobs = jobs.filter<RepairCodeJob>(
+					(job): job is RepairCodeJob =>
+						job.kind === JobKind.repairCode,
+				);
 
-				jobOutput = await this._buildRepairCodeJobsOutput(new Set(repairCodeJobs), characterDifference);
+				jobOutput = await this._buildRepairCodeJobsOutput(
+					new Set(repairCodeJobs),
+					characterDifference,
+				);
 			}
 
 			if (!jobOutput) {
 				continue;
 			}
-	
+
 			if (jobs[0]) {
 				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
 
 				uriJobOutputs.push([uri, jobOutput]);
 			}
 
-			const otherJobHashes = this._uriHashJobHashSetManager.getRightHashesByLeftHash(uriHash);
+			const otherJobHashes =
+				this._uriHashJobHashSetManager.getRightHashesByLeftHash(
+					uriHash,
+				);
 
 			for (const jobHash of otherJobHashes) {
 				const job = this._jobMap.get(jobHash);
@@ -221,7 +239,7 @@ export class JobManager {
 				deletedJobHashes.add(jobHash);
 			}
 		}
-	
+
 		jobUris.forEach((jobUri) => {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
@@ -243,8 +261,13 @@ export class JobManager {
 		});
 	}
 
-	protected async _buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>, characterDifference: number): Promise<JobOutput | null> {
-		const sortedJobs = Array.from(jobs).sort((a, b) => a.simpleRange.start - b.simpleRange.start);
+	protected async _buildRepairCodeJobsOutput(
+		jobs: Set<RepairCodeJob>,
+		characterDifference: number,
+	): Promise<JobOutput | null> {
+		const sortedJobs = Array.from(jobs).sort(
+			(a, b) => a.simpleRange.start - b.simpleRange.start,
+		);
 
 		const firstJob = sortedJobs[0];
 
@@ -264,11 +287,13 @@ export class JobManager {
 			const jobOutput = this.buildJobOutput(job, characterDifference);
 
 			const start = job.simpleRange.start;
-			const end = job.simpleRange.end + (jobOutput.text.length - documentText.length);
+			const end =
+				job.simpleRange.end +
+				(jobOutput.text.length - documentText.length);
 
 			const replacement = jobOutput.text.slice(start, end);
 
-			replacementEnvelopes.push({range: job.simpleRange, replacement });
+			replacementEnvelopes.push({ range: job.simpleRange, replacement });
 		}
 
 		const text = applyReplacementEnvelopes(

@@ -27,17 +27,13 @@ export class DiagnosticManager {
 		protected readonly _messageBus: MessageBus,
 		protected readonly _vscodeService: VSCodeService,
 	) {
-		_messageBus.subscribe(
-			(message) => {
-				if (message.kind === MessageKind.jobsAccepted) {
-					setImmediate(
-						() => {
-							this._onJobAcceptedMessage(message);
-						}
-					)
-				}
+		_messageBus.subscribe((message) => {
+			if (message.kind === MessageKind.jobsAccepted) {
+				setImmediate(() => {
+					this._onJobAcceptedMessage(message);
+				});
 			}
-		)
+		});
 	}
 
 	public async handleDiagnostics(trigger: Trigger) {
@@ -134,7 +130,7 @@ export class DiagnosticManager {
 	protected async _onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		for(const jobHash of message.deletedJobHashes) {
+		for (const jobHash of message.deletedJobHashes) {
 			this._activeHashes.delete(jobHash as unknown as DiagnosticHash);
 		}
 	}

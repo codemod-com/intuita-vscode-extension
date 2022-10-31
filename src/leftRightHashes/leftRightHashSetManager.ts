@@ -11,7 +11,9 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		const set = new Set<string>();
 
 		this._set.forEach((leftRightHash) => {
-			const rightHash = leftRightHash.slice(leftRightHash.length / 2) as R;
+			const rightHash = leftRightHash.slice(
+				leftRightHash.length / 2,
+			) as R;
 
 			if (!rightHashes.has(rightHash)) {
 				return;
@@ -27,7 +29,10 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		const set = new Set<L>();
 
 		this._set.forEach((leftRightHash) => {
-			const leftHash = leftRightHash.slice(0, leftRightHash.length / 2) as L;
+			const leftHash = leftRightHash.slice(
+				0,
+				leftRightHash.length / 2,
+			) as L;
 
 			set.add(leftHash);
 		});
@@ -39,7 +44,9 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		const rightHashes = new Set<R>();
 
 		this._set.forEach((leftRightHash) => {
-			const rightHash = leftRightHash.slice(leftRightHash.length / 2) as R;
+			const rightHash = leftRightHash.slice(
+				leftRightHash.length / 2,
+			) as R;
 
 			rightHashes.add(rightHash);
 		});

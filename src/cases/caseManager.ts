@@ -125,13 +125,15 @@ export class CaseManager {
 	protected async _onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		
 		for (const jobHash of message.deletedJobHashes) {
 			this._caseHashJobHashSetManager.deleteRightHash(jobHash);
 		}
 
 		for (const kase of this._cases.values()) {
-			const jobHashes = this._caseHashJobHashSetManager.getRightHashesByLeftHash(kase.hash);
+			const jobHashes =
+				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
+					kase.hash,
+				);
 
 			if (!jobHashes.length) {
 				this._cases.delete(kase.hash);
