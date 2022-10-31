@@ -155,43 +155,51 @@ export class JobManager {
 		});
 	}
 
+	protected *_getUriHashesWithJobHashes(jobHashes: ReadonlySet<JobHash>) {
+		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
+		
+		const uriHashes = manager.getLeftHashes();
+
+		for (const uriHash of uriHashes) {
+			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
+
+			yield {
+				uriHash,
+				jobHashes,
+			}
+		}
+	}
+
 	protected async _onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
-		const jobHashes =
+		const messageJobHashes =
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
 		const characterDifference =
 			'characterDifference' in message ? message.characterDifference : 0;
-
-		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
-		const uriHashes = manager.getLeftHashes();
 
 		const uriJobOutputs: [Uri, JobOutput][] = [];
 		const jobUris: Uri[] = [];
 		const deletedJobHashes = new Set<JobHash>();
  
-		for (const uriHash of uriHashes) {
-			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
-
+		for (const { uriHash, jobHashes } of this._getUriHashesWithJobHashes(new Set(messageJobHashes))) {
 			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
 				.filter(isNeitherNullNorUndefined)
-				// TODO this makes other job kinds non-workable
-				.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode)
 
-			const jobOutput = await this._buildRepairCodeJobsOutput(new Set(jobs), characterDifference);
+			let jobOutput: JobOutput | null = null;
+				
+			if (jobs.length === 1 && jobs[0] && jobs[0].kind === JobKind.moveTopLevelNode) {
+				jobOutput = this.buildJobOutput(jobs[0], characterDifference);
+			} else {
+				const repairCodeJobs = jobs.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode);
+
+				jobOutput = await this._buildRepairCodeJobsOutput(new Set(repairCodeJobs), characterDifference);
+			}
 
 			if (!jobOutput) {
 				continue;
 			}
 	
-			for (const job of jobs) {
-				this._uriHashJobHashSetManager.delete(uriHash, job.hash);
-				this._jobMap.delete(job.hash);
-	
-				jobUris.push(buildJobUri(job));
-				deletedJobHashes.add(job.hash);
-			}
-
 			if (jobs[0]) {
 				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
 
