@@ -5,15 +5,15 @@ import { stringifyCode } from '../../diagnostics/stringifyCode';
 import type { File } from '../../files/types';
 import {
 	buildIntuitaRange,
-	buildIntuitaRangeFromSimpleRange,
 	buildIntuitaSimpleRange,
 } from '../../utilities';
 import type { VscodeDiagnostic } from '../../vscode/types';
 import {
 	buildReplacement,
-	buildTs2769ObjectAssignReplacement,
 } from './buildReplacement';
-import { buildTs2741NextJsImageNoAltReplacementEnvelope } from './buildTs2741NextJsImageNoAltReplacementEnvelope';
+import { buildTs2322NextJsImageLayoutReplacementEnvelope } from './buildTs2322NextJsImageLayoutReplacementEnvelope';
+import { buildTs2741NextJsImageAltReplacementEnvelope } from './buildTs2741NextJsImageAltReplacementEnvelope';
+import { buildTs2769ObjectAssignReplacementEnvelope } from './buildTs2769ObjectAssignReplacementEnvelope';
 import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 
 export const buildReplacementEnvelope = (
@@ -22,46 +22,24 @@ export const buildReplacementEnvelope = (
 	classification: Classification,
 ): ReplacementEnvelope => {
 	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
-		const start = classification.node.getStart();
-		const end = classification.node.getEnd();
-
-		const range = buildIntuitaRangeFromSimpleRange(
-			file.separator,
-			file.lengths,
-			{ start, end },
-		);
-
-		const replacement = buildTs2769ObjectAssignReplacement(
-			classification.node.arguments,
-		);
-
-		return {
-			range,
-			replacement,
-		};
+		return buildTs2769ObjectAssignReplacementEnvelope(
+			file,
+			classification.node,
+		)
 	}
 
 	if (
 		classification.kind ===
 		CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE
 	) {
-		const start = classification.node.getFullStart();
-		const end = classification.node.getEnd();
-
-		const range = buildIntuitaRangeFromSimpleRange(
-			file.separator,
-			file.lengths,
-			{ start, end },
+		return buildTs2322NextJsImageLayoutReplacementEnvelope(
+			file,
+			classification.node,
 		);
-
-		return {
-			range,
-			replacement: '',
-		};
 	}
 
 	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE) {
-		return buildTs2741NextJsImageNoAltReplacementEnvelope(
+		return buildTs2741NextJsImageAltReplacementEnvelope(
 			file,
 			classification.node,
 		);

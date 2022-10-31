@@ -3,7 +3,7 @@ import type { ReplacementEnvelope } from "../../components/inferenceService";
 import type { File } from "../../files/types";
 import { buildIntuitaRangeFromSimpleRange } from "../../utilities";
 
-export const buildTs2741NextJsImageNoAltReplacementEnvelope = (
+export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	file: File,
 	node: JsxSelfClosingElement,
 ): ReplacementEnvelope => {
