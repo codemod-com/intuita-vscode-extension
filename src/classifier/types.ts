@@ -1,4 +1,4 @@
-import type { Node, CallExpression, JsxAttribute } from 'typescript';
+import type { Node, CallExpression, JsxAttribute, JsxSelfClosingElement } from 'typescript';
 import type { CaseKind } from '../cases/types';
 import type { InferenceJob } from '../components/inferenceService';
 import type { EnhancedDiagnostic } from '../components/messageBus';
@@ -23,7 +23,11 @@ export type Classification =
 	| Readonly<{
 			kind: CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE;
 			node: JsxAttribute;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE;
+			node: JsxSelfClosingElement;
+	}>;
 
 export type JobIngredients = Readonly<{
 	classification: Classification;

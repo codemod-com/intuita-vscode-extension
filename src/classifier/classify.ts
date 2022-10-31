@@ -72,6 +72,28 @@ const getTs2322NextJSImageComponentExcessiveAttribute = (
 	return parent;
 };
 
+const getTs2741NextJSImageComponentMissingAttribute = (
+	node: ts.Node,
+): ts.JsxSelfClosingElement | null => {
+	const { parent } = node;
+
+	if (!ts.isJsxSelfClosingElement(parent)) {
+		return null;
+	}
+
+	const { tagName } = parent;
+
+	if (!ts.isIdentifier(tagName)) {
+		return null;
+	}
+
+	if (tagName.text !== 'Image') {
+		return null;
+	}
+
+	return parent;
+};
+
 const getNode = (node: ts.Node, range: IntuitaSimpleRange): ts.Node | null => {
 	if (!isRangeWithinNode(node, range)) {
 		return null;
@@ -118,6 +140,17 @@ export const classify = (
 		if (replacementNode) {
 			return {
 				kind: CaseKind.TS2322_NEXTJS_IMAGE_COMPONENT_EXCESSIVE_ATTRIBUTE,
+				node: replacementNode,
+			};
+		}
+	}
+
+	if (diagnostic.code === '2741') {
+		const replacementNode = getTs2741NextJSImageComponentMissingAttribute(node);
+
+		if (replacementNode) {
+			return {
+				kind: CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE,
 				node: replacementNode,
 			};
 		}

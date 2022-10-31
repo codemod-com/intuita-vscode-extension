@@ -59,6 +59,24 @@ export const buildInferenceJob = (
 		};
 	}
 
+	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_COMPONENT_MISSING_ATTRIBUTE) {
+		// TODO fix
+
+		const start = classification.node.getFullStart();
+		const end = classification.node.getEnd();
+
+		const range = buildIntuitaRangeFromSimpleRange(
+			file.separator,
+			file.lengths,
+			{ start, end },
+		);
+
+		return {
+			range,
+			replacement: '',
+		};
+	}
+
 	const intuitaRange = buildIntuitaRange(diagnostic.range);
 
 	const intuitaSimpleRange = buildIntuitaSimpleRange(
