@@ -1,7 +1,0 @@
-const applyReplacementEnvelopes = () => {
-
-};
-
-describe('x', () => {
-
-});
