@@ -2,7 +2,7 @@ import type { Node, CallExpression, JsxAttribute, JsxSelfClosingElement } from '
 import type { CaseKind } from '../cases/types';
 import type { ReplacementEnvelope } from '../components/inferenceService';
 import type { EnhancedDiagnostic } from '../components/messageBus';
-import type { extractKindsFromTs2345ErrorMessage } from '../features/repairCode/extractKindsFromTs2345ErrorMessage';
+import type { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 import type { File } from '../files/types';
 import type { IntuitaSimpleRange } from '../utilities';
 

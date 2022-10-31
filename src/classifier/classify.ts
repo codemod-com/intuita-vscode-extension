@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { CaseKind } from '../cases/types';
-import { extractKindsFromTs2345ErrorMessage } from '../features/repairCode/extractKindsFromTs2345ErrorMessage';
+import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 import { IntuitaSimpleRange } from '../utilities';
 import { Classification, ClassifierDiagnostic } from './types';
 
