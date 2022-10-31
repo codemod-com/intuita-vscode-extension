@@ -1,21 +1,6 @@
 import { assert } from "chai";
 import { ReplacementEnvelope } from "../components/inferenceService";
-
-const applyReplacementEnvelopes = (
-    text: string,
-    replacementEnvelopes: ReadonlyArray<ReplacementEnvelope>,
-): string => {
-    let newText: string = text;
-    let shift: number = 0;
-
-    for (const { range, replacement } of replacementEnvelopes) {
-        newText = newText.slice(0, range.start + shift) + replacement + newText.slice(range.end + shift);
-
-        shift += replacement.length - (range.end - range.start);
-    }
-
-    return newText;
-};
+import { applyReplacementEnvelopes } from "../jobs/applyReplacementEnvelopes";
 
 describe.only('applyReplacementEnvelopes', () => {
     const oldText = '01234567890123456789012345678901234567890123456789';

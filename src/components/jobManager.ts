@@ -19,6 +19,8 @@ import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 import { VSCodeService } from './vscodeService';
+import { applyReplacementEnvelopes } from '../jobs/applyReplacementEnvelopes';
+import { ReplacementEnvelope } from './inferenceService';
 
 export class JobManager {
 	protected _uriHashJobHashSetManager = new LeftRightHashSetManager<
@@ -154,7 +156,7 @@ export class JobManager {
 		});
 	}
 
-	protected async buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>) {
+	protected async buildRepairCodeJobsOutput(jobs: Set<RepairCodeJob>): Promise<JobOutput | null> {
 		const sortedJobs = Array.from(jobs).sort((a, b) => b.simpleRange.start - a.simpleRange.start);
 
 		const firstJob = sortedJobs[0];
@@ -167,31 +169,37 @@ export class JobManager {
 
 		const document = await this._vscodeService.openTextDocument(uri);
 
-		const text = document.getText();
+		const documentText = document.getText();
 
-		const replacements: [IntuitaSimpleRange, string][] = [];
+		const replacementEnvelopes: ReplacementEnvelope[] = [];
 
 		for (const job of sortedJobs) {
 			const jobOutput = this.buildJobOutput(job, 0);
 
 			const start = job.simpleRange.start;
-			const end = job.simpleRange.end + (jobOutput.text.length - text.length);
+			const end = job.simpleRange.end + (jobOutput.text.length - documentText.length);
 
 			const replacement = jobOutput.text.slice(start, end);
 
-			replacements.push([job.simpleRange, replacement]);
+			replacementEnvelopes.push({range: job.simpleRange, replacement });
 		}
 
-		let newText: string = '';
-		let shift: number = 0;
+		const text = applyReplacementEnvelopes(
+			documentText,
+			replacementEnvelopes,
+		);
 
-		for (const [range, replacement] of replacements) {
-			newText = newText.slice(0, range.start + shift) + replacement + newText.slice(range.end + shift);
+		const separator = getSeparator(text);
 
-			shift += replacement.length - (range.end - range.start);
-		}
+		const position = calculateLastPosition(text, separator);
 
-		return newText;
+		const range: IntuitaRange = [0, 0, position[0], position[1]];
+
+		return {
+			text,
+			position,
+			range,
+		};
 	}
 
 	protected _onAcceptJobsMessage(
@@ -205,7 +213,17 @@ export class JobManager {
 
 		const manager = this._uriHashJobHashSetManager.buildByRightHashes(new Set(jobHashes));
 
-		const leftHashes = manager.getLeftHashes();
+		const uriHashes = manager.getLeftHashes();
+
+		for (const uriHash of uriHashes) {
+			const jobHashes = manager.getRightHashesByLeftHash(uriHash);
+
+			const jobs = jobHashes.map((jobHash) => this._jobMap.get(jobHash))
+				.filter(isNeitherNullNorUndefined)
+				.filter<RepairCodeJob>((job): job is RepairCodeJob => job.kind === JobKind.repairCode)
+
+			const text = this.buildRepairCodeJobsOutput(new Set(jobs));
+		}
 
 		// const uriHashes = new Set<UriHash>();
 
