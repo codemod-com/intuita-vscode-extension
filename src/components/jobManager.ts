@@ -12,7 +12,11 @@ import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJo
 import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/executeMoveTopLevelNodeJob';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import { buildJobUri, IntuitaFileSystem } from './intuitaFileSystem';
+import {
+	buildFileUri,
+	buildJobUri,
+	IntuitaFileSystem,
+} from './intuitaFileSystem';
 import { Job, JobHash, JobKind, JobOutput, RepairCodeJob } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
@@ -181,7 +185,8 @@ export class JobManager {
 			'characterDifference' in message ? message.characterDifference : 0;
 
 		const uriJobOutputs: [Uri, JobOutput][] = [];
-		const jobUris: Uri[] = [];
+		const deletedJobUris: Uri[] = [];
+		const deletedFileUris = new Set<Uri>();
 		const deletedJobHashes = new Set<JobHash>();
 
 		for (const { uriHash, jobHashes } of this._getUriHashesWithJobHashes(
@@ -219,6 +224,7 @@ export class JobManager {
 				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
 
 				uriJobOutputs.push([uri, jobOutput]);
+				deletedFileUris.add(buildFileUri(uri));
 			}
 
 			const otherJobHashes =
@@ -230,7 +236,7 @@ export class JobManager {
 				const job = this._jobMap.get(jobHash);
 
 				if (job) {
-					jobUris.push(buildJobUri(job));
+					deletedJobUris.push(buildJobUri(job));
 				}
 
 				this._uriHashJobHashSetManager.delete(uriHash, jobHash);
@@ -240,10 +246,17 @@ export class JobManager {
 			}
 		}
 
-		jobUris.forEach((jobUri) => {
+		deletedJobUris.forEach((jobUri) => {
 			this._messageBus.publish({
 				kind: MessageKind.deleteFile,
 				uri: jobUri,
+			});
+		});
+
+		deletedFileUris.forEach((fileUri) => {
+			this._messageBus.publish({
+				kind: MessageKind.deleteFile,
+				uri: fileUri,
 			});
 		});
 
