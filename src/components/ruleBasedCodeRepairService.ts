@@ -1,4 +1,5 @@
 import type { CaseManager } from '../cases/caseManager';
+import { CaseKind } from '../cases/types';
 import { buildCases } from '../classifier/buildCases';
 import { buildClassifierDiagnostic } from '../classifier/buildClassifierDiagnostic';
 import { classify } from '../classifier/classify';
@@ -6,7 +7,10 @@ import type { Configuration } from '../configuration';
 import type { Container } from '../container';
 import { buildReplacementEnvelope } from '../features/repairCode/buildReplacementEnvelope';
 import { buildUriHash } from '../uris/buildUriHash';
-import { assertsNeitherNullOrUndefined } from '../utilities';
+import {
+	assertsNeitherNullOrUndefined,
+	isNeitherNullNorUndefined,
+} from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 
 export class RuleBasedCoreRepairService {
@@ -34,8 +38,8 @@ export class RuleBasedCoreRepairService {
 			return;
 		}
 
-		const enhancements = message.enhancedDiagnostics.map(
-			(enhancedDiagnostic) => {
+		const enhancements = message.enhancedDiagnostics
+			.map((enhancedDiagnostic) => {
 				const uriHash = buildUriHash(enhancedDiagnostic.uri);
 
 				const file = message.uriHashFileMap.get(uriHash);
@@ -52,6 +56,10 @@ export class RuleBasedCoreRepairService {
 					classifierDiagnostic,
 				);
 
+				if (classification.kind === CaseKind.OTHER) {
+					return null;
+				}
+
 				const inferenceJob = buildReplacementEnvelope(
 					file,
 					enhancedDiagnostic.diagnostic,
@@ -64,8 +72,8 @@ export class RuleBasedCoreRepairService {
 					file,
 					inferenceJob,
 				};
-			},
-		);
+			})
+			.filter(isNeitherNullNorUndefined);
 
 		const { casesWithJobHashes, jobs } = buildCases(
 			this._caseManager.getCasesWithJobHashes(),
