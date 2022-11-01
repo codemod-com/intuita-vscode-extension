@@ -180,6 +180,12 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Prefer the rule-based code repair over ML-based one"
+				},
+				"intuita.showFileElements": {
+					"order": 5,
+					"type": "boolean",
+					"default": false,
+					"description": "Show the file elements (or just job elements) within the case elements in the tree view"
 				}
 			}
 		},

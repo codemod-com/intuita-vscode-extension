@@ -30,6 +30,10 @@ export const getConfiguration = () => {
 		configuration.get<boolean>('buildCodeRepairJobsOnDocumentSave') ??
 		false;
 
+	const showFileElements =
+		configuration.get<boolean>('showFileElements') ??
+		false;
+
 	return {
 		modifierOrder,
 		kindOrder,
@@ -37,6 +41,7 @@ export const getConfiguration = () => {
 		minimumLines,
 		preferRuleBasedCodeRepair,
 		buildCodeRepairJobsOnDocumentSave,
+		showFileElements,
 	};
 };
 

@@ -38,6 +38,8 @@ import { getFirstDiagnosticElement } from '../elements/getFirstDiagnosticElement
 import { buildCaseElement } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
+import { Configuration } from '../configuration';
+import { Container } from '../container';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -91,6 +93,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 	public constructor(
 		protected readonly _caseManager: CaseManager,
+		protected readonly _configurationContainer: Container<Configuration>,
 		protected readonly _messageBus: MessageBus,
 		protected readonly _jobManager: JobManager,
 		protected readonly _diagnosticCollection: DiagnosticCollection,
@@ -136,7 +139,13 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		if (element.kind === 'CASE') {
-			return element.children.filter(hasChildren).map(getHash);
+			const { showFileElements } = this._configurationContainer.get();
+
+			if (showFileElements) {
+				return element.children.filter(hasChildren).map(getHash);
+			}
+
+			return element.children.flatMap((fileElement) => fileElement.children).map(getHash);
 		}
 
 		if (element.kind === 'FILE') {
