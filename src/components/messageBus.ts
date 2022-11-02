@@ -32,10 +32,7 @@ export const enum MessageKind {
 	 */
 	externalDiagnostics = 6,
 
-	/**
-	 * the internal diagnostics are such that come from
-	 * the Intuita VSCode Extensions
-	 */
+	/** the elements are tree entries */
 	updateElements = 7,
 
 	/** cases and jobs */

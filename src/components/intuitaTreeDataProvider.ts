@@ -290,7 +290,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const newActiveJobHashCount = this._activeJobHashes.size;
 
 		if (
-			'trigger' in message && message.trigger === 'didSave' &&
+			message.trigger === 'didSave' &&
 			newActiveJobHashCount > oldActiveJobHashCount
 		) {
 			window
@@ -311,7 +311,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			return;
 		}
 
-		if ('trigger' in message && message.trigger === 'onCommand') {
+		if (message.trigger === 'onCommand') {
 			setImmediate(showTheFirstJob);
 		}
 	}
