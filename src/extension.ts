@@ -302,7 +302,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 	
 			messageBus.publish({
-				kind: MessageKind.configurationUpdated,
+				kind: MessageKind.updateElements,
+				trigger: 'onDidUpdateConfiguration',
 			})
 		})
 	);

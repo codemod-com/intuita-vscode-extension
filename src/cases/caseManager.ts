@@ -141,7 +141,7 @@ export class CaseManager {
 		}
 
 		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
+			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
 	}

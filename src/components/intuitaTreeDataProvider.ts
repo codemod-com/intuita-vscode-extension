@@ -101,9 +101,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
 		this._messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.updateInternalDiagnostics || message.kind === MessageKind.configurationUpdated) {
+			if (message.kind === MessageKind.updateElements) {
 				setImmediate(async () => {
-					await this._onUpdateInternalDiagnosticsOrConfigurationUpdatedMessage(message);
+					await this._onUpdateElementsMessage(message);
 				});
 			}
 		});
@@ -218,8 +218,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return treeItem;
 	}
 
-	protected async _onUpdateInternalDiagnosticsOrConfigurationUpdatedMessage(
-		message: Message & { kind: MessageKind.updateInternalDiagnostics } | Message & { kind: MessageKind.configurationUpdated }
+	protected async _onUpdateElementsMessage(
+		message: Message & { kind: MessageKind.updateElements }
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
@@ -229,7 +229,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const { showFileElements } = this._configurationContainer.get();
 
-		const caseElements = this.buildCaseElements(rootPath, caseDtos, jobMap, showFileElements);
+		const caseElements = this._buildCaseElements(rootPath, caseDtos, jobMap, showFileElements);
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
@@ -344,7 +344,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return new Map(entries);
 	}
 
-	protected buildCaseElements(
+	protected _buildCaseElements(
 		rootPath: string,
 		caseDtos: ReadonlyArray<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,

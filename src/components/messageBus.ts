@@ -36,7 +36,7 @@ export const enum MessageKind {
 	 * the internal diagnostics are such that come from
 	 * the Intuita VSCode Extensions
 	 */
-	updateInternalDiagnostics = 7,
+	updateElements = 7,
 
 	/** cases and jobs */
 	upsertCases = 8,
@@ -46,9 +46,6 @@ export const enum MessageKind {
 	acceptCase = 12,
 	acceptJobs = 13,
 	jobsAccepted = 14,
-
-	/** configuration */
-	configurationUpdated = 15
 }
 
 export type EnhancedDiagnostic = Readonly<{
@@ -57,7 +54,7 @@ export type EnhancedDiagnostic = Readonly<{
 	hash: DiagnosticHash;
 }>;
 
-export type Trigger = 'didSave' | 'onCommand';
+export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
 	| Readonly<{
@@ -80,7 +77,7 @@ export type Message =
 			permissions: FilePermission | null;
 	  }>
 	| Readonly<{
-			kind: MessageKind.updateInternalDiagnostics;
+			kind: MessageKind.updateElements;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -138,10 +135,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-	  }>
-	| Readonly<{
-		kind: MessageKind.configurationUpdated,
-	}>;
+	  }>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;

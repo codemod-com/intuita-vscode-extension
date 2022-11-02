@@ -154,7 +154,7 @@ export class JobManager {
 		}
 
 		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
+			kind: MessageKind.updateElements,
 			trigger: message.trigger,
 		});
 	}
@@ -344,7 +344,7 @@ export class JobManager {
 		}
 
 		this._messageBus.publish({
-			kind: MessageKind.updateInternalDiagnostics,
+			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
 
