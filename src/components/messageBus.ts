@@ -32,11 +32,8 @@ export const enum MessageKind {
 	 */
 	externalDiagnostics = 6,
 
-	/**
-	 * the internal diagnostics are such that come from
-	 * the Intuita VSCode Extensions
-	 */
-	updateInternalDiagnostics = 7,
+	/** the elements are tree entries */
+	updateElements = 7,
 
 	/** cases and jobs */
 	upsertCases = 8,
@@ -54,7 +51,7 @@ export type EnhancedDiagnostic = Readonly<{
 	hash: DiagnosticHash;
 }>;
 
-export type Trigger = 'didSave' | 'onCommand';
+export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
 	| Readonly<{
@@ -77,7 +74,7 @@ export type Message =
 			permissions: FilePermission | null;
 	  }>
 	| Readonly<{
-			kind: MessageKind.updateInternalDiagnostics;
+			kind: MessageKind.updateElements;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
