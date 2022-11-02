@@ -4,9 +4,9 @@ import type { IntuitaRange } from '../utilities';
 
 export type ElementHash = string & { __ElementHash: '__ElementHash' };
 
-export type DiagnosticElement = Readonly<{
+export type JobElement = Readonly<{
 	hash: ElementHash;
-	kind: 'DIAGNOSTIC';
+	kind: 'JOB';
 	label: string;
 	uri: Uri;
 	jobHash: JobHash;
@@ -19,7 +19,7 @@ export type FileElement = Readonly<{
 	hash: ElementHash;
 	kind: 'FILE';
 	label: string;
-	children: ReadonlyArray<DiagnosticElement>;
+	children: ReadonlyArray<JobElement>;
 }>;
 
 export type CaseElement = Readonly<{
@@ -35,8 +35,4 @@ export type RootElement = Readonly<{
 	children: ReadonlyArray<CaseElement>;
 }>;
 
-export type Element =
-	| RootElement
-	| CaseElement
-	| FileElement
-	| DiagnosticElement;
+export type Element = RootElement | CaseElement | FileElement | JobElement;

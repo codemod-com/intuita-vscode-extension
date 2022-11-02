@@ -1,8 +1,8 @@
-import type { DiagnosticElement, RootElement } from './types';
+import type { JobElement, RootElement } from './types';
 
-export const getFirstDiagnosticElement = (
+export const getFirstJobElement = (
 	rootElement: RootElement,
-): DiagnosticElement | null => {
+): JobElement | null => {
 	const firstCaseElement = rootElement.children[0];
 
 	if (!firstCaseElement) {

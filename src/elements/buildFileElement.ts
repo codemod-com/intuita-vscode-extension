@@ -1,11 +1,11 @@
 import type { CaseHash } from '../cases/types';
 import { buildHash } from '../utilities';
-import type { DiagnosticElement, ElementHash, FileElement } from './types';
+import type { JobElement, ElementHash, FileElement } from './types';
 
 export const buildFileElement = (
 	caseHash: CaseHash,
 	label: string,
-	children: ReadonlyArray<DiagnosticElement>,
+	children: ReadonlyArray<JobElement>,
 ): FileElement => {
 	const count = children.length;
 

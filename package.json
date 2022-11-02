@@ -53,6 +53,11 @@
 				"title": "Intuita: Build code-repair recommendations"
 			},
 			{
+				"command": "intuita.showOrHideFileElements",
+				"title": "Show or hide file elements",
+				"icon": "$(file-submodule)"
+			},
+			{
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
@@ -180,6 +185,12 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Prefer the rule-based code repair over ML-based one"
+				},
+				"intuita.showFileElements": {
+					"order": 5,
+					"type": "boolean",
+					"default": false,
+					"description": "Show the file elements (or just job elements) within the case elements in the tree view"
 				}
 			}
 		},
@@ -212,6 +223,11 @@
 		},
 		"menus": {
 			"view/title": [
+				{
+					"command": "intuita.showOrHideFileElements",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				},
 				{
 					"command": "intuita.requestFeature",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
