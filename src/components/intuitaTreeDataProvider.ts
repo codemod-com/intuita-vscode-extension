@@ -26,15 +26,15 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { CaseWithJobHashes } from '../cases/types';
 import {
 	CaseElement,
-	DiagnosticElement,
+	JobElement,
 	Element,
 	ElementHash,
 	FileElement,
 	RootElement,
 } from '../elements/types';
-import { buildDiagnosticElement } from '../elements/buildDiagnosticElement';
+import { buildJobElement } from '../elements/buildJobElement';
 import { buildFileElement } from '../elements/buildFileElement';
-import { getFirstDiagnosticElement } from '../elements/getFirstDiagnosticElement';
+import { getFirstJobElement } from '../elements/getFirstJobElement';
 import { buildCaseElement } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
@@ -131,7 +131,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const hasChildren = (element: CaseElement | FileElement) =>
 			element.children.length;
 		const getHash = (
-			element: CaseElement | FileElement | DiagnosticElement,
+			element: CaseElement | FileElement | JobElement,
 		) => element.hash;
 
 		if (element.kind === 'ROOT') {
@@ -187,7 +187,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			getElementIconBaseName(element.kind),
 		);
 
-		if (element.kind === 'DIAGNOSTIC') {
+		if (element.kind === 'JOB') {
 			treeItem.contextValue = 'jobElement';
 
 			if (element.job.kind === JobKind.moveTopLevelNode) {
@@ -243,20 +243,20 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this._setElement(rootElement);
 
-		const diagnosticElement = getFirstDiagnosticElement(rootElement);
+		const firstJobElement = getFirstJobElement(rootElement);
 
 		// update the UX state
 		this.eventEmitter.fire();
 
-		if (!diagnosticElement) {
+		if (!firstJobElement) {
 			return;
 		}
 
 		const showTheFirstJob = async () => {
 			await commands.executeCommand(
 				'vscode.diff',
-				buildFileUri(diagnosticElement.uri),
-				buildJobUri(diagnosticElement.job),
+				buildFileUri(firstJobElement.uri),
+				buildJobUri(firstJobElement.job),
 				'Proposed change',
 			);
 
@@ -264,7 +264,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				return;
 			}
 
-			await this._reveal(diagnosticElement.hash, {
+			await this._reveal(firstJobElement.hash, {
 				select: true,
 				focus: true,
 			});
@@ -364,7 +364,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 				const children = jobs
 					.filter((job) => job.fileName === fileName)
-					.map((job) => buildDiagnosticElement(job, label, showFileElements));
+					.map((job) => buildJobElement(job, label, showFileElements));
 
 				return buildFileElement(caseDto.hash, label, children);
 			});
