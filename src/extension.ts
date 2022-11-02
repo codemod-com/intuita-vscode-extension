@@ -295,15 +295,29 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	vscode.workspace.onDidChangeConfiguration((event) => {
-		if(!event.affectsConfiguration('intuita')) {
-			return;
-		}
-
-		messageBus.publish({
-			kind: MessageKind.configurationUpdated,
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration((event) => {
+			if(!event.affectsConfiguration('intuita')) {
+				return;
+			}
+	
+			messageBus.publish({
+				kind: MessageKind.configurationUpdated,
+			})
 		})
-	})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.showOrHideFileElements', () => {
+			const configuration = vscode.workspace.getConfiguration('intuita');
+
+			const showFileElements =
+				configuration.get<boolean>('showFileElements') ??
+				false;
+
+			configuration.update('showFileElements', !showFileElements);
+		})
+	);
 
 	context.subscriptions.push(diagnosticCollection);
 }

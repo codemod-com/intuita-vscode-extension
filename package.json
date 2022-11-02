@@ -53,6 +53,11 @@
 				"title": "Intuita: Build code-repair recommendations"
 			},
 			{
+				"command": "intuita.showOrHideFileElements",
+				"title": "Show or hide file elements",
+				"icon": "$(file-submodule)"
+			},
+			{
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
@@ -218,6 +223,11 @@
 		},
 		"menus": {
 			"view/title": [
+				{
+					"command": "intuita.showOrHideFileElements",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				},
 				{
 					"command": "intuita.requestFeature",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
