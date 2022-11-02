@@ -46,6 +46,9 @@ export const enum MessageKind {
 	acceptCase = 12,
 	acceptJobs = 13,
 	jobsAccepted = 14,
+
+	/** configuration */
+	configurationUpdated = 15
 }
 
 export type EnhancedDiagnostic = Readonly<{
@@ -135,7 +138,10 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-	  }>;
+	  }>
+	| Readonly<{
+		kind: MessageKind.configurationUpdated,
+	}>;
 
 export class MessageBus {
 	protected _disposables: Disposable[] | undefined = undefined;

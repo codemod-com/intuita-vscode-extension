@@ -295,6 +295,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	vscode.workspace.onDidChangeConfiguration((event) => {
+		if(!event.affectsConfiguration('intuita')) {
+			return;
+		}
+
+		messageBus.publish({
+			kind: MessageKind.configurationUpdated,
+		})
+	})
+
 	context.subscriptions.push(diagnosticCollection);
 }
 

@@ -106,6 +106,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 					await this._onUpdateInternalDiagnostics(message);
 				});
 			}
+
+			if (message.kind === MessageKind.configurationUpdated) {
+				setImmediate(async () => {
+					this.eventEmitter.fire();
+				});
+			}
 		});
 	}
 
@@ -228,8 +234,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const jobMap = this._buildJobMap(caseDtos);
 
 		const caseElements = this.buildCaseElements(rootPath, caseDtos, jobMap);
-
-		// this.setDiagnostics(jobMap);
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
