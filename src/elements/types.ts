@@ -35,8 +35,4 @@ export type RootElement = Readonly<{
 	children: ReadonlyArray<CaseElement>;
 }>;
 
-export type Element =
-	| RootElement
-	| CaseElement
-	| FileElement
-	| JobElement;
+export type Element = RootElement | CaseElement | FileElement | JobElement;

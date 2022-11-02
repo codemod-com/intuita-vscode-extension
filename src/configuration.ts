@@ -31,8 +31,7 @@ export const getConfiguration = () => {
 		false;
 
 	const showFileElements =
-		configuration.get<boolean>('showFileElements') ??
-		false;
+		configuration.get<boolean>('showFileElements') ?? false;
 
 	return {
 		modifierOrder,

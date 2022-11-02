@@ -130,9 +130,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const hasChildren = (element: CaseElement | FileElement) =>
 			element.children.length;
-		const getHash = (
-			element: CaseElement | FileElement | JobElement,
-		) => element.hash;
+		const getHash = (element: CaseElement | FileElement | JobElement) =>
+			element.hash;
 
 		if (element.kind === 'ROOT') {
 			return element.children.filter(hasChildren).map(getHash);
@@ -145,7 +144,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				return element.children.filter(hasChildren).map(getHash);
 			}
 
-			return element.children.flatMap((fileElement) => fileElement.children).map(getHash);
+			return element.children
+				.flatMap((fileElement) => fileElement.children)
+				.map(getHash);
 		}
 
 		if (element.kind === 'FILE') {
@@ -219,7 +220,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	}
 
 	protected async _onUpdateElementsMessage(
-		message: Message & { kind: MessageKind.updateElements }
+		message: Message & { kind: MessageKind.updateElements },
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
@@ -229,7 +230,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const { showFileElements } = this._configurationContainer.get();
 
-		const caseElements = this._buildCaseElements(rootPath, caseDtos, jobMap, showFileElements);
+		const caseElements = this._buildCaseElements(
+			rootPath,
+			caseDtos,
+			jobMap,
+			showFileElements,
+		);
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
@@ -364,7 +370,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 				const children = jobs
 					.filter((job) => job.fileName === fileName)
-					.map((job) => buildJobElement(job, label, showFileElements));
+					.map((job) =>
+						buildJobElement(job, label, showFileElements),
+					);
 
 				return buildFileElement(caseDto.hash, label, children);
 			});

@@ -21,4 +21,4 @@ export const buildJobElement = (
 		jobHash: job.hash,
 		job,
 	};
-}
+};
