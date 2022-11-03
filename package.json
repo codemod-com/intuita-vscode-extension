@@ -55,7 +55,7 @@
 			{
 				"command": "intuita.showOrHideFileElements",
 				"title": "Show or hide file elements",
-				"icon": "$(file-submodule)"
+				"icon": "$(list-tree)"
 			},
 			{
 				"command": "intuita.requestFeature",
