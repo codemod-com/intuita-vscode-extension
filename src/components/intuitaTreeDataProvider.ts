@@ -337,6 +337,22 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			return;
 		}
 
+		const { showFileElements } = this._configurationContainer.get();
+
+		if (element.kind === 'CASE' && !showFileElements) {
+			const jobElement = element.children.flatMap(
+				(fileElement) => fileElement.children,
+			);
+
+			jobElement.forEach((childElement) => {
+				this._childParentMap.set(childElement.hash, element.hash);
+
+				this._setElement(childElement);
+			});
+
+			return;
+		}
+
 		element.children.forEach((childElement) => {
 			this._childParentMap.set(childElement.hash, element.hash);
 

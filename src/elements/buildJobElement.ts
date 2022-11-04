@@ -1,5 +1,5 @@
 import { Uri } from 'vscode';
-import { Job, JobKind } from '../jobs/types';
+import { Job } from '../jobs/types';
 import { compareIntuitaRange } from '../utilities';
 import type { JobElement, ElementHash } from './types';
 
