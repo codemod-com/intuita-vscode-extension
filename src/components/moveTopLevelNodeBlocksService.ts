@@ -96,7 +96,7 @@ export class MoveTopLevelBlocksService {
 			kind: CaseKind.MOVE_TOP_LEVEL_BLOCKS,
 			code: null,
 			node: file.sourceFile,
-			jobHashes: Array.from(newJobHashes),
+			jobHashes: newJobHashes,
 		};
 
 		const inactiveHashes: JobHash[] = [];

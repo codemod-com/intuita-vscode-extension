@@ -114,7 +114,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.rejectJobs;
-			jobHashes: ReadonlyArray<JobHash>;
+			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptCase;
@@ -122,7 +122,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptJobs;
-			jobHashes: ReadonlyArray<JobHash>;
+			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptJobs;

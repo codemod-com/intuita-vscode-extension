@@ -47,11 +47,19 @@ export class CaseManager {
 	}
 
 	public getJobHashes(
-		caseHashes: ReadonlyArray<CaseHash>,
-	): ReadonlyArray<JobHash> {
-		return caseHashes.flatMap((caseHash) =>
-			this._caseHashJobHashSetManager.getRightHashesByLeftHash(caseHash),
-		);
+		caseHashes: Iterable<CaseHash>,
+	): ReadonlySet<JobHash> {
+		const jobHashes = new Set<JobHash>();
+
+		for(const caseHash of caseHashes) {
+			const caseJobHashes = this._caseHashJobHashSetManager.getRightHashesByLeftHash(caseHash);
+
+			for (const jobHash of caseJobHashes) {
+				jobHashes.add(jobHash);
+			}
+		}
+
+		return jobHashes;
 	}
 
 	public getCasesWithJobHashes(): ReadonlyArray<CaseWithJobHashes> {
@@ -135,7 +143,7 @@ export class CaseManager {
 					kase.hash,
 				);
 
-			if (!jobHashes.length) {
+			if (jobHashes.size === 0) {
 				this._cases.delete(kase.hash);
 			}
 		}

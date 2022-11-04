@@ -12,7 +12,7 @@ export const buildCases = (
 ) => {
 	const casesWithJobHashes = existingCasesWithJobHashes.map((kase) => ({
 		...kase,
-		jobHashes: kase.jobHashes.slice(),
+		jobHashes: new Set(kase.jobHashes),
 	}));
 
 	const jobs: Job[] = [];
@@ -37,18 +37,18 @@ export const buildCases = (
 				calculateSimilarity(existingCase.node, classification.node) >
 					0.5
 			) {
-				existingCase.jobHashes.push(job.hash);
+				existingCase.jobHashes.add(job.hash);
 				jobs.push(job);
 				return;
 			}
 
 			const caseHash = buildCaseHash(classification.kind, code, job.hash);
 
-			const kase: Case & { jobHashes: JobHash[] } = {
+			const kase: Case & { jobHashes: Set<JobHash> } = {
 				hash: caseHash,
 				kind: classification.kind,
 				code: stringifyCode(enhancedDiagnostic.diagnostic.code),
-				jobHashes: [job.hash],
+				jobHashes: new Set([job.hash]),
 				node: classification.node,
 			};
 

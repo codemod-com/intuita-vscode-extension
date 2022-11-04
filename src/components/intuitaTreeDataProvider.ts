@@ -18,7 +18,6 @@ import {
 	assertsNeitherNullOrUndefined,
 	calculateCharacterIndex,
 	IntuitaPosition,
-	isNeitherNullNorUndefined,
 } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
@@ -337,17 +336,23 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	}
 
 	protected _buildJobMap(
-		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+		caseDtos: Iterable<CaseWithJobHashes>,
 	): ReadonlyMap<JobHash, Job> {
-		const jobs = caseDtos.flatMap((caseDto) =>
-			caseDto.jobHashes
-				.map((jobHash) => this._jobManager.getJob(jobHash))
-				.filter(isNeitherNullNorUndefined),
-		);
+		const map = new Map<JobHash, Job>();
 
-		const entries = jobs.map((job) => [job.hash, job] as const);
+		for (const caseDto of caseDtos) {
+			for (const jobHash of caseDto.jobHashes) {
+				const job = this._jobManager.getJob(jobHash);
 
-		return new Map(entries);
+				if (!job) {
+					continue;
+				}
+
+				map.set(job.hash, job);
+			}
+		}
+
+		return map;
 	}
 
 	protected _buildCaseElements(
@@ -357,9 +362,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		showFileElements: boolean,
 	): ReadonlyArray<CaseElement> {
 		return caseDtos.map((caseDto): CaseElement => {
-			const jobs = caseDto.jobHashes
-				.map((jobHash) => jobMap.get(jobHash))
-				.filter(isNeitherNullNorUndefined);
+			const jobs: Job[] = [];
+
+			for (const jobHash of caseDto.jobHashes) {
+				const job = jobMap.get(jobHash);
+
+				if (job === undefined) {
+					continue;
+				} 
+
+				jobs.push(job);
+			}
 
 			const fileNames = Array.from(
 				new Set(jobs.map((job) => job.fileName)),

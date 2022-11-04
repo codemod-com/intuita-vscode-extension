@@ -55,8 +55,8 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	}
 
 	// TODO return Set<R>
-	public getRightHashesByLeftHash(leftHash: L): ReadonlyArray<R> {
-		const rightHashes: R[] = [];
+	public getRightHashesByLeftHash(leftHash: L): ReadonlySet<R> {
+		const rightHashes = new Set<R>();
 
 		this._set.forEach((leftRightHash) => {
 			if (!leftRightHash.startsWith(leftHash)) {
@@ -65,7 +65,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 
 			const rightHash = leftRightHash.slice(leftHash.length);
 
-			rightHashes.push(rightHash as R);
+			rightHashes.add(rightHash as R);
 		});
 
 		return rightHashes;
