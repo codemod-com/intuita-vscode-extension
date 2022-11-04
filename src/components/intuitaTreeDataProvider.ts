@@ -31,8 +31,8 @@ import {
 	FileElement,
 	RootElement,
 } from '../elements/types';
-import { buildJobElement } from '../elements/buildJobElement';
-import { buildFileElement } from '../elements/buildFileElement';
+import { buildJobElement, compareJobElements } from '../elements/buildJobElement';
+import { buildFileElement, compareFileElements } from '../elements/buildFileElement';
 import { getFirstJobElement } from '../elements/getFirstJobElement';
 import { buildCaseElement, compareCaseElements } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
@@ -396,6 +396,28 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		return caseElements
-			.sort(compareCaseElements);
+			.sort(compareCaseElements)
+			.map(
+				(caseElement) => {
+					const children = caseElement
+						.children
+						.slice()
+						.sort(compareFileElements)
+						.map((fileElement) => {
+							const children = fileElement.children.slice()
+								.sort(compareJobElements)
+
+							return {
+								...fileElement,
+								children,
+							}
+						});
+
+					return {
+						...caseElement,
+						children,
+					}
+				}
+			);
 	}
 }
