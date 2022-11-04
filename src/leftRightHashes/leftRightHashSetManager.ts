@@ -1,8 +1,8 @@
 export class LeftRightHashSetManager<L extends string, R extends string> {
 	protected _set = new Set<string>();
 
-	public constructor(set: Set<string>) {
-		this._set = set;
+	public constructor(set: ReadonlySet<string>) {
+		this._set = new Set(set);
 	}
 
 	public buildByRightHashes(
@@ -25,7 +25,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		return new LeftRightHashSetManager<L, R>(set);
 	}
 
-	public getLeftHashes(): Set<L> {
+	public getLeftHashes(): ReadonlySet<L> {
 		const set = new Set<L>();
 
 		this._set.forEach((leftRightHash) => {
@@ -40,7 +40,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		return set;
 	}
 
-	public getRightHashes(): Set<R> {
+	public getRightHashes(): ReadonlySet<R> {
 		const rightHashes = new Set<R>();
 
 		this._set.forEach((leftRightHash) => {
@@ -54,9 +54,8 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		return rightHashes;
 	}
 
-	// TODO return Set<R>
-	public getRightHashesByLeftHash(leftHash: L): ReadonlyArray<R> {
-		const rightHashes: R[] = [];
+	public getRightHashesByLeftHash(leftHash: L): ReadonlySet<R> {
+		const rightHashes = new Set<R>();
 
 		this._set.forEach((leftRightHash) => {
 			if (!leftRightHash.startsWith(leftHash)) {
@@ -65,7 +64,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 
 			const rightHash = leftRightHash.slice(leftHash.length);
 
-			rightHashes.push(rightHash as R);
+			rightHashes.add(rightHash as R);
 		});
 
 		return rightHashes;

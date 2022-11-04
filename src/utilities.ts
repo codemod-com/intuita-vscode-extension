@@ -172,3 +172,16 @@ export const buildIntuitaSimpleRange = (
 		end,
 	};
 };
+
+export const compareIntuitaRange = (
+	left: IntuitaRange,
+	right: IntuitaRange,
+): number => {
+	const lineComparison = left[0] - right[0];
+
+	if (lineComparison !== 0) {
+		return lineComparison;
+	}
+
+	return left[1] - right[1];
+};

@@ -58,19 +58,25 @@ export class JobManager {
 		return this._jobMap.get(jobHash) ?? null;
 	}
 
-	public getFileJobs(uriHash: UriHash): ReadonlyArray<Job> {
+	public getFileJobs(uriHash: UriHash): ReadonlySet<Job> {
+		const jobs = new Set<Job>();
+
 		const jobHashes =
 			this._uriHashJobHashSetManager.getRightHashesByLeftHash(uriHash);
 
-		return jobHashes
-			.map((jobHash) => {
-				if (this._rejectedJobHashes.has(jobHash)) {
-					return null;
-				}
+		for (const jobHash of jobHashes) {
+			if (this._rejectedJobHashes.has(jobHash)) {
+				continue;
+			}
 
-				return this._jobMap.get(jobHash);
-			})
-			.filter(isNeitherNullNorUndefined);
+			const job = this._jobMap.get(jobHash);
+
+			if (job) {
+				jobs.add(job);
+			}
+		}
+
+		return jobs;
 	}
 
 	public buildJobOutput(job: Job, characterDifference: number): JobOutput {
@@ -192,7 +198,7 @@ export class JobManager {
 		for (const { uriHash, jobHashes } of this._getUriHashesWithJobHashes(
 			new Set(messageJobHashes),
 		)) {
-			const jobs = jobHashes
+			const jobs = Array.from(jobHashes)
 				.map((jobHash) => this._jobMap.get(jobHash))
 				.filter(isNeitherNullNorUndefined);
 

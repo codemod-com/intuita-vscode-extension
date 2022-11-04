@@ -18,7 +18,6 @@ import {
 	assertsNeitherNullOrUndefined,
 	calculateCharacterIndex,
 	IntuitaPosition,
-	isNeitherNullNorUndefined,
 } from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
@@ -32,10 +31,19 @@ import {
 	FileElement,
 	RootElement,
 } from '../elements/types';
-import { buildJobElement } from '../elements/buildJobElement';
-import { buildFileElement } from '../elements/buildFileElement';
+import {
+	buildJobElement,
+	compareJobElements,
+} from '../elements/buildJobElement';
+import {
+	buildFileElement,
+	compareFileElements,
+} from '../elements/buildFileElement';
 import { getFirstJobElement } from '../elements/getFirstJobElement';
-import { buildCaseElement } from '../elements/buildCaseElement';
+import {
+	buildCaseElement,
+	compareCaseElements,
+} from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
@@ -329,6 +337,22 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			return;
 		}
 
+		const { showFileElements } = this._configurationContainer.get();
+
+		if (element.kind === 'CASE' && !showFileElements) {
+			const jobElement = element.children.flatMap(
+				(fileElement) => fileElement.children,
+			);
+
+			jobElement.forEach((childElement) => {
+				this._childParentMap.set(childElement.hash, element.hash);
+
+				this._setElement(childElement);
+			});
+
+			return;
+		}
+
 		element.children.forEach((childElement) => {
 			this._childParentMap.set(childElement.hash, element.hash);
 
@@ -337,29 +361,45 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	}
 
 	protected _buildJobMap(
-		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+		caseDtos: Iterable<CaseWithJobHashes>,
 	): ReadonlyMap<JobHash, Job> {
-		const jobs = caseDtos.flatMap((caseDto) =>
-			caseDto.jobHashes
-				.map((jobHash) => this._jobManager.getJob(jobHash))
-				.filter(isNeitherNullNorUndefined),
-		);
+		const map = new Map<JobHash, Job>();
 
-		const entries = jobs.map((job) => [job.hash, job] as const);
+		for (const caseDto of caseDtos) {
+			for (const jobHash of caseDto.jobHashes) {
+				const job = this._jobManager.getJob(jobHash);
 
-		return new Map(entries);
+				if (!job) {
+					continue;
+				}
+
+				map.set(job.hash, job);
+			}
+		}
+
+		return map;
 	}
 
 	protected _buildCaseElements(
 		rootPath: string,
-		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,
 		showFileElements: boolean,
 	): ReadonlyArray<CaseElement> {
-		return caseDtos.map((caseDto): CaseElement => {
-			const jobs = caseDto.jobHashes
-				.map((jobHash) => jobMap.get(jobHash))
-				.filter(isNeitherNullNorUndefined);
+		const caseElements: CaseElement[] = [];
+
+		for (const caseWithJobHashes of casesWithJobHashes) {
+			const jobs: Job[] = [];
+
+			for (const jobHash of caseWithJobHashes.jobHashes) {
+				const job = jobMap.get(jobHash);
+
+				if (job === undefined) {
+					continue;
+				}
+
+				jobs.push(job);
+			}
 
 			const fileNames = Array.from(
 				new Set(jobs.map((job) => job.fileName)),
@@ -374,10 +414,35 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 						buildJobElement(job, label, showFileElements),
 					);
 
-				return buildFileElement(caseDto.hash, label, children);
+				return buildFileElement(
+					caseWithJobHashes.hash,
+					label,
+					children,
+				);
 			});
 
-			return buildCaseElement(caseDto, children);
+			caseElements.push(buildCaseElement(caseWithJobHashes, children));
+		}
+
+		return caseElements.sort(compareCaseElements).map((caseElement) => {
+			const children = caseElement.children
+				.slice()
+				.sort(compareFileElements)
+				.map((fileElement) => {
+					const children = fileElement.children
+						.slice()
+						.sort(compareJobElements);
+
+					return {
+						...fileElement,
+						children,
+					};
+				});
+
+			return {
+				...caseElement,
+				children,
+			};
 		});
 	}
 }

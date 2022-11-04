@@ -16,3 +16,16 @@ export const buildFileElement = (
 		hash: buildHash(`${caseHash}${label}`) as ElementHash,
 	};
 };
+
+export const compareFileElements = (
+	left: FileElement,
+	right: FileElement,
+): number => {
+	const childrenLength = right.children.length - left.children.length;
+
+	if (childrenLength !== 0) {
+		return childrenLength;
+	}
+
+	return left.label.localeCompare(right.label);
+};

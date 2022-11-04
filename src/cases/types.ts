@@ -21,5 +21,5 @@ export type Case = Readonly<{
 
 export type CaseWithJobHashes = Case &
 	Readonly<{
-		jobHashes: ReadonlyArray<JobHash>;
+		jobHashes: ReadonlySet<JobHash>;
 	}>;
