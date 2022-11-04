@@ -34,12 +34,11 @@ import {
 import { buildJobElement } from '../elements/buildJobElement';
 import { buildFileElement } from '../elements/buildFileElement';
 import { getFirstJobElement } from '../elements/getFirstJobElement';
-import { buildCaseElement } from '../elements/buildCaseElement';
+import { buildCaseElement, compareCaseElements } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
-import { compareCases } from '../cases/compareCases';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -396,6 +395,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			caseElements.push(buildCaseElement(caseWithJobHashes, children));
 		}
 
-		return caseElements.sort(compareCases);
+		return caseElements
+			.sort(compareCaseElements);
 	}
 }

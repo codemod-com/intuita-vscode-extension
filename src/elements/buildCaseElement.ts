@@ -33,3 +33,16 @@ export const buildCaseElement = (
 		hash: kase.hash as unknown as ElementHash,
 	};
 };
+
+export const compareCaseElements = (
+    left: CaseElement,
+    right: CaseElement,
+): number => {
+    const childrenLength = right.children.length - left.children.length;
+
+	if (childrenLength !== 0) {
+		return childrenLength;
+	}
+
+	return left.label.localeCompare(right.label);
+};
