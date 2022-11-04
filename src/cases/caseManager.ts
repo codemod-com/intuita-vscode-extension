@@ -2,7 +2,7 @@ import { JobManager } from '../components/jobManager';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { Case, CaseWithJobHashes, CaseHash, CaseKind } from './types';
+import { Case, CaseWithJobHashes, CaseHash } from './types';
 
 export class CaseManager {
 	protected readonly _cases = new Map<CaseHash, Case>();
@@ -62,25 +62,22 @@ export class CaseManager {
 		return jobHashes;
 	}
 
-	public getCasesWithJobHashes(): ReadonlyArray<CaseWithJobHashes> {
-		return Array.from(this._cases.values())
-			.map((_case) => {
-				const jobHashes =
-					this._caseHashJobHashSetManager.getRightHashesByLeftHash(
-						_case.hash,
-					);
+	public getCasesWithJobHashes(): ReadonlySet<CaseWithJobHashes> {
+		const caseWithJobHashes = new Set<CaseWithJobHashes>();
 
-				return {
-					..._case,
-					jobHashes,
-				};
-			})
-			.sort((caseA, caseB) => {
-				const caseAWeight = Number(caseA.kind === CaseKind.OTHER);
-				const caseBWeight = Number(caseB.kind === CaseKind.OTHER);
+		for(const kase of this._cases.values()) {
+			const jobHashes =
+				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
+					kase.hash,
+				);
 
-				return caseAWeight - caseBWeight;
+			caseWithJobHashes.add({
+				...kase,
+				jobHashes,
 			});
+		}
+
+		return caseWithJobHashes;
 	}
 
 	protected async _onUpsertCasesMessage(

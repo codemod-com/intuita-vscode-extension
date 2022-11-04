@@ -39,6 +39,7 @@ import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
+import { compareCases } from '../cases/compareCases';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -357,14 +358,16 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 	protected _buildCaseElements(
 		rootPath: string,
-		caseDtos: ReadonlyArray<CaseWithJobHashes>,
+		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,
 		showFileElements: boolean,
 	): ReadonlyArray<CaseElement> {
-		return caseDtos.map((caseDto): CaseElement => {
+		const caseElements: CaseElement[] = [];
+
+		for (const caseWithJobHashes of casesWithJobHashes) {
 			const jobs: Job[] = [];
 
-			for (const jobHash of caseDto.jobHashes) {
+			for (const jobHash of caseWithJobHashes.jobHashes) {
 				const job = jobMap.get(jobHash);
 
 				if (job === undefined) {
@@ -387,10 +390,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 						buildJobElement(job, label, showFileElements),
 					);
 
-				return buildFileElement(caseDto.hash, label, children);
+				return buildFileElement(caseWithJobHashes.hash, label, children);
 			});
 
-			return buildCaseElement(caseDto, children);
-		});
+			caseElements.push(buildCaseElement(caseWithJobHashes, children));
+		}
+
+		return caseElements.sort(compareCases);
 	}
 }
