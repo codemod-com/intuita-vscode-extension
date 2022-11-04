@@ -35,10 +35,10 @@ export const buildCaseElement = (
 };
 
 export const compareCaseElements = (
-    left: CaseElement,
-    right: CaseElement,
+	left: CaseElement,
+	right: CaseElement,
 ): number => {
-    const childrenLength = right.children.length - left.children.length;
+	const childrenLength = right.children.length - left.children.length;
 
 	if (childrenLength !== 0) {
 		return childrenLength;

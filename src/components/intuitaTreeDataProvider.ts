@@ -31,10 +31,19 @@ import {
 	FileElement,
 	RootElement,
 } from '../elements/types';
-import { buildJobElement, compareJobElements } from '../elements/buildJobElement';
-import { buildFileElement, compareFileElements } from '../elements/buildFileElement';
+import {
+	buildJobElement,
+	compareJobElements,
+} from '../elements/buildJobElement';
+import {
+	buildFileElement,
+	compareFileElements,
+} from '../elements/buildFileElement';
 import { getFirstJobElement } from '../elements/getFirstJobElement';
-import { buildCaseElement, compareCaseElements } from '../elements/buildCaseElement';
+import {
+	buildCaseElement,
+	compareCaseElements,
+} from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
@@ -371,7 +380,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 				if (job === undefined) {
 					continue;
-				} 
+				}
 
 				jobs.push(job);
 			}
@@ -389,35 +398,35 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 						buildJobElement(job, label, showFileElements),
 					);
 
-				return buildFileElement(caseWithJobHashes.hash, label, children);
+				return buildFileElement(
+					caseWithJobHashes.hash,
+					label,
+					children,
+				);
 			});
 
 			caseElements.push(buildCaseElement(caseWithJobHashes, children));
 		}
 
-		return caseElements
-			.sort(compareCaseElements)
-			.map(
-				(caseElement) => {
-					const children = caseElement
-						.children
+		return caseElements.sort(compareCaseElements).map((caseElement) => {
+			const children = caseElement.children
+				.slice()
+				.sort(compareFileElements)
+				.map((fileElement) => {
+					const children = fileElement.children
 						.slice()
-						.sort(compareFileElements)
-						.map((fileElement) => {
-							const children = fileElement.children.slice()
-								.sort(compareJobElements)
-
-							return {
-								...fileElement,
-								children,
-							}
-						});
+						.sort(compareJobElements);
 
 					return {
-						...caseElement,
+						...fileElement,
 						children,
-					}
-				}
-			);
+					};
+				});
+
+			return {
+				...caseElement,
+				children,
+			};
+		});
 	}
 }

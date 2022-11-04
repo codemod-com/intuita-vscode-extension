@@ -46,13 +46,14 @@ export class CaseManager {
 		return this._cases.values();
 	}
 
-	public getJobHashes(
-		caseHashes: Iterable<CaseHash>,
-	): ReadonlySet<JobHash> {
+	public getJobHashes(caseHashes: Iterable<CaseHash>): ReadonlySet<JobHash> {
 		const jobHashes = new Set<JobHash>();
 
-		for(const caseHash of caseHashes) {
-			const caseJobHashes = this._caseHashJobHashSetManager.getRightHashesByLeftHash(caseHash);
+		for (const caseHash of caseHashes) {
+			const caseJobHashes =
+				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
+					caseHash,
+				);
 
 			for (const jobHash of caseJobHashes) {
 				jobHashes.add(jobHash);
@@ -65,7 +66,7 @@ export class CaseManager {
 	public getCasesWithJobHashes(): ReadonlySet<CaseWithJobHashes> {
 		const caseWithJobHashes = new Set<CaseWithJobHashes>();
 
-		for(const kase of this._cases.values()) {
+		for (const kase of this._cases.values()) {
 			const jobHashes =
 				this._caseHashJobHashSetManager.getRightHashesByLeftHash(
 					kase.hash,

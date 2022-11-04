@@ -10,10 +10,12 @@ export const buildCases = (
 	existingCasesWithJobHashes: Iterable<CaseWithJobHashes>,
 	jobIngredients: Iterable<JobIngredients>,
 ) => {
-	const casesWithJobHashes = Array.from(existingCasesWithJobHashes).map((kase) => ({
-		...kase,
-		jobHashes: new Set(kase.jobHashes),
-	}));
+	const casesWithJobHashes = Array.from(existingCasesWithJobHashes).map(
+		(kase) => ({
+			...kase,
+			jobHashes: new Set(kase.jobHashes),
+		}),
+	);
 
 	const jobs: Job[] = [];
 
@@ -24,29 +26,40 @@ export const buildCases = (
 			jobIngredient.inferenceJob,
 		);
 
-		const code = stringifyCode(jobIngredient.enhancedDiagnostic.diagnostic.code);
+		const code = stringifyCode(
+			jobIngredient.enhancedDiagnostic.diagnostic.code,
+		);
 
 		const existingCase = casesWithJobHashes.find(
 			(kase) =>
-				kase.kind === jobIngredient.classification.kind && kase.code === code,
+				kase.kind === jobIngredient.classification.kind &&
+				kase.code === code,
 		);
 
 		if (
 			existingCase &&
-			calculateSimilarity(existingCase.node, jobIngredient.classification.node) >
-				0.5
+			calculateSimilarity(
+				existingCase.node,
+				jobIngredient.classification.node,
+			) > 0.5
 		) {
 			existingCase.jobHashes.add(job.hash);
 			jobs.push(job);
 			continue;
 		}
 
-		const caseHash = buildCaseHash(jobIngredient.classification.kind, code, job.hash);
+		const caseHash = buildCaseHash(
+			jobIngredient.classification.kind,
+			code,
+			job.hash,
+		);
 
 		const kase: Case & { jobHashes: Set<JobHash> } = {
 			hash: caseHash,
 			kind: jobIngredient.classification.kind,
-			code: stringifyCode(jobIngredient.enhancedDiagnostic.diagnostic.code),
+			code: stringifyCode(
+				jobIngredient.enhancedDiagnostic.diagnostic.code,
+			),
 			jobHashes: new Set([job.hash]),
 			node: jobIngredient.classification.node,
 		};

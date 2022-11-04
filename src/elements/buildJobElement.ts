@@ -29,4 +29,4 @@ export const compareJobElements = (
 	right: JobElement,
 ): number => {
 	return compareIntuitaRange(left.range, right.range);
-}
+};

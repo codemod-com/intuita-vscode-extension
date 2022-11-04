@@ -28,4 +28,4 @@ export const compareFileElements = (
 	}
 
 	return left.label.localeCompare(right.label);
-}
+};

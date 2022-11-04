@@ -64,7 +64,7 @@ export class JobManager {
 		const jobHashes =
 			this._uriHashJobHashSetManager.getRightHashesByLeftHash(uriHash);
 
-		for(const jobHash of jobHashes) {
+		for (const jobHash of jobHashes) {
 			if (this._rejectedJobHashes.has(jobHash)) {
 				continue;
 			}
