@@ -53,6 +53,10 @@
 				"title": "Intuita: Build code-repair recommendations"
 			},
 			{
+				"command": "intuita.buildNextJsCodeRepairJobs",
+				"title": "Intuita: Build Next.js code-repair recommendations"
+			},
+			{
 				"command": "intuita.showOrHideFileElements",
 				"title": "Show or hide file elements",
 				"icon": "$(list-tree)"

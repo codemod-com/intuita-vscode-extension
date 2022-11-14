@@ -15,6 +15,8 @@ import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
 import { CaseHash } from './cases/types';
+import { PolyglotPiranhaRepairCodeService } from './components/polyglotPiranhaRepairCodeService';
+import { FileSystemUtilities } from './components/fileSystemUtilities';
 
 const messageBus = new MessageBus();
 
@@ -149,6 +151,37 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.buildCodeRepairJobs',
 			async () => {
 				await diagnosticManager.handleDiagnostics('onCommand');
+			},
+		),
+	);
+
+	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
+
+	const polyglotPiranhaRepairCodeService =
+		new PolyglotPiranhaRepairCodeService(
+			vscode.workspace.fs,
+			fileSystemUtilities,
+			context.globalStorageUri,
+			messageBus,
+		);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildNextJsCodeRepairJobs',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					return;
+				}
+
+				try {
+					await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
+						storageUri,
+					);
+				} catch (error) {
+					console.error(error);
+				}
 			},
 		),
 	);
