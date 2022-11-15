@@ -106,7 +106,8 @@ export class CaseManager {
 			kind: MessageKind.upsertJobs,
 			uriHashFileMap: message.uriHashFileMap,
 			jobs: message.jobs,
-			inactiveHashes: message.inactiveHashes,
+			inactiveDiagnosticHashes: message.inactiveDiagnosticHashes,
+			inactiveJobHashes: message.inactiveJobHashes,
 			trigger: message.trigger,
 		});
 	}

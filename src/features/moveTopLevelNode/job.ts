@@ -105,6 +105,7 @@ export const buildMoveTopLevelNodeJobs = (
 				stringNodes: fact.stringNodes,
 				lengths: fact.lengths,
 				topLevelNodes: fact.topLevelNodes,
+				diagnosticHash: null,
 			};
 		})
 		.filter(isNeitherNullNorUndefined);

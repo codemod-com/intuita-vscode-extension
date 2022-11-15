@@ -99,14 +99,14 @@ export class MoveTopLevelBlocksService {
 			jobHashes: newJobHashes,
 		};
 
-		const inactiveHashes: JobHash[] = [];
+		const inactiveJobHashes = new Set<JobHash>();
 
 		oldJobHashes.forEach((oldJobHash) => {
 			if (newJobHashes.has(oldJobHash)) {
 				return;
 			}
 
-			inactiveHashes.push(oldJobHash);
+			inactiveJobHashes.add(oldJobHash);
 		});
 
 		this._messageBus.publish({
@@ -114,7 +114,8 @@ export class MoveTopLevelBlocksService {
 			uriHashFileMap,
 			casesWithJobHashes: [caseWithJobHashes],
 			jobs: newJobs,
-			inactiveHashes,
+			inactiveDiagnosticHashes: new Set(),
+			inactiveJobHashes,
 			trigger,
 		});
 	}

@@ -81,17 +81,17 @@ export class DiagnosticManager {
 			});
 		}
 
-		const inactiveHashes: DiagnosticHash[] = [];
+		const inactiveDiagnosticHashes: DiagnosticHash[] = [];
 
 		this._activeHashes.forEach((hash) => {
 			if (hashes.has(hash)) {
 				return;
 			}
 
-			inactiveHashes.push(hash);
+			inactiveDiagnosticHashes.push(hash);
 		});
 
-		inactiveHashes.forEach((hash) => {
+		inactiveDiagnosticHashes.forEach((hash) => {
 			this._activeHashes.delete(hash);
 		});
 
@@ -103,7 +103,7 @@ export class DiagnosticManager {
 			kind: MessageKind.externalDiagnostics,
 			uriHashFileMap,
 			enhancedDiagnostics,
-			inactiveHashes,
+			inactiveDiagnosticHashes: new Set(inactiveDiagnosticHashes),
 			trigger,
 		});
 	}
@@ -130,8 +130,8 @@ export class DiagnosticManager {
 	protected async _onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		for (const jobHash of message.deletedJobHashes) {
-			this._activeHashes.delete(jobHash as unknown as DiagnosticHash);
+		for (const diagnosticHash of message.deletedDiagnosticHashes) {
+			this._activeHashes.delete(diagnosticHash);
 		}
 	}
 }

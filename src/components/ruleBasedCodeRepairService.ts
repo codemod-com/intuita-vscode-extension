@@ -85,7 +85,8 @@ export class RuleBasedCoreRepairService {
 			uriHashFileMap: message.uriHashFileMap,
 			casesWithJobHashes,
 			jobs,
-			inactiveHashes: message.inactiveHashes,
+			inactiveDiagnosticHashes: message.inactiveDiagnosticHashes,
+			inactiveJobHashes: new Set(),
 			trigger: message.trigger,
 		});
 	}
