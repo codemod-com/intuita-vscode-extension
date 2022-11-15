@@ -1,3 +1,4 @@
+import { DiagnosticHash } from '../diagnostics/types';
 import type { StringNode } from '../features/moveTopLevelNode/2_factBuilders/stringNodes';
 import type { TopLevelNode } from '../features/moveTopLevelNode/2_factBuilders/topLevelNode';
 import type {
@@ -32,6 +33,7 @@ export type MoveTopLevelNodeJob = Readonly<{
 	stringNodes: ReadonlyArray<StringNode>;
 	lengths: ReadonlyArray<number>;
 	topLevelNodes: ReadonlyArray<TopLevelNode>;
+	diagnosticHash: DiagnosticHash | null;
 }>;
 
 export type RepairCodeJob = Readonly<{
@@ -45,6 +47,7 @@ export type RepairCodeJob = Readonly<{
 	fileText: string;
 	simpleRange: IntuitaSimpleRange;
 	separator: string;
+	diagnosticHash: DiagnosticHash | null;
 }>;
 
 export type Job = MoveTopLevelNodeJob | RepairCodeJob;

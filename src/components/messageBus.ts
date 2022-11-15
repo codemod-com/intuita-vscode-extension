@@ -90,7 +90,7 @@ export type Message =
 			kind: MessageKind.externalDiagnostics;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
-			inactiveHashes: ReadonlyArray<DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -98,14 +98,16 @@ export type Message =
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
-			inactiveHashes: ReadonlyArray<JobHash | DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			jobs: ReadonlyArray<Job>;
-			inactiveHashes: ReadonlyArray<JobHash | DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -132,6 +134,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
+			deletedDiagnosticHashes: ReadonlySet<DiagnosticHash>;
 	  }>;
 
 export class MessageBus {
