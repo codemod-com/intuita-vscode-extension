@@ -2,7 +2,10 @@ import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { Entry } from '../entry';
-import { buildDiagnosticHash, buildDiagnosticHashIngredients } from '../../src/diagnostics/buildDiagnosticHash';
+import {
+	buildDiagnosticHash,
+	buildDiagnosticHashIngredients,
+} from '../../src/diagnostics/buildDiagnosticHash';
 import { buildUriHash } from '../../src/uris/buildUriHash';
 import { UriHash } from '../../src/uris/types';
 import { VscodeDiagnostic, VscodeRange } from '../../src/vscode/types';

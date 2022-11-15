@@ -1,7 +1,10 @@
 import { assert } from 'chai';
 
 import { factory } from 'typescript';
-import { buildReplacement, buildTs2769ObjectAssignReplacement } from '../src/features/repairCode/buildReplacement';
+import {
+	buildReplacement,
+	buildTs2769ObjectAssignReplacement,
+} from '../src/features/repairCode/buildReplacement';
 
 describe('buildReplacement', () => {
 	it("should change the '' string into the 0 number", () => {

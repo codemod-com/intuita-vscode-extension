@@ -1,4 +1,3 @@
-
 import { assert } from 'chai';
 import { moveElementInArray } from '../src/utilities';
 
