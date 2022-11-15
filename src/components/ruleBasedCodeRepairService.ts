@@ -1,5 +1,5 @@
 import type { CaseManager } from '../cases/caseManager';
-import { CaseKind } from '../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../cases/types';
 import { buildCases } from '../classifier/buildCases';
 import { buildClassifierDiagnostic } from '../classifier/buildClassifierDiagnostic';
 import { classify } from '../classifier/classify';
@@ -56,11 +56,13 @@ export class RuleBasedCoreRepairService {
 					classifierDiagnostic,
 				);
 
-				if (classification.kind === CaseKind.OTHER) {
+				if (
+					classification.subKind === RepairCodeByTscCaseSubKind.OTHER
+				) {
 					return null;
 				}
 
-				const inferenceJob = buildReplacementEnvelope(
+				const replacementEnvelope = buildReplacementEnvelope(
 					file,
 					enhancedDiagnostic.diagnostic,
 					classification,
@@ -70,7 +72,7 @@ export class RuleBasedCoreRepairService {
 					classification,
 					enhancedDiagnostic,
 					file,
-					inferenceJob,
+					replacementEnvelope,
 				};
 			})
 			.filter(isNeitherNullNorUndefined);

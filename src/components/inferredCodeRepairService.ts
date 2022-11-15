@@ -151,7 +151,7 @@ export class InferredCodeRepairService {
 			classification,
 			enhancedDiagnostic,
 			file,
-			inferenceJob: inferenceJobs[0],
+			replacementEnvelope: inferenceJobs[0],
 		};
 	}
 

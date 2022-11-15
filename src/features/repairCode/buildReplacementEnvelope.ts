@@ -1,4 +1,4 @@
-import { CaseKind } from '../../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 import type { File } from '../../files/types';
@@ -14,19 +14,30 @@ export const buildReplacementEnvelope = (
 	diagnostic: VscodeDiagnostic,
 	classification: Classification,
 ): ReplacementEnvelope => {
-	if (classification.kind === CaseKind.TS2769_OBJECT_ASSIGN) {
+	if (
+		classification.subKind ===
+		RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN
+	) {
 		return buildTs2769ObjectAssignReplacementEnvelope(classification);
 	}
 
-	if (classification.kind === CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT) {
+	if (
+		classification.subKind ===
+		RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT
+	) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(classification);
 	}
 
-	if (classification.kind === CaseKind.TS2741_NEXTJS_IMAGE_ALT) {
+	if (
+		classification.subKind ===
+		RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT
+	) {
 		return buildTs2741NextJsImageAltReplacementEnvelope(classification);
 	}
 
-	if (classification.kind === CaseKind.TS2345_PRIMITIVES) {
+	if (
+		classification.subKind === RepairCodeByTscCaseSubKind.TS2345_PRIMITIVES
+	) {
 		return buildTs2345PrimitivesReplacementEnvelope(
 			file,
 			diagnostic,

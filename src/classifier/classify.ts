@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { CaseKind } from '../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../cases/types';
 import { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
 import { IntuitaSimpleRange } from '../utilities';
 import { Classification, ClassifierDiagnostic } from './types';
@@ -131,7 +131,7 @@ export const classify = (
 
 			if (node) {
 				return {
-					kind: CaseKind.TS2769_OBJECT_ASSIGN,
+					subKind: RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
 					node,
 				};
 			}
@@ -144,7 +144,8 @@ export const classify = (
 
 			if (node) {
 				return {
-					kind: CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT,
+					subKind:
+						RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT,
 					node,
 				};
 			}
@@ -157,7 +158,7 @@ export const classify = (
 
 			if (node) {
 				return {
-					kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT,
+					subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT,
 					node,
 				};
 			}
@@ -171,7 +172,7 @@ export const classify = (
 
 			if (kinds) {
 				return {
-					kind: CaseKind.TS2345_PRIMITIVES,
+					subKind: RepairCodeByTscCaseSubKind.TS2345_PRIMITIVES,
 					kinds,
 					node: errorNode,
 				};
@@ -180,7 +181,7 @@ export const classify = (
 	}
 
 	return {
-		kind: CaseKind.OTHER,
+		subKind: RepairCodeByTscCaseSubKind.OTHER,
 		node: errorNode,
 	};
 };

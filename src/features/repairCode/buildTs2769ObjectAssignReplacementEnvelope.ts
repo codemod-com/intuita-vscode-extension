@@ -5,13 +5,15 @@ import {
 	ScriptKind,
 	ScriptTarget,
 } from 'typescript';
-import { CaseKind } from '../../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 import { buildTs2769ObjectAssignReplacement } from './buildReplacement';
 
 export const buildTs2769ObjectAssignReplacementEnvelope = (
-	classification: Classification & { kind: CaseKind.TS2769_OBJECT_ASSIGN },
+	classification: Classification & {
+		subKind: RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN;
+	},
 ): ReplacementEnvelope => {
 	const start = classification.node.getStart();
 	const end = classification.node.getEnd();
