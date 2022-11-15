@@ -1,17 +1,18 @@
 import * as ts from 'typescript';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { classify } from '../../classifier/classify';
-import {
-	assertsNeitherNullOrUndefined,
-	buildIntuitaSimpleRange,
-	calculateLengths,
-	calculateLines,
-	getSeparator,
-} from '../../utilities';
 import { assert } from 'chai';
-import { CaseKind } from '../../cases/types';
-import { ClassifierDiagnostic } from '../../classifier/types';
+import { CaseKind } from '../../src/cases/types';
+import { classify } from '../../src/classifier/classify';
+import { ClassifierDiagnostic } from '../../src/classifier/types';
+import {
+	getSeparator,
+	calculateLines,
+	calculateLengths,
+	buildIntuitaSimpleRange,
+	assertsNeitherNullOrUndefined,
+} from '../../src/utilities';
+import { Entry } from '../entry';
 
 describe('Classifier', () => {
 	it('should classify correctly', () => {
@@ -31,7 +32,7 @@ describe('Classifier', () => {
 			ts.ScriptKind.TS,
 		);
 
-		const entries: any[] = JSON.parse(
+		const entries: ReadonlyArray<Entry> = JSON.parse(
 			readFileSync(join(__dirname, './diagnostics.txt')).toString('utf8'),
 		);
 

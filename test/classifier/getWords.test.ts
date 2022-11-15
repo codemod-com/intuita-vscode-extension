@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
-import { calculateSimilarity } from '../../classifier/similarity';
 import { assert } from 'chai';
+import { calculateSimilarity } from '../../src/classifier/similarity';
 
 describe('calculateCosineSimilarity', () => {
 	it('should calculate correct similarity for two Object.assign() statements', () => {

@@ -1,5 +1,5 @@
-import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { assert } from 'chai';
+import { destructIntuitaFileSystemUri } from '../src/destructIntuitaFileSystemUri';
 
 describe('destructIntuitaFileSystemUri', () => {
 	it('destructIntuitaFileSystemUri', () => {

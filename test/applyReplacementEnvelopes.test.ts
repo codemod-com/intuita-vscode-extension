@@ -1,6 +1,6 @@
 import { assert } from 'chai';
-import { ReplacementEnvelope } from '../components/inferenceService';
-import { applyReplacementEnvelopes } from '../jobs/applyReplacementEnvelopes';
+import { ReplacementEnvelope } from '../src/components/inferenceService';
+import { applyReplacementEnvelopes } from '../src/jobs/applyReplacementEnvelopes';
 
 describe('applyReplacementEnvelopes', () => {
 	const oldText = '01234567890123456789012345678901234567890123456789';
