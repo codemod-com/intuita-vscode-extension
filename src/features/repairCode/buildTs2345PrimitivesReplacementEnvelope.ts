@@ -1,4 +1,4 @@
-import { CaseKind } from '../../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 import type { File } from '../../files/types';
@@ -9,7 +9,9 @@ import { buildReplacement } from './buildReplacement';
 export const buildTs2345PrimitivesReplacementEnvelope = (
 	file: File,
 	diagnostic: VscodeDiagnostic,
-	classification: Classification & { kind: CaseKind.TS2345_PRIMITIVES },
+	classification: Classification & {
+		subKind: RepairCodeByTscCaseSubKind.TS2345_PRIMITIVES;
+	},
 ): ReplacementEnvelope => {
 	const intuitaRange = buildIntuitaRange(diagnostic.range);
 

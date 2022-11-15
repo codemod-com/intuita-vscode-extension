@@ -1,5 +1,5 @@
 import { buildCaseHash } from '../cases/buildCaseHash';
-import type { Case, CaseWithJobHashes } from '../cases/types';
+import { Case, CaseKind, CaseWithJobHashes } from '../cases/types';
 import { stringifyCode } from '../diagnostics/stringifyCode';
 import { buildRepairCodeJob } from '../features/repairCode/job';
 import type { Job, JobHash } from '../jobs/types';
@@ -23,21 +23,27 @@ export const buildCases = (
 		const job = buildRepairCodeJob(
 			jobIngredient.file,
 			jobIngredient.enhancedDiagnostic.hash,
-			jobIngredient.inferenceJob,
+			jobIngredient.replacementEnvelope,
 		);
 
 		const code = stringifyCode(
 			jobIngredient.enhancedDiagnostic.diagnostic.code,
 		);
 
-		const existingCase = casesWithJobHashes.find(
-			(kase) =>
-				kase.kind === jobIngredient.classification.kind &&
-				kase.code === code,
-		);
+		const existingCase = casesWithJobHashes.find((kase) => {
+			if (kase.kind !== CaseKind.REPAIR_CODE_BY_TSC) {
+				return false;
+			}
+
+			return (
+				kase.subKind === jobIngredient.classification.subKind &&
+				kase.code === code
+			);
+		});
 
 		if (
 			existingCase &&
+			existingCase.kind === CaseKind.REPAIR_CODE_BY_TSC &&
 			calculateSimilarity(
 				existingCase.node,
 				jobIngredient.classification.node,
@@ -48,20 +54,22 @@ export const buildCases = (
 			continue;
 		}
 
-		const caseHash = buildCaseHash(
-			jobIngredient.classification.kind,
-			code,
-			job.hash,
-		);
-
-		const kase: Case & { jobHashes: Set<JobHash> } = {
-			hash: caseHash,
-			kind: jobIngredient.classification.kind,
+		const partialCase = {
+			kind: CaseKind.REPAIR_CODE_BY_TSC,
+			subKind: jobIngredient.classification.subKind,
 			code: stringifyCode(
 				jobIngredient.enhancedDiagnostic.diagnostic.code,
 			),
-			jobHashes: new Set([job.hash]),
+
 			node: jobIngredient.classification.node,
+		};
+
+		const caseHash = buildCaseHash(partialCase, job.hash);
+
+		const kase: Case & { jobHashes: Set<JobHash> } = {
+			hash: caseHash,
+			jobHashes: new Set([job.hash]),
+			...partialCase,
 		};
 
 		casesWithJobHashes.push(kase);

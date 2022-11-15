@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { assert } from 'chai';
-import { CaseKind } from '../../src/cases/types';
+import { RepairCodeByTscCaseSubKind } from '../../src/cases/types';
 import { classify } from '../../src/classifier/classify';
 import { ClassifierDiagnostic } from '../../src/classifier/types';
 import {
@@ -61,11 +61,26 @@ describe('Classifier', () => {
 		assertsNeitherNullOrUndefined(classifiers[3]);
 		assertsNeitherNullOrUndefined(classifiers[4]);
 
-		assert.equal(classifiers[0].kind, CaseKind.TS2769_OBJECT_ASSIGN);
-		assert.equal(classifiers[1].kind, CaseKind.TS2769_OBJECT_ASSIGN);
-		assert.equal(classifiers[2].kind, CaseKind.TS2769_OBJECT_ASSIGN);
-		assert.equal(classifiers[3].kind, CaseKind.TS2769_OBJECT_ASSIGN);
-		assert.equal(classifiers[4].kind, CaseKind.TS2769_OBJECT_ASSIGN);
+		assert.equal(
+			classifiers[0].subKind,
+			RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
+		);
+		assert.equal(
+			classifiers[1].subKind,
+			RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
+		);
+		assert.equal(
+			classifiers[2].subKind,
+			RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
+		);
+		assert.equal(
+			classifiers[3].subKind,
+			RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
+		);
+		assert.equal(
+			classifiers[4].subKind,
+			RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN,
+		);
 
 		assert.deepEqual(classifiers[0].node.getStart(), 175);
 		assert.deepEqual(classifiers[0].node.getEnd(), 198);

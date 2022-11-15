@@ -4,7 +4,7 @@ import type {
 	JsxAttribute,
 	JsxSelfClosingElement,
 } from 'typescript';
-import type { CaseKind } from '../cases/types';
+import type { RepairCodeByTscCaseSubKind } from '../cases/types';
 import type { ReplacementEnvelope } from '../components/inferenceService';
 import type { EnhancedDiagnostic } from '../components/messageBus';
 import type { extractKindsFromTs2345ErrorMessage } from './extractKindsFromTs2345ErrorMessage';
@@ -19,23 +19,23 @@ export type ClassifierDiagnostic = Readonly<{
 
 export type Classification =
 	| Readonly<{
-			kind: CaseKind.OTHER;
+			subKind: RepairCodeByTscCaseSubKind.OTHER;
 			node: Node;
 	  }>
 	| Readonly<{
-			kind: CaseKind.TS2769_OBJECT_ASSIGN;
+			subKind: RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN;
 			node: CallExpression;
 	  }>
 	| Readonly<{
-			kind: CaseKind.TS2322_NEXTJS_IMAGE_LAYOUT;
+			subKind: RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT;
 			node: JsxAttribute;
 	  }>
 	| Readonly<{
-			kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT;
+			subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT;
 			node: JsxSelfClosingElement;
 	  }>
 	| Readonly<{
-			kind: CaseKind.TS2345_PRIMITIVES;
+			subKind: RepairCodeByTscCaseSubKind.TS2345_PRIMITIVES;
 			node: Node;
 			kinds: NonNullable<
 				ReturnType<typeof extractKindsFromTs2345ErrorMessage>
@@ -46,5 +46,5 @@ export type JobIngredients = Readonly<{
 	classification: Classification;
 	enhancedDiagnostic: EnhancedDiagnostic;
 	file: File;
-	inferenceJob: ReplacementEnvelope;
+	replacementEnvelope: ReplacementEnvelope;
 }>;

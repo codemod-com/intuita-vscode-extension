@@ -7,12 +7,14 @@ import {
 	ScriptKind,
 	ScriptTarget,
 } from 'typescript';
-import { CaseKind } from '../../cases/types';
+import { RepairCodeByTscCaseSubKind } from '../../cases/types';
 import type { Classification } from '../../classifier/types';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 
 export const buildTs2741NextJsImageAltReplacementEnvelope = (
-	classification: Classification & { kind: CaseKind.TS2741_NEXTJS_IMAGE_ALT },
+	classification: Classification & {
+		subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT;
+	},
 ): ReplacementEnvelope => {
 	const sourceFile = createSourceFile(
 		'index.ts',

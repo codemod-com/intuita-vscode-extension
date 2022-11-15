@@ -92,10 +92,8 @@ export class MoveTopLevelBlocksService {
 		const uriHashFileMap = new Map<UriHash, File>([[uriHash, file]]);
 
 		const caseWithJobHashes: CaseWithJobHashes = {
-			hash: buildCaseHash(CaseKind.MOVE_TOP_LEVEL_BLOCKS, null, null),
+			hash: buildCaseHash({ kind: CaseKind.MOVE_TOP_LEVEL_BLOCKS }, null),
 			kind: CaseKind.MOVE_TOP_LEVEL_BLOCKS,
-			code: null,
-			node: file.sourceFile,
 			jobHashes: newJobHashes,
 		};
 

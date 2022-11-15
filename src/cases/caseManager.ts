@@ -84,19 +84,12 @@ export class CaseManager {
 	protected async _onUpsertCasesMessage(
 		message: Message & { kind: MessageKind.upsertCases },
 	) {
-		message.casesWithJobHashes.map((casesWithJobHash) => {
-			const kase = {
-				hash: casesWithJobHash.hash,
-				kind: casesWithJobHash.kind,
-				code: casesWithJobHash.code,
-				node: casesWithJobHash.node,
-			};
+		message.casesWithJobHashes.map((caseWithJobHash) => {
+			this._cases.set(caseWithJobHash.hash, caseWithJobHash);
 
-			this._cases.set(kase.hash, kase);
-
-			for (const jobHash of casesWithJobHash.jobHashes) {
+			for (const jobHash of caseWithJobHash.jobHashes) {
 				this._caseHashJobHashSetManager.upsert(
-					casesWithJobHash.hash,
+					caseWithJobHash.hash,
 					jobHash,
 				);
 			}
