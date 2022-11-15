@@ -3,5 +3,5 @@ require:
   - "source-map-support/register"
 full-trace: true
 bail: true
-spec: './src/test/**/*.test.ts'
+spec: './test/**/*.test.ts'
 timeout: 10000

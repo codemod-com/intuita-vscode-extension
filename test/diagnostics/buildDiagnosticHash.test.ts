@@ -1,13 +1,11 @@
 import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import {
-	buildDiagnosticHash,
-	buildDiagnosticHashIngredients,
-} from '../../diagnostics/buildDiagnosticHash';
-import { buildUriHash } from '../../uris/buildUriHash';
-import { UriHash } from '../../uris/types';
-import { VscodeDiagnostic, VscodeRange } from '../../vscode/types';
+import { Entry } from '../entry';
+import { buildDiagnosticHash, buildDiagnosticHashIngredients } from '../../src/diagnostics/buildDiagnosticHash';
+import { buildUriHash } from '../../src/uris/buildUriHash';
+import { UriHash } from '../../src/uris/types';
+import { VscodeDiagnostic, VscodeRange } from '../../src/vscode/types';
 
 describe('buildDiagnosticHash', () => {
 	it('should classify correctly', () => {
@@ -17,7 +15,7 @@ describe('buildDiagnosticHash', () => {
 			join(__dirname, '../classifier/code.txt'),
 		).toString('utf8');
 
-		const entries: any[] = JSON.parse(
+		const entries: Entry[] = JSON.parse(
 			readFileSync(
 				join(__dirname, '../classifier/diagnostics.txt'),
 			).toString('utf8'),

@@ -1,6 +1,6 @@
-import { extractKindsFromTs2345ErrorMessage } from '../classifier/extractKindsFromTs2345ErrorMessage';
 import { assert } from 'chai';
-import { assertsNeitherNullOrUndefined } from '../utilities';
+import { extractKindsFromTs2345ErrorMessage } from '../src/classifier/extractKindsFromTs2345ErrorMessage';
+import { assertsNeitherNullOrUndefined } from '../src/utilities';
 
 describe('extractTypesFromTs2345ErrorMessage', () => {
 	it('should return string and number', () => {

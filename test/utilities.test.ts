@@ -1,5 +1,6 @@
-import { moveElementInArray } from '../utilities';
+
 import { assert } from 'chai';
+import { moveElementInArray } from '../src/utilities';
 
 describe('utilities', () => {
 	it('moveElementInArray (0 elements, from 1 to 2)', () => {

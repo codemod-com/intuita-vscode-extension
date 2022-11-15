@@ -1,11 +1,7 @@
 import { assert } from 'chai';
-import { calculateNodesScore } from '../features/moveTopLevelNode/2_factBuilders/calculateNodesScore';
-import {
-	DEFAULT_TOP_LEVEL_NODE_KIND_ORDER,
-	DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER,
-	TopLevelNodeKind,
-	TopLevelNodeModifier,
-} from '../features/moveTopLevelNode/2_factBuilders/topLevelNode';
+import { calculateNodesScore } from '../src/features/moveTopLevelNode/2_factBuilders/calculateNodesScore';
+import { DEFAULT_TOP_LEVEL_NODE_MODIFIER_ORDER, DEFAULT_TOP_LEVEL_NODE_KIND_ORDER, TopLevelNodeModifier, TopLevelNodeKind } from '../src/features/moveTopLevelNode/2_factBuilders/topLevelNode';
+
 
 describe('calculateNodesScore', function () {
 	it('should return 0 for an 0 elements', () => {

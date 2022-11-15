@@ -6,13 +6,18 @@
 		"lib": [
           "ES2020"
         ],
-		"sourceMap": false,
-		"rootDir": "src",
+		"sourceMap": false,	
 		"strict": true,
 		"noUncheckedIndexedAccess": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUnusedParameters": true,
-		"noUnusedLocals": true
-	}
+		"noUnusedLocals": true,
+		// "baseUrl": "."
+	},
+	"include": [
+		"./src/extension.ts",
+		"./src/types/**/*.d.ts",
+		"./test/**/*.ts",
+	]
 }
