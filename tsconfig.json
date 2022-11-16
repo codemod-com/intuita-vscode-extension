@@ -10,7 +10,8 @@
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUnusedParameters": true,
-		"noUnusedLocals": true
+		"noUnusedLocals": true,
+		"esModuleInterop": true
 	},
-	"include": ["./src/extension.ts", "./src/types/**/*.d.ts", "./test/**/*.ts"]
+	"include": ["./src/**/*.ts", "./src/types/**/*.d.ts", "./test/**/*.ts"]
 }

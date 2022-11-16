@@ -12,7 +12,7 @@ import {
 } from './messageBus';
 import { Container } from '../container';
 import { Configuration } from '../configuration';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import { buildUriHash } from '../uris/buildUriHash';
 import { UriHash } from '../uris/types';
 import { buildCases } from '../classifier/buildCases';
