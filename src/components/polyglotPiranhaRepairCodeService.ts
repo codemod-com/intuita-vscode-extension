@@ -12,9 +12,12 @@ import { File } from '../files/types';
 import { Job } from '../jobs/types';
 import { buildUriHash } from '../uris/buildUriHash';
 import { UriHash } from '../uris/types';
-import { buildIntuitaSimpleRange } from '../utilities';
+import {
+	buildIntuitaSimpleRange,
+	isNeitherNullNorUndefined,
+} from '../utilities';
 import { FileSystemUtilities } from './fileSystemUtilities';
-import { buildTypeCodec } from './inferenceService';
+import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
 import { MessageBus, MessageKind } from './messageBus';
 
 const promisifiedExec = promisify(exec);
@@ -30,26 +33,51 @@ export const executePolyglotPiranha = async (
 	);
 };
 
+const rangeCodec = buildTypeCodec({
+	start_point: buildTypeCodec({
+		row: t.number,
+		column: t.number,
+	}),
+	end_point: buildTypeCodec({
+		row: t.number,
+		column: t.number,
+	}),
+});
+
+const matchCodec = t.union([
+	buildTypeCodec({
+		name: t.literal('find_nextjs_links'),
+		match_: buildTypeCodec({
+			range: rangeCodec,
+			matches: buildTypeCodec({
+				a_attribute_je: t.string,
+				a_attributes: t.string,
+				a_attribute_pi: t.string,
+				a_children: t.string,
+				link: t.string,
+				a_name: t.string,
+				link_name: t.string,
+				link_attributes: t.string,
+			}),
+		}),
+	}),
+	buildTypeCodec({
+		name: t.literal('find_nextjs_link_import_single_quotes'),
+		match_: buildTypeCodec({
+			range: rangeCodec,
+			matches: buildTypeCodec({
+				s: t.string,
+			}),
+		}),
+	}),
+]);
+
+type Match = t.TypeOf<typeof matchCodec>;
+
 const piranhaOutputSummariesCodec = t.readonlyArray(
 	buildTypeCodec({
-		rewrites: t.readonlyArray(
-			buildTypeCodec({
-				p_match: buildTypeCodec({
-					range: buildTypeCodec({
-						start_point: buildTypeCodec({
-							row: t.number,
-							column: t.number,
-						}),
-						end_point: buildTypeCodec({
-							row: t.number,
-							column: t.number,
-						}),
-					}),
-				}),
-				replacement_string: t.string,
-				matched_rule: t.string,
-			}),
-		),
+		path: t.string,
+		matches: t.readonlyArray(matchCodec),
 	}),
 );
 
@@ -64,39 +92,33 @@ export class PolyglotPiranhaRepairCodeService {
 	public async buildRepairCodeJobs(storageUri: Uri) {
 		const { executableUri, configurationUri } = await this._bootstrap();
 
-		const tsUris = await workspace.findFiles('**/*.ts', null, 100);
-		const tsxUris = await workspace.findFiles('**/*.tsx', null, 100);
+		const uri = workspace.workspaceFolders?.[0]?.uri;
 
-		const uris = tsUris.concat(tsxUris);
+		if (!uri) {
+			console.warn(
+				'No workspace folder is opened, aborting the operation.',
+			);
+			return;
+		}
 
 		await this._fileSystem.createDirectory(storageUri);
 
-		const uriHashFileMap = new Map<UriHash, File>();
-		const jobs: Job[] = [];
+		const uriHash = buildUriHash(uri.fsPath);
 
-		for (const uri of uris) {
-			const document = await workspace.openTextDocument(uri);
-			const file = buildFile(uri, document.getText(), document.version);
+		const outputUri = Uri.joinPath(storageUri, uriHash);
 
-			const uriHash = buildUriHash(uri.fsPath);
+		await executePolyglotPiranha(
+			executableUri,
+			configurationUri,
+			uri,
+			outputUri,
+		);
 
-			const outputUri = Uri.joinPath(storageUri, uriHash);
+		const content = await this._fileSystem.readFile(outputUri);
 
-			await executePolyglotPiranha(
-				executableUri,
-				configurationUri,
-				uri,
-				outputUri,
-			);
+		const { jobs, uriHashFileMap } = await this._buildJobs(content);
 
-			const content = await this._fileSystem.readFile(outputUri);
-
-			jobs.push(...this._buildJobs(file, content));
-
-			uriHashFileMap.set(uriHash, file);
-
-			await this._fileSystem.delete(outputUri);
-		}
+		await this._fileSystem.delete(outputUri);
 
 		const kind: CaseKind = CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
 
@@ -117,41 +139,66 @@ export class PolyglotPiranhaRepairCodeService {
 		});
 	}
 
-	protected _buildJobs(file: File, content: Uint8Array): ReadonlyArray<Job> {
-		const buffer = Buffer.from(content);
+	protected async _buildJobs(content: Uint8Array) {
+		const uriHashFileMap = new Map<UriHash, File>();
+		const jobs: Job[] = [];
 
-		const either = piranhaOutputSummariesCodec.decode(
-			JSON.parse(buffer.toString('utf8')),
-		);
+		const buffer = Buffer.from(content);
+		const input = JSON.parse(buffer.toString('utf8'));
+
+		const either = piranhaOutputSummariesCodec.decode(input);
 
 		if (either._tag === 'Left') {
 			console.error(either.left);
 
-			return [];
+			return {
+				uriHashFileMap,
+				jobs,
+			};
 		}
 
-		return either.right
-			.flatMap(({ rewrites }) => rewrites)
-			.flatMap((rewrite) => {
-				const range = buildIntuitaSimpleRange(
-					file.separator,
-					file.lengths,
-					[
-						rewrite.p_match.range.start_point.row,
-						rewrite.p_match.range.start_point.column,
-						rewrite.p_match.range.end_point.row,
-						rewrite.p_match.range.end_point.column,
-					],
-				);
+		for (const { path, matches } of either.right) {
+			const uri = Uri.parse(path);
 
-				return {
-					range,
-					replacement: rewrite.replacement_string,
-				};
-			})
-			.map((replacementEnvelope) => {
-				return buildRepairCodeJob(file, null, replacementEnvelope);
-			});
+			const document = await workspace.openTextDocument(uri);
+			const file = buildFile(uri, document.getText(), document.version);
+
+			uriHashFileMap.set(buildUriHash(uri), file);
+
+			const _jobs = matches
+				.map((match) => this._buildJob(file, match))
+				.filter(isNeitherNullNorUndefined);
+
+			jobs.push(..._jobs);
+		}
+
+		return {
+			uriHashFileMap,
+			jobs,
+		};
+	}
+
+	protected _buildJob(file: File, match: Match): Job | null {
+		if (match.name !== 'find_nextjs_links') {
+			return null;
+		}
+
+		const range = buildIntuitaSimpleRange(file.separator, file.lengths, [
+			match.match_.range.start_point.row,
+			match.match_.range.start_point.column,
+			match.match_.range.end_point.row,
+			match.match_.range.end_point.column,
+		]);
+
+		const { link_attributes, a_attributes, a_children } =
+			match.match_.matches;
+
+		const replacementEnvelope: ReplacementEnvelope = {
+			range,
+			replacement: `<Link ${link_attributes} ${a_attributes}>${a_children}</Link>`,
+		};
+
+		return buildRepairCodeJob(file, null, replacementEnvelope);
 	}
 
 	protected async _bootstrap() {
@@ -192,7 +239,7 @@ export class PolyglotPiranhaRepairCodeService {
 		);
 
 		await this._downloadFileIfNeeded(
-			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/rules.toml`,
+			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/edges.toml`,
 			Uri.joinPath(configurationUri, 'edges.toml'),
 			'644',
 		);
