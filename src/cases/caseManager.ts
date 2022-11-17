@@ -1,4 +1,3 @@
-import { JobManager } from '../components/jobManager';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
@@ -11,10 +10,7 @@ export class CaseManager {
 		JobHash
 	>(new Set());
 
-	public constructor(
-		protected readonly _messageBus: MessageBus,
-		protected readonly _jobManager: JobManager,
-	) {
+	public constructor(protected readonly _messageBus: MessageBus) {
 		_messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.upsertCases) {
 				setImmediate(() => {

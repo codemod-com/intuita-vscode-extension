@@ -65,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscodeService,
 	);
 
-	const caseManager = new CaseManager(messageBus, jobManager);
+	const caseManager = new CaseManager(messageBus);
 
 	new InferredCodeRepairService(
 		caseManager,
