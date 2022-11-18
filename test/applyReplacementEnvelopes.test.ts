@@ -18,6 +18,7 @@ describe('applyReplacementEnvelopes', () => {
 				start: 10,
 				end: 20,
 			},
+			// cspell:disable-next-line
 			replacement: 'abcdefghij',
 		};
 
@@ -25,6 +26,7 @@ describe('applyReplacementEnvelopes', () => {
 
 		assert.equal(
 			newText,
+			// cspell:disable-next-line
 			'0123456789abcdefghij012345678901234567890123456789',
 		);
 		assert.equal(newText.length, 50);
@@ -51,6 +53,7 @@ describe('applyReplacementEnvelopes', () => {
 				start: 10,
 				end: 20,
 			},
+			// cspell:disable-next-line
 			replacement: 'abcdefghijklmno',
 		};
 
@@ -58,6 +61,7 @@ describe('applyReplacementEnvelopes', () => {
 
 		assert.equal(
 			newText,
+			// cspell:disable-next-line
 			'0123456789abcdefghijklmno012345678901234567890123456789',
 		);
 		assert.equal(newText.length, 55);

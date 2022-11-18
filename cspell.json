@@ -1,0 +1,26 @@
+{
+    "dictionaries": [
+        "en_US",
+        "typescript",
+        "html",
+        "companies",
+        "softwareTerms"
+    ],
+    "language": "en",
+    "useGitignore": true,
+    "words": [
+        "codebases",
+        "intellicode",
+        "intuita",
+        "newtype",
+        "quickstart",
+        "ripemd",
+        "roadmap",
+        "tabnine",
+        "taskifies",
+        "Upvote",
+        "userdata",
+        "vsix",
+        "yarnrc"
+    ]
+}

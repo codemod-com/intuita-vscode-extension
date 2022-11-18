@@ -270,7 +270,7 @@ describe('buildTs2769ObjectAssignReplacement', () => {
 		assert.equal(replacement, 'a.b = Object.assign({}, a.b, c(d))');
 	});
 
-	it('should return a proper multine string for Object.assign(a.b,{c:true,d:e.f})', () => {
+	it('should return a proper multiline string for Object.assign(a.b,{c:true,d:e.f})', () => {
 		const replacement = buildTs2769ObjectAssignReplacement([
 			factory.createPropertyAccessExpression(
 				factory.createIdentifier('a'),
