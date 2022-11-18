@@ -49,6 +49,7 @@ describe('buildDiagnosticHash', () => {
 
 		assert.deepEqual(ingredients, [
 			{
+				// cspell: disable-next-line
 				uriHash: 'FVo4CTx9cHoE1aP2usiqa9T-BBM' as UriHash,
 				range: { start: 189, end: 190 },
 				code: '2769',
@@ -63,6 +64,7 @@ describe('buildDiagnosticHash', () => {
 				rangeText: 'a',
 			},
 			{
+				// cspell: disable-next-line
 				uriHash: 'FVo4CTx9cHoE1aP2usiqa9T-BBM' as UriHash,
 				range: { start: 215, end: 216 },
 				code: '2769',
@@ -77,6 +79,7 @@ describe('buildDiagnosticHash', () => {
 				rangeText: 'b',
 			},
 			{
+				// cspell: disable-next-line
 				uriHash: 'FVo4CTx9cHoE1aP2usiqa9T-BBM' as UriHash,
 				range: { start: 240, end: 241 },
 				code: '2769',
@@ -91,6 +94,7 @@ describe('buildDiagnosticHash', () => {
 				rangeText: 'c',
 			},
 			{
+				// cspell: disable-next-line
 				uriHash: 'FVo4CTx9cHoE1aP2usiqa9T-BBM' as UriHash,
 				range: { start: 262, end: 263 },
 				code: '2769',
@@ -105,6 +109,7 @@ describe('buildDiagnosticHash', () => {
 				rangeText: 'd',
 			},
 			{
+				// cspell: disable-next-line
 				uriHash: 'FVo4CTx9cHoE1aP2usiqa9T-BBM' as UriHash,
 				range: { start: 287, end: 288 },
 				code: '2769',
@@ -124,8 +129,10 @@ describe('buildDiagnosticHash', () => {
 
 		assert.deepEqual(hashes, [
 			'gRpmGnIqKXqnGH4cEhcXCUiLFEw',
+			// cspell: disable-next-line
 			'DO8uJU0EMVGTw08kxAKLvkC7z2c',
 			'x5Ajy-cotN9ERQ8jBalSq-0BFpU',
+			// cspell: disable-next-line
 			'Ayp9OCMKZu8P-bGlQ4pAMV8K59g',
 			'RXkqLtMlBPoNP4S-0Vx5J5AdkMs',
 		]);

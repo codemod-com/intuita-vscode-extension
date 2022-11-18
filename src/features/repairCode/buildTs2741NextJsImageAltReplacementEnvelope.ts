@@ -13,7 +13,7 @@ import type { ReplacementEnvelope } from '../../components/inferenceService';
 
 export const buildTs2741NextJsImageAltReplacementEnvelope = (
 	classification: Classification & {
-		subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT;
+		subKind: RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT;
 	},
 ): ReplacementEnvelope => {
 	const sourceFile = createSourceFile(

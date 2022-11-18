@@ -83,16 +83,16 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	}
 
 	public deleteRightHash(rightHash: R): void {
-		const deletables: string[] = [];
+		const deletableHashes: string[] = [];
 
 		for (const leftRightHash of this._set.keys()) {
 			if (leftRightHash.endsWith(rightHash)) {
-				deletables.push(leftRightHash);
+				deletableHashes.push(leftRightHash);
 			}
 		}
 
-		for (const deletable of deletables) {
-			this._set.delete(deletable);
+		for (const hash of deletableHashes) {
+			this._set.delete(hash);
 		}
 	}
 
