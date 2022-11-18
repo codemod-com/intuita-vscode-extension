@@ -4,7 +4,7 @@
 	"description": "Your Pair Programmer for Maintenance",
 	"version": "0.4.1",
 	"publisher": "Intuita",
-	"icon": "img/intuitasq128.png",
+	"icon": "img/intuita_square128.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/intuita-inc/intuita-vscode-extension"
@@ -270,6 +270,7 @@
 		"package": "webpack --mode production --devtool hidden-source-map",
 		"lint:eslint": "eslint src test --fix --ext ts",
 		"lint:prettier": "prettier --write .",
+		"spellcheck": "cspell **/*.{js,ts,jsx,tsx,md,yml,json} .* --gitignore",
 		"test": "mocha"
 	},
 	"devDependencies": {
@@ -282,6 +283,7 @@
 		"@typescript-eslint/parser": "^5.43.0",
 		"@vscode/test-electron": "^2.2.0",
 		"chai": "^4.3.7",
+		"cspell-cli": "^6.14.1",
 		"eslint": "^8.27.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-prettier": "^4.2.1",

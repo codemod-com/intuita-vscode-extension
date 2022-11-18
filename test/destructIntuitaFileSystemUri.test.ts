@@ -14,6 +14,7 @@ describe('destructIntuitaFileSystemUri', () => {
 	});
 
 	it('destructIntuitaFileSystemUri', () => {
+		// cspell:disable-next-line
 		const jobHash = 'nBGFpcXp_FRhKAiXfuj1SLIljTE';
 
 		const d = destructIntuitaFileSystemUri({
