@@ -1,5 +1,6 @@
 import Axios from 'axios';
 import * as t from 'io-ts';
+import prettyReporter from 'io-ts-reporters';
 import { exec } from 'node:child_process';
 import { Mode } from 'node:fs';
 import { promisify } from 'node:util';
@@ -12,10 +13,7 @@ import { File } from '../files/types';
 import { Job } from '../jobs/types';
 import { buildUriHash } from '../uris/buildUriHash';
 import { UriHash } from '../uris/types';
-import {
-	buildIntuitaSimpleRange,
-	isNeitherNullNorUndefined,
-} from '../utilities';
+import { buildIntuitaSimpleRange } from '../utilities';
 import { FileSystemUtilities } from './fileSystemUtilities';
 import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
 import { MessageBus, MessageKind } from './messageBus';
@@ -44,40 +42,51 @@ const rangeCodec = buildTypeCodec({
 	}),
 });
 
-const matchCodec = t.union([
-	buildTypeCodec({
-		name: t.literal('find_nextjs_links'),
-		match_: buildTypeCodec({
-			range: rangeCodec,
-			matches: buildTypeCodec({
-				a_attribute_je: t.string,
-				a_attributes: t.string,
-				a_attribute_pi: t.string,
-				a_children: t.string,
-				link: t.string,
-				a_name: t.string,
-				link_name: t.string,
-				link_attributes: t.string,
-			}),
+const matchCodec = buildTypeCodec({
+	name: t.literal('find_link_jsx_elements'),
+	match_: buildTypeCodec({
+		range: rangeCodec,
+		matches: buildTypeCodec({
+			a_attribute_je: t.string,
+			a_attributes: t.string,
+			a_attribute_pi: t.string,
+			a_children: t.string,
+			link: t.string,
+			a_name: t.string,
+			link_name: t.string,
+			link_attributes: t.string,
 		}),
 	}),
-	buildTypeCodec({
-		name: t.literal('find_nextjs_link_import_single_quotes'),
-		match_: buildTypeCodec({
-			range: rangeCodec,
-			matches: buildTypeCodec({
-				s: t.string,
-			}),
-		}),
-	}),
-]);
+});
 
 type Match = t.TypeOf<typeof matchCodec>;
+
+const rewriteCodec = buildTypeCodec({
+	p_match: buildTypeCodec({
+		range: rangeCodec,
+		matches: buildTypeCodec({
+			s: t.string,
+			i: t.union([t.string, t.undefined]),
+		}),
+	}),
+	replacement_string: t.string,
+	matched_rule: t.union([
+		t.literal('find_and_replace_from_next_image'),
+		t.literal('find_and_replace_await_import_next_image'),
+		t.literal('find_and_replace_from_next_future_image'),
+		t.literal('find_and_replace_await_import_next_future_image'),
+		t.literal('find_and_replace_require_next_image'),
+		t.literal('find_and_replace_require_next_future_image'),
+	]),
+});
+
+type Rewrite = t.TypeOf<typeof rewriteCodec>;
 
 const piranhaOutputSummariesCodec = t.readonlyArray(
 	buildTypeCodec({
 		path: t.string,
 		matches: t.readonlyArray(matchCodec),
+		rewrites: t.readonlyArray(rewriteCodec),
 	}),
 );
 
@@ -149,7 +158,9 @@ export class PolyglotPiranhaRepairCodeService {
 		const either = piranhaOutputSummariesCodec.decode(input);
 
 		if (either._tag === 'Left') {
-			console.error(either.left);
+			const report = prettyReporter.report(either);
+
+			console.error(report);
 
 			return {
 				uriHashFileMap,
@@ -157,7 +168,7 @@ export class PolyglotPiranhaRepairCodeService {
 			};
 		}
 
-		for (const { path, matches } of either.right) {
+		for (const { path, matches, rewrites } of either.right) {
 			const uri = Uri.parse(path);
 
 			const document = await workspace.openTextDocument(uri);
@@ -165,11 +176,17 @@ export class PolyglotPiranhaRepairCodeService {
 
 			uriHashFileMap.set(buildUriHash(uri), file);
 
-			const _jobs = matches
+			matches
 				.map((match) => this._buildJob(file, match))
-				.filter(isNeitherNullNorUndefined);
+				.forEach((job) => {
+					jobs.push(job);
+				});
 
-			jobs.push(..._jobs);
+			rewrites
+				.map((rewrite) => this._buildRewriteJob(file, rewrite))
+				.forEach((job) => {
+					jobs.push(job);
+				});
 		}
 
 		return {
@@ -178,11 +195,23 @@ export class PolyglotPiranhaRepairCodeService {
 		};
 	}
 
-	protected _buildJob(file: File, match: Match): Job | null {
-		if (match.name !== 'find_nextjs_links') {
-			return null;
-		}
+	protected _buildRewriteJob(file: File, rewrite: Rewrite): Job {
+		const range = buildIntuitaSimpleRange(file.separator, file.lengths, [
+			rewrite.p_match.range.start_point.row,
+			rewrite.p_match.range.start_point.column,
+			rewrite.p_match.range.end_point.row,
+			rewrite.p_match.range.end_point.column,
+		]);
 
+		const replacementEnvelope: ReplacementEnvelope = {
+			range,
+			replacement: rewrite.replacement_string,
+		};
+
+		return buildRepairCodeJob(file, null, replacementEnvelope);
+	}
+
+	protected _buildJob(file: File, match: Match): Job {
 		const range = buildIntuitaSimpleRange(file.separator, file.lengths, [
 			match.match_.range.start_point.row,
 			match.match_.range.start_point.column,
