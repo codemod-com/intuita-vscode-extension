@@ -98,15 +98,24 @@ const piranhaOutputSummariesCodec = t.readonlyArray(
 );
 
 export class PolyglotPiranhaRepairCodeService {
+	#fileSystem: FileSystem;
+	#fileSystemUtilities: FileSystemUtilities;
+	#globalStorageUri: Uri;
+	#messageBus: MessageBus;
 	public constructor(
-		protected _fileSystem: FileSystem,
-		protected _fileSystemUtilities: FileSystemUtilities,
-		protected _globalStorageUri: Uri,
-		protected _messageBus: MessageBus,
-	) {}
+		fileSystem: FileSystem,
+		fileSystemUtilities: FileSystemUtilities,
+		globalStorageUri: Uri,
+		messageBus: MessageBus,
+	) {
+		this.#fileSystem = fileSystem;
+		this.#fileSystemUtilities = fileSystemUtilities;
+		this.#globalStorageUri = globalStorageUri;
+		this.#messageBus = messageBus;
+	}
 
 	public async buildRepairCodeJobs(storageUri: Uri) {
-		const { executableUri, configurationUri } = await this._bootstrap();
+		const { executableUri, configurationUri } = await this.#bootstrap();
 
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
@@ -117,7 +126,7 @@ export class PolyglotPiranhaRepairCodeService {
 			return;
 		}
 
-		await this._fileSystem.createDirectory(storageUri);
+		await this.#fileSystem.createDirectory(storageUri);
 
 		const uriHash = buildUriHash(uri.fsPath);
 
@@ -130,7 +139,7 @@ export class PolyglotPiranhaRepairCodeService {
 			outputUri,
 		);
 
-		const content = await this._fileSystem.readFile(outputUri);
+		const content = await this.#fileSystem.readFile(outputUri);
 
 		const { nextJsImageJobs, nextJsLinkJobs, uriHashFileMap } =
 			await this._buildJobs(content);
@@ -191,7 +200,7 @@ export class PolyglotPiranhaRepairCodeService {
 		});
 	}
 
-	protected async _buildJobs(content: Uint8Array) {
+	async #buildJobs(content: Uint8Array) {
 		const uriHashFileMap = new Map<UriHash, File>();
 		const nextJsLinkJobs: Job[] = [];
 		const nextJsImageJobs: Job[] = [];
@@ -222,13 +231,13 @@ export class PolyglotPiranhaRepairCodeService {
 			uriHashFileMap.set(buildUriHash(uri), file);
 
 			matches
-				.map((match) => this._buildJob(file, match))
+				.map((match) => this.#buildJob(file, match))
 				.forEach((job) => {
 					nextJsLinkJobs.push(job);
 				});
 
 			rewrites
-				.map((rewrite) => this._buildRewriteJob(file, rewrite))
+				.map((rewrite) => this.#buildRewriteJob(file, rewrite))
 				.forEach((job) => {
 					nextJsImageJobs.push(job);
 				});
@@ -241,7 +250,7 @@ export class PolyglotPiranhaRepairCodeService {
 		};
 	}
 
-	protected _buildRewriteJob(file: File, rewrite: Rewrite): Job {
+	#buildRewriteJob(file: File, rewrite: Rewrite): Job {
 		const range = buildIntuitaSimpleRange(file.separator, file.lengths, [
 			rewrite.p_match.range.start_point.row,
 			rewrite.p_match.range.start_point.column,
@@ -257,7 +266,7 @@ export class PolyglotPiranhaRepairCodeService {
 		return buildRepairCodeJob(file, null, replacementEnvelope);
 	}
 
-	protected _buildJob(file: File, match: Match): Job {
+	#buildJob(file: File, match: Match): Job {
 		const range = buildIntuitaSimpleRange(file.separator, file.lengths, [
 			match.match_.range.start_point.row,
 			match.match_.range.start_point.column,
@@ -276,15 +285,15 @@ export class PolyglotPiranhaRepairCodeService {
 		return buildRepairCodeJob(file, null, replacementEnvelope);
 	}
 
-	protected async _bootstrap() {
-		await this._fileSystem.createDirectory(this._globalStorageUri);
+	async #bootstrap() {
+		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
 		const executableBaseName = `polyglot-piranha-${encodeURIComponent(
 			process.arch,
 		)}-${encodeURIComponent(process.platform)}`;
 
 		const executableUri = Uri.joinPath(
-			this._globalStorageUri,
+			this.#globalStorageUri,
 			executableBaseName,
 		);
 
@@ -305,25 +314,25 @@ export class PolyglotPiranhaRepairCodeService {
 		}
 
 		const configurationUri = Uri.joinPath(
-			this._globalStorageUri,
+			this.#globalStorageUri,
 			'polyglot-piranha-nextjs-configuration',
 		);
 
-		await this._fileSystem.createDirectory(configurationUri);
+		await this.#fileSystem.createDirectory(configurationUri);
 
-		await this._downloadFileIfNeeded(
+		await this.#downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/piranha_arguments.toml`,
 			Uri.joinPath(configurationUri, 'piranha_arguments.toml'),
 			'644',
 		);
 
-		await this._downloadFileIfNeeded(
+		await this.#downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/rules.toml`,
 			Uri.joinPath(configurationUri, 'rules.toml'),
 			'644',
 		);
 
-		await this._downloadFileIfNeeded(
+		await this.#downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/edges.toml`,
 			Uri.joinPath(configurationUri, 'edges.toml'),
 			'644',
@@ -335,7 +344,7 @@ export class PolyglotPiranhaRepairCodeService {
 		};
 	}
 
-	protected async _downloadFileIfNeeded(
+	async #downloadFileIfNeeded(
 		url: string,
 		uri: Uri,
 		chmod: Mode,
@@ -362,23 +371,19 @@ export class PolyglotPiranhaRepairCodeService {
 			: Date.now();
 
 		const localModificationTime =
-			await this._fileSystemUtilities.getModificationTime(uri);
+			await this.#fileSystemUtilities.getModificationTime(uri);
 
 		if (localModificationTime < remoteModificationTime) {
-			await this._downloadFile(url, uri, chmod);
+			await this.#downloadFile(url, uri, chmod);
 		}
 	}
 
-	protected async _downloadFile(
-		url: string,
-		uri: Uri,
-		chmod: Mode,
-	): Promise<void> {
+	async #downloadFile(url: string, uri: Uri, chmod: Mode): Promise<void> {
 		const response = await Axios.get(url, { responseType: 'arraybuffer' });
 		const content = new Uint8Array(response.data);
 
-		await this._fileSystem.writeFile(uri, content);
+		await this.#fileSystem.writeFile(uri, content);
 
-		await this._fileSystemUtilities.setChmod(uri, chmod);
+		await this.#fileSystemUtilities.setChmod(uri, chmod);
 	}
 }

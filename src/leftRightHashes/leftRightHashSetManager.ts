@@ -1,8 +1,8 @@
 export class LeftRightHashSetManager<L extends string, R extends string> {
-	protected _set = new Set<string>();
+	#set = new Set<string>();
 
 	public constructor(set: ReadonlySet<string>) {
-		this._set = new Set(set);
+		this.#set = new Set(set);
 	}
 
 	public buildByRightHashes(
@@ -10,7 +10,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	): LeftRightHashSetManager<L, R> {
 		const set = new Set<string>();
 
-		this._set.forEach((leftRightHash) => {
+		this.#set.forEach((leftRightHash) => {
 			const rightHash = leftRightHash.slice(
 				leftRightHash.length / 2,
 			) as R;
@@ -28,7 +28,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	public getLeftHashes(): ReadonlySet<L> {
 		const set = new Set<L>();
 
-		this._set.forEach((leftRightHash) => {
+		this.#set.forEach((leftRightHash) => {
 			const leftHash = leftRightHash.slice(
 				0,
 				leftRightHash.length / 2,
@@ -43,7 +43,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	public getRightHashes(): ReadonlySet<R> {
 		const rightHashes = new Set<R>();
 
-		this._set.forEach((leftRightHash) => {
+		this.#set.forEach((leftRightHash) => {
 			const rightHash = leftRightHash.slice(
 				leftRightHash.length / 2,
 			) as R;
@@ -57,7 +57,7 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	public getRightHashesByLeftHash(leftHash: L): ReadonlySet<R> {
 		const rightHashes = new Set<R>();
 
-		this._set.forEach((leftRightHash) => {
+		this.#set.forEach((leftRightHash) => {
 			if (!leftRightHash.startsWith(leftHash)) {
 				return;
 			}
@@ -71,32 +71,32 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	}
 
 	public upsert(leftHash: L, rightHash: R): void {
-		const hash = this._buildLeftRightHash(leftHash, rightHash);
+		const hash = this.#buildLeftRightHash(leftHash, rightHash);
 
-		this._set.add(hash);
+		this.#set.add(hash);
 	}
 
 	public delete(leftHash: L, rightHash: R): void {
-		const hash = this._buildLeftRightHash(leftHash, rightHash);
+		const hash = this.#buildLeftRightHash(leftHash, rightHash);
 
-		this._set.delete(hash);
+		this.#set.delete(hash);
 	}
 
 	public deleteRightHash(rightHash: R): void {
 		const deletableHashes: string[] = [];
 
-		for (const leftRightHash of this._set.keys()) {
+		for (const leftRightHash of this.#set.keys()) {
 			if (leftRightHash.endsWith(rightHash)) {
 				deletableHashes.push(leftRightHash);
 			}
 		}
 
 		for (const hash of deletableHashes) {
-			this._set.delete(hash);
+			this.#set.delete(hash);
 		}
 	}
 
-	protected _buildLeftRightHash(leftHash: L, rightHash: R): string {
+	#buildLeftRightHash(leftHash: L, rightHash: R): string {
 		return `${leftHash}${rightHash}`;
 	}
 }

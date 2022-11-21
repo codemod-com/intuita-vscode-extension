@@ -16,25 +16,37 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 export class FileService {
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #jobManager: JobManager;
+	readonly #messageBus: MessageBus;
+	readonly #vscodeService: VSCodeService;
+	readonly #uriStringToVersionMap: Map<string, number>;
+
 	public constructor(
-		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _jobManager: JobManager,
-		protected readonly _messageBus: MessageBus,
-		protected readonly _vscodeService: VSCodeService,
-		protected readonly _uriStringToVersionMap: Map<string, number>,
+		readonly configurationContainer: Container<Configuration>,
+		readonly jobManager: JobManager,
+		readonly messageBus: MessageBus,
+		readonly vscodeService: VSCodeService,
+		readonly uriStringToVersionMap: Map<string, number>,
 	) {
-		this._messageBus.subscribe(async (message) => {
+		this.#configurationContainer = configurationContainer;
+		this.#jobManager = jobManager;
+		this.#messageBus = messageBus;
+		this.#vscodeService = vscodeService;
+		this.#uriStringToVersionMap = uriStringToVersionMap;
+
+		this.#messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
-				setImmediate(() => this._onReadingFileFailed(message));
+				setImmediate(() => this.#onReadingFileFailed(message));
 			}
 
 			if (message.kind === MessageKind.updateExternalFile) {
-				setImmediate(() => this._onUpdateExternalFile(message));
+				setImmediate(() => this.#onUpdateExternalFile(message));
 			}
 		});
 	}
 
-	protected async _onReadingFileFailed(
+	async #onReadingFileFailed(
 		message: Message & { kind: MessageKind.readingFileFailed },
 	) {
 		const destructedUri = destructIntuitaFileSystemUri(message.uri);
@@ -43,7 +55,7 @@ export class FileService {
 			return;
 		}
 
-		const text = await this._getText(destructedUri);
+		const text = await this.#getText(destructedUri);
 
 		const content = Buffer.from(text);
 
@@ -52,7 +64,7 @@ export class FileService {
 				? FilePermission.Readonly
 				: null;
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.writeFile,
 			uri: message.uri,
 			content,
@@ -60,27 +72,27 @@ export class FileService {
 		});
 	}
 
-	protected async _getText(
+	async #getText(
 		destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
 	): Promise<string> {
 		if (destructedUri.directory === 'jobs') {
-			return this._jobManager.executeJob(destructedUri.jobHash, 0).text;
+			return this.#jobManager.executeJob(destructedUri.jobHash, 0).text;
 		}
 
 		const fileName = destructedUri.fsPath;
 		const uri = Uri.parse(fileName);
 
-		const textDocument = await this._vscodeService.openTextDocument(uri);
+		const textDocument = await this.#vscodeService.openTextDocument(uri);
 
 		return textDocument.getText();
 	}
 
-	protected async _onUpdateExternalFile(
+	async #onUpdateExternalFile(
 		message: Message & { kind: MessageKind.updateExternalFile },
 	) {
 		const stringUri = message.uri.toString();
 
-		const document = await this._vscodeService.openTextDocument(
+		const document = await this.#vscodeService.openTextDocument(
 			message.uri,
 		);
 
@@ -100,17 +112,17 @@ export class FileService {
 
 		workspaceEdit.replace(message.uri, range, message.jobOutput.text);
 
-		this._uriStringToVersionMap.set(stringUri, document.version + 1);
+		this.#uriStringToVersionMap.set(stringUri, document.version + 1);
 
 		await workspace.applyEdit(workspaceEdit);
 
-		const { saveDocumentOnJobAccept } = this._configurationContainer.get();
+		const { saveDocumentOnJobAccept } = this.#configurationContainer.get();
 
 		if (saveDocumentOnJobAccept) {
 			await document.save();
 		}
 
-		const activeTextEditor = this._vscodeService.getActiveTextEditor();
+		const activeTextEditor = this.#vscodeService.getActiveTextEditor();
 
 		if (activeTextEditor?.document.uri.toString() === stringUri) {
 			const position = new Position(
@@ -128,7 +140,7 @@ export class FileService {
 			);
 		}
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.externalFileUpdated,
 			uri: message.uri,
 		});

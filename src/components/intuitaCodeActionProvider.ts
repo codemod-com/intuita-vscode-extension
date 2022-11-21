@@ -29,7 +29,10 @@ const isRangeWithinPosition = (
 	range[3] >= position[1];
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
-	public constructor(protected readonly _jobManager: JobManager) {}
+	#jobManager: JobManager;
+	public constructor(jobManager: JobManager) {
+		this.#jobManager = jobManager;
+	}
 
 	provideCodeActions(
 		document: TextDocument,
@@ -39,7 +42,7 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 
 		const position = buildIntuitaPosition(range);
 
-		const codeActions = Array.from(this._jobManager.getFileJobs(uri))
+		const codeActions = Array.from(this.#jobManager.getFileJobs(uri))
 			.filter(({ range }) => isRangeWithinPosition(range, position))
 			.flatMap((job) => {
 				const characterDifference = calculateCharacterDifference(

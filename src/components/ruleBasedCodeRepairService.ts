@@ -14,25 +14,32 @@ import {
 import { Message, MessageBus, MessageKind } from './messageBus';
 
 export class RuleBasedCoreRepairService {
+	readonly #caseManager: CaseManager;
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #messageBus: MessageBus;
+
 	public constructor(
-		protected readonly _caseManager: CaseManager,
-		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _messageBus: MessageBus,
+		caseManager: CaseManager,
+		configurationContainer: Container<Configuration>,
+		messageBus: MessageBus,
 	) {
-		this._messageBus.subscribe((message) => {
+		this.#caseManager = caseManager;
+		this.#configurationContainer = configurationContainer;
+		this.#messageBus = messageBus;
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.externalDiagnostics) {
 				setImmediate(() => {
-					this._onExternalDiagnosticsMessage(message);
+					this.#onExternalDiagnosticsMessage(message);
 				});
 			}
 		});
 	}
 
-	protected _onExternalDiagnosticsMessage(
+	#onExternalDiagnosticsMessage(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	): void {
 		const { preferRuleBasedCodeRepair } =
-			this._configurationContainer.get();
+			this.#configurationContainer.get();
 
 		if (!preferRuleBasedCodeRepair) {
 			return;
@@ -78,11 +85,11 @@ export class RuleBasedCoreRepairService {
 			.filter(isNeitherNullNorUndefined);
 
 		const { casesWithJobHashes, jobs } = buildCases(
-			this._caseManager.getCasesWithJobHashes(),
+			this.#caseManager.getCasesWithJobHashes(),
 			enhancements,
 		);
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.upsertCases,
 			uriHashFileMap: message.uriHashFileMap,
 			casesWithJobHashes,
