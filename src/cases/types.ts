@@ -17,22 +17,27 @@ export const enum RepairCodeByTscCaseSubKind {
 	TS2769_OBJECT_ASSIGN,
 }
 
+export const enum RepairCodeByPolyglotPiranhaCaseSubKind {
+	NEXT_JS_LINK,
+	NEXT_JS_IMAGE,
+}
+
 export type Case =
 	| Readonly<{
-			hash: CaseHash;
 			kind: CaseKind.MOVE_TOP_LEVEL_BLOCKS;
+			hash: CaseHash;
 	  }>
 	| Readonly<{
-			hash: CaseHash;
 			kind: CaseKind.REPAIR_CODE_BY_TSC;
 			subKind: RepairCodeByTscCaseSubKind;
+			hash: CaseHash;
 			code: string;
 			node: Node;
 	  }>
 	| Readonly<{
-			hash: CaseHash;
 			kind: CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
-			// to be continued
+			subKind: RepairCodeByPolyglotPiranhaCaseSubKind;
+			hash: CaseHash;
 	  }>;
 
 export type CaseWithJobHashes = Case &

@@ -14,8 +14,9 @@ export const buildCaseHash = (
 ): CaseHash => {
 	switch (kase.kind) {
 		case CaseKind.MOVE_TOP_LEVEL_BLOCKS:
+			return buildHash([kase.kind].join(',')) as CaseHash;
 		case CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA:
-			return buildHash(String(kase.kind)) as CaseHash;
+			return buildHash([kase.kind, kase.subKind].join(',')) as CaseHash;
 		case CaseKind.REPAIR_CODE_BY_TSC:
 			return buildHash(
 				[kase.kind, kase.subKind, kase.code, jobHash ?? ''].join(','),

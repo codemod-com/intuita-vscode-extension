@@ -1,4 +1,9 @@
-import { Case, CaseKind, RepairCodeByTscCaseSubKind } from '../cases/types';
+import {
+	Case,
+	CaseKind,
+	RepairCodeByPolyglotPiranhaCaseSubKind,
+	RepairCodeByTscCaseSubKind,
+} from '../cases/types';
 import type { CaseElement, ElementHash, FileElement } from './types';
 
 const buildLabelHeader = (kase: Case): string => {
@@ -19,8 +24,14 @@ const buildLabelHeader = (kase: Case): string => {
 					return `Case: TS${kase.code}`;
 			}
 		}
-		case CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA:
-			return 'Case: Repair Code by Polyglot Piranha';
+		case CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA: {
+			switch (kase.subKind) {
+				case RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_IMAGE:
+					return 'Case: Repair Next.js Images';
+				case RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_LINK:
+					return 'Case: Repair Next.js Links';
+			}
+		}
 	}
 };
 

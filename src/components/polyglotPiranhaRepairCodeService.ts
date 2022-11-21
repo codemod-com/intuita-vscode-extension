@@ -6,7 +6,11 @@ import { Mode } from 'node:fs';
 import { promisify } from 'node:util';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import {
+	CaseKind,
+	CaseWithJobHashes,
+	RepairCodeByPolyglotPiranhaCaseSubKind,
+} from '../cases/types';
 import { buildRepairCodeJob } from '../features/repairCode/job';
 import { buildFile } from '../files/buildFile';
 import { File } from '../files/types';
@@ -125,22 +129,58 @@ export class PolyglotPiranhaRepairCodeService {
 
 		const content = await this._fileSystem.readFile(outputUri);
 
-		const { jobs, uriHashFileMap } = await this._buildJobs(content);
+		const { nextJsImageJobs, nextJsLinkJobs, uriHashFileMap } =
+			await this._buildJobs(content);
 
 		await this._fileSystem.delete(outputUri);
 
-		const kind: CaseKind = CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
+		const casesWithJobHashes: CaseWithJobHashes[] = [];
 
-		const caseWithJobHashes: CaseWithJobHashes = {
-			hash: buildCaseHash({ kind }, jobs[0]?.hash ?? null),
-			kind,
-			jobHashes: new Set(jobs.map((job) => job.hash)),
-		};
+		if (nextJsImageJobs[0]) {
+			const kind = CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
+			const subKind =
+				RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_IMAGE;
+
+			const kase = {
+				kind,
+				subKind,
+			} as const;
+
+			const caseWithJobHashes: CaseWithJobHashes = {
+				hash: buildCaseHash(kase, nextJsImageJobs[0].hash),
+				kind,
+				subKind,
+				jobHashes: new Set(nextJsImageJobs.map((job) => job.hash)),
+			};
+
+			casesWithJobHashes.push(caseWithJobHashes);
+		}
+
+		if (nextJsLinkJobs[0]) {
+			const kind = CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
+			const subKind = RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_LINK;
+
+			const kase = {
+				kind,
+				subKind,
+			} as const;
+
+			const caseWithJobHashes: CaseWithJobHashes = {
+				hash: buildCaseHash(kase, nextJsLinkJobs[0].hash),
+				kind,
+				subKind,
+				jobHashes: new Set(nextJsLinkJobs.map((job) => job.hash)),
+			};
+
+			casesWithJobHashes.push(caseWithJobHashes);
+		}
+
+		const jobs = nextJsImageJobs.concat(nextJsLinkJobs);
 
 		this._messageBus.publish({
 			kind: MessageKind.upsertCases,
 			uriHashFileMap,
-			casesWithJobHashes: [caseWithJobHashes],
+			casesWithJobHashes,
 			jobs,
 			inactiveJobHashes: new Set(),
 			inactiveDiagnosticHashes: new Set(),
@@ -150,7 +190,8 @@ export class PolyglotPiranhaRepairCodeService {
 
 	protected async _buildJobs(content: Uint8Array) {
 		const uriHashFileMap = new Map<UriHash, File>();
-		const jobs: Job[] = [];
+		const nextJsLinkJobs: Job[] = [];
+		const nextJsImageJobs: Job[] = [];
 
 		const buffer = Buffer.from(content);
 		const input = JSON.parse(buffer.toString('utf8'));
@@ -164,7 +205,8 @@ export class PolyglotPiranhaRepairCodeService {
 
 			return {
 				uriHashFileMap,
-				jobs,
+				nextJsLinkJobs,
+				nextJsImageJobs,
 			};
 		}
 
@@ -179,19 +221,20 @@ export class PolyglotPiranhaRepairCodeService {
 			matches
 				.map((match) => this._buildJob(file, match))
 				.forEach((job) => {
-					jobs.push(job);
+					nextJsLinkJobs.push(job);
 				});
 
 			rewrites
 				.map((rewrite) => this._buildRewriteJob(file, rewrite))
 				.forEach((job) => {
-					jobs.push(job);
+					nextJsImageJobs.push(job);
 				});
 		}
 
 		return {
 			uriHashFileMap,
-			jobs,
+			nextJsLinkJobs,
+			nextJsImageJobs,
 		};
 	}
 
