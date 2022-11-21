@@ -60,7 +60,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		messageBus,
-		configurationContainer,
 		intuitaFileSystem,
 		vscodeService,
 	);
@@ -94,7 +93,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		configurationContainer,
 		messageBus,
 		jobManager,
-		diagnosticCollection,
 	);
 
 	const explorerTreeView = vscode.window.createTreeView(

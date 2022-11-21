@@ -1,7 +1,6 @@
 import { join } from 'node:path';
 import {
 	commands,
-	DiagnosticCollection,
 	Event,
 	EventEmitter,
 	MarkdownString,
@@ -94,41 +93,50 @@ const getElementIconBaseName = (kind: Element['kind']): string => {
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
-	protected readonly _elementMap = new Map<ElementHash, Element>();
-	protected readonly _childParentMap = new Map<ElementHash, ElementHash>();
-	protected readonly _activeJobHashes = new Set<JobHash>();
-	protected _reveal: TreeView<ElementHash>['reveal'] | null = null;
+	readonly #elementMap = new Map<ElementHash, Element>();
+	readonly #childParentMap = new Map<ElementHash, ElementHash>();
+	readonly #activeJobHashes = new Set<JobHash>();
+	readonly #caseManager: CaseManager;
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #messageBus: MessageBus;
+	readonly #jobManager: JobManager;
+
+	#reveal: TreeView<ElementHash>['reveal'] | null = null;
 
 	public constructor(
-		protected readonly _caseManager: CaseManager,
-		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _messageBus: MessageBus,
-		protected readonly _jobManager: JobManager,
-		protected readonly _diagnosticCollection: DiagnosticCollection,
+		caseManager: CaseManager,
+		configurationContainer: Container<Configuration>,
+		messageBus: MessageBus,
+		jobManager: JobManager,
 	) {
+		this.#caseManager = caseManager;
+		this.#configurationContainer = configurationContainer;
+		this.#messageBus = messageBus;
+		this.#jobManager = jobManager;
+
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
-		this._messageBus.subscribe((message) => {
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateElements) {
 				setImmediate(async () => {
-					await this._onUpdateElementsMessage(message);
+					await this.#onUpdateElementsMessage(message);
 				});
 			}
 		});
 	}
 
 	public setReveal(reveal: TreeView<ElementHash>['reveal']) {
-		this._reveal = reveal;
+		this.#reveal = reveal;
 	}
 
 	public getParent(elementHash: ElementHash): ProviderResult<ElementHash> {
-		return this._childParentMap.get(elementHash);
+		return this.#childParentMap.get(elementHash);
 	}
 
 	public getChildren(
 		elementHash: ElementHash | undefined,
 	): ProviderResult<ElementHash[]> {
-		const element = this._elementMap.get(
+		const element = this.#elementMap.get(
 			(elementHash ?? '') as ElementHash,
 		);
 
@@ -146,7 +154,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		if (element.kind === 'CASE') {
-			const { showFileElements } = this._configurationContainer.get();
+			const { showFileElements } = this.#configurationContainer.get();
 
 			if (showFileElements) {
 				return element.children.filter(hasChildren).map(getHash);
@@ -167,7 +175,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public getTreeItem(
 		elementHash: ElementHash,
 	): TreeItem | Thenable<TreeItem> {
-		const element = this._elementMap.get(elementHash);
+		const element = this.#elementMap.get(elementHash);
 
 		if (!element) {
 			throw new Error(
@@ -227,20 +235,21 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return treeItem;
 	}
 
-	protected async _onUpdateElementsMessage(
+	async #onUpdateElementsMessage(
 		message: Message & { kind: MessageKind.updateElements },
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		const caseDtos = this._caseManager.getCasesWithJobHashes();
+		const caseDataTransferObjects =
+			this.#caseManager.getCasesWithJobHashes();
 
-		const jobMap = this._buildJobMap(caseDtos);
+		const jobMap = this.#buildJobMap(caseDataTransferObjects);
 
-		const { showFileElements } = this._configurationContainer.get();
+		const { showFileElements } = this.#configurationContainer.get();
 
-		const caseElements = this._buildCaseElements(
+		const caseElements = this.#buildCaseElements(
 			rootPath,
-			caseDtos,
+			caseDataTransferObjects,
 			jobMap,
 			showFileElements,
 		);
@@ -252,10 +261,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		};
 
 		// update collections
-		this._elementMap.clear();
-		this._childParentMap.clear();
+		this.#elementMap.clear();
+		this.#childParentMap.clear();
 
-		this._setElement(rootElement);
+		this.#setElement(rootElement);
 
 		const firstJobElement = getFirstJobElement(rootElement);
 
@@ -274,34 +283,34 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				'Proposed change',
 			);
 
-			if (!this._reveal) {
+			if (!this.#reveal) {
 				return;
 			}
 
-			await this._reveal(firstJobElement.hash, {
+			await this.#reveal(firstJobElement.hash, {
 				select: true,
 				focus: true,
 			});
 		};
 
 		const inactiveJobHashes: JobHash[] = [];
-		const oldActiveJobHashCount = this._activeJobHashes.size;
+		const oldActiveJobHashCount = this.#activeJobHashes.size;
 
-		for (const jobHash of this._activeJobHashes) {
+		for (const jobHash of this.#activeJobHashes) {
 			if (!jobMap.has(jobHash)) {
 				inactiveJobHashes.push(jobHash);
 			}
 		}
 
 		for (const jobHash of jobMap.keys()) {
-			this._activeJobHashes.add(jobHash);
+			this.#activeJobHashes.add(jobHash);
 		}
 
 		for (const jobHash of inactiveJobHashes) {
-			this._activeJobHashes.delete(jobHash);
+			this.#activeJobHashes.delete(jobHash);
 		}
 
-		const newActiveJobHashCount = this._activeJobHashes.size;
+		const newActiveJobHashCount = this.#activeJobHashes.size;
 
 		if (
 			message.trigger === 'didSave' &&
@@ -330,14 +339,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 	}
 
-	protected _setElement(element: Element) {
-		this._elementMap.set(element.hash, element);
+	#setElement(element: Element) {
+		this.#elementMap.set(element.hash, element);
 
 		if (!('children' in element)) {
 			return;
 		}
 
-		const { showFileElements } = this._configurationContainer.get();
+		const { showFileElements } = this.#configurationContainer.get();
 
 		if (element.kind === 'CASE' && !showFileElements) {
 			const jobElement = element.children.flatMap(
@@ -345,29 +354,29 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			);
 
 			jobElement.forEach((childElement) => {
-				this._childParentMap.set(childElement.hash, element.hash);
+				this.#childParentMap.set(childElement.hash, element.hash);
 
-				this._setElement(childElement);
+				this.#setElement(childElement);
 			});
 
 			return;
 		}
 
 		element.children.forEach((childElement) => {
-			this._childParentMap.set(childElement.hash, element.hash);
+			this.#childParentMap.set(childElement.hash, element.hash);
 
-			this._setElement(childElement);
+			this.#setElement(childElement);
 		});
 	}
 
-	protected _buildJobMap(
-		caseDtos: Iterable<CaseWithJobHashes>,
+	#buildJobMap(
+		caseDataTransferObjects: Iterable<CaseWithJobHashes>,
 	): ReadonlyMap<JobHash, Job> {
 		const map = new Map<JobHash, Job>();
 
-		for (const caseDto of caseDtos) {
+		for (const caseDto of caseDataTransferObjects) {
 			for (const jobHash of caseDto.jobHashes) {
-				const job = this._jobManager.getJob(jobHash);
+				const job = this.#jobManager.getJob(jobHash);
 
 				if (!job) {
 					continue;
@@ -380,7 +389,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return map;
 	}
 
-	protected _buildCaseElements(
+	#buildCaseElements(
 		rootPath: string,
 		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,

@@ -3,11 +3,14 @@ import { chmod } from 'node:fs/promises';
 import { FileSystem, FileSystemError, Uri } from 'vscode';
 
 export class FileSystemUtilities {
-	constructor(protected readonly _fs: FileSystem) {}
+	readonly #fs: FileSystem;
+	constructor(fs: FileSystem) {
+		this.#fs = fs;
+	}
 
 	public async getModificationTime(uri: Uri): Promise<number> {
 		try {
-			const fileStat = await this._fs.stat(uri);
+			const fileStat = await this.#fs.stat(uri);
 
 			return fileStat.mtime;
 		} catch (error) {

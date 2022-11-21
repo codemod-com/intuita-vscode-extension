@@ -24,14 +24,16 @@ type IntuitaFile = Readonly<{
 }>;
 
 export class IntuitaFileSystem implements FileSystemProvider {
-	protected readonly _emitter = new EventEmitter<FileChangeEvent[]>();
-	protected readonly _files = new Map<string, IntuitaFile>();
+	#messageBus: MessageBus;
+	readonly #emitter = new EventEmitter<FileChangeEvent[]>();
+	readonly #files = new Map<string, IntuitaFile>();
 
 	public readonly onDidChangeFile: Event<FileChangeEvent[]> =
-		this._emitter.event;
+		this.#emitter.event;
 
-	public constructor(protected readonly _messageBus: MessageBus) {
-		this._messageBus.subscribe((message) => {
+	public constructor(messageBus: MessageBus) {
+		this.#messageBus = messageBus;
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.writeFile) {
 				setImmediate(() => {
 					this.writeFile(message.uri, message.content, {
@@ -50,7 +52,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 			if (message.kind === MessageKind.changePermissions) {
 				setImmediate(() => {
-					this._changePermissions(message.uri, message.permissions);
+					this.#changePermissions(message.uri, message.permissions);
 				});
 			}
 		});
@@ -66,7 +68,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 		const fileName = uri.toString();
 
-		const file = this._files.get(fileName);
+		const file = this.#files.get(fileName);
 
 		const ctime = file?.ctime ?? now;
 		const mtime = file?.mtime ?? now;
@@ -91,7 +93,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 	public readNullableFile(uri: Uri): Uint8Array | null {
 		const fileName = uri.toString();
 
-		const file = this._files.get(fileName);
+		const file = this.#files.get(fileName);
 
 		return file?.content ?? null;
 	}
@@ -100,7 +102,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 		const content = this.readNullableFile(uri);
 
 		if (!content) {
-			this._messageBus.publish({
+			this.#messageBus.publish({
 				kind: MessageKind.readingFileFailed,
 				uri,
 			});
@@ -123,7 +125,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 		const fileName = uri.toString();
 
-		const oldFile = this._files.get(fileName);
+		const oldFile = this.#files.get(fileName);
 
 		if (!oldFile && !options.create) {
 			throw FileSystemError.FileNotFound(uri);
@@ -133,7 +135,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 			throw FileSystemError.FileExists(uri);
 		}
 
-		this._files.set(fileName, {
+		this.#files.set(fileName, {
 			content,
 			permissions: options.permissions ?? null,
 			ctime: oldFile?.ctime ?? now,
@@ -142,7 +144,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 		const type = oldFile ? FileChangeType.Changed : FileChangeType.Created;
 
-		this._emitter.fire([
+		this.#emitter.fire([
 			{
 				uri,
 				type,
@@ -153,13 +155,13 @@ export class IntuitaFileSystem implements FileSystemProvider {
 	delete(uri: Uri): void {
 		const fileName = uri.toString();
 
-		if (!this._files.has(fileName)) {
+		if (!this.#files.has(fileName)) {
 			return;
 		}
 
-		this._files.delete(fileName);
+		this.#files.delete(fileName);
 
-		this._emitter.fire([
+		this.#emitter.fire([
 			{
 				uri,
 				type: FileChangeType.Deleted,
@@ -170,33 +172,30 @@ export class IntuitaFileSystem implements FileSystemProvider {
 	rename(oldUri: Uri, newUri: Uri): void {
 		const oldFileName = oldUri.toString();
 
-		const file = this._files.get(oldFileName);
+		const file = this.#files.get(oldFileName);
 
 		if (!file) {
 			throw new Error('File not found.');
 		}
 
-		this._files.set(newUri.toString(), file);
+		this.#files.set(newUri.toString(), file);
 	}
 
-	protected _changePermissions(
-		uri: Uri,
-		permissions: FilePermission | null,
-	): void {
+	#changePermissions(uri: Uri, permissions: FilePermission | null): void {
 		const fileName = uri.toString();
 
-		const file = this._files.get(fileName);
+		const file = this.#files.get(fileName);
 
 		if (!file) {
 			throw FileSystemError.FileNotFound(uri);
 		}
 
-		this._files.set(fileName, {
+		this.#files.set(fileName, {
 			...file,
 			permissions,
 		});
 
-		this._emitter.fire([
+		this.#emitter.fire([
 			{
 				uri,
 				type: FileChangeType.Changed,

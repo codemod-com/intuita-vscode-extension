@@ -21,23 +21,24 @@ const isDiagnosticSupported = ({ source, severity }: Diagnostic): boolean =>
 	source === 'ts' && severity === 0;
 
 export class DiagnosticManager {
-	protected readonly _activeHashes: Set<DiagnosticHash> = new Set();
+	readonly #activeHashes: Set<DiagnosticHash> = new Set();
+	readonly #messageBus: MessageBus;
+	readonly #vscodeService: VSCodeService;
 
-	public constructor(
-		protected readonly _messageBus: MessageBus,
-		protected readonly _vscodeService: VSCodeService,
-	) {
-		_messageBus.subscribe((message) => {
+	public constructor(messageBus: MessageBus, vscodeService: VSCodeService) {
+		this.#messageBus = messageBus;
+		this.#vscodeService = vscodeService;
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.jobsAccepted) {
 				setImmediate(() => {
-					this._onJobAcceptedMessage(message);
+					this.#onJobAcceptedMessage(message);
 				});
 			}
 		});
 	}
 
 	public async handleDiagnostics(trigger: Trigger) {
-		const uriDiagnosticsTuples = this._getUriDiagnosticsTuples();
+		const uriDiagnosticsTuples = this.#getUriDiagnosticsTuples();
 
 		const enhancedDiagnostics: EnhancedDiagnostic[] = [];
 		const hashes = new Set<DiagnosticHash>();
@@ -52,7 +53,7 @@ export class DiagnosticManager {
 
 			const uriHash = buildUriHash(uri);
 
-			const textDocument = await this._vscodeService.openTextDocument(
+			const textDocument = await this.#vscodeService.openTextDocument(
 				uri,
 			);
 
@@ -83,7 +84,7 @@ export class DiagnosticManager {
 
 		const inactiveDiagnosticHashes: DiagnosticHash[] = [];
 
-		this._activeHashes.forEach((hash) => {
+		this.#activeHashes.forEach((hash) => {
 			if (hashes.has(hash)) {
 				return;
 			}
@@ -92,14 +93,14 @@ export class DiagnosticManager {
 		});
 
 		inactiveDiagnosticHashes.forEach((hash) => {
-			this._activeHashes.delete(hash);
+			this.#activeHashes.delete(hash);
 		});
 
 		hashes.forEach((hash) => {
-			this._activeHashes.add(hash);
+			this.#activeHashes.add(hash);
 		});
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.externalDiagnostics,
 			uriHashFileMap,
 			enhancedDiagnostics,
@@ -108,8 +109,8 @@ export class DiagnosticManager {
 		});
 	}
 
-	protected _getUriDiagnosticsTuples = () => {
-		return this._vscodeService
+	#getUriDiagnosticsTuples = () => {
+		return this.#vscodeService
 			.getDiagnostics()
 			.filter(([uri]) => {
 				const stringUri = uri.toString();
@@ -127,11 +128,11 @@ export class DiagnosticManager {
 			});
 	};
 
-	protected async _onJobAcceptedMessage(
+	async #onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
 		for (const diagnosticHash of message.deletedDiagnosticHashes) {
-			this._activeHashes.delete(diagnosticHash);
+			this.#activeHashes.delete(diagnosticHash);
 		}
 	}
 }

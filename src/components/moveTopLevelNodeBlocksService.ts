@@ -17,19 +17,30 @@ import { Message, MessageBus, MessageKind, Trigger } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 export class MoveTopLevelBlocksService {
-	protected readonly _hasHadMoveTopLevelBlockJobs = new Set<UriHash>();
+	readonly #hasHadMoveTopLevelBlockJobs = new Set<UriHash>();
+	readonly #caseManager: CaseManager;
+	readonly #jobManager: JobManager;
+	readonly #messageBus: MessageBus;
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #vscodeService: VSCodeService;
 
 	public constructor(
-		protected readonly _caseManager: CaseManager,
-		protected readonly _jobManager: JobManager,
-		protected readonly _messageBus: MessageBus,
-		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _vscodeService: VSCodeService,
+		caseManager: CaseManager,
+		jobManager: JobManager,
+		messageBus: MessageBus,
+		configurationContainer: Container<Configuration>,
+		vscodeService: VSCodeService,
 	) {
-		_messageBus.subscribe((message) => {
+		this.#caseManager = caseManager;
+		this.#jobManager = jobManager;
+		this.#messageBus = messageBus;
+		this.#configurationContainer = configurationContainer;
+		this.#vscodeService = vscodeService;
+
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.externalFileUpdated) {
 				setImmediate(() => {
-					this._onExternalFileUpdatedMessage(message);
+					this.#onExternalFileUpdatedMessage(message);
 				});
 			}
 		});
@@ -52,7 +63,7 @@ export class MoveTopLevelBlocksService {
 			kind: 'MOVE_TOP_LEVEL_NODE',
 			fileName,
 			fileText: text,
-			options: this._configurationContainer.get(),
+			options: this.#configurationContainer.get(),
 		};
 
 		const fact = buildMoveTopLevelNodeFact(userCommand);
@@ -63,7 +74,7 @@ export class MoveTopLevelBlocksService {
 
 		const cases: Case[] = [];
 
-		for (const kase of this._caseManager.getCases()) {
+		for (const kase of this.#caseManager.getCases()) {
 			if (kase.kind !== CaseKind.MOVE_TOP_LEVEL_BLOCKS) {
 				continue;
 			}
@@ -73,20 +84,20 @@ export class MoveTopLevelBlocksService {
 
 		const newJobs = buildMoveTopLevelNodeJobs(userCommand, fact);
 
-		const oldJobHashes = this._caseManager.getJobHashes(
+		const oldJobHashes = this.#caseManager.getJobHashes(
 			cases.map((kase) => kase.hash),
 		);
 		const newJobHashes = new Set(newJobs.map(({ hash }) => hash));
 
 		oldJobHashes.forEach((jobHash) => {
-			const job = this._jobManager.getJob(jobHash);
+			const job = this.#jobManager.getJob(jobHash);
 
 			if (job?.kind === JobKind.repairCode) {
 				newJobHashes.add(jobHash);
 			}
 		});
 
-		this._hasHadMoveTopLevelBlockJobs.add(uriHash);
+		this.#hasHadMoveTopLevelBlockJobs.add(uriHash);
 
 		const file = buildFile(uri, text, version);
 		const uriHashFileMap = new Map<UriHash, File>([[uriHash, file]]);
@@ -107,7 +118,7 @@ export class MoveTopLevelBlocksService {
 			inactiveJobHashes.add(oldJobHash);
 		});
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.upsertCases,
 			uriHashFileMap,
 			casesWithJobHashes: [caseWithJobHashes],
@@ -118,16 +129,16 @@ export class MoveTopLevelBlocksService {
 		});
 	}
 
-	protected async _onExternalFileUpdatedMessage(
+	async #onExternalFileUpdatedMessage(
 		message: Message & { kind: MessageKind.externalFileUpdated },
 	): Promise<void> {
 		const uriHash = buildUriHash(message.uri);
 
-		if (!this._hasHadMoveTopLevelBlockJobs.has(uriHash)) {
+		if (!this.#hasHadMoveTopLevelBlockJobs.has(uriHash)) {
 			return;
 		}
 
-		const document = await this._vscodeService.openTextDocument(
+		const document = await this.#vscodeService.openTextDocument(
 			message.uri,
 		);
 

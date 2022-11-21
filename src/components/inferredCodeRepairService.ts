@@ -23,50 +23,56 @@ import { classify } from '../classifier/classify';
 import { File } from '../files/types';
 
 export class InferredCodeRepairService {
-	protected readonly _cancelTokenSourceMap: Map<UriHash, CancelTokenSource> =
-		new Map();
+	readonly #caseManager: CaseManager;
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #messageBus: MessageBus;
+	readonly #cancelTokenSourceMap: Map<UriHash, CancelTokenSource> = new Map();
 
 	public constructor(
-		protected readonly _caseManager: CaseManager,
-		protected readonly _configurationContainer: Container<Configuration>,
-		protected readonly _messageBus: MessageBus,
+		readonly caseManager: CaseManager,
+		readonly configurationContainer: Container<Configuration>,
+		readonly messageBus: MessageBus,
 	) {
-		this._messageBus.subscribe((message) => {
+		this.#caseManager = caseManager;
+		this.#configurationContainer = configurationContainer;
+		this.#messageBus = messageBus;
+
+		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.externalFileUpdated) {
 				setImmediate(() => {
-					this._onExternalFileUpdatedMessage(message.uri);
+					this.#onExternalFileUpdatedMessage(message.uri);
 				});
 			}
 
 			if (message.kind === MessageKind.externalDiagnostics) {
 				setImmediate(() => {
-					this._onExternalDiagnosticsMessage(message);
+					this.#onExternalDiagnosticsMessage(message);
 				});
 			}
 		});
 	}
 
-	private _cancel(uriHash: UriHash) {
-		const cancelTokenSource = this._cancelTokenSourceMap.get(uriHash);
+	#cancel(uriHash: UriHash) {
+		const cancelTokenSource = this.#cancelTokenSourceMap.get(uriHash);
 
 		if (!cancelTokenSource) {
 			return;
 		}
 
-		this._cancelTokenSourceMap.delete(uriHash);
+		this.#cancelTokenSourceMap.delete(uriHash);
 
 		cancelTokenSource.cancel();
 	}
 
-	protected _onExternalFileUpdatedMessage(uri: Uri): void {
-		this._cancel(buildUriHash(uri));
+	#onExternalFileUpdatedMessage(uri: Uri): void {
+		this.#cancel(buildUriHash(uri));
 	}
 
-	protected async _onExternalDiagnosticsMessage(
+	async #onExternalDiagnosticsMessage(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	): Promise<void> {
 		const { preferRuleBasedCodeRepair } =
-			this._configurationContainer.get();
+			this.#configurationContainer.get();
 
 		if (preferRuleBasedCodeRepair) {
 			return;
@@ -74,7 +80,7 @@ export class InferredCodeRepairService {
 
 		const jobIngredients = await Promise.all(
 			message.enhancedDiagnostics.map((enhancedDiagnostic) =>
-				this._buildJobIngredients(
+				this.#buildJobIngredients(
 					message.uriHashFileMap,
 					enhancedDiagnostic,
 				),
@@ -82,11 +88,11 @@ export class InferredCodeRepairService {
 		);
 
 		const { casesWithJobHashes, jobs } = buildCases(
-			this._caseManager.getCasesWithJobHashes(),
+			this.#caseManager.getCasesWithJobHashes(),
 			jobIngredients,
 		);
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.upsertCases,
 			uriHashFileMap: message.uriHashFileMap,
 			casesWithJobHashes,
@@ -97,7 +103,7 @@ export class InferredCodeRepairService {
 		});
 	}
 
-	protected async _buildJobIngredients(
+	async #buildJobIngredients(
 		uriHashFileMap: ReadonlyMap<UriHash, File>,
 		enhancedDiagnostic: EnhancedDiagnostic,
 	): Promise<JobIngredients> {
@@ -108,15 +114,15 @@ export class InferredCodeRepairService {
 			throw new Error('Could not find a File for the provided uriHash');
 		}
 
-		this._cancel(uriHash);
+		this.#cancel(uriHash);
 
 		const source = Axios.CancelToken.source();
 
-		this._cancelTokenSourceMap.set(uriHash, source);
+		this.#cancelTokenSourceMap.set(uriHash, source);
 
 		const lineNumbers = [enhancedDiagnostic.diagnostic.range.start.line];
 
-		const response = await this._infer(
+		const response = await this.#infer(
 			uriHash,
 			Buffer.from(file.text),
 			Array.from(lineNumbers),
@@ -155,7 +161,7 @@ export class InferredCodeRepairService {
 		};
 	}
 
-	protected async _infer(
+	async #infer(
 		uriHash: string,
 		buffer: Buffer,
 		lineNumbers: number[],

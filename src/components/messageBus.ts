@@ -138,18 +138,18 @@ export type Message =
 	  }>;
 
 export class MessageBus {
-	protected _disposables: Disposable[] | undefined = undefined;
-	protected _emitter = new EventEmitter<Message>();
+	#disposables: Disposable[] | undefined = undefined;
+	#emitter = new EventEmitter<Message>();
 
 	public setDisposables(disposables: Disposable[]): void {
-		this._disposables = disposables;
+		this.#disposables = disposables;
 	}
 
 	subscribe(fn: (message: Message) => void): void {
-		this._emitter.event(fn, this._disposables);
+		this.#emitter.event(fn, this.#disposables);
 	}
 
 	publish(message: Message): void {
-		this._emitter.fire(message);
+		this.#emitter.fire(message);
 	}
 }
