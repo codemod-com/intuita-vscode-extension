@@ -22,6 +22,9 @@ import { FileSystemUtilities } from './fileSystemUtilities';
 import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
 import { MessageBus, MessageKind } from './messageBus';
 
+class RequestError extends Error {}
+class ForbiddenRequestError extends Error {}
+
 const promisifiedExec = promisify(exec);
 
 export const executePolyglotPiranha = async (
@@ -285,11 +288,21 @@ export class PolyglotPiranhaRepairCodeService {
 			executableBaseName,
 		);
 
-		this._downloadFileIfNeeded(
-			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
-			executableUri,
-			'755',
-		);
+		try {
+			await this._downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
+				executableUri,
+				'755',
+			);
+		} catch (error) {
+			if (!(error instanceof ForbiddenRequestError)) {
+				throw error;
+			}
+
+			throw new Error(
+				`Your architecture (${process.arch}) and your platform (${process.platform}) are not supported.`,
+			);
+		}
 
 		const configurationUri = Uri.joinPath(
 			this._globalStorageUri,
@@ -327,7 +340,21 @@ export class PolyglotPiranhaRepairCodeService {
 		uri: Uri,
 		chmod: Mode,
 	): Promise<void> {
-		const response = await Axios.head(url);
+		const response = await Axios.head(url).catch((error) => {
+			if (!Axios.isAxiosError(error)) {
+				throw error;
+			}
+
+			const status = error.response?.status;
+
+			if (status === 403) {
+				throw new ForbiddenRequestError(
+					`Could not make a request to ${url}: request forbidden`,
+				);
+			}
+
+			throw new RequestError(`Could not make a request to ${url}`);
+		});
 
 		const lastModified = response.headers['last-modified'];
 		const remoteModificationTime = lastModified

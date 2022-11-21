@@ -175,13 +175,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				try {
-					await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
-						storageUri,
-					);
-				} catch (error) {
-					console.error(error);
-				}
+				await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
+					storageUri,
+				);
 			},
 		),
 	);
