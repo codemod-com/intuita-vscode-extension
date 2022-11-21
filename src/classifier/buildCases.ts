@@ -54,13 +54,15 @@ export const buildCases = (
 			continue;
 		}
 
-		const partialCase = {
+		const partialCase: Omit<
+			Case & { kind: CaseKind.REPAIR_CODE_BY_TSC },
+			'hash'
+		> = {
 			kind: CaseKind.REPAIR_CODE_BY_TSC,
 			subKind: jobIngredient.classification.subKind,
 			code: stringifyCode(
 				jobIngredient.enhancedDiagnostic.diagnostic.code,
 			),
-
 			node: jobIngredient.classification.node,
 		};
 
