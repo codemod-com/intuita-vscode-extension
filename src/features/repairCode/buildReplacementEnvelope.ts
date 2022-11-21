@@ -23,14 +23,14 @@ export const buildReplacementEnvelope = (
 
 	if (
 		classification.subKind ===
-		RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT
+		RepairCodeByTscCaseSubKind.TS2322_NEXT_JS_IMAGE_LAYOUT
 	) {
 		return buildTs2322NextJsImageLayoutReplacementEnvelope(classification);
 	}
 
 	if (
 		classification.subKind ===
-		RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT
+		RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT
 	) {
 		return buildTs2741NextJsImageAltReplacementEnvelope(classification);
 	}

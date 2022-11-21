@@ -14,9 +14,9 @@ const buildLabelHeader = (kase: Case): string => {
 			switch (kase.subKind) {
 				case RepairCodeByTscCaseSubKind.TS2769_OBJECT_ASSIGN:
 					return `Case: TS${kase.code} Object.assign`;
-				case RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT:
+				case RepairCodeByTscCaseSubKind.TS2322_NEXT_JS_IMAGE_LAYOUT:
 					return `Case: TS${kase.code} Next.js Image Component Layout Attribute`;
-				case RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT:
+				case RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT:
 					return `Case: TS${kase.code} Next.js Image Component Alt Attribute`;
 				case RepairCodeByTscCaseSubKind.TS2345_PRIMITIVES:
 					return `Case: TS${kase.code} Primitives`;

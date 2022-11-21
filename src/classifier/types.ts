@@ -27,11 +27,11 @@ export type Classification =
 			node: CallExpression;
 	  }>
 	| Readonly<{
-			subKind: RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT;
+			subKind: RepairCodeByTscCaseSubKind.TS2322_NEXT_JS_IMAGE_LAYOUT;
 			node: JsxAttribute;
 	  }>
 	| Readonly<{
-			subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT;
+			subKind: RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT;
 			node: JsxSelfClosingElement;
 	  }>
 	| Readonly<{

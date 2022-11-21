@@ -145,7 +145,7 @@ export const classify = (
 			if (node) {
 				return {
 					subKind:
-						RepairCodeByTscCaseSubKind.TS2322_NEXTJS_IMAGE_LAYOUT,
+						RepairCodeByTscCaseSubKind.TS2322_NEXT_JS_IMAGE_LAYOUT,
 					node,
 				};
 			}
@@ -158,7 +158,7 @@ export const classify = (
 
 			if (node) {
 				return {
-					subKind: RepairCodeByTscCaseSubKind.TS2741_NEXTJS_IMAGE_ALT,
+					subKind: RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT,
 					node,
 				};
 			}
