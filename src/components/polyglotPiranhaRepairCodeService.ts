@@ -142,9 +142,9 @@ export class PolyglotPiranhaRepairCodeService {
 		const content = await this.#fileSystem.readFile(outputUri);
 
 		const { nextJsImageJobs, nextJsLinkJobs, uriHashFileMap } =
-			await this._buildJobs(content);
+			await this.#buildJobs(content);
 
-		await this._fileSystem.delete(outputUri);
+		await this.#fileSystem.delete(outputUri);
 
 		const casesWithJobHashes: CaseWithJobHashes[] = [];
 
@@ -189,7 +189,7 @@ export class PolyglotPiranhaRepairCodeService {
 
 		const jobs = nextJsImageJobs.concat(nextJsLinkJobs);
 
-		this._messageBus.publish({
+		this.#messageBus.publish({
 			kind: MessageKind.upsertCases,
 			uriHashFileMap,
 			casesWithJobHashes,
@@ -298,7 +298,7 @@ export class PolyglotPiranhaRepairCodeService {
 		);
 
 		try {
-			await this._downloadFileIfNeeded(
+			await this.#downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
 				executableUri,
 				'755',
