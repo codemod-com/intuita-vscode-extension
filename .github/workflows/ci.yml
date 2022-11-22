@@ -25,3 +25,38 @@ jobs:
               uses: bahmutov/npm-install@v1
             - name: Run unit tests
               run: yarn test
+    Build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+            - uses: actions/checkout@v2
+            - name: Install modules
+              uses: bahmutov/npm-install@v1
+            - name: Compile using webpack
+              run: yarn compile
+            - name: Package using webpack
+              run: yarn package
+    Lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+            - uses: actions/checkout@v2
+            - name: Install modules
+              uses: bahmutov/npm-install@v1
+            - name: Run ESLint
+              run: yarn eslint src test --ext ts
+    Prettier:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+            - uses: actions/checkout@v2
+            - name: Install modules
+              uses: bahmutov/npm-install@v1
+            - name: Ensure Prettier was run
+              run: yarn prettier --check .

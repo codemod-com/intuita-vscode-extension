@@ -1,32 +1,32 @@
 {
-    "dictionaries": [
-        "en_US",
-        "typescript",
-        "html",
-        "companies",
-        "softwareTerms"
-    ],
-    "language": "en",
-    "useGitignore": true,
-    "words": [
-        "bluelightbulb",
-        "Caartaa",
-        "codebases",
-        "coderepair",
-        "gppd",
-        "intellicode",
-        "intuita",
-        "kase",
-        "newtype",
-        "nextjs",
-        "quickstart",
-        "ripemd",
-        "roadmap",
-        "tabnine",
-        "taskifies",
-        "Upvote",
-        "userdata",
-        "vsix",
-        "yarnrc"
-    ]
+	"dictionaries": [
+		"en_US",
+		"typescript",
+		"html",
+		"companies",
+		"softwareTerms"
+	],
+	"language": "en",
+	"useGitignore": true,
+	"words": [
+		"bluelightbulb",
+		"Caartaa",
+		"codebases",
+		"coderepair",
+		"gppd",
+		"intellicode",
+		"intuita",
+		"kase",
+		"newtype",
+		"nextjs",
+		"quickstart",
+		"ripemd",
+		"roadmap",
+		"tabnine",
+		"taskifies",
+		"Upvote",
+		"userdata",
+		"vsix",
+		"yarnrc"
+	]
 }
