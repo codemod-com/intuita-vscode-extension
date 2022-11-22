@@ -158,7 +158,8 @@ export const classify = (
 
 			if (node) {
 				return {
-					subKind: RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT,
+					subKind:
+						RepairCodeByTscCaseSubKind.TS2741_NEXT_JS_IMAGE_ALT,
 					node,
 				};
 			}
