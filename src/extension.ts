@@ -17,6 +17,7 @@ import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksSe
 import { CaseHash } from './cases/types';
 import { PolyglotPiranhaRepairCodeService } from './components/polyglotPiranhaRepairCodeService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
+import { NoraNodeEngineService } from './components/noraNodeEngineService';
 
 const messageBus = new MessageBus();
 
@@ -163,6 +164,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus,
 		);
 
+	// polyglotPiranhaRepairCodeService;
+
+	const noraNodeEngineService = new NoraNodeEngineService(messageBus);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.buildNextJsCodeRepairJobs',
@@ -173,9 +178,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
-					storageUri,
-				);
+				await noraNodeEngineService.buildRepairCodeJobs();
+
+				// await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
+				// 	storageUri,
+				// );
 			},
 		),
 	);
