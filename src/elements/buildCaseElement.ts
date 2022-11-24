@@ -3,6 +3,7 @@ import {
 	CaseKind,
 	RepairCodeByPolyglotPiranhaCaseSubKind,
 	RepairCodeByTscCaseSubKind,
+	RewriteFileByNoraNodeEngineCaseSubKind,
 } from '../cases/types';
 import type { CaseElement, ElementHash, FileElement } from './types';
 
@@ -30,6 +31,16 @@ const buildLabelHeader = (kase: Case): string => {
 					return 'Case: Repair Next.js Images';
 				case RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_LINK:
 					return 'Case: Repair Next.js Links';
+			}
+		}
+		case CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE: {
+			switch(kase.subKind) {
+				case RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE:
+					return 'Case: Next.js Images';
+				case RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK:
+					return 'Case: Next.js Links';
+				case RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_REACT_IMPORT:
+					return 'Case: Next.js React.js Imports';
 			}
 		}
 	}
