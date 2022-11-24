@@ -50,7 +50,7 @@ export type Case =
 			kind: CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 			subKind: RewriteFileByNoraNodeEngineCaseSubKind;
 			hash: CaseHash;
-	}>;
+	  }>;
 
 export type CaseWithJobHashes = Case &
 	Readonly<{

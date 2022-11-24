@@ -40,7 +40,7 @@ const codemodIdSubKindMap = new Map([
 	[
 		buildHash('nextJsNewLink'),
 		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK,
-	]
+	],
 ]);
 
 const messageCodec = t.union([
@@ -104,7 +104,16 @@ export class NoraNodeEngineService {
 
 		const childProcess = spawn(
 			executableUri.fsPath,
-			['-p', pattern, '-p', '!**/node_modules', '-g', 'nextJs', '-o', outputUri.fsPath],
+			[
+				'-p',
+				pattern,
+				'-p',
+				'!**/node_modules',
+				'-g',
+				'nextJs',
+				'-o',
+				outputUri.fsPath,
+			],
 			{
 				stdio: 'pipe',
 			},
@@ -114,7 +123,10 @@ export class NoraNodeEngineService {
 
 		const uriHashFileMap = new Map<UriHash, File>();
 		const jobMap = new Map<JobHash, Job>();
-		const codemodIdHashJobHashMap = new LeftRightHashSetManager<string, JobHash>(new Set());
+		const codemodIdHashJobHashMap = new LeftRightHashSetManager<
+			string,
+			JobHash
+		>(new Set());
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
@@ -168,42 +180,45 @@ export class NoraNodeEngineService {
 		interfase.on('close', () => {
 			const casesWithJobHashes: CaseWithJobHashes[] = [];
 
-			codemodIdHashJobHashMap.getLeftHashes().forEach(
-				(codemodIdHash) => {
-					const jobs: Job[] = [];
+			codemodIdHashJobHashMap.getLeftHashes().forEach((codemodIdHash) => {
+				const jobs: Job[] = [];
 
-					const jobHashes = codemodIdHashJobHashMap.getRightHashesByLeftHash(codemodIdHash);
+				const jobHashes =
+					codemodIdHashJobHashMap.getRightHashesByLeftHash(
+						codemodIdHash,
+					);
 
-					jobHashes.forEach((jobHash) => {
-						const job = jobMap.get(jobHash);
+				jobHashes.forEach((jobHash) => {
+					const job = jobMap.get(jobHash);
 
-						if (job) {
-							jobs.push(job);
-						}
-					});
-
-					if (!jobs[0]) {
-						return;
+					if (job) {
+						jobs.push(job);
 					}
+				});
 
-					const kind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
-					const subKind = codemodIdSubKindMap.get(codemodIdHash) ?? RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
-
-					const kase = {
-						kind,
-						subKind,
-					} as const;
-
-					const caseWithJobHashes: CaseWithJobHashes = {
-						hash: buildCaseHash(kase, jobs[0].hash),
-						kind,
-						subKind,
-						jobHashes,
-					};
-
-					casesWithJobHashes.push(caseWithJobHashes);
+				if (!jobs[0]) {
+					return;
 				}
-			)
+
+				const kind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
+				const subKind =
+					codemodIdSubKindMap.get(codemodIdHash) ??
+					RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
+
+				const kase = {
+					kind,
+					subKind,
+				} as const;
+
+				const caseWithJobHashes: CaseWithJobHashes = {
+					hash: buildCaseHash(kase, jobs[0].hash),
+					kind,
+					subKind,
+					jobHashes,
+				};
+
+				casesWithJobHashes.push(caseWithJobHashes);
+			});
 
 			const jobs = Array.from(jobMap.values());
 
@@ -232,7 +247,7 @@ export class NoraNodeEngineService {
 		if (this.#executableUri) {
 			return {
 				executableUri: this.#executableUri,
-			}
+			};
 		}
 
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);

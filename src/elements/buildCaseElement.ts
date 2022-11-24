@@ -31,10 +31,12 @@ const buildLabelHeader = (kase: Case): string => {
 					return 'Case: Repair Next.js Images';
 				case RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_LINK:
 					return 'Case: Repair Next.js Links';
+				default:
+					return `Case: Repair Code`;
 			}
 		}
 		case CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE: {
-			switch(kase.subKind) {
+			switch (kase.subKind) {
 				case RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE:
 					return 'Case: Next.js Images';
 				case RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK:
