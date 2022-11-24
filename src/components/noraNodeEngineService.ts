@@ -41,11 +41,14 @@ const messageCodec = t.union([
 export class NoraNodeEngineService {
 	#messageBus: MessageBus;
 	#fileSystem: FileSystem;
+	#globalStorageUri: Uri;
 
 	public constructor(
+		globalStorageUri: Uri,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 	) {
+		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
 		this.#fileSystem = fileSystem;
 	}
@@ -178,9 +181,34 @@ export class NoraNodeEngineService {
 	}
 
 	async #bootstrap() {
-		const executableUri = Uri.file(
-			'/intuita/nora-node-engine/build/nora-node-engine-linux',
+		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+
+		const platform = process.platform === 'darwin'
+			? 'macos'
+			: encodeURIComponent(process.platform);
+
+		const executableBaseName = `polyglot-piranha-${platform}`;
+
+		const executableUri = Uri.joinPath(
+			this.#globalStorageUri,
+			executableBaseName,
 		);
+
+		try {
+			await this.#downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
+				executableUri,
+				'755',
+			);
+		} catch (error) {
+			if (!(error instanceof ForbiddenRequestError)) {
+				throw error;
+			}
+
+			throw new Error(
+				`Your architecture (${process.arch}) and your platform (${process.platform}) are not supported.`,
+			);
+		}
 
 		return {
 			executableUri,

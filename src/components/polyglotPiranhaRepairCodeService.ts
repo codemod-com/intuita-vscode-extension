@@ -1,8 +1,6 @@
-import Axios from 'axios';
 import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { exec } from 'node:child_process';
-import { Mode } from 'node:fs';
 import { promisify } from 'node:util';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
@@ -18,12 +16,9 @@ import { Job } from '../jobs/types';
 import { buildUriHash } from '../uris/buildUriHash';
 import { UriHash } from '../uris/types';
 import { buildIntuitaSimpleRange } from '../utilities';
-import { FileSystemUtilities } from './fileSystemUtilities';
+import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
 import { MessageBus, MessageKind } from './messageBus';
-
-class RequestError extends Error {}
-class ForbiddenRequestError extends Error {}
 
 const promisifiedExec = promisify(exec);
 
@@ -98,18 +93,18 @@ const piranhaOutputSummariesCodec = t.readonlyArray(
 );
 
 export class PolyglotPiranhaRepairCodeService {
+	#downloadService: DownloadService;
 	#fileSystem: FileSystem;
-	#fileSystemUtilities: FileSystemUtilities;
 	#globalStorageUri: Uri;
 	#messageBus: MessageBus;
 	public constructor(
+		downloadService: DownloadService,
 		fileSystem: FileSystem,
-		fileSystemUtilities: FileSystemUtilities,
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
 	) {
+		this.#downloadService = downloadService;
 		this.#fileSystem = fileSystem;
-		this.#fileSystemUtilities = fileSystemUtilities;
 		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
 	}
@@ -298,7 +293,7 @@ export class PolyglotPiranhaRepairCodeService {
 		);
 
 		try {
-			await this.#downloadFileIfNeeded(
+			await this.#downloadService.downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
 				executableUri,
 				'755',
@@ -320,19 +315,19 @@ export class PolyglotPiranhaRepairCodeService {
 
 		await this.#fileSystem.createDirectory(configurationUri);
 
-		await this.#downloadFileIfNeeded(
+		await this.#downloadService.downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/piranha_arguments.toml`,
 			Uri.joinPath(configurationUri, 'piranha_arguments.toml'),
 			'644',
 		);
 
-		await this.#downloadFileIfNeeded(
+		await this.#downloadService.downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/rules.toml`,
 			Uri.joinPath(configurationUri, 'rules.toml'),
 			'644',
 		);
 
-		await this.#downloadFileIfNeeded(
+		await this.#downloadService.downloadFileIfNeeded(
 			`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha-nextjs-configuration/edges.toml`,
 			Uri.joinPath(configurationUri, 'edges.toml'),
 			'644',
@@ -342,48 +337,5 @@ export class PolyglotPiranhaRepairCodeService {
 			executableUri,
 			configurationUri,
 		};
-	}
-
-	async #downloadFileIfNeeded(
-		url: string,
-		uri: Uri,
-		chmod: Mode,
-	): Promise<void> {
-		const response = await Axios.head(url).catch((error) => {
-			if (!Axios.isAxiosError(error)) {
-				throw error;
-			}
-
-			const status = error.response?.status;
-
-			if (status === 403) {
-				throw new ForbiddenRequestError(
-					`Could not make a request to ${url}: request forbidden`,
-				);
-			}
-
-			throw new RequestError(`Could not make a request to ${url}`);
-		});
-
-		const lastModified = response.headers['last-modified'];
-		const remoteModificationTime = lastModified
-			? Date.parse(lastModified)
-			: Date.now();
-
-		const localModificationTime =
-			await this.#fileSystemUtilities.getModificationTime(uri);
-
-		if (localModificationTime < remoteModificationTime) {
-			await this.#downloadFile(url, uri, chmod);
-		}
-	}
-
-	async #downloadFile(url: string, uri: Uri, chmod: Mode): Promise<void> {
-		const response = await Axios.get(url, { responseType: 'arraybuffer' });
-		const content = new Uint8Array(response.data);
-
-		await this.#fileSystem.writeFile(uri, content);
-
-		await this.#fileSystemUtilities.setChmod(uri, chmod);
 	}
 }

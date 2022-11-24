@@ -153,7 +153,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const noraNodeEngineService = new NoraNodeEngineService(messageBus, vscode.workspace.fs);
+	const noraNodeEngineService = new NoraNodeEngineService(context.globalStorageUri, messageBus, vscode.workspace.fs);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
