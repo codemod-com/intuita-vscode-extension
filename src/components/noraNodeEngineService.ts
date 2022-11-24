@@ -20,6 +20,8 @@ import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 
+
+
 const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(1),
@@ -40,10 +42,12 @@ const messageCodec = t.union([
 ]);
 
 export class NoraNodeEngineService {
-	#downloadService: DownloadService;
-	#messageBus: MessageBus;
-	#fileSystem: FileSystem;
-	#globalStorageUri: Uri;
+	readonly #downloadService: DownloadService;
+	readonly #messageBus: MessageBus;
+	readonly #fileSystem: FileSystem;
+	readonly #globalStorageUri: Uri;
+
+	#executableUri: Uri | null = null;
 
 	public constructor(
 		downloadService: DownloadService,
@@ -184,6 +188,12 @@ export class NoraNodeEngineService {
 	}
 
 	async #bootstrap() {
+		if (this.#executableUri) {
+			return {
+				executableUri: this.#executableUri,
+			}
+		}
+
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
 		const platform =
@@ -213,6 +223,8 @@ export class NoraNodeEngineService {
 				`Your platform (${process.platform}) is not supported.`,
 			);
 		}
+
+		this.#executableUri = executableUri;
 
 		return {
 			executableUri,
