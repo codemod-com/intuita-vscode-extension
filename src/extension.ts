@@ -15,8 +15,6 @@ import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
 import { CaseHash } from './cases/types';
-import { PolyglotPiranhaRepairCodeService } from './components/polyglotPiranhaRepairCodeService';
-import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraNodeEngineService } from './components/noraNodeEngineService';
 
 const messageBus = new MessageBus();
@@ -63,6 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		intuitaFileSystem,
 		vscodeService,
+		vscode.workspace.fs,
 	);
 
 	const caseManager = new CaseManager(messageBus);
@@ -154,19 +153,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
-
-	const polyglotPiranhaRepairCodeService =
-		new PolyglotPiranhaRepairCodeService(
-			vscode.workspace.fs,
-			fileSystemUtilities,
-			context.globalStorageUri,
-			messageBus,
-		);
-
-	// polyglotPiranhaRepairCodeService;
-
-	const noraNodeEngineService = new NoraNodeEngineService(messageBus);
+	const noraNodeEngineService = new NoraNodeEngineService(messageBus, vscode.workspace.fs);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -175,17 +162,30 @@ export async function activate(context: vscode.ExtensionContext) {
 				const { storageUri } = context;
 
 				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs();
-
-				// await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
-				// 	storageUri,
-				// );
+				await noraNodeEngineService.buildRepairCodeJobs(storageUri);
 			},
 		),
 	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.clearOutputFiles',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				await noraNodeEngineService.clearOutputFiles(storageUri);
+			}
+		)
+	)
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.requestFeature', () => {

@@ -6,6 +6,7 @@ import { buildHash } from "../../utilities";
 export const buildRewriteFileJobHash = (
     inputUri: Uri,
     outputUri: Uri,
+    codemodId: string,
 ): JobHash => {
     const inputUriHash = buildUriHash(inputUri);
     const outputUriHash = buildUriHash(outputUri);
@@ -13,7 +14,8 @@ export const buildRewriteFileJobHash = (
     const hash = buildHash(
 		[
 			inputUriHash,
-            outputUriHash
+            outputUriHash,
+            codemodId,
 		].join(','),
 	);
 
@@ -23,12 +25,13 @@ export const buildRewriteFileJobHash = (
 export const buildRewriteFileJob = (
     inputUri: Uri,
     outputUri: Uri,
+    codemodId: string,
 ): RewriteFileJob => {
     return {
         kind: JobKind.rewriteFile,
         fileName: inputUri.fsPath,
-        title: 'Rewrite the file',
-        hash: buildRewriteFileJobHash(inputUri, outputUri),
+        title: `Rewrite the file (${codemodId})`,
+        hash: buildRewriteFileJobHash(inputUri, outputUri, codemodId),
         outputUri,
         diagnosticHash: null,
     }

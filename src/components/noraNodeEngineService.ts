@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { Uri, workspace } from 'vscode';
+import { FileSystem, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
 import * as readline from 'node:readline';
 import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
@@ -17,6 +17,7 @@ import {
 } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
+import { buildRewriteFileJob } from '../features/rewriteFile/job';
 
 const messageCodec = t.union([
 	buildTypeCodec({
@@ -29,16 +30,29 @@ const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(2),
 	}),
+	buildTypeCodec({
+		k: t.literal(3),
+		i: t.string,
+		o: t.string,
+		c: t.string,
+	}),
 ]);
 
 export class NoraNodeEngineService {
 	#messageBus: MessageBus;
+	#fileSystem: FileSystem;
 
-	public constructor(messageBus: MessageBus) {
+	public constructor(
+		messageBus: MessageBus,
+		fileSystem: FileSystem,
+	) {
 		this.#messageBus = messageBus;
+		this.#fileSystem = fileSystem;
 	}
 
-	async buildRepairCodeJobs() {
+	async buildRepairCodeJobs(
+		storageUri: Uri,
+	) {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -50,13 +64,17 @@ export class NoraNodeEngineService {
 
 		const { executableUri } = await this.#bootstrap();
 
-		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
+		await this.#fileSystem.createDirectory(storageUri);
 
-		console.log(pattern);
+		const outputUri = Uri.joinPath(storageUri, 'noraNodeEngineOutput');
+
+		await this.#fileSystem.createDirectory(outputUri);
+
+		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
 
 		const childProcess = spawn(
 			executableUri.fsPath,
-			['--pattern', pattern],
+			['-p', pattern, '-p', '!**/node_modules', '-o', outputUri.fsPath],
 			{
 				stdio: 'pipe',
 			},
@@ -104,8 +122,13 @@ export class NoraNodeEngineService {
 				const job = buildRepairCodeJob(file, null, replacementEnvelope);
 
 				nextJsLinkJobs.push(job);
-			} else {
-				// finish
+			} else if (message.k === 3) {
+				const inputUri = Uri.file(message.i);
+				const outputUri = Uri.file(message.o);
+
+				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
+
+				nextJsLinkJobs.push(job);
 			}
 		});
 
@@ -144,6 +167,14 @@ export class NoraNodeEngineService {
 				trigger: 'onCommand',
 			});
 		});
+	}
+
+	async clearOutputFiles(
+		storageUri: Uri,
+	) {
+		const outputUri = Uri.joinPath(storageUri, 'noraNodeEngineOutput');
+
+		await this.#fileSystem.delete(outputUri, { recursive: true, useTrash: false });
 	}
 
 	async #bootstrap() {
