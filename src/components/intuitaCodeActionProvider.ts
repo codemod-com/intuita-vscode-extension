@@ -43,8 +43,11 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 		const position = buildIntuitaPosition(range);
 
 		const codeActions = Array.from(this.#jobManager.getFileJobs(uri))
-			.filter(({ range }) => isRangeWithinPosition(range, position))
 			.flatMap((job) => {
+				if (!('range' in job) || !isRangeWithinPosition(job.range, position)) {
+					return [];
+				}
+
 				const characterDifference = calculateCharacterDifference(
 					job,
 					position,
