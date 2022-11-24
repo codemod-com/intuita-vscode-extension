@@ -18,7 +18,7 @@ export const buildJobElement = (
 		label,
 		fileName: job.fileName,
 		uri: Uri.parse(job.fileName),
-		range: job.range,
+		range: null,
 		jobHash: job.hash,
 		job,
 	};
@@ -28,5 +28,13 @@ export const compareJobElements = (
 	left: JobElement,
 	right: JobElement,
 ): number => {
+	if (!left.range) {
+		return -1;
+	}
+
+	if (!right.range) {
+		return 1;
+	}
+
 	return compareIntuitaRange(left.range, right.range);
 };

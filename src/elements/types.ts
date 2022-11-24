@@ -11,7 +11,7 @@ export type JobElement = Readonly<{
 	uri: Uri;
 	jobHash: JobHash;
 	fileName: string;
-	range: IntuitaRange;
+	range: IntuitaRange | null;
 	job: Job;
 }>;
 
