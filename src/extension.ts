@@ -15,7 +15,8 @@ import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
 import { CaseHash } from './cases/types';
-import { PolyglotPiranhaRepairCodeService } from './components/polyglotPiranhaRepairCodeService';
+import { NoraNodeEngineService } from './components/noraNodeEngineService';
+import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 
 const messageBus = new MessageBus();
@@ -62,6 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		intuitaFileSystem,
 		vscodeService,
+		vscode.workspace.fs,
 	);
 
 	const caseManager = new CaseManager(messageBus);
@@ -155,13 +157,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
-	const polyglotPiranhaRepairCodeService =
-		new PolyglotPiranhaRepairCodeService(
-			vscode.workspace.fs,
-			fileSystemUtilities,
-			context.globalStorageUri,
-			messageBus,
-		);
+	const downloadService = new DownloadService(
+		vscode.workspace.fs,
+		fileSystemUtilities,
+	);
+
+	const noraNodeEngineService = new NoraNodeEngineService(
+		downloadService,
+		context.globalStorageUri,
+		messageBus,
+		vscode.workspace.fs,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -170,12 +176,27 @@ export async function activate(context: vscode.ExtensionContext) {
 				const { storageUri } = context;
 
 				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
 					return;
 				}
 
-				await polyglotPiranhaRepairCodeService.buildRepairCodeJobs(
-					storageUri,
-				);
+				await noraNodeEngineService.buildRepairCodeJobs(storageUri);
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.clearOutputFiles',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				await noraNodeEngineService.clearOutputFiles(storageUri);
 			},
 		),
 	);

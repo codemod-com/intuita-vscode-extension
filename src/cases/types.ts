@@ -7,6 +7,7 @@ export const enum CaseKind {
 	MOVE_TOP_LEVEL_BLOCKS = 1,
 	REPAIR_CODE_BY_TSC,
 	REPAIR_CODE_BY_POLYGLOT_PIRANHA,
+	REWRITE_FILE_BY_NORA_NODE_ENGINE,
 }
 
 export const enum RepairCodeByTscCaseSubKind {
@@ -18,8 +19,14 @@ export const enum RepairCodeByTscCaseSubKind {
 }
 
 export const enum RepairCodeByPolyglotPiranhaCaseSubKind {
-	NEXT_JS_LINK,
+	NEXT_JS_LINK = 1,
 	NEXT_JS_IMAGE,
+}
+
+export const enum RewriteFileByNoraNodeEngineCaseSubKind {
+	NEXT_JS_LINK = 1,
+	NEXT_JS_IMAGE,
+	NEXT_JS_REACT_IMPORT,
 }
 
 export type Case =
@@ -37,6 +44,11 @@ export type Case =
 	| Readonly<{
 			kind: CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
 			subKind: RepairCodeByPolyglotPiranhaCaseSubKind;
+			hash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
+			subKind: RewriteFileByNoraNodeEngineCaseSubKind;
 			hash: CaseHash;
 	  }>;
 

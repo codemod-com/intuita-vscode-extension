@@ -6,7 +6,7 @@ import {
 	IntuitaRange,
 	isNeitherNullNorUndefined,
 } from '../utilities';
-import { FilePermission, Uri } from 'vscode';
+import { FilePermission, FileSystem, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
 import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/executeMoveTopLevelNodeJob';
@@ -29,6 +29,8 @@ export class JobManager {
 	readonly #messageBus: MessageBus;
 	readonly #intuitaFileSystem: IntuitaFileSystem;
 	readonly #vscodeService: VSCodeService;
+	readonly #fileSystem: FileSystem;
+
 	#diagnosticHashJobHashSetManager = new LeftRightHashSetManager<
 		DiagnosticHash,
 		JobHash
@@ -43,10 +45,12 @@ export class JobManager {
 		messageBus: MessageBus,
 		intuitaFileSystem: IntuitaFileSystem,
 		vscodeService: VSCodeService,
+		fileSystem: FileSystem,
 	) {
 		this.#messageBus = messageBus;
 		this.#intuitaFileSystem = intuitaFileSystem;
 		this.#vscodeService = vscodeService;
+		this.#fileSystem = fileSystem;
 
 		this.#messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.upsertJobs) {
@@ -88,10 +92,14 @@ export class JobManager {
 		return jobs;
 	}
 
-	public buildJobOutput(job: Job, characterDifference: number): JobOutput {
-		const content = this.#intuitaFileSystem.readNullableFile(
-			buildJobUri(job),
-		);
+	public async buildJobOutput(
+		job: Job,
+		characterDifference: number,
+	): Promise<JobOutput> {
+		const content =
+			job.kind === JobKind.rewriteFile
+				? await this.#fileSystem.readFile(buildJobUri(job))
+				: this.#intuitaFileSystem.readNullableFile(buildJobUri(job));
 
 		if (!content) {
 			return this.executeJob(job.hash, characterDifference);
@@ -237,9 +245,13 @@ export class JobManager {
 			if (
 				jobs.length === 1 &&
 				jobs[0] &&
-				jobs[0].kind === JobKind.moveTopLevelNode
+				(jobs[0].kind === JobKind.moveTopLevelNode ||
+					jobs[0].kind === JobKind.rewriteFile)
 			) {
-				jobOutput = this.buildJobOutput(jobs[0], characterDifference);
+				jobOutput = await this.buildJobOutput(
+					jobs[0],
+					characterDifference,
+				);
 			} else {
 				const repairCodeJobs = jobs.filter<RepairCodeJob>(
 					(job): job is RepairCodeJob =>
@@ -339,7 +351,10 @@ export class JobManager {
 		const replacementEnvelopes: ReplacementEnvelope[] = [];
 
 		for (const job of sortedJobs) {
-			const jobOutput = this.buildJobOutput(job, characterDifference);
+			const jobOutput = await this.buildJobOutput(
+				job,
+				characterDifference,
+			);
 
 			const start = job.simpleRange.start;
 			const end =

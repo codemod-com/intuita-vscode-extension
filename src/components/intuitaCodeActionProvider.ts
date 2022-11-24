@@ -42,40 +42,47 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 
 		const position = buildIntuitaPosition(range);
 
-		const codeActions = Array.from(this.#jobManager.getFileJobs(uri))
-			.filter(({ range }) => isRangeWithinPosition(range, position))
-			.flatMap((job) => {
-				const characterDifference = calculateCharacterDifference(
-					job,
-					position,
-				);
+		const codeActions = Array.from(
+			this.#jobManager.getFileJobs(uri),
+		).flatMap((job) => {
+			if (
+				!('range' in job) ||
+				!isRangeWithinPosition(job.range, position)
+			) {
+				return [];
+			}
 
-				const quickFixCodeAction = new CodeAction(
-					job.title,
-					CodeActionKind.QuickFix,
-				);
+			const characterDifference = calculateCharacterDifference(
+				job,
+				position,
+			);
 
-				quickFixCodeAction.command = {
-					title: job.title,
-					command: 'intuita.acceptJob',
-					arguments: [job.hash, characterDifference],
-				};
+			const quickFixCodeAction = new CodeAction(
+				job.title,
+				CodeActionKind.QuickFix,
+			);
 
-				const title = `Show the difference: ${job.title}`;
+			quickFixCodeAction.command = {
+				title: job.title,
+				command: 'intuita.acceptJob',
+				arguments: [job.hash, characterDifference],
+			};
 
-				const showDifferenceCodeAction = new CodeAction(
-					title,
-					CodeActionKind.Empty,
-				);
+			const title = `Show the difference: ${job.title}`;
 
-				showDifferenceCodeAction.command = {
-					title,
-					command: 'vscode.diff',
-					arguments: [buildFileUri(document.uri), buildJobUri(job)],
-				};
+			const showDifferenceCodeAction = new CodeAction(
+				title,
+				CodeActionKind.Empty,
+			);
 
-				return [quickFixCodeAction, showDifferenceCodeAction];
-			});
+			showDifferenceCodeAction.command = {
+				title,
+				command: 'vscode.diff',
+				arguments: [buildFileUri(document.uri), buildJobUri(job)],
+			};
+
+			return [quickFixCodeAction, showDifferenceCodeAction];
+		});
 
 		return Promise.resolve(codeActions);
 	}

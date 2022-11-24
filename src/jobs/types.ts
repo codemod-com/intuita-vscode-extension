@@ -1,4 +1,5 @@
-import { DiagnosticHash } from '../diagnostics/types';
+import type { Uri } from 'vscode';
+import type { DiagnosticHash } from '../diagnostics/types';
 import type { StringNode } from '../features/moveTopLevelNode/2_factBuilders/stringNodes';
 import type { TopLevelNode } from '../features/moveTopLevelNode/2_factBuilders/topLevelNode';
 import type {
@@ -12,6 +13,7 @@ export type JobHash = string & { __type: 'JobHash' };
 export const enum JobKind {
 	moveTopLevelNode = 1,
 	repairCode = 2,
+	rewriteFile = 3,
 }
 
 export type JobOutput = Readonly<{
@@ -50,4 +52,13 @@ export type RepairCodeJob = Readonly<{
 	diagnosticHash: DiagnosticHash | null;
 }>;
 
-export type Job = MoveTopLevelNodeJob | RepairCodeJob;
+export type RewriteFileJob = Readonly<{
+	kind: JobKind.rewriteFile;
+	fileName: string; // to be made inputUri: Uri :)
+	title: string; // TODO remove this
+	hash: JobHash;
+	outputUri: Uri;
+	diagnosticHash: null;
+}>;
+
+export type Job = MoveTopLevelNodeJob | RepairCodeJob | RewriteFileJob;

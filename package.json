@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Your Pair Programmer for Maintenance",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -54,7 +54,11 @@
 			},
 			{
 				"command": "intuita.buildNextJsCodeRepairJobs",
-				"title": "Intuita: Build Next.js code-repair recommendations"
+				"title": "Intuita: Build Next.js code-repair recommendations (experimental)"
+			},
+			{
+				"command": "intuita.clearOutputFiles",
+				"title": "Intuita: Clear output files"
 			},
 			{
 				"command": "intuita.showOrHideFileElements",
