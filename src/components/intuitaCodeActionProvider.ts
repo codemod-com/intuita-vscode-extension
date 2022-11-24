@@ -42,43 +42,47 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 
 		const position = buildIntuitaPosition(range);
 
-		const codeActions = Array.from(this.#jobManager.getFileJobs(uri))
-			.flatMap((job) => {
-				if (!('range' in job) || !isRangeWithinPosition(job.range, position)) {
-					return [];
-				}
+		const codeActions = Array.from(
+			this.#jobManager.getFileJobs(uri),
+		).flatMap((job) => {
+			if (
+				!('range' in job) ||
+				!isRangeWithinPosition(job.range, position)
+			) {
+				return [];
+			}
 
-				const characterDifference = calculateCharacterDifference(
-					job,
-					position,
-				);
+			const characterDifference = calculateCharacterDifference(
+				job,
+				position,
+			);
 
-				const quickFixCodeAction = new CodeAction(
-					job.title,
-					CodeActionKind.QuickFix,
-				);
+			const quickFixCodeAction = new CodeAction(
+				job.title,
+				CodeActionKind.QuickFix,
+			);
 
-				quickFixCodeAction.command = {
-					title: job.title,
-					command: 'intuita.acceptJob',
-					arguments: [job.hash, characterDifference],
-				};
+			quickFixCodeAction.command = {
+				title: job.title,
+				command: 'intuita.acceptJob',
+				arguments: [job.hash, characterDifference],
+			};
 
-				const title = `Show the difference: ${job.title}`;
+			const title = `Show the difference: ${job.title}`;
 
-				const showDifferenceCodeAction = new CodeAction(
-					title,
-					CodeActionKind.Empty,
-				);
+			const showDifferenceCodeAction = new CodeAction(
+				title,
+				CodeActionKind.Empty,
+			);
 
-				showDifferenceCodeAction.command = {
-					title,
-					command: 'vscode.diff',
-					arguments: [buildFileUri(document.uri), buildJobUri(job)],
-				};
+			showDifferenceCodeAction.command = {
+				title,
+				command: 'vscode.diff',
+				arguments: [buildFileUri(document.uri), buildJobUri(job)],
+			};
 
-				return [quickFixCodeAction, showDifferenceCodeAction];
-			});
+			return [quickFixCodeAction, showDifferenceCodeAction];
+		});
 
 		return Promise.resolve(codeActions);
 	}

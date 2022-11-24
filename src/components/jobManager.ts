@@ -92,12 +92,14 @@ export class JobManager {
 		return jobs;
 	}
 
-	public async buildJobOutput(job: Job, characterDifference: number): Promise<JobOutput> {
-		const content = job.kind === JobKind.rewriteFile
-			? await this.#fileSystem.readFile(buildJobUri(job))
-			: this.#intuitaFileSystem.readNullableFile(
-				buildJobUri(job),
-			);
+	public async buildJobOutput(
+		job: Job,
+		characterDifference: number,
+	): Promise<JobOutput> {
+		const content =
+			job.kind === JobKind.rewriteFile
+				? await this.#fileSystem.readFile(buildJobUri(job))
+				: this.#intuitaFileSystem.readNullableFile(buildJobUri(job));
 
 		if (!content) {
 			return this.executeJob(job.hash, characterDifference);
@@ -243,9 +245,13 @@ export class JobManager {
 			if (
 				jobs.length === 1 &&
 				jobs[0] &&
-				(jobs[0].kind === JobKind.moveTopLevelNode || jobs[0].kind === JobKind.rewriteFile)
+				(jobs[0].kind === JobKind.moveTopLevelNode ||
+					jobs[0].kind === JobKind.rewriteFile)
 			) {
-				jobOutput = await this.buildJobOutput(jobs[0], characterDifference);
+				jobOutput = await this.buildJobOutput(
+					jobs[0],
+					characterDifference,
+				);
 			} else {
 				const repairCodeJobs = jobs.filter<RepairCodeJob>(
 					(job): job is RepairCodeJob =>
@@ -345,7 +351,10 @@ export class JobManager {
 		const replacementEnvelopes: ReplacementEnvelope[] = [];
 
 		for (const job of sortedJobs) {
-			const jobOutput = await this.buildJobOutput(job, characterDifference);
+			const jobOutput = await this.buildJobOutput(
+				job,
+				characterDifference,
+			);
 
 			const start = job.simpleRange.start;
 			const end =

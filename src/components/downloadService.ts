@@ -7,18 +7,18 @@ export class RequestError extends Error {}
 export class ForbiddenRequestError extends Error {}
 
 export class DownloadService {
-    #fileSystem: FileSystem;
-    #fileSystemUtilities: FileSystemUtilities;
+	#fileSystem: FileSystem;
+	#fileSystemUtilities: FileSystemUtilities;
 
-    constructor (
-        fileSystem: FileSystem,
-        fileSystemUtilities: FileSystemUtilities,
-    ) {
-        this.#fileSystem = fileSystem;
-        this.#fileSystemUtilities = fileSystemUtilities;
-    }
+	constructor(
+		fileSystem: FileSystem,
+		fileSystemUtilities: FileSystemUtilities,
+	) {
+		this.#fileSystem = fileSystem;
+		this.#fileSystemUtilities = fileSystemUtilities;
+	}
 
-    async downloadFileIfNeeded(
+	async downloadFileIfNeeded(
 		url: string,
 		uri: Uri,
 		chmod: Mode,

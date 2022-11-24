@@ -160,9 +160,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,
 		fileSystemUtilities,
-	)
+	);
 
-	const noraNodeEngineService = new NoraNodeEngineService(downloadService, context.globalStorageUri, messageBus, vscode.workspace.fs);
+	const noraNodeEngineService = new NoraNodeEngineService(
+		downloadService,
+		context.globalStorageUri,
+		messageBus,
+		vscode.workspace.fs,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -192,9 +197,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				await noraNodeEngineService.clearOutputFiles(storageUri);
-			}
-		)
-	)
+			},
+		),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.requestFeature', () => {

@@ -57,9 +57,7 @@ export class NoraNodeEngineService {
 		this.#fileSystem = fileSystem;
 	}
 
-	async buildRepairCodeJobs(
-		storageUri: Uri,
-	) {
+	async buildRepairCodeJobs(storageUri: Uri) {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -176,20 +174,22 @@ export class NoraNodeEngineService {
 		});
 	}
 
-	async clearOutputFiles(
-		storageUri: Uri,
-	) {
+	async clearOutputFiles(storageUri: Uri) {
 		const outputUri = Uri.joinPath(storageUri, 'noraNodeEngineOutput');
 
-		await this.#fileSystem.delete(outputUri, { recursive: true, useTrash: false });
+		await this.#fileSystem.delete(outputUri, {
+			recursive: true,
+			useTrash: false,
+		});
 	}
 
 	async #bootstrap() {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
-		const platform = process.platform === 'darwin'
-			? 'macos'
-			: encodeURIComponent(process.platform);
+		const platform =
+			process.platform === 'darwin'
+				? 'macos'
+				: encodeURIComponent(process.platform);
 
 		const executableBaseName = `nora-node-engine-${platform}`;
 
