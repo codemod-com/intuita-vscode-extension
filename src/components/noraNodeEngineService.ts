@@ -20,21 +20,25 @@ import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 
-
+const enum NoraNodeEngineMessageKind {
+	change = 1,
+	finish = 2,
+	rewrite = 3,
+}
 
 const messageCodec = t.union([
 	buildTypeCodec({
-		k: t.literal(1),
+		k: t.literal(NoraNodeEngineMessageKind.change),
 		p: t.string,
 		r: t.tuple([t.number, t.number]),
 		t: t.string,
 		c: t.string,
 	}),
 	buildTypeCodec({
-		k: t.literal(2),
+		k: t.literal(NoraNodeEngineMessageKind.finish),
 	}),
 	buildTypeCodec({
-		k: t.literal(3),
+		k: t.literal(NoraNodeEngineMessageKind.rewrite),
 		i: t.string,
 		o: t.string,
 		c: t.string,
@@ -89,12 +93,12 @@ export class NoraNodeEngineService {
 			},
 		);
 
-		const i = readline.createInterface(childProcess.stdout);
+		const interfase = readline.createInterface(childProcess.stdout);
 
 		const uriHashFileMap = new Map<UriHash, File>();
 		const nextJsLinkJobs: Job[] = [];
 
-		i.on('line', async (line) => {
+		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -106,7 +110,7 @@ export class NoraNodeEngineService {
 
 			const message = either.right;
 
-			if (message.k === 1) {
+			if (message.k === NoraNodeEngineMessageKind.change) {
 				const uri = Uri.parse(message.p);
 				const uriHash = buildUriHash(uri);
 
@@ -131,7 +135,7 @@ export class NoraNodeEngineService {
 				const job = buildRepairCodeJob(file, null, replacementEnvelope);
 
 				nextJsLinkJobs.push(job);
-			} else if (message.k === 3) {
+			} else if (message.k === NoraNodeEngineMessageKind.rewrite) {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
@@ -141,7 +145,7 @@ export class NoraNodeEngineService {
 			}
 		});
 
-		i.on('close', () => {
+		interfase.on('close', () => {
 			const casesWithJobHashes: CaseWithJobHashes[] = [];
 
 			if (nextJsLinkJobs[0]) {
