@@ -13,7 +13,6 @@ import { buildRepairCodeJob } from '../features/repairCode/job';
 import {
 	CaseKind,
 	CaseWithJobHashes,
-	RepairCodeByPolyglotPiranhaCaseSubKind,
 	RewriteFileByNoraNodeEngineCaseSubKind,
 } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
@@ -28,6 +27,21 @@ const enum NoraNodeEngineMessageKind {
 	finish = 2,
 	rewrite = 3,
 }
+
+const codemodIdSubKindMap = new Map([
+	[
+		buildHash('nextJsAddMissingReactImport'),
+		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_REACT_IMPORT,
+	],
+	[
+		buildHash('nextJsImageExperimental'),
+		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE,
+	],
+	[
+		buildHash('nextJsNewLink'),
+		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK,
+	]
+]);
 
 const messageCodec = t.union([
 	buildTypeCodec({
@@ -90,7 +104,7 @@ export class NoraNodeEngineService {
 
 		const childProcess = spawn(
 			executableUri.fsPath,
-			['-p', pattern, '-p', '!**/node_modules', '-o', outputUri.fsPath],
+			['-p', pattern, '-p', '!**/node_modules', '-g', 'nextJs', '-o', outputUri.fsPath],
 			{
 				stdio: 'pipe',
 			},
@@ -173,7 +187,7 @@ export class NoraNodeEngineService {
 					}
 
 					const kind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
-					const subKind = this.#getSubKind(codemodIdHash);
+					const subKind = codemodIdSubKindMap.get(codemodIdHash) ?? RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
 
 					const kase = {
 						kind,
@@ -256,19 +270,5 @@ export class NoraNodeEngineService {
 		return {
 			executableUri,
 		};
-	}
-
-	// TODO this should be Nora-driven
-	#getSubKind(codemodId: string): RewriteFileByNoraNodeEngineCaseSubKind {
-		switch(codemodId) {
-			case buildHash('nextJsAddMissingReactImport'):
-				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_REACT_IMPORT
-			case buildHash('nextJsImageExperimental'):
-				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE
-			case buildHash('nextJsNewLink'):
-				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK
-			default:
-				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
-		}
 	}
 }
