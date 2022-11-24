@@ -9,7 +9,8 @@ export const buildCaseHash = (
 				Case & { kind: CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA },
 				'hash'
 		  >
-		| Omit<Case & { kind: CaseKind.REPAIR_CODE_BY_TSC }, 'hash'>,
+		| Omit<Case & { kind: CaseKind.REPAIR_CODE_BY_TSC }, 'hash'>
+		| Omit<Case & { kind: CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE }, 'hash'>,
 	jobHash: JobHash | null,
 ): CaseHash => {
 	switch (kase.kind) {
@@ -21,5 +22,9 @@ export const buildCaseHash = (
 			return buildHash(
 				[kase.kind, kase.subKind, kase.code, jobHash ?? ''].join(','),
 			) as CaseHash;
+		case CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE:
+			return buildHash(
+				[kase.kind, kase.subKind].join(','),
+				) as CaseHash;
 	}
 };

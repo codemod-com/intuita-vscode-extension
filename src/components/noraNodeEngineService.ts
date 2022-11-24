@@ -7,18 +7,21 @@ import prettyReporter from 'io-ts-reporters';
 import { buildFile } from '../files/buildFile';
 import { UriHash } from '../uris/types';
 import { File } from '../files/types';
-import { Job } from '../jobs/types';
+import { Job, JobHash } from '../jobs/types';
 import { buildUriHash } from '../uris/buildUriHash';
 import { buildRepairCodeJob } from '../features/repairCode/job';
 import {
 	CaseKind,
 	CaseWithJobHashes,
 	RepairCodeByPolyglotPiranhaCaseSubKind,
+	RewriteFileByNoraNodeEngineCaseSubKind,
 } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
+import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
+import { buildHash } from '../utilities';
 
 const enum NoraNodeEngineMessageKind {
 	change = 1,
@@ -96,7 +99,8 @@ export class NoraNodeEngineService {
 		const interfase = readline.createInterface(childProcess.stdout);
 
 		const uriHashFileMap = new Map<UriHash, File>();
-		const nextJsLinkJobs: Job[] = [];
+		const jobMap = new Map<JobHash, Job>();
+		const codemodIdHashJobHashMap = new LeftRightHashSetManager<string, JobHash>(new Set());
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
@@ -134,41 +138,60 @@ export class NoraNodeEngineService {
 
 				const job = buildRepairCodeJob(file, null, replacementEnvelope);
 
-				nextJsLinkJobs.push(job);
+				jobMap.set(job.hash, job);
+				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
 			} else if (message.k === NoraNodeEngineMessageKind.rewrite) {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
 				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
 
-				nextJsLinkJobs.push(job);
+				jobMap.set(job.hash, job);
+				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
 			}
 		});
 
 		interfase.on('close', () => {
 			const casesWithJobHashes: CaseWithJobHashes[] = [];
 
-			if (nextJsLinkJobs[0]) {
-				const kind = CaseKind.REPAIR_CODE_BY_POLYGLOT_PIRANHA;
-				const subKind =
-					RepairCodeByPolyglotPiranhaCaseSubKind.NEXT_JS_LINK;
+			codemodIdHashJobHashMap.getLeftHashes().forEach(
+				(codemodIdHash) => {
+					const jobs: Job[] = [];
 
-				const kase = {
-					kind,
-					subKind,
-				} as const;
+					const jobHashes = codemodIdHashJobHashMap.getRightHashesByLeftHash(codemodIdHash);
 
-				const caseWithJobHashes: CaseWithJobHashes = {
-					hash: buildCaseHash(kase, nextJsLinkJobs[0].hash),
-					kind,
-					subKind,
-					jobHashes: new Set(nextJsLinkJobs.map((job) => job.hash)),
-				};
+					jobHashes.forEach((jobHash) => {
+						const job = jobMap.get(jobHash);
 
-				casesWithJobHashes.push(caseWithJobHashes);
-			}
+						if (job) {
+							jobs.push(job);
+						}
+					});
 
-			const jobs = nextJsLinkJobs;
+					if (!jobs[0]) {
+						return;
+					}
+
+					const kind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
+					const subKind = this.#getSubKind(codemodIdHash);
+
+					const kase = {
+						kind,
+						subKind,
+					} as const;
+
+					const caseWithJobHashes: CaseWithJobHashes = {
+						hash: buildCaseHash(kase, jobs[0].hash),
+						kind,
+						subKind,
+						jobHashes,
+					};
+
+					casesWithJobHashes.push(caseWithJobHashes);
+				}
+			)
+
+			const jobs = Array.from(jobMap.values());
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
@@ -233,5 +256,19 @@ export class NoraNodeEngineService {
 		return {
 			executableUri,
 		};
+	}
+
+	// TODO this should be Nora-driven
+	#getSubKind(codemodId: string): RewriteFileByNoraNodeEngineCaseSubKind {
+		switch(codemodId) {
+			case buildHash('nextJsAddMissingReactImport'):
+				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_REACT_IMPORT
+			case buildHash('nextJsImageExperimental'):
+				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE
+			case buildHash('nextJsNewLink'):
+				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK
+			default:
+				return RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
+		}
 	}
 }
