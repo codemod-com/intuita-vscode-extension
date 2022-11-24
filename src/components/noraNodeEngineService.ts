@@ -18,6 +18,7 @@ import {
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
+import { DownloadService, ForbiddenRequestError } from './downloadService';
 
 const messageCodec = t.union([
 	buildTypeCodec({
@@ -39,15 +40,18 @@ const messageCodec = t.union([
 ]);
 
 export class NoraNodeEngineService {
+	#downloadService: DownloadService;
 	#messageBus: MessageBus;
 	#fileSystem: FileSystem;
 	#globalStorageUri: Uri;
 
 	public constructor(
+		downloadService: DownloadService,
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 	) {
+		this.#downloadService = downloadService;
 		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
 		this.#fileSystem = fileSystem;
@@ -187,7 +191,7 @@ export class NoraNodeEngineService {
 			? 'macos'
 			: encodeURIComponent(process.platform);
 
-		const executableBaseName = `polyglot-piranha-${platform}`;
+		const executableBaseName = `nora-node-engine-${platform}`;
 
 		const executableUri = Uri.joinPath(
 			this.#globalStorageUri,
@@ -195,8 +199,8 @@ export class NoraNodeEngineService {
 		);
 
 		try {
-			await this.#downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/polyglot-piranha/${executableBaseName}`,
+			await this.#downloadService.downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
 				executableUri,
 				'755',
 			);
@@ -206,7 +210,7 @@ export class NoraNodeEngineService {
 			}
 
 			throw new Error(
-				`Your architecture (${process.arch}) and your platform (${process.platform}) are not supported.`,
+				`Your platform (${process.platform}) is not supported.`,
 			);
 		}
 

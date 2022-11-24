@@ -16,6 +16,8 @@ import { CaseManager } from './cases/caseManager';
 import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
 import { CaseHash } from './cases/types';
 import { NoraNodeEngineService } from './components/noraNodeEngineService';
+import { DownloadService } from './components/downloadService';
+import { FileSystemUtilities } from './components/fileSystemUtilities';
 
 const messageBus = new MessageBus();
 
@@ -153,7 +155,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const noraNodeEngineService = new NoraNodeEngineService(context.globalStorageUri, messageBus, vscode.workspace.fs);
+	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
+
+	const downloadService = new DownloadService(
+		vscode.workspace.fs,
+		fileSystemUtilities,
+	)
+
+	const noraNodeEngineService = new NoraNodeEngineService(downloadService, context.globalStorageUri, messageBus, vscode.workspace.fs);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
