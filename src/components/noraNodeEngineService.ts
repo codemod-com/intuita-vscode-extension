@@ -10,11 +10,7 @@ import { File } from '../files/types';
 import { Job, JobHash } from '../jobs/types';
 import { buildUriHash } from '../uris/buildUriHash';
 import { buildRepairCodeJob } from '../features/repairCode/job';
-import {
-	CaseKind,
-	CaseWithJobHashes,
-	RewriteFileByNoraNodeEngineCaseSubKind,
-} from '../cases/types';
+import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
@@ -27,21 +23,6 @@ const enum NoraNodeEngineMessageKind {
 	finish = 2,
 	rewrite = 3,
 }
-
-const codemodIdSubKindMap = new Map([
-	[
-		buildHash('nextJsAddMissingReactImport'),
-		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_REACT_IMPORT,
-	],
-	[
-		buildHash('nextJsImageExperimental'),
-		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE,
-	],
-	[
-		buildHash('nextJsNewLink'),
-		RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_LINK,
-	],
-]);
 
 const messageCodec = t.union([
 	buildTypeCodec({
@@ -128,6 +109,8 @@ export class NoraNodeEngineService {
 			JobHash
 		>(new Set());
 
+		const codemodIdSubKindMap = new Map<string, string>();
+
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
 
@@ -166,6 +149,7 @@ export class NoraNodeEngineService {
 
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
+				codemodIdSubKindMap.set(buildHash(message.c), message.c);
 			} else if (message.k === NoraNodeEngineMessageKind.rewrite) {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
@@ -174,6 +158,7 @@ export class NoraNodeEngineService {
 
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
+				codemodIdSubKindMap.set(buildHash(message.c), message.c);
 			}
 		});
 
@@ -201,9 +186,7 @@ export class NoraNodeEngineService {
 				}
 
 				const kind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
-				const subKind =
-					codemodIdSubKindMap.get(codemodIdHash) ??
-					RewriteFileByNoraNodeEngineCaseSubKind.NEXT_JS_IMAGE;
+				const subKind = codemodIdSubKindMap.get(codemodIdHash) ?? '';
 
 				const kase = {
 					kind,

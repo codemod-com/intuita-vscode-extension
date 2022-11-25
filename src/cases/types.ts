@@ -23,12 +23,6 @@ export const enum RepairCodeByPolyglotPiranhaCaseSubKind {
 	NEXT_JS_IMAGE,
 }
 
-export const enum RewriteFileByNoraNodeEngineCaseSubKind {
-	NEXT_JS_LINK = 1,
-	NEXT_JS_IMAGE,
-	NEXT_JS_REACT_IMPORT,
-}
-
 export type Case =
 	| Readonly<{
 			kind: CaseKind.MOVE_TOP_LEVEL_BLOCKS;
@@ -48,7 +42,7 @@ export type Case =
 	  }>
 	| Readonly<{
 			kind: CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
-			subKind: RewriteFileByNoraNodeEngineCaseSubKind;
+			subKind: string;
 			hash: CaseHash;
 	  }>;
 
