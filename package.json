@@ -57,6 +57,10 @@
 				"title": "Intuita: Build Next.js code-repair recommendations (experimental)"
 			},
 			{
+				"command": "intuita.buildMuiCodeRepairJobs",
+				"title": "Intuita: Build MUI code-repair recommendations (experimental)"
+			},
+			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: Clear output files"
 			},

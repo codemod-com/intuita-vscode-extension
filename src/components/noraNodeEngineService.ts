@@ -63,7 +63,7 @@ export class NoraNodeEngineService {
 		this.#fileSystem = fileSystem;
 	}
 
-	async buildRepairCodeJobs(storageUri: Uri) {
+	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -91,7 +91,9 @@ export class NoraNodeEngineService {
 				'-p',
 				'!**/node_modules',
 				'-g',
-				'nextJs',
+				group,
+				'-l',
+				'100',
 				'-o',
 				outputUri.fsPath,
 			],
