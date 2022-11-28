@@ -180,7 +180,29 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(storageUri);
+				await noraNodeEngineService.buildRepairCodeJobs(
+					storageUri,
+					'nextJs',
+				);
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildMuiCodeRepairJobs',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				await noraNodeEngineService.buildRepairCodeJobs(
+					storageUri,
+					'mui',
+				);
 			},
 		),
 	);
