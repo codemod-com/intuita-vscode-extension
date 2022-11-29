@@ -15,7 +15,6 @@ export const buildJobElement = (
 		kind: 'JOB' as const,
 		hash: job.hash as unknown as ElementHash,
 		label,
-		fileName: job.fileName,
 		uri: Uri.parse(job.fileName),
 		jobHash: job.hash,
 		job,

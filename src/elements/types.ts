@@ -9,7 +9,6 @@ export type JobElement = Readonly<{
 	label: string;
 	uri: Uri;
 	jobHash: JobHash;
-	fileName: string;
 	job: Job;
 }>;
 
