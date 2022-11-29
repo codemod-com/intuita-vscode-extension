@@ -2,14 +2,11 @@ import * as t from 'io-ts';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
 import * as readline from 'node:readline';
-import { buildTypeCodec, ReplacementEnvelope } from './inferenceService';
+import { buildTypeCodec } from './inferenceService';
 import prettyReporter from 'io-ts-reporters';
-import { buildFile } from '../files/buildFile';
 import { UriHash } from '../uris/types';
 import { File } from '../files/types';
 import { Job, JobHash } from '../jobs/types';
-import { buildUriHash } from '../uris/buildUriHash';
-import { buildRepairCodeJob } from '../features/repairCode/job';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
@@ -125,34 +122,7 @@ export class NoraNodeEngineService {
 
 			const message = either.right;
 
-			if (message.k === NoraNodeEngineMessageKind.change) {
-				const uri = Uri.parse(message.p);
-				const uriHash = buildUriHash(uri);
-
-				let file = uriHashFileMap.get(uriHash);
-
-				if (!file) {
-					const document = await workspace.openTextDocument(uri);
-
-					file = buildFile(uri, document.getText(), document.version);
-
-					uriHashFileMap.set(uriHash, file);
-				}
-
-				const replacementEnvelope: ReplacementEnvelope = {
-					range: {
-						start: message.r[0],
-						end: message.r[1],
-					},
-					replacement: message.t,
-				};
-
-				const job = buildRepairCodeJob(file, null, replacementEnvelope);
-
-				jobMap.set(job.hash, job);
-				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
-				codemodIdSubKindMap.set(buildHash(message.c), message.c);
-			} else if (message.k === NoraNodeEngineMessageKind.rewrite) {
+			if (message.k === NoraNodeEngineMessageKind.rewrite) {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
@@ -196,7 +166,7 @@ export class NoraNodeEngineService {
 				} as const;
 
 				const caseWithJobHashes: CaseWithJobHashes = {
-					hash: buildCaseHash(kase, jobs[0].hash),
+					hash: buildCaseHash(kase),
 					kind,
 					subKind,
 					jobHashes,
