@@ -1,21 +1,16 @@
-// the [T] is intentional (for distributive types)
 import { createHash } from 'crypto';
-
-type NeitherNullNorUndefined<T> = [T] extends null | undefined ? never : T;
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
-export type IntuitaSimpleRange = Readonly<{ start: number; end: number }>;
-
 export function isNeitherNullNorUndefined<T>(
-	value: NeitherNullNorUndefined<T> | null | undefined,
-): value is NeitherNullNorUndefined<T> {
+	value: T
+): value is (T & {}) {
 	return value !== null && value !== undefined;
 }
 
 export function assertsNeitherNullOrUndefined<T>(
-	value: NeitherNullNorUndefined<T> | null | undefined,
-): asserts value is NeitherNullNorUndefined<T> {
+	value: T,
+): asserts value is  (T & {}) {
 	if (value === null || value === undefined) {
 		throw new Error('The value cannot be null or undefined');
 	}
