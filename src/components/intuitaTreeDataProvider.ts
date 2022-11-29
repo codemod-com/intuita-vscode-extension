@@ -373,7 +373,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				const label = inputUri.fsPath.replace(rootPath, '');
 
 				const children = jobs
-					.filter((job) => job.inputUri.toString() === inputUri.toString())
+					.filter(
+						(job) =>
+							job.inputUri.toString() === inputUri.toString(),
+					)
 					.map((job) =>
 						buildJobElement(job, label, showFileElements),
 					);

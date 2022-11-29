@@ -8,7 +8,9 @@ export const enum CaseKind {
 }
 
 export type Case = Readonly<{
-	kind: CaseKind.REWRITE_FILE_BY_POLYGLOT_PIRANHA | CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
+	kind:
+		| CaseKind.REWRITE_FILE_BY_POLYGLOT_PIRANHA
+		| CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 	subKind: string;
 	hash: CaseHash;
 }>;

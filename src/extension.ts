@@ -6,7 +6,6 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
-import { VSCodeService } from './components/vscodeService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
@@ -17,16 +16,6 @@ import { FileSystemUtilities } from './components/fileSystemUtilities';
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
-	const vscodeService: VSCodeService = {
-		openTextDocument: async (uri) => vscode.workspace.openTextDocument(uri),
-		getVisibleEditors: () => vscode.window.visibleTextEditors,
-		getTextDocuments: () => vscode.workspace.textDocuments,
-		getActiveTextEditor: () => vscode.window.activeTextEditor ?? null,
-		getDiagnostics: () => vscode.languages.getDiagnostics(),
-		getWorkspaceFolder: (uri) =>
-			vscode.workspace.getWorkspaceFolder(uri) ?? null,
-	};
-
 	messageBus.setDisposables(context.subscriptions);
 
 	const configurationContainer = buildContainer(getConfiguration());
@@ -49,16 +38,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const jobManager = new JobManager(
-		messageBus
-	);
+	const jobManager = new JobManager(messageBus);
 
 	const caseManager = new CaseManager(messageBus);
 
-	new FileService(
-		messageBus,
-		vscodeService,
-	);
+	new FileService(messageBus);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,

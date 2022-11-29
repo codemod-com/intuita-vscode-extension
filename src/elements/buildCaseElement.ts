@@ -1,6 +1,4 @@
-import {
-	Case
-} from '../cases/types';
+import { Case } from '../cases/types';
 import type { CaseElement, ElementHash, FileElement } from './types';
 
 const buildLabelHeader = (kase: Case): string => `Case: ${kase.subKind}`;

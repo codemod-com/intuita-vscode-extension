@@ -1,19 +1,11 @@
-import {
-	FilePermission,
-	Uri,
-	workspace,
-} from 'vscode';
+import { FilePermission, Uri, workspace } from 'vscode';
 import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { VSCodeService } from './vscodeService';
 
 export class FileService {
 	readonly #messageBus: MessageBus;
 
-	public constructor(
-		readonly messageBus: MessageBus,
-		readonly vscodeService: VSCodeService,
-	) {
+	public constructor(readonly messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(async (message) => {

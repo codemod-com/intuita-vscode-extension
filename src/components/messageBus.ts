@@ -1,10 +1,4 @@
-import {
-	Diagnostic,
-	Disposable,
-	EventEmitter,
-	FilePermission,
-	Uri,
-} from 'vscode';
+import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
@@ -34,12 +28,6 @@ export const enum MessageKind {
 	acceptJobs = 13,
 	jobsAccepted = 14,
 }
-
-export type EnhancedDiagnostic = Readonly<{
-	uri: Uri;
-	diagnostic: Diagnostic;
-	hash: null;
-}>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 

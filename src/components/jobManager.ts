@@ -4,10 +4,7 @@ import {
 } from '../utilities';
 import { FilePermission, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import {
-	buildFileUri,
-	buildJobUri,
-} from './intuitaFileSystem';
+import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
@@ -22,9 +19,7 @@ export class JobManager {
 	#rejectedJobHashes = new Set<JobHash>();
 	#jobMap = new Map<JobHash, Job>();
 
-	public constructor(
-		messageBus: MessageBus,
-	) {
+	public constructor(messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(async (message) => {
@@ -171,7 +166,7 @@ export class JobManager {
 			this.#messageBus.publish({
 				kind: MessageKind.updateExternalFile,
 				uri,
-				contentUri: jobOutputUri
+				contentUri: jobOutputUri,
 			});
 		});
 
