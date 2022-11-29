@@ -71,12 +71,8 @@ export class InferredCodeRepairService {
 	async #onExternalDiagnosticsMessage(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	): Promise<void> {
-		const { preferRuleBasedCodeRepair } =
-			this.#configurationContainer.get();
-
-		if (preferRuleBasedCodeRepair) {
-			return;
-		}
+		// TODO remove
+		return;
 
 		const jobIngredients = await Promise.all(
 			message.enhancedDiagnostics.map((enhancedDiagnostic) =>

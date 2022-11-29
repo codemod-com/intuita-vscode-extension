@@ -45,10 +45,6 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.buildMoveTopLevelNodeJobs",
-				"title": "Intuita: Build move-top-level-block recommendations"
-			},
-			{
 				"command": "intuita.buildCodeRepairJobs",
 				"title": "Intuita: Build code-repair recommendations"
 			},
@@ -105,98 +101,6 @@
 					"type": "boolean",
 					"default": true,
 					"description": "When you accept a recommendation, the extension will save the associated file."
-				},
-				"intuita.minimumLines": {
-					"order": 1,
-					"type": "number",
-					"default": 1,
-					"description": "The minimum number of lines in a file to create recommendations"
-				},
-				"intuita.modifierOrder": {
-					"order": 2,
-					"type": "array",
-					"items": {
-						"type": "string",
-						"enum": [
-							"import",
-							"defaultExport",
-							"export",
-							"none"
-						],
-						"enumDescriptions": [
-							"Import Modifier",
-							"Default Export Modifier",
-							"Export Modifier",
-							"No Modifier"
-						]
-					},
-					"default": [
-						"import",
-						"defaultExport",
-						"export",
-						"none"
-					]
-				},
-				"intuita.kindOrder": {
-					"order": 3,
-					"type": "array",
-					"items": {
-						"type": "string",
-						"enum": [
-							"import",
-							"enum",
-							"type",
-							"interface",
-							"constVariable",
-							"letVariable",
-							"constArrowFunction",
-							"letArrowFunction",
-							"function",
-							"class",
-							"multipleVariables",
-							"block",
-							"export",
-							"unknown"
-						],
-						"enumDescriptions": [
-							"Import Statement",
-							"Enum",
-							"Type",
-							"Interface",
-							"Const Variable",
-							"Let Variable",
-							"Const Arrow Function",
-							"Let Arrow Function",
-							"Function",
-							"Class",
-							"Multiple Variables",
-							"Block",
-							"Export Block Statement",
-							"Unknown"
-						]
-					},
-					"default": [
-						"import",
-						"enum",
-						"type",
-						"interface",
-						"constVariable",
-						"letVariable",
-						"constArrowFunction",
-						"letArrowFunction",
-						"function",
-						"class",
-						"multipleVariables",
-						"block",
-						"export",
-						"unknown"
-					]
-				},
-				"intuita.preferRuleBasedCodeRepair": {
-					"order": 4,
-					"type": "boolean",
-					"default": false,
-					"description": "Prefer the rule-based code repair over ML-based one"
 				},
 				"intuita.showFileElements": {
 					"order": 5,

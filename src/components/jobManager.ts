@@ -9,8 +9,6 @@ import {
 import { FilePermission, FileSystem, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
-import { executeMoveTopLevelNodeJob } from '../features/moveTopLevelNode/executeMoveTopLevelNodeJob';
-
 import {
 	buildFileUri,
 	buildJobUri,
@@ -129,9 +127,7 @@ export class JobManager {
 
 		let execution;
 
-		if (job.kind === JobKind.moveTopLevelNode) {
-			execution = executeMoveTopLevelNodeJob(job, characterDifference);
-		} else if (job.kind === JobKind.repairCode) {
+		if (job.kind === JobKind.repairCode) {
 			execution = executeRepairCodeJob(job);
 		} else {
 			throw new Error('');
@@ -245,8 +241,7 @@ export class JobManager {
 			if (
 				jobs.length === 1 &&
 				jobs[0] &&
-				(jobs[0].kind === JobKind.moveTopLevelNode ||
-					jobs[0].kind === JobKind.rewriteFile)
+				jobs[0].kind === JobKind.rewriteFile
 			) {
 				jobOutput = await this.buildJobOutput(
 					jobs[0],

@@ -13,7 +13,6 @@ import { FileService } from './components/fileService';
 import { VSCodeService } from './components/vscodeService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
-import { MoveTopLevelBlocksService } from './components/moveTopLevelNodeBlocksService';
 import { CaseHash } from './cases/types';
 import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
@@ -106,14 +105,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		treeDataProvider,
 	});
 
-	const moveTopLevelBlocksService = new MoveTopLevelBlocksService(
-		caseManager,
-		jobManager,
-		messageBus,
-		configurationContainer,
-		vscodeService,
-	);
-
 	treeDataProvider.setReveal(explorerTreeView.reveal);
 
 	context.subscriptions.push(explorerTreeView);
@@ -123,26 +114,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
 			new IntuitaCodeActionProvider(jobManager),
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.buildMoveTopLevelNodeJobs',
-			() => {
-				const document = vscode.window.activeTextEditor?.document;
-
-				if (!document) {
-					return;
-				}
-
-				moveTopLevelBlocksService.onBuildMoveTopLevelBlockCasesAndJobsCommand(
-					document.uri,
-					document.getText(),
-					document.version,
-					'onCommand',
-				);
-			},
 		),
 	);
 

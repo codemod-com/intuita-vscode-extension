@@ -3,7 +3,6 @@ import {
 	commands,
 	Event,
 	EventEmitter,
-	MarkdownString,
 	ProviderResult,
 	TreeDataProvider,
 	TreeItem,
@@ -14,8 +13,6 @@ import {
 	workspace,
 } from 'vscode';
 import {
-	assertsNeitherNullOrUndefined,
-	calculateCharacterIndex,
 	IntuitaPosition,
 } from '../utilities';
 import { JobManager } from './jobManager';
@@ -54,29 +51,7 @@ export const calculateCharacterDifference = (
 	job: Job,
 	position: IntuitaPosition,
 ): number => {
-	if (job.kind !== JobKind.moveTopLevelNode) {
-		return 0;
-	}
-
-	const characterIndex = calculateCharacterIndex(
-		job.separator,
-		job.lengths,
-		position[0],
-		position[1],
-	);
-
-	const topLevelNodeIndex = job.topLevelNodes.findIndex((topLevelNode) => {
-		return (
-			topLevelNode.triviaStart <= characterIndex &&
-			characterIndex <= topLevelNode.triviaEnd
-		);
-	});
-
-	const topLevelNode = job.topLevelNodes[topLevelNodeIndex] ?? null;
-
-	assertsNeitherNullOrUndefined(topLevelNode);
-
-	return characterIndex - topLevelNode.triviaStart;
+	return 0;
 };
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
@@ -206,16 +181,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		if (element.kind === 'JOB') {
 			treeItem.contextValue = 'jobElement';
-
-			if (element.job.kind === JobKind.moveTopLevelNode) {
-				const tooltip = new MarkdownString(
-					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)',
-				);
-
-				tooltip.isTrusted = true;
-
-				treeItem.tooltip = tooltip;
-			}
 
 			treeItem.command = {
 				title: 'Diff View',

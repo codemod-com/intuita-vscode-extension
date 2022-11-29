@@ -38,12 +38,8 @@ export class RuleBasedCoreRepairService {
 	#onExternalDiagnosticsMessage(
 		message: Message & { kind: MessageKind.externalDiagnostics },
 	): void {
-		const { preferRuleBasedCodeRepair } =
-			this.#configurationContainer.get();
-
-		if (!preferRuleBasedCodeRepair) {
-			return;
-		}
+		// TODO check
+		return;
 
 		const enhancements = message.enhancedDiagnostics
 			.map((enhancedDiagnostic) => {
