@@ -12,9 +12,6 @@ import {
 	window,
 	workspace,
 } from 'vscode';
-import {
-	IntuitaPosition,
-} from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Message, MessageBus, MessageKind } from './messageBus';
@@ -46,13 +43,6 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-
-export const calculateCharacterDifference = (
-	job: Job,
-	position: IntuitaPosition,
-): number => {
-	return 0;
-};
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
 	switch (kind) {

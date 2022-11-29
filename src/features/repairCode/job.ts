@@ -54,7 +54,6 @@ export const buildRepairCodeJob = (
 		version: file.version,
 		fileText: file.text,
 		simpleRange: replacementEnvelope.range,
-		separator: file.separator,
-		diagnosticHash,
+		separator: file.separator
 	};
 };

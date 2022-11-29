@@ -11,7 +11,6 @@ import {
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { IntuitaPosition, IntuitaRange } from '../utilities';
-import { calculateCharacterDifference } from './intuitaTreeDataProvider';
 import { buildUriHash } from '../uris/buildUriHash';
 
 const buildIntuitaPosition = (range: Range | Selection): IntuitaPosition => [
@@ -52,11 +51,6 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 				return [];
 			}
 
-			const characterDifference = calculateCharacterDifference(
-				job,
-				position,
-			);
-
 			const quickFixCodeAction = new CodeAction(
 				job.title,
 				CodeActionKind.QuickFix,
@@ -65,7 +59,7 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 			quickFixCodeAction.command = {
 				title: job.title,
 				command: 'intuita.acceptJob',
-				arguments: [job.hash, characterDifference],
+				arguments: [job.hash, 0],
 			};
 
 			const title = `Show the difference: ${job.title}`;

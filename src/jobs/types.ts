@@ -1,5 +1,4 @@
 import type { Uri } from 'vscode';
-import type { DiagnosticHash } from '../diagnostics/types';
 import type {
 	IntuitaPosition,
 	IntuitaRange,
@@ -30,7 +29,6 @@ export type RepairCodeJob = Readonly<{
 	fileText: string;
 	simpleRange: IntuitaSimpleRange;
 	separator: string;
-	diagnosticHash: DiagnosticHash | null;
 }>;
 
 export type RewriteFileJob = Readonly<{

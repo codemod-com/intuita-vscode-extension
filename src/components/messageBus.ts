@@ -133,7 +133,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-			deletedDiagnosticHashes: ReadonlySet<null>;
 	  }>;
 
 export class MessageBus {

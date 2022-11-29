@@ -28,10 +28,6 @@ export class JobManager {
 	readonly #vscodeService: VSCodeService;
 	readonly #fileSystem: FileSystem;
 
-	#diagnosticHashJobHashSetManager = new LeftRightHashSetManager<
-		string,
-		JobHash
-	>(new Set());
 	#uriHashJobHashSetManager = new LeftRightHashSetManager<UriHash, JobHash>(
 		new Set(),
 	);
@@ -149,23 +145,6 @@ export class JobManager {
 	}
 
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
-		message.inactiveDiagnosticHashes.forEach((diagnosticHash) => {
-			const jobHashes =
-				this.#diagnosticHashJobHashSetManager.getRightHashesByLeftHash(
-					diagnosticHash,
-				);
-
-			for (const jobHash of jobHashes) {
-				this.#diagnosticHashJobHashSetManager.delete(
-					diagnosticHash,
-					jobHash,
-				);
-
-				this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-				this.#jobMap.delete(jobHash);
-			}
-		});
-
 		message.inactiveJobHashes.forEach((jobHash) => {
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
@@ -182,13 +161,6 @@ export class JobManager {
 			const uriHash = buildUriHash(uri);
 
 			this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
-
-			if (job.diagnosticHash) {
-				this.#diagnosticHashJobHashSetManager.upsert(
-					job.diagnosticHash,
-					job.hash,
-				);
-			}
 		}
 
 		this.#messageBus.publish({
@@ -226,7 +198,6 @@ export class JobManager {
 		const deletedJobUris: Uri[] = [];
 		const deletedFileUris = new Set<Uri>();
 		const deletedJobHashes = new Set<JobHash>();
-		const deletedDiagnosticHashes = new Set<DiagnosticHash>();
 
 		for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
 			new Set(messageJobHashes),
@@ -279,14 +250,9 @@ export class JobManager {
 
 				if (job) {
 					deletedJobUris.push(buildJobUri(job));
-
-					if (job.kind === JobKind.repairCode && job.diagnosticHash) {
-						deletedDiagnosticHashes.add(job.diagnosticHash);
-					}
 				}
 
 				this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
-				this.#diagnosticHashJobHashSetManager.deleteRightHash(jobHash);
 				this.#jobMap.delete(jobHash);
 
 				deletedJobHashes.add(jobHash);
@@ -318,7 +284,6 @@ export class JobManager {
 		this.#messageBus.publish({
 			kind: MessageKind.jobsAccepted,
 			deletedJobHashes,
-			deletedDiagnosticHashes,
 		});
 	}
 
@@ -388,7 +353,6 @@ export class JobManager {
 			uris.push(buildJobUri(job));
 
 			this.#rejectedJobHashes.add(jobHash);
-			this.#diagnosticHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
 		}
