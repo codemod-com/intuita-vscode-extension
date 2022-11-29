@@ -11,5 +11,4 @@ export type File = Readonly<{
 	separator: string;
 	lines: ReadonlyArray<string>;
 	lengths: ReadonlyArray<number>;
-	sourceFile: SourceFile;
 }>;

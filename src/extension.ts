@@ -6,9 +6,7 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import { IntuitaCodeActionProvider } from './components/intuitaCodeActionProvider';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
-import { InferredCodeRepairService } from './components/inferredCodeRepairService';
 import { DiagnosticManager } from './components/diagnosticManager';
-import { RuleBasedCoreRepairService } from './components/ruleBasedCodeRepairService';
 import { FileService } from './components/fileService';
 import { VSCodeService } from './components/vscodeService';
 import { JobHash } from './jobs/types';
@@ -66,18 +64,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const caseManager = new CaseManager(messageBus);
-
-	new InferredCodeRepairService(
-		caseManager,
-		configurationContainer,
-		messageBus,
-	);
-
-	new RuleBasedCoreRepairService(
-		caseManager,
-		configurationContainer,
-		messageBus,
-	);
 
 	const uriStringToVersionMap = new Map<string, number>();
 
