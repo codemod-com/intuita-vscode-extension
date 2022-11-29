@@ -2,30 +2,22 @@ import {
 	assertsNeitherNullOrUndefined,
 	calculateLastPosition,
 	getSeparator,
-	IntuitaPosition,
 	IntuitaRange,
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { FilePermission, FileSystem, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { executeRepairCodeJob } from '../features/repairCode/executeRepairCodeJob';
 import {
 	buildFileUri,
 	buildJobUri,
-	IntuitaFileSystem,
 } from './intuitaFileSystem';
-import { Job, JobHash, JobKind, JobOutput, RepairCodeJob } from '../jobs/types';
+import { Job, JobHash, JobKind, JobOutput } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
-import { VSCodeService } from './vscodeService';
-import { applyReplacementEnvelopes } from '../jobs/applyReplacementEnvelopes';
-import { ReplacementEnvelope } from './inferenceService';
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
-	readonly #intuitaFileSystem: IntuitaFileSystem;
-	readonly #vscodeService: VSCodeService;
 	readonly #fileSystem: FileSystem;
 
 	#uriHashJobHashSetManager = new LeftRightHashSetManager<UriHash, JobHash>(
@@ -36,13 +28,9 @@ export class JobManager {
 
 	public constructor(
 		messageBus: MessageBus,
-		intuitaFileSystem: IntuitaFileSystem,
-		vscodeService: VSCodeService,
 		fileSystem: FileSystem,
 	) {
 		this.#messageBus = messageBus;
-		this.#intuitaFileSystem = intuitaFileSystem;
-		this.#vscodeService = vscodeService;
 		this.#fileSystem = fileSystem;
 
 		this.#messageBus.subscribe(async (message) => {
@@ -88,13 +76,10 @@ export class JobManager {
 	public async buildJobOutput(
 		job: Job
 	): Promise<JobOutput> {
-		const content =
-			job.kind === JobKind.rewriteFile
-				? await this.#fileSystem.readFile(buildJobUri(job))
-				: this.#intuitaFileSystem.readNullableFile(buildJobUri(job));
+		const content = await this.#fileSystem.readFile(buildJobUri(job))
 
 		if (!content) {
-			return this.executeJob(job.hash);
+			throw new Error(`No job output for job hash ${job.hash}`);
 		}
 
 		const text = content.toString();
@@ -108,37 +93,6 @@ export class JobManager {
 			text,
 			position,
 			range,
-		};
-	}
-
-	public executeJob(
-		jobHash: JobHash,
-	): JobOutput {
-		const job = this.#jobMap.get(jobHash);
-
-		assertsNeitherNullOrUndefined(job);
-
-		let execution;
-
-		if (job.kind === JobKind.repairCode) {
-			execution = executeRepairCodeJob(job);
-		} else {
-			throw new Error('');
-		}
-
-		const lastPosition = calculateLastPosition(
-			execution.text,
-			job.separator,
-		);
-
-		const range: IntuitaRange = [0, 0, lastPosition[0], lastPosition[1]];
-
-		const position: IntuitaPosition = [execution.line, execution.character];
-
-		return {
-			range,
-			text: execution.text,
-			position,
 		};
 	}
 
@@ -212,15 +166,6 @@ export class JobManager {
 				jobOutput = await this.buildJobOutput(
 					jobs[0]
 				);
-			} else {
-				const repairCodeJobs = jobs.filter<RepairCodeJob>(
-					(job): job is RepairCodeJob =>
-						job.kind === JobKind.repairCode,
-				);
-
-				jobOutput = await this.#buildRepairCodeJobsOutput(
-					new Set(repairCodeJobs)
-				);
 			}
 
 			if (!jobOutput) {
@@ -279,60 +224,6 @@ export class JobManager {
 			kind: MessageKind.jobsAccepted,
 			deletedJobHashes,
 		});
-	}
-
-	async #buildRepairCodeJobsOutput(
-		jobs: Set<RepairCodeJob>
-	): Promise<JobOutput | null> {
-		const sortedJobs = Array.from(jobs).sort(
-			(a, b) => a.simpleRange.start - b.simpleRange.start,
-		);
-
-		const firstJob = sortedJobs[0];
-
-		if (!firstJob) {
-			return null;
-		}
-
-		const uri = Uri.parse(firstJob.fileName); // TODO jobs should have URI
-
-		const document = await this.#vscodeService.openTextDocument(uri);
-
-		const documentText = document.getText();
-
-		const replacementEnvelopes: ReplacementEnvelope[] = [];
-
-		for (const job of sortedJobs) {
-			const jobOutput = await this.buildJobOutput(
-				job
-			);
-
-			const start = job.simpleRange.start;
-			const end =
-				job.simpleRange.end +
-				(jobOutput.text.length - documentText.length);
-
-			const replacement = jobOutput.text.slice(start, end);
-
-			replacementEnvelopes.push({ range: job.simpleRange, replacement });
-		}
-
-		const text = applyReplacementEnvelopes(
-			documentText,
-			replacementEnvelopes,
-		);
-
-		const separator = getSeparator(text);
-
-		const position = calculateLastPosition(text, separator);
-
-		const range: IntuitaRange = [0, 0, position[0], position[1]];
-
-		return {
-			text,
-			position,
-			range,
-		};
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {

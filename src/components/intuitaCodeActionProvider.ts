@@ -4,28 +4,11 @@ import {
 	CodeActionProvider,
 	Command,
 	ProviderResult,
-	Range,
-	Selection,
 	TextDocument,
 } from 'vscode';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
-import { IntuitaPosition, IntuitaRange } from '../utilities';
 import { buildUriHash } from '../uris/buildUriHash';
-
-const buildIntuitaPosition = (range: Range | Selection): IntuitaPosition => [
-	range.start.line,
-	range.start.character,
-];
-
-const isRangeWithinPosition = (
-	range: IntuitaRange,
-	position: IntuitaPosition,
-): boolean =>
-	range[0] <= position[0] &&
-	range[2] >= position[0] &&
-	range[1] <= position[1] &&
-	range[3] >= position[1];
 
 export class IntuitaCodeActionProvider implements CodeActionProvider {
 	#jobManager: JobManager;
@@ -35,22 +18,12 @@ export class IntuitaCodeActionProvider implements CodeActionProvider {
 
 	provideCodeActions(
 		document: TextDocument,
-		range: Range | Selection,
 	): ProviderResult<(Command | CodeAction)[]> {
 		const uri = buildUriHash(document.uri);
-
-		const position = buildIntuitaPosition(range);
 
 		const codeActions = Array.from(
 			this.#jobManager.getFileJobs(uri),
 		).flatMap((job) => {
-			if (
-				!('range' in job) ||
-				!isRangeWithinPosition(job.range, position)
-			) {
-				return [];
-			}
-
 			const quickFixCodeAction = new CodeAction(
 				job.title,
 				CodeActionKind.QuickFix,

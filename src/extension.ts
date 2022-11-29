@@ -55,8 +55,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		messageBus,
-		intuitaFileSystem,
-		vscodeService,
 		vscode.workspace.fs,
 	);
 
@@ -66,7 +64,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	new FileService(
 		configurationContainer,
-		jobManager,
 		messageBus,
 		vscodeService,
 		uriStringToVersionMap,

@@ -11,26 +11,22 @@ import {
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { destructIntuitaFileSystemUri } from '../destructIntuitaFileSystemUri';
-import { JobManager } from './jobManager';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { VSCodeService } from './vscodeService';
 
 export class FileService {
 	readonly #configurationContainer: Container<Configuration>;
-	readonly #jobManager: JobManager;
 	readonly #messageBus: MessageBus;
 	readonly #vscodeService: VSCodeService;
 	readonly #uriStringToVersionMap: Map<string, number>;
 
 	public constructor(
 		readonly configurationContainer: Container<Configuration>,
-		readonly jobManager: JobManager,
 		readonly messageBus: MessageBus,
 		readonly vscodeService: VSCodeService,
 		readonly uriStringToVersionMap: Map<string, number>,
 	) {
 		this.#configurationContainer = configurationContainer;
-		this.#jobManager = jobManager;
 		this.#messageBus = messageBus;
 		this.#vscodeService = vscodeService;
 		this.#uriStringToVersionMap = uriStringToVersionMap;
@@ -76,7 +72,7 @@ export class FileService {
 		destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
 	): Promise<string> {
 		if (destructedUri.directory === 'jobs') {
-			return this.#jobManager.executeJob(destructedUri.jobHash).text;
+			return ''; // TODO remove
 		}
 
 		const fileName = destructedUri.fsPath;
