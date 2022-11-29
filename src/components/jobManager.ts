@@ -86,8 +86,7 @@ export class JobManager {
 	}
 
 	public async buildJobOutput(
-		job: Job,
-		characterDifference: number,
+		job: Job
 	): Promise<JobOutput> {
 		const content =
 			job.kind === JobKind.rewriteFile
@@ -95,7 +94,7 @@ export class JobManager {
 				: this.#intuitaFileSystem.readNullableFile(buildJobUri(job));
 
 		if (!content) {
-			return this.executeJob(job.hash, characterDifference);
+			return this.executeJob(job.hash);
 		}
 
 		const text = content.toString();
@@ -114,7 +113,6 @@ export class JobManager {
 
 	public executeJob(
 		jobHash: JobHash,
-		characterDifference: number,
 	): JobOutput {
 		const job = this.#jobMap.get(jobHash);
 
@@ -191,8 +189,6 @@ export class JobManager {
 	) {
 		const messageJobHashes =
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
-		const characterDifference =
-			'characterDifference' in message ? message.characterDifference : 0;
 
 		const uriJobOutputs: [Uri, JobOutput][] = [];
 		const deletedJobUris: Uri[] = [];
@@ -214,8 +210,7 @@ export class JobManager {
 				jobs[0].kind === JobKind.rewriteFile
 			) {
 				jobOutput = await this.buildJobOutput(
-					jobs[0],
-					characterDifference,
+					jobs[0]
 				);
 			} else {
 				const repairCodeJobs = jobs.filter<RepairCodeJob>(
@@ -224,8 +219,7 @@ export class JobManager {
 				);
 
 				jobOutput = await this.#buildRepairCodeJobsOutput(
-					new Set(repairCodeJobs),
-					characterDifference,
+					new Set(repairCodeJobs)
 				);
 			}
 
@@ -288,8 +282,7 @@ export class JobManager {
 	}
 
 	async #buildRepairCodeJobsOutput(
-		jobs: Set<RepairCodeJob>,
-		characterDifference: number,
+		jobs: Set<RepairCodeJob>
 	): Promise<JobOutput | null> {
 		const sortedJobs = Array.from(jobs).sort(
 			(a, b) => a.simpleRange.start - b.simpleRange.start,
@@ -311,8 +304,7 @@ export class JobManager {
 
 		for (const job of sortedJobs) {
 			const jobOutput = await this.buildJobOutput(
-				job,
-				characterDifference,
+				job
 			);
 
 			const start = job.simpleRange.start;

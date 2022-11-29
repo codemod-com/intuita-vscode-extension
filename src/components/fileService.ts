@@ -76,7 +76,7 @@ export class FileService {
 		destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
 	): Promise<string> {
 		if (destructedUri.directory === 'jobs') {
-			return this.#jobManager.executeJob(destructedUri.jobHash, 0).text;
+			return this.#jobManager.executeJob(destructedUri.jobHash).text;
 		}
 
 		const fileName = destructedUri.fsPath;
