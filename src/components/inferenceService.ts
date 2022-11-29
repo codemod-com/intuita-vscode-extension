@@ -21,10 +21,4 @@ export const replacementEnvelopeCodec = buildTypeCodec({
 	replacement: t.string,
 });
 
-export const inferredMessageCodec = buildTypeCodec({
-	kind: t.literal('inferred'),
-	inferenceJobs: t.readonlyArray(replacementEnvelopeCodec),
-});
-
 export type ReplacementEnvelope = t.TypeOf<typeof replacementEnvelopeCodec>;
-export type InferredMessage = t.TypeOf<typeof inferredMessageCodec>;
