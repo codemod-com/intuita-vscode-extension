@@ -18,16 +18,3 @@ export function assertsNeitherNullOrUndefined<T>(
 
 export const buildHash = (data: string) =>
 	createHash('ripemd160').update(data).digest('base64url');
-
-export const compareIntuitaRange = (
-	left: IntuitaRange,
-	right: IntuitaRange,
-): number => {
-	const lineComparison = left[0] - right[0];
-
-	if (lineComparison !== 0) {
-		return lineComparison;
-	}
-
-	return left[1] - right[1];
-};

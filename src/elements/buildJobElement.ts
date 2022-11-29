@@ -1,6 +1,5 @@
 import { Uri } from 'vscode';
 import { Job } from '../jobs/types';
-import { compareIntuitaRange } from '../utilities';
 import type { JobElement, ElementHash } from './types';
 
 export const buildJobElement = (
@@ -18,7 +17,6 @@ export const buildJobElement = (
 		label,
 		fileName: job.fileName,
 		uri: Uri.parse(job.fileName),
-		range: null,
 		jobHash: job.hash,
 		job,
 	};
@@ -28,13 +26,5 @@ export const compareJobElements = (
 	left: JobElement,
 	right: JobElement,
 ): number => {
-	if (!left.range) {
-		return -1;
-	}
-
-	if (!right.range) {
-		return 1;
-	}
-
-	return compareIntuitaRange(left.range, right.range);
+	return left.hash.localeCompare(right.hash);
 };
