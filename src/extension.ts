@@ -3,7 +3,6 @@ import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
-import { IntuitaCodeActionProvider } from './components/intuitaCodeActionProvider';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
@@ -81,13 +80,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
-
-	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider(
-			'typescript',
-			new IntuitaCodeActionProvider(jobManager),
-		),
-	);
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
