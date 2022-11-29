@@ -1,24 +1,20 @@
 import {
 	assertsNeitherNullOrUndefined,
-	calculateLastPosition,
-	getSeparator,
-	IntuitaRange,
 	isNeitherNullNorUndefined,
 } from '../utilities';
-import { FilePermission, FileSystem, Uri } from 'vscode';
+import { FilePermission, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import {
 	buildFileUri,
 	buildJobUri,
 } from './intuitaFileSystem';
-import { Job, JobHash, JobKind, JobOutput } from '../jobs/types';
+import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
-	readonly #fileSystem: FileSystem;
 
 	#uriHashJobHashSetManager = new LeftRightHashSetManager<UriHash, JobHash>(
 		new Set(),
@@ -28,10 +24,8 @@ export class JobManager {
 
 	public constructor(
 		messageBus: MessageBus,
-		fileSystem: FileSystem,
 	) {
 		this.#messageBus = messageBus;
-		this.#fileSystem = fileSystem;
 
 		this.#messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.upsertJobs) {
@@ -71,29 +65,6 @@ export class JobManager {
 		}
 
 		return jobs;
-	}
-
-	public async buildJobOutput(
-		job: Job
-	): Promise<JobOutput> {
-		const content = await this.#fileSystem.readFile(buildJobUri(job))
-
-		if (!content) {
-			throw new Error(`No job output for job hash ${job.hash}`);
-		}
-
-		const text = content.toString();
-		const separator = getSeparator(text);
-
-		const position = calculateLastPosition(text, separator);
-
-		const range: IntuitaRange = [0, 0, position[0], position[1]];
-
-		return {
-			text,
-			position,
-			range,
-		};
 	}
 
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
@@ -144,7 +115,7 @@ export class JobManager {
 		const messageJobHashes =
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
 
-		const uriJobOutputs: [Uri, JobOutput][] = [];
+		const uriJobOutputs: [Uri, Uri][] = [];
 		const deletedJobUris: Uri[] = [];
 		const deletedFileUris = new Set<Uri>();
 		const deletedJobHashes = new Set<JobHash>();
@@ -156,26 +127,10 @@ export class JobManager {
 				.map((jobHash) => this.#jobMap.get(jobHash))
 				.filter(isNeitherNullNorUndefined);
 
-			let jobOutput: JobOutput | null = null;
-
-			if (
-				jobs.length === 1 &&
-				jobs[0] &&
-				jobs[0].kind === JobKind.rewriteFile
-			) {
-				jobOutput = await this.buildJobOutput(
-					jobs[0]
-				);
-			}
-
-			if (!jobOutput) {
-				continue;
-			}
-
 			if (jobs[0]) {
 				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
 
-				uriJobOutputs.push([uri, jobOutput]);
+				uriJobOutputs.push([uri, jobs[0].outputUri]);
 				deletedFileUris.add(buildFileUri(uri));
 			}
 
@@ -212,11 +167,11 @@ export class JobManager {
 			});
 		});
 
-		uriJobOutputs.forEach(([uri, jobOutput]) => {
+		uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 			this.#messageBus.publish({
 				kind: MessageKind.updateExternalFile,
 				uri,
-				jobOutput,
+				contentUri: jobOutputUri
 			});
 		});
 

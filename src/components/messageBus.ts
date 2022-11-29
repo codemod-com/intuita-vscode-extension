@@ -7,7 +7,7 @@ import {
 } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { File } from '../files/types';
-import type { Job, JobHash, JobOutput } from '../jobs/types';
+import type { Job, JobHash } from '../jobs/types';
 import type { UriHash } from '../uris/types';
 
 export const enum MessageKind {
@@ -23,13 +23,6 @@ export const enum MessageKind {
 	 * the external files exist outside of the extension's virtual file system
 	 */
 	updateExternalFile = 4,
-	externalFileUpdated = 5,
-
-	/**
-	 * the external diagnostics are such that come from
-	 * e.g the TS Language Server
-	 */
-	externalDiagnostics = 6,
 
 	/** the elements are tree entries */
 	updateElements = 7,
@@ -79,13 +72,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;
 			uri: Uri;
-			jobOutput: JobOutput;
-	  }>
-	| Readonly<{
-			kind: MessageKind.externalDiagnostics;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
-			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
-			trigger: Trigger;
+			contentUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;

@@ -51,19 +51,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const jobManager = new JobManager(
-		messageBus,
-		vscode.workspace.fs,
+		messageBus
 	);
 
 	const caseManager = new CaseManager(messageBus);
 
-	const uriStringToVersionMap = new Map<string, number>();
-
 	new FileService(
-		configurationContainer,
 		messageBus,
 		vscodeService,
-		uriStringToVersionMap,
 	);
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
