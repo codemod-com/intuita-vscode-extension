@@ -45,10 +45,6 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.buildCodeRepairJobs",
-				"title": "Intuita: Build code-repair recommendations"
-			},
-			{
 				"command": "intuita.buildNextJsCodeRepairJobs",
 				"title": "Intuita: Build Next.js code-repair recommendations (experimental)"
 			},
@@ -90,12 +86,6 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.buildCodeRepairJobsOnDocumentSave": {
-					"order": -1,
-					"type": "boolean",
-					"default": false,
-					"description": "Build code repair recommendations after saving a document."
-				},
 				"intuita.saveDocumentOnJobAccept": {
 					"order": 0,
 					"type": "boolean",

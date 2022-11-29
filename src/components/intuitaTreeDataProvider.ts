@@ -40,7 +40,7 @@ import {
 	buildCaseElement,
 	compareCaseElements,
 } from '../elements/buildCaseElement';
-import { Job, JobHash, JobKind } from '../jobs/types';
+import { Job, JobHash } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';

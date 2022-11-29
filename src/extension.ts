@@ -6,7 +6,6 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import { IntuitaCodeActionProvider } from './components/intuitaCodeActionProvider';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
-import { DiagnosticManager } from './components/diagnosticManager';
 import { FileService } from './components/fileService';
 import { VSCodeService } from './components/vscodeService';
 import { JobHash } from './jobs/types';
@@ -35,8 +34,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.languages.createDiagnosticCollection('typescript');
 
 	const configurationContainer = buildContainer(getConfiguration());
-
-	const diagnosticManager = new DiagnosticManager(messageBus, vscodeService);
 
 	const intuitaFileSystem = new IntuitaFileSystem(messageBus);
 
@@ -100,15 +97,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.languages.registerCodeActionsProvider(
 			'typescript',
 			new IntuitaCodeActionProvider(jobManager),
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.buildCodeRepairJobs',
-			async () => {
-				await diagnosticManager.handleDiagnostics('onCommand');
-			},
 		),
 	);
 
@@ -292,33 +280,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.externalFileUpdated,
 				uri,
 			});
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.workspace.onDidSaveTextDocument(async (document) => {
-			const { uri } = document;
-
-			if (
-				uri.scheme === 'vscode-userdata' ||
-				(uri.scheme === 'file' && uri.path.includes('.vscode'))
-			) {
-				return;
-			}
-
-			if (
-				!configurationContainer.get().buildCodeRepairJobsOnDocumentSave
-			) {
-				return;
-			}
-
-			const version = uriStringToVersionMap.get(document.uri.toString());
-
-			if (version !== null && version === document.version) {
-				return;
-			}
-
-			await diagnosticManager.handleDiagnostics('didSave');
 		}),
 	);
 

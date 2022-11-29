@@ -1,4 +1,3 @@
-import type { SourceFile } from 'typescript';
 import type { Uri } from 'vscode';
 
 export type File = Readonly<{

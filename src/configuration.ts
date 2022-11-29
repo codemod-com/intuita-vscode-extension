@@ -6,16 +6,11 @@ export const getConfiguration = () => {
 	const saveDocumentOnJobAccept =
 		configuration.get<boolean>('saveDocumentOnJobAccept') ?? true;
 
-	const buildCodeRepairJobsOnDocumentSave =
-		configuration.get<boolean>('buildCodeRepairJobsOnDocumentSave') ??
-		false;
-
 	const showFileElements =
 		configuration.get<boolean>('showFileElements') ?? false;
 
 	return {
 		saveDocumentOnJobAccept,
-		buildCodeRepairJobsOnDocumentSave,
 		showFileElements,
 	};
 };
