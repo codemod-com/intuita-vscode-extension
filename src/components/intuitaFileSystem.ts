@@ -13,7 +13,7 @@ import {
 } from 'vscode';
 import { MessageBus, MessageKind } from './messageBus';
 import { join } from 'node:path';
-import { Job, JobKind } from '../jobs/types';
+import { Job } from '../jobs/types';
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 
@@ -207,24 +207,7 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 // TODO rename buildJobUri to buildJobOutputUri
 export const buildJobUri = (job: Job): Uri => {
-	if (job.kind === JobKind.rewriteFile) {
-		return job.outputUri;
-	}
-
-	const uri = Uri.file(job.fileName);
-
-	const jobTitle = `proposedChange_${job.hash}`;
-
-	const value = join(
-		'intuita:/vfs/jobs/',
-		uri.scheme,
-		'/',
-		uri.fsPath,
-		'/',
-		`${jobTitle}.ts`,
-	);
-
-	return Uri.parse(value, true);
+	return job.outputUri;
 };
 
 export const buildFileUri = (uri: Uri): Uri => {

@@ -1,6 +1,4 @@
-import { Uri } from 'vscode';
-import { Job } from '../jobs/types';
-import { compareIntuitaRange } from '../utilities';
+import type { Job } from '../jobs/types';
 import type { JobElement, ElementHash } from './types';
 
 export const buildJobElement = (
@@ -16,9 +14,7 @@ export const buildJobElement = (
 		kind: 'JOB' as const,
 		hash: job.hash as unknown as ElementHash,
 		label,
-		fileName: job.fileName,
-		uri: Uri.parse(job.fileName),
-		range: null,
+		uri: job.inputUri,
 		jobHash: job.hash,
 		job,
 	};
@@ -28,13 +24,5 @@ export const compareJobElements = (
 	left: JobElement,
 	right: JobElement,
 ): number => {
-	if (!left.range) {
-		return -1;
-	}
-
-	if (!right.range) {
-		return 1;
-	}
-
-	return compareIntuitaRange(left.range, right.range);
+	return left.hash.localeCompare(right.hash);
 };

@@ -1,15 +1,6 @@
-import {
-	Diagnostic,
-	Disposable,
-	EventEmitter,
-	FilePermission,
-	Uri,
-} from 'vscode';
+import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
-import type { DiagnosticHash } from '../diagnostics/types';
-import type { File } from '../files/types';
-import type { Job, JobHash, JobOutput } from '../jobs/types';
-import type { UriHash } from '../uris/types';
+import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
 	/**
@@ -24,13 +15,6 @@ export const enum MessageKind {
 	 * the external files exist outside of the extension's virtual file system
 	 */
 	updateExternalFile = 4,
-	externalFileUpdated = 5,
-
-	/**
-	 * the external diagnostics are such that come from
-	 * e.g the TS Language Server
-	 */
-	externalDiagnostics = 6,
 
 	/** the elements are tree entries */
 	updateElements = 7,
@@ -44,12 +28,6 @@ export const enum MessageKind {
 	acceptJobs = 13,
 	jobsAccepted = 14,
 }
-
-export type EnhancedDiagnostic = Readonly<{
-	uri: Uri;
-	diagnostic: Diagnostic;
-	hash: DiagnosticHash;
-}>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
@@ -80,33 +58,18 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.updateExternalFile;
 			uri: Uri;
-			jobOutput: JobOutput;
-	  }>
-	| Readonly<{
-			kind: MessageKind.externalFileUpdated;
-			uri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.externalDiagnostics;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
-			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
-			trigger: Trigger;
+			contentUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
@@ -129,12 +92,10 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.acceptJobs;
 			jobHash: JobHash;
-			characterDifference: number;
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-			deletedDiagnosticHashes: ReadonlySet<DiagnosticHash>;
 	  }>;
 
 export class MessageBus {

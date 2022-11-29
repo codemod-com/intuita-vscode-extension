@@ -3,7 +3,6 @@ import {
 	commands,
 	Event,
 	EventEmitter,
-	MarkdownString,
 	ProviderResult,
 	TreeDataProvider,
 	TreeItem,
@@ -13,11 +12,6 @@ import {
 	window,
 	workspace,
 } from 'vscode';
-import {
-	assertsNeitherNullOrUndefined,
-	calculateCharacterIndex,
-	IntuitaPosition,
-} from '../utilities';
 import { JobManager } from './jobManager';
 import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Message, MessageBus, MessageKind } from './messageBus';
@@ -43,41 +37,12 @@ import {
 	buildCaseElement,
 	compareCaseElements,
 } from '../elements/buildCaseElement';
-import { Job, JobHash, JobKind } from '../jobs/types';
+import { Job, JobHash } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-
-export const calculateCharacterDifference = (
-	job: Job,
-	position: IntuitaPosition,
-): number => {
-	if (job.kind !== JobKind.moveTopLevelNode) {
-		return 0;
-	}
-
-	const characterIndex = calculateCharacterIndex(
-		job.separator,
-		job.lengths,
-		position[0],
-		position[1],
-	);
-
-	const topLevelNodeIndex = job.topLevelNodes.findIndex((topLevelNode) => {
-		return (
-			topLevelNode.triviaStart <= characterIndex &&
-			characterIndex <= topLevelNode.triviaEnd
-		);
-	});
-
-	const topLevelNode = job.topLevelNodes[topLevelNodeIndex] ?? null;
-
-	assertsNeitherNullOrUndefined(topLevelNode);
-
-	return characterIndex - topLevelNode.triviaStart;
-};
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
 	switch (kind) {
@@ -206,16 +171,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		if (element.kind === 'JOB') {
 			treeItem.contextValue = 'jobElement';
-
-			if (element.job.kind === JobKind.moveTopLevelNode) {
-				const tooltip = new MarkdownString(
-					'Adhere to the code organization rules [here](command:intuita.openTopLevelNodeKindOrderSetting)',
-				);
-
-				tooltip.isTrusted = true;
-
-				treeItem.tooltip = tooltip;
-			}
 
 			treeItem.command = {
 				title: 'Diff View',
@@ -410,15 +365,18 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				jobs.push(job);
 			}
 
-			const fileNames = Array.from(
-				new Set(jobs.map((job) => job.fileName)),
+			const inputUris = Array.from(
+				new Set(jobs.map((job) => job.inputUri)),
 			);
 
-			const children = fileNames.map((fileName): FileElement => {
-				const label = fileName.replace(rootPath, '');
+			const children = inputUris.map((inputUri): FileElement => {
+				const label = inputUri.fsPath.replace(rootPath, '');
 
 				const children = jobs
-					.filter((job) => job.fileName === fileName)
+					.filter(
+						(job) =>
+							job.inputUri.toString() === inputUri.toString(),
+					)
 					.map((job) =>
 						buildJobElement(job, label, showFileElements),
 					);

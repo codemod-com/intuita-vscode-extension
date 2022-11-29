@@ -1,6 +1,5 @@
 import type { Uri } from 'vscode';
 import type { Job, JobHash } from '../jobs/types';
-import type { IntuitaRange } from '../utilities';
 
 export type ElementHash = string & { __ElementHash: '__ElementHash' };
 
@@ -10,8 +9,6 @@ export type JobElement = Readonly<{
 	label: string;
 	uri: Uri;
 	jobHash: JobHash;
-	fileName: string;
-	range: IntuitaRange | null;
 	job: Job;
 }>;
 
