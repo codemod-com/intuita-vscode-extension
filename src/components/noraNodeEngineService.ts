@@ -2,7 +2,6 @@ import * as t from 'io-ts';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
 import * as readline from 'node:readline';
-import { buildTypeCodec } from './inferenceService';
 import prettyReporter from 'io-ts-reporters';
 import { Job, JobHash } from '../jobs/types';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
@@ -12,6 +11,10 @@ import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash } from '../utilities';
+
+export const buildTypeCodec = <T extends t.Props>(
+	props: T,
+): t.ReadonlyC<t.ExactC<t.TypeC<T>>> => t.readonly(t.exact(t.type(props)));
 
 const enum NoraNodeEngineMessageKind {
 	change = 1,
