@@ -365,15 +365,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				jobs.push(job);
 			}
 
-			const fileNames = Array.from(
-				new Set(jobs.map((job) => job.fileName)),
+			const inputUris = Array.from(
+				new Set(jobs.map((job) => job.inputUri)),
 			);
 
-			const children = fileNames.map((fileName): FileElement => {
-				const label = fileName.replace(rootPath, '');
+			const children = inputUris.map((inputUri): FileElement => {
+				const label = inputUri.fsPath.replace(rootPath, '');
 
 				const children = jobs
-					.filter((job) => job.fileName === fileName)
+					.filter((job) => job.inputUri.toString() === inputUri.toString())
 					.map((job) =>
 						buildJobElement(job, label, showFileElements),
 					);

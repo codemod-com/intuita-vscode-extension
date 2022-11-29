@@ -1,5 +1,4 @@
-import { Uri } from 'vscode';
-import { Job } from '../jobs/types';
+import type { Job } from '../jobs/types';
 import type { JobElement, ElementHash } from './types';
 
 export const buildJobElement = (
@@ -15,7 +14,7 @@ export const buildJobElement = (
 		kind: 'JOB' as const,
 		hash: job.hash as unknown as ElementHash,
 		label,
-		uri: Uri.parse(job.fileName),
+		uri: job.inputUri,
 		jobHash: job.hash,
 		job,
 	};

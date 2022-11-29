@@ -8,10 +8,10 @@ export const enum JobKind {
 
 export type RewriteFileJob = Readonly<{
 	kind: JobKind.rewriteFile;
-	fileName: string; // to be made inputUri: Uri :)
-	title: string; // TODO remove this
-	hash: JobHash;
+	inputUri: Uri;
 	outputUri: Uri;
+	title: string;
+	hash: JobHash;
 }>;
 
 export type Job = RewriteFileJob;

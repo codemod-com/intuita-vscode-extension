@@ -58,8 +58,8 @@ export class FileService {
 		message: Message & { kind: MessageKind.updateExternalFile },
 	) {
 		// TODO we could use a stream here
-		const content = await workspace.fs.readFile(message.uri);
+		const content = await workspace.fs.readFile(message.contentUri);
 
-		workspace.fs.writeFile(message.uri, content);
+		await workspace.fs.writeFile(message.uri, content);
 	}
 }

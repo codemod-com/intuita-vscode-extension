@@ -80,7 +80,7 @@ export class JobManager {
 
 			this.#jobMap.set(job.hash, job);
 
-			const uri = Uri.parse(job.fileName);
+			const uri = job.inputUri;
 			const uriHash = buildUriHash(uri);
 
 			this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
@@ -128,7 +128,7 @@ export class JobManager {
 				.filter(isNeitherNullNorUndefined);
 
 			if (jobs[0]) {
-				const uri = Uri.parse(jobs[0].fileName); // TODO job should have an URI
+				const uri = jobs[0].inputUri;
 
 				uriJobOutputs.push([uri, jobs[0].outputUri]);
 				deletedFileUris.add(buildFileUri(uri));
