@@ -27,6 +27,5 @@ export const buildRewriteFileJob = (
 		title: `Rewrite the file (${codemodId})`,
 		hash: buildRewriteFileJobHash(inputUri, outputUri, codemodId),
 		outputUri,
-		diagnosticHash: null,
 	};
 };

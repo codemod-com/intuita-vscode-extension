@@ -3,7 +3,7 @@ import type { Uri } from 'vscode';
 export type JobHash = string & { __type: 'JobHash' };
 
 export const enum JobKind {
-	rewriteFile = 3,
+	rewriteFile = 1,
 }
 
 export type RewriteFileJob = Readonly<{
@@ -12,7 +12,6 @@ export type RewriteFileJob = Readonly<{
 	title: string; // TODO remove this
 	hash: JobHash;
 	outputUri: Uri;
-	diagnosticHash: null;
 }>;
 
 export type Job = RewriteFileJob;
