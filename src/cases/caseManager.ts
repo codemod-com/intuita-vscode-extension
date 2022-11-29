@@ -96,7 +96,6 @@ export class CaseManager {
 
 		this.#messageBus.publish({
 			kind: MessageKind.upsertJobs,
-			uriHashFileMap: message.uriHashFileMap,
 			jobs: message.jobs,
 			inactiveJobHashes: message.inactiveJobHashes,
 			trigger: message.trigger,

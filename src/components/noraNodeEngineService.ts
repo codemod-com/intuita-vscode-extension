@@ -4,8 +4,6 @@ import { spawn } from 'child_process';
 import * as readline from 'node:readline';
 import { buildTypeCodec } from './inferenceService';
 import prettyReporter from 'io-ts-reporters';
-import { UriHash } from '../uris/types';
-import { File } from '../files/types';
 import { Job, JobHash } from '../jobs/types';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
@@ -101,7 +99,6 @@ export class NoraNodeEngineService {
 
 		const interfase = readline.createInterface(childProcess.stdout);
 
-		const uriHashFileMap = new Map<UriHash, File>();
 		const jobMap = new Map<JobHash, Job>();
 		const codemodIdHashJobHashMap = new LeftRightHashSetManager<
 			string,
@@ -179,7 +176,6 @@ export class NoraNodeEngineService {
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
-				uriHashFileMap,
 				casesWithJobHashes,
 				jobs,
 				inactiveJobHashes: new Set(),

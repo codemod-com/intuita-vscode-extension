@@ -6,9 +6,7 @@ import {
 	Uri,
 } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
-import type { File } from '../files/types';
 import type { Job, JobHash } from '../jobs/types';
-import type { UriHash } from '../uris/types';
 
 export const enum MessageKind {
 	/**
@@ -76,7 +74,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
@@ -84,7 +81,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
-			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
