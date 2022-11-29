@@ -2,13 +2,12 @@ import { buildHash, buildIntuitaRangeFromSimpleRange } from '../../utilities';
 import type { ReplacementEnvelope } from '../../components/inferenceService';
 import { JobHash, JobKind, RepairCodeJob } from '../../jobs/types';
 import type { File } from '../../files/types';
-import { DiagnosticHash } from '../../diagnostics/types';
 import { UriHash } from '../../uris/types';
 import { buildUriHash } from '../../uris/buildUriHash';
 
 export const buildRepairCodeJobHash = (
 	uriHash: UriHash,
-	diagnosticHash: DiagnosticHash | null,
+	diagnosticHash: null,
 	replacementEnvelope: ReplacementEnvelope,
 ): JobHash => {
 	const hash = buildHash(
@@ -26,7 +25,7 @@ export const buildRepairCodeJobHash = (
 
 export const buildRepairCodeJob = (
 	file: File,
-	diagnosticHash: DiagnosticHash | null,
+	diagnosticHash: null,
 	replacementEnvelope: ReplacementEnvelope,
 ): RepairCodeJob => {
 	const fileName = file.uri.fsPath;

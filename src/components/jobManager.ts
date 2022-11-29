@@ -21,7 +21,6 @@ import { buildUriHash } from '../uris/buildUriHash';
 import { VSCodeService } from './vscodeService';
 import { applyReplacementEnvelopes } from '../jobs/applyReplacementEnvelopes';
 import { ReplacementEnvelope } from './inferenceService';
-import { DiagnosticHash } from '../diagnostics/types';
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
@@ -30,7 +29,7 @@ export class JobManager {
 	readonly #fileSystem: FileSystem;
 
 	#diagnosticHashJobHashSetManager = new LeftRightHashSetManager<
-		DiagnosticHash,
+		string,
 		JobHash
 	>(new Set());
 	#uriHashJobHashSetManager = new LeftRightHashSetManager<UriHash, JobHash>(

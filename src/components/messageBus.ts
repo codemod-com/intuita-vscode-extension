@@ -6,7 +6,6 @@ import {
 	Uri,
 } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
-import type { DiagnosticHash } from '../diagnostics/types';
 import type { File } from '../files/types';
 import type { Job, JobHash, JobOutput } from '../jobs/types';
 import type { UriHash } from '../uris/types';
@@ -48,7 +47,7 @@ export const enum MessageKind {
 export type EnhancedDiagnostic = Readonly<{
 	uri: Uri;
 	diagnostic: Diagnostic;
-	hash: DiagnosticHash;
+	hash: null;
 }>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
@@ -90,7 +89,7 @@ export type Message =
 			kind: MessageKind.externalDiagnostics;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<null>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -98,7 +97,7 @@ export type Message =
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<null>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
@@ -106,7 +105,7 @@ export type Message =
 			kind: MessageKind.upsertJobs;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			inactiveDiagnosticHashes: ReadonlySet<null>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
@@ -134,7 +133,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-			deletedDiagnosticHashes: ReadonlySet<DiagnosticHash>;
+			deletedDiagnosticHashes: ReadonlySet<null>;
 	  }>;
 
 export class MessageBus {
