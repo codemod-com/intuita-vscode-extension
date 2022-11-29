@@ -98,7 +98,6 @@ export class CaseManager {
 			kind: MessageKind.upsertJobs,
 			uriHashFileMap: message.uriHashFileMap,
 			jobs: message.jobs,
-			inactiveDiagnosticHashes: message.inactiveDiagnosticHashes,
 			inactiveJobHashes: message.inactiveJobHashes,
 			trigger: message.trigger,
 		});

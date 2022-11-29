@@ -135,10 +135,5 @@ export class FileService {
 				TextEditorRevealType.AtTop,
 			);
 		}
-
-		this.#messageBus.publish({
-			kind: MessageKind.externalFileUpdated,
-			uri: message.uri,
-		});
 	}
 }

@@ -82,14 +82,9 @@ export type Message =
 			jobOutput: JobOutput;
 	  }>
 	| Readonly<{
-			kind: MessageKind.externalFileUpdated;
-			uri: Uri;
-	  }>
-	| Readonly<{
 			kind: MessageKind.externalDiagnostics;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			enhancedDiagnostics: ReadonlyArray<EnhancedDiagnostic>;
-			inactiveDiagnosticHashes: ReadonlySet<null>;
 			trigger: Trigger;
 	  }>
 	| Readonly<{
@@ -97,7 +92,6 @@ export type Message =
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<null>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
@@ -105,7 +99,6 @@ export type Message =
 			kind: MessageKind.upsertJobs;
 			uriHashFileMap: ReadonlyMap<UriHash, File>;
 			jobs: ReadonlyArray<Job>;
-			inactiveDiagnosticHashes: ReadonlySet<null>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
 	  }>
@@ -128,7 +121,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.acceptJobs;
 			jobHash: JobHash;
-			characterDifference: number;
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;

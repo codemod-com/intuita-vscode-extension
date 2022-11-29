@@ -183,7 +183,6 @@ export class NoraNodeEngineService {
 				casesWithJobHashes,
 				jobs,
 				inactiveJobHashes: new Set(),
-				inactiveDiagnosticHashes: new Set(),
 				trigger: 'onCommand',
 			});
 		});

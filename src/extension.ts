@@ -30,9 +30,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	messageBus.setDisposables(context.subscriptions);
 
-	const diagnosticCollection =
-		vscode.languages.createDiagnosticCollection('typescript');
-
 	const configurationContainer = buildContainer(getConfiguration());
 
 	const intuitaFileSystem = new IntuitaFileSystem(messageBus);
@@ -176,7 +173,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
-			async (arg0: unknown, arg1: unknown) => {
+			async (arg0: unknown) => {
 				const jobHash = typeof arg0 === 'string' ? arg0 : null;
 
 				if (jobHash === null) {
@@ -185,12 +182,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 				}
 
-				const characterDifference = typeof arg1 === 'number' ? arg1 : 0;
-
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
 					jobHash: jobHash as JobHash,
-					characterDifference,
 				});
 			},
 		),
@@ -257,30 +251,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidChangeTextDocument(async ({ document }) => {
-			const { uri } = document;
-
-			if (
-				uri.scheme === 'vscode-userdata' ||
-				(uri.scheme === 'file' && uri.path.includes('.vscode'))
-			) {
-				return;
-			}
-
-			if (uri.scheme === 'intuita' && uri.path.startsWith('/vfs/jobs/')) {
-				await document.save();
-
-				return;
-			}
-
-			messageBus.publish({
-				kind: MessageKind.externalFileUpdated,
-				uri,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
@@ -307,8 +277,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
-
-	context.subscriptions.push(diagnosticCollection);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
