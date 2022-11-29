@@ -9,14 +9,12 @@ import { VSCodeService } from './vscodeService';
 
 export class FileService {
 	readonly #messageBus: MessageBus;
-	readonly #vscodeService: VSCodeService;
 
 	public constructor(
 		readonly messageBus: MessageBus,
 		readonly vscodeService: VSCodeService,
 	) {
 		this.#messageBus = messageBus;
-		this.#vscodeService = vscodeService;
 
 		this.#messageBus.subscribe(async (message) => {
 			if (message.kind === MessageKind.readingFileFailed) {
@@ -38,9 +36,10 @@ export class FileService {
 			return;
 		}
 
-		const text = await this.#getText(destructedUri);
+		const fileName = destructedUri.fsPath;
+		const uri = Uri.parse(fileName);
 
-		const content = Buffer.from(text);
+		const content = await workspace.fs.readFile(uri);
 
 		const permissions =
 			destructedUri.directory === 'files'
@@ -53,21 +52,6 @@ export class FileService {
 			content,
 			permissions,
 		});
-	}
-
-	async #getText(
-		destructedUri: ReturnType<typeof destructIntuitaFileSystemUri>,
-	): Promise<string> {
-		if (destructedUri.directory === 'jobs') {
-			return ''; // TODO remove this case
-		}
-
-		const fileName = destructedUri.fsPath;
-		const uri = Uri.parse(fileName);
-
-		const textDocument = await this.#vscodeService.openTextDocument(uri);
-
-		return textDocument.getText();
 	}
 
 	async #onUpdateExternalFile(
