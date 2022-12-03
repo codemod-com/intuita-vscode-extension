@@ -12,6 +12,7 @@ import { CaseHash } from './cases/types';
 import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
+import { NodaRustEngineService } from './components/noraRustEngineService';
 
 const messageBus = new MessageBus();
 
@@ -79,6 +80,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 	);
 
+	const nodaRustEngineService = new NodaRustEngineService(
+		vscode.workspace.fs,
+		messageBus,
+	) 
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.buildNextJsCodeRepairJobs',
@@ -90,7 +96,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(
+				await nodaRustEngineService.buildRepairCodeJobs(
 					storageUri,
 					'nextJs',
 				);

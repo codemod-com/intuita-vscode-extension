@@ -68,9 +68,9 @@ export class NodaRustEngineService {
                 '-d',
                 uri.fsPath,
 				'-p',
-				pattern,
+				`"${pattern}"`,
 				'-a',
-				'!**/node_modules',
+				'**/node_modules/**/*',
 				'-g',
 				group,
 				'-o',
@@ -81,7 +81,7 @@ export class NodaRustEngineService {
 			},
 		);
 
-        const interfase = readline.createInterface(childProcess.stdout);
+	    const interfase = readline.createInterface(childProcess.stdout);
 
 		const jobMap = new Map<JobHash, Job>();
 		const codemodIdHashJobHashMap = new LeftRightHashSetManager<
