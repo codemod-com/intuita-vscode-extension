@@ -5,7 +5,7 @@ import * as readline from 'node:readline';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
-import { buildRewriteFileJob } from '../features/rewriteFile/job';
+import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from "../utilities";

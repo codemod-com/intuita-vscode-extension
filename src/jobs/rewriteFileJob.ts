@@ -1,7 +1,7 @@
 import type { Uri } from 'vscode';
-import { JobHash, JobKind, RewriteFileJob } from '../../jobs/types';
-import { buildUriHash } from '../../uris/buildUriHash';
-import { buildHash } from '../../utilities';
+import { JobHash, JobKind, RewriteFileJob } from './types';
+import { buildUriHash } from '../uris/buildUriHash';
+import { buildHash } from '../utilities';
 
 export const buildRewriteFileJobHash = (
 	inputUri: Uri,

@@ -7,7 +7,7 @@ import { Job, JobHash } from '../jobs/types';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { MessageBus, MessageKind } from './messageBus';
-import { buildRewriteFileJob } from '../features/rewriteFile/job';
+import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from '../utilities';
