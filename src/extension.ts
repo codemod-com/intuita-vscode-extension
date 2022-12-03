@@ -81,7 +81,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const nodaRustEngineService = new NodaRustEngineService(
+		downloadService,
 		vscode.workspace.fs,
+		context.globalStorageUri,
 		messageBus,
 	) 
 

@@ -1,5 +1,5 @@
-import { spawn } from 'child_process';
 import * as t from 'io-ts';
+import { spawn } from 'child_process';
 import prettyReporter from 'io-ts-reporters';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, workspace } from 'vscode';
@@ -9,6 +9,7 @@ import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from "../utilities";
+import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
 
 const enum NoraRustEngineMessageKind {
@@ -29,16 +30,22 @@ const messageCodec = t.union([
 ]);
 
 export class NodaRustEngineService {
-    readonly #fileSystem: FileSystem;
+	readonly #downloadService: DownloadService;
+	readonly #fileSystem: FileSystem;
+	readonly #globalStorageUri: Uri;
     readonly #messageBus: MessageBus;
 
     #executableUri: Uri | null = null;
 
     public constructor(
-        fileSystem: FileSystem,
+		downloadService: DownloadService,
+		fileSystem: FileSystem,
+		globalStorageUri: Uri,
         messageBus: MessageBus,
     ) {
+		this.#downloadService = downloadService;
         this.#fileSystem = fileSystem;
+		this.#globalStorageUri = globalStorageUri;
         this.#messageBus = messageBus;
     }
 
@@ -184,9 +191,37 @@ export class NodaRustEngineService {
 			};
 		}
 
-        const executableUri = Uri.file("/intuita/nora-rust-engine/target/release/nora-rust-engine");
+        await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
-        this.#executableUri = executableUri;
+		const platform =
+			process.platform === 'darwin'
+				? 'macos'
+				: encodeURIComponent(process.platform);
+
+		const executableBaseName = `nora-rust-engine-${platform}`;
+
+		const executableUri = Uri.joinPath(
+			this.#globalStorageUri,
+			executableBaseName,
+		);
+
+		try {
+			await this.#downloadService.downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
+				executableUri,
+				'755',
+			);
+		} catch (error) {
+			if (!(error instanceof ForbiddenRequestError)) {
+				throw error;
+			}
+
+			throw new Error(
+				`Your platform (${process.platform}) is not supported.`,
+			);
+		}
+
+		this.#executableUri = executableUri;
 
 		return {
 			executableUri,
