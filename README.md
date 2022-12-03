@@ -1,40 +1,52 @@
-# Automate The Boring & Move Fast.
+# Automated Code Modernization For Any Scale
 
 - ⚠️ This extension is in <kbd> Closed Beta</kbd>!  Get in touch with us if you want to be an early adopter! ⚠️
-- Intuita is an AI assistant 🤖 that "taskifies" & automates the boring coding so that you can remain in our creative flow and ship 🚀 better code faster!
-- As for the first use case, Intuita helps you **update dependencies with ease**, e.g., moving from TypeScript v2 to v4.
+- Intuita is a developer assistant 🤖 that makes **migrations, dependency upgrades & large refactorings** easy for small (free version) & very large teams (paid version).
+- Spend less time on tedious code maintenance & coordination tasks & more on building new, performant & secure features 🚀 for your end users.
+- Intuita's extension is **open source & its pluggable architecture** is desinged to work with the best codemod engines out there (such as **Facebook's JSCodeShift or Uber's Piranha, & soon ML-powered engines**).
+- Codemods for upgrading **Nextjs vX → v13** & **Material UI v4 → v5** is supported already. Many other frameworks can be easily added based on [**community requests**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA).
+
+---
+
+## Who Is It For 
+
+### Codemod Consumers 🧑🏾‍💻👩🏻‍💻
+- Product developers who rely on some infra/framework.
+- Infra engineers who want to ship their new features to all of their conusmers
+- These developers trigger codemods (already created & integrated in Intuita by codemod builders) right from the IDE 
+- **This extension, at current stage, is mainly for codemod conusmers.**
+
+### Codemod Builders 🥷🏼
+- Rare Engineers in Infra Teams/Open Source Framework Maintainers
+  - Writing reliable codemods are not easy & fun for most of developers. That is why at Intuita we build features specifically built for codemod builders to make this step as easy as possible. At current
+- At Intuita, we teamed up with rare engineers who are experts at & passionate about writing codemods! We know best practices & we build tools to make codemod creation as easy as possible. 
+  - **The tools we use to create codemods are not integrated into this extension yet**. 
+  - **Partner up with us if you maintain a popular framework** to build & integrate your codemods into this extension & enable your consumers adopt your latest features quickly & easily.
+
+### Engineering Leads 👩🏾‍💼👨🏻‍💼
+- Leaders want to track progress & coordinate migration campaings across many teams.
+  - **Team leads, please contact us to learn more about enterprise features.**
 
 ---
 ## How It Works 🪄
 
-1. Update a major library, framework, or any other dependency to the latest version (or check out [this demo](https://github.com/intuita-inc/demo-repo/tree/gpp/ts2769)).
-2. Some or many places break.
-3. Intuita categorizes those issues so you can fix them in batches quickly & easily.
+1. As a codemod consumer, open a project that uses Nextjs v12 or older, or Material UI v4.
+2. Run Intuita's Command in VS Code related to that framework.
+3. Intuita automatically runs all the relevant codemods, categorizes the changes, & lets you quickly review, tweak, & apply them in batches.
 
 ![Screen Shot 2022-10-19 at 6 21 58 PM](https://user-images.githubusercontent.com/78109534/196834622-e84de2d4-bcfa-4bac-9360-3f6d15cd12e2.png)
 ---
 ## Why Do I Need It 🤔
 
-- Making changes to large codebases is a big pain. Instead of focusing on building new features, you need to swim through thousands of lines of code and logs to fix those mechanical errors.
-- With Intuita, you will save time and, more importantly, preserve your mental energy for bigger problems!
-- Research has shown that **more than 40% of developers' time is wasted on code maintenance** & Intuita is here to help you with those tedious tasks.
+- Save the time you spend sifting through online documentations & upgrade guides.
+- Have a better dev expreince compared to running random codemods one by one.
+- Divide & Conquer! In large codebases, running a codemod in CLI just does not cut it! (enterprise feature, contact us)
+- Our experience & research says **more than 40% of developers' time is wasted on code maintenance**. We are here to help you with those tedious undifferentiated tasks.
+
 ---
-## Intuita Is For You ♥️
+## How Can I Share Feedback? 🎁
 
-- **If you are a developer in a fast-paced tech company**, you will resonate the most with this extension. 
-- And if you are not working on relatively large projects, we still hope you like the Problem categorization feature and use the extension just for that, until we have more features for you!
-  - Stay tuned! Intuita is an **open-source and extensible** platform. We will cover more use cases down the road (such as advanced refactoring not supported in other IDEs, automated bug fixes, code optimization, modularization, organization, vulnerability fix, test case generation, and literally anything you wish you did not have to spend time on.)
-
-![Screen Shot 2022-10-19 at 8 26 58 PM](https://user-images.githubusercontent.com/78109534/196849461-4c5b7ff9-5c74-44a5-ab39-7cb51b0f4054.png)
----
-## How Can I Ask For More? 🎁
-
-- First, a little bit about us:
-  - We are a team of scientists, engineers, designers, and product managers passionate about **automating the boring coding for millions of developers worldwide**, one use case at a time.
-  - We believe code automation enables us to be **drastically more productive**. Besides that, **automation reduces friction for coding &**  **empowers many more to become coders**, so together, we keep up with the increasing demand for technology.
-  - At Intuita, we started with automating mechanical and repetitive fixes & we have **more use cases in our roadmap.** You could have a say in the next automation we build!
-- **Now tell us which specific coding activities have recently wasted your time?**
-  - Upvote your feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>.
+- Please share your ideas, questions, feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>
 
 <br>  
 
