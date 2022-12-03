@@ -10,11 +10,7 @@ import { MessageBus, MessageKind } from './messageBus';
 import { buildRewriteFileJob } from '../features/rewriteFile/job';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { buildHash } from '../utilities';
-
-export const buildTypeCodec = <T extends t.Props>(
-	props: T,
-): t.ReadonlyC<t.ExactC<t.TypeC<T>>> => t.readonly(t.exact(t.type(props)));
+import { buildHash, buildTypeCodec } from '../utilities';
 
 const enum NoraNodeEngineMessageKind {
 	change = 1,
