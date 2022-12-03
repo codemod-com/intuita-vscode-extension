@@ -49,6 +49,10 @@
 				"title": "Intuita: Build Next.js code-repair recommendations (experimental)"
 			},
 			{
+				"command": "intuita.buildPagesToAppsCodeRepairJobs",
+				"title": "Intuita: Build Pages-to-Apps code-repair recommendations (experimental)"
+			},
+			{
 				"command": "intuita.buildMuiCodeRepairJobs",
 				"title": "Intuita: Build MUI code-repair recommendations (experimental)"
 			},

@@ -1,63 +1,55 @@
 import * as t from 'io-ts';
-import { FileSystem, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
-import * as readline from 'node:readline';
 import prettyReporter from 'io-ts-reporters';
-import { Job, JobHash } from '../jobs/types';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import * as readline from 'node:readline';
+import { FileSystem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
-import { MessageBus, MessageKind } from './messageBus';
-import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
-import { DownloadService, ForbiddenRequestError } from './downloadService';
+import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from '../utilities';
+import { DownloadService, ForbiddenRequestError } from './downloadService';
+import { MessageBus, MessageKind } from './messageBus';
+import { buildCreateFileJob } from '../jobs/createFileJob';
 
-const enum NoraNodeEngineMessageKind {
-	change = 1,
+const enum NoraRustEngineMessageKind {
 	finish = 2,
-	rewrite = 3,
+	create = 4,
 }
 
 const messageCodec = t.union([
 	buildTypeCodec({
-		k: t.literal(NoraNodeEngineMessageKind.change),
+		k: t.literal(NoraRustEngineMessageKind.create),
 		p: t.string,
-		r: t.tuple([t.number, t.number]),
-		t: t.string,
-		c: t.string,
-	}),
-	buildTypeCodec({
-		k: t.literal(NoraNodeEngineMessageKind.finish),
-	}),
-	buildTypeCodec({
-		k: t.literal(NoraNodeEngineMessageKind.rewrite),
-		i: t.string,
 		o: t.string,
 		c: t.string,
 	}),
+	buildTypeCodec({
+		k: t.literal(NoraRustEngineMessageKind.finish),
+	}),
 ]);
 
-export class NoraNodeEngineService {
+export class NodaRustEngineService {
 	readonly #downloadService: DownloadService;
-	readonly #messageBus: MessageBus;
 	readonly #fileSystem: FileSystem;
 	readonly #globalStorageUri: Uri;
+	readonly #messageBus: MessageBus;
 
 	#executableUri: Uri | null = null;
 
 	public constructor(
 		downloadService: DownloadService,
+		fileSystem: FileSystem,
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
-		fileSystem: FileSystem,
 	) {
 		this.#downloadService = downloadService;
+		this.#fileSystem = fileSystem;
 		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
-		this.#fileSystem = fileSystem;
 	}
 
-	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
+	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs') {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -71,7 +63,7 @@ export class NoraNodeEngineService {
 
 		await this.#fileSystem.createDirectory(storageUri);
 
-		const outputUri = Uri.joinPath(storageUri, 'noraNodeEngineOutput');
+		const outputUri = Uri.joinPath(storageUri, 'noraRustEngineOutput');
 
 		await this.#fileSystem.createDirectory(outputUri);
 
@@ -80,14 +72,14 @@ export class NoraNodeEngineService {
 		const childProcess = spawn(
 			executableUri.fsPath,
 			[
+				'-d',
+				uri.fsPath,
 				'-p',
-				pattern,
-				'-p',
-				'!**/node_modules',
+				`"${pattern}"`,
+				'-a',
+				'**/node_modules/**/*',
 				'-g',
 				group,
-				'-l',
-				'100',
 				'-o',
 				outputUri.fsPath,
 			],
@@ -118,11 +110,11 @@ export class NoraNodeEngineService {
 
 			const message = either.right;
 
-			if (message.k === NoraNodeEngineMessageKind.rewrite) {
-				const inputUri = Uri.file(message.i);
+			if (message.k === NoraRustEngineMessageKind.create) {
+				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
+				const job = buildCreateFileJob(inputUri, outputUri, message.c);
 
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
@@ -184,7 +176,7 @@ export class NoraNodeEngineService {
 	}
 
 	async clearOutputFiles(storageUri: Uri) {
-		const outputUri = Uri.joinPath(storageUri, 'noraNodeEngineOutput');
+		const outputUri = Uri.joinPath(storageUri, 'noraRustEngineOutput');
 
 		await this.#fileSystem.delete(outputUri, {
 			recursive: true,
@@ -206,7 +198,7 @@ export class NoraNodeEngineService {
 				? 'macos'
 				: encodeURIComponent(process.platform);
 
-		const executableBaseName = `nora-node-engine-${platform}`;
+		const executableBaseName = `nora-rust-engine-${platform}`;
 
 		const executableUri = Uri.joinPath(
 			this.#globalStorageUri,
@@ -215,7 +207,7 @@ export class NoraNodeEngineService {
 
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
+				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
 				executableUri,
 				'755',
 			);

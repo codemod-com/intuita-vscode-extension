@@ -37,7 +37,7 @@ import {
 	buildCaseElement,
 	compareCaseElements,
 } from '../elements/buildCaseElement';
-import { Job, JobHash } from '../jobs/types';
+import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -169,7 +169,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			getElementIconBaseName(element.kind),
 		);
 
-		if (element.kind === 'JOB') {
+		if (
+			element.kind === 'JOB' &&
+			element.job.kind === JobKind.rewriteFile
+		) {
 			treeItem.contextValue = 'jobElement';
 
 			treeItem.command = {
@@ -180,6 +183,16 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 					buildJobUri(element.job),
 					'Proposed change',
 				],
+			};
+		}
+
+		if (element.kind === 'JOB' && element.job.kind === JobKind.createFile) {
+			treeItem.contextValue = 'jobElement';
+
+			treeItem.command = {
+				title: 'Open View',
+				command: 'vscode.open',
+				arguments: [buildJobUri(element.job)],
 			};
 		}
 

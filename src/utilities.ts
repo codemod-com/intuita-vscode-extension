@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import { createHash } from 'crypto';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
@@ -20,3 +21,7 @@ export function assertsNeitherNullOrUndefined<T>(
 
 export const buildHash = (data: string) =>
 	createHash('ripemd160').update(data).digest('base64url');
+
+export const buildTypeCodec = <T extends t.Props>(
+	props: T,
+): t.ReadonlyC<t.ExactC<t.TypeC<T>>> => t.readonly(t.exact(t.type(props)));
