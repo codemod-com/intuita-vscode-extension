@@ -17,10 +17,10 @@ export type RewriteFileJob = Readonly<{
 
 export type CreateFileJob = Readonly<{
 	kind: JobKind.createFile;
-	targetUri: Uri;
-	contentUri: Uri;
+	inputUri: Uri;
+	outputUri: Uri;
 	title: string;
 	hash: JobHash;
 }>;
 
-export type Job = RewriteFileJob;
+export type Job = RewriteFileJob | CreateFileJob;

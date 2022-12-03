@@ -3,15 +3,15 @@ import { buildJobHash } from "./buildJobHash";
 import { CreateFileJob, JobKind } from "./types";
 
 export const buildCreateFileJob = (
-	targetUri: Uri,
-	contentUri: Uri,
+	inputUri: Uri,
+	outputUri: Uri,
 	codemodId: string,
 ): CreateFileJob => {
 	return {
 		kind: JobKind.createFile,
-		targetUri,
+		inputUri,
 		title: `Create a file (${codemodId})`,
-		hash: buildJobHash([targetUri, contentUri], codemodId),
-		contentUri,
+		hash: buildJobHash([inputUri, outputUri], codemodId),
+		outputUri,
 	};
 };

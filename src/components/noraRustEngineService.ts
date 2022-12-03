@@ -5,12 +5,12 @@ import * as readline from 'node:readline';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
-import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from "../utilities";
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
+import { buildCreateFileJob } from '../jobs/createFileJob';
 
 const enum NoraRustEngineMessageKind {
 	finish = 2,
@@ -114,7 +114,7 @@ export class NodaRustEngineService {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
+				const job = buildCreateFileJob(inputUri, outputUri, message.c);
 
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
