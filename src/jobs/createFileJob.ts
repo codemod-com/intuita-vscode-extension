@@ -1,6 +1,6 @@
-import type { Uri } from "vscode";
-import { buildJobHash } from "./buildJobHash";
-import { CreateFileJob, JobKind } from "./types";
+import type { Uri } from 'vscode';
+import { buildJobHash } from './buildJobHash';
+import { CreateFileJob, JobKind } from './types';
 
 export const buildCreateFileJob = (
 	inputUri: Uri,

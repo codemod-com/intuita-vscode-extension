@@ -7,7 +7,7 @@ import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { buildHash, buildTypeCodec } from "../utilities";
+import { buildHash, buildTypeCodec } from '../utilities';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
 import { buildCreateFileJob } from '../jobs/createFileJob';
@@ -18,38 +18,38 @@ const enum NoraRustEngineMessageKind {
 }
 
 const messageCodec = t.union([
-    buildTypeCodec({
-        k: t.literal(NoraRustEngineMessageKind.create),
-        p: t.string,
-        o: t.string,
-        c: t.string,
-    }),
-    buildTypeCodec({
-        k: t.literal(NoraRustEngineMessageKind.finish),
-    })
+	buildTypeCodec({
+		k: t.literal(NoraRustEngineMessageKind.create),
+		p: t.string,
+		o: t.string,
+		c: t.string,
+	}),
+	buildTypeCodec({
+		k: t.literal(NoraRustEngineMessageKind.finish),
+	}),
 ]);
 
 export class NodaRustEngineService {
 	readonly #downloadService: DownloadService;
 	readonly #fileSystem: FileSystem;
 	readonly #globalStorageUri: Uri;
-    readonly #messageBus: MessageBus;
+	readonly #messageBus: MessageBus;
 
-    #executableUri: Uri | null = null;
+	#executableUri: Uri | null = null;
 
-    public constructor(
+	public constructor(
 		downloadService: DownloadService,
 		fileSystem: FileSystem,
 		globalStorageUri: Uri,
-        messageBus: MessageBus,
-    ) {
+		messageBus: MessageBus,
+	) {
 		this.#downloadService = downloadService;
-        this.#fileSystem = fileSystem;
+		this.#fileSystem = fileSystem;
 		this.#globalStorageUri = globalStorageUri;
-        this.#messageBus = messageBus;
-    }
+		this.#messageBus = messageBus;
+	}
 
-    async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs') {
+	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs') {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -67,13 +67,13 @@ export class NodaRustEngineService {
 
 		await this.#fileSystem.createDirectory(outputUri);
 
-        const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
+		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
 
-        const childProcess = spawn(
+		const childProcess = spawn(
 			executableUri.fsPath,
 			[
-                '-d',
-                uri.fsPath,
+				'-d',
+				uri.fsPath,
 				'-p',
 				`"${pattern}"`,
 				'-a',
@@ -88,7 +88,7 @@ export class NodaRustEngineService {
 			},
 		);
 
-	    const interfase = readline.createInterface(childProcess.stdout);
+		const interfase = readline.createInterface(childProcess.stdout);
 
 		const jobMap = new Map<JobHash, Job>();
 		const codemodIdHashJobHashMap = new LeftRightHashSetManager<
@@ -98,7 +98,7 @@ export class NodaRustEngineService {
 
 		const codemodIdSubKindMap = new Map<string, string>();
 
-        interfase.on('line', async (line) => {
+		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -122,7 +122,7 @@ export class NodaRustEngineService {
 			}
 		});
 
-        interfase.on('close', () => {
+		interfase.on('close', () => {
 			const casesWithJobHashes: CaseWithJobHashes[] = [];
 
 			codemodIdHashJobHashMap.getLeftHashes().forEach((codemodIdHash) => {
@@ -173,9 +173,9 @@ export class NodaRustEngineService {
 				trigger: 'onCommand',
 			});
 		});
-    }
+	}
 
-    async clearOutputFiles(storageUri: Uri) {
+	async clearOutputFiles(storageUri: Uri) {
 		const outputUri = Uri.joinPath(storageUri, 'noraRustEngineOutput');
 
 		await this.#fileSystem.delete(outputUri, {
@@ -184,14 +184,14 @@ export class NodaRustEngineService {
 		});
 	}
 
-    async #bootstrap() {
+	async #bootstrap() {
 		if (this.#executableUri) {
 			return {
 				executableUri: this.#executableUri,
 			};
 		}
 
-        await this.#fileSystem.createDirectory(this.#globalStorageUri);
+		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
 		const platform =
 			process.platform === 'darwin'
@@ -228,4 +228,3 @@ export class NodaRustEngineService {
 		};
 	}
 }
-

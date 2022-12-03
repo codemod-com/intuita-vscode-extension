@@ -85,11 +85,30 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		context.globalStorageUri,
 		messageBus,
-	) 
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.buildNextJsCodeRepairJobs',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				await noraNodeEngineService.buildRepairCodeJobs(
+					storageUri,
+					'nextJs',
+				);
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.buildPagesToAppsCodeRepairJobs',
 			async () => {
 				const { storageUri } = context;
 

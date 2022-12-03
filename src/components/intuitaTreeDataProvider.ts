@@ -169,7 +169,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			getElementIconBaseName(element.kind),
 		);
 
-		if (element.kind === 'JOB' && element.job.kind === JobKind.rewriteFile) {
+		if (
+			element.kind === 'JOB' &&
+			element.job.kind === JobKind.rewriteFile
+		) {
 			treeItem.contextValue = 'jobElement';
 
 			treeItem.command = {
@@ -190,9 +193,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			treeItem.command = {
 				title: 'Open View',
 				command: 'vscode.open',
-				arguments: [
-					buildJobUri(element.job),
-				],
+				arguments: [buildJobUri(element.job)],
 			};
 		}
 
