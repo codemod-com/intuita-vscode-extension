@@ -187,7 +187,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		if (element.kind === 'JOB' && element.job.kind === JobKind.createFile) {
-			// vscode.open
 			treeItem.contextValue = 'jobElement';
 
 			treeItem.command = {
