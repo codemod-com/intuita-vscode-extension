@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { FileSystem, StatusBarItem, ThemeColor, Uri, workspace } from 'vscode';
+import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
 import * as readline from 'node:readline';
 import prettyReporter from 'io-ts-reporters';
