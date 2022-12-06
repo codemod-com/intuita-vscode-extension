@@ -8,8 +8,6 @@ export class NoraRustEngineService extends EngineService {
 	readonly #downloadService: DownloadService;
 	readonly #globalStorageUri: Uri;
 
-	#executableUri: Uri | null = null;
-
 	public constructor(
 		downloadService: DownloadService,
 		fileSystem: FileSystem,
@@ -51,10 +49,6 @@ export class NoraRustEngineService extends EngineService {
 	}
 
 	async bootstrapExecutableUri(): Promise<Uri> {
-		if (this.#executableUri) {
-			return this.#executableUri;
-		}
-
 		// TODO cannot happen here
 		await this.fileSystem.createDirectory(this.#globalStorageUri);
 
@@ -86,8 +80,6 @@ export class NoraRustEngineService extends EngineService {
 			);
 		}
 
-		this.#executableUri = executableUri;
-
-		return this.#executableUri;
+		return executableUri;
 	}
 }

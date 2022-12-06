@@ -49,6 +49,8 @@ export abstract class EngineService {
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItem: StatusBarItem;
     readonly #storageDirectory: string;
+
+	#executableUri: Uri | null = null;
     
     public constructor(
         caseKind: CaseKind,
@@ -84,7 +86,9 @@ export abstract class EngineService {
 			return;
 		}
 
-		const executableUri = await this.bootstrapExecutableUri();
+		if (!this.#executableUri) {
+			this.#executableUri = await this.bootstrapExecutableUri();
+		}
 
 		await this.fileSystem.createDirectory(storageUri);
 
@@ -95,7 +99,7 @@ export abstract class EngineService {
 		this.#showStatusBarItemText(0);
 
 		const childProcess = spawn(
-			executableUri.fsPath,
+			this.#executableUri.fsPath,
 			this.buildArguments(
 				uri,
 				outputUri,
