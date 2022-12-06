@@ -126,31 +126,29 @@ export abstract class EngineService {
 
 			const message = either.right;
 
+			if (message.k === EngineMessageKind.finish || message.k === EngineMessageKind.change) {
+				return;
+			}
+
+			let job: Job;
+
 			if (message.k === EngineMessageKind.create) {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				const job = buildCreateFileJob(inputUri, outputUri, message.c);
-
-				jobMap.set(job.hash, job);
-				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
-				codemodIdSubKindMap.set(buildHash(message.c), message.c);
-
-				this.#showStatusBarItemText(jobMap.size);
-			}
-
-			if (message.k === EngineMessageKind.rewrite) {
+				job = buildCreateFileJob(inputUri, outputUri, message.c);
+			} else {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
-				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
-
-				jobMap.set(job.hash, job);
-				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
-				codemodIdSubKindMap.set(buildHash(message.c), message.c);
-
-				this.#showStatusBarItemText(jobMap.size);
+				job = buildRewriteFileJob(inputUri, outputUri, message.c);
 			}
+
+			jobMap.set(job.hash, job);
+			codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
+			codemodIdSubKindMap.set(buildHash(message.c), message.c);
+
+			this.#showStatusBarItemText(jobMap.size);
 		});
 
 		interfase.on('close', () => {
