@@ -79,9 +79,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const noraNodeEngineService = new NoraNodeEngineService(
 		downloadService,
+		vscode.workspace.fs,
 		context.globalStorageUri,
 		messageBus,
-		vscode.workspace.fs,
 		statusBarItem,
 	);
 

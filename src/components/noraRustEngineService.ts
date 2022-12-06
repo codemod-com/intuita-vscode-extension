@@ -49,7 +49,6 @@ export class NoraRustEngineService extends EngineService {
 	}
 
 	async bootstrapExecutableUri(): Promise<Uri> {
-		// TODO cannot happen here
 		await this.fileSystem.createDirectory(this.#globalStorageUri);
 
 		const platform =

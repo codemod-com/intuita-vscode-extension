@@ -6,6 +6,7 @@ import { FileSystem, StatusBarItem, Uri, workspace } from "vscode";
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCreateFileJob } from '../jobs/createFileJob';
+import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job, JobHash } from "../jobs/types";
 import { LeftRightHashSetManager } from "../leftRightHashes/leftRightHashSetManager";
 import { buildHash, buildTypeCodec } from '../utilities';
@@ -137,6 +138,19 @@ export abstract class EngineService {
 				const outputUri = Uri.file(message.o);
 
 				const job = buildCreateFileJob(inputUri, outputUri, message.c);
+
+				jobMap.set(job.hash, job);
+				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
+				codemodIdSubKindMap.set(buildHash(message.c), message.c);
+
+				this.#showStatusBarItemText(jobMap.size);
+			}
+
+			if (message.k === EngineMessageKind.rewrite) {
+				const inputUri = Uri.file(message.i);
+				const outputUri = Uri.file(message.o);
+
+				const job = buildRewriteFileJob(inputUri, outputUri, message.c);
 
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
