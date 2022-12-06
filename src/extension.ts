@@ -73,7 +73,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
-	const statusBarItem = vscode.window.createStatusBarItem('intuita.statusBarItem', vscode.StatusBarAlignment.Right, 100);
+	const statusBarItem = vscode.window.createStatusBarItem(
+		'intuita.statusBarItem',
+		vscode.StatusBarAlignment.Right,
+		100,
+	);
 
 	context.subscriptions.push(statusBarItem);
 

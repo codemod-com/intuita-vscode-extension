@@ -2,25 +2,25 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, StatusBarItem, Uri, workspace } from "vscode";
+import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
-import { Job, JobHash } from "../jobs/types";
-import { LeftRightHashSetManager } from "../leftRightHashes/leftRightHashSetManager";
+import { Job, JobHash } from '../jobs/types';
+import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from '../utilities';
-import { MessageBus, MessageKind } from "./messageBus";
+import { MessageBus, MessageKind } from './messageBus';
 
 const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
 	rewrite = 3,
-    create = 4,
+	create = 4,
 }
 
 const messageCodec = t.union([
-    buildTypeCodec({
+	buildTypeCodec({
 		k: t.literal(EngineMessageKind.change),
 		p: t.string,
 		r: t.tuple([t.number, t.number]),
@@ -45,39 +45,36 @@ const messageCodec = t.union([
 ]);
 
 export abstract class EngineService {
-    readonly #caseKind: CaseKind;
-    protected readonly fileSystem: FileSystem;
+	readonly #caseKind: CaseKind;
+	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItem: StatusBarItem;
-    readonly #storageDirectory: string;
+	readonly #storageDirectory: string;
 
 	#executableUri: Uri | null = null;
-    
-    public constructor(
-        caseKind: CaseKind,
+
+	public constructor(
+		caseKind: CaseKind,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 		statusBarItem: StatusBarItem,
-        storageDirectory: string,
+		storageDirectory: string,
 	) {
-        this.#caseKind = caseKind;
+		this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
 		this.#statusBarItem = statusBarItem;
-        this.#storageDirectory = storageDirectory;
+		this.#storageDirectory = storageDirectory;
 	}
 
-    protected abstract buildArguments(
+	protected abstract buildArguments(
 		uri: Uri,
 		outputUri: Uri,
 		group: 'nextJs' | 'mui',
 	): ReadonlyArray<string>;
-    protected abstract bootstrapExecutableUri(): Promise<Uri>;
+	protected abstract bootstrapExecutableUri(): Promise<Uri>;
 
-    async buildRepairCodeJobs(
-		storageUri: Uri,
-		group: 'nextJs' | 'mui'
-	) {
+	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -101,11 +98,7 @@ export abstract class EngineService {
 
 		const childProcess = spawn(
 			this.#executableUri.fsPath,
-			this.buildArguments(
-				uri,
-				outputUri,
-				group,
-			),
+			this.buildArguments(uri, outputUri, group),
 			{
 				stdio: 'pipe',
 			},
@@ -225,7 +218,7 @@ export abstract class EngineService {
 		});
 	}
 
-    #showStatusBarItemText(numberOfJobs: number) {
+	#showStatusBarItemText(numberOfJobs: number) {
 		const ending = numberOfJobs === 1 ? '' : 's';
 
 		this.#statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;

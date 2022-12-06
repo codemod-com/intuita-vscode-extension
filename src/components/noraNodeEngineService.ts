@@ -1,17 +1,10 @@
-import * as t from 'io-ts';
-import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
-import { spawn } from 'child_process';
-import * as readline from 'node:readline';
-import prettyReporter from 'io-ts-reporters';
-import { Job, JobHash } from '../jobs/types';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
-import { buildCaseHash } from '../cases/buildCaseHash';
-import { MessageBus, MessageKind } from './messageBus';
-import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
+import { FileSystem, StatusBarItem, Uri } from 'vscode';
+import { CaseKind } from '../cases/types';
+import { MessageBus } from './messageBus';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { EngineService } from './engineService';
 
-export class NoraNodeEngineService extends EngineService  {
+export class NoraNodeEngineService extends EngineService {
 	readonly #downloadService: DownloadService;
 	readonly #globalStorageUri: Uri;
 

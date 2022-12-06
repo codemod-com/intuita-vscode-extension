@@ -4,7 +4,7 @@ import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus } from './messageBus';
 import { EngineService } from './engineService';
 
-export class NoraRustEngineService extends EngineService {	
+export class NoraRustEngineService extends EngineService {
 	readonly #downloadService: DownloadService;
 	readonly #globalStorageUri: Uri;
 
@@ -32,7 +32,7 @@ export class NoraRustEngineService extends EngineService {
 		outputUri: Uri,
 		group: 'nextJs' | 'mui',
 	): readonly string[] {
-		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;		
+		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
 
 		return [
 			'-d',
