@@ -45,7 +45,7 @@ const messageCodec = t.union([
 
 export abstract class EngineService {
     readonly #caseKind: CaseKind;
-    readonly #fileSystem: FileSystem;
+    protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItem: StatusBarItem;
     readonly #storageDirectory: string;
@@ -59,15 +59,22 @@ export abstract class EngineService {
 	) {
         this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
-		this.#fileSystem = fileSystem;
+		this.fileSystem = fileSystem;
 		this.#statusBarItem = statusBarItem;
         this.#storageDirectory = storageDirectory;
 	}
 
-    protected abstract buildArguments(): ReadonlyArray<string>;
+    protected abstract buildArguments(
+		uri: Uri,
+		outputUri: Uri,
+		group: 'nextJs' | 'mui',
+	): ReadonlyArray<string>;
     protected abstract bootstrapExecutableUri(): Promise<Uri>;
 
-    async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
+    async buildRepairCodeJobs(
+		storageUri: Uri,
+		group: 'nextJs' | 'mui'
+	) {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -79,31 +86,21 @@ export abstract class EngineService {
 
 		const executableUri = await this.bootstrapExecutableUri();
 
-		await this.#fileSystem.createDirectory(storageUri);
+		await this.fileSystem.createDirectory(storageUri);
 
 		const outputUri = Uri.joinPath(storageUri, this.#storageDirectory);
 
-		await this.#fileSystem.createDirectory(outputUri);
-
-		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
+		await this.fileSystem.createDirectory(outputUri);
 
 		this.#showStatusBarItemText(0);
 
-        // TODO fix the argument creation
 		const childProcess = spawn(
 			executableUri.fsPath,
-			[
-				'-d',
-				uri.fsPath,
-				'-p',
-				`"${pattern}"`,
-				'-a',
-				'**/node_modules/**/*',
-				'-g',
+			this.buildArguments(
+				uri,
+				outputUri,
 				group,
-				'-o',
-				outputUri.fsPath,
-			],
+			),
 			{
 				stdio: 'pipe',
 			},
@@ -198,6 +195,15 @@ export abstract class EngineService {
 			});
 
 			this.#statusBarItem.hide();
+		});
+	}
+
+	async clearOutputFiles(storageUri: Uri) {
+		const outputUri = Uri.joinPath(storageUri, this.#storageDirectory);
+
+		await this.fileSystem.delete(outputUri, {
+			recursive: true,
+			useTrash: false,
 		});
 	}
 
