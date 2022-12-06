@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import { spawn } from 'child_process';
 import prettyReporter from 'io-ts-reporters';
 import * as readline from 'node:readline';
-import { FileSystem, Uri, workspace } from 'vscode';
+import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { Job, JobHash } from '../jobs/types';
@@ -34,6 +34,7 @@ export class NodaRustEngineService {
 	readonly #fileSystem: FileSystem;
 	readonly #globalStorageUri: Uri;
 	readonly #messageBus: MessageBus;
+	readonly #statusBarItem: StatusBarItem;
 
 	#executableUri: Uri | null = null;
 
@@ -42,11 +43,13 @@ export class NodaRustEngineService {
 		fileSystem: FileSystem,
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
+		statusBarItem: StatusBarItem,
 	) {
 		this.#downloadService = downloadService;
 		this.#fileSystem = fileSystem;
 		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
+		this.#statusBarItem = statusBarItem;
 	}
 
 	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs') {
@@ -68,6 +71,8 @@ export class NodaRustEngineService {
 		await this.#fileSystem.createDirectory(outputUri);
 
 		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
+
+		this.#showStatusBarItemText(0);
 
 		const childProcess = spawn(
 			executableUri.fsPath,
@@ -119,6 +124,8 @@ export class NodaRustEngineService {
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
 				codemodIdSubKindMap.set(buildHash(message.c), message.c);
+
+				this.#showStatusBarItemText(jobMap.size);
 			}
 		});
 
@@ -165,6 +172,8 @@ export class NodaRustEngineService {
 
 			const jobs = Array.from(jobMap.values());
 
+			this.#showStatusBarItemText(0);
+
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes,
@@ -172,6 +181,8 @@ export class NodaRustEngineService {
 				inactiveJobHashes: new Set(),
 				trigger: 'onCommand',
 			});
+
+			this.#statusBarItem.hide();
 		});
 	}
 
@@ -182,6 +193,13 @@ export class NodaRustEngineService {
 			recursive: true,
 			useTrash: false,
 		});
+	}
+
+	#showStatusBarItemText(numberOfJobs: number) {
+		const ending = numberOfJobs === 1 ? '' : 's';
+
+		this.#statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;
+		this.#statusBarItem.show();
 	}
 
 	async #bootstrap() {

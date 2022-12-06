@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { FileSystem, Uri, workspace } from 'vscode';
+import { FileSystem, StatusBarItem, ThemeColor, Uri, workspace } from 'vscode';
 import { spawn } from 'child_process';
 import * as readline from 'node:readline';
 import prettyReporter from 'io-ts-reporters';
@@ -42,6 +42,7 @@ export class NoraNodeEngineService {
 	readonly #messageBus: MessageBus;
 	readonly #fileSystem: FileSystem;
 	readonly #globalStorageUri: Uri;
+	readonly #statusBarItem: StatusBarItem;
 
 	#executableUri: Uri | null = null;
 
@@ -50,11 +51,13 @@ export class NoraNodeEngineService {
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
+		statusBarItem: StatusBarItem,
 	) {
 		this.#downloadService = downloadService;
 		this.#globalStorageUri = globalStorageUri;
 		this.#messageBus = messageBus;
 		this.#fileSystem = fileSystem;
+		this.#statusBarItem = statusBarItem;
 	}
 
 	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
@@ -76,6 +79,8 @@ export class NoraNodeEngineService {
 		await this.#fileSystem.createDirectory(outputUri);
 
 		const pattern = Uri.joinPath(uri, '**/*.tsx').fsPath;
+
+		this.#showStatusBarItemText(0);
 
 		const childProcess = spawn(
 			executableUri.fsPath,
@@ -127,6 +132,8 @@ export class NoraNodeEngineService {
 				jobMap.set(job.hash, job);
 				codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
 				codemodIdSubKindMap.set(buildHash(message.c), message.c);
+
+				this.#showStatusBarItemText(jobMap.size);
 			}
 		});
 
@@ -180,6 +187,8 @@ export class NoraNodeEngineService {
 				inactiveJobHashes: new Set(),
 				trigger: 'onCommand',
 			});
+			
+			this.#statusBarItem.hide();
 		});
 	}
 
@@ -190,6 +199,13 @@ export class NoraNodeEngineService {
 			recursive: true,
 			useTrash: false,
 		});
+	}
+
+	#showStatusBarItemText(numberOfJobs: number) {
+		const ending = numberOfJobs === 1 ? '' : 's';
+
+		this.#statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;
+		this.#statusBarItem.show();
 	}
 
 	async #bootstrap() {

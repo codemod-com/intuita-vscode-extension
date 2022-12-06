@@ -73,11 +73,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
+	const statusBarItem = vscode.window.createStatusBarItem('intuita.statusBarItem', vscode.StatusBarAlignment.Right, 100);
+
+	context.subscriptions.push(statusBarItem);
+
 	const noraNodeEngineService = new NoraNodeEngineService(
 		downloadService,
 		context.globalStorageUri,
 		messageBus,
 		vscode.workspace.fs,
+		statusBarItem,
 	);
 
 	const nodaRustEngineService = new NodaRustEngineService(
@@ -85,6 +90,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		context.globalStorageUri,
 		messageBus,
+		statusBarItem,
 	);
 
 	context.subscriptions.push(
