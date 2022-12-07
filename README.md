@@ -24,7 +24,7 @@
   - **Partner up with us if you maintain a popular framework** to build & integrate your codemods into this extension & enable your consumers adopt your latest features quickly & easily.
 
 ### Engineering Leads 👩🏾‍💼👨🏻‍💼
-- Leaders want to track progress & coordinate migration campaings across many teams.
+- Leaders want to track progress & coordinate migration campaigns across many teams.
   - **Team leads, please contact us to learn more about enterprise features.**
 
 ---
@@ -39,7 +39,7 @@
 ## Why Do I Need It 🤔
 
 - Save the time you spend sifting through online documentations & upgrade guides.
-- Have a better dev expreince compared to running random codemods one by one.
+- Have a better dev experience compared to running random codemods one by one.
 - Divide & Conquer! In large codebases, running a codemod in CLI just does not cut it! (enterprise feature, contact us)
 - Our experience & research says **more than 40% of developers' time is wasted on code maintenance**. We are here to help you with those tedious undifferentiated tasks.
 
