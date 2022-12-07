@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { IntuitaFileSystem } from './components/intuitaFileSystem';
 import { MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -20,18 +19,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
 
 	const configurationContainer = buildContainer(getConfiguration());
-
-	const intuitaFileSystem = new IntuitaFileSystem(messageBus);
-
-	context.subscriptions.push(
-		vscode.workspace.registerFileSystemProvider(
-			'intuita',
-			intuitaFileSystem,
-			{
-				isCaseSensitive: true,
-			},
-		),
-	);
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration(() => {
