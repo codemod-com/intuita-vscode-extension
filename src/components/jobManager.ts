@@ -2,7 +2,7 @@ import {
 	assertsNeitherNullOrUndefined,
 	isNeitherNullNorUndefined,
 } from '../utilities';
-import { FilePermission, Uri } from 'vscode';
+import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
@@ -176,13 +176,9 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
-		const uris: Uri[] = [];
-
 		for (const jobHash of message.jobHashes) {
 			const job = this.getJob(jobHash);
 			assertsNeitherNullOrUndefined(job);
-
-			uris.push(job.outputUri);
 
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
@@ -193,13 +189,5 @@ export class JobManager {
 			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
-
-		for (const uri of uris) {
-			this.#messageBus.publish({
-				kind: MessageKind.changePermissions,
-				uri,
-				permissions: FilePermission.Readonly,
-			});
-		}
 	}
 }

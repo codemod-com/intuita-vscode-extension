@@ -38,12 +38,6 @@ export class IntuitaFileSystem implements FileSystemProvider {
 					this.delete(message.uri);
 				});
 			}
-
-			if (message.kind === MessageKind.changePermissions) {
-				setImmediate(() => {
-					this.#changePermissions(message.uri, message.permissions);
-				});
-			}
 		});
 	}
 
@@ -161,27 +155,5 @@ export class IntuitaFileSystem implements FileSystemProvider {
 		}
 
 		this.#files.set(newUri.toString(), file);
-	}
-
-	#changePermissions(uri: Uri, permissions: FilePermission | null): void {
-		const fileName = uri.toString();
-
-		const file = this.#files.get(fileName);
-
-		if (!file) {
-			throw FileSystemError.FileNotFound(uri);
-		}
-
-		this.#files.set(fileName, {
-			...file,
-			permissions,
-		});
-
-		this.#emitter.fire([
-			{
-				uri,
-				type: FileChangeType.Changed,
-			},
-		]);
 	}
 }

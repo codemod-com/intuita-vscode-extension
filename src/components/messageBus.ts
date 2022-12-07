@@ -1,4 +1,4 @@
-import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
+import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
@@ -7,8 +7,6 @@ export const enum MessageKind {
 	 * the Intuita (virtual) file-system-related message kinds
 	 */
 	deleteFile = 2,
-	changePermissions = 3,
-
 	/**
 	 * the external files exist outside of the extension's virtual file system
 	 */
@@ -33,11 +31,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.deleteFile;
 			uri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.changePermissions;
-			uri: Uri;
-			permissions: FilePermission | null;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateElements;
