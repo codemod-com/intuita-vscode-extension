@@ -13,7 +13,6 @@ import {
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
-import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { CaseWithJobHashes } from '../cases/types';
 import {
@@ -179,8 +178,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				title: 'Diff View',
 				command: 'vscode.diff',
 				arguments: [
-					buildFileUri(element.uri),
-					buildJobUri(element.job),
+					element.uri,
+					element.job.outputUri,
 					'Proposed change',
 				],
 			};
@@ -192,7 +191,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			treeItem.command = {
 				title: 'Open View',
 				command: 'vscode.open',
-				arguments: [buildJobUri(element.job)],
+				arguments: [element.job.outputUri],
 			};
 		}
 
@@ -246,8 +245,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const showTheFirstJob = async () => {
 			await commands.executeCommand(
 				'vscode.diff',
-				buildFileUri(firstJobElement.uri),
-				buildJobUri(firstJobElement.job),
+				firstJobElement.uri,
+				firstJobElement.job.outputUri,
 				'Proposed change',
 			);
 

@@ -1,56 +1,29 @@
-import { Disposable, EventEmitter, FilePermission, Uri } from 'vscode';
+import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
 	/**
-	 * the Intuita (virtual) file-system-related message kinds
-	 */
-	readingFileFailed = 0,
-	writeFile = 1,
-	deleteFile = 2,
-	changePermissions = 3,
-
-	/**
 	 * the external files exist outside of the extension's virtual file system
 	 */
-	updateExternalFile = 4,
+	updateExternalFile = 1,
 
 	/** the elements are tree entries */
-	updateElements = 7,
+	updateElements = 2,
 
 	/** cases and jobs */
-	upsertCases = 8,
-	upsertJobs = 9,
-	rejectCase = 10,
-	rejectJobs = 11,
-	acceptCase = 12,
-	acceptJobs = 13,
-	jobsAccepted = 14,
+	upsertCases = 3,
+	upsertJobs = 4,
+	rejectCase = 5,
+	rejectJobs = 6,
+	acceptCase = 7,
+	acceptJobs = 8,
+	jobsAccepted = 9,
 }
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
-	| Readonly<{
-			kind: MessageKind.readingFileFailed;
-			uri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.writeFile;
-			uri: Uri;
-			content: Uint8Array;
-			permissions: FilePermission | null;
-	  }>
-	| Readonly<{
-			kind: MessageKind.deleteFile;
-			uri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.changePermissions;
-			uri: Uri;
-			permissions: FilePermission | null;
-	  }>
 	| Readonly<{
 			kind: MessageKind.updateElements;
 			trigger: Trigger;

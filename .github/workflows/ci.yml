@@ -14,17 +14,6 @@ jobs:
               uses: bahmutov/npm-install@v1
             - name: Run cSpell
               run: yarn spellcheck
-    UnitTest:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: 16
-            - uses: actions/checkout@v2
-            - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Run unit tests
-              run: yarn test
     Build:
         runs-on: ubuntu-latest
         steps:
@@ -48,7 +37,7 @@ jobs:
             - name: Install modules
               uses: bahmutov/npm-install@v1
             - name: Run ESLint
-              run: yarn eslint src test --ext ts
+              run: yarn eslint src --ext ts
     Prettier:
         runs-on: ubuntu-latest
         steps:

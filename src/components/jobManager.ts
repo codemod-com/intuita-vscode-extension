@@ -2,9 +2,8 @@ import {
 	assertsNeitherNullOrUndefined,
 	isNeitherNullNorUndefined,
 } from '../utilities';
-import { FilePermission, Uri } from 'vscode';
+import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
@@ -111,8 +110,6 @@ export class JobManager {
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
 
 		const uriJobOutputs: [Uri, Uri][] = [];
-		const deletedJobUris: Uri[] = [];
-		const deletedFileUris = new Set<Uri>();
 		const deletedJobHashes = new Set<JobHash>();
 
 		for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
@@ -126,7 +123,6 @@ export class JobManager {
 				const uri = jobs[0].inputUri;
 
 				uriJobOutputs.push([uri, jobs[0].outputUri]);
-				deletedFileUris.add(buildFileUri(uri));
 			}
 
 			const otherJobHashes =
@@ -135,32 +131,10 @@ export class JobManager {
 				);
 
 			for (const jobHash of otherJobHashes) {
-				const job = this.#jobMap.get(jobHash);
-
-				if (job) {
-					deletedJobUris.push(buildJobUri(job));
-				}
-
 				this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
 				this.#jobMap.delete(jobHash);
-
-				deletedJobHashes.add(jobHash);
 			}
 		}
-
-		deletedJobUris.forEach((jobUri) => {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri: jobUri,
-			});
-		});
-
-		deletedFileUris.forEach((fileUri) => {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri: fileUri,
-			});
-		});
 
 		uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 			this.#messageBus.publish({
@@ -177,13 +151,9 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
-		const uris: Uri[] = [];
-
 		for (const jobHash of message.jobHashes) {
 			const job = this.getJob(jobHash);
 			assertsNeitherNullOrUndefined(job);
-
-			uris.push(buildJobUri(job));
 
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
@@ -194,13 +164,5 @@ export class JobManager {
 			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
-
-		for (const uri of uris) {
-			this.#messageBus.publish({
-				kind: MessageKind.changePermissions,
-				uri,
-				permissions: FilePermission.Readonly,
-			});
-		}
 	}
 }
