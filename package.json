@@ -36,11 +36,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run a codemod recipe via VS Code Commmand & check back later!"
+				"contents": "No change to review! Run a codemod recipe via VS Code Command & check back later!"
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run a codemod recipe via VS Code Commmand & check back later!"
+				"contents": "No change to review! Run a codemod recipe via VS Code Command & check back later!"
 			}
 		],
 		"commands": [

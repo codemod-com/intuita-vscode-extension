@@ -126,7 +126,10 @@ export abstract class EngineService {
 
 			const message = either.right;
 
-			if (message.k === EngineMessageKind.finish || message.k === EngineMessageKind.change) {
+			if (
+				message.k === EngineMessageKind.finish ||
+				message.k === EngineMessageKind.change
+			) {
 				return;
 			}
 

@@ -3,7 +3,7 @@
 - ⚠️ This extension is in <kbd> Closed Beta</kbd>!  Get in touch with us if you want to be an early adopter! ⚠️
 - Intuita is a developer assistant 🤖 that makes **migrations, dependency upgrades & large refactorings** easy for small (free version) & very large teams (paid version).
 - Spend less time on tedious code maintenance & coordination tasks & more on building new, performant & secure features 🚀 for your end users.
-- Intuita's extension is **open source & its pluggable architecture** is desinged to work with the best codemod engines out there (such as **Facebook's JSCodeShift or Uber's Piranha, & soon ML-powered engines**).
+- Intuita's extension is **open source & its pluggable architecture** is designed to work with the best codemod engines out there (such as **Facebook's JSCodeShift or Uber's Piranha, & soon ML-powered engines**).
 - Codemods for upgrading **Nextjs vX → v13** & **Material UI v4 → v5** is supported already. Many other frameworks can be easily added based on [**community requests**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA).
 
 ---
@@ -12,9 +12,9 @@
 
 ### Codemod Consumers 🧑🏾‍💻👩🏻‍💻
 - Product developers who rely on some infra/framework.
-- Infra engineers who want to ship their new features to all of their conusmers
+- Infra engineers who want to ship their new features to all of their consumers
 - These developers trigger codemods (already created & integrated in Intuita by codemod builders) right from the IDE 
-- **This extension, at current stage, is mainly for codemod conusmers.**
+- **This extension, at current stage, is mainly for codemod consumers.**
 
 ### Codemod Builders 🥷🏼
 - Rare Engineers in Infra Teams/Open Source Framework Maintainers
