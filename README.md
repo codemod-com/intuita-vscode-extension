@@ -34,7 +34,9 @@
 2. Run Intuita's Command in VS Code related to that framework.
 3. Intuita automatically runs all the relevant codemods, categorizes the changes, & lets you quickly review, tweak, & apply them in batches.
 
-![Screen Shot 2022-10-19 at 6 21 58 PM](https://user-images.githubusercontent.com/78109534/196834622-e84de2d4-bcfa-4bac-9360-3f6d15cd12e2.png)
+![Screenshot 2022-12-07 at 1 01 20 PM](https://user-images.githubusercontent.com/78109534/206294943-1dc51334-15d5-4a5f-8b9c-a701cab0ccca.png)
+
+
 ---
 ## Why Do I Need It 🤔
 
