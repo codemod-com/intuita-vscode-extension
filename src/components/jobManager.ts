@@ -4,7 +4,6 @@ import {
 } from '../utilities';
 import { FilePermission, Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { buildFileUri, buildJobUri } from './intuitaFileSystem';
 import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
@@ -126,7 +125,7 @@ export class JobManager {
 				const uri = jobs[0].inputUri;
 
 				uriJobOutputs.push([uri, jobs[0].outputUri]);
-				deletedFileUris.add(buildFileUri(uri));
+				deletedFileUris.add(uri);
 			}
 
 			const otherJobHashes =
@@ -138,7 +137,7 @@ export class JobManager {
 				const job = this.#jobMap.get(jobHash);
 
 				if (job) {
-					deletedJobUris.push(buildJobUri(job));
+					deletedJobUris.push(job.outputUri);
 				}
 
 				this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
@@ -183,7 +182,7 @@ export class JobManager {
 			const job = this.getJob(jobHash);
 			assertsNeitherNullOrUndefined(job);
 
-			uris.push(buildJobUri(job));
+			uris.push(job.outputUri);
 
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);

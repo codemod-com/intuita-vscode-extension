@@ -204,14 +204,3 @@ export class IntuitaFileSystem implements FileSystemProvider {
 		]);
 	}
 }
-
-// TODO rename buildJobUri to buildJobOutputUri
-export const buildJobUri = (job: Job): Uri => {
-	return job.outputUri;
-};
-
-export const buildFileUri = (uri: Uri): Uri => {
-	const value = join('intuita:/vfs/files/', uri.scheme, '/', uri.fsPath);
-
-	return Uri.parse(value, true);
-};
