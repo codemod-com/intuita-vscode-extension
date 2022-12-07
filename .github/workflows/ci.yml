@@ -37,7 +37,7 @@ jobs:
             - name: Install modules
               uses: bahmutov/npm-install@v1
             - name: Run ESLint
-              run: yarn eslint src test --ext ts
+              run: yarn eslint src --ext ts
     Prettier:
         runs-on: ubuntu-latest
         steps:
