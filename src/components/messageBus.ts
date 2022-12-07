@@ -6,19 +6,19 @@ export const enum MessageKind {
 	/**
 	 * the external files exist outside of the extension's virtual file system
 	 */
-	updateExternalFile = 4,
+	updateExternalFile = 1,
 
 	/** the elements are tree entries */
-	updateElements = 7,
+	updateElements = 2,
 
 	/** cases and jobs */
-	upsertCases = 8,
-	upsertJobs = 9,
-	rejectCase = 10,
-	rejectJobs = 11,
-	acceptCase = 12,
-	acceptJobs = 13,
-	jobsAccepted = 14,
+	upsertCases = 3,
+	upsertJobs = 4,
+	rejectCase = 5,
+	rejectJobs = 6,
+	acceptCase = 7,
+	acceptJobs = 8,
+	jobsAccepted = 9,
 }
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
