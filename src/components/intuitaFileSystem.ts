@@ -102,13 +102,6 @@ export class IntuitaFileSystem implements FileSystemProvider {
 	readFile(uri: Uri): Uint8Array {
 		const content = this.readNullableFile(uri);
 
-		if (!content) {
-			this.#messageBus.publish({
-				kind: MessageKind.readingFileFailed,
-				uri,
-			});
-		}
-
 		return content ?? LOADING_MESSAGE;
 	}
 
