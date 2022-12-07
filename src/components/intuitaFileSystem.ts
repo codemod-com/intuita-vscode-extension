@@ -12,8 +12,6 @@ import {
 	Uri,
 } from 'vscode';
 import { MessageBus, MessageKind } from './messageBus';
-import { join } from 'node:path';
-import { Job } from '../jobs/types';
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 
@@ -35,16 +33,6 @@ export class IntuitaFileSystem implements FileSystemProvider {
 	public constructor(messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 		this.#messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.writeFile) {
-				setImmediate(() => {
-					this.writeFile(message.uri, message.content, {
-						create: true,
-						overwrite: true,
-						permissions: message.permissions,
-					});
-				});
-			}
-
 			if (message.kind === MessageKind.deleteFile) {
 				setImmediate(() => {
 					this.delete(message.uri);

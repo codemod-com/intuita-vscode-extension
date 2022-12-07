@@ -6,7 +6,6 @@ export const enum MessageKind {
 	/**
 	 * the Intuita (virtual) file-system-related message kinds
 	 */
-	writeFile = 1,
 	deleteFile = 2,
 	changePermissions = 3,
 
@@ -31,12 +30,6 @@ export const enum MessageKind {
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
-	| Readonly<{
-			kind: MessageKind.writeFile;
-			uri: Uri;
-			content: Uint8Array;
-			permissions: FilePermission | null;
-	  }>
 	| Readonly<{
 			kind: MessageKind.deleteFile;
 			uri: Uri;
