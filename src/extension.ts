@@ -12,7 +12,7 @@ import { CaseHash } from './cases/types';
 import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { NodaRustEngineService } from './components/noraRustEngineService';
+import { NoraRustEngineService } from './components/noraRustEngineService';
 
 const messageBus = new MessageBus();
 
@@ -73,18 +73,28 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
-	const noraNodeEngineService = new NoraNodeEngineService(
-		downloadService,
-		context.globalStorageUri,
-		messageBus,
-		vscode.workspace.fs,
+	const statusBarItem = vscode.window.createStatusBarItem(
+		'intuita.statusBarItem',
+		vscode.StatusBarAlignment.Right,
+		100,
 	);
 
-	const nodaRustEngineService = new NodaRustEngineService(
+	context.subscriptions.push(statusBarItem);
+
+	const noraNodeEngineService = new NoraNodeEngineService(
 		downloadService,
 		vscode.workspace.fs,
 		context.globalStorageUri,
 		messageBus,
+		statusBarItem,
+	);
+
+	const nodaRustEngineService = new NoraRustEngineService(
+		downloadService,
+		vscode.workspace.fs,
+		context.globalStorageUri,
+		messageBus,
+		statusBarItem,
 	);
 
 	context.subscriptions.push(
