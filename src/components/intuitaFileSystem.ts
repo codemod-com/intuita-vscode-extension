@@ -11,7 +11,7 @@ import {
 	FileType,
 	Uri,
 } from 'vscode';
-import { MessageBus, MessageKind } from './messageBus';
+import { MessageBus } from './messageBus';
 
 const LOADING_MESSAGE = Buffer.from('// LOADING...');
 
@@ -32,13 +32,6 @@ export class IntuitaFileSystem implements FileSystemProvider {
 
 	public constructor(messageBus: MessageBus) {
 		this.#messageBus = messageBus;
-		this.#messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.deleteFile) {
-				setImmediate(() => {
-					this.delete(message.uri);
-				});
-			}
-		});
 	}
 
 	watch(): Disposable {

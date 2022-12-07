@@ -4,10 +4,6 @@ import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
 	/**
-	 * the Intuita (virtual) file-system-related message kinds
-	 */
-	deleteFile = 2,
-	/**
 	 * the external files exist outside of the extension's virtual file system
 	 */
 	updateExternalFile = 4,
@@ -28,10 +24,6 @@ export const enum MessageKind {
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
-	| Readonly<{
-			kind: MessageKind.deleteFile;
-			uri: Uri;
-	  }>
 	| Readonly<{
 			kind: MessageKind.updateElements;
 			trigger: Trigger;

@@ -110,8 +110,6 @@ export class JobManager {
 			'jobHashes' in message ? message.jobHashes : [message.jobHash];
 
 		const uriJobOutputs: [Uri, Uri][] = [];
-		const deletedJobUris: Uri[] = [];
-		const deletedFileUris = new Set<Uri>();
 		const deletedJobHashes = new Set<JobHash>();
 
 		for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
@@ -125,7 +123,6 @@ export class JobManager {
 				const uri = jobs[0].inputUri;
 
 				uriJobOutputs.push([uri, jobs[0].outputUri]);
-				deletedFileUris.add(uri);
 			}
 
 			const otherJobHashes =
@@ -134,32 +131,10 @@ export class JobManager {
 				);
 
 			for (const jobHash of otherJobHashes) {
-				const job = this.#jobMap.get(jobHash);
-
-				if (job) {
-					deletedJobUris.push(job.outputUri);
-				}
-
 				this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
 				this.#jobMap.delete(jobHash);
-
-				deletedJobHashes.add(jobHash);
 			}
 		}
-
-		deletedJobUris.forEach((jobUri) => {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri: jobUri,
-			});
-		});
-
-		deletedFileUris.forEach((fileUri) => {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFile,
-				uri: fileUri,
-			});
-		});
 
 		uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 			this.#messageBus.publish({
