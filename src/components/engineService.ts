@@ -48,7 +48,7 @@ export abstract class EngineService {
 	readonly #caseKind: CaseKind;
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
-	readonly #statusBarItem: StatusBarItem;
+	protected readonly statusBarItem: StatusBarItem;
 	readonly #storageDirectory: string;
 
 	#executableUri: Uri | null = null;
@@ -63,7 +63,7 @@ export abstract class EngineService {
 		this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
-		this.#statusBarItem = statusBarItem;
+		this.statusBarItem = statusBarItem;
 		this.#storageDirectory = storageDirectory;
 	}
 
@@ -206,7 +206,7 @@ export abstract class EngineService {
 				trigger: 'onCommand',
 			});
 
-			this.#statusBarItem.hide();
+			this.statusBarItem.hide();
 		});
 	}
 
@@ -222,7 +222,7 @@ export abstract class EngineService {
 	#showStatusBarItemText(numberOfJobs: number) {
 		const ending = numberOfJobs === 1 ? '' : 's';
 
-		this.#statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;
-		this.#statusBarItem.show();
+		this.statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;
+		this.statusBarItem.show();
 	}
 }
