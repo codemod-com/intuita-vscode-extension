@@ -63,6 +63,9 @@ export class NoraRustEngineService extends EngineService {
 			executableBaseName,
 		);
 
+		this.statusBarItem.text = `$(loading~spin) Downloading the Nora Rust Engine`;
+		this.statusBarItem.show();
+
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
@@ -77,6 +80,8 @@ export class NoraRustEngineService extends EngineService {
 			throw new Error(
 				`Your platform (${process.platform}) is not supported.`,
 			);
+		} finally {
+			this.statusBarItem.hide();
 		}
 
 		return executableUri;
