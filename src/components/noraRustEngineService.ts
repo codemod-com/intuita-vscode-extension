@@ -63,7 +63,7 @@ export class NoraRustEngineService extends EngineService {
 			executableBaseName,
 		);
 
-		this.statusBarItem.text = `$(loading~spin) Downloading the Nora Rust Engine`;
+		this.statusBarItem.text = `$(loading~spin) Downloading the Nora Rust Engine if needed`;
 		this.statusBarItem.show();
 
 		try {
