@@ -10,6 +10,7 @@ The Intuita's Codemod Manager lets you run the most popular codemods over any co
 ## Installation & Usage 🪄
 
 Click on the image to view an introductory video on YouTube.
+
 [![How to use codemods with the Intuita VSCode Extension](https://img.youtube.com/vi/pEGdu-cpu5k/0.jpg)](https://www.youtube.com/watch?v=pEGdu-cpu5k "How to use codemods with the Intuita VSCode Extension")
 
 ## Why would I need it as a Codemod Consumer?
