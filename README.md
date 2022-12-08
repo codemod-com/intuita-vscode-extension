@@ -2,12 +2,12 @@
 
 The Intuita's Codemod Manager lets you run the most popular codemods over any codebase and manage the changes in your VSCode editor.
 
-## Installation & Usage
+## Installation & Usage 🪄
 
 Click on the image to view an introductory video on YouTube.
 [![How to use codemods with the Intuita VSCode Extension](https://img.youtube.com/vi/pEGdu-cpu5k/0.jpg)](https://www.youtube.com/watch?v=pEGdu-cpu5k "How to use codemods with the Intuita VSCode Extension")
 
-## Why would I need it as a Codemod Consumer?
+## Why would I need it as a Codemod Consumer 🧑🏾‍💻👩🏻‍💻?
 
 To run any codemod, you fetch its script and execute it over CLI. You will likely use version control to pick some of the resulting changes.
 
@@ -31,12 +31,12 @@ For that, we organize them into cases. One case corresponds to all the changes f
 
 You can accept or reject the entire case or deal with every change one by one.
 
-## Why would I need it as a Codemod Builder?
+## Why would I need it as a Codemod Builder 🥷🏼?
 After you have written a codemod, you want it to be adopted as widely as possible.
 
 By cooperating with us, you can add your codemod to our extension and speed up the adoption of changes for the users of your software.
 
-## Why would I need it as an Engineering Lead?
+## Why would I need it as an Engineering Lead 👩🏾‍💼👨🏻‍💼?
 You want your software to be as up-to-date as possible. Some codemods bring security updates, while some make your team more productive. No one wants to work with outdated software.
 
 Cooperate with us and allow your team to flourish!
@@ -50,7 +50,7 @@ We are a distributed team of project managers, software engineers, and data scie
 
 Our research and experience say more than 40% of software engineering time is wasted on code maintenance. We are here to help you with those tedious undifferentiated tasks.
 
-## How to contact us?
+## How to contact us 🎁? 
 
 GitHub issues: https://github.com/intuita-inc/intuita-vscode-extension/issues
 
