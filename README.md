@@ -2,6 +2,11 @@
 
 The Intuita's Codemod Manager lets you run the most popular codemods over any codebase and manage the changes in your VSCode editor.
 
+[Installation](#installation--usage-🪄) | 
+[Codemod Consumers](#why-would-i-need-it-as-a-codemod-consumer-🧑🏾‍💻👩🏻‍💻) | [Codemods Builders](#why-would-i-need-it-as-a-codemod-builder-🥷🏼) |
+[For Leads](#why-would-i-need-it-as-an-engineering-lead-👩🏾‍💼👨🏻‍💼) |
+[Contact](#how-to-contact-us-🎁)
+
 ## Installation & Usage 🪄
 
 Click on the image to view an introductory video on YouTube.
@@ -44,6 +49,8 @@ Cooperate with us and allow your team to flourish!
 ## Which codemods do we support?
 * Next.js vX → v13
 * Material UI v4 → v5
+
+Please note that our extension is in the beta phase.
 
 ## Who are we?
 We are a distributed team of project managers, software engineers, and data scientists. We have diverse experience working for American and European companies. This gives us a bleeding edge in solving the day-to-day problems of technical enterprises.
