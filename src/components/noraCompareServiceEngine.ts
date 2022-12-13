@@ -6,8 +6,9 @@ import prettyReporter from "io-ts-reporters";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 import { buildHash } from "../utilities";
 import { buildUriHash } from "../uris/buildUriHash";
-import { CaseWithJobHashes } from "../cases/types";
+import { CaseKind, CaseWithJobHashes } from "../cases/types";
 import { buildCaseHash } from "../cases/buildCaseHash";
+import { Job, JobHash, JobKind, RewriteFileJob } from "../jobs/types";
 
 class CompareProcessWrapper {
     #exited = false;
@@ -16,6 +17,7 @@ class CompareProcessWrapper {
     constructor(
         executableUri: Uri,
         messageBus: MessageBus,
+        jobMap: ReadonlyMap<JobHash, [Job, CaseKind, string]>,
     ) {
         this.#process = spawn(
 			executableUri.fsPath,
@@ -50,9 +52,19 @@ class CompareProcessWrapper {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.compare) {
+                const tuple = jobMap.get(message.i as JobHash);
+
+                if (!tuple) {
+                    throw new Error(); // TODO
+                }
+
+                const [ job, caseKind, caseSubKind ] = tuple;
+
                 messageBus.publish({
                     kind: MessageKind.filesCompared,
-                    hash: message.i,
+                    job,
+                    caseKind,
+                    caseSubKind,
                     equal: message.e,
                 });
             }
@@ -63,7 +75,10 @@ class CompareProcessWrapper {
         return this.#exited;
     }
 
-    write(leftUri: Uri, rightUri: Uri) {
+    write(job: RewriteFileJob) {
+        const leftUri = job.inputUri;
+        const rightUri = job.outputUri;
+
         const hash = buildHash([
             buildUriHash(leftUri),
             buildUriHash(rightUri),
@@ -86,8 +101,9 @@ class CompareProcessWrapper {
 }
 
 export class NoraCompareServiceEngine {
-    #messageBus: MessageBus;
     #compareProcessWrapper: CompareProcessWrapper | null = null;
+    #messageBus: MessageBus;
+    #jobMap: Map<JobHash, [Job, CaseKind, string]> = new Map();
 
     constructor(
         messageBus: MessageBus,
@@ -117,29 +133,41 @@ export class NoraCompareServiceEngine {
         if (!this.#compareProcessWrapper || this.#compareProcessWrapper.isExited()) {
             const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine-linux')
 
-            this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus);
+            this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus, this.#jobMap);
         }
 
-        this.#compareProcessWrapper.write(
-            message.leftUri,
-            message.rightUri,
-        );
+        const { job, caseKind, caseSubKind } = message;
+
+        if (job.kind === JobKind.rewriteFile) {
+            this.#jobMap.set(
+                job.hash,
+                [job, caseKind, caseSubKind],
+            );
+    
+            this.#compareProcessWrapper.write(job);
+        } else {
+            this.#messageBus.publish({
+                kind: MessageKind.filesCompared,
+                job,
+                caseKind,
+                caseSubKind,
+                equal: false,
+            });
+        }
     }
 
     onFilesComparedMessage(message: Message & { kind: MessageKind.filesCompared }) {
-        const { job, codemodId, caseKind } = message;
-
-        const subKind = codemodId;
+        const { job, caseKind, caseSubKind } = message;
 
         const kase = {
             kind: caseKind,
-            subKind,
+            subKind: caseSubKind,
         } as const;
 
         const caseWithJobHashes: CaseWithJobHashes = {
             hash: buildCaseHash(kase),
             kind: caseKind,
-            subKind,
+            subKind: caseSubKind,
             jobHashes: new Set([job.hash]),
         };
 

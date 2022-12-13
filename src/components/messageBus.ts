@@ -76,14 +76,15 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
-			leftUri: Uri,
-			rightUri: Uri,
+			job: Job,
+			caseKind: CaseKind,
+			caseSubKind: string,
 	}>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
 			job: Job,
 			caseKind: CaseKind,
-			codemodId: string,
+			caseSubKind: string,
 			equal: boolean,
 	}>;
 
