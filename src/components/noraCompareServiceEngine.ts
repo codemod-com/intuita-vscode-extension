@@ -6,6 +6,8 @@ import prettyReporter from "io-ts-reporters";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 import { buildHash } from "../utilities";
 import { buildUriHash } from "../uris/buildUriHash";
+import { CaseWithJobHashes } from "../cases/types";
+import { buildCaseHash } from "../cases/buildCaseHash";
 
 class CompareProcessWrapper {
     #exited = false;
@@ -100,6 +102,14 @@ export class NoraCompareServiceEngine {
                     }
                 )
             }
+
+            if (message.kind === MessageKind.filesCompared) {
+                setImmediate(
+                    () => {
+                        this.onFilesComparedMessage(message);
+                    }
+                )
+            }
         })
     }
 
@@ -114,5 +124,31 @@ export class NoraCompareServiceEngine {
             message.leftUri,
             message.rightUri,
         );
+    }
+
+    onFilesComparedMessage(message: Message & { kind: MessageKind.filesCompared }) {
+        const { job, codemodId, caseKind } = message;
+
+        const subKind = codemodId;
+
+        const kase = {
+            kind: caseKind,
+            subKind,
+        } as const;
+
+        const caseWithJobHashes: CaseWithJobHashes = {
+            hash: buildCaseHash(kase),
+            kind: caseKind,
+            subKind,
+            jobHashes: new Set([job.hash]),
+        };
+
+        this.#messageBus.publish({
+            kind: MessageKind.upsertCases,
+            casesWithJobHashes: [ caseWithJobHashes ],
+            jobs: [ job ],
+            inactiveJobHashes: new Set(),
+            trigger: 'onCommand',
+        });
     }
 }

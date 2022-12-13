@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseWithJobHashes } from '../cases/types';
+import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
@@ -81,7 +81,9 @@ export type Message =
 	}>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
-			hash: string,
+			job: Job,
+			caseKind: CaseKind,
+			codemodId: string,
 			equal: boolean,
 	}>;
 
