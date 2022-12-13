@@ -3,7 +3,6 @@ import { CaseKind } from '../cases/types';
 import { MessageBus } from './messageBus';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { EngineService } from './engineService';
-import { NoraCompareServiceEngine } from './noraCompareServiceEngine';
 
 export class NoraNodeEngineService extends EngineService {
 	readonly #downloadService: DownloadService;
@@ -15,7 +14,6 @@ export class NoraNodeEngineService extends EngineService {
 		globalStorageUri: Uri,
 		messageBus: MessageBus,
 		statusBarItem: StatusBarItem,
-		noraRustEngine2: NoraCompareServiceEngine,
 	) {
 		super(
 			CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE,
@@ -23,7 +21,6 @@ export class NoraNodeEngineService extends EngineService {
 			fileSystem,
 			statusBarItem,
 			'noraNodeEngineOutput',
-			noraRustEngine2,
 		);
 
 		this.#downloadService = downloadService;
