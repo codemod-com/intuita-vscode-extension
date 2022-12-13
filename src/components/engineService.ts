@@ -100,7 +100,8 @@ export abstract class EngineService {
 
 		await this.fileSystem.createDirectory(outputUri);
 
-		this.#showStatusBarItemText(0);
+		this.statusBarItem.text = `$(loading~spin) Calculating recommendations`;
+		this.statusBarItem.show();
 
 		const childProcess = spawn(
 			this.#executableUri.fsPath,
@@ -111,14 +112,6 @@ export abstract class EngineService {
 		);
 
 		const interfase = readline.createInterface(childProcess.stdout);
-
-		const jobMap = new Map<JobHash, Job>();
-		const codemodIdHashJobHashMap = new LeftRightHashSetManager<
-			string,
-			JobHash
-		>(new Set());
-
-		const codemodIdSubKindMap = new Map<string, string>();
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
@@ -154,65 +147,31 @@ export abstract class EngineService {
 				job = buildRewriteFileJob(inputUri, outputUri, message.c);
 			}
 
-			jobMap.set(job.hash, job);
-			codemodIdHashJobHashMap.upsert(buildHash(message.c), job.hash);
-			codemodIdSubKindMap.set(buildHash(message.c), message.c);
+			const subKind = message.c;
 
-			this.#showStatusBarItemText(jobMap.size);
-		});
+			const kase = {
+				kind: this.#caseKind,
+				subKind,
+			} as const;
 
-		interfase.on('close', () => {
-			const casesWithJobHashes: CaseWithJobHashes[] = [];
-
-			codemodIdHashJobHashMap.getLeftHashes().forEach((codemodIdHash) => {
-				const jobs: Job[] = [];
-
-				const jobHashes =
-					codemodIdHashJobHashMap.getRightHashesByLeftHash(
-						codemodIdHash,
-					);
-
-				jobHashes.forEach((jobHash) => {
-					const job = jobMap.get(jobHash);
-
-					if (job) {
-						jobs.push(job);
-					}
-				});
-
-				if (!jobs[0]) {
-					return;
-				}
-
-				const subKind = codemodIdSubKindMap.get(codemodIdHash) ?? '';
-
-				const kase = {
-					kind: this.#caseKind,
-					subKind,
-				} as const;
-
-				const caseWithJobHashes: CaseWithJobHashes = {
-					hash: buildCaseHash(kase),
-					kind: this.#caseKind,
-					subKind,
-					jobHashes,
-				};
-
-				casesWithJobHashes.push(caseWithJobHashes);
-			});
-
-			const jobs = Array.from(jobMap.values());
-
-			this.#showStatusBarItemText(0);
+			const caseWithJobHashes: CaseWithJobHashes = {
+				hash: buildCaseHash(kase),
+				kind: this.#caseKind,
+				subKind,
+				jobHashes: new Set([job.hash]),
+			};
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
-				casesWithJobHashes,
-				jobs,
+				casesWithJobHashes: [ caseWithJobHashes ],
+				jobs: [ job ],
 				inactiveJobHashes: new Set(),
 				trigger: 'onCommand',
 			});
+		});
 
+		interfase.on('close', () => {
+			this.statusBarItem.text = '';
 			this.statusBarItem.hide();
 		});
 	}
@@ -224,12 +183,5 @@ export abstract class EngineService {
 			recursive: true,
 			useTrash: false,
 		});
-	}
-
-	#showStatusBarItemText(numberOfJobs: number) {
-		const ending = numberOfJobs === 1 ? '' : 's';
-
-		this.statusBarItem.text = `$(loading~spin) Calculated ${numberOfJobs} recommendation${ending} so far`;
-		this.statusBarItem.show();
 	}
 }
