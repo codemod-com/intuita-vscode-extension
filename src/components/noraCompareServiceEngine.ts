@@ -78,12 +78,14 @@ class CompareProcessWrapper {
     }
 
     kill() {
+        // TODO this needs to be executed once we close the extension
         this.#process.kill();
     }
 }
 
 export class NoraCompareServiceEngine {
     #messageBus: MessageBus;
+    #compareProcessWrapper: CompareProcessWrapper | null = null;
 
     constructor(
         messageBus: MessageBus,
@@ -102,64 +104,15 @@ export class NoraCompareServiceEngine {
     }
 
     onCompareFilesMessage(message: Message & { kind: MessageKind.compareFiles }) {
-        
+        if (!this.#compareProcessWrapper || this.#compareProcessWrapper.isExited()) {
+            const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine-linux')
 
-        
+            this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus);
+        }
 
-
-
-        // const interfase = readline.createInterface(childProcess.stdout);
-
-        // const jobHashes: JobHash[] = [];
-
-        // let i = 0;
-
-        // interfase.on('line', async (line) => {
-		// 	const either = messageCodec.decode(JSON.parse(line));
-
-		// 	if (either._tag === 'Left') {
-		// 		const report = prettyReporter.report(either);
-
-		// 		console.error(report);
-		// 		return;
-		// 	}
-
-		// 	const message = either.right;
-
-		// 	if (message.k === EngineMessageKind.compare) {
-        //         if (message.e) {
-        //             jobHashes.push(message.i as JobHash);
-        //         }
-
-        //         ++i;
-        //     }
-
-        //     if (i === jobs.length) {
-        //         childProcess.kill();
-        //     }
-        // });
-
-        // for (const job of jobs) {
-        //     childProcess.stdin.write(
-        //         JSON.stringify({
-        //             k: 5,
-        //             i: job.hash,
-        //             l: job.inputUri,
-        //             o: job.outputUri,
-        //         }),
-        //     );
-        // }
-    }
-
-    spawnChildProcess() {
-        const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine-linux')
-
-        const childProcess = spawn(
-			executableUri.fsPath,
-			[],
-			{
-				stdio: 'pipe',
-			},
-		);
+        this.#compareProcessWrapper.write(
+            message.leftUri,
+            message.rightUri,
+        );
     }
 }

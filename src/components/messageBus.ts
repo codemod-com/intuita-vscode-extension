@@ -76,8 +76,8 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
-			leftPath: string,
-			rightPath: string,
+			leftUri: Uri,
+			rightUri: Uri,
 	}>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
