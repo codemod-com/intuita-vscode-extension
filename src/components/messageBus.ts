@@ -19,6 +19,10 @@ export const enum MessageKind {
 	acceptCase = 7,
 	acceptJobs = 8,
 	jobsAccepted = 9,
+
+	/** file comparison */
+	compareFiles = 10,
+	filesCompared = 11,
 }
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
@@ -69,7 +73,17 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.compareFiles;
+			leftPath: string,
+			rightPath: string,
+	}>
+	| Readonly<{
+			kind: MessageKind.filesCompared;
+			hash: string,
+			equal: boolean,
+	}>;
 
 export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;

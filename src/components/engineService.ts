@@ -11,7 +11,7 @@ import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
-import { NoraRustEngine2 } from './NoraRustEngineService2';
+import { NoraCompareServiceEngine } from './noraCompareServiceEngine';
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -57,7 +57,7 @@ export abstract class EngineService {
 	readonly #messageBus: MessageBus;
 	protected readonly statusBarItem: StatusBarItem;
 	readonly #storageDirectory: string;
-	readonly #noraRustEngine2: NoraRustEngine2;
+	readonly #noraRustEngine2: NoraCompareServiceEngine;
 
 	#executableUri: Uri | null = null;
 
@@ -67,7 +67,7 @@ export abstract class EngineService {
 		fileSystem: FileSystem,
 		statusBarItem: StatusBarItem,
 		storageDirectory: string,
-		noraRustEngine2: NoraRustEngine2,
+		noraRustEngine2: NoraCompareServiceEngine,
 	) {
 		this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
