@@ -82,9 +82,7 @@ export type Message =
 	}>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
-			job: Job,
-			caseKind: CaseKind,
-			caseSubKind: string,
+			jobHash: JobHash,
 			equal: boolean,
 	}>;
 

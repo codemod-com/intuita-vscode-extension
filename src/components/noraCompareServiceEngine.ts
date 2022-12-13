@@ -17,7 +17,6 @@ class CompareProcessWrapper {
     constructor(
         executableUri: Uri,
         messageBus: MessageBus,
-        jobMap: ReadonlyMap<JobHash, [Job, CaseKind, string]>,
     ) {
         this.#process = spawn(
 			executableUri.fsPath,
@@ -52,19 +51,9 @@ class CompareProcessWrapper {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.compare) {
-                const tuple = jobMap.get(message.i as JobHash);
-
-                if (!tuple) {
-                    throw new Error(); // TODO
-                }
-
-                const [ job, caseKind, caseSubKind ] = tuple;
-
                 messageBus.publish({
                     kind: MessageKind.filesCompared,
-                    job,
-                    caseKind,
-                    caseSubKind,
+                    jobHash: message.i as JobHash,
                     equal: message.e,
                 });
             }
@@ -133,31 +122,37 @@ export class NoraCompareServiceEngine {
         if (!this.#compareProcessWrapper || this.#compareProcessWrapper.isExited()) {
             const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine-linux')
 
-            this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus, this.#jobMap);
+            this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus);
         }
 
         const { job, caseKind, caseSubKind } = message;
 
+        this.#jobMap.set(
+            job.hash,
+            [job, caseKind, caseSubKind],
+        );
+
         if (job.kind === JobKind.rewriteFile) {
-            this.#jobMap.set(
-                job.hash,
-                [job, caseKind, caseSubKind],
-            );
-    
             this.#compareProcessWrapper.write(job);
         } else {
             this.#messageBus.publish({
                 kind: MessageKind.filesCompared,
-                job,
-                caseKind,
-                caseSubKind,
+                jobHash: job.hash,
                 equal: false,
             });
         }
     }
 
     onFilesComparedMessage(message: Message & { kind: MessageKind.filesCompared }) {
-        const { job, caseKind, caseSubKind } = message;
+        const { jobHash } = message;
+
+        const tuple = this.#jobMap.get(jobHash);
+
+        if (!tuple) {
+            throw new Error();
+        }
+
+        const [ job, caseKind, caseSubKind ] = tuple;
 
         const kase = {
             kind: caseKind,
