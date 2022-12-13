@@ -11,15 +11,17 @@ import { Job, JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, buildTypeCodec } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
+import { NoraRustEngine2 } from './NoraRustEngineService2';
 
-const enum EngineMessageKind {
+export const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
 	rewrite = 3,
 	create = 4,
+	compare = 5,
 }
 
-const messageCodec = t.union([
+export const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.change),
 		p: t.string,
@@ -40,6 +42,11 @@ const messageCodec = t.union([
 		c: t.string,
 	}),
 	buildTypeCodec({
+		k: t.literal(EngineMessageKind.compare),
+		i: t.string,
+		e: t.boolean,
+	}),
+	buildTypeCodec({
 		k: t.literal(EngineMessageKind.finish),
 	}),
 ]);
@@ -50,6 +57,7 @@ export abstract class EngineService {
 	readonly #messageBus: MessageBus;
 	protected readonly statusBarItem: StatusBarItem;
 	readonly #storageDirectory: string;
+	readonly #noraRustEngine2: NoraRustEngine2;
 
 	#executableUri: Uri | null = null;
 
@@ -59,12 +67,14 @@ export abstract class EngineService {
 		fileSystem: FileSystem,
 		statusBarItem: StatusBarItem,
 		storageDirectory: string,
+		noraRustEngine2: NoraRustEngine2,
 	) {
 		this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
 		this.statusBarItem = statusBarItem;
 		this.#storageDirectory = storageDirectory;
+		this.#noraRustEngine2 = noraRustEngine2;
 	}
 
 	protected abstract buildArguments(
@@ -128,6 +138,7 @@ export abstract class EngineService {
 
 			if (
 				message.k === EngineMessageKind.finish ||
+				message.k === EngineMessageKind.compare ||
 				message.k === EngineMessageKind.change
 			) {
 				return;
