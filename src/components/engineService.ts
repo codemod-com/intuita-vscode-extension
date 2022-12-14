@@ -48,25 +48,24 @@ export const messageCodec = t.union([
 	}),
 ]);
 
+const STORAGE_DIRECTORY_MAP = new Map([
+	['node', 'nora-node-engine'],
+	['rust', 'nora-rust-engine'],
+]);
+
 export class EngineService {
-	readonly #caseKind: CaseKind;
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	protected readonly statusBarItem: StatusBarItem;
-	readonly #storageDirectory: string;
 
 	public constructor(
-		caseKind: CaseKind,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 		statusBarItem: StatusBarItem,
-		storageDirectory: string,
 	) {
-		this.#caseKind = caseKind;
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
 		this.statusBarItem = statusBarItem;
-		this.#storageDirectory = storageDirectory;
 
 		messageBus.subscribe(message => {
 			if (message.kind === MessageKind.executablesBootstrapped) {
@@ -80,22 +79,6 @@ export class EngineService {
 	}
 
 	async #onExecutablesBootstrappedMessage(message: Message & { kind: MessageKind.executablesBootstrapped }) {
-		const executableUri = message.command.engine === 'node'
-			? message.noraNodeEngineExecutableUri
-			: message.noraRustEngineExecutableUri;
-
-		await this.#buildRepairCodeJobs(
-			executableUri,
-			message.command.group,
-			message.command.storageUri,
-		);
-	}
-
-	async #buildRepairCodeJobs(
-		executableUri: Uri,
-		group: 'nextJs' | 'mui',
-		storageUri: Uri,
-	) {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -105,18 +88,56 @@ export class EngineService {
 			return;
 		}
 
+		const { storageUri } = message.command;
+
+		const storageDirectory = message.command.engine === 'node'
+			? 'nora-node-engine'
+			: 'nora-rust-engine';
+
+		const outputUri = Uri.joinPath(message.command.storageUri, storageDirectory);
+
+		const executableUri = message.command.engine === 'node'
+			? message.noraNodeEngineExecutableUri
+			: message.noraRustEngineExecutableUri;
+
+
 		await this.fileSystem.createDirectory(storageUri);
-
-		const outputUri = Uri.joinPath(storageUri, this.#storageDirectory);
-
 		await this.fileSystem.createDirectory(outputUri);
 
 		this.statusBarItem.text = `$(loading~spin) Calculating recommendations`;
 		this.statusBarItem.show();
 
+		const args: ReadonlyArray<string> = message.command.engine === 'node' ? [
+			'-p',
+			Uri.joinPath(uri, '**/*.tsx').fsPath,
+			'-p',
+			'!**/node_modules',
+			'-g',
+			message.command.group,
+			'-l',
+			'100',
+			'-o',
+			outputUri.fsPath,
+		] : [
+			'-d',
+			uri.fsPath,
+			'-p',
+			`"${Uri.joinPath(uri, '**/*.tsx').fsPath}"`,
+			'-a',
+			'**/node_modules/**/*',
+			'-g',
+			message.command.group,
+			'-o',
+			outputUri.fsPath,
+		];
+
+		const caseKind = message.command.engine === 'node'
+			? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
+			: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
+
 		const childProcess = spawn(
 			executableUri.fsPath,
-			this.buildArguments(uri, outputUri, group),
+			args,
 			{
 				stdio: 'pipe',
 			},
@@ -161,7 +182,7 @@ export class EngineService {
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				job,
-				caseKind: this.#caseKind,
+				caseKind,
 				caseSubKind: message.c,
 			});
 		});
@@ -173,6 +194,7 @@ export class EngineService {
 	}
 
 	async clearOutputFiles(storageUri: Uri) {
+		// TODO fixme
 		const outputUri = Uri.joinPath(storageUri, this.#storageDirectory);
 
 		await this.fileSystem.delete(outputUri, {

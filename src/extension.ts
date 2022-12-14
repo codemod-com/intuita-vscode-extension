@@ -12,6 +12,7 @@ import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
 import { EngineService } from './components/engineService';
+import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 
 const messageBus = new MessageBus();
 
@@ -69,11 +70,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(statusBarItem);
 
 	const engineService = new EngineService(
-		// downloadService,
-		// vscode.workspace.fs,
-		// context.globalStorageUri,
-		// messageBus,
-		// statusBarItem,
+		messageBus,
+		vscode.workspace.fs,
+		statusBarItem,
+	);
+
+	new BootstrapExecutablesService(
+		downloadService,
+		context.globalStorageUri,
+		vscode.workspace.fs,
+		messageBus,
+		statusBarItem,
 	);
 
 	new NoraCompareServiceEngine(messageBus);
