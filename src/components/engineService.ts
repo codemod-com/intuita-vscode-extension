@@ -8,7 +8,7 @@ import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
-import { MessageBus, MessageKind } from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -48,14 +48,12 @@ export const messageCodec = t.union([
 	}),
 ]);
 
-export abstract class EngineService {
+export class EngineService {
 	readonly #caseKind: CaseKind;
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	protected readonly statusBarItem: StatusBarItem;
 	readonly #storageDirectory: string;
-
-	#executableUri: Uri | null = null;
 
 	public constructor(
 		caseKind: CaseKind,
@@ -69,16 +67,35 @@ export abstract class EngineService {
 		this.fileSystem = fileSystem;
 		this.statusBarItem = statusBarItem;
 		this.#storageDirectory = storageDirectory;
+
+		messageBus.subscribe(message => {
+			if (message.kind === MessageKind.executablesBootstrapped) {
+				setImmediate(
+					async () => {
+						await this.#onExecutablesBootstrappedMessage(message);
+					}
+				)
+			}
+		})
 	}
 
-	protected abstract buildArguments(
-		uri: Uri,
-		outputUri: Uri,
-		group: 'nextJs' | 'mui',
-	): ReadonlyArray<string>;
-	protected abstract bootstrapExecutableUri(): Promise<Uri>;
+	async #onExecutablesBootstrappedMessage(message: Message & { kind: MessageKind.executablesBootstrapped }) {
+		const executableUri = message.command.engine === 'node'
+			? message.noraNodeEngineExecutableUri
+			: message.noraRustEngineExecutableUri;
 
-	async buildRepairCodeJobs(storageUri: Uri, group: 'nextJs' | 'mui') {
+		await this.#buildRepairCodeJobs(
+			executableUri,
+			message.command.group,
+			message.command.storageUri,
+		);
+	}
+
+	async #buildRepairCodeJobs(
+		executableUri: Uri,
+		group: 'nextJs' | 'mui',
+		storageUri: Uri,
+	) {
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -86,10 +103,6 @@ export abstract class EngineService {
 				'No workspace folder is opened, aborting the operation.',
 			);
 			return;
-		}
-
-		if (!this.#executableUri) {
-			this.#executableUri = await this.bootstrapExecutableUri();
 		}
 
 		await this.fileSystem.createDirectory(storageUri);
@@ -102,7 +115,7 @@ export abstract class EngineService {
 		this.statusBarItem.show();
 
 		const childProcess = spawn(
-			this.#executableUri.fsPath,
+			executableUri.fsPath,
 			this.buildArguments(uri, outputUri, group),
 			{
 				stdio: 'pipe',

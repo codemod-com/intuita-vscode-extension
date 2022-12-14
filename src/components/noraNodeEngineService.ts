@@ -4,29 +4,7 @@ import { MessageBus } from './messageBus';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { EngineService } from './engineService';
 
-export class NoraNodeEngineService extends EngineService {
-	readonly #downloadService: DownloadService;
-	readonly #globalStorageUri: Uri;
-
-	public constructor(
-		downloadService: DownloadService,
-		fileSystem: FileSystem,
-		globalStorageUri: Uri,
-		messageBus: MessageBus,
-		statusBarItem: StatusBarItem,
-	) {
-		super(
-			CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE,
-			messageBus,
-			fileSystem,
-			statusBarItem,
-			'noraNodeEngineOutput',
-		);
-
-		this.#downloadService = downloadService;
-		this.#globalStorageUri = globalStorageUri;
-	}
-
+export class NoraNodeEngineService {
 	protected buildArguments(
 		uri: Uri,
 		outputUri: Uri,

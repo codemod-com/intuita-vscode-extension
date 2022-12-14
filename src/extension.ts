@@ -8,11 +8,10 @@ import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
-import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { NoraRustEngineService } from './components/noraRustEngineService';
 import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
+import { EngineService } from './components/engineService';
 
 const messageBus = new MessageBus();
 
@@ -69,20 +68,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(statusBarItem);
 
-	const noraNodeEngineService = new NoraNodeEngineService(
-		downloadService,
-		vscode.workspace.fs,
-		context.globalStorageUri,
-		messageBus,
-		statusBarItem,
-	);
-
-	const nodaRustEngineService = new NoraRustEngineService(
-		downloadService,
-		vscode.workspace.fs,
-		context.globalStorageUri,
-		messageBus,
-		statusBarItem,
+	const engineService = new EngineService(
+		// downloadService,
+		// vscode.workspace.fs,
+		// context.globalStorageUri,
+		// messageBus,
+		// statusBarItem,
 	);
 
 	new NoraCompareServiceEngine(messageBus);
@@ -101,7 +92,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
-						kind: 'buildRepairCodeJobs',
 						engine: 'node',
 						storageUri,
 						group: 'nextJs',
@@ -125,7 +115,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
-						kind: 'buildRepairCodeJobs',
 						engine: 'rust',
 						storageUri,
 						group: 'nextJs',
@@ -149,7 +138,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
-						kind: 'buildRepairCodeJobs',
 						engine: 'node',
 						storageUri,
 						group: 'mui',
@@ -170,8 +158,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.clearOutputFiles(storageUri);
-				await nodaRustEngineService.clearOutputFiles(storageUri);
+				await engineService.clearOutputFiles(storageUri);
 			},
 		),
 	);

@@ -30,7 +30,6 @@ export const enum MessageKind {
 }
 
 export type Command = Readonly<{
-	kind: 'buildRepairCodeJobs',
 	engine: 'node' | 'rust',
 	storageUri: Uri,
 	group: 'nextJs' | 'mui',
