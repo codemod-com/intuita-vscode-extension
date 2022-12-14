@@ -23,7 +23,18 @@ export const enum MessageKind {
 	/** file comparison */
 	compareFiles = 10,
 	filesCompared = 11,
+
+	/** bootstrap */
+	bootstrapExecutables = 12,
+	executablesBootstrapped = 13,
 }
+
+export type Command = Readonly<{
+	kind: 'buildRepairCodeJobs',
+	engine: 'node' | 'rust',
+	storageUri: Uri,
+	group: 'nextJs' | 'mui',
+}>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
@@ -84,6 +95,14 @@ export type Message =
 			kind: MessageKind.filesCompared;
 			jobHash: JobHash,
 			equal: boolean,
+	}>
+	| Readonly<{
+			kind: MessageKind.bootstrapExecutables,
+			command: Command,
+	}>
+	| Readonly<{
+			kind: MessageKind.executablesBootstrapped,
+			command: Command,
 	}>;
 
 export class MessageBus {

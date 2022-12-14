@@ -98,10 +98,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(
-					storageUri,
-					'nextJs',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						kind: 'buildRepairCodeJobs',
+						engine: 'node',
+						storageUri,
+						group: 'nextJs',
+					}
+				});
 			},
 		),
 	);
@@ -117,10 +122,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await nodaRustEngineService.buildRepairCodeJobs(
-					storageUri,
-					'nextJs',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						kind: 'buildRepairCodeJobs',
+						engine: 'rust',
+						storageUri,
+						group: 'nextJs',
+					}
+				});
 			},
 		),
 	);
@@ -136,10 +146,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(
-					storageUri,
-					'mui',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						kind: 'buildRepairCodeJobs',
+						engine: 'node',
+						storageUri,
+						group: 'mui',
+					}
+				});
 			},
 		),
 	);
@@ -156,6 +171,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				await noraNodeEngineService.clearOutputFiles(storageUri);
+				await nodaRustEngineService.clearOutputFiles(storageUri);
 			},
 		),
 	);
