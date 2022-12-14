@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Automatic Code Modification, Built For Scale",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
