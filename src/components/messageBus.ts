@@ -86,6 +86,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
+			noraRustEngineExecutableUri: Uri;
 			job: Job;
 			caseKind: CaseKind;
 			caseSubKind: string;

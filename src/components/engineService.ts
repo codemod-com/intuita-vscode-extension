@@ -79,6 +79,7 @@ export class EngineService {
 	async #onExecutablesBootstrappedMessage(
 		message: Message & { kind: MessageKind.executablesBootstrapped },
 	) {
+		const { noraRustEngineExecutableUri } = message;
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
 		if (!uri) {
@@ -185,6 +186,7 @@ export class EngineService {
 
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
+				noraRustEngineExecutableUri,
 				job,
 				caseKind,
 				caseSubKind: message.c,
