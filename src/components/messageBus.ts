@@ -103,6 +103,8 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.executablesBootstrapped,
 			command: Command,
+			noraNodeEngineExecutableUri: Uri,
+			noraRustEngineExecutableUri: Uri,
 	}>;
 
 export class MessageBus {

@@ -47,43 +47,4 @@ export class NoraRustEngineService extends EngineService {
 			outputUri.fsPath,
 		];
 	}
-
-	async bootstrapExecutableUri(): Promise<Uri> {
-		await this.fileSystem.createDirectory(this.#globalStorageUri);
-
-		const platform =
-			process.platform === 'darwin'
-				? 'macos'
-				: encodeURIComponent(process.platform);
-
-		const executableBaseName = `nora-rust-engine-${platform}`;
-
-		const executableUri = Uri.joinPath(
-			this.#globalStorageUri,
-			executableBaseName,
-		);
-
-		this.statusBarItem.text = `$(loading~spin) Downloading the Nora Rust Engine if needed`;
-		this.statusBarItem.show();
-
-		try {
-			await this.#downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
-				executableUri,
-				'755',
-			);
-		} catch (error) {
-			if (!(error instanceof ForbiddenRequestError)) {
-				throw error;
-			}
-
-			throw new Error(
-				`Your platform (${process.platform}) is not supported.`,
-			);
-		} finally {
-			this.statusBarItem.hide();
-		}
-
-		return executableUri;
-	}
 }
