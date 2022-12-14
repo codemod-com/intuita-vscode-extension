@@ -194,12 +194,13 @@ export class EngineService {
 	}
 
 	async clearOutputFiles(storageUri: Uri) {
-		// TODO fixme
-		const outputUri = Uri.joinPath(storageUri, this.#storageDirectory);
+		for(const storageDirectory of STORAGE_DIRECTORY_MAP.values()) {
+			const outputUri = Uri.joinPath(storageUri, storageDirectory);
 
-		await this.fileSystem.delete(outputUri, {
-			recursive: true,
-			useTrash: false,
-		});
+			await this.fileSystem.delete(outputUri, {
+				recursive: true,
+				useTrash: false,
+			});
+		}
 	}
 }
