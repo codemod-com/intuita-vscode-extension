@@ -109,12 +109,8 @@ export class NoraCompareServiceEngine {
 			!this.#compareProcessWrapper ||
 			this.#compareProcessWrapper.isExited()
 		) {
-			const executableUri = Uri.file(
-				'/intuita/nora-rust-engine/target/release/nora-rust-engine',
-			);
-
 			this.#compareProcessWrapper = new CompareProcessWrapper(
-				executableUri,
+				message.noraRustEngineExecutableUri,
 				this.#messageBus,
 			);
 		}
