@@ -102,7 +102,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						engine: 'node',
 						storageUri,
 						group: 'nextJs',
-					}
+					},
 				});
 			},
 		),
@@ -125,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						engine: 'rust',
 						storageUri,
 						group: 'nextJs',
-					}
+					},
 				});
 			},
 		),
@@ -148,7 +148,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						engine: 'node',
 						storageUri,
 						group: 'mui',
-					}
+					},
 				});
 			},
 		),

@@ -1,60 +1,60 @@
-import { FileSystem, StatusBarItem, Uri } from "vscode";
-import { DownloadService, ForbiddenRequestError } from "./downloadService";
-import { Message, MessageBus, MessageKind } from "./messageBus";
+import { FileSystem, StatusBarItem, Uri } from 'vscode';
+import { DownloadService, ForbiddenRequestError } from './downloadService';
+import { Message, MessageBus, MessageKind } from './messageBus';
 
 export class BootstrapExecutablesService {
-    #downloadService: DownloadService;
-    #globalStorageUri: Uri;
-    #fileSystem: FileSystem;
-    #messageBus: MessageBus;
-    #noraNodeEngineExecutableUri: Uri | null = null;
-    #noraRustEngineExecutableUri: Uri | null = null;
-    #statusBarItem: StatusBarItem;
+	#downloadService: DownloadService;
+	#globalStorageUri: Uri;
+	#fileSystem: FileSystem;
+	#messageBus: MessageBus;
+	#noraNodeEngineExecutableUri: Uri | null = null;
+	#noraRustEngineExecutableUri: Uri | null = null;
+	#statusBarItem: StatusBarItem;
 
-    constructor(
-        downloadService: DownloadService,
-        globalStorageUri: Uri,
-        fileSystem: FileSystem,
-        messageBus: MessageBus,
-        statusBarItem: StatusBarItem,
-    ) {
-        this.#downloadService = downloadService;
-        this.#globalStorageUri = globalStorageUri;
-        this.#fileSystem = fileSystem;
-        this.#messageBus = messageBus;
-        this.#statusBarItem = statusBarItem;
+	constructor(
+		downloadService: DownloadService,
+		globalStorageUri: Uri,
+		fileSystem: FileSystem,
+		messageBus: MessageBus,
+		statusBarItem: StatusBarItem,
+	) {
+		this.#downloadService = downloadService;
+		this.#globalStorageUri = globalStorageUri;
+		this.#fileSystem = fileSystem;
+		this.#messageBus = messageBus;
+		this.#statusBarItem = statusBarItem;
 
-        messageBus.subscribe(
-            (message) => {
-                if (message.kind === MessageKind.bootstrapExecutables) {
-                    setImmediate(
-                        async () => {
-                            await this.#onBootstrapExecutables(message);
-                        }
-                    )
-                }
-            }
-        )
-    }
+		messageBus.subscribe((message) => {
+			if (message.kind === MessageKind.bootstrapExecutables) {
+				setImmediate(async () => {
+					await this.#onBootstrapExecutables(message);
+				});
+			}
+		});
+	}
 
-    async #onBootstrapExecutables(message: Message & { kind: MessageKind.bootstrapExecutables }) {
-        if (!this.#noraNodeEngineExecutableUri) {
-            this.#noraNodeEngineExecutableUri = await this.#bootstrapNoraNodeEngineExecutableUri();
-        }
+	async #onBootstrapExecutables(
+		message: Message & { kind: MessageKind.bootstrapExecutables },
+	) {
+		if (!this.#noraNodeEngineExecutableUri) {
+			this.#noraNodeEngineExecutableUri =
+				await this.#bootstrapNoraNodeEngineExecutableUri();
+		}
 
-        if (!this.#noraRustEngineExecutableUri) {
-            this.#noraRustEngineExecutableUri = await this.#bootstrapNoraRustEngineExecutableUri();
-        }
+		if (!this.#noraRustEngineExecutableUri) {
+			this.#noraRustEngineExecutableUri =
+				await this.#bootstrapNoraRustEngineExecutableUri();
+		}
 
-        this.#messageBus.publish({
-            kind: MessageKind.executablesBootstrapped,
-            command: message.command,
-            noraNodeEngineExecutableUri: this.#noraNodeEngineExecutableUri,
-            noraRustEngineExecutableUri: this.#noraRustEngineExecutableUri,
-        });
-    }
+		this.#messageBus.publish({
+			kind: MessageKind.executablesBootstrapped,
+			command: message.command,
+			noraNodeEngineExecutableUri: this.#noraNodeEngineExecutableUri,
+			noraRustEngineExecutableUri: this.#noraRustEngineExecutableUri,
+		});
+	}
 
-    async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
+	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
 		const platform =
@@ -93,7 +93,7 @@ export class BootstrapExecutablesService {
 		return executableUri;
 	}
 
-    async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
+	async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
 		const platform =

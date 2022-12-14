@@ -30,9 +30,9 @@ export const enum MessageKind {
 }
 
 export type Command = Readonly<{
-	engine: 'node' | 'rust',
-	storageUri: Uri,
-	group: 'nextJs' | 'mui',
+	engine: 'node' | 'rust';
+	storageUri: Uri;
+	group: 'nextJs' | 'mui';
 }>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
@@ -86,25 +86,25 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
-			job: Job,
-			caseKind: CaseKind,
-			caseSubKind: string,
-	}>
+			job: Job;
+			caseKind: CaseKind;
+			caseSubKind: string;
+	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
-			jobHash: JobHash,
-			equal: boolean,
-	}>
+			jobHash: JobHash;
+			equal: boolean;
+	  }>
 	| Readonly<{
-			kind: MessageKind.bootstrapExecutables,
-			command: Command,
-	}>
+			kind: MessageKind.bootstrapExecutables;
+			command: Command;
+	  }>
 	| Readonly<{
-			kind: MessageKind.executablesBootstrapped,
-			command: Command,
-			noraNodeEngineExecutableUri: Uri,
-			noraRustEngineExecutableUri: Uri,
-	}>;
+			kind: MessageKind.executablesBootstrapped;
+			command: Command;
+			noraNodeEngineExecutableUri: Uri;
+			noraRustEngineExecutableUri: Uri;
+	  }>;
 
 export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;
