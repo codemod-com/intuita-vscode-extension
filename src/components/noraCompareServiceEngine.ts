@@ -4,8 +4,6 @@ import * as readline from 'node:readline';
 import { EngineMessageKind, messageCodec } from "./engineService";
 import prettyReporter from "io-ts-reporters";
 import { Message, MessageBus, MessageKind } from "./messageBus";
-import { buildHash } from "../utilities";
-import { buildUriHash } from "../uris/buildUriHash";
 import { CaseKind, CaseWithJobHashes } from "../cases/types";
 import { buildCaseHash } from "../cases/buildCaseHash";
 import { Job, JobHash, JobKind, RewriteFileJob } from "../jobs/types";
@@ -36,9 +34,11 @@ class CompareProcessWrapper {
             this.#exited = true;
         })
 
-        const interfase = readline.createInterface(process.stdout);
+        const interfase = readline.createInterface(this.#process.stdout);
 
         interfase.on('line', async (line) => {
+            console.log(line);
+
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -68,18 +68,20 @@ class CompareProcessWrapper {
         const leftUri = job.inputUri;
         const rightUri = job.outputUri;
 
-        const hash = buildHash([
-            buildUriHash(leftUri),
-            buildUriHash(rightUri),
-        ].join(''));
+        const data = JSON.stringify({
+            k: 5,
+            i: job.hash,
+            l: leftUri.fsPath,
+            r: rightUri.fsPath,
+        })
 
         this.#process.stdin.write(
-            JSON.stringify({
-                k: 5,
-                i: hash,
-                l: leftUri.fsPath,
-                o: rightUri.fsPath,
-            }),
+            data + '\n',
+            (error) => {
+                if (error) {
+                    console.error(error);
+                }
+            }
         );
     }
 
@@ -120,7 +122,7 @@ export class NoraCompareServiceEngine {
 
     onCompareFilesMessage(message: Message & { kind: MessageKind.compareFiles }) {
         if (!this.#compareProcessWrapper || this.#compareProcessWrapper.isExited()) {
-            const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine-linux')
+            const executableUri = Uri.file('/intuita/nora-rust-engine/target/release/nora-rust-engine')
 
             this.#compareProcessWrapper = new CompareProcessWrapper(executableUri, this.#messageBus);
         }
@@ -144,6 +146,10 @@ export class NoraCompareServiceEngine {
     }
 
     onFilesComparedMessage(message: Message & { kind: MessageKind.filesCompared }) {
+        if (message.equal) {
+            return;
+        }
+
         const { jobHash } = message;
 
         const tuple = this.#jobMap.get(jobHash);

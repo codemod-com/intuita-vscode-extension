@@ -3,13 +3,11 @@ import prettyReporter from 'io-ts-reporters';
 import { spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
-import { buildCaseHash } from '../cases/buildCaseHash';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import { CaseKind } from '../cases/types';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
-import { Job, JobHash } from '../jobs/types';
-import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { buildHash, buildTypeCodec } from '../utilities';
+import { Job } from '../jobs/types';
+import { buildTypeCodec } from '../utilities';
 import { MessageBus, MessageKind } from './messageBus';
 
 export const enum EngineMessageKind {
@@ -147,26 +145,11 @@ export abstract class EngineService {
 				job = buildRewriteFileJob(inputUri, outputUri, message.c);
 			}
 
-			const subKind = message.c;
-
-			const kase = {
-				kind: this.#caseKind,
-				subKind,
-			} as const;
-
-			const caseWithJobHashes: CaseWithJobHashes = {
-				hash: buildCaseHash(kase),
-				kind: this.#caseKind,
-				subKind,
-				jobHashes: new Set([job.hash]),
-			};
-
 			this.#messageBus.publish({
-				kind: MessageKind.upsertCases,
-				casesWithJobHashes: [ caseWithJobHashes ],
-				jobs: [ job ],
-				inactiveJobHashes: new Set(),
-				trigger: 'onCommand',
+				kind: MessageKind.compareFiles,
+				job,
+				caseKind: this.#caseKind,
+				caseSubKind: message.c,
 			});
 		});
 

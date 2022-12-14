@@ -12,6 +12,7 @@ import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraRustEngineService } from './components/noraRustEngineService';
+import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
 
 const messageBus = new MessageBus();
 
@@ -83,6 +84,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		statusBarItem,
 	);
+
+	new NoraCompareServiceEngine(messageBus);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
