@@ -8,10 +8,11 @@ import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
-import { NoraNodeEngineService } from './components/noraNodeEngineService';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { NoraRustEngineService } from './components/noraRustEngineService';
+import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
+import { EngineService } from './components/engineService';
+import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 
 const messageBus = new MessageBus();
 
@@ -68,21 +69,21 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(statusBarItem);
 
-	const noraNodeEngineService = new NoraNodeEngineService(
-		downloadService,
+	const engineService = new EngineService(
+		messageBus,
 		vscode.workspace.fs,
+		statusBarItem,
+	);
+
+	new BootstrapExecutablesService(
+		downloadService,
 		context.globalStorageUri,
+		vscode.workspace.fs,
 		messageBus,
 		statusBarItem,
 	);
 
-	const nodaRustEngineService = new NoraRustEngineService(
-		downloadService,
-		vscode.workspace.fs,
-		context.globalStorageUri,
-		messageBus,
-		statusBarItem,
-	);
+	new NoraCompareServiceEngine(messageBus);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -95,10 +96,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(
-					storageUri,
-					'nextJs',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'nextJs',
+					},
+				});
 			},
 		),
 	);
@@ -114,10 +119,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await nodaRustEngineService.buildRepairCodeJobs(
-					storageUri,
-					'nextJs',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						engine: 'rust',
+						storageUri,
+						group: 'nextJs',
+					},
+				});
 			},
 		),
 	);
@@ -133,10 +142,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.buildRepairCodeJobs(
-					storageUri,
-					'mui',
-				);
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'mui',
+					},
+				});
 			},
 		),
 	);
@@ -152,7 +165,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				await noraNodeEngineService.clearOutputFiles(storageUri);
+				await engineService.clearOutputFiles(storageUri);
 			},
 		),
 	);

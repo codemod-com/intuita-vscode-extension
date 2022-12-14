@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseWithJobHashes } from '../cases/types';
+import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
@@ -19,7 +19,21 @@ export const enum MessageKind {
 	acceptCase = 7,
 	acceptJobs = 8,
 	jobsAccepted = 9,
+
+	/** file comparison */
+	compareFiles = 10,
+	filesCompared = 11,
+
+	/** bootstrap */
+	bootstrapExecutables = 12,
+	executablesBootstrapped = 13,
 }
+
+export type Command = Readonly<{
+	engine: 'node' | 'rust';
+	storageUri: Uri;
+	group: 'nextJs' | 'mui';
+}>;
 
 export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
 
@@ -69,6 +83,28 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.compareFiles;
+			noraRustEngineExecutableUri: Uri;
+			job: Job;
+			caseKind: CaseKind;
+			caseSubKind: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.filesCompared;
+			jobHash: JobHash;
+			equal: boolean;
+	  }>
+	| Readonly<{
+			kind: MessageKind.bootstrapExecutables;
+			command: Command;
+	  }>
+	| Readonly<{
+			kind: MessageKind.executablesBootstrapped;
+			command: Command;
+			noraNodeEngineExecutableUri: Uri;
+			noraRustEngineExecutableUri: Uri;
 	  }>;
 
 export class MessageBus {
