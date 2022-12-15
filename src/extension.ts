@@ -87,7 +87,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.buildNextJsCodeRepairJobs',
+			'intuita.executeNextJsCodemods',
 			async () => {
 				const { storageUri } = context;
 
@@ -110,7 +110,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.buildPagesToAppsCodeRepairJobs',
+			'intuita.executePagesToAppsCodemods',
 			async () => {
 				const { storageUri } = context;
 
@@ -133,7 +133,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.buildMuiCodeRepairJobs',
+			'intuita.executeMuiCodemods',
 			async () => {
 				const { storageUri } = context;
 
