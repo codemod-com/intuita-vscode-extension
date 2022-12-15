@@ -2,13 +2,14 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
+import { FileSystem, Uri, workspace } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
+import { StatusBarItemManager } from './statusBarItemManager';
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -62,17 +63,17 @@ const STORAGE_DIRECTORY_MAP = new Map([
 export class EngineService {
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
-	protected readonly statusBarItem: StatusBarItem;
+	readonly #statusBarItemManager: StatusBarItemManager;
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
 
 	public constructor(
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
-		statusBarItem: StatusBarItem,
+		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
-		this.statusBarItem = statusBarItem;
+		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.executablesBootstrapped) {
@@ -175,10 +176,7 @@ export class EngineService {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
-				const percentage = Math.trunc((100 * message.p) / message.t);
-
-				this.statusBarItem.text = `$(loading~spin) Intuita: ${percentage}%`;
-				this.statusBarItem.show();
+				this.#statusBarItemManager.moveToProgress(message.p, message.t);
 				return;
 			}
 
@@ -214,8 +212,7 @@ export class EngineService {
 		});
 
 		interfase.on('close', () => {
-			this.statusBarItem.text = 'Intuita: Standby';
-			this.statusBarItem.show();
+			this.#statusBarItemManager.moveToStandby();
 
 			this.#childProcess = null;
 		});

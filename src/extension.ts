@@ -13,6 +13,7 @@ import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
 import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
+import { StatusBarItemManager } from './components/statusBarItemManager';
 
 const messageBus = new MessageBus();
 
@@ -68,14 +69,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	statusBarItem.command = 'intuita.shutdownEngines';
-	statusBarItem.text = 'Intuita';
 
 	context.subscriptions.push(statusBarItem);
+
+	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
 
 	const engineService = new EngineService(
 		messageBus,
 		vscode.workspace.fs,
-		statusBarItem,
+		statusBarItemManager,
 	);
 
 	new BootstrapExecutablesService(
@@ -83,7 +85,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
-		statusBarItem,
+		statusBarItemManager,
 	);
 
 	new NoraCompareServiceEngine(messageBus);
