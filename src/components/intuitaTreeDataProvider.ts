@@ -46,7 +46,7 @@ export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 const getElementIconBaseName = (kind: Element['kind']): string => {
 	switch (kind) {
 		case 'CASE':
-			return 'coderepair.svg';
+			return 'case.svg';
 		case 'FILE':
 			return 'ts2.svg';
 		default:
@@ -287,7 +287,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				.showInformationMessage(
 					`Generated ${
 						newActiveJobHashCount - oldActiveJobHashCount
-					} core-repair recommendations`,
+					} recommendations`,
 					'Show the first recommendation',
 				)
 				.then(async (response) => {
