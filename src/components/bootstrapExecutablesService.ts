@@ -107,7 +107,7 @@ export class BootstrapExecutablesService {
 		);
 
 		this.#statusBarItemManager.moveToBootstrap();
-		
+
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
