@@ -67,6 +67,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		100,
 	);
 
+	statusBarItem.command = 'intuita.shutdownEngines';
+	statusBarItem.text = 'Intuita';
+
 	context.subscriptions.push(statusBarItem);
 
 	const engineService = new EngineService(
@@ -84,6 +87,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new NoraCompareServiceEngine(messageBus);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.shutdownEngines',
+			() => {
+				engineService.shutdownEngines();
+			}
+		),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(

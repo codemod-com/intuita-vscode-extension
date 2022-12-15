@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
-import { spawn } from 'node:child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
 import { CaseKind } from '../cases/types';
@@ -57,6 +57,7 @@ export class EngineService {
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	protected readonly statusBarItem: StatusBarItem;
+	#childProcess: ChildProcessWithoutNullStreams | null = null;
 
 	public constructor(
 		messageBus: MessageBus,
@@ -76,9 +77,17 @@ export class EngineService {
 		});
 	}
 
+	shutdownEngines() {
+		this.#childProcess?.stdin.write("shutdown");
+	}
+
 	async #onExecutablesBootstrappedMessage(
 		message: Message & { kind: MessageKind.executablesBootstrapped },
 	) {
+		if (this.#childProcess) {
+			return;
+		}
+
 		const { noraRustEngineExecutableUri } = message;
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
@@ -144,11 +153,11 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		const childProcess = spawn(executableUri.fsPath, args, {
+		this.#childProcess = spawn(executableUri.fsPath, args, {
 			stdio: 'pipe',
 		});
 
-		const interfase = readline.createInterface(childProcess.stdout);
+		const interfase = readline.createInterface(this.#childProcess.stdout);
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
@@ -196,6 +205,8 @@ export class EngineService {
 		interfase.on('close', () => {
 			this.statusBarItem.text = '';
 			this.statusBarItem.hide();
+
+			this.#childProcess = null;
 		});
 	}
 
