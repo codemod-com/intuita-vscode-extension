@@ -1,14 +1,15 @@
 import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
-import { spawn } from 'node:child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, StatusBarItem, Uri, workspace } from 'vscode';
+import { FileSystem, Uri, workspace } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
+import { StatusBarItemManager } from './statusBarItemManager';
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -16,6 +17,7 @@ export const enum EngineMessageKind {
 	rewrite = 3,
 	create = 4,
 	compare = 5,
+	progress = 6,
 }
 
 export const messageCodec = t.union([
@@ -46,6 +48,11 @@ export const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.finish),
 	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.progress),
+		p: t.number,
+		t: t.number,
+	}),
 ]);
 
 const STORAGE_DIRECTORY_MAP = new Map([
@@ -56,16 +63,17 @@ const STORAGE_DIRECTORY_MAP = new Map([
 export class EngineService {
 	protected readonly fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
-	protected readonly statusBarItem: StatusBarItem;
+	readonly #statusBarItemManager: StatusBarItemManager;
+	#childProcess: ChildProcessWithoutNullStreams | null = null;
 
 	public constructor(
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
-		statusBarItem: StatusBarItem,
+		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#messageBus = messageBus;
 		this.fileSystem = fileSystem;
-		this.statusBarItem = statusBarItem;
+		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.executablesBootstrapped) {
@@ -76,9 +84,17 @@ export class EngineService {
 		});
 	}
 
+	shutdownEngines() {
+		this.#childProcess?.stdin.write('shutdown\n');
+	}
+
 	async #onExecutablesBootstrappedMessage(
 		message: Message & { kind: MessageKind.executablesBootstrapped },
 	) {
+		if (this.#childProcess) {
+			return;
+		}
+
 		const { noraRustEngineExecutableUri } = message;
 		const uri = workspace.workspaceFolders?.[0]?.uri;
 
@@ -108,9 +124,6 @@ export class EngineService {
 
 		await this.fileSystem.createDirectory(storageUri);
 		await this.fileSystem.createDirectory(outputUri);
-
-		this.statusBarItem.text = `$(loading~spin) Calculating recommendations`;
-		this.statusBarItem.show();
 
 		const args: ReadonlyArray<string> =
 			message.command.engine === 'node'
@@ -144,11 +157,11 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		const childProcess = spawn(executableUri.fsPath, args, {
+		this.#childProcess = spawn(executableUri.fsPath, args, {
 			stdio: 'pipe',
 		});
 
-		const interfase = readline.createInterface(childProcess.stdout);
+		const interfase = readline.createInterface(this.#childProcess.stdout);
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));
@@ -161,6 +174,11 @@ export class EngineService {
 			}
 
 			const message = either.right;
+
+			if (message.k === EngineMessageKind.progress) {
+				this.#statusBarItemManager.moveToProgress(message.p, message.t);
+				return;
+			}
 
 			if (
 				message.k === EngineMessageKind.finish ||
@@ -194,8 +212,9 @@ export class EngineService {
 		});
 
 		interfase.on('close', () => {
-			this.statusBarItem.text = '';
-			this.statusBarItem.hide();
+			this.#statusBarItemManager.moveToStandby();
+
+			this.#childProcess = null;
 		});
 	}
 

@@ -1,6 +1,7 @@
-import { FileSystem, StatusBarItem, Uri } from 'vscode';
+import { FileSystem, Uri } from 'vscode';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { Message, MessageBus, MessageKind } from './messageBus';
+import { StatusBarItemManager } from './statusBarItemManager';
 
 export class BootstrapExecutablesService {
 	#downloadService: DownloadService;
@@ -9,20 +10,20 @@ export class BootstrapExecutablesService {
 	#messageBus: MessageBus;
 	#noraNodeEngineExecutableUri: Uri | null = null;
 	#noraRustEngineExecutableUri: Uri | null = null;
-	#statusBarItem: StatusBarItem;
+	#statusBarItemManager: StatusBarItemManager;
 
 	constructor(
 		downloadService: DownloadService,
 		globalStorageUri: Uri,
 		fileSystem: FileSystem,
 		messageBus: MessageBus,
-		statusBarItem: StatusBarItem,
+		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#downloadService = downloadService;
 		this.#globalStorageUri = globalStorageUri;
 		this.#fileSystem = fileSystem;
 		this.#messageBus = messageBus;
-		this.#statusBarItem = statusBarItem;
+		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.bootstrapExecutables) {
@@ -69,8 +70,7 @@ export class BootstrapExecutablesService {
 			executableBaseName,
 		);
 
-		this.#statusBarItem.text = `$(loading~spin) Downloading the Nora Node Engine if needed`;
-		this.#statusBarItem.show();
+		this.#statusBarItemManager.moveToBootstrap();
 
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
@@ -86,8 +86,6 @@ export class BootstrapExecutablesService {
 			throw new Error(
 				`Your platform (${process.platform}) is not supported.`,
 			);
-		} finally {
-			this.#statusBarItem.hide();
 		}
 
 		return executableUri;
@@ -108,8 +106,7 @@ export class BootstrapExecutablesService {
 			executableBaseName,
 		);
 
-		this.#statusBarItem.text = `$(loading~spin) Downloading the Nora Rust Engine if needed`;
-		this.#statusBarItem.show();
+		this.#statusBarItemManager.moveToBootstrap();
 
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
@@ -125,8 +122,6 @@ export class BootstrapExecutablesService {
 			throw new Error(
 				`Your platform (${process.platform}) is not supported.`,
 			);
-		} finally {
-			this.#statusBarItem.hide();
 		}
 
 		return executableUri;
