@@ -49,7 +49,7 @@ export class BootstrapExecutablesService {
 		this.#messageBus.publish({
 			kind: MessageKind.executablesBootstrapped,
 			command: message.command,
-			noraNodeEngineExecutableUri: Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
+			noraNodeEngineExecutableUri: this.#noraNodeEngineExecutableUri,
 			noraRustEngineExecutableUri: this.#noraRustEngineExecutableUri,
 		});
 	}
