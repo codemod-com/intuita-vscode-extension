@@ -92,6 +92,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.shutdownEngines',
 			() => {
+				console.log('here');
 				engineService.shutdownEngines();
 			}
 		),

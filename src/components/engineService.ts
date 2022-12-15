@@ -16,6 +16,7 @@ export const enum EngineMessageKind {
 	rewrite = 3,
 	create = 4,
 	compare = 5,
+	progress = 6,
 }
 
 export const messageCodec = t.union([
@@ -45,6 +46,11 @@ export const messageCodec = t.union([
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.finish),
+	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.progress),
+		p: t.number,
+		t: t.number,
 	}),
 ]);
 
@@ -78,7 +84,7 @@ export class EngineService {
 	}
 
 	shutdownEngines() {
-		this.#childProcess?.stdin.write("shutdown");
+		this.#childProcess?.stdin.write("shutdown\n");
 	}
 
 	async #onExecutablesBootstrappedMessage(
@@ -117,9 +123,6 @@ export class EngineService {
 
 		await this.fileSystem.createDirectory(storageUri);
 		await this.fileSystem.createDirectory(outputUri);
-
-		this.statusBarItem.text = `$(loading~spin) Calculating recommendations`;
-		this.statusBarItem.show();
 
 		const args: ReadonlyArray<string> =
 			message.command.engine === 'node'
@@ -171,6 +174,14 @@ export class EngineService {
 
 			const message = either.right;
 
+			if (message.k === EngineMessageKind.progress) {
+				const percentage = Math.trunc(100 * message.p / message.t);
+
+				this.statusBarItem.text = `$(loading~spin) Intuita: ${percentage}%`;
+				this.statusBarItem.show();
+				return;
+			}
+
 			if (
 				message.k === EngineMessageKind.finish ||
 				message.k === EngineMessageKind.compare ||
@@ -203,8 +214,8 @@ export class EngineService {
 		});
 
 		interfase.on('close', () => {
-			this.statusBarItem.text = '';
-			this.statusBarItem.hide();
+			this.statusBarItem.text = 'Intuita: Standby';
+			this.statusBarItem.show();
 
 			this.#childProcess = null;
 		});

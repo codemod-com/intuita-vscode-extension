@@ -49,7 +49,7 @@ export class BootstrapExecutablesService {
 		this.#messageBus.publish({
 			kind: MessageKind.executablesBootstrapped,
 			command: message.command,
-			noraNodeEngineExecutableUri: Uri.file('/intuita/nora-node-engine/apps/nne/build/nora-node-engine-linux'),
+			noraNodeEngineExecutableUri: Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
 			noraRustEngineExecutableUri: this.#noraRustEngineExecutableUri,
 		});
 	}
@@ -86,8 +86,6 @@ export class BootstrapExecutablesService {
 			throw new Error(
 				`Your platform (${process.platform}) is not supported.`,
 			);
-		} finally {
-			this.#statusBarItem.hide();
 		}
 
 		return executableUri;
@@ -125,8 +123,6 @@ export class BootstrapExecutablesService {
 			throw new Error(
 				`Your platform (${process.platform}) is not supported.`,
 			);
-		} finally {
-			this.#statusBarItem.hide();
 		}
 
 		return executableUri;
