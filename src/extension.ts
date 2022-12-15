@@ -89,13 +89,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	new NoraCompareServiceEngine(messageBus);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.shutdownEngines',
-			() => {
-				console.log('here');
-				engineService.shutdownEngines();
-			}
-		),
+		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
+			console.log('here');
+			engineService.shutdownEngines();
+		}),
 	);
 
 	context.subscriptions.push(

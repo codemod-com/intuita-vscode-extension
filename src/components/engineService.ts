@@ -84,7 +84,7 @@ export class EngineService {
 	}
 
 	shutdownEngines() {
-		this.#childProcess?.stdin.write("shutdown\n");
+		this.#childProcess?.stdin.write('shutdown\n');
 	}
 
 	async #onExecutablesBootstrappedMessage(
@@ -175,7 +175,7 @@ export class EngineService {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
-				const percentage = Math.trunc(100 * message.p / message.t);
+				const percentage = Math.trunc((100 * message.p) / message.t);
 
 				this.statusBarItem.text = `$(loading~spin) Intuita: ${percentage}%`;
 				this.statusBarItem.show();
