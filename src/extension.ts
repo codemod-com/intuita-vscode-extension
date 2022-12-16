@@ -31,7 +31,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(messageBus);
 
-	const caseManager = new CaseManager(messageBus);
+	const caseManager = new CaseManager(
+		[],
+		[],
+		messageBus,
+	);
 
 	new FileService(messageBus);
 

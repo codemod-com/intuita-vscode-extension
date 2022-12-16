@@ -5,14 +5,20 @@ import { Case, CaseWithJobHashes, CaseHash } from './types';
 
 export class CaseManager {
 	readonly #messageBus: MessageBus;
-	readonly #cases = new Map<CaseHash, Case>();
-	readonly #caseHashJobHashSetManager = new LeftRightHashSetManager<
-		CaseHash,
-		JobHash
-	>(new Set());
+	readonly #cases: Map<CaseHash, Case>;
+	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<CaseHash, JobHash>;
 
-	public constructor(messageBus: MessageBus) {
+	public constructor(
+		cases: ReadonlyArray<Case>,
+		caseHashJobHashes: ReadonlyArray<string>,
+		messageBus: MessageBus
+	) {
 		this.#messageBus = messageBus;
+
+		this.#cases = new Map(cases.map(kase => [kase.hash, kase]));
+		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
+			new Set(caseHashJobHashes),
+		);
 
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.upsertCases) {
