@@ -45,6 +45,10 @@ export class CaseManager {
 		return this.#cases.values();
 	}
 
+	public getCaseHashJobHashSetValues(): IterableIterator<string> {
+		return this.#caseHashJobHashSetManager.getSetValues();
+	}
+
 	public getJobHashes(caseHashes: Iterable<CaseHash>): ReadonlySet<JobHash> {
 		const jobHashes = new Set<JobHash>();
 

@@ -26,8 +26,11 @@ export class PersistedStateService {
     #onPersistStateMessage (message: Message & { kind: MessageKind.persistState }) {
         const cases = Array.from(this.caseManager.getCases()).map(kase => mapCaseToPersistedCase(kase));
 
+        const caseHashJobHashes = Array.from(this.caseManager.getCaseHashJobHashSetValues());
+
         const persistedState: PersistedState = {
             cases,
+            caseHashJobHashes,
         }
 
     }

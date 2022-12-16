@@ -5,6 +5,10 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		this.#set = new Set(set);
 	}
 
+	public getSetValues(): IterableIterator<string> {
+		return this.#set.values();
+	}
+
 	public buildByRightHashes(
 		rightHashes: Set<R>,
 	): LeftRightHashSetManager<L, R> {
