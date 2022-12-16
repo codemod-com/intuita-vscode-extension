@@ -42,6 +42,12 @@ export class CaseManager {
 					this.#onRejectCaseMessage(message);
 				});
 			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(() => {
+                    this.#onClearStateMessage();
+				});
+			}
 		});
 	}
 
@@ -88,7 +94,7 @@ export class CaseManager {
 		return caseWithJobHashes;
 	}
 
-	async #onUpsertCasesMessage(
+	#onUpsertCasesMessage(
 		message: Message & { kind: MessageKind.upsertCases },
 	) {
 		message.casesWithJobHashes.map((caseWithJobHash) => {
@@ -110,7 +116,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onAcceptCaseMessage(
+	#onAcceptCaseMessage(
 		message: Message & { kind: MessageKind.acceptCase },
 	) {
 		// we are not removing cases and jobs here
@@ -127,7 +133,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onJobAcceptedMessage(
+	#onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
 		for (const jobHash of message.deletedJobHashes) {
@@ -151,7 +157,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onRejectCaseMessage(
+	#onRejectCaseMessage(
 		message: Message & { kind: MessageKind.rejectCase },
 	) {
 		const deleted = this.#cases.delete(message.caseHash);
@@ -173,5 +179,10 @@ export class CaseManager {
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
+	}
+
+	#onClearStateMessage() {
+		this.#cases.clear();
+		this.#caseHashJobHashSetManager.clear();
 	}
 }
