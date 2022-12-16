@@ -39,7 +39,7 @@ export type Command = Readonly<{
 	group: 'nextJs' | 'mui';
 }>;
 
-export type Trigger = 'onCommand' | 'onDidUpdateConfiguration';
+export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';
 
 export type Message =
 	| Readonly<{

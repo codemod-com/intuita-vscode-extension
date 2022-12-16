@@ -323,8 +323,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	messageBus.publish({
 		kind: MessageKind.updateElements,
-		trigger: 'onDidUpdateConfiguration',
-	})
+		trigger: 'bootstrap',
+	});
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
