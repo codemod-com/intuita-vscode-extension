@@ -29,11 +29,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const jobManager = new JobManager(messageBus);
+	const jobManager = new JobManager(
+		[],
+		new Set(),
+		messageBus,
+	);
 
 	const caseManager = new CaseManager(
 		[],
-		[],
+		new Set(),
 		messageBus,
 	);
 

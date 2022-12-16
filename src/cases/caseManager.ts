@@ -10,15 +10,13 @@ export class CaseManager {
 
 	public constructor(
 		cases: ReadonlyArray<Case>,
-		caseHashJobHashes: ReadonlyArray<string>,
+		caseHashJobHashes: ReadonlySet<string>,
 		messageBus: MessageBus
 	) {
 		this.#messageBus = messageBus;
 
 		this.#cases = new Map(cases.map(kase => [kase.hash, kase]));
-		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
-			new Set(caseHashJobHashes),
-		);
+		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(caseHashJobHashes);
 
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.upsertCases) {
