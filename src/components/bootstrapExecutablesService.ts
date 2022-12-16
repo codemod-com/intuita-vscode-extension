@@ -25,7 +25,9 @@ export class BootstrapExecutablesService {
 		this.#messageBus = messageBus;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.bootstrapExecutables, (message) => this.#onBootstrapExecutables(message));
+		messageBus.subscribe(MessageKind.bootstrapExecutables, (message) =>
+			this.#onBootstrapExecutables(message),
+		);
 	}
 
 	async #onBootstrapExecutables(

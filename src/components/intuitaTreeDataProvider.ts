@@ -87,8 +87,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			1000,
 		);
 
-		this.#messageBus.subscribe(MessageKind.updateElements, (message) => debouncedOnUpdateElementsMessage(message));
-		this.#messageBus.subscribe(MessageKind.clearState, () => this.#onClearStateMessage());
+		this.#messageBus.subscribe(MessageKind.updateElements, (message) =>
+			debouncedOnUpdateElementsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.clearState, () =>
+			this.#onClearStateMessage(),
+		);
 	}
 
 	public setReveal(reveal: TreeView<ElementHash>['reveal']) {

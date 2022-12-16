@@ -23,11 +23,21 @@ export class CaseManager {
 			caseHashJobHashes,
 		);
 
-		this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
-		this.#messageBus.subscribe(MessageKind.acceptCase, (message) => this.#onAcceptCaseMessage(message));
-		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) => this.#onJobAcceptedMessage(message));
-		this.#messageBus.subscribe(MessageKind.rejectCase, (message) => this.#onRejectCaseMessage(message));
-		this.#messageBus.subscribe(MessageKind.clearState, () => this.#onClearStateMessage());
+		this.#messageBus.subscribe(MessageKind.upsertCases, (message) =>
+			this.#onUpsertCasesMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
+			this.#onAcceptCaseMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
+			this.#onJobAcceptedMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
+			this.#onRejectCaseMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.clearState, () =>
+			this.#onClearStateMessage(),
+		);
 	}
 
 	public getCases(): IterableIterator<Case> {

@@ -31,10 +31,18 @@ export class JobManager {
 
 		this.#messageBus = messageBus;
 
-		this.#messageBus.subscribe(MessageKind.upsertJobs, (message) => this.#onUpsertJobsMessage(message));
-		this.#messageBus.subscribe(MessageKind.acceptJobs, (message) => this.#onAcceptJobsMessage(message));
-		this.#messageBus.subscribe(MessageKind.rejectJobs, (message) => this.#onRejectJobsMessage(message));
-		this.#messageBus.subscribe(MessageKind.clearState, () => this.#onClearStateMessage());
+		this.#messageBus.subscribe(MessageKind.upsertJobs, (message) =>
+			this.#onUpsertJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.acceptJobs, (message) =>
+			this.#onAcceptJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.rejectJobs, (message) =>
+			this.#onRejectJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.clearState, () =>
+			this.#onClearStateMessage(),
+		);
 	}
 
 	public getJobs(): IterableIterator<Job> {

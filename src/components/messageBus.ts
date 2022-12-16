@@ -121,7 +121,7 @@ type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;
 };
 
-export class MessageBus{
+export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;
 
 	#emitters: EmitterMap<MessageKind> = {};
@@ -134,7 +134,9 @@ export class MessageBus{
 		kind: K,
 		fn: (message: Message & { kind: K }) => void,
 	) {
-		let emitter = this.#emitters[kind] as EventEmitter<Message & { kind: K }> | undefined;
+		let emitter = this.#emitters[kind] as
+			| EventEmitter<Message & { kind: K }>
+			| undefined;
 
 		if (!emitter) {
 			emitter = new EventEmitter<Message & { kind: K }>();
@@ -142,10 +144,7 @@ export class MessageBus{
 			this.#emitters[kind] = emitter;
 		}
 
-		emitter.event(
-			fn,
-			this.#disposables
-		);
+		emitter.event(fn, this.#disposables);
 	}
 
 	publish(message: Message): void {

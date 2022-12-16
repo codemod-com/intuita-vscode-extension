@@ -87,8 +87,12 @@ export class NoraCompareServiceEngine {
 	constructor(messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
-		this.#messageBus.subscribe(MessageKind.compareFiles, (message) => this.onCompareFilesMessage(message));
-		this.#messageBus.subscribe(MessageKind.filesCompared, (message) => this.onFilesComparedMessage(message));
+		this.#messageBus.subscribe(MessageKind.compareFiles, (message) =>
+			this.onCompareFilesMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.filesCompared, (message) =>
+			this.onFilesComparedMessage(message),
+		);
 	}
 
 	onCompareFilesMessage(

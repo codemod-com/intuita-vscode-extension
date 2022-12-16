@@ -13,8 +13,12 @@ export class PersistedStateService {
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
 	) {
-		this.messageBus.subscribe(MessageKind.persistState, () => this.#onPersistStateMessage());
-		this.messageBus.subscribe(MessageKind.clearState, () => this.#onClearStateMessage());
+		this.messageBus.subscribe(MessageKind.persistState, () =>
+			this.#onPersistStateMessage(),
+		);
+		this.messageBus.subscribe(MessageKind.clearState, () =>
+			this.#onClearStateMessage(),
+		);
 	}
 
 	async #onPersistStateMessage() {
