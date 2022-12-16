@@ -40,6 +40,7 @@ import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
+import { debounce } from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -80,11 +81,16 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
+		const debouncedOnUpdateElementsMessage = debounce(
+			(message: Message & { kind: MessageKind.updateElements }) => {
+				return this.#onUpdateElementsMessage(message);
+			},
+			1000,
+		)
+
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateElements) {
-				setImmediate(async () => {
-					await this.#onUpdateElementsMessage(message);
-				});
+				debouncedOnUpdateElementsMessage(message);
 			}
 		});
 	}

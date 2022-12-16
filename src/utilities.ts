@@ -25,3 +25,21 @@ export const buildHash = (data: string) =>
 export const buildTypeCodec = <T extends t.Props>(
 	props: T,
 ): t.ReadonlyC<t.ExactC<t.TypeC<T>>> => t.readonly(t.exact(t.type(props)));
+
+export const debounce = <T extends {}, R>(
+	callback: (arg1: T) => R,
+	ms: number,
+) => {
+	let timeout: ReturnType<typeof setTimeout> | null = null;
+
+	return (arg1: T) => {
+		if (timeout!== null) {
+            clearTimeout(timeout);
+		}
+
+    	timeout = setTimeout(
+			() => callback(arg1),
+			ms,
+		);
+	}
+}
