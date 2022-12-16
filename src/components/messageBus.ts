@@ -31,6 +31,7 @@ export const enum MessageKind {
 
 	/** state */
 	persistState = 14,
+	clearState = 15,
 }
 
 export type Command = Readonly<{
@@ -112,6 +113,9 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.persistState;
+	}>
+	| Readonly<{
+			kind: MessageKind.clearState;
 	}>;
 
 export class MessageBus {

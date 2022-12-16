@@ -22,6 +22,14 @@ export class PersistedStateService {
                         }
                     );
                 }
+
+                if (message.kind === MessageKind.clearState) {
+                    setImmediate(
+                        () => {
+                            this.#onClearStateMessage();
+                        }
+                    );   
+                }
             }
         )
     }
@@ -59,6 +67,26 @@ export class PersistedStateService {
             caseHashJobHashes,
             jobs,
             rejectedJobHashes,
+        }
+    }
+
+    async #onClearStateMessage() {
+        const workspaceFolders = this.getWorkspaceFolders();
+
+        const uri = workspaceFolders[0]?.uri;
+
+        if (!uri) {
+            console.error("No workspace folder found. We cannot clear the state anywhere.");
+
+            return;
+        }
+
+        const localStateUri = Uri.joinPath(uri, ".intuita", "localState.json");
+        
+        try {
+            await this.fileSystem.delete(localStateUri, { useTrash: false});
+        } catch (error) {
+            console.error(error);
         }
     }
 }
