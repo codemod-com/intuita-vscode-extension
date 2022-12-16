@@ -39,7 +39,7 @@ export type Command = Readonly<{
 	group: 'nextJs' | 'mui';
 }>;
 
-export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
+export type Trigger = 'onCommand' | 'onDidUpdateConfiguration';
 
 export type Message =
 	| Readonly<{
@@ -112,7 +112,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.persistState;
-			persistedState: PersistedState;
 	}>;
 
 export class MessageBus {

@@ -213,16 +213,16 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		const caseDataTransferObjects =
+		const casesWithJobHashes =
 			this.#caseManager.getCasesWithJobHashes();
 
-		const jobMap = this.#buildJobMap(caseDataTransferObjects);
+		const jobMap = this.#buildJobMap(casesWithJobHashes);
 
 		const { showFileElements } = this.#configurationContainer.get();
 
 		const caseElements = this.#buildCaseElements(
 			rootPath,
-			caseDataTransferObjects,
+			casesWithJobHashes,
 			jobMap,
 			showFileElements,
 		);
@@ -267,7 +267,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		};
 
 		const inactiveJobHashes: JobHash[] = [];
-		const oldActiveJobHashCount = this.#activeJobHashes.size;
 
 		for (const jobHash of this.#activeJobHashes) {
 			if (!jobMap.has(jobHash)) {
@@ -283,32 +282,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			this.#activeJobHashes.delete(jobHash);
 		}
 
-		const newActiveJobHashCount = this.#activeJobHashes.size;
-
-		if (
-			message.trigger === 'didSave' &&
-			newActiveJobHashCount > oldActiveJobHashCount
-		) {
-			window
-				.showInformationMessage(
-					`Generated ${
-						newActiveJobHashCount - oldActiveJobHashCount
-					} recommendations`,
-					'Show the first recommendation',
-				)
-				.then(async (response) => {
-					if (!response) {
-						return;
-					}
-
-					await showTheFirstJob();
-				});
-
-			return;
-		}
-
 		if (message.trigger === 'onCommand') {
 			setImmediate(showTheFirstJob);
+
+			this.#messageBus.publish({
+				kind: MessageKind.persistState,
+			});
 		}
 	}
 
