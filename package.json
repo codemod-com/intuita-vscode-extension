@@ -71,6 +71,11 @@
 				"icon": "$(flame)"
 			},
 			{
+				"command": "intuita.clearState",
+				"title": "Clear state",
+				"icon": "$(clear-all)"
+			},
+			{
 				"command": "intuita.acceptJob",
 				"title": "✓ Accept"
 			},
@@ -135,6 +140,11 @@
 			"view/title": [
 				{
 					"command": "intuita.showOrHideFileElements",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				},
+				{
+					"command": "intuita.clearState",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
 					"group": "navigation"
 				},

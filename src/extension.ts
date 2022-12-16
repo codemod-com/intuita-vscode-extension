@@ -321,6 +321,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	context.subscriptions.push(
+        vscode.commands.registerCommand(
+			'intuita.clearState',
+			() => {
+				messageBus.publish({
+					kind: MessageKind.clearState,
+				});
+			}
+		),
+	);
+
 	messageBus.publish({
 		kind: MessageKind.updateElements,
 		trigger: 'bootstrap',
