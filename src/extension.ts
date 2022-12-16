@@ -14,6 +14,7 @@ import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine'
 import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
+import { PersistedStateService } from './persistedState/persistedStateService';
 
 const messageBus = new MessageBus();
 
@@ -89,6 +90,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new NoraCompareServiceEngine(messageBus);
+
+	new PersistedStateService(
+		caseManager,
+		vscode.workspace.fs,
+		() => vscode.workspace.workspaceFolders ?? [],
+		jobManager,
+		messageBus,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
