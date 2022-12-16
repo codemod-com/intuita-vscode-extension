@@ -1,8 +1,8 @@
 import { CaseManager } from "../cases/caseManager";
 import { JobManager } from "../components/jobManager";
-import { Message, MessageBus, MessageKind } from "../components/messageBus";
+import { MessageBus, MessageKind } from "../components/messageBus";
 import { PersistedState } from "./codecs";
-import { mapCaseToPersistedCase } from "./mappers";
+import { mapCaseToPersistedCase, mapJobToPersistedJob } from "./mappers";
 
 export class PersistedStateService {
     constructor(
@@ -15,7 +15,7 @@ export class PersistedStateService {
                 if (message.kind === MessageKind.persistState) {
                     setImmediate(
                         () => {
-                            this.#onPersistStateMessage(message);
+                            this.#onPersistStateMessage();
                         }
                     );
                 }
@@ -23,15 +23,22 @@ export class PersistedStateService {
         )
     }
 
-    #onPersistStateMessage (message: Message & { kind: MessageKind.persistState }) {
+    #onPersistStateMessage () {
         const cases = Array.from(this.caseManager.getCases()).map(kase => mapCaseToPersistedCase(kase));
-
         const caseHashJobHashes = Array.from(this.caseManager.getCaseHashJobHashSetValues());
+
+        const jobs = Array.from(this.jobManager.getJobs()).map(job => mapJobToPersistedJob(job));
+
+        const rejectedJobHashes = Array.from(this.jobManager.getRejectedJobHashes());
 
         const persistedState: PersistedState = {
             cases,
             caseHashJobHashes,
+            jobs,
+            rejectedJobHashes,
         }
+
+        
 
     }
 }

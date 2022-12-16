@@ -36,6 +36,14 @@ export class JobManager {
 		});
 	}
 
+	public getJobs(): IterableIterator<Job> {
+		return this.#jobMap.values();
+	}
+
+	public getRejectedJobHashes(): IterableIterator<JobHash> {
+		return this.#rejectedJobHashes.values();
+	}
+
 	public getJob(jobHash: JobHash): Job | null {
 		return this.#jobMap.get(jobHash) ?? null;
 	}
