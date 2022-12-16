@@ -5,7 +5,7 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
-import { JobHash } from './jobs/types';
+import { Job, JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
@@ -15,6 +15,8 @@ import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
+import { getPersistedState } from './persistedState/getPersistedState';
+import { mapPersistedCaseToCase, mapPersistedJobToJob } from './persistedState/mappers';
 
 const messageBus = new MessageBus();
 
@@ -29,15 +31,20 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	const persistedState = await getPersistedState(
+		vscode.workspace.fs,
+		() => vscode.workspace.workspaceFolders ?? [],
+	);
+
 	const jobManager = new JobManager(
-		[],
-		new Set(),
+		persistedState?.jobs.map(job => mapPersistedJobToJob(job)) ?? [],
+		new Set((persistedState?.rejectedJobHashes ?? []) as JobHash[]),
 		messageBus,
 	);
 
 	const caseManager = new CaseManager(
-		[],
-		new Set(),
+		persistedState?.cases.map(kase => mapPersistedCaseToCase(kase)) ?? [],
+		new Set(persistedState?.caseHashJobHashes),
 		messageBus,
 	);
 
@@ -313,6 +320,11 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
+
+	messageBus.publish({
+		kind: MessageKind.updateElements,
+		trigger: 'onDidUpdateConfiguration',
+	})
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
