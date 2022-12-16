@@ -9,7 +9,6 @@ import {
 	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
-	window,
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
