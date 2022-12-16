@@ -1,6 +1,7 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
+import { PersistedState } from '../persistedState/codecs';
 
 export const enum MessageKind {
 	/**
@@ -27,6 +28,9 @@ export const enum MessageKind {
 	/** bootstrap */
 	bootstrapExecutables = 12,
 	executablesBootstrapped = 13,
+
+	/** state */
+	persistState = 14,
 }
 
 export type Command = Readonly<{
@@ -105,7 +109,11 @@ export type Message =
 			command: Command;
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.persistState;
+			persistedState: PersistedState;
+	}>;
 
 export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;

@@ -1,7 +1,7 @@
 import { Uri } from "vscode";
 import { Case, CaseHash } from "../cases/types";
 import { Job, JobHash } from "../jobs/types";
-import { PersistedCase, PersistedJob } from "./codecs";
+import type { PersistedCase, PersistedJob } from "./codecs";
 
 export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
     kind: job.kind,
