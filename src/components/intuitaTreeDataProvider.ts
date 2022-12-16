@@ -299,19 +299,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	}
 
 	#onClearStateMessage() {
-		const rootElement: RootElement = {
-			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
-			children: [],
-		};
-
-		// update collections
 		this.#elementMap.clear();
 		this.#childParentMap.clear();
 
-		this.#setElement(rootElement);
+		this.#setElement({
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: [],
+		});
 
-		// update the UX state
 		this.eventEmitter.fire();
 	}
 
