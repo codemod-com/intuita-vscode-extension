@@ -43,6 +43,10 @@ export class JobManager {
 			if (message.kind === MessageKind.rejectJobs) {
 				setImmediate(() => this.#onRejectJobsMessage(message));
 			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(() => this.#onClearStateMessage());
+			}
 		});
 	}
 
@@ -182,5 +186,11 @@ export class JobManager {
 			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
+	}
+
+	#onClearStateMessage() {
+		this.#jobMap.clear();
+		this.#rejectedJobHashes.clear();
+		this.#uriHashJobHashSetManager.clear();
 	}
 }
