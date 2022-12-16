@@ -91,6 +91,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			if (message.kind === MessageKind.updateElements) {
 				debouncedOnUpdateElementsMessage(message);
 			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(
+					() => {
+						this.#onClearStateMessage();
+					}
+				);  
+			}
 		});
 	}
 
@@ -288,6 +296,23 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				kind: MessageKind.persistState,
 			});
 		}
+	}
+
+	#onClearStateMessage() {
+		const rootElement: RootElement = {
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: [],
+		};
+
+		// update collections
+		this.#elementMap.clear();
+		this.#childParentMap.clear();
+
+		this.#setElement(rootElement);
+
+		// update the UX state
+		this.eventEmitter.fire();
 	}
 
 	#setElement(element: Element) {
