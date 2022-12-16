@@ -101,8 +101,8 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 	}
 
 	public clear(): void {
-        this.#set.clear();
-    }
+		this.#set.clear();
+	}
 
 	#buildLeftRightHash(leftHash: L, rightHash: R): string {
 		return `${leftHash}${rightHash}`;

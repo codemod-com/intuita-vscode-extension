@@ -5,7 +5,7 @@ import { MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
-import { Job, JobHash } from './jobs/types';
+import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
@@ -16,7 +16,10 @@ import { BootstrapExecutablesService } from './components/bootstrapExecutablesSe
 import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
 import { getPersistedState } from './persistedState/getPersistedState';
-import { mapPersistedCaseToCase, mapPersistedJobToJob } from './persistedState/mappers';
+import {
+	mapPersistedCaseToCase,
+	mapPersistedJobToJob,
+} from './persistedState/mappers';
 
 const messageBus = new MessageBus();
 
@@ -37,13 +40,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const jobManager = new JobManager(
-		persistedState?.jobs.map(job => mapPersistedJobToJob(job)) ?? [],
+		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		new Set((persistedState?.rejectedJobHashes ?? []) as JobHash[]),
 		messageBus,
 	);
 
 	const caseManager = new CaseManager(
-		persistedState?.cases.map(kase => mapPersistedCaseToCase(kase)) ?? [],
+		persistedState?.cases.map((kase) => mapPersistedCaseToCase(kase)) ?? [],
 		new Set(persistedState?.caseHashJobHashes),
 		messageBus,
 	);
@@ -214,6 +217,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.openYouTubeChannel', () => {
+			vscode.env.openExternal(
+				vscode.Uri.parse(
+					'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
+				),
+			);
+		}),
+	);
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptJob',
 			async (arg0: unknown) => {
@@ -322,14 +335,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-        vscode.commands.registerCommand(
-			'intuita.clearState',
-			() => {
-				messageBus.publish({
-					kind: MessageKind.clearState,
-				});
-			}
-		),
+		vscode.commands.registerCommand('intuita.clearState', () => {
+			messageBus.publish({
+				kind: MessageKind.clearState,
+			});
+		}),
 	);
 
 	messageBus.publish({

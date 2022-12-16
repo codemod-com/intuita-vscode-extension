@@ -19,15 +19,15 @@ export class JobManager {
 	public constructor(
 		jobs: ReadonlyArray<Job>,
 		rejectedJobHashes: Set<JobHash>,
-		messageBus: MessageBus
+		messageBus: MessageBus,
 	) {
-		this.#jobMap = new Map(jobs.map(job => ([job.hash, job])));
+		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#rejectedJobHashes = rejectedJobHashes;
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
-				jobs.map(job => `${buildUriHash(job.inputUri)}${job.hash}`)
-			)
-		)
+				jobs.map((job) => `${buildUriHash(job.inputUri)}${job.hash}`),
+			),
+		);
 
 		this.#messageBus = messageBus;
 

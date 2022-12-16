@@ -1,7 +1,6 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
-import { PersistedState } from '../persistedState/codecs';
 
 export const enum MessageKind {
 	/**
@@ -113,10 +112,10 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.persistState;
-	}>
+	  }>
 	| Readonly<{
 			kind: MessageKind.clearState;
-	}>;
+	  }>;
 
 export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;

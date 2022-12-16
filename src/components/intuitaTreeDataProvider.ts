@@ -85,7 +85,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				return this.#onUpdateElementsMessage(message);
 			},
 			1000,
-		)
+		);
 
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateElements) {
@@ -93,11 +93,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			}
 
 			if (message.kind === MessageKind.clearState) {
-				setImmediate(
-					() => {
-						this.#onClearStateMessage();
-					}
-				);  
+				setImmediate(() => {
+					this.#onClearStateMessage();
+				});
 			}
 		});
 	}
@@ -220,8 +218,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		const casesWithJobHashes =
-			this.#caseManager.getCasesWithJobHashes();
+		const casesWithJobHashes = this.#caseManager.getCasesWithJobHashes();
 
 		const jobMap = this.#buildJobMap(casesWithJobHashes);
 

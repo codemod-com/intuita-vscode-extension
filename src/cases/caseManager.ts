@@ -6,17 +6,22 @@ import { Case, CaseWithJobHashes, CaseHash } from './types';
 export class CaseManager {
 	readonly #messageBus: MessageBus;
 	readonly #cases: Map<CaseHash, Case>;
-	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<CaseHash, JobHash>;
+	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<
+		CaseHash,
+		JobHash
+	>;
 
 	public constructor(
 		cases: ReadonlyArray<Case>,
 		caseHashJobHashes: ReadonlySet<string>,
-		messageBus: MessageBus
+		messageBus: MessageBus,
 	) {
 		this.#messageBus = messageBus;
 
-		this.#cases = new Map(cases.map(kase => [kase.hash, kase]));
-		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(caseHashJobHashes);
+		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
+		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
+			caseHashJobHashes,
+		);
 
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.upsertCases) {
@@ -45,7 +50,7 @@ export class CaseManager {
 
 			if (message.kind === MessageKind.clearState) {
 				setImmediate(() => {
-                    this.#onClearStateMessage();
+					this.#onClearStateMessage();
 				});
 			}
 		});
@@ -116,9 +121,7 @@ export class CaseManager {
 		});
 	}
 
-	#onAcceptCaseMessage(
-		message: Message & { kind: MessageKind.acceptCase },
-	) {
+	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
 		// we are not removing cases and jobs here
 		// we wait for the jobs accepted message for data removal
 		const jobHashes =
@@ -157,9 +160,7 @@ export class CaseManager {
 		});
 	}
 
-	#onRejectCaseMessage(
-		message: Message & { kind: MessageKind.rejectCase },
-	) {
+	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
 		const deleted = this.#cases.delete(message.caseHash);
 
 		if (!deleted) {
