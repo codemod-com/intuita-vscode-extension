@@ -5,14 +5,23 @@ import { Case, CaseWithJobHashes, CaseHash } from './types';
 
 export class CaseManager {
 	readonly #messageBus: MessageBus;
-	readonly #cases = new Map<CaseHash, Case>();
-	readonly #caseHashJobHashSetManager = new LeftRightHashSetManager<
+	readonly #cases: Map<CaseHash, Case>;
+	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<
 		CaseHash,
 		JobHash
-	>(new Set());
+	>;
 
-	public constructor(messageBus: MessageBus) {
+	public constructor(
+		cases: ReadonlyArray<Case>,
+		caseHashJobHashes: ReadonlySet<string>,
+		messageBus: MessageBus,
+	) {
 		this.#messageBus = messageBus;
+
+		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
+		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
+			caseHashJobHashes,
+		);
 
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.upsertCases) {
@@ -38,11 +47,21 @@ export class CaseManager {
 					this.#onRejectCaseMessage(message);
 				});
 			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(() => {
+					this.#onClearStateMessage();
+				});
+			}
 		});
 	}
 
 	public getCases(): IterableIterator<Case> {
 		return this.#cases.values();
+	}
+
+	public getCaseHashJobHashSetValues(): IterableIterator<string> {
+		return this.#caseHashJobHashSetManager.getSetValues();
 	}
 
 	public getJobHashes(caseHashes: Iterable<CaseHash>): ReadonlySet<JobHash> {
@@ -80,7 +99,7 @@ export class CaseManager {
 		return caseWithJobHashes;
 	}
 
-	async #onUpsertCasesMessage(
+	#onUpsertCasesMessage(
 		message: Message & { kind: MessageKind.upsertCases },
 	) {
 		message.casesWithJobHashes.map((caseWithJobHash) => {
@@ -102,9 +121,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onAcceptCaseMessage(
-		message: Message & { kind: MessageKind.acceptCase },
-	) {
+	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
 		// we are not removing cases and jobs here
 		// we wait for the jobs accepted message for data removal
 		const jobHashes =
@@ -119,7 +136,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onJobAcceptedMessage(
+	#onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
 		for (const jobHash of message.deletedJobHashes) {
@@ -143,9 +160,7 @@ export class CaseManager {
 		});
 	}
 
-	async #onRejectCaseMessage(
-		message: Message & { kind: MessageKind.rejectCase },
-	) {
+	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
 		const deleted = this.#cases.delete(message.caseHash);
 
 		if (!deleted) {
@@ -165,5 +180,10 @@ export class CaseManager {
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
+	}
+
+	#onClearStateMessage() {
+		this.#cases.clear();
+		this.#caseHashJobHashSetManager.clear();
 	}
 }

@@ -12,13 +12,23 @@ import { buildUriHash } from '../uris/buildUriHash';
 export class JobManager {
 	readonly #messageBus: MessageBus;
 
-	#uriHashJobHashSetManager = new LeftRightHashSetManager<UriHash, JobHash>(
-		new Set(),
-	);
-	#rejectedJobHashes = new Set<JobHash>();
-	#jobMap = new Map<JobHash, Job>();
+	#jobMap: Map<JobHash, Job>;
+	#rejectedJobHashes: Set<JobHash>;
+	#uriHashJobHashSetManager: LeftRightHashSetManager<UriHash, JobHash>;
 
-	public constructor(messageBus: MessageBus) {
+	public constructor(
+		jobs: ReadonlyArray<Job>,
+		rejectedJobHashes: Set<JobHash>,
+		messageBus: MessageBus,
+	) {
+		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
+		this.#rejectedJobHashes = rejectedJobHashes;
+		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
+			new Set(
+				jobs.map((job) => `${buildUriHash(job.inputUri)}${job.hash}`),
+			),
+		);
+
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(async (message) => {
@@ -33,7 +43,19 @@ export class JobManager {
 			if (message.kind === MessageKind.rejectJobs) {
 				setImmediate(() => this.#onRejectJobsMessage(message));
 			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(() => this.#onClearStateMessage());
+			}
 		});
+	}
+
+	public getJobs(): IterableIterator<Job> {
+		return this.#jobMap.values();
+	}
+
+	public getRejectedJobHashes(): IterableIterator<JobHash> {
+		return this.#rejectedJobHashes.values();
 	}
 
 	public getJob(jobHash: JobHash): Job | null {
@@ -164,5 +186,11 @@ export class JobManager {
 			kind: MessageKind.updateElements,
 			trigger: 'onCommand',
 		});
+	}
+
+	#onClearStateMessage() {
+		this.#jobMap.clear();
+		this.#rejectedJobHashes.clear();
+		this.#uriHashJobHashSetManager.clear();
 	}
 }

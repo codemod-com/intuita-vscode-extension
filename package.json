@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Automatic Code Modification, Built For Scale",
-	"version": "0.5.6",
+	"version": "0.5.7",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -69,6 +69,16 @@
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
+			},
+			{
+				"command": "intuita.openYouTubeChannel",
+				"title": "Open our YouTube Channel",
+				"icon": "$(device-camera-video)"
+			},
+			{
+				"command": "intuita.clearState",
+				"title": "Clear state",
+				"icon": "$(clear-all)"
 			},
 			{
 				"command": "intuita.acceptJob",
@@ -139,7 +149,17 @@
 					"group": "navigation"
 				},
 				{
+					"command": "intuita.clearState",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				},
+				{
 					"command": "intuita.requestFeature",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				},
+				{
+					"command": "intuita.openYouTubeChannel",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
 					"group": "navigation"
 				}

@@ -9,7 +9,6 @@ import {
 	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
-	window,
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
@@ -40,6 +39,7 @@ import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
+import { debounce } from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -80,10 +80,21 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
+		const debouncedOnUpdateElementsMessage = debounce(
+			(message: Message & { kind: MessageKind.updateElements }) => {
+				return this.#onUpdateElementsMessage(message);
+			},
+			1000,
+		);
+
 		this.#messageBus.subscribe((message) => {
 			if (message.kind === MessageKind.updateElements) {
-				setImmediate(async () => {
-					await this.#onUpdateElementsMessage(message);
+				debouncedOnUpdateElementsMessage(message);
+			}
+
+			if (message.kind === MessageKind.clearState) {
+				setImmediate(() => {
+					this.#onClearStateMessage();
 				});
 			}
 		});
@@ -207,16 +218,15 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	) {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
-		const caseDataTransferObjects =
-			this.#caseManager.getCasesWithJobHashes();
+		const casesWithJobHashes = this.#caseManager.getCasesWithJobHashes();
 
-		const jobMap = this.#buildJobMap(caseDataTransferObjects);
+		const jobMap = this.#buildJobMap(casesWithJobHashes);
 
 		const { showFileElements } = this.#configurationContainer.get();
 
 		const caseElements = this.#buildCaseElements(
 			rootPath,
-			caseDataTransferObjects,
+			casesWithJobHashes,
 			jobMap,
 			showFileElements,
 		);
@@ -261,7 +271,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		};
 
 		const inactiveJobHashes: JobHash[] = [];
-		const oldActiveJobHashCount = this.#activeJobHashes.size;
 
 		for (const jobHash of this.#activeJobHashes) {
 			if (!jobMap.has(jobHash)) {
@@ -277,33 +286,26 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			this.#activeJobHashes.delete(jobHash);
 		}
 
-		const newActiveJobHashCount = this.#activeJobHashes.size;
-
-		if (
-			message.trigger === 'didSave' &&
-			newActiveJobHashCount > oldActiveJobHashCount
-		) {
-			window
-				.showInformationMessage(
-					`Generated ${
-						newActiveJobHashCount - oldActiveJobHashCount
-					} recommendations`,
-					'Show the first recommendation',
-				)
-				.then(async (response) => {
-					if (!response) {
-						return;
-					}
-
-					await showTheFirstJob();
-				});
-
-			return;
-		}
-
 		if (message.trigger === 'onCommand') {
 			setImmediate(showTheFirstJob);
+
+			this.#messageBus.publish({
+				kind: MessageKind.persistState,
+			});
 		}
+	}
+
+	#onClearStateMessage() {
+		this.#elementMap.clear();
+		this.#childParentMap.clear();
+
+		this.#setElement({
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: [],
+		});
+
+		this.eventEmitter.fire();
 	}
 
 	#setElement(element: Element) {

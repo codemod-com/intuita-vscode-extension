@@ -27,6 +27,10 @@ export const enum MessageKind {
 	/** bootstrap */
 	bootstrapExecutables = 12,
 	executablesBootstrapped = 13,
+
+	/** state */
+	persistState = 14,
+	clearState = 15,
 }
 
 export type Command = Readonly<{
@@ -35,7 +39,7 @@ export type Command = Readonly<{
 	group: 'nextJs' | 'mui';
 }>;
 
-export type Trigger = 'didSave' | 'onCommand' | 'onDidUpdateConfiguration';
+export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';
 
 export type Message =
 	| Readonly<{
@@ -105,6 +109,12 @@ export type Message =
 			command: Command;
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
+	  }>
+	| Readonly<{
+			kind: MessageKind.persistState;
+	  }>
+	| Readonly<{
+			kind: MessageKind.clearState;
 	  }>;
 
 export class MessageBus {

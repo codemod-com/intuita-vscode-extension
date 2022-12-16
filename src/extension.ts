@@ -14,6 +14,12 @@ import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine'
 import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
+import { PersistedStateService } from './persistedState/persistedStateService';
+import { getPersistedState } from './persistedState/getPersistedState';
+import {
+	mapPersistedCaseToCase,
+	mapPersistedJobToJob,
+} from './persistedState/mappers';
 
 const messageBus = new MessageBus();
 
@@ -28,9 +34,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const jobManager = new JobManager(messageBus);
+	const persistedState = await getPersistedState(
+		vscode.workspace.fs,
+		() => vscode.workspace.workspaceFolders ?? [],
+	);
 
-	const caseManager = new CaseManager(messageBus);
+	const jobManager = new JobManager(
+		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
+		new Set((persistedState?.rejectedJobHashes ?? []) as JobHash[]),
+		messageBus,
+	);
+
+	const caseManager = new CaseManager(
+		persistedState?.cases.map((kase) => mapPersistedCaseToCase(kase)) ?? [],
+		new Set(persistedState?.caseHashJobHashes),
+		messageBus,
+	);
 
 	new FileService(messageBus);
 
@@ -89,6 +108,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new NoraCompareServiceEngine(messageBus);
+
+	new PersistedStateService(
+		caseManager,
+		vscode.workspace.fs,
+		() => vscode.workspace.workspaceFolders ?? [],
+		jobManager,
+		messageBus,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
@@ -185,6 +212,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.requestFeature', () => {
 			vscode.env.openExternal(
 				vscode.Uri.parse('https://feedback.intuita.io/'),
+			);
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.openYouTubeChannel', () => {
+			vscode.env.openExternal(
+				vscode.Uri.parse(
+					'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
+				),
 			);
 		}),
 	);
@@ -296,6 +333,19 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.clearState', () => {
+			messageBus.publish({
+				kind: MessageKind.clearState,
+			});
+		}),
+	);
+
+	messageBus.publish({
+		kind: MessageKind.updateElements,
+		trigger: 'bootstrap',
+	});
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
