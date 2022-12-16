@@ -117,19 +117,39 @@ export type Message =
 			kind: MessageKind.clearState;
 	  }>;
 
+type EmitterMap<K extends MessageKind> = {
+	[k in K]?: EventEmitter<Message & { kind: K }>;
+};
+
 export class MessageBus {
 	#disposables: Disposable[] | undefined = undefined;
-	#emitter = new EventEmitter<Message>();
+
+	#emitters: EmitterMap<MessageKind> = {};
 
 	public setDisposables(disposables: Disposable[]): void {
 		this.#disposables = disposables;
 	}
 
-	subscribe(fn: (message: Message) => void): void {
-		this.#emitter.event(fn, this.#disposables);
+	subscribe<K extends MessageKind>(
+		kind: K,
+		fn: (message: Message & { kind: K }) => void,
+	) {
+		let emitter = this.#emitters[kind] as
+			| EventEmitter<Message & { kind: K }>
+			| undefined;
+
+		if (!emitter) {
+			emitter = new EventEmitter<Message & { kind: K }>();
+
+			this.#emitters[kind] = emitter;
+		}
+
+		emitter.event(fn, this.#disposables);
 	}
 
 	publish(message: Message): void {
-		this.#emitter.fire(message);
+		const emitter = this.#emitters[message.kind];
+
+		emitter?.fire(message);
 	}
 }

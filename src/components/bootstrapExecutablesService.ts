@@ -25,13 +25,9 @@ export class BootstrapExecutablesService {
 		this.#messageBus = messageBus;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.bootstrapExecutables) {
-				setImmediate(async () => {
-					await this.#onBootstrapExecutables(message);
-				});
-			}
-		});
+		messageBus.subscribe(MessageKind.bootstrapExecutables, (message) =>
+			this.#onBootstrapExecutables(message),
+		);
 	}
 
 	async #onBootstrapExecutables(

@@ -31,23 +31,18 @@ export class JobManager {
 
 		this.#messageBus = messageBus;
 
-		this.#messageBus.subscribe(async (message) => {
-			if (message.kind === MessageKind.upsertJobs) {
-				setImmediate(() => this.#onUpsertJobsMessage(message));
-			}
-
-			if (message.kind === MessageKind.acceptJobs) {
-				setImmediate(() => this.#onAcceptJobsMessage(message));
-			}
-
-			if (message.kind === MessageKind.rejectJobs) {
-				setImmediate(() => this.#onRejectJobsMessage(message));
-			}
-
-			if (message.kind === MessageKind.clearState) {
-				setImmediate(() => this.#onClearStateMessage());
-			}
-		});
+		this.#messageBus.subscribe(MessageKind.upsertJobs, (message) =>
+			this.#onUpsertJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.acceptJobs, (message) =>
+			this.#onAcceptJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.rejectJobs, (message) =>
+			this.#onRejectJobsMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.clearState, () =>
+			this.#onClearStateMessage(),
+		);
 	}
 
 	public getJobs(): IterableIterator<Job> {

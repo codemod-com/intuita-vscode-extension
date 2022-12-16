@@ -75,13 +75,9 @@ export class EngineService {
 		this.fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.executablesBootstrapped) {
-				setImmediate(async () => {
-					await this.#onExecutablesBootstrappedMessage(message);
-				});
-			}
-		});
+		messageBus.subscribe(MessageKind.executablesBootstrapped, (message) =>
+			this.#onExecutablesBootstrappedMessage(message),
+		);
 	}
 
 	shutdownEngines() {
