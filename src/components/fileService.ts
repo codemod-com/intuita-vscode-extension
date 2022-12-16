@@ -7,11 +7,7 @@ export class FileService {
 	public constructor(readonly messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
-		this.#messageBus.subscribe(async (message) => {
-			if (message.kind === MessageKind.updateExternalFile) {
-				setImmediate(() => this.#onUpdateExternalFile(message));
-			}
-		});
+		this.#messageBus.subscribe(MessageKind.updateExternalFile, (message) => this.#onUpdateExternalFile(message));
 	}
 
 	async #onUpdateExternalFile(

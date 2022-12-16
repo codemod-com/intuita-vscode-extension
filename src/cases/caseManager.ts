@@ -23,37 +23,11 @@ export class CaseManager {
 			caseHashJobHashes,
 		);
 
-		this.#messageBus.subscribe((message) => {
-			if (message.kind === MessageKind.upsertCases) {
-				setImmediate(() => {
-					this.#onUpsertCasesMessage(message);
-				});
-			}
-
-			if (message.kind === MessageKind.acceptCase) {
-				setImmediate(() => {
-					this.#onAcceptCaseMessage(message);
-				});
-			}
-
-			if (message.kind === MessageKind.jobsAccepted) {
-				setImmediate(() => {
-					this.#onJobAcceptedMessage(message);
-				});
-			}
-
-			if (message.kind === MessageKind.rejectCase) {
-				setImmediate(() => {
-					this.#onRejectCaseMessage(message);
-				});
-			}
-
-			if (message.kind === MessageKind.clearState) {
-				setImmediate(() => {
-					this.#onClearStateMessage();
-				});
-			}
-		});
+		this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
+		this.#messageBus.subscribe(MessageKind.acceptCase, (message) => this.#onAcceptCaseMessage(message));
+		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) => this.#onJobAcceptedMessage(message));
+		this.#messageBus.subscribe(MessageKind.rejectCase, (message) => this.#onRejectCaseMessage(message));
+		this.#messageBus.subscribe(MessageKind.clearState, () => this.#onClearStateMessage());
 	}
 
 	public getCases(): IterableIterator<Case> {
