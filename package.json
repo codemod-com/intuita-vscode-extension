@@ -142,6 +142,40 @@
 			]
 		},
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "intuita.showOrHideFileElements",
+					"when": "false"
+				},
+				{
+					"command": "intuita.requestFeature",
+					"when": "false"
+				},
+				{
+					"command": "intuita.openYouTubeChannel",
+					"when": "false"
+				},
+				{
+					"command": "intuita.clearState",
+					"when": "false"
+				},
+				{
+					"command": "intuita.acceptJob",
+					"when": "false"
+				},
+				{
+					"command": "intuita.rejectJob",
+					"when": "false"
+				},
+				{
+					"command": "intuita.acceptCase",
+					"when": "false"
+				},
+				{
+					"command": "intuita.rejectCase",
+					"when": "false"
+				}
+			],
 			"view/title": [
 				{
 					"command": "intuita.showOrHideFileElements",
