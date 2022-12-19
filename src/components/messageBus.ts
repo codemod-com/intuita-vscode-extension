@@ -36,7 +36,8 @@ export const enum MessageKind {
 export type Command = Readonly<{
 	engine: 'node' | 'rust';
 	storageUri: Uri;
-	group: 'nextJs' | 'mui';
+	group?: 'nextJs' | 'mui';
+	file?: string;
 }>;
 
 export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';

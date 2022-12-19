@@ -308,6 +308,33 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeAsCodemod',
+			(uri: vscode.Uri) => {
+				console.log('executeAsCodemod');
+
+				const path = uri.fsPath;
+
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						engine: 'node',
+						storageUri,
+						file: path,
+					},
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
