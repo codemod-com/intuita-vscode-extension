@@ -4,6 +4,8 @@ import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, workspace } from 'vscode';
 import { CaseKind } from '../cases/types';
+import { Configuration } from '../configuration';
+import { Container } from '../container';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job } from '../jobs/types';
@@ -61,18 +63,21 @@ const STORAGE_DIRECTORY_MAP = new Map([
 ]);
 
 export class EngineService {
-	protected readonly fileSystem: FileSystem;
+	readonly #configurationContainer: Container<Configuration>;
+	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItemManager: StatusBarItemManager;
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
 
 	public constructor(
+		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 		statusBarItemManager: StatusBarItemManager,
 	) {
+		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
-		this.fileSystem = fileSystem;
+		this.#fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe(MessageKind.executablesBootstrapped, (message) =>
@@ -118,8 +123,10 @@ export class EngineService {
 				? message.noraNodeEngineExecutableUri
 				: message.noraRustEngineExecutableUri;
 
-		await this.fileSystem.createDirectory(storageUri);
-		await this.fileSystem.createDirectory(outputUri);
+		await this.#fileSystem.createDirectory(storageUri);
+		await this.#fileSystem.createDirectory(outputUri);
+
+		const { fileLimit } = this.#configurationContainer.get();
 
 		const args: ReadonlyArray<string> =
 			message.command.engine === 'node'
@@ -131,7 +138,7 @@ export class EngineService {
 						'-g',
 						message.command.group,
 						'-l',
-						'100',
+						String(fileLimit),
 						'-o',
 						outputUri.fsPath,
 				  ]
@@ -218,7 +225,7 @@ export class EngineService {
 		for (const storageDirectory of STORAGE_DIRECTORY_MAP.values()) {
 			const outputUri = Uri.joinPath(storageUri, storageDirectory);
 
-			await this.fileSystem.delete(outputUri, {
+			await this.#fileSystem.delete(outputUri, {
 				recursive: true,
 				useTrash: false,
 			});

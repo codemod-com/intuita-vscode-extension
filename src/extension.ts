@@ -94,6 +94,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
 
 	const engineService = new EngineService(
+		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
 		statusBarItemManager,
