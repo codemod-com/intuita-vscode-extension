@@ -95,6 +95,10 @@
 			{
 				"command": "intuita.rejectCase",
 				"title": "✗ Reject"
+			},
+			{
+				"command": "intuita.executeAsCodemod",
+				"title": "[Intuita] Execute as a Codemod"
 			}
 		],
 		"configuration": {
@@ -180,6 +184,13 @@
 				{
 					"command": "intuita.rejectCase",
 					"when": "false"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "intuita.executeAsCodemod",
+					"group": "2_workspace",
+					"when": "resourceExtname == .js"
 				}
 			],
 			"view/title": [
@@ -269,6 +280,7 @@
 		"io-ts-reporters": "^2.0.1",
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
-		"newtype-ts": "^0.3.5"
+		"newtype-ts": "^0.3.5",
+		"jscodeshift": "^0.14.0"
 	}
 }
