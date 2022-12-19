@@ -9,9 +9,12 @@ export const getConfiguration = () => {
 	const showFileElements =
 		configuration.get<boolean>('showFileElements') ?? false;
 
+	const fileLimit = configuration.get<number>('fileLimit') ?? 100;
+
 	return {
 		saveDocumentOnJobAccept,
 		showFileElements,
+		fileLimit,
 	};
 };
 
