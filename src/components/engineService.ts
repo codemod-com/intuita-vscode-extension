@@ -153,7 +153,7 @@ export class EngineService {
 			args.push('-o', outputUri.fsPath);
 
 			return args;
-		}
+		};
 
 		const args = buildArguments();
 
