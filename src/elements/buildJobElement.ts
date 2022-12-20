@@ -5,9 +5,7 @@ export const buildJobElement = (
 	job: Job,
 	fileElementLabel: string,
 ): JobElement => {
-	const verb = job.kind === JobKind.createFile
-		? 'Create'
-		: 'Rewrite';
+	const verb = job.kind === JobKind.createFile ? 'Create' : 'Rewrite';
 
 	const label = `${verb} ${fileElementLabel}`;
 
