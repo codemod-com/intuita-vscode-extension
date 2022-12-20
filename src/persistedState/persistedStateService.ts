@@ -1,4 +1,4 @@
-import { FileSystem, Uri, WorkspaceFolder } from 'vscode';
+import { FileSystem, Uri } from 'vscode';
 import { CaseManager } from '../cases/caseManager';
 import { JobManager } from '../components/jobManager';
 import { MessageBus, MessageKind } from '../components/messageBus';
@@ -9,7 +9,7 @@ export class PersistedStateService {
 	constructor(
 		private readonly caseManager: CaseManager,
 		private readonly fileSystem: FileSystem,
-		private readonly getWorkspaceFolders: () => ReadonlyArray<WorkspaceFolder>,
+		private readonly getStorageUri: () => Uri | null,
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
 	) {
@@ -22,13 +22,11 @@ export class PersistedStateService {
 	}
 
 	async #onPersistStateMessage() {
-		const workspaceFolders = this.getWorkspaceFolders();
-
-		const uri = workspaceFolders[0]?.uri;
+		const uri = this.getStorageUri();
 
 		if (!uri) {
 			console.error(
-				'No workspace folder found. We cannot persist the state anywhere.',
+				'No storage URI could be found for persisting state.',
 			);
 
 			return;
@@ -37,13 +35,9 @@ export class PersistedStateService {
 		const persistedState = this.#buildPersistedState();
 		const buffer = Buffer.from(JSON.stringify(persistedState));
 
-		const intuitaDirectoryUri = Uri.joinPath(uri, '.intuita');
-		await this.fileSystem.createDirectory(intuitaDirectoryUri);
+		await this.fileSystem.createDirectory(uri);
 
-		const localStateUri = Uri.joinPath(
-			intuitaDirectoryUri,
-			'localState.json',
-		);
+		const localStateUri = Uri.joinPath(uri, 'localState.json');
 		this.fileSystem.writeFile(localStateUri, buffer);
 	}
 
@@ -71,19 +65,17 @@ export class PersistedStateService {
 	}
 
 	async #onClearStateMessage() {
-		const workspaceFolders = this.getWorkspaceFolders();
-
-		const uri = workspaceFolders[0]?.uri;
+		const uri = this.getStorageUri();
 
 		if (!uri) {
 			console.error(
-				'No workspace folder found. We cannot clear the state anywhere.',
+				'No storage URI found. We cannot clear the state anywhere.',
 			);
 
 			return;
 		}
 
-		const localStateUri = Uri.joinPath(uri, '.intuita', 'localState.json');
+		const localStateUri = Uri.joinPath(uri, 'localState.json');
 
 		try {
 			await this.fileSystem.delete(localStateUri, { useTrash: false });

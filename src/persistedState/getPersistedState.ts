@@ -1,24 +1,20 @@
 import prettyReporter from 'io-ts-reporters';
-import { FileSystem, Uri, WorkspaceFolder } from 'vscode';
+import { FileSystem, Uri } from 'vscode';
 import { PersistedState, persistedStateCodec } from './codecs';
 
 export const getPersistedState = async (
 	fileSystem: FileSystem,
-	getWorkspaceFolders: () => ReadonlyArray<WorkspaceFolder>,
+	getStorageUri: () => Uri | null,
 ): Promise<PersistedState | null> => {
-	const workspaceFolders = getWorkspaceFolders();
-
-	const uri = workspaceFolders[0]?.uri;
+	const uri = getStorageUri();
 
 	if (!uri) {
-		console.error(
-			'No workspace folder found. We cannot persist the state anywhere.',
-		);
+		console.error('No storage URI found. We cannot read the state.');
 
 		return null;
 	}
 
-	const localStateUri = Uri.joinPath(uri, '.intuita', 'localState.json');
+	const localStateUri = Uri.joinPath(uri, 'localState.json');
 
 	try {
 		const content = await fileSystem.readFile(localStateUri);
