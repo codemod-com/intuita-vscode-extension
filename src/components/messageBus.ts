@@ -33,11 +33,17 @@ export const enum MessageKind {
 	clearState = 15,
 }
 
+export type Engine = 'node' | 'rust';
+export type Group = 'nextJs' | 'mui';
+
 export type Command = Readonly<{
-	engine: 'node' | 'rust';
+	group: Group;
+	engine: Engine;
 	storageUri: Uri;
-	group?: 'nextJs' | 'mui';
-	file?: string;
+}> | Readonly<{
+	fileUri: Uri;
+	engine: Engine;
+	storageUri: Uri;
 }>;
 
 export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';

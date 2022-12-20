@@ -311,10 +311,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
 			(uri: vscode.Uri) => {
-				console.log('executeAsCodemod');
-
-				const path = uri.fsPath;
-
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -327,7 +323,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						file: path,
+						fileUri: uri,
 					},
 				});
 			},

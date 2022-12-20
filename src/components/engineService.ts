@@ -128,30 +128,36 @@ export class EngineService {
 
 		const { fileLimit } = this.#configurationContainer.get();
 
-		const args: ReadonlyArray<string> =
-			message.command.engine === 'node'
-				? [
-						'-p',
-						Uri.joinPath(uri, '**/*.tsx').fsPath,
-						'-p',
-						'!**/node_modules',
-						'-f',
-						message.command.file ?? '',
-						'-l',
-						String(fileLimit),
-						'-o',
-						outputUri.fsPath,
-				  ]
-				: [
-						'-d',
-						uri.fsPath,
-						'-p',
-						`"${Uri.joinPath(uri, '**/*.tsx').fsPath}"`,
-						'-a',
-						'**/node_modules/**/*',
-						'-o',
-						outputUri.fsPath,
-				  ];
+		const buildArguments = () => {
+			const args: string[] = [];
+
+			if (message.command.engine === 'node') {
+				args.push('-p', Uri.joinPath(uri, '**/*.tsx').fsPath);
+				args.push('-p', '!**/node_modules');
+
+				args.push('-l', String(fileLimit));
+			} else if (message.command.engine === 'rust') {
+				args.push('-d', uri.fsPath);
+				args.push('-p', `"${Uri.joinPath(uri, '**/*.tsx').fsPath}"`);
+				args.push('-a', '**/node_modules/**/*');
+			}
+
+			if ('fileUri' in message.command) {
+				args.push('-f', message.command.fileUri.fsPath);
+			}
+
+			if ('group' in message.command) {
+				args.push('-g', message.command.group);
+			}
+
+			args.push('-o', outputUri.fsPath);
+
+			return args;
+		}
+
+		const args = buildArguments();
+
+		console.log(args);
 
 		const caseKind =
 			message.command.engine === 'node'
