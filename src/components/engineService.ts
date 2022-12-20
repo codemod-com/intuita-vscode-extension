@@ -157,8 +157,6 @@ export class EngineService {
 
 		const args = buildArguments();
 
-		console.log(args);
-
 		const caseKind =
 			message.command.engine === 'node'
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE

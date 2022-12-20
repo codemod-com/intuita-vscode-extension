@@ -124,12 +124,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		if (element.kind === 'CASE') {
-			const { showFileElements } = this.#configurationContainer.get();
-
-			if (showFileElements) {
-				return element.children.filter(hasChildren).map(getHash);
-			}
-
 			return element.children
 				.flatMap((fileElement) => fileElement.children)
 				.map(getHash);
@@ -306,10 +300,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (!('children' in element)) {
 			return;
 		}
-
-		const { showFileElements } = this.#configurationContainer.get();
-
-		if (element.kind === 'CASE' && !showFileElements) {
+		if (element.kind === 'CASE') {
 			const jobElement = element.children.flatMap(
 				(fileElement) => fileElement.children,
 			);

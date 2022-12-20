@@ -344,21 +344,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.showOrHideFileElements',
-			() => {
-				const configuration =
-					vscode.workspace.getConfiguration('intuita');
-
-				const showFileElements =
-					configuration.get<boolean>('showFileElements') ?? false;
-
-				configuration.update('showFileElements', !showFileElements);
-			},
-		),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.clearState', () => {
 			messageBus.publish({
 				kind: MessageKind.clearState,
