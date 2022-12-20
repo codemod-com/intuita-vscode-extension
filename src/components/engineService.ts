@@ -168,6 +168,10 @@ export class EngineService {
 			stdio: 'pipe',
 		});
 
+		this.#childProcess.stderr.on('data', (data) => {
+			console.error(data.toString());	
+		});
+
 		const interfase = readline.createInterface(this.#childProcess.stdout);
 
 		interfase.on('line', async (line) => {

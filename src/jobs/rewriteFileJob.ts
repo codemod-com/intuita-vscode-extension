@@ -10,7 +10,6 @@ export const buildRewriteFileJob = (
 	return {
 		kind: JobKind.rewriteFile,
 		inputUri,
-		title: `Rewrite the file (${codemodId})`,
 		hash: buildJobHash([inputUri, outputUri], codemodId),
 		outputUri,
 	};

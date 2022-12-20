@@ -10,7 +10,6 @@ export const persistedJobCodec = buildTypeCodec({
 	]),
 	inputPath: t.string,
 	outputPath: t.string,
-	title: t.string,
 	hash: t.string,
 });
 

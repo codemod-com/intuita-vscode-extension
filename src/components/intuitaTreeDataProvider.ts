@@ -217,13 +217,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const jobMap = this.#buildJobMap(casesWithJobHashes);
 
-		const { showFileElements } = this.#configurationContainer.get();
-
 		const caseElements = this.#buildCaseElements(
 			rootPath,
 			casesWithJobHashes,
 			jobMap,
-			showFileElements,
 		);
 
 		const rootElement: RootElement = {
@@ -356,8 +353,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	#buildCaseElements(
 		rootPath: string,
 		casesWithJobHashes: Iterable<CaseWithJobHashes>,
-		jobMap: ReadonlyMap<JobHash, Job>,
-		showFileElements: boolean,
+		jobMap: ReadonlyMap<JobHash, Job>
 	): ReadonlyArray<CaseElement> {
 		const caseElements: CaseElement[] = [];
 
@@ -387,7 +383,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 							job.inputUri.toString() === inputUri.toString(),
 					)
 					.map((job) =>
-						buildJobElement(job, label, showFileElements),
+						buildJobElement(job, label),
 					);
 
 				return buildFileElement(
