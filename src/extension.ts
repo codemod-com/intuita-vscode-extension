@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const persistedState = await getPersistedState(
 		vscode.workspace.fs,
-		() => vscode.workspace.workspaceFolders ?? [],
+		() => context.storageUri ?? null,
 	);
 
 	const jobManager = new JobManager(
@@ -112,7 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	new PersistedStateService(
 		caseManager,
 		vscode.workspace.fs,
-		() => vscode.workspace.workspaceFolders ?? [],
+		() => context.storageUri ?? null,
 		jobManager,
 		messageBus,
 	);
