@@ -55,7 +55,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,
-		configurationContainer,
 		messageBus,
 		jobManager,
 	);
@@ -308,6 +307,29 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeAsCodemod',
+			(uri: vscode.Uri) => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				messageBus.publish({
+					kind: MessageKind.bootstrapExecutables,
+					command: {
+						engine: 'node',
+						storageUri,
+						fileUri: uri,
+					},
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
@@ -318,21 +340,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				trigger: 'onDidUpdateConfiguration',
 			});
 		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.showOrHideFileElements',
-			() => {
-				const configuration =
-					vscode.workspace.getConfiguration('intuita');
-
-				const showFileElements =
-					configuration.get<boolean>('showFileElements') ?? false;
-
-				configuration.update('showFileElements', !showFileElements);
-			},
-		),
 	);
 
 	context.subscriptions.push(

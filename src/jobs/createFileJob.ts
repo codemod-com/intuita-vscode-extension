@@ -10,7 +10,6 @@ export const buildCreateFileJob = (
 	return {
 		kind: JobKind.createFile,
 		inputUri,
-		title: `Create a file (${codemodId})`,
 		hash: buildJobHash([inputUri, outputUri], codemodId),
 		outputUri,
 	};

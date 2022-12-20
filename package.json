@@ -61,11 +61,6 @@
 				"title": "Intuita: clear output files"
 			},
 			{
-				"command": "intuita.showOrHideFileElements",
-				"title": "Show or hide file elements",
-				"icon": "$(list-tree)"
-			},
-			{
 				"command": "intuita.requestFeature",
 				"title": "Request a feature",
 				"icon": "$(flame)"
@@ -95,6 +90,10 @@
 			{
 				"command": "intuita.rejectCase",
 				"title": "✗ Reject"
+			},
+			{
+				"command": "intuita.executeAsCodemod",
+				"title": "[Intuita] Execute as a Codemod"
 			}
 		],
 		"configuration": {
@@ -106,14 +105,8 @@
 					"default": true,
 					"description": "When you accept a recommendation, the extension will save the associated file."
 				},
-				"intuita.showFileElements": {
-					"order": 1,
-					"type": "boolean",
-					"default": false,
-					"description": "Show the file elements (or just job elements) within the case elements in the tree view"
-				},
 				"intuita.fileLimit": {
-					"order": 2,
+					"order": 1,
 					"type": "number",
 					"default": 100,
 					"description": "The maximum number of files to execute any codemod over"
@@ -150,10 +143,6 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "intuita.showOrHideFileElements",
-					"when": "false"
-				},
-				{
 					"command": "intuita.requestFeature",
 					"when": "false"
 				},
@@ -182,12 +171,14 @@
 					"when": "false"
 				}
 			],
-			"view/title": [
+			"explorer/context": [
 				{
-					"command": "intuita.showOrHideFileElements",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "navigation"
-				},
+					"command": "intuita.executeAsCodemod",
+					"group": "2_workspace",
+					"when": "resourceExtname == .js"
+				}
+			],
+			"view/title": [
 				{
 					"command": "intuita.clearState",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",

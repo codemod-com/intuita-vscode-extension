@@ -37,8 +37,6 @@ import {
 } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
-import { Configuration } from '../configuration';
-import { Container } from '../container';
 import { debounce } from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
@@ -61,7 +59,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	readonly #childParentMap = new Map<ElementHash, ElementHash>();
 	readonly #activeJobHashes = new Set<JobHash>();
 	readonly #caseManager: CaseManager;
-	readonly #configurationContainer: Container<Configuration>;
 	readonly #messageBus: MessageBus;
 	readonly #jobManager: JobManager;
 
@@ -69,12 +66,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 	public constructor(
 		caseManager: CaseManager,
-		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		jobManager: JobManager,
 	) {
 		this.#caseManager = caseManager;
-		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 		this.#jobManager = jobManager;
 
@@ -124,12 +119,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		if (element.kind === 'CASE') {
-			const { showFileElements } = this.#configurationContainer.get();
-
-			if (showFileElements) {
-				return element.children.filter(hasChildren).map(getHash);
-			}
-
 			return element.children
 				.flatMap((fileElement) => fileElement.children)
 				.map(getHash);
@@ -217,13 +206,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const jobMap = this.#buildJobMap(casesWithJobHashes);
 
-		const { showFileElements } = this.#configurationContainer.get();
-
 		const caseElements = this.#buildCaseElements(
 			rootPath,
 			casesWithJobHashes,
 			jobMap,
-			showFileElements,
 		);
 
 		const rootElement: RootElement = {
@@ -309,10 +295,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (!('children' in element)) {
 			return;
 		}
-
-		const { showFileElements } = this.#configurationContainer.get();
-
-		if (element.kind === 'CASE' && !showFileElements) {
+		if (element.kind === 'CASE') {
 			const jobElement = element.children.flatMap(
 				(fileElement) => fileElement.children,
 			);
@@ -357,7 +340,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		rootPath: string,
 		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,
-		showFileElements: boolean,
 	): ReadonlyArray<CaseElement> {
 		const caseElements: CaseElement[] = [];
 
@@ -386,9 +368,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 						(job) =>
 							job.inputUri.toString() === inputUri.toString(),
 					)
-					.map((job) =>
-						buildJobElement(job, label, showFileElements),
-					);
+					.map((job) => buildJobElement(job, label));
 
 				return buildFileElement(
 					caseWithJobHashes.hash,

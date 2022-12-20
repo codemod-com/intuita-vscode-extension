@@ -7,7 +7,6 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 	kind: job.kind,
 	inputPath: job.inputUri.fsPath,
 	outputPath: job.outputUri.fsPath,
-	title: job.title,
 	hash: job.hash,
 });
 
@@ -15,7 +14,6 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	kind: persistedJob.kind,
 	inputUri: Uri.file(persistedJob.inputPath),
 	outputUri: Uri.file(persistedJob.outputPath),
-	title: persistedJob.title,
 	hash: persistedJob.hash as JobHash,
 });
 

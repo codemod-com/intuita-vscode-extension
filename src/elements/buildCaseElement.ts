@@ -1,8 +1,6 @@
 import { Case } from '../cases/types';
 import type { CaseElement, ElementHash, FileElement } from './types';
 
-const buildLabelHeader = (kase: Case): string => `Case: ${kase.subKind}`;
-
 export const buildCaseElement = (
 	kase: Case,
 	children: ReadonlyArray<FileElement>,
@@ -13,7 +11,7 @@ export const buildCaseElement = (
 
 	return {
 		kind: 'CASE',
-		label: `${buildLabelHeader(kase)} (${count})`,
+		label: `${kase.subKind} (${count})`,
 		children,
 		hash: kase.hash as unknown as ElementHash,
 	};

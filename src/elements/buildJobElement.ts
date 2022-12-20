@@ -1,14 +1,13 @@
-import type { Job } from '../jobs/types';
+import { Job, JobKind } from '../jobs/types';
 import type { JobElement, ElementHash } from './types';
 
 export const buildJobElement = (
 	job: Job,
 	fileElementLabel: string,
-	showFileElements: boolean,
 ): JobElement => {
-	const label = showFileElements
-		? job.title
-		: `${job.title} in ${fileElementLabel}`;
+	const verb = job.kind === JobKind.createFile ? 'Create' : 'Rewrite';
+
+	const label = `${verb} ${fileElementLabel}`;
 
 	return {
 		kind: 'JOB' as const,

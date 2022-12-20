@@ -11,7 +11,6 @@ export type RewriteFileJob = Readonly<{
 	kind: JobKind.rewriteFile;
 	inputUri: Uri;
 	outputUri: Uri;
-	title: string;
 	hash: JobHash;
 }>;
 
@@ -19,7 +18,6 @@ export type CreateFileJob = Readonly<{
 	kind: JobKind.createFile;
 	inputUri: Uri;
 	outputUri: Uri;
-	title: string;
 	hash: JobHash;
 }>;
 
