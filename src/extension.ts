@@ -55,7 +55,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,
-		configurationContainer,
 		messageBus,
 		jobManager,
 	);

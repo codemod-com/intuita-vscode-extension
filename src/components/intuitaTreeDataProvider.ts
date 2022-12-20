@@ -37,8 +37,6 @@ import {
 } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
-import { Configuration } from '../configuration';
-import { Container } from '../container';
 import { debounce } from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
@@ -61,7 +59,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	readonly #childParentMap = new Map<ElementHash, ElementHash>();
 	readonly #activeJobHashes = new Set<JobHash>();
 	readonly #caseManager: CaseManager;
-	readonly #configurationContainer: Container<Configuration>;
 	readonly #messageBus: MessageBus;
 	readonly #jobManager: JobManager;
 
@@ -69,12 +66,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 	public constructor(
 		caseManager: CaseManager,
-		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		jobManager: JobManager,
 	) {
 		this.#caseManager = caseManager;
-		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 		this.#jobManager = jobManager;
 
