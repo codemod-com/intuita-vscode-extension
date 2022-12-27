@@ -17,6 +17,12 @@ export const getPersistedState = async (
 	const localStateUri = Uri.joinPath(uri, 'localState.json');
 
 	try {
+		await fileSystem.stat(localStateUri);
+	} catch {
+		return null;
+	}
+
+	try {
 		const content = await fileSystem.readFile(localStateUri);
 		const buffer = Buffer.from(content);
 		const str = buffer.toString();
