@@ -33,26 +33,28 @@ export class BootstrapExecutablesService {
 	async #onBootstrapExecutables(
 		message: Message & { kind: MessageKind.bootstrapExecutables },
 	) {
-		if (!this.#noraNodeEngineExecutableUri) {
-			this.#noraNodeEngineExecutableUri =
-				await this.#bootstrapNoraNodeEngineExecutableUri();
-		}
+		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
-		if (!this.#noraRustEngineExecutableUri) {
-			this.#noraRustEngineExecutableUri =
-				await this.#bootstrapNoraRustEngineExecutableUri();
-		}
+		const [
+			noraNodeEngineExecutableUri,
+			noraRustEngineExecutableUri,
+		] = await Promise.all([
+			this.#bootstrapNoraNodeEngineExecutableUri(),
+			this.#bootstrapNoraRustEngineExecutableUri(),
+		]);
 
 		this.#messageBus.publish({
 			kind: MessageKind.executablesBootstrapped,
 			command: message.command,
-			noraNodeEngineExecutableUri: this.#noraNodeEngineExecutableUri,
-			noraRustEngineExecutableUri: this.#noraRustEngineExecutableUri,
+			noraNodeEngineExecutableUri,
+			noraRustEngineExecutableUri,
 		});
 	}
 
 	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
-		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+		if(this.#noraNodeEngineExecutableUri) {
+			return this.#noraNodeEngineExecutableUri;
+		}
 
 		const platform =
 			process.platform === 'darwin'
@@ -88,7 +90,9 @@ export class BootstrapExecutablesService {
 	}
 
 	async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
-		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+		if (this.#noraRustEngineExecutableUri) {
+			return this.#noraRustEngineExecutableUri;
+		}
 
 		const platform =
 			process.platform === 'darwin'
