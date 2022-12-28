@@ -146,17 +146,24 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 
 		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
-			([dependency, range]) => ({
-				range,
-				renderOptions: {
-					after: {
-						color: 'gray',
-						contentText: `Use Intuita commands to upgrade your codebase to the latest version of "${dependency}"`,
-						margin: '2em',
-						fontStyle: 'italic',
+			([dependency, range]) => {
+				const hoverMessage = new vscode.MarkdownString(`<a href="command:intuita.executeMuiCodemods">Execute "${dependency}" codemods</a>`);
+				hoverMessage.isTrusted = true;
+				hoverMessage.supportHtml = true;
+				
+				return {
+					range,
+					hoverMessage,
+					renderOptions: {
+						after: {
+							color: 'gray',
+							contentText: `Hover over to upgrade your codebase to the latest version of "${dependency}"`,
+							margin: '2em',
+							fontStyle: 'italic',
+						},
 					},
-				},
-			}),
+				};
+			}
 		);
 
 		editor.setDecorations(textEditorDecorationType, rangesOrOptions);
