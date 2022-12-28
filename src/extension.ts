@@ -20,6 +20,7 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
+import { DependencyService } from './dependencies/dependencyService';
 
 const messageBus = new MessageBus();
 
@@ -354,6 +355,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.updateElements,
 		trigger: 'bootstrap',
 	});
+
+	const dependencyService = new DependencyService();
+
+	dependencyService.x();
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
