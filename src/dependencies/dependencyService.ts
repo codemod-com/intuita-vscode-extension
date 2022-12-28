@@ -58,11 +58,7 @@ export class DependencyService {
                 continue;
             }
 
-            const selectedItem = await window.showInformationMessage(
-                `Your Next.js version (${dependencyOldVersion}) is outdated. Use codemods to upgrade your codebase.`,
-                "Upgrade to ^13.0.0",
-                "No, thanks"
-            );
+            
 
             this.#messageBus.publish({
                 kind: MessageKind.showInformationMessage,
