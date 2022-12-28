@@ -225,7 +225,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const codec = buildTypeCodec({
 				path: t.string,
 				dependencyName: t.string,
-			})
+			});
 
 			const validation = codec.decode(arg0);
 
