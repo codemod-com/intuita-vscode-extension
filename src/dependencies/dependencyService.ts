@@ -50,11 +50,15 @@ export class DependencyService {
 
             const satisfies = semver.satisfies('^13.0.0', nextJsVersion);
 
-            if (!satisfies) {
-                window.showInformationMessage('Hello World!' + nextJsVersion);
+            if (satisfies) {
+                continue;
             }
-        }
 
-       
+            const selectedItem = await window.showInformationMessage(
+                `Your Next.js version (${nextJsVersion}) is outdated. Use codemods to upgrade your codebase.`,
+                "Upgrade to ^13.0.0",
+                "No, thanks"
+            );
+        }
     }
 }
