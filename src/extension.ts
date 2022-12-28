@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
@@ -25,6 +26,8 @@ import {
 	dependencyNameToGroup,
 	InformationMessageService,
 } from './components/informationMessageService';
+import { buildTypeCodec } from './utilities';
+import prettyReporter from 'io-ts-reporters';
 
 const messageBus = new MessageBus();
 
@@ -219,9 +222,26 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			const uri = vscode.Uri.file(arg0.path);
+			const codec = buildTypeCodec({
+				path: t.string,
+				dependencyName: t.string,
+			})
 
-			const group = dependencyNameToGroup[arg0.dependencyName];
+			const validation = codec.decode(arg0);
+
+			if (validation._tag === 'Left') {
+				const report = prettyReporter.report(validation);
+
+				console.error(report);
+
+				return;
+			}
+
+			const { path, dependencyName } = validation.right;
+
+			const uri = vscode.Uri.file(path);
+
+			const group = dependencyNameToGroup[dependencyName];
 
 			if (!group) {
 				return;

@@ -3,6 +3,7 @@ import * as t from 'io-ts';
 import { workspace } from 'vscode';
 import { buildTypeCodec } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
+import prettyReporter from 'io-ts-reporters';
 
 const packageSettingsCodec = buildTypeCodec({
 	devDependencies: t.union([t.record(t.string, t.string), t.undefined]),
@@ -46,8 +47,11 @@ export class DependencyService {
 
 			const validation = packageSettingsCodec.decode(json);
 
-			if ('left' in validation) {
-				console.error(validation.left);
+			if (validation._tag === 'Left') {
+				const report = prettyReporter.report(validation);
+
+				console.error(report);
+
 				continue;
 			}
 
