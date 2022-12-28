@@ -133,6 +133,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		const uri = vscode.Uri.joinPath(document.uri, '..');
+		const path = encodeURIComponent(uri.fsPath);
+
 		const ranges: [string, vscode.Range][] = [];
 
 		for (let i = 0; i < document.lineCount; i++) {
@@ -147,7 +150,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
 			([dependency, range]) => {
-				const hoverMessage = new vscode.MarkdownString(`<a href="command:intuita.executeMuiCodemods">Execute "${dependency}" codemods</a>`);
+				const args = {
+					path,
+					dependency,
+				}
+
+				const commandUri = vscode.Uri.parse(
+					`command:intuita.executeCodemods?${encodeURIComponent(JSON.stringify(args))}`
+				  );
+
+				const hoverMessage = new vscode.MarkdownString(
+					`[Execute "${dependency}" codemods](${commandUri})`
+				);
 				hoverMessage.isTrusted = true;
 				hoverMessage.supportHtml = true;
 				
@@ -188,6 +202,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
 			engineService.shutdownEngines();
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
+			console.log("ABCD");
+			console.log(arg0);
 		}),
 	);
 

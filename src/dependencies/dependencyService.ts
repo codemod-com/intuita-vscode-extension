@@ -39,7 +39,6 @@ export class DependencyService {
 		];
 
 		for (const packageSettingsUri of uris) {
-			console.log(packageSettingsUri.fsPath);
 			const uint8Array = await workspace.fs.readFile(packageSettingsUri);
 			const buffer = Buffer.from(uint8Array);
 			const string = buffer.toString('utf8');
