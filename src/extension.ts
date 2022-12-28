@@ -119,6 +119,67 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const tedt = vscode.window.createTextEditorDecorationType({
+		rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
+	});
+
+	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
+		const { document } = editor;
+
+		if (!document.uri.fsPath.endsWith('package.json')) {
+			return;
+		}
+
+		let ranges: vscode.Range[] = []
+
+		for (let i = 0; i < document.lineCount; i++) {
+			const textLine = document.lineAt(i);
+
+			if (!textLine.text.includes('"next"')) {
+				continue;
+			}
+
+			ranges.push(textLine.range);
+		}
+
+		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map((range) => ({
+			range,
+			hoverMessage: 'test',
+			renderOptions: {
+				after: {
+					color: "gray",
+					contentText: "You can use Intuita commands to upgrade your codebase to the latest version of next",
+					margin: "2em",
+					fontStyle: "italic"
+				},
+			},
+		}))
+
+		editor.setDecorations(tedt, rangesOrOptions);
+	};
+
+	vscode.window.onDidChangeActiveTextEditor(
+		(editor) => {
+			if (!editor) {
+				return;
+			}
+
+			handleActiveTextEditor(editor);
+		}
+	)
+
+	vscode.workspace.onDidChangeTextDocument((event: vscode.TextDocumentChangeEvent) => {
+		console.log("HERE")
+
+		if (vscode.window.activeTextEditor) {
+			handleActiveTextEditor(vscode.window.activeTextEditor);
+		}
+	})
+
+	if (vscode.window.activeTextEditor) {
+		handleActiveTextEditor(vscode.window.activeTextEditor);
+	}
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
 			engineService.shutdownEngines();
