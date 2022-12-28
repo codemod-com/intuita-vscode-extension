@@ -32,6 +32,11 @@ export class DependencyService {
     async showInformationMessagesAboutUpgrades() {
         const uris = await workspace.findFiles('**/package.json', 'node_modules/**', 100);
 
+        const dependencies: [string, string][] = [
+            ['next', '^13.0.0'],
+            ['@material-ui/core', '^5.0.0'],
+        ];
+
         for (const packageSettingsUri of uris) {
             console.log(packageSettingsUri.fsPath);
             const uint8Array = await workspace.fs.readFile(packageSettingsUri);
@@ -46,29 +51,27 @@ export class DependencyService {
                 continue;
             }
 
-            const dependencyName = 'next';
+            for (const [dependencyName, dependencyNewVersion] of dependencies) {
+                const dependencyOldVersion = getDependencyVersion(dependencyName, validation.right);
 
-            const dependencyOldVersion = getDependencyVersion(dependencyName, validation.right);
-
-            if (!dependencyOldVersion) {
-                continue;
+                if (!dependencyOldVersion) {
+                    continue;
+                }
+    
+                const satisfies = semver.satisfies(dependencyNewVersion, dependencyOldVersion);
+    
+                if (satisfies) {
+                    continue;
+                }
+    
+                this.#messageBus.publish({
+                    kind: MessageKind.showInformationMessage,
+                    packageSettingsUri,
+                    dependencyName,
+                    dependencyOldVersion,
+                    dependencyNewVersion,
+                });
             }
-
-            const dependencyNewVersion = '^13.0.0';
-
-            const satisfies = semver.satisfies(dependencyNewVersion, dependencyOldVersion);
-
-            if (satisfies) {
-                continue;
-            }
-
-            this.#messageBus.publish({
-                kind: MessageKind.showInformationMessage,
-                packageSettingsUri,
-                dependencyName,
-                dependencyOldVersion,
-                dependencyNewVersion,
-            });
         }
     }
 }

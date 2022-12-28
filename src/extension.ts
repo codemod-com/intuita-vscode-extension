@@ -123,7 +123,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
 	});
 
-	const dependencies = ['next'];
+	const dependencies = ['next', '@material-ui/core'];
 
 	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
 		const { document } = editor;
@@ -132,24 +132,24 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		let ranges: vscode.Range[] = []
+		let ranges: [string, vscode.Range][] = [];
 
 		for (let i = 0; i < document.lineCount; i++) {
 			const textLine = document.lineAt(i);
 
 			for (let dependency of dependencies) {
 				if (textLine.text.includes(`"${dependency}"`)) {
-					ranges.push(textLine.range);
+					ranges.push([dependency, textLine.range]);
 				}
 			}
 		}
 
-		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map((range) => ({
+		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(([dependency, range]) => ({
 			range,
 			renderOptions: {
 				after: {
 					color: "gray",
-					contentText: "Use Intuita commands to upgrade your codebase to the latest version of next",
+					contentText: `Use Intuita commands to upgrade your codebase to the latest version of "${dependency}"`,
 					margin: "2em",
 					fontStyle: "italic"
 				},

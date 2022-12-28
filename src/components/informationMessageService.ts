@@ -19,7 +19,7 @@ export class InformationMessageService {
             "No, thanks"
         );
 
-        if (selectedItem === "No, thanks") {
+        if (!(selectedItem?.startsWith('Upgrade'))) {
             return;
         }
 
