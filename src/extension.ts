@@ -356,7 +356,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		trigger: 'bootstrap',
 	});
 
-	const dependencyService = new DependencyService();
+	const dependencyService = new DependencyService(messageBus);
 
 	dependencyService.x();
 }

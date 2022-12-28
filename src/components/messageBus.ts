@@ -31,6 +31,9 @@ export const enum MessageKind {
 	/** state */
 	persistState = 14,
 	clearState = 15,
+
+	/** information message */
+	showInformationMessage = 16,
 }
 
 export type Engine = 'node' | 'rust';
@@ -124,6 +127,13 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.clearState;
+	  }>
+	| Readonly<{
+			kind: MessageKind.showInformationMessage;
+			packageSettingsUri: Uri;
+			dependencyName: string;
+			dependencyOldVersion: string;
+			dependencyNewVersion: string;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
