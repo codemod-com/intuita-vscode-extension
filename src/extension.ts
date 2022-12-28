@@ -119,9 +119,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const tedt = vscode.window.createTextEditorDecorationType({
+	const textEditorDecorationType = vscode.window.createTextEditorDecorationType({
 		rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
 	});
+
+	const dependencies = ['next'];
 
 	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
 		const { document } = editor;
@@ -135,42 +137,37 @@ export async function activate(context: vscode.ExtensionContext) {
 		for (let i = 0; i < document.lineCount; i++) {
 			const textLine = document.lineAt(i);
 
-			if (!textLine.text.includes('"next"')) {
-				continue;
+			for (let dependency of dependencies) {
+				if (textLine.text.includes(`"${dependency}"`)) {
+					ranges.push(textLine.range);
+				}
 			}
-
-			ranges.push(textLine.range);
 		}
 
 		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map((range) => ({
 			range,
-			hoverMessage: 'test',
 			renderOptions: {
 				after: {
 					color: "gray",
-					contentText: "You can use Intuita commands to upgrade your codebase to the latest version of next",
+					contentText: "Use Intuita commands to upgrade your codebase to the latest version of next",
 					margin: "2em",
 					fontStyle: "italic"
 				},
 			},
 		}))
 
-		editor.setDecorations(tedt, rangesOrOptions);
+		editor.setDecorations(textEditorDecorationType, rangesOrOptions);
 	};
 
 	vscode.window.onDidChangeActiveTextEditor(
 		(editor) => {
-			if (!editor) {
-				return;
+			if (editor) {
+				handleActiveTextEditor(editor);
 			}
-
-			handleActiveTextEditor(editor);
 		}
 	)
 
-	vscode.workspace.onDidChangeTextDocument((event: vscode.TextDocumentChangeEvent) => {
-		console.log("HERE")
-
+	vscode.workspace.onDidChangeTextDocument(() => {
 		if (vscode.window.activeTextEditor) {
 			handleActiveTextEditor(vscode.window.activeTextEditor);
 		}
