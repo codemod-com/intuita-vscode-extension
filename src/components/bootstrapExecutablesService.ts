@@ -35,13 +35,11 @@ export class BootstrapExecutablesService {
 	) {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
-		const [
-			noraNodeEngineExecutableUri,
-			noraRustEngineExecutableUri,
-		] = await Promise.all([
-			this.#bootstrapNoraNodeEngineExecutableUri(),
-			this.#bootstrapNoraRustEngineExecutableUri(),
-		]);
+		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
+			await Promise.all([
+				this.#bootstrapNoraNodeEngineExecutableUri(),
+				this.#bootstrapNoraRustEngineExecutableUri(),
+			]);
 
 		this.#messageBus.publish({
 			kind: MessageKind.executablesBootstrapped,
@@ -52,7 +50,7 @@ export class BootstrapExecutablesService {
 	}
 
 	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
-		if(this.#noraNodeEngineExecutableUri) {
+		if (this.#noraNodeEngineExecutableUri) {
 			return this.#noraNodeEngineExecutableUri;
 		}
 

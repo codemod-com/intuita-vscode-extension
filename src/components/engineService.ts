@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri, workspace } from 'vscode';
+import { FileSystem, Uri } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -123,13 +123,22 @@ export class EngineService {
 			const args: string[] = [];
 
 			if (message.command.engine === 'node' && 'uri' in message.command) {
-				args.push('-p', Uri.joinPath(message.command.uri, '**/*.tsx').fsPath);
+				args.push(
+					'-p',
+					Uri.joinPath(message.command.uri, '**/*.tsx').fsPath,
+				);
 				args.push('-p', '!**/node_modules');
 
 				args.push('-l', String(fileLimit));
-			} else if (message.command.engine === 'rust' && 'uri' in message.command) {
+			} else if (
+				message.command.engine === 'rust' &&
+				'uri' in message.command
+			) {
 				args.push('-d', message.command.uri.fsPath);
-				args.push('-p', `"${Uri.joinPath(message.command.uri, '**/*.tsx').fsPath}"`);
+				args.push(
+					'-p',
+					`"${Uri.joinPath(message.command.uri, '**/*.tsx').fsPath}"`,
+				);
 				args.push('-a', '**/node_modules/**/*');
 			}
 

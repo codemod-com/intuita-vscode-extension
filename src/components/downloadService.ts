@@ -29,7 +29,7 @@ export class DownloadService {
 		let response;
 
 		try {
-			response = await Axios.head(url, { timeout: 5000 })
+			response = await Axios.head(url, { timeout: 5000 });
 		} catch (error) {
 			if (localModificationTime > 0) {
 				return;

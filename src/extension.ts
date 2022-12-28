@@ -21,7 +21,10 @@ import {
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
 import { DependencyService } from './dependencies/dependencyService';
-import { dependencyNameToGroup, InformationMessageService } from './components/informationMessageService';
+import {
+	dependencyNameToGroup,
+	InformationMessageService,
+} from './components/informationMessageService';
 
 const messageBus = new MessageBus();
 
@@ -153,18 +156,20 @@ export async function activate(context: vscode.ExtensionContext) {
 				const args = {
 					path,
 					dependencyName,
-				}
+				};
 
 				const commandUri = vscode.Uri.parse(
-					`command:intuita.executeCodemods?${encodeURIComponent(JSON.stringify(args))}`
-				  );
+					`command:intuita.executeCodemods?${encodeURIComponent(
+						JSON.stringify(args),
+					)}`,
+				);
 
 				const hoverMessage = new vscode.MarkdownString(
-					`[Execute "${dependencyName}" codemods](${commandUri})`
+					`[Execute "${dependencyName}" codemods](${commandUri})`,
 				);
 				hoverMessage.isTrusted = true;
 				hoverMessage.supportHtml = true;
-				
+
 				return {
 					range,
 					hoverMessage,
@@ -177,7 +182,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					},
 				};
-			}
+			},
 		);
 
 		editor.setDecorations(textEditorDecorationType, rangesOrOptions);

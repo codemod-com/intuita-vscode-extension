@@ -10,10 +10,7 @@ export class InformationMessageService {
 	#messageBus: MessageBus;
 	#getStorageUri: () => Uri | null;
 
-	constructor(
-		messageBus: MessageBus,
-		getStorageUri: () => Uri | null,
-	) {
+	constructor(messageBus: MessageBus, getStorageUri: () => Uri | null) {
 		this.#messageBus = messageBus;
 		this.#getStorageUri = getStorageUri;
 
@@ -29,8 +26,8 @@ export class InformationMessageService {
 		const storageUri = this.#getStorageUri();
 
 		if (!storageUri) {
-            return;
-        }
+			return;
+		}
 
 		const uri = Uri.joinPath(message.packageSettingsUri, '..');
 
