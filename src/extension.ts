@@ -245,13 +245,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
-						uri: 
 						engine: 'node',
 						storageUri,
 						group: 'nextJs',
+						uri,
 					},
 				});
 			},
@@ -269,12 +278,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
 						engine: 'rust',
 						storageUri,
 						group: 'nextJs',
+						uri,
 					},
 				});
 			},
@@ -292,12 +311,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
 						engine: 'node',
 						storageUri,
 						group: 'mui',
+						uri,
 					},
 				});
 			},
