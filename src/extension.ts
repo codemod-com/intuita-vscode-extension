@@ -119,9 +119,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const textEditorDecorationType = vscode.window.createTextEditorDecorationType({
-		rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
-	});
+	const textEditorDecorationType =
+		vscode.window.createTextEditorDecorationType({
+			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
+		});
 
 	const dependencies = ['next', '@material-ui/core'];
 
@@ -132,46 +133,46 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		let ranges: [string, vscode.Range][] = [];
+		const ranges: [string, vscode.Range][] = [];
 
 		for (let i = 0; i < document.lineCount; i++) {
 			const textLine = document.lineAt(i);
 
-			for (let dependency of dependencies) {
+			for (const dependency of dependencies) {
 				if (textLine.text.includes(`"${dependency}"`)) {
 					ranges.push([dependency, textLine.range]);
 				}
 			}
 		}
 
-		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(([dependency, range]) => ({
-			range,
-			renderOptions: {
-				after: {
-					color: "gray",
-					contentText: `Use Intuita commands to upgrade your codebase to the latest version of "${dependency}"`,
-					margin: "2em",
-					fontStyle: "italic"
+		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
+			([dependency, range]) => ({
+				range,
+				renderOptions: {
+					after: {
+						color: 'gray',
+						contentText: `Use Intuita commands to upgrade your codebase to the latest version of "${dependency}"`,
+						margin: '2em',
+						fontStyle: 'italic',
+					},
 				},
-			},
-		}))
+			}),
+		);
 
 		editor.setDecorations(textEditorDecorationType, rangesOrOptions);
 	};
 
-	vscode.window.onDidChangeActiveTextEditor(
-		(editor) => {
-			if (editor) {
-				handleActiveTextEditor(editor);
-			}
+	vscode.window.onDidChangeActiveTextEditor((editor) => {
+		if (editor) {
+			handleActiveTextEditor(editor);
 		}
-	)
+	});
 
 	vscode.workspace.onDidChangeTextDocument(() => {
 		if (vscode.window.activeTextEditor) {
 			handleActiveTextEditor(vscode.window.activeTextEditor);
 		}
-	})
+	});
 
 	if (vscode.window.activeTextEditor) {
 		handleActiveTextEditor(vscode.window.activeTextEditor);
