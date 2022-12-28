@@ -207,9 +207,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			const storageUri = vscode.Uri.file(arg0.path);
+			const { storageUri } = context;
 
-			console.log(storageUri);
+			if (!storageUri) {
+				console.error('No storage URI, aborting the command.');
+				return;
+			}
+
+			const uri = vscode.Uri.file(arg0.path);
 
 			const group = dependencyNameToGroup[arg0.dependencyName];
 
@@ -222,6 +227,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				command: {
 					engine: 'node',
 					storageUri,
+					uri,
 					group,
 				},
 			});
@@ -242,6 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
+						uri: 
 						engine: 'node',
 						storageUri,
 						group: 'nextJs',
@@ -464,7 +471,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	dependencyService.showInformationMessagesAboutUpgrades();
 
-	new InformationMessageService(messageBus);
+	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

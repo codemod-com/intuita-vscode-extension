@@ -8,9 +8,14 @@ export const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
 
 export class InformationMessageService {
 	#messageBus: MessageBus;
+	#getStorageUri: () => Uri | null;
 
-	constructor(messageBus: MessageBus) {
+	constructor(
+		messageBus: MessageBus,
+		getStorageUri: () => Uri | null,
+	) {
 		this.#messageBus = messageBus;
+		this.#getStorageUri = getStorageUri;
 
 		this.#messageBus.subscribe(
 			MessageKind.showInformationMessage,
@@ -21,10 +26,16 @@ export class InformationMessageService {
 	async #onShowInformationMessage(
 		message: Message & { kind: MessageKind.showInformationMessage },
 	) {
-		const storageUri = Uri.joinPath(message.packageSettingsUri, '..');
+		const storageUri = this.#getStorageUri();
+
+		if (!storageUri) {
+            return;
+        }
+
+		const uri = Uri.joinPath(message.packageSettingsUri, '..');
 
 		const selectedItem = await window.showInformationMessage(
-			`Your "${message.dependencyName}" version (${message.dependencyOldVersion}) in "${storageUri.fsPath}" is outdated. Use codemods to upgrade your codebase.`,
+			`Your "${message.dependencyName}" version (${message.dependencyOldVersion}) in "${uri.fsPath}" is outdated. Use codemods to upgrade your codebase.`,
 			message.dependencyNewVersion
 				? `Upgrade to ${message.dependencyNewVersion}`
 				: 'Upgrade',
@@ -46,6 +57,7 @@ export class InformationMessageService {
 			command: {
 				engine: 'node',
 				storageUri,
+				uri,
 				group,
 			},
 		});

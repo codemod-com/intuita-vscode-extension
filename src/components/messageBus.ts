@@ -44,6 +44,7 @@ export type Command =
 			group: Group;
 			engine: Engine;
 			storageUri: Uri;
+			uri: Uri;
 	  }>
 	| Readonly<{
 			fileUri: Uri;
