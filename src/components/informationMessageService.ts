@@ -1,7 +1,7 @@
 import { Uri, window } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 
-const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
+export const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
 	next: 'nextJs',
 	'@material-ui/core': 'mui',
 };

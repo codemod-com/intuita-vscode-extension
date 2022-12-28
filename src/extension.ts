@@ -21,7 +21,7 @@ import {
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
 import { DependencyService } from './dependencies/dependencyService';
-import { InformationMessageService } from './components/informationMessageService';
+import { dependencyNameToGroup, InformationMessageService } from './components/informationMessageService';
 
 const messageBus = new MessageBus();
 
@@ -149,10 +149,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 
 		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
-			([dependency, range]) => {
+			([dependencyName, range]) => {
 				const args = {
 					path,
-					dependency,
+					dependencyName,
 				}
 
 				const commandUri = vscode.Uri.parse(
@@ -160,7 +160,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				  );
 
 				const hoverMessage = new vscode.MarkdownString(
-					`[Execute "${dependency}" codemods](${commandUri})`
+					`[Execute "${dependencyName}" codemods](${commandUri})`
 				);
 				hoverMessage.isTrusted = true;
 				hoverMessage.supportHtml = true;
@@ -171,7 +171,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					renderOptions: {
 						after: {
 							color: 'gray',
-							contentText: `Hover over to upgrade your codebase to the latest version of "${dependency}"`,
+							contentText: `Hover over to upgrade your codebase to the latest version of "${dependencyName}"`,
 							margin: '2em',
 							fontStyle: 'italic',
 						},
@@ -207,8 +207,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			console.log("ABCD");
-			console.log(arg0);
+			const storageUri = vscode.Uri.file(arg0.path);
+
+			console.log(storageUri);
+
+			const group = dependencyNameToGroup[arg0.dependencyName];
+
+			if (!group) {
+				return;
+			}
+
+			messageBus.publish({
+				kind: MessageKind.bootstrapExecutables,
+				command: {
+					engine: 'node',
+					storageUri,
+					group,
+				},
+			});
 		}),
 	);
 

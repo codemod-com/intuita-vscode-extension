@@ -46,7 +46,7 @@
 		"commands": [
 			{
 				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js codemods"
+				"title": "Intuita: execute Next.js codemods (over the workspace)"
 			},
 			{
 				"command": "intuita.executePagesToAppsCodemods",
@@ -54,7 +54,7 @@
 			},
 			{
 				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute MUI codemods"
+				"title": "Intuita: execute MUI codemods (over the workspace)"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
