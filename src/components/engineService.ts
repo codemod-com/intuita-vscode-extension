@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri, workspace } from 'vscode';
+import { FileSystem, Uri } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -97,15 +97,6 @@ export class EngineService {
 		}
 
 		const { noraRustEngineExecutableUri } = message;
-		const uri = workspace.workspaceFolders?.[0]?.uri;
-
-		if (!uri) {
-			console.warn(
-				'No workspace folder is opened, aborting the operation.',
-			);
-			return;
-		}
-
 		const { storageUri } = message.command;
 
 		const storageDirectory =
@@ -131,14 +122,23 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if (message.command.engine === 'node') {
-				args.push('-p', Uri.joinPath(uri, '**/*.tsx').fsPath);
+			if (message.command.engine === 'node' && 'uri' in message.command) {
+				args.push(
+					'-p',
+					Uri.joinPath(message.command.uri, '**/*.tsx').fsPath,
+				);
 				args.push('-p', '!**/node_modules');
 
 				args.push('-l', String(fileLimit));
-			} else if (message.command.engine === 'rust') {
-				args.push('-d', uri.fsPath);
-				args.push('-p', `"${Uri.joinPath(uri, '**/*.tsx').fsPath}"`);
+			} else if (
+				message.command.engine === 'rust' &&
+				'uri' in message.command
+			) {
+				args.push('-d', message.command.uri.fsPath);
+				args.push(
+					'-p',
+					`"${Uri.joinPath(message.command.uri, '**/*.tsx').fsPath}"`,
+				);
 				args.push('-a', '**/node_modules/**/*');
 			}
 

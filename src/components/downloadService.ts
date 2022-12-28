@@ -23,7 +23,18 @@ export class DownloadService {
 		uri: Uri,
 		chmod: Mode,
 	): Promise<void> {
-		const response = await Axios.head(url).catch((error) => {
+		const localModificationTime =
+			await this.#fileSystemUtilities.getModificationTime(uri);
+
+		let response;
+
+		try {
+			response = await Axios.head(url, { timeout: 5000 });
+		} catch (error) {
+			if (localModificationTime > 0) {
+				return;
+			}
+
 			if (!Axios.isAxiosError(error)) {
 				throw error;
 			}
@@ -37,15 +48,12 @@ export class DownloadService {
 			}
 
 			throw new RequestError(`Could not make a request to ${url}`);
-		});
+		}
 
-		const lastModified = response.headers['last-modified'];
+		const lastModified = response?.headers['last-modified'] ?? null;
 		const remoteModificationTime = lastModified
 			? Date.parse(lastModified)
-			: Date.now();
-
-		const localModificationTime =
-			await this.#fileSystemUtilities.getModificationTime(uri);
+			: localModificationTime;
 
 		if (localModificationTime < remoteModificationTime) {
 			await this.#downloadFile(url, uri, chmod);

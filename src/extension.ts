@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
@@ -20,6 +21,13 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
+import { DependencyService } from './dependencies/dependencyService';
+import {
+	dependencyNameToGroup,
+	InformationMessageService,
+} from './components/informationMessageService';
+import { buildTypeCodec } from './utilities';
+import prettyReporter from 'io-ts-reporters';
 
 const messageBus = new MessageBus();
 
@@ -117,9 +125,137 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const textEditorDecorationType =
+		vscode.window.createTextEditorDecorationType({
+			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
+		});
+
+	const dependencies = ['next', '@material-ui/core'];
+
+	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
+		const { document } = editor;
+
+		if (!document.uri.fsPath.endsWith('package.json')) {
+			return;
+		}
+
+		const uri = vscode.Uri.joinPath(document.uri, '..');
+		const path = encodeURIComponent(uri.fsPath);
+
+		const ranges: [string, vscode.Range][] = [];
+
+		for (let i = 0; i < document.lineCount; i++) {
+			const textLine = document.lineAt(i);
+
+			for (const dependency of dependencies) {
+				if (textLine.text.includes(`"${dependency}"`)) {
+					ranges.push([dependency, textLine.range]);
+				}
+			}
+		}
+
+		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
+			([dependencyName, range]) => {
+				const args = {
+					path,
+					dependencyName,
+				};
+
+				const commandUri = vscode.Uri.parse(
+					`command:intuita.executeCodemods?${encodeURIComponent(
+						JSON.stringify(args),
+					)}`,
+				);
+
+				const hoverMessage = new vscode.MarkdownString(
+					`[Execute "${dependencyName}" codemods](${commandUri})`,
+				);
+				hoverMessage.isTrusted = true;
+				hoverMessage.supportHtml = true;
+
+				return {
+					range,
+					hoverMessage,
+					renderOptions: {
+						after: {
+							color: 'gray',
+							contentText: `Hover over to upgrade your codebase to the latest version of "${dependencyName}"`,
+							margin: '2em',
+							fontStyle: 'italic',
+						},
+					},
+				};
+			},
+		);
+
+		editor.setDecorations(textEditorDecorationType, rangesOrOptions);
+	};
+
+	vscode.window.onDidChangeActiveTextEditor((editor) => {
+		if (editor) {
+			handleActiveTextEditor(editor);
+		}
+	});
+
+	vscode.workspace.onDidChangeTextDocument(() => {
+		if (vscode.window.activeTextEditor) {
+			handleActiveTextEditor(vscode.window.activeTextEditor);
+		}
+	});
+
+	if (vscode.window.activeTextEditor) {
+		handleActiveTextEditor(vscode.window.activeTextEditor);
+	}
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
 			engineService.shutdownEngines();
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
+			const { storageUri } = context;
+
+			if (!storageUri) {
+				console.error('No storage URI, aborting the command.');
+				return;
+			}
+
+			const codec = buildTypeCodec({
+				path: t.string,
+				dependencyName: t.string,
+			});
+
+			const validation = codec.decode(arg0);
+
+			if (validation._tag === 'Left') {
+				const report = prettyReporter.report(validation);
+
+				console.error(report);
+
+				return;
+			}
+
+			const { path, dependencyName } = validation.right;
+
+			const uri = vscode.Uri.file(path);
+
+			const group = dependencyNameToGroup[dependencyName];
+
+			if (!group) {
+				return;
+			}
+
+			messageBus.publish({
+				kind: MessageKind.bootstrapExecutables,
+				command: {
+					engine: 'node',
+					storageUri,
+					uri,
+					group,
+				},
+			});
 		}),
 	);
 
@@ -134,12 +270,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
 						engine: 'node',
 						storageUri,
 						group: 'nextJs',
+						uri,
 					},
 				});
 			},
@@ -157,12 +303,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
 						engine: 'rust',
 						storageUri,
 						group: 'nextJs',
+						uri,
 					},
 				});
 			},
@@ -180,12 +336,22 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
 				messageBus.publish({
 					kind: MessageKind.bootstrapExecutables,
 					command: {
 						engine: 'node',
 						storageUri,
 						group: 'mui',
+						uri,
 					},
 				});
 			},
@@ -354,6 +520,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.updateElements,
 		trigger: 'bootstrap',
 	});
+
+	const dependencyService = new DependencyService(messageBus);
+
+	dependencyService.showInformationMessagesAboutUpgrades();
+
+	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

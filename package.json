@@ -46,7 +46,7 @@
 		"commands": [
 			{
 				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js codemods"
+				"title": "Intuita: execute Next.js codemods (over the workspace)"
 			},
 			{
 				"command": "intuita.executePagesToAppsCodemods",
@@ -54,7 +54,7 @@
 			},
 			{
 				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute MUI codemods"
+				"title": "Intuita: execute MUI codemods (over the workspace)"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
@@ -234,6 +234,7 @@
 		"@types/glob": "^8.0.0",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "18.11.15",
+		"@types/semver": "^7.3.13",
 		"@types/vscode": "^1.74.0",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",
 		"@typescript-eslint/parser": "^5.46.1",
@@ -260,6 +261,7 @@
 		"io-ts-reporters": "^2.0.1",
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
-		"newtype-ts": "^0.3.5"
+		"newtype-ts": "^0.3.5",
+		"semver": "^7.3.8"
 	}
 }
