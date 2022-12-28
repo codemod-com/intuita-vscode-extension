@@ -359,7 +359,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const dependencyService = new DependencyService(messageBus);
 
-	dependencyService.x();
+	dependencyService.showInformationMessagesAboutUpgrades();
 
 	new InformationMessageService(messageBus);
 }

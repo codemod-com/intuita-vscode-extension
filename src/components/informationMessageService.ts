@@ -1,4 +1,4 @@
-import { window } from "vscode";
+import { Uri, window } from "vscode";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 
 export class InformationMessageService {
@@ -19,6 +19,19 @@ export class InformationMessageService {
             "No, thanks"
         );
 
-        
+        if (selectedItem === "No, thanks") {
+            return;
+        }
+
+        const storageUri = Uri.joinPath(message.packageSettingsUri, '..');
+
+        this.#messageBus.publish({
+            kind: MessageKind.bootstrapExecutables,
+            command: {
+                engine: 'node',
+                storageUri,
+                group: 'nextJs',
+            },
+        });
     }
 }

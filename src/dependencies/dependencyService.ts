@@ -29,7 +29,7 @@ export class DependencyService {
         this.#messageBus = messageBus;
     }
 
-    async x() {
+    async showInformationMessagesAboutUpgrades() {
         const uris = await workspace.findFiles('**/package.json', 'node_modules/**', 100);
 
         for (const packageSettingsUri of uris) {
