@@ -133,7 +133,7 @@ export type Message =
 			packageSettingsUri: Uri;
 			dependencyName: string;
 			dependencyOldVersion: string;
-			dependencyNewVersion: string;
+			dependencyNewVersion: string | null;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

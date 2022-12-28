@@ -32,9 +32,9 @@ export class DependencyService {
     async showInformationMessagesAboutUpgrades() {
         const uris = await workspace.findFiles('**/package.json', 'node_modules/**', 100);
 
-        const dependencies: [string, string][] = [
+        const dependencies: [string, string | null][] = [
             ['next', '^13.0.0'],
-            ['@material-ui/core', '^5.0.0'],
+            ['@material-ui/core', null],
         ];
 
         for (const packageSettingsUri of uris) {
@@ -58,7 +58,9 @@ export class DependencyService {
                     continue;
                 }
     
-                const satisfies = semver.satisfies(dependencyNewVersion, dependencyOldVersion);
+                const satisfies = dependencyNewVersion
+                    ? semver.satisfies(dependencyNewVersion, dependencyOldVersion)
+                    : false;
     
                 if (satisfies) {
                     continue;

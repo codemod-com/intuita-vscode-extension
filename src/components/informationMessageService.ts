@@ -1,6 +1,11 @@
 import { Uri, window } from "vscode";
 import { Message, MessageBus, MessageKind } from "./messageBus";
 
+const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
+    'next': 'nextJs',
+    '@material-ui/core': 'mui',
+};
+
 export class InformationMessageService {
     #messageBus: MessageBus;
 
@@ -13,9 +18,11 @@ export class InformationMessageService {
     }
 
     async #onShowInformationMessage(message: Message & { kind: MessageKind.showInformationMessage }) {
+        const storageUri = Uri.joinPath(message.packageSettingsUri, '..');
+
         const selectedItem = await window.showInformationMessage(
-            `Your "${message.dependencyName}" version (${message.dependencyOldVersion}) is outdated. Use codemods to upgrade your codebase.`,
-            `Upgrade to ${message.dependencyNewVersion}`,
+            `Your "${message.dependencyName}" version (${message.dependencyOldVersion}) in "${storageUri.fsPath}" is outdated. Use codemods to upgrade your codebase.`,
+            message.dependencyNewVersion ? `Upgrade to ${message.dependencyNewVersion}` : 'Upgrade',
             "No, thanks"
         );
 
@@ -23,14 +30,18 @@ export class InformationMessageService {
             return;
         }
 
-        const storageUri = Uri.joinPath(message.packageSettingsUri, '..');
+        const group = dependencyNameToGroup[message.dependencyName];
+
+        if (!group) {
+            return;
+        }
 
         this.#messageBus.publish({
             kind: MessageKind.bootstrapExecutables,
             command: {
                 engine: 'node',
                 storageUri,
-                group: 'nextJs',
+                group,
             },
         });
     }
