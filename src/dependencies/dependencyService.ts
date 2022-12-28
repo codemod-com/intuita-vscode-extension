@@ -1,6 +1,6 @@
 import * as semver from 'semver';
 import * as t from 'io-ts';
-import { window, workspace } from "vscode";
+import { workspace } from "vscode";
 import { buildTypeCodec } from "../utilities";
 import { MessageBus, MessageKind } from '../components/messageBus';
 
@@ -17,8 +17,8 @@ const packageSettingsCodec = buildTypeCodec({
 
 type PackageSettings = t.TypeOf<typeof packageSettingsCodec>;
 
-const getNextJsVersion = (packageSettings: PackageSettings): string | null => 
-    packageSettings.dependencies?.['next'] ?? packageSettings.devDependencies?.['next'] ?? null;
+const getDependencyVersion = (dependencyName: string, packageSettings: PackageSettings): string | null => 
+    packageSettings.dependencies?.[dependencyName] ?? packageSettings.devDependencies?.[dependencyName] ?? null;
 
 export class DependencyService {
     #messageBus: MessageBus;
@@ -46,26 +46,28 @@ export class DependencyService {
                 continue;
             }
 
-            const dependencyOldVersion = getNextJsVersion(validation.right);
+            const dependencyName = 'next';
+
+            const dependencyOldVersion = getDependencyVersion(dependencyName, validation.right);
 
             if (!dependencyOldVersion) {
                 continue;
             }
 
-            const satisfies = semver.satisfies('^13.0.0', dependencyOldVersion);
+            const dependencyNewVersion = '^13.0.0';
+
+            const satisfies = semver.satisfies(dependencyNewVersion, dependencyOldVersion);
 
             if (satisfies) {
                 continue;
             }
 
-            
-
             this.#messageBus.publish({
                 kind: MessageKind.showInformationMessage,
                 packageSettingsUri,
-                dependencyName: 'next',
-                dependencyOldVersion: dependencyOldVersion,
-                dependencyNewVersion: '^13.0.0',
+                dependencyName,
+                dependencyOldVersion,
+                dependencyNewVersion,
             });
         }
     }
