@@ -77,10 +77,15 @@ export class PersistedStateService {
 
 		const localStateUri = Uri.joinPath(uri, 'localState.json');
 
-		try {
-			await this.fileSystem.delete(localStateUri, { useTrash: false });
-		} catch (error) {
-			console.error(error);
-		}
+		const persistedState: PersistedState = {
+			cases: [],
+			caseHashJobHashes: [],
+			jobs: [],
+			rejectedJobHashes: [],
+		};
+
+		const buffer = Buffer.from(JSON.stringify(persistedState));
+
+		this.fileSystem.writeFile(localStateUri, buffer);
 	}
 }
