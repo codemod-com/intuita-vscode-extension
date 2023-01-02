@@ -1,4 +1,5 @@
 import { Uri, window } from 'vscode';
+import { buildExecutionId } from '../telemetry/hashes';
 import { Message, MessageBus, MessageKind } from './messageBus';
 
 export const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
@@ -10,7 +11,8 @@ export class InformationMessageService {
 	#messageBus: MessageBus;
 	#getStorageUri: () => Uri | null;
 
-	constructor(messageBus: MessageBus, getStorageUri: () => Uri | null) {
+	constructor(
+		messageBus: MessageBus, getStorageUri: () => Uri | null) {
 		this.#messageBus = messageBus;
 		this.#getStorageUri = getStorageUri;
 
@@ -49,6 +51,9 @@ export class InformationMessageService {
 			return;
 		}
 
+		const executionId = buildExecutionId();
+		const happenedAt = String(Date.now());
+
 		this.#messageBus.publish({
 			kind: MessageKind.executeCodemodSet,
 			command: {
@@ -57,6 +62,8 @@ export class InformationMessageService {
 				uri,
 				group,
 			},
+			executionId,
+			happenedAt,
 		});
 	}
 }

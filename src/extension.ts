@@ -28,6 +28,8 @@ import {
 } from './components/informationMessageService';
 import { buildTypeCodec } from './utilities';
 import prettyReporter from 'io-ts-reporters';
+import { TelemetryService } from './telemetry/telemetryService';
+import { buildExecutionId } from './telemetry/hashes';
 
 const messageBus = new MessageBus();
 
@@ -247,6 +249,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
+			const executionId = buildExecutionId();
+			const happenedAt = String(Date.now());
+
 			messageBus.publish({
 				kind: MessageKind.executeCodemodSet,
 				command: {
@@ -255,6 +260,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					uri,
 					group,
 				},
+				executionId,
+				happenedAt,
 			});
 		}),
 	);
@@ -279,6 +286,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
@@ -287,6 +297,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						group: 'nextJs',
 						uri,
 					},
+					executionId,
+					happenedAt,
 				});
 			},
 		),
@@ -312,6 +324,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
@@ -320,6 +335,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						group: 'nextJs',
 						uri,
 					},
+					executionId,
+					happenedAt,
 				});
 			},
 		),
@@ -345,6 +362,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
@@ -353,6 +373,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						group: 'mui',
 						uri,
 					},
+					executionId,
+					happenedAt,
 				});
 			},
 		),
@@ -483,6 +505,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				const happenedAt = String(Date.now());
+				const executionId = buildExecutionId();
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
@@ -490,6 +515,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						storageUri,
 						fileUri: uri,
 					},
+					happenedAt,
+					executionId,
 				});
 			},
 		),
@@ -530,7 +557,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngines,
 	});
+
+	new TelemetryService(configurationContainer, messageBus);
+
+	messageBus.publish({ kind: MessageKind.extensionActivated });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export function deactivate() {}
+export function deactivate() {
+	messageBus.publish({ kind: MessageKind.extensionDeactivated });
+}

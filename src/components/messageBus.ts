@@ -37,6 +37,9 @@ export const enum MessageKind {
 
 	/** codemod sets */
 	executeCodemodSet = 17,
+
+	extensionActivated = 18,
+	extensionDeactivated = 19,
 }
 
 export type Engine = 'node' | 'rust';
@@ -140,7 +143,15 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
-	  }>;
+			happenedAt: string;
+			executionId: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.extensionActivated,
+	}>
+	| Readonly<{
+			kind: MessageKind.extensionDeactivated,
+	}>;
 
 type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;

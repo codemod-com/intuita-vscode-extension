@@ -5,12 +5,15 @@ import { buildJobHash } from './buildJobHash';
 export const buildRewriteFileJob = (
 	inputUri: Uri,
 	outputUri: Uri,
-	codemodId: string,
+	codemodSetName: string,
+	codemodName: string,
 ): RewriteFileJob => {
 	return {
 		kind: JobKind.rewriteFile,
 		inputUri,
-		hash: buildJobHash([inputUri, outputUri], codemodId),
+		hash: buildJobHash([inputUri, outputUri], codemodSetName, codemodName),
 		outputUri,
+		codemodSetName,
+		codemodName,
 	};
 };

@@ -8,6 +8,8 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 	inputPath: job.inputUri.fsPath,
 	outputPath: job.outputUri.fsPath,
 	hash: job.hash,
+	codemodSetName: job.codemodSetName,
+	codemodName: job.codemodName,
 });
 
 export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
@@ -15,6 +17,8 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	inputUri: Uri.file(persistedJob.inputPath),
 	outputUri: Uri.file(persistedJob.outputPath),
 	hash: persistedJob.hash as JobHash,
+	codemodSetName: persistedJob.codemodSetName,
+	codemodName: persistedJob.codemodName,
 });
 
 export const mapCaseToPersistedCase = (kase: Case): PersistedCase => ({

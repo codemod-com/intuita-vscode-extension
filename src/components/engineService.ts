@@ -229,12 +229,12 @@ export class EngineService {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				job = buildCreateFileJob(inputUri, outputUri, message.c);
+				job = buildCreateFileJob(inputUri, outputUri, message.c, 'codemodSetToDo');
 			} else {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
-				job = buildRewriteFileJob(inputUri, outputUri, message.c);
+				job = buildRewriteFileJob(inputUri, outputUri, message.c, 'codemodSetToDo');
 			}
 
 			this.#messageBus.publish({
