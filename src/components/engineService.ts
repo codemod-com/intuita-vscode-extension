@@ -86,6 +86,10 @@ export class EngineService {
 		messageBus.subscribe(MessageKind.enginesBootstrapped, (message) =>
 			this.#onEnginesBootstrappedMessage(message),
 		);
+
+		messageBus.subscribe(MessageKind.executeCodemodSet, (message) => {
+			this.#onExecuteCodemodSetMessage(message);
+		})
 	}
 
 	#onEnginesBootstrappedMessage(
@@ -99,14 +103,17 @@ export class EngineService {
 		this.#childProcess?.stdin.write('shutdown\n');
 	}
 
-	async #onExecutablesBootstrappedMessage(
-		message: Message & { kind: MessageKind.executablesBootstrapped },
+	async #onExecuteCodemodSetMessage(
+		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
 		if (this.#childProcess) {
 			return;
 		}
 
-		const { noraRustEngineExecutableUri } = message;
+		if (!this.#noraNodeEngineExecutableUri || !this.#noraRustEngineExecutableUri) {
+			return;
+		}
+
 		const { storageUri } = message.command;
 
 		const storageDirectory =
@@ -121,8 +128,8 @@ export class EngineService {
 
 		const executableUri =
 			message.command.engine === 'node'
-				? message.noraNodeEngineExecutableUri
-				: message.noraRustEngineExecutableUri;
+				? this.#noraNodeEngineExecutableUri
+				: this.#noraRustEngineExecutableUri;
 
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
@@ -181,6 +188,8 @@ export class EngineService {
 		});
 
 		const interfase = readline.createInterface(this.#childProcess.stdout);
+
+		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));

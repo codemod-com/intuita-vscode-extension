@@ -28,6 +28,8 @@ export const enum MessageKind {
 	bootstrapEngines = 100,
 	enginesBootstrapped = 101,
 
+	executeCodemodSet = 103,
+
 	bootstrapExecutables = 12,
 	executablesBootstrapped = 13,
 
@@ -124,10 +126,7 @@ export type Message =
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
 	}>
-	| Readonly<{
-			kind: MessageKind.bootstrapExecutables;
-			command: Command;
-	  }>
+
 	| Readonly<{
 			kind: MessageKind.executablesBootstrapped;
 			command: Command;
@@ -146,6 +145,10 @@ export type Message =
 			dependencyName: string;
 			dependencyOldVersion: string;
 			dependencyNewVersion: string | null;
+	  }>
+	  | Readonly<{
+			kind: MessageKind.executeCodemodSet;
+			command: Command;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
