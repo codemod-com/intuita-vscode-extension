@@ -67,7 +67,10 @@ export class EngineService {
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItemManager: StatusBarItemManager;
+	
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
+	#noraNodeEngineExecutableUri: Uri | null = null;
+	#noraRustEngineExecutableUri: Uri | null = null;
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
@@ -80,9 +83,16 @@ export class EngineService {
 		this.#fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.executablesBootstrapped, (message) =>
-			this.#onExecutablesBootstrappedMessage(message),
+		messageBus.subscribe(MessageKind.enginesBootstrapped, (message) =>
+			this.#onEnginesBootstrappedMessage(message),
 		);
+	}
+
+	#onEnginesBootstrappedMessage(
+		message: Message & { kind: MessageKind.enginesBootstrapped },
+	) {
+		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
+		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
 	}
 
 	shutdownEngines() {
