@@ -240,7 +240,7 @@
 		"@typescript-eslint/parser": "^5.46.1",
 		"@vscode/test-electron": "^2.2.1",
 		"chai": "^4.3.7",
-		"cspell-cli": "^6.16.0",
+		"cspell-cli": "^6.17.1",
 		"eslint": "^8.29.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-prettier": "^4.2.1",
