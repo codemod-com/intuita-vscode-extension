@@ -117,13 +117,13 @@ export type Message =
 			equal: boolean;
 	  }>
 	| Readonly<{
-		    kind: MessageKind.bootstrapEngines;
-	}>
+			kind: MessageKind.bootstrapEngines;
+	  }>
 	| Readonly<{
-            kind: MessageKind.enginesBootstrapped;
+			kind: MessageKind.enginesBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
-	}>
+	  }>
 	| Readonly<{
 			kind: MessageKind.persistState;
 	  }>
@@ -137,7 +137,7 @@ export type Message =
 			dependencyOldVersion: string;
 			dependencyNewVersion: string | null;
 	  }>
-	  | Readonly<{
+	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 	  }>;

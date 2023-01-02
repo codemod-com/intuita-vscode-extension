@@ -67,7 +67,7 @@ export class EngineService {
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItemManager: StatusBarItemManager;
-	
+
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
 	#noraRustEngineExecutableUri: Uri | null = null;
@@ -89,7 +89,7 @@ export class EngineService {
 
 		messageBus.subscribe(MessageKind.executeCodemodSet, (message) => {
 			this.#onExecuteCodemodSetMessage(message);
-		})
+		});
 	}
 
 	#onEnginesBootstrappedMessage(
@@ -110,7 +110,10 @@ export class EngineService {
 			return;
 		}
 
-		if (!this.#noraNodeEngineExecutableUri || !this.#noraRustEngineExecutableUri) {
+		if (
+			!this.#noraNodeEngineExecutableUri ||
+			!this.#noraRustEngineExecutableUri
+		) {
 			await window.showErrorMessage(
 				'Wait until the engines have been bootstrapped to execute the operation',
 			);
