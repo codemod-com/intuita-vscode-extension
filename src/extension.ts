@@ -526,6 +526,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	dependencyService.showInformationMessagesAboutUpgrades();
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
+
+	messageBus.publish({
+		kind: MessageKind.bootstrapEngines,
+	});
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

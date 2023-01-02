@@ -25,6 +25,9 @@ export const enum MessageKind {
 	filesCompared = 11,
 
 	/** bootstrap */
+	bootstrapEngines = 100,
+	enginesBootstrapped = 101,
+
 	bootstrapExecutables = 12,
 	executablesBootstrapped = 13,
 
@@ -113,6 +116,14 @@ export type Message =
 			jobHash: JobHash;
 			equal: boolean;
 	  }>
+	| Readonly<{
+		    kind: MessageKind.bootstrapEngines;
+	}>
+	| Readonly<{
+            kind: MessageKind.enginesBootstrapped;
+			noraNodeEngineExecutableUri: Uri;
+			noraRustEngineExecutableUri: Uri;
+	}>
 	| Readonly<{
 			kind: MessageKind.bootstrapExecutables;
 			command: Command;

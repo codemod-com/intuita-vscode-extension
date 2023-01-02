@@ -28,6 +28,26 @@ export class BootstrapExecutablesService {
 		messageBus.subscribe(MessageKind.bootstrapExecutables, (message) =>
 			this.#onBootstrapExecutables(message),
 		);
+
+		messageBus.subscribe(MessageKind.bootstrapEngines, () =>
+			this.#onBootstrapEngines(),
+		);
+	}
+
+	async #onBootstrapEngines() {
+		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+
+		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
+			await Promise.all([
+				this.#bootstrapNoraNodeEngineExecutableUri(),
+				this.#bootstrapNoraRustEngineExecutableUri(),
+			]);
+
+		this.#messageBus.publish({
+			kind: MessageKind.enginesBootstrapped,
+			noraNodeEngineExecutableUri,
+			noraRustEngineExecutableUri,
+		});
 	}
 
 	async #onBootstrapExecutables(
