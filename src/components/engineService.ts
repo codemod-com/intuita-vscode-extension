@@ -69,6 +69,7 @@ export class EngineService {
 	readonly #statusBarItemManager: StatusBarItemManager;
 
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
+	#executionId: string | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
 	#noraRustEngineExecutableUri: Uri | null = null;
 
@@ -106,7 +107,11 @@ export class EngineService {
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
-		if (this.#childProcess) {
+		if (this.#childProcess || this.#executionId) {
+			await window.showErrorMessage(
+				'Wait until the previous codemod set execution has finished',
+			);
+
 			return;
 		}
 
@@ -194,6 +199,10 @@ export class EngineService {
 			console.error(data.toString());
 		});
 
+		const executionId = message.executionId;
+
+		this.#executionId = executionId;
+
 		const interfase = readline.createInterface(this.#childProcess.stdout);
 
 		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
@@ -243,6 +252,7 @@ export class EngineService {
 				job,
 				caseKind,
 				caseSubKind: message.c,
+				executionId,
 			});
 		});
 
@@ -250,6 +260,7 @@ export class EngineService {
 			this.#statusBarItemManager.moveToStandby();
 
 			this.#childProcess = null;
+			this.#executionId = null;
 		});
 	}
 

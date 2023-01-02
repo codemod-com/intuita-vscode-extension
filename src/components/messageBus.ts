@@ -76,6 +76,7 @@ export type Message =
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
+			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
@@ -113,11 +114,13 @@ export type Message =
 			job: Job;
 			caseKind: CaseKind;
 			caseSubKind: string;
+			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
 			jobHash: JobHash;
 			equal: boolean;
+			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngines;

@@ -12,7 +12,11 @@ class CompareProcessWrapper {
 	#exited = false;
 	readonly #process: ChildProcessWithoutNullStreams;
 
-	constructor(executableUri: Uri, messageBus: MessageBus) {
+	constructor(
+		executableUri: Uri,
+		executionId: string,
+		messageBus: MessageBus,
+	) {
 		this.#process = spawn(executableUri.fsPath, [], {
 			stdio: 'pipe',
 		});
@@ -46,6 +50,7 @@ class CompareProcessWrapper {
 					kind: MessageKind.filesCompared,
 					jobHash: message.i as JobHash,
 					equal: message.e,
+					executionId,
 				});
 			}
 		});
@@ -104,6 +109,7 @@ export class NoraCompareServiceEngine {
 		) {
 			this.#compareProcessWrapper = new CompareProcessWrapper(
 				message.noraRustEngineExecutableUri,
+				message.executionId,
 				this.#messageBus,
 			);
 		}
@@ -119,6 +125,7 @@ export class NoraCompareServiceEngine {
 				kind: MessageKind.filesCompared,
 				jobHash: job.hash,
 				equal: false,
+				executionId: message.executionId,
 			});
 		}
 	}
@@ -158,6 +165,7 @@ export class NoraCompareServiceEngine {
 			jobs: [job],
 			inactiveJobHashes: new Set(),
 			trigger: 'onCommand',
+			executionId: message.executionId,
 		});
 	}
 }
