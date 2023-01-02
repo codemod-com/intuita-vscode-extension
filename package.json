@@ -255,7 +255,7 @@
 		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
-		"axios": "^1.2.1",
+		"axios": "^1.2.2",
 		"fp-ts": "^2.13.1",
 		"io-ts": "^2.2.20",
 		"io-ts-reporters": "^2.0.1",
