@@ -20,6 +20,8 @@ export class TelemetryService {
         this.#messageBus.subscribe(MessageKind.extensionActivated, () => this.#onExtensionActivatedMessage());
         this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => this.#onExtensionDisactivatedMessage());
         this.#messageBus.subscribe(MessageKind.executeCodemodSet, (message) => this.#onExecuteCodemodSetMessage(message));
+        this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
+
 
         this.#sessionId = buildSessionId();
     }
@@ -53,6 +55,22 @@ export class TelemetryService {
             happenedAt: String(Date.now()),
             executionId: message.executionId,
             codemodSetName: 'group' in message.command ? message.command.group : '',
+        }
+
+        await this.#post(telemetryMessage);
+    }
+
+    async #onUpsertCasesMessage(
+        message: Message & { kind: MessageKind.upsertCases },
+    ) {
+        const telemetryMessage: TelemetryMessage = {
+            kind: TELEMETRY_MESSAGE_KINDS.JOBS_CREATED,
+            sessionId: this.#sessionId,
+            happenedAt: String(Date.now()),
+            executionId: message.executionId,
+            codemodSetName: '',
+            codemodName: '', // TODO
+            jobCount: String(message.jobs.length),
         }
 
         await this.#post(telemetryMessage);
