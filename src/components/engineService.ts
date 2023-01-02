@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri } from 'vscode';
+import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -111,6 +111,10 @@ export class EngineService {
 		}
 
 		if (!this.#noraNodeEngineExecutableUri || !this.#noraRustEngineExecutableUri) {
+			await window.showErrorMessage(
+				'Wait until the engines have been bootstrapped to execute the operation',
+			);
+
 			return;
 		}
 

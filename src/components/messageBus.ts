@@ -25,13 +25,8 @@ export const enum MessageKind {
 	filesCompared = 11,
 
 	/** bootstrap */
-	bootstrapEngines = 100,
-	enginesBootstrapped = 101,
-
-	executeCodemodSet = 103,
-
-	bootstrapExecutables = 12,
-	executablesBootstrapped = 13,
+	bootstrapEngines = 12,
+	enginesBootstrapped = 13,
 
 	/** state */
 	persistState = 14,
@@ -39,6 +34,9 @@ export const enum MessageKind {
 
 	/** information message */
 	showInformationMessage = 16,
+
+	/** codemod sets */
+	executeCodemodSet = 17,
 }
 
 export type Engine = 'node' | 'rust';
@@ -126,13 +124,6 @@ export type Message =
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
 	}>
-
-	| Readonly<{
-			kind: MessageKind.executablesBootstrapped;
-			command: Command;
-			noraNodeEngineExecutableUri: Uri;
-			noraRustEngineExecutableUri: Uri;
-	  }>
 	| Readonly<{
 			kind: MessageKind.persistState;
 	  }>
