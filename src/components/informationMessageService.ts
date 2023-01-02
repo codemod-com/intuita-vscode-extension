@@ -50,7 +50,7 @@ export class InformationMessageService {
 		}
 
 		this.#messageBus.publish({
-			kind: MessageKind.bootstrapExecutables,
+			kind: MessageKind.executeCodemodSet,
 			command: {
 				engine: 'node',
 				storageUri,

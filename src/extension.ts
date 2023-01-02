@@ -248,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			messageBus.publish({
-				kind: MessageKind.bootstrapExecutables,
+				kind: MessageKind.executeCodemodSet,
 				command: {
 					engine: 'node',
 					storageUri,
@@ -280,7 +280,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				messageBus.publish({
-					kind: MessageKind.bootstrapExecutables,
+					kind: MessageKind.executeCodemodSet,
 					command: {
 						engine: 'node',
 						storageUri,
@@ -313,7 +313,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				messageBus.publish({
-					kind: MessageKind.bootstrapExecutables,
+					kind: MessageKind.executeCodemodSet,
 					command: {
 						engine: 'rust',
 						storageUri,
@@ -346,7 +346,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				messageBus.publish({
-					kind: MessageKind.bootstrapExecutables,
+					kind: MessageKind.executeCodemodSet,
 					command: {
 						engine: 'node',
 						storageUri,
@@ -484,7 +484,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				messageBus.publish({
-					kind: MessageKind.bootstrapExecutables,
+					kind: MessageKind.executeCodemodSet,
 					command: {
 						engine: 'node',
 						storageUri,
@@ -526,6 +526,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	dependencyService.showInformationMessagesAboutUpgrades();
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
+
+	messageBus.publish({
+		kind: MessageKind.bootstrapEngines,
+	});
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

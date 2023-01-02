@@ -25,8 +25,8 @@ export const enum MessageKind {
 	filesCompared = 11,
 
 	/** bootstrap */
-	bootstrapExecutables = 12,
-	executablesBootstrapped = 13,
+	bootstrapEngines = 12,
+	enginesBootstrapped = 13,
 
 	/** state */
 	persistState = 14,
@@ -34,6 +34,9 @@ export const enum MessageKind {
 
 	/** information message */
 	showInformationMessage = 16,
+
+	/** codemod sets */
+	executeCodemodSet = 17,
 }
 
 export type Engine = 'node' | 'rust';
@@ -114,12 +117,10 @@ export type Message =
 			equal: boolean;
 	  }>
 	| Readonly<{
-			kind: MessageKind.bootstrapExecutables;
-			command: Command;
+			kind: MessageKind.bootstrapEngines;
 	  }>
 	| Readonly<{
-			kind: MessageKind.executablesBootstrapped;
-			command: Command;
+			kind: MessageKind.enginesBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
 	  }>
@@ -135,6 +136,10 @@ export type Message =
 			dependencyName: string;
 			dependencyOldVersion: string;
 			dependencyNewVersion: string | null;
+	  }>
+	| Readonly<{
+			kind: MessageKind.executeCodemodSet;
+			command: Command;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

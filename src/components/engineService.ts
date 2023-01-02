@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri } from 'vscode';
+import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -67,7 +67,10 @@ export class EngineService {
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItemManager: StatusBarItemManager;
+
 	#childProcess: ChildProcessWithoutNullStreams | null = null;
+	#noraNodeEngineExecutableUri: Uri | null = null;
+	#noraRustEngineExecutableUri: Uri | null = null;
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
@@ -80,23 +83,44 @@ export class EngineService {
 		this.#fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.executablesBootstrapped, (message) =>
-			this.#onExecutablesBootstrappedMessage(message),
+		messageBus.subscribe(MessageKind.enginesBootstrapped, (message) =>
+			this.#onEnginesBootstrappedMessage(message),
 		);
+
+		messageBus.subscribe(MessageKind.executeCodemodSet, (message) => {
+			this.#onExecuteCodemodSetMessage(message);
+		});
+	}
+
+	#onEnginesBootstrappedMessage(
+		message: Message & { kind: MessageKind.enginesBootstrapped },
+	) {
+		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
+		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
 	}
 
 	shutdownEngines() {
 		this.#childProcess?.stdin.write('shutdown\n');
 	}
 
-	async #onExecutablesBootstrappedMessage(
-		message: Message & { kind: MessageKind.executablesBootstrapped },
+	async #onExecuteCodemodSetMessage(
+		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
 		if (this.#childProcess) {
 			return;
 		}
 
-		const { noraRustEngineExecutableUri } = message;
+		if (
+			!this.#noraNodeEngineExecutableUri ||
+			!this.#noraRustEngineExecutableUri
+		) {
+			await window.showErrorMessage(
+				'Wait until the engines have been bootstrapped to execute the operation',
+			);
+
+			return;
+		}
+
 		const { storageUri } = message.command;
 
 		const storageDirectory =
@@ -111,8 +135,8 @@ export class EngineService {
 
 		const executableUri =
 			message.command.engine === 'node'
-				? message.noraNodeEngineExecutableUri
-				: message.noraRustEngineExecutableUri;
+				? this.#noraNodeEngineExecutableUri
+				: this.#noraRustEngineExecutableUri;
 
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
@@ -171,6 +195,8 @@ export class EngineService {
 		});
 
 		const interfase = readline.createInterface(this.#childProcess.stdout);
+
+		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
 		interfase.on('line', async (line) => {
 			const either = messageCodec.decode(JSON.parse(line));

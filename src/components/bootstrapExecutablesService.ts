@@ -1,15 +1,14 @@
 import { FileSystem, Uri } from 'vscode';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
-import { Message, MessageBus, MessageKind } from './messageBus';
+import { MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
+// aka bootstrap engines
 export class BootstrapExecutablesService {
 	#downloadService: DownloadService;
 	#globalStorageUri: Uri;
 	#fileSystem: FileSystem;
 	#messageBus: MessageBus;
-	#noraNodeEngineExecutableUri: Uri | null = null;
-	#noraRustEngineExecutableUri: Uri | null = null;
 	#statusBarItemManager: StatusBarItemManager;
 
 	constructor(
@@ -25,15 +24,15 @@ export class BootstrapExecutablesService {
 		this.#messageBus = messageBus;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.bootstrapExecutables, (message) =>
-			this.#onBootstrapExecutables(message),
+		messageBus.subscribe(MessageKind.bootstrapEngines, () =>
+			this.#onBootstrapEngines(),
 		);
 	}
 
-	async #onBootstrapExecutables(
-		message: Message & { kind: MessageKind.bootstrapExecutables },
-	) {
+	async #onBootstrapEngines() {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+
+		this.#statusBarItemManager.moveToBootstrap();
 
 		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
 			await Promise.all([
@@ -41,19 +40,16 @@ export class BootstrapExecutablesService {
 				this.#bootstrapNoraRustEngineExecutableUri(),
 			]);
 
+		this.#statusBarItemManager.moveToStandby();
+
 		this.#messageBus.publish({
-			kind: MessageKind.executablesBootstrapped,
-			command: message.command,
+			kind: MessageKind.enginesBootstrapped,
 			noraNodeEngineExecutableUri,
 			noraRustEngineExecutableUri,
 		});
 	}
 
 	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
-		if (this.#noraNodeEngineExecutableUri) {
-			return this.#noraNodeEngineExecutableUri;
-		}
-
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
@@ -65,8 +61,6 @@ export class BootstrapExecutablesService {
 			this.#globalStorageUri,
 			executableBaseName,
 		);
-
-		this.#statusBarItemManager.moveToBootstrap();
 
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
@@ -88,10 +82,6 @@ export class BootstrapExecutablesService {
 	}
 
 	async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
-		if (this.#noraRustEngineExecutableUri) {
-			return this.#noraRustEngineExecutableUri;
-		}
-
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
@@ -103,8 +93,6 @@ export class BootstrapExecutablesService {
 			this.#globalStorageUri,
 			executableBaseName,
 		);
-
-		this.#statusBarItemManager.moveToBootstrap();
 
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
