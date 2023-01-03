@@ -1,5 +1,4 @@
 import {
-	assertsNeitherNullOrUndefined,
 	buildHash,
 	isNeitherNullNorUndefined,
 } from '../utilities';
@@ -9,6 +8,15 @@ import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+
+type Codemod = Readonly<{
+	setName: string;
+	name: string;
+}>;
+
+type CodemodHash = string & { __CodemodHash: '__CodemodHash' };
+
+const buildCodemodHash = ({ setName, name}: Codemod) => buildHash([setName, name].join(',')) as CodemodHash;
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
@@ -169,10 +177,8 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
-		const buildTupleHash = (job: Job) => buildHash([job.codemodSetName, job.codemodName].join(','));
-
-		const manager = new LeftRightHashSetManager<string, JobHash>(new Set());
-		const tuples = new Map<string, [string, string]>();
+		const codemodHashJobHashSetManager = new LeftRightHashSetManager<CodemodHash, JobHash>(new Set());
+		const codemods = new Map<CodemodHash, Codemod>();
 
 		for (const jobHash of message.jobHashes) {
 			const job = this.#jobMap.get(jobHash);
@@ -181,31 +187,36 @@ export class JobManager {
 				continue;
             }
 
-			const tupleHash = buildTupleHash(job);
+			const codemod: Codemod = {
+				setName: job.codemodSetName,
+				name: job.codemodName,
+			};
 
-			manager.upsert(tupleHash, jobHash);
-			tuples.set(tupleHash, [job.codemodSetName, job.codemodName]);
+			const codemodHash = buildCodemodHash(codemod);
+
+			codemodHashJobHashSetManager.upsert(codemodHash, jobHash);
+			codemods.set(codemodHash, codemod);
 		}
 
 		const messages: Message[] = [];
 
 		{
-			const tupleHashes = manager.getLeftHashes();
+			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
 		
-			for (const tupleHash of tupleHashes) {
-				const deletedJobHashes = manager.getRightHashesByLeftHash(tupleHash);
+			for (const codemodHash of codemodHashes) {
+				const deletedJobHashes = codemodHashJobHashSetManager.getRightHashesByLeftHash(codemodHash);
 
-				const tuple = tuples.get(tupleHash);
+				const codemod = codemods.get(codemodHash);
 
-				if (!deletedJobHashes || !tuple ) {
+				if (!deletedJobHashes || !codemod ) {
                     continue;
                 }
 
 				messages.push({
 					kind: MessageKind.jobsRejected,
 					deletedJobHashes,
-					codemodSetName: tuple[0],
-					codemodName: tuple[1],
+					codemodSetName: codemod.setName,
+					codemodName: codemod.name,
 				});
 			}
 		}
