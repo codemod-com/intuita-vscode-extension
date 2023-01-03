@@ -7,9 +7,7 @@ export class TelemetryService {
 	#messageBus: MessageBus;
 	#sessionId: string;
 
-	public constructor(
-		messageBus: MessageBus,
-	) {
+	public constructor(messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(MessageKind.extensionActivated, () =>
@@ -149,6 +147,6 @@ export class TelemetryService {
 	}
 
 	#buildUrl(): string {
-		throw new Error("Not implemented");
+		throw new Error('Not implemented');
 	}
 }
