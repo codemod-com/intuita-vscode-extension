@@ -120,6 +120,10 @@ export class TelemetryService {
     }
 
     async #post(telemetryMessage: TelemetryMessage): Promise<void> {
+        if (telemetryMessage) { // TODO temp
+            return;
+        }
+
         const url = this.#buildUrl();
 
         try {
