@@ -147,6 +147,6 @@ export class TelemetryService {
 	}
 
 	#buildUrl(): string {
-		throw new Error('Not implemented');
+		return 'http://localhost:4001/messages';
 	}
 }
