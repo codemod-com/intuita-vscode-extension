@@ -27,44 +27,38 @@ export class TelemetryService {
     }
 
     async #onExtensionActivatedMessage() {
-        const telemetryMessage: TelemetryMessage = {
+        this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.EXTENSION_ACTIVATED,
             sessionId: this.#sessionId,
             happenedAt: String(Date.now()),
-        }
-
-        this.#post(telemetryMessage);
+        });
     }
 
     async #onExtensionDisactivatedMessage() {
-        const telemetryMessage: TelemetryMessage = {
+        await this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.EXTENSION_DEACTIVATED,
             sessionId: this.#sessionId,
             happenedAt: String(Date.now()),
-        }
-
-        await this.#post(telemetryMessage);
+        });
     }
 
     async #onExecuteCodemodSetMessage(
         message: Message & { kind: MessageKind.executeCodemodSet },
     ) {
-        const telemetryMessage: TelemetryMessage = {
+        await this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.CODEMOD_SET_EXECUTION_BEGAN,
             sessionId: this.#sessionId,
             happenedAt: String(Date.now()),
             executionId: message.executionId,
             codemodSetName: 'group' in message.command ? message.command.group : '',
-        }
-
-        await this.#post(telemetryMessage);
+        });
     }
 
     async #onUpsertCasesMessage(
         message: Message & { kind: MessageKind.upsertCases },
     ) {
-        for (const kase of message.casesWithJobHashes) {
-            const telemetryMessage: TelemetryMessage = {
+        for (const kase of message.casesWithJobHashes) {   
+            await this.#post({
                 kind: TELEMETRY_MESSAGE_KINDS.JOBS_CREATED,
                 sessionId: this.#sessionId,
                 happenedAt: String(Date.now()),
@@ -72,9 +66,7 @@ export class TelemetryService {
                 codemodSetName: kase.codemodSetName,
                 codemodName: kase.codemodName,
                 jobCount: String(kase.jobHashes.size),
-            }
-    
-            await this.#post(telemetryMessage);
+            });
         }
     }
 
