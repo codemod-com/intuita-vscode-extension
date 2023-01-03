@@ -58,6 +58,18 @@ export class TelemetryService {
     async #onCodemodSetExecutedMessage(
         message: Message & { kind: MessageKind.codemodSetExecuted },
     ) {
+        if (message.halted) {
+            await this.#post({
+                kind: TELEMETRY_MESSAGE_KINDS.CODEMOD_SET_EXECUTION_HALTED,
+                sessionId: this.#sessionId,
+                happenedAt: String(Date.now()),
+                executionId: message.executionId,
+                codemodSetName: message.codemodSetName,
+            });
+
+            return;
+        }
+
         await this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.CODEMOD_SET_EXECUTION_ENDED,
             sessionId: this.#sessionId,

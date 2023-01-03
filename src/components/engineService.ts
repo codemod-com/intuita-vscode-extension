@@ -67,6 +67,7 @@ type Execution = {
 	readonly childProcess: ChildProcessWithoutNullStreams;
 	readonly codemodSetName: string;
 	totalFileCount: number;
+	halted: boolean;
 };
 
 export class EngineService {
@@ -111,6 +112,7 @@ export class EngineService {
 			return;
 		}
 
+		this.#execution.halted = true;
 		this.#execution.childProcess?.stdin.write('shutdown\n');
 	}
 
@@ -217,6 +219,7 @@ export class EngineService {
 			childProcess,
             executionId,
 			codemodSetName,
+			halted: false,
 			totalFileCount: 0, // that is the lower bound
 		};
 
@@ -291,6 +294,7 @@ export class EngineService {
 					kind: MessageKind.codemodSetExecuted,
 					executionId: this.#execution.executionId,
 					codemodSetName: this.#execution.codemodSetName,
+					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 				});
 			}

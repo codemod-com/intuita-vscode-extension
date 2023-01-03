@@ -158,6 +158,7 @@ export type Message =
             kind: MessageKind.codemodSetExecuted;
 			executionId: string;
 			codemodSetName: string;
+			halted: boolean;
 			fileCount: number;
 	}>
 	| Readonly<{
