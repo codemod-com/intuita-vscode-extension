@@ -30,11 +30,14 @@ export class CaseManager {
 			this.#onAcceptCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-			this.#onJobAcceptedMessage(message),
+			this.#onJobsAcceptedMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);
+		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
+		    this.#onJobsRejectedMessage(message),
+        );
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
@@ -106,6 +109,10 @@ export class CaseManager {
 	}
 
 	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
+		if (!this.#cases.has(message.caseHash)) {
+			throw new Error('You tried to accept a case that does not exist.');
+		}
+
 		// we are not removing cases and jobs here
 		// we wait for the jobs accepted message for data removal
 		const jobHashes =
@@ -120,7 +127,7 @@ export class CaseManager {
 		});
 	}
 
-	#onJobAcceptedMessage(
+	#onJobsAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
 		for (const kase of this.#cases.values()) {
@@ -167,14 +174,16 @@ export class CaseManager {
 				message.caseHash,
 			);
 
-		for (const jobHash of jobHashes) {
-			this.#caseHashJobHashSetManager.delete(message.caseHash, jobHash);
-		}
-
 		this.#messageBus.publish({
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
+	}
+
+	#onJobsRejectedMessage(
+		message: Message & { kind: MessageKind.jobsRejected },
+	) {
+		// TODO
 	}
 
 	#onClearStateMessage() {

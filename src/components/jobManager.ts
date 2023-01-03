@@ -169,18 +169,20 @@ export class JobManager {
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
 		for (const jobHash of message.jobHashes) {
-			const job = this.getJob(jobHash);
-			assertsNeitherNullOrUndefined(job);
-
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
 		}
 
 		this.#messageBus.publish({
-			kind: MessageKind.updateElements,
-			trigger: 'onCommand',
+			kind: MessageKind.jobsRejected,
+			deletedJobHashes: message.jobHashes,
 		});
+
+		// this.#messageBus.publish({
+		// 	kind: MessageKind.updateElements,
+		// 	trigger: 'onCommand',
+		// });
 	}
 
 	#onClearStateMessage() {
