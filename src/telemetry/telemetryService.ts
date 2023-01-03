@@ -63,17 +63,19 @@ export class TelemetryService {
     async #onUpsertCasesMessage(
         message: Message & { kind: MessageKind.upsertCases },
     ) {
-        const telemetryMessage: TelemetryMessage = {
-            kind: TELEMETRY_MESSAGE_KINDS.JOBS_CREATED,
-            sessionId: this.#sessionId,
-            happenedAt: String(Date.now()),
-            executionId: message.executionId,
-            codemodSetName: '',
-            codemodName: '', // TODO
-            jobCount: String(message.jobs.length),
+        for (const kase of message.casesWithJobHashes) {
+            const telemetryMessage: TelemetryMessage = {
+                kind: TELEMETRY_MESSAGE_KINDS.JOBS_CREATED,
+                sessionId: this.#sessionId,
+                happenedAt: String(Date.now()),
+                executionId: message.executionId,
+                codemodSetName: kase.codemodSetName,
+                codemodName: kase.codemodName,
+                jobCount: String(kase.jobHashes.size),
+            }
+    
+            await this.#post(telemetryMessage);
         }
-
-        await this.#post(telemetryMessage);
     }
 
     async #post(telemetryMessage: TelemetryMessage): Promise<void> {
