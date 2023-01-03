@@ -13,6 +13,8 @@ class CompareProcessWrapper {
 	readonly #process: ChildProcessWithoutNullStreams;
 
 	constructor(
+		private readonly codemodSetName: string,
+		private readonly codemodName: string,
 		executableUri: Uri,
 		executionId: string,
 		messageBus: MessageBus,
@@ -51,6 +53,8 @@ class CompareProcessWrapper {
 					jobHash: message.i as JobHash,
 					equal: message.e,
 					executionId,
+					codemodSetName: this.codemodSetName,
+					codemodName: this.codemodName,
 				});
 			}
 		});
@@ -108,6 +112,8 @@ export class NoraCompareServiceEngine {
 			this.#compareProcessWrapper.isExited()
 		) {
 			this.#compareProcessWrapper = new CompareProcessWrapper(
+				message.codemodSetName,
+				message.codemodName,
 				message.noraRustEngineExecutableUri,
 				message.executionId,
 				this.#messageBus,
@@ -126,6 +132,8 @@ export class NoraCompareServiceEngine {
 				jobHash: job.hash,
 				equal: false,
 				executionId: message.executionId,
+				codemodSetName: message.codemodSetName,
+				codemodName: message.codemodName,
 			});
 		}
 	}
@@ -157,6 +165,8 @@ export class NoraCompareServiceEngine {
 			kind: caseKind,
 			subKind: caseSubKind,
 			jobHashes: new Set([job.hash]),
+			codemodSetName: message.codemodSetName,
+			codemodName: message.codemodName,
 		};
 
 		this.#messageBus.publish({

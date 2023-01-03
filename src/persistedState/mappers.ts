@@ -25,10 +25,14 @@ export const mapCaseToPersistedCase = (kase: Case): PersistedCase => ({
 	kind: kase.kind,
 	subKind: kase.subKind,
 	hash: kase.hash,
+	codemodSetName: kase.codemodSetName,
+	codemodName: kase.codemodName,
 });
 
 export const mapPersistedCaseToCase = (persistedCase: PersistedCase): Case => ({
 	kind: persistedCase.kind,
 	subKind: persistedCase.subKind,
 	hash: persistedCase.hash as CaseHash,
+	codemodSetName: persistedCase.codemodSetName,
+	codemodName: persistedCase.codemodName,
 });

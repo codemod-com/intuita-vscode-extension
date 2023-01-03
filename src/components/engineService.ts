@@ -210,10 +210,12 @@ export class EngineService {
 
 		const executionId = message.executionId;
 
+		const codemodSetName = 'group' in message.command ? message.command.group : '';
+
 		this.#execution = {
 			childProcess,
             executionId,
-			codemodSetName: 'group' in message.command ? message.command.group : '',
+			codemodSetName,
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -247,16 +249,18 @@ export class EngineService {
 
 			let job: Job;
 
+			const codemodName = message.c;
+
 			if (message.k === EngineMessageKind.create) {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				job = buildCreateFileJob(inputUri, outputUri, message.c, 'codemodSetToDo');
+				job = buildCreateFileJob(inputUri, outputUri, codemodSetName, codemodName);
 			} else {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
-				job = buildRewriteFileJob(inputUri, outputUri, message.c, 'codemodSetToDo');
+				job = buildRewriteFileJob(inputUri, outputUri, codemodSetName, codemodName);
 			}
 
 			this.#messageBus.publish({
@@ -266,6 +270,8 @@ export class EngineService {
 				caseKind,
 				caseSubKind: message.c,
 				executionId,
+				codemodSetName,
+				codemodName,
 			});
 		});
 

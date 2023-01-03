@@ -115,12 +115,16 @@ export type Message =
 			caseKind: CaseKind;
 			caseSubKind: string;
 			executionId: string;
+			codemodSetName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
 			jobHash: JobHash;
 			equal: boolean;
 			executionId: string;
+			codemodSetName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngines;
