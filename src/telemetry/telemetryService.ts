@@ -1,20 +1,15 @@
 import Axios from 'axios';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
-import { Configuration } from '../configuration';
-import { Container } from '../container';
 import { buildSessionId } from './hashes';
 import { TelemetryMessage, TELEMETRY_MESSAGE_KINDS } from './types';
 
 export class TelemetryService {
-	#configurationContainer: Container<Configuration>;
 	#messageBus: MessageBus;
 	#sessionId: string;
 
 	public constructor(
-		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 	) {
-		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(MessageKind.extensionActivated, () =>
@@ -139,11 +134,6 @@ export class TelemetryService {
 	}
 
 	async #post(telemetryMessage: TelemetryMessage): Promise<void> {
-		if (telemetryMessage) {
-			// TODO temp
-			return;
-		}
-
 		const url = this.#buildUrl();
 
 		try {
@@ -159,8 +149,6 @@ export class TelemetryService {
 	}
 
 	#buildUrl(): string {
-		const { telemetryUrl } = this.#configurationContainer.get();
-
-		return `${telemetryUrl}/messages`; // TODO verify the corrrectness of telemetry URL
+		throw new Error("Not implemented");
 	}
 }
