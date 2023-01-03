@@ -30,13 +30,13 @@ export class CaseManager {
 			this.#onAcceptCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-			this.#onJobsAcceptedMessage(message),
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
-		    this.#onJobsRejectedMessage(message),
+		    this.#onJobsAcceptedOrJobsRejectedMessage(message),
         );
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
@@ -127,8 +127,8 @@ export class CaseManager {
 		});
 	}
 
-	#onJobsAcceptedMessage(
-		message: Message & { kind: MessageKind.jobsAccepted },
+	#onJobsAcceptedOrJobsRejectedMessage(
+		message: Message & { kind: MessageKind.jobsAccepted | MessageKind.jobsRejected },
 	) {
 		for (const kase of this.#cases.values()) {
 			const caseJobHashes =
@@ -147,8 +147,12 @@ export class CaseManager {
 			if (caseJobHashes.size <= deletedCount) {
 				this.#cases.delete(kase.hash);
 
+				const kind = message.kind === MessageKind.jobsAccepted
+					? MessageKind.caseAccepted
+					: MessageKind.caseRejected;
+
 				this.#messageBus.publish({
-					kind: MessageKind.caseAccepted,
+					kind,
 					codemodSetName: kase.codemodSetName,
 					codemodName: kase.codemodName,
 					jobCount: caseJobHashes.size,
@@ -178,12 +182,6 @@ export class CaseManager {
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
-	}
-
-	#onJobsRejectedMessage(
-		message: Message & { kind: MessageKind.jobsRejected },
-	) {
-		// TODO
 	}
 
 	#onClearStateMessage() {

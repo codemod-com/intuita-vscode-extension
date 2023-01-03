@@ -178,11 +178,6 @@ export class JobManager {
 			kind: MessageKind.jobsRejected,
 			deletedJobHashes: message.jobHashes,
 		});
-
-		// this.#messageBus.publish({
-		// 	kind: MessageKind.updateElements,
-		// 	trigger: 'onCommand',
-		// });
 	}
 
 	#onClearStateMessage() {
