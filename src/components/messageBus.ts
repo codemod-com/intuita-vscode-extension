@@ -22,7 +22,6 @@ export const enum MessageKind {
 	jobsRejected = 102,
 	
 	acceptCase = 7,
-	caseAccepted = 100,
 	
 	acceptJobs = 8,
 	jobsAccepted = 9,
@@ -117,12 +116,6 @@ export type Message =
 			kind: MessageKind.acceptCase;
 			caseHash: CaseHash;
 	  }>
-	| Readonly<{
-			kind: MessageKind.caseAccepted;
-			codemodSetName: string;
-			codemodName: string;
-			jobCount: number;
-	}>
 	| Readonly<{
 			kind: MessageKind.acceptJobs;
 			jobHashes: ReadonlySet<JobHash>;

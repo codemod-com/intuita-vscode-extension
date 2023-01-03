@@ -146,18 +146,6 @@ export class CaseManager {
 
 			if (caseJobHashes.size <= deletedCount) {
 				this.#cases.delete(kase.hash);
-
-				// NOPE
-				// const kind = message.kind === MessageKind.jobsAccepted
-				// 	? MessageKind.caseAccepted
-				// 	: MessageKind.caseRejected;
-
-				// this.#messageBus.publish({
-				// 	kind,
-				// 	codemodSetName: kase.codemodSetName,
-				// 	codemodName: kase.codemodName,
-				// 	jobCount: caseJobHashes.size,
-				// });
 			}
 		}
 

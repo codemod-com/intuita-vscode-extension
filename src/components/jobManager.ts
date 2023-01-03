@@ -1,5 +1,6 @@
 import {
 	assertsNeitherNullOrUndefined,
+	buildHash,
 	isNeitherNullNorUndefined,
 } from '../utilities';
 import { Uri } from 'vscode';
@@ -168,16 +169,42 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
+		const buildTupleHash = (job: Job) => buildHash([job.codemodSetName, job.codemodName].join(','));
+
+		const manager = new LeftRightHashSetManager<string, JobHash>(new Set());
+
+		for (const jobHash of message.jobHashes) {
+			const job = this.#jobMap.get(jobHash);
+
+            if (!job) {
+				continue;
+            }
+
+			const tupleHash = buildTupleHash(job);
+
+			manager.upsert(tupleHash, jobHash);
+		}
+
+		{
+			const tupleHashes = manager.getLeftHashes();
+		
+			for (const tupleHash of tupleHashes) {
+				const deletedJobHashes = manager.getRightHashesByLeftHash(tupleHash);
+
+				this.#messageBus.publish({
+					kind: MessageKind.jobsRejected,
+					deletedJobHashes,
+					codemodSetName: '',
+					codemodName: '',
+				});
+			}
+		}
+
 		for (const jobHash of message.jobHashes) {
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);
+			this.#jobMap.delete(jobHash);	
 		}
-
-		this.#messageBus.publish({
-			kind: MessageKind.jobsRejected,
-			deletedJobHashes: message.jobHashes,
-		});
 	}
 
 	#onClearStateMessage() {
