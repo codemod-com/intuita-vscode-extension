@@ -10,7 +10,9 @@ export const buildJobHash = (
 ): JobHash => {
 	const uriHashes = uris.map((uri) => buildUriHash(uri));
 
-	const hash = buildHash([...uriHashes, codemodSetName, codemodName].join(','));
+	const hash = buildHash(
+		[...uriHashes, codemodSetName, codemodName].join(','),
+	);
 
 	return hash as JobHash;
 };

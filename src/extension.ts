@@ -428,7 +428,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
-					jobHashes: new Set([ jobHash as JobHash ]),
+					jobHashes: new Set([jobHash as JobHash]),
 				});
 			},
 		),

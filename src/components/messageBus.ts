@@ -20,9 +20,9 @@ export const enum MessageKind {
 
 	rejectJobs = 6,
 	jobsRejected = 102,
-	
+
 	acceptCase = 7,
-	
+
 	acceptJobs = 8,
 	jobsAccepted = 9,
 
@@ -95,23 +95,22 @@ export type Message =
 			kind: MessageKind.rejectCase;
 			caseHash: CaseHash;
 	  }>
-
 	| Readonly<{
 			kind: MessageKind.caseRejected;
 			codemodSetName: string;
 			codemodName: string;
 			jobCount: number;
-	}>
+	  }>
 	| Readonly<{
 			kind: MessageKind.rejectJobs;
 			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
-		kind: MessageKind.jobsRejected;
-		deletedJobHashes: ReadonlySet<JobHash>;
-		codemodSetName: string;
-		codemodName: string;
-  	}>
+			kind: MessageKind.jobsRejected;
+			deletedJobHashes: ReadonlySet<JobHash>;
+			codemodSetName: string;
+			codemodName: string;
+	  }>
 	| Readonly<{
 			kind: MessageKind.acceptCase;
 			caseHash: CaseHash;
@@ -124,7 +123,7 @@ export type Message =
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
 			codemodSetName: string;
-            codemodName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
@@ -172,18 +171,18 @@ export type Message =
 			executionId: string;
 	  }>
 	| Readonly<{
-            kind: MessageKind.codemodSetExecuted;
+			kind: MessageKind.codemodSetExecuted;
 			executionId: string;
 			codemodSetName: string;
 			halted: boolean;
 			fileCount: number;
-	}>
+	  }>
 	| Readonly<{
-			kind: MessageKind.extensionActivated,
-	}>
+			kind: MessageKind.extensionActivated;
+	  }>
 	| Readonly<{
-			kind: MessageKind.extensionDeactivated,
-	}>;
+			kind: MessageKind.extensionDeactivated;
+	  }>;
 
 type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;

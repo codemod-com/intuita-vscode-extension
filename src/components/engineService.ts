@@ -213,11 +213,12 @@ export class EngineService {
 
 		const executionId = message.executionId;
 
-		const codemodSetName = 'group' in message.command ? message.command.group : '';
+		const codemodSetName =
+			'group' in message.command ? message.command.group : '';
 
 		this.#execution = {
 			childProcess,
-            executionId,
+			executionId,
 			codemodSetName,
 			halted: false,
 			totalFileCount: 0, // that is the lower bound
@@ -266,12 +267,22 @@ export class EngineService {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				job = buildCreateFileJob(inputUri, outputUri, codemodSetName, codemodName);
+				job = buildCreateFileJob(
+					inputUri,
+					outputUri,
+					codemodSetName,
+					codemodName,
+				);
 			} else {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
-				job = buildRewriteFileJob(inputUri, outputUri, codemodSetName, codemodName);
+				job = buildRewriteFileJob(
+					inputUri,
+					outputUri,
+					codemodSetName,
+					codemodName,
+				);
 			}
 
 			this.#messageBus.publish({

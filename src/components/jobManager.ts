@@ -1,7 +1,4 @@
-import {
-	buildHash,
-	isNeitherNullNorUndefined,
-} from '../utilities';
+import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash } from '../jobs/types';
@@ -16,7 +13,8 @@ type Codemod = Readonly<{
 
 type CodemodHash = string & { __CodemodHash: '__CodemodHash' };
 
-const buildCodemodHash = ({ setName, name}: Codemod) => buildHash([setName, name].join(',')) as CodemodHash;
+const buildCodemodHash = ({ setName, name }: Codemod) =>
+	buildHash([setName, name].join(',')) as CodemodHash;
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
@@ -132,23 +130,24 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
-		const {
-			codemodHashJobHashSetManager,
-			codemods,
-		} = this.#buildCodemodObjects(message.jobHashes);
+		const { codemodHashJobHashSetManager, codemods } =
+			this.#buildCodemodObjects(message.jobHashes);
 
 		const messages: Message[] = [];
 
 		{
 			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
-		
+
 			for (const codemodHash of codemodHashes) {
-				const deletedJobHashes = codemodHashJobHashSetManager.getRightHashesByLeftHash(codemodHash);
+				const deletedJobHashes =
+					codemodHashJobHashSetManager.getRightHashesByLeftHash(
+						codemodHash,
+					);
 				const codemod = codemods.get(codemodHash);
 
-				if (!deletedJobHashes || !codemod ) {
-                    continue;
-                }
+				if (!deletedJobHashes || !codemod) {
+					continue;
+				}
 
 				messages.push({
 					kind: MessageKind.jobsAccepted,
@@ -162,9 +161,10 @@ export class JobManager {
 		{
 			const uriJobOutputs: [Uri, Uri][] = [];
 
-			for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
-				message.jobHashes,
-			)) {
+			for (const {
+				uriHash,
+				jobHashes,
+			} of this.#getUriHashesWithJobHashes(message.jobHashes)) {
 				const jobs = Array.from(jobHashes)
 					.map((jobHash) => this.#jobMap.get(jobHash))
 					.filter(isNeitherNullNorUndefined);
@@ -201,23 +201,24 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
-		const {
-			codemodHashJobHashSetManager,
-			codemods,
-		} = this.#buildCodemodObjects(message.jobHashes);
+		const { codemodHashJobHashSetManager, codemods } =
+			this.#buildCodemodObjects(message.jobHashes);
 
 		const messages: Message[] = [];
 
 		{
 			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
-		
+
 			for (const codemodHash of codemodHashes) {
-				const deletedJobHashes = codemodHashJobHashSetManager.getRightHashesByLeftHash(codemodHash);
+				const deletedJobHashes =
+					codemodHashJobHashSetManager.getRightHashesByLeftHash(
+						codemodHash,
+					);
 				const codemod = codemods.get(codemodHash);
 
-				if (!deletedJobHashes || !codemod ) {
-                    continue;
-                }
+				if (!deletedJobHashes || !codemod) {
+					continue;
+				}
 
 				messages.push({
 					kind: MessageKind.jobsRejected,
@@ -231,7 +232,7 @@ export class JobManager {
 		for (const jobHash of message.jobHashes) {
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);	
+			this.#jobMap.delete(jobHash);
 		}
 
 		for (const message of messages) {
@@ -240,15 +241,18 @@ export class JobManager {
 	}
 
 	#buildCodemodObjects(jobHashes: ReadonlySet<JobHash>) {
-		const codemodHashJobHashSetManager = new LeftRightHashSetManager<CodemodHash, JobHash>(new Set());
+		const codemodHashJobHashSetManager = new LeftRightHashSetManager<
+			CodemodHash,
+			JobHash
+		>(new Set());
 		const codemods = new Map<CodemodHash, Codemod>();
 
 		for (const jobHash of jobHashes) {
 			const job = this.#jobMap.get(jobHash);
 
-            if (!job) {
+			if (!job) {
 				continue;
-            }
+			}
 
 			const codemod: Codemod = {
 				setName: job.codemodSetName,

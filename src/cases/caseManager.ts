@@ -36,8 +36,8 @@ export class CaseManager {
 			this.#onRejectCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
-		    this.#onJobsAcceptedOrJobsRejectedMessage(message),
-        );
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
+		);
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
@@ -127,7 +127,9 @@ export class CaseManager {
 	}
 
 	#onJobsAcceptedOrJobsRejectedMessage(
-		message: Message & { kind: MessageKind.jobsAccepted | MessageKind.jobsRejected },
+		message: Message & {
+			kind: MessageKind.jobsAccepted | MessageKind.jobsRejected;
+		},
 	) {
 		for (const kase of this.#cases.values()) {
 			const caseJobHashes =
@@ -138,7 +140,10 @@ export class CaseManager {
 			let deletedCount = 0;
 
 			for (const jobHash of message.deletedJobHashes) {
-				const deleted = this.#caseHashJobHashSetManager.delete(kase.hash, jobHash);
+				const deleted = this.#caseHashJobHashSetManager.delete(
+					kase.hash,
+					jobHash,
+				);
 
 				deletedCount += Number(deleted);
 			}

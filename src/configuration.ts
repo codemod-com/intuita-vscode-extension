@@ -8,7 +8,8 @@ export const getConfiguration = () => {
 
 	const fileLimit = configuration.get<number>('fileLimit') ?? 100;
 
-	const telemetryUrl = configuration.get<string>('telemetryUrl') ?? 'http://localhost:4001'; 
+	const telemetryUrl =
+		configuration.get<string>('telemetryUrl') ?? 'http://localhost:4001';
 
 	return {
 		saveDocumentOnJobAccept,

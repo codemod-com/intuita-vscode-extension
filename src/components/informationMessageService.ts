@@ -11,8 +11,7 @@ export class InformationMessageService {
 	#messageBus: MessageBus;
 	#getStorageUri: () => Uri | null;
 
-	constructor(
-		messageBus: MessageBus, getStorageUri: () => Uri | null) {
+	constructor(messageBus: MessageBus, getStorageUri: () => Uri | null) {
 		this.#messageBus = messageBus;
 		this.#getStorageUri = getStorageUri;
 
