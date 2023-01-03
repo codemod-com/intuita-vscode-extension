@@ -110,6 +110,8 @@ export type Message =
 	| Readonly<{
 		kind: MessageKind.jobsRejected;
 		deletedJobHashes: ReadonlySet<JobHash>;
+		codemodSetName: string;
+		codemodName: string;
   	}>
 	| Readonly<{
 			kind: MessageKind.acceptCase;
@@ -132,6 +134,8 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
+			codemodSetName: string;
+            codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;

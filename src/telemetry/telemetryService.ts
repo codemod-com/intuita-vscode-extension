@@ -22,8 +22,8 @@ export class TelemetryService {
         this.#messageBus.subscribe(MessageKind.executeCodemodSet, (message) => this.#onExecuteCodemodSetMessage(message));
         this.#messageBus.subscribe(MessageKind.codemodSetExecuted, (message) => this.#onCodemodSetExecutedMessage(message));
         this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
-        this.#messageBus.subscribe(MessageKind.caseAccepted, (message) => this.#onCaseAcceptedMessage(message));
-        this.#messageBus.subscribe(MessageKind.caseRejected, (message) => this.#onCaseRejectedMessage(message));
+        this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) => this.#onJobsAcceptedMessage(message));
+        this.#messageBus.subscribe(MessageKind.jobsRejected, (message) => this.#onJobsRejectedMessage(message));
 
         this.#sessionId = buildSessionId();
     }
@@ -97,25 +97,25 @@ export class TelemetryService {
         }
     }
 
-    async #onCaseAcceptedMessage(message: Message & { kind: MessageKind.caseAccepted }) {
+    async #onJobsAcceptedMessage(message: Message & { kind: MessageKind.jobsAccepted }) {
         await this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.JOBS_ACCEPTED,
             sessionId: this.#sessionId,
             happenedAt: String(Date.now()),
             codemodSetName: message.codemodSetName,
             codemodName: message.codemodName,
-            jobCount: String(message.jobCount),
+            jobCount: String(message.deletedJobHashes.size),
         });
     }
 
-    async #onCaseRejectedMessage(message: Message & { kind: MessageKind.caseRejected }) {
+    async #onJobsRejectedMessage(message: Message & { kind: MessageKind.jobsRejected }) {
         await this.#post({
             kind: TELEMETRY_MESSAGE_KINDS.JOBS_REJECTED,
             sessionId: this.#sessionId,
             happenedAt: String(Date.now()),
             codemodSetName: message.codemodSetName,
             codemodName: message.codemodName,
-            jobCount: String(message.jobCount),
+            jobCount: String(message.deletedJobHashes.size),
         });
     }
 
