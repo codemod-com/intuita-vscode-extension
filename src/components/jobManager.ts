@@ -172,6 +172,7 @@ export class JobManager {
 		const buildTupleHash = (job: Job) => buildHash([job.codemodSetName, job.codemodName].join(','));
 
 		const manager = new LeftRightHashSetManager<string, JobHash>(new Set());
+		const tuples = new Map<string, [string, string]>();
 
 		for (const jobHash of message.jobHashes) {
 			const job = this.#jobMap.get(jobHash);
@@ -183,7 +184,10 @@ export class JobManager {
 			const tupleHash = buildTupleHash(job);
 
 			manager.upsert(tupleHash, jobHash);
+			tuples.set(tupleHash, [job.codemodSetName, job.codemodName]);
 		}
+
+		const messages: Message[] = [];
 
 		{
 			const tupleHashes = manager.getLeftHashes();
@@ -191,11 +195,17 @@ export class JobManager {
 			for (const tupleHash of tupleHashes) {
 				const deletedJobHashes = manager.getRightHashesByLeftHash(tupleHash);
 
-				this.#messageBus.publish({
+				const tuple = tuples.get(tupleHash);
+
+				if (!deletedJobHashes || !tuple ) {
+                    continue;
+                }
+
+				messages.push({
 					kind: MessageKind.jobsRejected,
 					deletedJobHashes,
-					codemodSetName: '',
-					codemodName: '',
+					codemodSetName: tuple[0],
+					codemodName: tuple[1],
 				});
 			}
 		}
@@ -204,6 +214,10 @@ export class JobManager {
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);	
+		}
+
+		for (const message of messages) {
+			this.#messageBus.publish(message);
 		}
 	}
 
