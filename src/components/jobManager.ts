@@ -1,13 +1,20 @@
-import {
-	assertsNeitherNullOrUndefined,
-	isNeitherNullNorUndefined,
-} from '../utilities';
+import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash } from '../jobs/types';
 import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+
+type Codemod = Readonly<{
+	setName: string;
+	name: string;
+}>;
+
+type CodemodHash = string & { __CodemodHash: '__CodemodHash' };
+
+const buildCodemodHash = ({ setName, name }: Codemod) =>
+	buildHash([setName, name].join(',')) as CodemodHash;
 
 export class JobManager {
 	readonly #messageBus: MessageBus;
@@ -123,64 +130,145 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
-		const messageJobHashes =
-			'jobHashes' in message ? message.jobHashes : [message.jobHash];
+		const { codemodHashJobHashSetManager, codemods } =
+			this.#buildCodemodObjects(message.jobHashes);
 
-		const uriJobOutputs: [Uri, Uri][] = [];
-		const deletedJobHashes = new Set<JobHash>();
+		const messages: Message[] = [];
 
-		for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
-			new Set(messageJobHashes),
-		)) {
-			const jobs = Array.from(jobHashes)
-				.map((jobHash) => this.#jobMap.get(jobHash))
-				.filter(isNeitherNullNorUndefined);
+		{
+			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
 
-			if (jobs[0]) {
-				const uri = jobs[0].inputUri;
+			for (const codemodHash of codemodHashes) {
+				const deletedJobHashes =
+					codemodHashJobHashSetManager.getRightHashesByLeftHash(
+						codemodHash,
+					);
+				const codemod = codemods.get(codemodHash);
 
-				uriJobOutputs.push([uri, jobs[0].outputUri]);
-			}
+				if (!deletedJobHashes || !codemod) {
+					continue;
+				}
 
-			const otherJobHashes =
-				this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
-					uriHash,
-				);
-
-			for (const jobHash of otherJobHashes) {
-				this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
-				this.#jobMap.delete(jobHash);
+				messages.push({
+					kind: MessageKind.jobsAccepted,
+					deletedJobHashes,
+					codemodSetName: codemod.setName,
+					codemodName: codemod.name,
+				});
 			}
 		}
 
-		uriJobOutputs.forEach(([uri, jobOutputUri]) => {
-			this.#messageBus.publish({
-				kind: MessageKind.updateExternalFile,
-				uri,
-				contentUri: jobOutputUri,
-			});
-		});
+		{
+			const uriJobOutputs: [Uri, Uri][] = [];
 
-		this.#messageBus.publish({
-			kind: MessageKind.jobsAccepted,
-			deletedJobHashes,
-		});
+			for (const {
+				uriHash,
+				jobHashes,
+			} of this.#getUriHashesWithJobHashes(message.jobHashes)) {
+				const jobs = Array.from(jobHashes)
+					.map((jobHash) => this.#jobMap.get(jobHash))
+					.filter(isNeitherNullNorUndefined);
+
+				if (jobs[0]) {
+					const uri = jobs[0].inputUri;
+
+					uriJobOutputs.push([uri, jobs[0].outputUri]);
+				}
+
+				const otherJobHashes =
+					this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
+						uriHash,
+					);
+
+				for (const jobHash of otherJobHashes) {
+					this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
+					this.#jobMap.delete(jobHash);
+				}
+			}
+
+			uriJobOutputs.forEach(([uri, jobOutputUri]) => {
+				messages.push({
+					kind: MessageKind.updateExternalFile,
+					uri,
+					contentUri: jobOutputUri,
+				});
+			});
+		}
+
+		for (const message of messages) {
+			this.#messageBus.publish(message);
+		}
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
-		for (const jobHash of message.jobHashes) {
-			const job = this.getJob(jobHash);
-			assertsNeitherNullOrUndefined(job);
+		const { codemodHashJobHashSetManager, codemods } =
+			this.#buildCodemodObjects(message.jobHashes);
 
+		const messages: Message[] = [];
+
+		{
+			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
+
+			for (const codemodHash of codemodHashes) {
+				const deletedJobHashes =
+					codemodHashJobHashSetManager.getRightHashesByLeftHash(
+						codemodHash,
+					);
+				const codemod = codemods.get(codemodHash);
+
+				if (!deletedJobHashes || !codemod) {
+					continue;
+				}
+
+				messages.push({
+					kind: MessageKind.jobsRejected,
+					deletedJobHashes,
+					codemodSetName: codemod.setName,
+					codemodName: codemod.name,
+				});
+			}
+		}
+
+		for (const jobHash of message.jobHashes) {
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
 		}
 
-		this.#messageBus.publish({
-			kind: MessageKind.updateElements,
-			trigger: 'onCommand',
-		});
+		for (const message of messages) {
+			this.#messageBus.publish(message);
+		}
+	}
+
+	#buildCodemodObjects(jobHashes: ReadonlySet<JobHash>) {
+		const codemodHashJobHashSetManager = new LeftRightHashSetManager<
+			CodemodHash,
+			JobHash
+		>(new Set());
+		const codemods = new Map<CodemodHash, Codemod>();
+
+		for (const jobHash of jobHashes) {
+			const job = this.#jobMap.get(jobHash);
+
+			if (!job) {
+				continue;
+			}
+
+			const codemod: Codemod = {
+				setName: job.codemodSetName,
+				name: job.codemodName,
+			};
+
+			const codemodHash = buildCodemodHash(codemod);
+
+			codemodHashJobHashSetManager.upsert(codemodHash, jobHash);
+			codemods.set(codemodHash, codemod);
+		}
+
+		return {
+			codemodHashJobHashSetManager,
+			codemods,
+		};
 	}
 
 	#onClearStateMessage() {

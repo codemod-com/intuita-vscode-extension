@@ -30,10 +30,13 @@ export class CaseManager {
 			this.#onAcceptCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-			this.#onJobAcceptedMessage(message),
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
@@ -106,6 +109,10 @@ export class CaseManager {
 	}
 
 	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
+		if (!this.#cases.has(message.caseHash)) {
+			throw new Error('You tried to accept a case that does not exist.');
+		}
+
 		// we are not removing cases and jobs here
 		// we wait for the jobs accepted message for data removal
 		const jobHashes =
@@ -115,25 +122,33 @@ export class CaseManager {
 
 		this.#messageBus.publish({
 			kind: MessageKind.acceptJobs,
-			caseHash: message.caseHash,
 			jobHashes,
 		});
 	}
 
-	#onJobAcceptedMessage(
-		message: Message & { kind: MessageKind.jobsAccepted },
+	#onJobsAcceptedOrJobsRejectedMessage(
+		message: Message & {
+			kind: MessageKind.jobsAccepted | MessageKind.jobsRejected;
+		},
 	) {
-		for (const jobHash of message.deletedJobHashes) {
-			this.#caseHashJobHashSetManager.deleteRightHash(jobHash);
-		}
-
 		for (const kase of this.#cases.values()) {
-			const jobHashes =
+			const caseJobHashes =
 				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
 					kase.hash,
 				);
 
-			if (jobHashes.size === 0) {
+			let deletedCount = 0;
+
+			for (const jobHash of message.deletedJobHashes) {
+				const deleted = this.#caseHashJobHashSetManager.delete(
+					kase.hash,
+					jobHash,
+				);
+
+				deletedCount += Number(deleted);
+			}
+
+			if (caseJobHashes.size <= deletedCount) {
 				this.#cases.delete(kase.hash);
 			}
 		}
@@ -155,10 +170,6 @@ export class CaseManager {
 			this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
 				message.caseHash,
 			);
-
-		for (const jobHash of jobHashes) {
-			this.#caseHashJobHashSetManager.delete(message.caseHash, jobHash);
-		}
 
 		this.#messageBus.publish({
 			kind: MessageKind.rejectJobs,

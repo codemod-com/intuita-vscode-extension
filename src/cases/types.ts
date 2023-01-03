@@ -12,6 +12,8 @@ export type Case = Readonly<{
 	kind: CaseKind;
 	subKind: string;
 	hash: CaseHash;
+	codemodSetName: string;
+	codemodName: string;
 }>;
 
 export type CaseWithJobHashes = Case &

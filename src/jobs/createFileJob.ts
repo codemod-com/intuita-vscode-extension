@@ -5,12 +5,15 @@ import { CreateFileJob, JobKind } from './types';
 export const buildCreateFileJob = (
 	inputUri: Uri,
 	outputUri: Uri,
-	codemodId: string,
+	codemodSetName: string,
+	codemodName: string,
 ): CreateFileJob => {
 	return {
 		kind: JobKind.createFile,
 		inputUri,
-		hash: buildJobHash([inputUri, outputUri], codemodId),
+		hash: buildJobHash([inputUri, outputUri], codemodSetName, codemodName),
 		outputUri,
+		codemodName,
+		codemodSetName,
 	};
 };

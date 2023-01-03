@@ -11,6 +11,8 @@ export const persistedJobCodec = buildTypeCodec({
 	inputPath: t.string,
 	outputPath: t.string,
 	hash: t.string,
+	codemodSetName: t.string,
+	codemodName: t.string,
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
@@ -23,6 +25,8 @@ export const persistedCaseCodec = buildTypeCodec({
 	]),
 	subKind: t.string,
 	hash: t.string,
+	codemodSetName: t.string,
+	codemodName: t.string,
 });
 
 export type PersistedCase = t.TypeOf<typeof persistedCaseCodec>;

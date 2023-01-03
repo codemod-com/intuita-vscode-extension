@@ -80,10 +80,10 @@ export class LeftRightHashSetManager<L extends string, R extends string> {
 		this.#set.add(hash);
 	}
 
-	public delete(leftHash: L, rightHash: R): void {
+	public delete(leftHash: L, rightHash: R): boolean {
 		const hash = this.#buildLeftRightHash(leftHash, rightHash);
 
-		this.#set.delete(hash);
+		return this.#set.delete(hash);
 	}
 
 	public deleteRightHash(rightHash: R): void {

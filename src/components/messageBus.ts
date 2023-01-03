@@ -14,29 +14,37 @@ export const enum MessageKind {
 	/** cases and jobs */
 	upsertCases = 3,
 	upsertJobs = 4,
+
 	rejectCase = 5,
 	rejectJobs = 6,
-	acceptCase = 7,
-	acceptJobs = 8,
-	jobsAccepted = 9,
+	jobsRejected = 7,
+
+	acceptCase = 8,
+	acceptJobs = 9,
+	jobsAccepted = 10,
 
 	/** file comparison */
-	compareFiles = 10,
-	filesCompared = 11,
+	compareFiles = 11,
+	filesCompared = 12,
 
 	/** bootstrap */
-	bootstrapEngines = 12,
-	enginesBootstrapped = 13,
+	bootstrapEngines = 13,
+	enginesBootstrapped = 14,
 
 	/** state */
-	persistState = 14,
-	clearState = 15,
+	persistState = 15,
+	clearState = 16,
 
 	/** information message */
-	showInformationMessage = 16,
+	showInformationMessage = 17,
 
 	/** codemod sets */
-	executeCodemodSet = 17,
+	executeCodemodSet = 18,
+	codemodSetExecuted = 19,
+
+	/** extension states */
+	extensionActivated = 20,
+	extensionDeactivated = 21,
 }
 
 export type Engine = 'node' | 'rust';
@@ -73,6 +81,7 @@ export type Message =
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
 			trigger: Trigger;
+			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
@@ -89,6 +98,12 @@ export type Message =
 			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
+			kind: MessageKind.jobsRejected;
+			deletedJobHashes: ReadonlySet<JobHash>;
+			codemodSetName: string;
+			codemodName: string;
+	  }>
+	| Readonly<{
 			kind: MessageKind.acceptCase;
 			caseHash: CaseHash;
 	  }>
@@ -97,12 +112,10 @@ export type Message =
 			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
-			kind: MessageKind.acceptJobs;
-			jobHash: JobHash;
-	  }>
-	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
+			codemodSetName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.compareFiles;
@@ -110,11 +123,17 @@ export type Message =
 			job: Job;
 			caseKind: CaseKind;
 			caseSubKind: string;
+			executionId: string;
+			codemodSetName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
 			jobHash: JobHash;
 			equal: boolean;
+			executionId: string;
+			codemodSetName: string;
+			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngines;
@@ -140,6 +159,21 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
+			happenedAt: string;
+			executionId: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.codemodSetExecuted;
+			executionId: string;
+			codemodSetName: string;
+			halted: boolean;
+			fileCount: number;
+	  }>
+	| Readonly<{
+			kind: MessageKind.extensionActivated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.extensionDeactivated;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

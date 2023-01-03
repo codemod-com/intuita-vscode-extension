@@ -62,13 +62,21 @@ const STORAGE_DIRECTORY_MAP = new Map([
 	['rust', 'nora-rust-engine'],
 ]);
 
+type Execution = {
+	readonly executionId: string;
+	readonly childProcess: ChildProcessWithoutNullStreams;
+	readonly codemodSetName: string;
+	totalFileCount: number;
+	halted: boolean;
+};
+
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
 	readonly #statusBarItemManager: StatusBarItemManager;
 
-	#childProcess: ChildProcessWithoutNullStreams | null = null;
+	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
 	#noraRustEngineExecutableUri: Uri | null = null;
 
@@ -100,13 +108,22 @@ export class EngineService {
 	}
 
 	shutdownEngines() {
-		this.#childProcess?.stdin.write('shutdown\n');
+		if (!this.#execution) {
+			return;
+		}
+
+		this.#execution.halted = true;
+		this.#execution.childProcess.stdin.write('shutdown\n');
 	}
 
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
-		if (this.#childProcess) {
+		if (this.#execution) {
+			await window.showErrorMessage(
+				'Wait until the previous codemod set execution has finished',
+			);
+
 			return;
 		}
 
@@ -186,19 +203,36 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		this.#childProcess = spawn(executableUri.fsPath, args, {
+		const childProcess = spawn(executableUri.fsPath, args, {
 			stdio: 'pipe',
 		});
 
-		this.#childProcess.stderr.on('data', (data) => {
+		childProcess.stderr.on('data', (data) => {
 			console.error(data.toString());
 		});
 
-		const interfase = readline.createInterface(this.#childProcess.stdout);
+		const executionId = message.executionId;
+
+		const codemodSetName =
+			'group' in message.command ? message.command.group : '';
+
+		this.#execution = {
+			childProcess,
+			executionId,
+			codemodSetName,
+			halted: false,
+			totalFileCount: 0, // that is the lower bound
+		};
+
+		const interfase = readline.createInterface(childProcess.stdout);
 
 		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
 		interfase.on('line', async (line) => {
+			if (!this.#execution) {
+				return;
+			}
+
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -212,6 +246,8 @@ export class EngineService {
 
 			if (message.k === EngineMessageKind.progress) {
 				this.#statusBarItemManager.moveToProgress(message.p, message.t);
+
+				this.#execution.totalFileCount = message.t;
 				return;
 			}
 
@@ -225,16 +261,28 @@ export class EngineService {
 
 			let job: Job;
 
+			const codemodName = message.c;
+
 			if (message.k === EngineMessageKind.create) {
 				const inputUri = Uri.file(message.p);
 				const outputUri = Uri.file(message.o);
 
-				job = buildCreateFileJob(inputUri, outputUri, message.c);
+				job = buildCreateFileJob(
+					inputUri,
+					outputUri,
+					codemodSetName,
+					codemodName,
+				);
 			} else {
 				const inputUri = Uri.file(message.i);
 				const outputUri = Uri.file(message.o);
 
-				job = buildRewriteFileJob(inputUri, outputUri, message.c);
+				job = buildRewriteFileJob(
+					inputUri,
+					outputUri,
+					codemodSetName,
+					codemodName,
+				);
 			}
 
 			this.#messageBus.publish({
@@ -243,13 +291,26 @@ export class EngineService {
 				job,
 				caseKind,
 				caseSubKind: message.c,
+				executionId,
+				codemodSetName,
+				codemodName,
 			});
 		});
 
 		interfase.on('close', () => {
 			this.#statusBarItemManager.moveToStandby();
 
-			this.#childProcess = null;
+			if (this.#execution) {
+				this.#messageBus.publish({
+					kind: MessageKind.codemodSetExecuted,
+					executionId: this.#execution.executionId,
+					codemodSetName: this.#execution.codemodSetName,
+					halted: this.#execution.halted,
+					fileCount: this.#execution.totalFileCount,
+				});
+			}
+
+			this.#execution = null;
 		});
 	}
 

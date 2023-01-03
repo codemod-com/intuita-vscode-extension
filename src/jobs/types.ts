@@ -12,6 +12,8 @@ export type RewriteFileJob = Readonly<{
 	inputUri: Uri;
 	outputUri: Uri;
 	hash: JobHash;
+	codemodSetName: string;
+	codemodName: string;
 }>;
 
 export type CreateFileJob = Readonly<{
@@ -19,6 +21,8 @@ export type CreateFileJob = Readonly<{
 	inputUri: Uri;
 	outputUri: Uri;
 	hash: JobHash;
+	codemodSetName: string;
+	codemodName: string;
 }>;
 
 export type Job = RewriteFileJob | CreateFileJob;
