@@ -37,9 +37,10 @@ export const enum MessageKind {
 
 	/** codemod sets */
 	executeCodemodSet = 17,
+	codemodSetExecuted = 18,
 
-	extensionActivated = 18,
-	extensionDeactivated = 19,
+	extensionActivated = 19,
+	extensionDeactivated = 20,
 }
 
 export type Engine = 'node' | 'rust';
@@ -153,6 +154,12 @@ export type Message =
 			happenedAt: string;
 			executionId: string;
 	  }>
+	| Readonly<{
+            kind: MessageKind.codemodSetExecuted;
+			executionId: string;
+			codemodSetName: string;
+			fileCount: number;
+	}>
 	| Readonly<{
 			kind: MessageKind.extensionActivated,
 	}>

@@ -62,11 +62,12 @@ const STORAGE_DIRECTORY_MAP = new Map([
 	['rust', 'nora-rust-engine'],
 ]);
 
-type Execution = Readonly<{
-	executionId: string; // TODO build a special type
-	childProcess: ChildProcessWithoutNullStreams;
-	codemodSetName: string;
-}>;
+type Execution = {
+	readonly executionId: string; // TODO build a special type
+	readonly childProcess: ChildProcessWithoutNullStreams;
+	readonly codemodSetName: string;
+	totalFileCount: number;
+};
 
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
@@ -216,6 +217,7 @@ export class EngineService {
 			childProcess,
             executionId,
 			codemodSetName,
+			totalFileCount: 0, // that is the lower bound
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -223,6 +225,10 @@ export class EngineService {
 		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
 		interfase.on('line', async (line) => {
+			if (!this.#execution) {
+				return;
+			}
+
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -236,6 +242,8 @@ export class EngineService {
 
 			if (message.k === EngineMessageKind.progress) {
 				this.#statusBarItemManager.moveToProgress(message.p, message.t);
+
+				this.#execution.totalFileCount = message.t;
 				return;
 			}
 
@@ -277,6 +285,15 @@ export class EngineService {
 
 		interfase.on('close', () => {
 			this.#statusBarItemManager.moveToStandby();
+
+			if (this.#execution) {
+				this.#messageBus.publish({
+					kind: MessageKind.codemodSetExecuted,
+					executionId: this.#execution.executionId,
+					codemodSetName: this.#execution.codemodSetName,
+					fileCount: this.#execution.totalFileCount,
+				});
+			}
 
 			this.#execution = null;
 		});

@@ -20,6 +20,7 @@ export class TelemetryService {
         this.#messageBus.subscribe(MessageKind.extensionActivated, () => this.#onExtensionActivatedMessage());
         this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => this.#onExtensionDisactivatedMessage());
         this.#messageBus.subscribe(MessageKind.executeCodemodSet, (message) => this.#onExecuteCodemodSetMessage(message));
+        this.#messageBus.subscribe(MessageKind.codemodSetExecuted, (message) => this.#onCodemodSetExecutedMessage(message));
         this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
 
 
@@ -51,6 +52,19 @@ export class TelemetryService {
             happenedAt: String(Date.now()),
             executionId: message.executionId,
             codemodSetName: 'group' in message.command ? message.command.group : '',
+        });
+    }
+
+    async #onCodemodSetExecutedMessage(
+        message: Message & { kind: MessageKind.codemodSetExecuted },
+    ) {
+        await this.#post({
+            kind: TELEMETRY_MESSAGE_KINDS.CODEMOD_SET_EXECUTION_ENDED,
+            sessionId: this.#sessionId,
+            happenedAt: String(Date.now()),
+            executionId: message.executionId,
+            codemodSetName: message.codemodSetName,
+            fileCount: String(message.fileCount),
         });
     }
 
