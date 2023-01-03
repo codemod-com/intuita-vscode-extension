@@ -121,10 +121,6 @@ export type Message =
 			jobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
-			kind: MessageKind.acceptJobs;
-			jobHash: JobHash;
-	  }>
-	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobHashes: ReadonlySet<JobHash>;
 			codemodSetName: string;

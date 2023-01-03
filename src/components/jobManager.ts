@@ -132,14 +132,11 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
-		const messageJobHashes =
-			'jobHashes' in message ? message.jobHashes : [message.jobHash];
-
 		const uriJobOutputs: [Uri, Uri][] = [];
 		const deletedJobHashes = new Set<JobHash>();
 
 		for (const { uriHash, jobHashes } of this.#getUriHashesWithJobHashes(
-			new Set(messageJobHashes),
+			message.jobHashes,
 		)) {
 			const jobs = Array.from(jobHashes)
 				.map((jobHash) => this.#jobMap.get(jobHash))

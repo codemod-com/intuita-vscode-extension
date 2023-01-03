@@ -122,7 +122,6 @@ export class CaseManager {
 
 		this.#messageBus.publish({
 			kind: MessageKind.acceptJobs,
-			caseHash: message.caseHash,
 			jobHashes,
 		});
 	}
