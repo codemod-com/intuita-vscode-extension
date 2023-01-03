@@ -123,18 +123,29 @@ export class CaseManager {
 	#onJobAcceptedMessage(
 		message: Message & { kind: MessageKind.jobsAccepted },
 	) {
-		for (const jobHash of message.deletedJobHashes) {
-			this.#caseHashJobHashSetManager.deleteRightHash(jobHash);
-		}
-
 		for (const kase of this.#cases.values()) {
-			const jobHashes =
+			const caseJobHashes =
 				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
 					kase.hash,
 				);
 
-			if (jobHashes.size === 0) {
+			let deletedCount = 0;
+
+			for (const jobHash of message.deletedJobHashes) {
+				const deleted = this.#caseHashJobHashSetManager.delete(kase.hash, jobHash);
+
+				deletedCount += Number(deleted);
+			}
+
+			if (caseJobHashes.size <= deletedCount) {
 				this.#cases.delete(kase.hash);
+
+				this.#messageBus.publish({
+					kind: MessageKind.caseAccepted,
+					codemodSetName: kase.codemodSetName,
+					codemodName: kase.codemodName,
+					jobCount: caseJobHashes.size,
+				});
 			}
 		}
 

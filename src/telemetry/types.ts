@@ -60,7 +60,6 @@ export const telemetryMessageCodec = t.union([
     }),
     buildTypeCodec({
         kind: t.union([
-            t.literal(TELEMETRY_MESSAGE_KINDS.JOB_UPDATED),
             t.literal(TELEMETRY_MESSAGE_KINDS.JOBS_ACCEPTED),
             t.literal(TELEMETRY_MESSAGE_KINDS.JOBS_REJECTED),
         ]),

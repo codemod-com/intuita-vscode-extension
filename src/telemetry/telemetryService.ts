@@ -22,7 +22,7 @@ export class TelemetryService {
         this.#messageBus.subscribe(MessageKind.executeCodemodSet, (message) => this.#onExecuteCodemodSetMessage(message));
         this.#messageBus.subscribe(MessageKind.codemodSetExecuted, (message) => this.#onCodemodSetExecutedMessage(message));
         this.#messageBus.subscribe(MessageKind.upsertCases, (message) => this.#onUpsertCasesMessage(message));
-
+        this.#messageBus.subscribe(MessageKind.caseAccepted, (message) => this.#onCaseAcceptedMessage(message));
 
         this.#sessionId = buildSessionId();
     }
@@ -94,6 +94,17 @@ export class TelemetryService {
                 jobCount: String(kase.jobHashes.size),
             });
         }
+    }
+
+    async #onCaseAcceptedMessage(message: Message & { kind: MessageKind.caseAccepted }) {
+        await this.#post({
+            kind: TELEMETRY_MESSAGE_KINDS.JOBS_ACCEPTED,
+            sessionId: this.#sessionId,
+            happenedAt: String(Date.now()),
+            codemodSetName: message.codemodSetName,
+            codemodName: message.codemodName,
+            jobCount: String(message.jobCount),
+        });
     }
 
     async #post(telemetryMessage: TelemetryMessage): Promise<void> {
