@@ -16,37 +16,35 @@ export const enum MessageKind {
 	upsertJobs = 4,
 
 	rejectCase = 5,
-	caseRejected = 101,
-
 	rejectJobs = 6,
-	jobsRejected = 102,
+	jobsRejected = 7,
 
-	acceptCase = 7,
-
-	acceptJobs = 8,
-	jobsAccepted = 9,
+	acceptCase = 8,
+	acceptJobs = 9,
+	jobsAccepted = 10,
 
 	/** file comparison */
-	compareFiles = 10,
-	filesCompared = 11,
+	compareFiles = 11,
+	filesCompared = 12,
 
 	/** bootstrap */
-	bootstrapEngines = 12,
-	enginesBootstrapped = 13,
+	bootstrapEngines = 13,
+	enginesBootstrapped = 14,
 
 	/** state */
-	persistState = 14,
-	clearState = 15,
+	persistState = 15,
+	clearState = 16,
 
 	/** information message */
-	showInformationMessage = 16,
+	showInformationMessage = 17,
 
 	/** codemod sets */
-	executeCodemodSet = 17,
-	codemodSetExecuted = 18,
+	executeCodemodSet = 18,
+	codemodSetExecuted = 19,
 
-	extensionActivated = 19,
-	extensionDeactivated = 20,
+	/** extension states */
+	extensionActivated = 20,
+	extensionDeactivated = 21,
 }
 
 export type Engine = 'node' | 'rust';
@@ -94,12 +92,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.rejectCase;
 			caseHash: CaseHash;
-	  }>
-	| Readonly<{
-			kind: MessageKind.caseRejected;
-			codemodSetName: string;
-			codemodName: string;
-			jobCount: number;
 	  }>
 	| Readonly<{
 			kind: MessageKind.rejectJobs;
