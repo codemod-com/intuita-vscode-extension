@@ -63,7 +63,7 @@ const STORAGE_DIRECTORY_MAP = new Map([
 ]);
 
 type Execution = {
-	readonly executionId: string; // TODO build a special type
+	readonly executionId: string;
 	readonly childProcess: ChildProcessWithoutNullStreams;
 	readonly codemodSetName: string;
 	totalFileCount: number;
@@ -113,7 +113,7 @@ export class EngineService {
 		}
 
 		this.#execution.halted = true;
-		this.#execution.childProcess?.stdin.write('shutdown\n');
+		this.#execution.childProcess.stdin.write('shutdown\n');
 	}
 
 	async #onExecuteCodemodSetMessage(
