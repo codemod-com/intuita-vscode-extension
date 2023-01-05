@@ -147,6 +147,6 @@ export class TelemetryService {
 	}
 
 	#buildUrl(): string {
-		return 'http://localhost:4001/messages';
+		return 'https://telemetry.intuita.io/messages';
 	}
 }
