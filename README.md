@@ -46,6 +46,14 @@
 - Our experience & research says **more than 40% of developers' time is wasted on code maintenance**. We are here to help you with those tedious undifferentiated tasks.
 
 ---
+## Telemetry
+The extension collects telemetry data since v0.7.0. We use them to improve performance of the extension and to plan new features. We never send PII, OS information, file or folder names.
+
+You can see the schema of the outgoing telemetry messages [here](https://github.com/intuita-inc/intuita-vscode-extension/blob/main/src/telemetry/types.ts).
+
+You can disable telemetry by going into Settings and searching the for `telemetryEnabled` setting under Intuita VSCode Extensions's Settings. We also respect if the `telemetry.telemetryLevel` setting is set to `off`.
+
+---
 ## How Can I Share Feedback? 🎁
 
 - Please share your ideas, questions, feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>
