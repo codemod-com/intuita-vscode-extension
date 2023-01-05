@@ -554,7 +554,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 
-	new TelemetryService(messageBus);
+	new TelemetryService(configurationContainer, messageBus);
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngines,

@@ -1,13 +1,20 @@
 import Axios from 'axios';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
+import { Configuration } from '../configuration';
+import { Container } from '../container';
 import { buildSessionId } from './hashes';
 import { TelemetryMessage, TELEMETRY_MESSAGE_KINDS } from './types';
 
 export class TelemetryService {
+	#configurationContainer: Container<Configuration>;
 	#messageBus: MessageBus;
 	#sessionId: string;
 
-	public constructor(messageBus: MessageBus) {
+	public constructor(
+		configurationContainer: Container<Configuration>,
+		messageBus: MessageBus,
+	) {
+		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 
 		this.#messageBus.subscribe(MessageKind.extensionActivated, () =>
@@ -132,10 +139,14 @@ export class TelemetryService {
 	}
 
 	async #post(telemetryMessage: TelemetryMessage): Promise<void> {
-		const url = this.#buildUrl();
+		const url = 'https://telemetry.intuita.io/messages';
+
+		if (!this.#configurationContainer.get().telemetryEnabled) {
+			return;
+		}
 
 		try {
-			await Axios.post(url, telemetryMessage);
+			await Axios.post(url, telemetryMessage, { maxRedirects: 0, timeout: 5000 });
 		} catch (error) {
 			if (!Axios.isAxiosError(error)) {
 				console.error(error);
@@ -144,9 +155,5 @@ export class TelemetryService {
 
 			console.error(error.response?.data);
 		}
-	}
-
-	#buildUrl(): string {
-		return 'https://telemetry.intuita.io/messages';
 	}
 }
