@@ -8,9 +8,21 @@ export const getConfiguration = () => {
 
 	const fileLimit = configuration.get<number>('fileLimit') ?? 100;
 
+	const telemetryConfiguration =
+		vscode.workspace.getConfiguration('telemetry');
+
+	const telemetryLevel =
+		telemetryConfiguration.get<string>('telemetryLevel') ?? 'all';
+
+	const telemetryEnabled =
+		telemetryLevel !== 'off'
+			? configuration.get<boolean>('telemetryEnabled') ?? true
+			: false;
+
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
+		telemetryEnabled,
 	};
 };
 

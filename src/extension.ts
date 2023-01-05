@@ -29,6 +29,7 @@ import {
 import { buildTypeCodec } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
+import { TelemetryService } from './telemetry/telemetryService';
 
 const messageBus = new MessageBus();
 
@@ -552,6 +553,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	dependencyService.showInformationMessagesAboutUpgrades();
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
+
+	new TelemetryService(configurationContainer, messageBus);
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngines,
