@@ -110,6 +110,12 @@
 					"type": "number",
 					"default": 100,
 					"description": "The maximum number of files to execute any codemod over"
+				},
+				"intuita.telemetryEnabled": {
+					"order": 2,
+					"type": "boolean",
+					"default": "true",
+					"description": "Whether to send any telemetry messages to the Intuita servers."
 				}
 			}
 		},
