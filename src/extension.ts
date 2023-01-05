@@ -21,7 +21,7 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import { DependencyService } from './dependencies/dependencyService';
+// import { DependencyService } from './dependencies/dependencyService';
 import {
 	dependencyNameToGroup,
 	InformationMessageService,
@@ -548,9 +548,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		trigger: 'bootstrap',
 	});
 
-	const dependencyService = new DependencyService(messageBus);
+	// const dependencyService = new DependencyService(messageBus);
 
-	dependencyService.showInformationMessagesAboutUpgrades();
+	// dependencyService.showInformationMessagesAboutUpgrades();
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 
