@@ -146,7 +146,10 @@ export class TelemetryService {
 		}
 
 		try {
-			await Axios.post(url, telemetryMessage, { maxRedirects: 0, timeout: 5000 });
+			await Axios.post(url, telemetryMessage, {
+				maxRedirects: 0,
+				timeout: 5000,
+			});
 		} catch (error) {
 			if (!Axios.isAxiosError(error)) {
 				console.error(error);
