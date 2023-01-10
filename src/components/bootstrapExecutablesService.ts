@@ -34,7 +34,7 @@ export class BootstrapExecutablesService {
 
 		this.#statusBarItemManager.moveToBootstrap();
 
-		const [_, noraRustEngineExecutableUri] =
+		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
 			await Promise.all([
 				this.#bootstrapNoraNodeEngineExecutableUri(),
 				this.#bootstrapNoraRustEngineExecutableUri(),
@@ -44,7 +44,7 @@ export class BootstrapExecutablesService {
 
 		this.#messageBus.publish({
 			kind: MessageKind.enginesBootstrapped,
-			noraNodeEngineExecutableUri: Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
+			noraNodeEngineExecutableUri,
 			noraRustEngineExecutableUri,
 		});
 	}
