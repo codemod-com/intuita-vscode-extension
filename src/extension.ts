@@ -382,6 +382,82 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeReactRouterv4Codemods',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'reactrouterv4',
+						uri,
+					},
+					executionId,
+					happenedAt,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeReactRouterv6Codemods',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'reactrouterv6',
+						uri,
+					},
+					executionId,
+					happenedAt,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.clearOutputFiles',
 			async () => {
 				const { storageUri } = context;
