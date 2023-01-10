@@ -48,7 +48,7 @@ export const enum MessageKind {
 }
 
 export type Engine = 'node' | 'rust';
-export type Group = 'nextJs' | 'mui';
+export type Group = 'nextJs' | 'mui' | 'reactrouterv4';
 
 export type Command =
 	| Readonly<{

@@ -57,6 +57,10 @@
 				"title": "Intuita: execute MUI codemods (over the workspace)"
 			},
 			{
+				"command": "intuita.executeReactRouterv4Codemods",
+				"title": "Intuita: execute React Router v4 codemods (over the workspace)"
+			},
+			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: clear output files"
 			},
