@@ -1,8 +1,8 @@
 {
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
-	"description": "Automatic Code Modification, Built For Scale",
-	"version": "0.7.0",
+	"description": "Upgrade dependencies faster with high-quality codemods.",
+	"version": "0.7.1",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -36,33 +36,33 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run a codemod recipe via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run a codemod recipe via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
 			}
 		],
 		"commands": [
 			{
 				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js codemods (over the workspace)"
+				"title": "Intuita: execute Next.js v13 codemods over the workspace"
 			},
 			{
 				"command": "intuita.executePagesToAppsCodemods",
-				"title": "Intuita: execute Pages-to-Apps codemods (experimental)"
+				"title": "Intuita: execute Next.js v13 Pages-to-Apps codemods over the workspace (experimental)"
 			},
 			{
 				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute MUI codemods (over the workspace)"
+				"title": "Intuita: execute Material UI v5 codemods over the workspace"
 			},
 			{
 				"command": "intuita.executeReactRouterv4Codemods",
-				"title": "Intuita: execute React Router v4 codemods (over the workspace)"
+				"title": "Intuita: execute React Router v4 codemods over the workspace"
 			},
 			{
 				"command": "intuita.executeReactRouterv6Codemods",
-				"title": "Intuita: execute React Router v6 codemods (over the workspace)"
+				"title": "Intuita: execute React Router v6 codemods over the workspace"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
@@ -70,38 +70,38 @@
 			},
 			{
 				"command": "intuita.requestFeature",
-				"title": "Request a feature",
+				"title": "Feature Request",
 				"icon": "$(flame)"
 			},
 			{
 				"command": "intuita.openYouTubeChannel",
-				"title": "Open our YouTube Channel",
+				"title": "YouTube Channel",
 				"icon": "$(device-camera-video)"
 			},
 			{
 				"command": "intuita.clearState",
-				"title": "Clear state",
+				"title": "Clear All",
 				"icon": "$(clear-all)"
 			},
 			{
 				"command": "intuita.acceptJob",
-				"title": "✓ Accept"
+				"title": "✓ Apply"
 			},
 			{
 				"command": "intuita.rejectJob",
-				"title": "✗ Reject"
+				"title": "✗ Dismiss"
 			},
 			{
 				"command": "intuita.acceptCase",
-				"title": "✓ Accept"
+				"title": "✓ Apply"
 			},
 			{
 				"command": "intuita.rejectCase",
-				"title": "✗ Reject"
+				"title": "✗ Dismiss"
 			},
 			{
 				"command": "intuita.executeAsCodemod",
-				"title": "[Intuita] Execute as a Codemod"
+				"title": "Intuita: Run as a codemod"
 			}
 		],
 		"configuration": {
@@ -111,7 +111,7 @@
 					"order": 0,
 					"type": "boolean",
 					"default": true,
-					"description": "When you accept a recommendation, the extension will save the associated file."
+					"description": "When a proposed change is accepted, save the associated file."
 				},
 				"intuita.fileLimit": {
 					"order": 1,
@@ -123,7 +123,7 @@
 					"order": 2,
 					"type": "boolean",
 					"default": "true",
-					"description": "Whether to send any telemetry messages to the Intuita servers."
+					"description": "Send [telemetry data](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) to Intuita. "
 				}
 			}
 		},
