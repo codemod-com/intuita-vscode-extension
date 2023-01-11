@@ -28,21 +28,21 @@
 ### Codemod Builders 🥷🏼
 - ❌ **Without Intuita** ❌ you go the codemod journey alone! you ask yourself:
   - What are the best codemod engines out there for the type of transformation i want to build?
-  - What's the easiet way to build codemods? any tool out there? how about creating test cases?
+  - What's the easiest way to build codemods? any tool out there? how about creating test cases?
   - Has anyone out there built the exact codemod that I want to build?
   - How can my codemod be discovered and used by thousands of other developers out there who could benefit from it sooner or later?
  
  - ✅ **With Intuita** ✅ you are surrounded by a community of codemod experts
   - We build tools, processes & guidelines on how to write high-quality codemods, how to write tests, and which engine (imperative, declarative, ML based, pattern based, etc.) to use for each use case. 
   - We will be the distribution channel for your codemods. write a useful codemod & along with other codemods created by the community, ship it to tens of thousands of developers out there within a few mins of integrating them into Intuita. 
-  - If you, just like us, are also a codemod nerd, [let's get in touch!](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) we are growing our team with awesome engineers who are passionate about automaing boring tasks for fellow developers.
+  - If you, just like us, are also a codemod nerd, [let's get in touch!](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) we are growing our team with awesome engineers who are passionate about automating boring tasks for fellow developers.
 
 
 ### Engineering Leads 👩🏾‍💼👨🏻‍💼
 - ❌ **Without Intuita** ❌ leaders do not have visibility into the status of large migration/upgrade campaigns. you ask yourself:
   - How long would this upgrade take? How many developers are impacted? Are we on track to hit our business deadlines?
 
-- ✅ **With Intuita** ✅ [enteprise features] you can easily track progress & coordinate migration campaigns across many teams.
+- ✅ **With Intuita** ✅ [enterprise features] you can easily track progress & coordinate migration campaigns across many teams.
   - **Team leads, please contact us to learn more about enterprise features such as Jira/Github/Slack integrations, automated task & notification delivery.**
 
 ---
