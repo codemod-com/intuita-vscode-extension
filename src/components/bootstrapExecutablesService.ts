@@ -34,18 +34,17 @@ export class BootstrapExecutablesService {
 
 		this.#statusBarItemManager.moveToBootstrap();
 
-		const [_, noraRustEngineExecutableUri] = await Promise.all([
-			this.#bootstrapNoraNodeEngineExecutableUri(),
-			this.#bootstrapNoraRustEngineExecutableUri(),
-		]);
+		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
+			await Promise.all([
+				this.#bootstrapNoraNodeEngineExecutableUri(),
+				this.#bootstrapNoraRustEngineExecutableUri(),
+			]);
 
 		this.#statusBarItemManager.moveToStandby();
 
 		this.#messageBus.publish({
 			kind: MessageKind.enginesBootstrapped,
-			noraNodeEngineExecutableUri: Uri.file(
-				'/intuita/nora-node-engine/apps/nne/build/nne-linux',
-			),
+			noraNodeEngineExecutableUri,
 			noraRustEngineExecutableUri,
 		});
 	}
