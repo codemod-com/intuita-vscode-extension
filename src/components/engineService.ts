@@ -215,8 +215,9 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		const childProcess = spawn(executableUri.fsPath, args, {
+		const childProcess = spawn(`"${executableUri.fsPath}"`, args, {
 			stdio: 'pipe',
+			shell: true,
 		});
 
 		childProcess.stderr.on('data', (data) => {

@@ -19,8 +19,9 @@ class CompareProcessWrapper {
 		executionId: string,
 		messageBus: MessageBus,
 	) {
-		this.#process = spawn(executableUri.fsPath, [], {
+		this.#process = spawn(`"${executableUri.fsPath}"`, [], {
 			stdio: 'pipe',
+			shell: true,
 		});
 
 		this.#process.on('error', (error) => {
