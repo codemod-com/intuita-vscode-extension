@@ -456,6 +456,80 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	vscode.commands.registerCommand(
+		'intuita.executeImmutableJSv0Codemods',
+		async () => {
+			const { storageUri } = context;
+
+			if (!storageUri) {
+				console.error('No storage URI, aborting the command.');
+				return;
+			}
+
+			const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+			if (!uri) {
+				console.warn(
+					'No workspace folder is opened, aborting the operation.',
+				);
+				return;
+			}
+
+			const executionId = buildExecutionId();
+			const happenedAt = String(Date.now());
+
+			messageBus.publish({
+				kind: MessageKind.executeCodemodSet,
+				command: {
+					engine: 'node',
+					storageUri,
+					group: 'immutablejsv0',
+					uri,
+				},
+				executionId,
+				happenedAt,
+			});
+		},
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeImmutableJSv4Codemods',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'immutablejsv4',
+						uri,
+					},
+					executionId,
+					happenedAt,
+				});
+			},
+		),
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.clearOutputFiles',
