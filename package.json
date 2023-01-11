@@ -27,7 +27,8 @@
 		"dependency"
 	],
 	"activationEvents": [
-		"workspaceContains:**/*.ts*"
+		"workspaceContains:**/*.ts*",
+		"workspaceContains:**/*.js*"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -63,6 +64,14 @@
 			{
 				"command": "intuita.executeReactRouterv6Codemods",
 				"title": "Intuita: execute React Router v6 codemods over the workspace"
+			},
+			{
+				"command": "intuita.executeImmutableJSv0Codemods",
+				"title": "Intuita: execute ImmutableJS removal codemods over the workspace"
+			},
+			{
+				"command": "intuita.executeImmutableJSv4Codemods",
+				"title": "Intuita: execute ImmutableJS v4 codemods over the workspace"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
