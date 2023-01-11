@@ -55,6 +55,8 @@
 
 ![Screenshot 2022-12-07 at 1 01 20 PM](https://user-images.githubusercontent.com/78109534/206294943-1dc51334-15d5-4a5f-8b9c-a701cab0ccca.png)
 
+If you like videos better, here is a quick YouTube [tutorial](https://www.youtube.com/watch?v=pEGdu-cpu5k).
+
 ---
 ## Telemetry
 - The extension collects telemetry data (v0.7.0 & after) & it can be disabled in the settings.
