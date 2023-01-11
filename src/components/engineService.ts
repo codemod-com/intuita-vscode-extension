@@ -166,6 +166,18 @@ export class EngineService {
 			if (message.command.engine === 'node' && 'uri' in message.command) {
 				args.push(
 					'-p',
+					Uri.joinPath(message.command.uri, '**/*.js').fsPath,
+				);
+				args.push(
+					'-p',
+					Uri.joinPath(message.command.uri, '**/*.jsx').fsPath,
+				);
+				args.push(
+					'-p',
+					Uri.joinPath(message.command.uri, '**/*.ts').fsPath,
+				);
+				args.push(
+					'-p',
 					Uri.joinPath(message.command.uri, '**/*.tsx').fsPath,
 				);
 				args.push('-p', '!**/node_modules');

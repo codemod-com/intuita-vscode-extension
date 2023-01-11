@@ -27,7 +27,8 @@
 		"dependency"
 	],
 	"activationEvents": [
-		"workspaceContains:**/*.ts*"
+		"workspaceContains:**/*.ts*",
+		"workspaceContains:**/*.js*"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
