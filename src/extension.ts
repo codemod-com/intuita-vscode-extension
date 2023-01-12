@@ -708,7 +708,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		const codec = buildTypeCodec({ version: t.string });
 
 		const validation = codec.decode(context.extension.packageJSON);
-		const version = validation._tag === 'Right' ? validation.right.version : null;
+		const version =
+			validation._tag === 'Right' ? validation.right.version : null;
 
 		new TelemetryService(configurationContainer, messageBus, version);
 	}
