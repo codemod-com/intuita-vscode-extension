@@ -5,7 +5,8 @@
 - The codemods for upgrading the following frameworks/libraries have already been added to the extension. If you want to upgrade a dependency in the near future & it's not listed here, please [create an issue](https://github.com/intuita-inc/intuita-vscode-extension/issues/new) for us to prioritize.
   - **Nextjs vx → v13**  
   - **Material UI v4 → v5** 
-  - **React Router vx → v4 & v4 → v6** 
+  - **React Router vx → v4 & v4 → v6**
+  - **ImmutableJS x3 -> v4**
 - ⚠️ This extension is in <kbd>Public Beta</kbd>! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
 
 
