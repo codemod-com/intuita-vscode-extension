@@ -704,7 +704,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 
-	new TelemetryService(configurationContainer, messageBus);
+	{
+		const codec = buildTypeCodec({ version: t.string });
+
+		const validation = codec.decode(context.extension.packageJSON);
+		const version = validation._tag === 'Right' ? validation.right.version : null;
+
+		new TelemetryService(configurationContainer, messageBus, version);
+	}
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngines,
