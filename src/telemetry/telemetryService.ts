@@ -4,15 +4,18 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildSessionId } from './hashes';
 import { TelemetryMessage, TELEMETRY_MESSAGE_KINDS } from './types';
+import { buildFourByteBase64UrlVersion } from './version';
 
 export class TelemetryService {
 	#configurationContainer: Container<Configuration>;
 	#messageBus: MessageBus;
 	#sessionId: string;
+	#version: string | null;
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
+		version: string | null,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
@@ -40,6 +43,7 @@ export class TelemetryService {
 		);
 
 		this.#sessionId = buildSessionId();
+		this.#version = version ? buildFourByteBase64UrlVersion(version) : null;
 	}
 
 	async #onExtensionActivatedMessage() {
@@ -47,6 +51,7 @@ export class TelemetryService {
 			kind: TELEMETRY_MESSAGE_KINDS.EXTENSION_ACTIVATED,
 			sessionId: this.#sessionId,
 			happenedAt: String(Date.now()),
+			version: this.#version,
 		});
 	}
 

@@ -17,6 +17,7 @@ export const telemetryMessageCodec = t.union([
 		kind: t.literal(TELEMETRY_MESSAGE_KINDS.EXTENSION_ACTIVATED),
 		sessionId: t.string,
 		happenedAt: t.string,
+		version: t.union([t.string, t.null]),
 	}),
 	buildTypeCodec({
 		kind: t.literal(TELEMETRY_MESSAGE_KINDS.EXTENSION_DEACTIVATED),
