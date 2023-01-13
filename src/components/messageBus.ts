@@ -179,6 +179,10 @@ export type Message =
 			kind: MessageKind.updateFile;
 			uri: Uri;
 			contentUri: Uri;
+  	  }>
+	| Readonly<{
+			kind: MessageKind.deleteFile;
+			uri: Uri;
   	  }>;
 
 type EmitterMap<K extends MessageKind> = {
