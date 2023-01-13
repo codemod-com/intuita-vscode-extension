@@ -68,19 +68,19 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
 
 
 ---
-## Telemetry
+## Telemetry 🔭
 - The extension collects telemetry data & it can be disabled in the settings.
 - We use telemetry to improve product performance & to guide our roadmap.
 - **We never send PII, OS information, file or folder names.**  
 - See more details in our [telemetry compliance considerations](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) doc.
 
 ---
-## How Can I Share Feedback? 🎁
+## Share Feedback 🎁
 
 - Please share your ideas, questions, feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>
 
 ---
-## Join Us!
+## Join Us 🙌🏼 
 - We are an early-stage startup backed by amazing angels in silicon valley! If you are a codemod nerd or passionate about building delightful devtools, [let's chat](https://www.linkedin.com/in/alexbit/)!
 
 <br>  
