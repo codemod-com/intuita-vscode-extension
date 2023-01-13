@@ -17,8 +17,7 @@
 
 <img src="https://user-images.githubusercontent.com/78109534/212233940-d12e6908-0d9d-4cee-922e-75e7656df944.png" alt="the snapshot showing the text right next to a dependency in package.json" width="100%"/>
 
-
-2. Click on "execute codemods" or alternatively, run codemods from the VS Code's Command menu & let Intuita transform your code automatically.
+2. Click on "execute codemods" or run the codemods from the VS Code's Command menu & let Intuita transform your code automatically.
 
 <img src="https://user-images.githubusercontent.com/78109534/212234081-5e142375-d54f-4b2c-9ca8-6becfde6116d.png" alt="the snapshot showing the available Intuita commands in VS Code" width="100%"/>
 
@@ -40,23 +39,23 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
   - Search online for upgrade guides & if you are lucky, find some codemods (likely not following any quality guidelines or without proper tests).
   - Run those codemods in CLI one by one ([~60 codemods](https://github.com/mui/material-ui/tree/master/packages/mui-codemod/src/v5.0.0) for Material UI v5 upgrade) without knowing which one is actually applicable to your codebase.
   - End up with large PRs & many reviewers because you couldn't easily distribute the changes into meaningful commits.
-  - And finally, if many teams are impacted, you need to create tasks, manually find who is the best reviewer and follow up on those tasks until you get the change reviewed and merged.
+  - And finally, if many teams are impacted, you need to create tasks, manually find the best reviewer & follow up on those tasks until you get the change reviewed & merged.
 
 - ✅ **With Intuita** ✅ a set of quality-checked community-led codemods will be pushed to you right in the package.json (for JS/TS) so you don't need to search for them. 
   - You run all the codemods with one click.
-  - At an intermediary step before making the code change, you can tweak them if needed, batch them as you wish, and push your changes for review.
-  - [Enterprise feature] for large teams, we will be building integrations with Jira/Slack/Github to automatically assign tasks and send reminders to teams, leadership dashboard for tracking and coordinating the campaign.
+  - At an intermediary step before making the code change, you can tweak them if needed, batch them as you wish & push your changes for review.
+  - [Enterprise feature] for large teams, we will be building integrations with Jira/Slack/Github to automatically assign tasks & send reminders to teams, leadership dashboard for tracking & coordinating the campaign.
 
 ### Codemod Builders 🥷🏼
 - ❌ **Without Intuita** ❌ you go the codemod journey alone! You ask yourself:
   - What are the best codemod engines out there for the type of transformation i want to build?
-  - What's the easiest way to build codemods? any tool out there? how about creating test cases?
-  - Has anyone out there built the exact codemod that I want to build?
-  - How can my codemod be discovered and used by thousands of other developers out there who could benefit from it sooner or later?
+  - What's the easiest way to build codemods? Any tool out there? How about creating test cases?
+  - Has anyone out there built the exact codemod I want to build?
+  - How can my codemod be discovered & used by thousands of other developers out there who could benefit from it sooner or later?
  
  - ✅ **With Intuita** ✅ you are surrounded by a community of codemod experts
-   - We build tools, processes & guidelines on how to write high-quality codemods, how to write tests, and which engine (imperative, declarative, ML based, pattern based, etc.) to use for each use case. 
-   - We will be the distribution channel for your codemods. write a useful codemod & along with other codemods created by the community, ship it to tens of thousands of developers out there within a few mins of integrating them into Intuita. 
+   - We build tools, processes & guidelines on how to write high-quality codemods & associated tests & pick the right engine (imperative, declarative, ML based, or pattern based) for each use case. 
+   - We will be the distribution channel for your codemods. You write a useful codemod & along with other codemods created by the community, we will ship it to tens of thousands of developers out there within a few mins of integrating them into Intuita. 
    - If you, just like us, are also a codemod nerd, [let's get in touch!](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) we are growing our team with awesome engineers who are passionate about automating boring tasks for fellow developers.
 
 
@@ -82,7 +81,7 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
 
 ---
 ## Join Us!
-- We are an early-stage startup backed by amazing angels in silicon valley! If you are a codemod nerd or passionate about buidling delightful devtools, [let's chat](https://www.linkedin.com/in/alexbit/)!
+- We are an early-stage startup backed by amazing angels in silicon valley! If you are a codemod nerd or passionate about building delightful devtools, [let's chat](https://www.linkedin.com/in/alexbit/)!
 
 <br>  
 </br>
