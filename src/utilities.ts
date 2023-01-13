@@ -37,3 +37,5 @@ export const debounce = <T, R>(callback: (arg1: T) => R, ms: number) => {
 		timeout = setTimeout(() => callback(arg1), ms);
 	};
 };
+
+export const singleQuotify = (str: string) => `'${str}'`;
