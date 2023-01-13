@@ -33,8 +33,6 @@ export class FileService {
 				recursive: false,
 				useTrash: false,
 			});
-
-			console.log(`DELETED ${uri}`);
 		}
 	}
 }
