@@ -230,6 +230,15 @@ export class JobManager {
 		}
 
 		for (const jobHash of message.jobHashes) {
+			const job = this.#jobMap.get(jobHash);
+
+			if (job) {
+				messages.push({
+					kind: MessageKind.deleteFile,
+					uri: job.outputUri,
+				});
+			}
+
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
@@ -272,6 +281,15 @@ export class JobManager {
 	}
 
 	#onClearStateMessage() {
+		const messages: Message[] = [];
+
+		for (const job of this.#jobMap.values()) {
+			messages.push({
+				kind: MessageKind.deleteFile,
+				uri: job.outputUri,
+			});
+		}
+
 		this.#jobMap.clear();
 		this.#rejectedJobHashes.clear();
 		this.#uriHashJobHashSetManager.clear();
