@@ -167,14 +167,14 @@ export class EngineService {
 				const commandUri = message.command.uri;
 
 				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
-					const { fsPath } = Uri.joinPath(commandUri, `**/*.${extension}`);
+					const { fsPath } = Uri.joinPath(
+						commandUri,
+						`**/*.${extension}`,
+					);
 
 					const path = singleQuotify(fsPath);
 
-					args.push(
-						'-p',
-						path,
-					);
+					args.push('-p', path);
 				});
 
 				args.push('-p', '!**/node_modules');
@@ -189,14 +189,14 @@ export class EngineService {
 				args.push('-d', singleQuotify(commandUri.fsPath));
 
 				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
-					const { fsPath } = Uri.joinPath(commandUri, `**/*.${extension}`);
+					const { fsPath } = Uri.joinPath(
+						commandUri,
+						`**/*.${extension}`,
+					);
 
 					const path = singleQuotify(fsPath);
 
-					args.push(
-						'-p',
-						path,
-					);
+					args.push('-p', path);
 				});
 
 				args.push('-a', '**/node_modules/**/*');
@@ -222,7 +222,7 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		const childProcess = spawn(`"${executableUri.fsPath}"`, args, {
+		const childProcess = spawn(singleQuotify(executableUri.fsPath), args, {
 			stdio: 'pipe',
 			shell: true,
 		});

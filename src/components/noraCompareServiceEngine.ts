@@ -7,6 +7,7 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { Job, JobHash, JobKind, RewriteFileJob } from '../jobs/types';
+import { singleQuotify } from '../utilities';
 
 class CompareProcessWrapper {
 	#exited = false;
@@ -19,7 +20,7 @@ class CompareProcessWrapper {
 		executionId: string,
 		messageBus: MessageBus,
 	) {
-		this.#process = spawn(`"${executableUri.fsPath}"`, [], {
+		this.#process = spawn(singleQuotify(executableUri.fsPath), [], {
 			stdio: 'pipe',
 			shell: true,
 		});
