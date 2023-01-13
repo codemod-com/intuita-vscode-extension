@@ -43,7 +43,7 @@ export const enum MessageKind {
 
 	/** file system operations */
 	updateFile = 22,
-	deleteFile = 23,
+	deleteFiles = 23,
 }
 
 export type Engine = 'node' | 'rust';
@@ -179,11 +179,11 @@ export type Message =
 			kind: MessageKind.updateFile;
 			uri: Uri;
 			contentUri: Uri;
-  	  }>
+	  }>
 	| Readonly<{
-			kind: MessageKind.deleteFile;
-			uri: Uri;
-  	  }>;
+			kind: MessageKind.deleteFiles;
+			uris: ReadonlyArray<Uri>;
+	  }>;
 
 type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;
