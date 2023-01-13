@@ -188,7 +188,7 @@ export class JobManager {
 
 			uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 				messages.push({
-					kind: MessageKind.updateExternalFile,
+					kind: MessageKind.updateFile,
 					uri,
 					contentUri: jobOutputUri,
 				});

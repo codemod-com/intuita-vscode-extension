@@ -7,13 +7,13 @@ export class FileService {
 	public constructor(readonly messageBus: MessageBus) {
 		this.#messageBus = messageBus;
 
-		this.#messageBus.subscribe(MessageKind.updateExternalFile, (message) =>
-			this.#onUpdateExternalFile(message),
+		this.#messageBus.subscribe(MessageKind.updateFile, (message) =>
+			this.#onUpdateFile(message),
 		);
 	}
 
-	async #onUpdateExternalFile(
-		message: Message & { kind: MessageKind.updateExternalFile },
+	async #onUpdateFile(
+		message: Message & { kind: MessageKind.updateFile },
 	) {
 		// TODO we could use a stream here
 		const content = await workspace.fs.readFile(message.contentUri);

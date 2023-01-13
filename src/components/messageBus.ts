@@ -3,11 +3,6 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 
 export const enum MessageKind {
-	/**
-	 * the external files exist outside of the extension's virtual file system
-	 */
-	updateExternalFile = 1,
-
 	/** the elements are tree entries */
 	updateElements = 2,
 
@@ -45,6 +40,10 @@ export const enum MessageKind {
 	/** extension states */
 	extensionActivated = 20,
 	extensionDeactivated = 21,
+
+	/** file system operations */
+	updateFile = 22,
+	deleteFile = 23,
 }
 
 export type Engine = 'node' | 'rust';
@@ -75,11 +74,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.updateElements;
 			trigger: Trigger;
-	  }>
-	| Readonly<{
-			kind: MessageKind.updateExternalFile;
-			uri: Uri;
-			contentUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
@@ -180,7 +174,12 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.extensionDeactivated;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.updateFile;
+			uri: Uri;
+			contentUri: Uri;
+  	  }>;
 
 type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;
