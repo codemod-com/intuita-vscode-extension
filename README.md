@@ -69,9 +69,9 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
 
 ---
 ## Telemetry 🔭
-- The extension collects telemetry data & it can be disabled in the settings.
-- We use telemetry to improve product performance & to guide our roadmap.
-- **We never send PII, OS information, file or folder names.**  
+- The extension collects telemetry data to help us improve the product for you.
+- **We never send PII, OS information, file or folder names.**
+- Telemetry can be disabled in the settings.
 - See more details in our [telemetry compliance considerations](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) doc.
 
 ---
