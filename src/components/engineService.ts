@@ -9,7 +9,7 @@ import { Container } from '../container';
 import { buildCreateFileJob } from '../jobs/createFileJob';
 import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
 import { Job } from '../jobs/types';
-import { buildTypeCodec } from '../utilities';
+import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
@@ -164,22 +164,19 @@ export class EngineService {
 			const args: string[] = [];
 
 			if (message.command.engine === 'node' && 'uri' in message.command) {
-				args.push(
-					'-p',
-					Uri.joinPath(message.command.uri, '**/*.js').fsPath,
-				);
-				args.push(
-					'-p',
-					Uri.joinPath(message.command.uri, '**/*.jsx').fsPath,
-				);
-				args.push(
-					'-p',
-					Uri.joinPath(message.command.uri, '**/*.ts').fsPath,
-				);
-				args.push(
-					'-p',
-					Uri.joinPath(message.command.uri, '**/*.tsx').fsPath,
-				);
+				const commandUri = message.command.uri;
+
+				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
+					const { fsPath } = Uri.joinPath(
+						commandUri,
+						`**/*.${extension}`,
+					);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', path);
+				});
+
 				args.push('-p', '!**/node_modules');
 
 				args.push('-l', String(fileLimit));
@@ -187,23 +184,33 @@ export class EngineService {
 				message.command.engine === 'rust' &&
 				'uri' in message.command
 			) {
-				args.push('-d', message.command.uri.fsPath);
-				args.push(
-					'-p',
-					`"${Uri.joinPath(message.command.uri, '**/*.tsx').fsPath}"`,
-				);
+				const commandUri = message.command.uri;
+
+				args.push('-d', singleQuotify(commandUri.fsPath));
+
+				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
+					const { fsPath } = Uri.joinPath(
+						commandUri,
+						`**/*.${extension}`,
+					);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', path);
+				});
+
 				args.push('-a', '**/node_modules/**/*');
 			}
 
 			if ('fileUri' in message.command) {
-				args.push('-f', message.command.fileUri.fsPath);
+				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
 			}
 
 			if ('group' in message.command) {
 				args.push('-g', message.command.group);
 			}
 
-			args.push('-o', outputUri.fsPath);
+			args.push('-o', singleQuotify(outputUri.fsPath));
 
 			return args;
 		};
@@ -215,7 +222,7 @@ export class EngineService {
 				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
 				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
 
-		const childProcess = spawn(`"${executableUri.fsPath}"`, args, {
+		const childProcess = spawn(singleQuotify(executableUri.fsPath), args, {
 			stdio: 'pipe',
 			shell: true,
 		});

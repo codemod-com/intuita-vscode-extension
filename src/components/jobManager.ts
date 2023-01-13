@@ -188,7 +188,7 @@ export class JobManager {
 
 			uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 				messages.push({
-					kind: MessageKind.updateExternalFile,
+					kind: MessageKind.updateFile,
 					uri,
 					contentUri: jobOutputUri,
 				});
@@ -230,6 +230,15 @@ export class JobManager {
 		}
 
 		for (const jobHash of message.jobHashes) {
+			const job = this.#jobMap.get(jobHash);
+
+			if (job) {
+				messages.push({
+					kind: MessageKind.deleteFiles,
+					uris: [job.outputUri],
+				});
+			}
+
 			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
@@ -272,8 +281,19 @@ export class JobManager {
 	}
 
 	#onClearStateMessage() {
+		const uris: Uri[] = [];
+
+		for (const job of this.#jobMap.values()) {
+			uris.push(job.outputUri);
+		}
+
 		this.#jobMap.clear();
 		this.#rejectedJobHashes.clear();
 		this.#uriHashJobHashSetManager.clear();
+
+		this.#messageBus.publish({
+			kind: MessageKind.deleteFiles,
+			uris,
+		});
 	}
 }
