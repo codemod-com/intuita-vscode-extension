@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Upgrade dependencies faster with high-quality codemods.",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -18,6 +18,7 @@
 		"Linters"
 	],
 	"keywords": [
+		"codemod",
 		"prettier",
 		"intellicode",
 		"intellisense",
