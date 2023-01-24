@@ -53,7 +53,8 @@ export type Group =
 	| 'reactrouterv4'
 	| 'reactrouterv6'
 	| 'immutablejsv4'
-	| 'immutablejsv0';
+	| 'immutablejsv0'
+	| 'redwoodjs_core_4';
 
 export type Command =
 	| Readonly<{
