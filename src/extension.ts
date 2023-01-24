@@ -132,7 +132,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
 		});
 
-	const dependencies = ['next', '@material-ui/core'];
+	const dependencies = ['next', '@material-ui/core', '@redwoodjs/core'];
 
 	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
 		const { document } = editor;
@@ -521,6 +521,44 @@ export async function activate(context: vscode.ExtensionContext) {
 						engine: 'node',
 						storageUri,
 						group: 'immutablejsv4',
+						uri,
+					},
+					executionId,
+					happenedAt,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeRedwoodJsCore4Codemods',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!uri) {
+					console.warn(
+						'No workspace folder is opened, aborting the operation.',
+					);
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						group: 'redwoodjs_core_4',
 						uri,
 					},
 					executionId,

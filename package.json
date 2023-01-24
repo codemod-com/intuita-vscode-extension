@@ -75,6 +75,10 @@
 				"title": "Intuita: execute ImmutableJS v4 codemods over the workspace"
 			},
 			{
+				"command": "intuita.executeRedwoodJsCore4Codemods",
+				"title": "Intuita: execute RedwoodJS v4 codemods over the workspace"
+			},
+			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: clear output files"
 			},

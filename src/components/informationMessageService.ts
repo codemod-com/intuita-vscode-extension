@@ -1,10 +1,11 @@
 import { Uri, window } from 'vscode';
 import { buildExecutionId } from '../telemetry/hashes';
-import { Message, MessageBus, MessageKind } from './messageBus';
+import { Group, Message, MessageBus, MessageKind } from './messageBus';
 
-export const dependencyNameToGroup: Record<string, 'nextJs' | 'mui'> = {
+export const dependencyNameToGroup: Record<string, Group> = {
 	next: 'nextJs',
 	'@material-ui/core': 'mui',
+	'@redwoodjs/core': 'redwoodjs_core_4',
 };
 
 export class InformationMessageService {
