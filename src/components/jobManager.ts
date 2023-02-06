@@ -2,7 +2,6 @@ import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash } from '../jobs/types';
-import { UriHash } from '../uris/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 
@@ -21,7 +20,7 @@ export class JobManager {
 
 	#jobMap: Map<JobHash, Job>;
 	#rejectedJobHashes: Set<JobHash>;
-	#uriHashJobHashSetManager: LeftRightHashSetManager<UriHash, JobHash>;
+	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
 	public constructor(
 		jobs: ReadonlyArray<Job>,
@@ -32,7 +31,19 @@ export class JobManager {
 		this.#rejectedJobHashes = rejectedJobHashes;
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
-				jobs.map((job) => `${buildUriHash(job.inputUri)}${job.hash}`),
+				jobs.flatMap((job) => {
+					const hashes: string[] = [];
+
+					if (job.oldUri) {
+						hashes.push(`${buildUriHash(job.oldUri)}${job.hash}`);
+					}
+
+					if (job.newUri) {
+						hashes.push(`${buildUriHash(job.newUri)}${job.hash}`);
+					}
+
+					return hashes;
+				}),
 			),
 		);
 
@@ -64,7 +75,7 @@ export class JobManager {
 		return this.#jobMap.get(jobHash) ?? null;
 	}
 
-	public getFileJobs(uriHash: UriHash): ReadonlySet<Job> {
+	public getFileJobs(uriHash: string): ReadonlySet<Job> {
 		const jobs = new Set<Job>();
 
 		const jobHashes =
@@ -98,10 +109,17 @@ export class JobManager {
 
 			this.#jobMap.set(job.hash, job);
 
-			const uri = job.inputUri;
-			const uriHash = buildUriHash(uri);
+			if (job.oldUri) {
+				const uriHash = buildUriHash(job.oldUri);
 
-			this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
+				this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
+			}
+
+			if (job.newUri) {
+				const uriHash = buildUriHash(job.newUri);
+
+				this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
+			}
 		}
 
 		this.#messageBus.publish({
@@ -169,10 +187,8 @@ export class JobManager {
 					.map((jobHash) => this.#jobMap.get(jobHash))
 					.filter(isNeitherNullNorUndefined);
 
-				if (jobs[0]) {
-					const uri = jobs[0].inputUri;
-
-					uriJobOutputs.push([uri, jobs[0].outputUri]);
+				if (jobs[0] && jobs[0].newUri && jobs[0].newContentUri) {
+					uriJobOutputs.push([jobs[0].newUri, jobs[0].newContentUri]);
 				}
 
 				const otherJobHashes =
@@ -232,10 +248,10 @@ export class JobManager {
 		for (const jobHash of message.jobHashes) {
 			const job = this.#jobMap.get(jobHash);
 
-			if (job) {
+			if (job && job.newContentUri) {
 				messages.push({
 					kind: MessageKind.deleteFiles,
-					uris: [job.outputUri],
+					uris: [job.newContentUri],
 				});
 			}
 
@@ -284,7 +300,9 @@ export class JobManager {
 		const uris: Uri[] = [];
 
 		for (const job of this.#jobMap.values()) {
-			uris.push(job.outputUri);
+			if (job.newContentUri) {
+				uris.push(job.newContentUri);
+			}
 		}
 
 		this.#jobMap.clear();

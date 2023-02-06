@@ -9,6 +9,7 @@ import {
 	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
+	Uri,
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
@@ -173,8 +174,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				title: 'Diff View',
 				command: 'vscode.diff',
 				arguments: [
-					element.uri,
-					element.job.outputUri,
+					element.job.oldUri,
+					element.job.newContentUri,
 					'Proposed change',
 				],
 			};
@@ -186,7 +187,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			treeItem.command = {
 				title: 'Open View',
 				command: 'vscode.open',
-				arguments: [element.job.outputUri],
+				arguments: [element.job.newUri],
 			};
 		}
 
@@ -234,10 +235,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		const showTheFirstJob = async () => {
+			// TODO check the job kind
 			await commands.executeCommand(
 				'vscode.diff',
-				firstJobElement.uri,
-				firstJobElement.job.outputUri,
+				firstJobElement.job.oldUri,
+				firstJobElement.job.newContentUri,
 				'Proposed change',
 			);
 
@@ -356,17 +358,28 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				jobs.push(job);
 			}
 
-			const inputUris = Array.from(
-				new Set(jobs.map((job) => job.inputUri)),
-			);
+			const uriSet = new Set<Uri>();
 
-			const children = inputUris.map((inputUri): FileElement => {
-				const label = inputUri.fsPath.replace(rootPath, '');
+			for (const job of jobs) {
+				if (job.oldUri) {
+					uriSet.add(job.oldUri);
+				}
+
+				if (job.newUri) {
+					uriSet.add(job.newUri);
+				}
+			}
+
+			const uris = Array.from(uriSet);
+
+			const children = uris.map((uri): FileElement => {
+				const label = uri.fsPath.replace(rootPath, '');
 
 				const children = jobs
 					.filter(
 						(job) =>
-							job.inputUri.toString() === inputUri.toString(),
+							job.newUri?.toString() === uri.toString() ||
+							job.oldUri?.toString() === uri.toString(),
 					)
 					.map((job) => buildJobElement(job, label));
 

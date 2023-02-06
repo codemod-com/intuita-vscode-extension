@@ -5,8 +5,10 @@ import type { PersistedCase, PersistedJob } from './codecs';
 
 export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 	kind: job.kind,
-	inputPath: job.inputUri.fsPath,
-	outputPath: job.outputUri.fsPath,
+	oldPath: job.oldUri?.fsPath ?? null,
+	newPath: job.newUri?.fsPath ?? null,
+	oldContentPath: job.oldContentUri?.fsPath ?? null,
+	newContentPath: job.newContentUri?.fsPath ?? null,
 	hash: job.hash,
 	codemodSetName: job.codemodSetName,
 	codemodName: job.codemodName,
@@ -14,8 +16,14 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 
 export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	kind: persistedJob.kind,
-	inputUri: Uri.file(persistedJob.inputPath),
-	outputUri: Uri.file(persistedJob.outputPath),
+	oldUri: persistedJob.oldPath ? Uri.file(persistedJob.oldPath) : null,
+	newUri: persistedJob.newPath ? Uri.file(persistedJob.newPath) : null,
+	oldContentUri: persistedJob.oldContentPath
+		? Uri.file(persistedJob.oldContentPath)
+		: null,
+	newContentUri: persistedJob.newContentPath
+		? Uri.file(persistedJob.newContentPath)
+		: null,
 	hash: persistedJob.hash as JobHash,
 	codemodSetName: persistedJob.codemodSetName,
 	codemodName: persistedJob.codemodName,

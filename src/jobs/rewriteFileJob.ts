@@ -1,19 +1,25 @@
 import type { Uri } from 'vscode';
-import { JobKind, RewriteFileJob } from './types';
+import { Job, JobKind } from './types';
 import { buildJobHash } from './buildJobHash';
 
 export const buildRewriteFileJob = (
-	inputUri: Uri,
-	outputUri: Uri,
+	oldUri: Uri,
+	newContentUri: Uri,
 	codemodSetName: string,
 	codemodName: string,
-): RewriteFileJob => {
-	return {
+): Job => {
+	const hashlessJob: Omit<Job, 'hash'> = {
 		kind: JobKind.rewriteFile,
-		inputUri,
-		hash: buildJobHash([inputUri, outputUri], codemodSetName, codemodName),
-		outputUri,
+		oldUri,
+		newUri: oldUri,
+		newContentUri,
+		oldContentUri: oldUri,
 		codemodSetName,
 		codemodName,
+	};
+
+	return {
+		...hashlessJob,
+		hash: buildJobHash(hashlessJob),
 	};
 };

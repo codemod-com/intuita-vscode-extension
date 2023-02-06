@@ -5,24 +5,18 @@ export type JobHash = string & { __type: 'JobHash' };
 export const enum JobKind {
 	rewriteFile = 1,
 	createFile = 2,
+	deleteFile = 3,
+	moveFile = 4,
+	moveAndRewriteFile = 5,
 }
 
-export type RewriteFileJob = Readonly<{
-	kind: JobKind.rewriteFile;
-	inputUri: Uri;
-	outputUri: Uri;
+export type Job = Readonly<{
 	hash: JobHash;
+	kind: JobKind;
+	oldUri: Uri | null;
+	newUri: Uri | null;
+	oldContentUri: Uri | null;
+	newContentUri: Uri | null;
 	codemodSetName: string;
 	codemodName: string;
 }>;
-
-export type CreateFileJob = Readonly<{
-	kind: JobKind.createFile;
-	inputUri: Uri;
-	outputUri: Uri;
-	hash: JobHash;
-	codemodSetName: string;
-	codemodName: string;
-}>;
-
-export type Job = RewriteFileJob | CreateFileJob;
