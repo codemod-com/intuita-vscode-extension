@@ -7,7 +7,7 @@ export type JobElement = Readonly<{
 	hash: ElementHash;
 	kind: 'JOB';
 	label: string;
-	uri: Uri;
+	uri: Uri | null;
 	jobHash: JobHash;
 	job: Job;
 }>;

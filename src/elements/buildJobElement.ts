@@ -13,7 +13,7 @@ export const buildJobElement = (
 		kind: 'JOB' as const,
 		hash: job.hash as unknown as ElementHash,
 		label,
-		uri: job.inputUri,
+		uri: job.oldUri, // TODO check
 		jobHash: job.hash,
 		job,
 	};

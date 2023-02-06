@@ -1,5 +1,5 @@
 import type { Uri } from 'vscode';
-import { JobKind, RewriteFileJob } from './types';
+import { Job, JobKind } from './types';
 import { buildJobHash } from './buildJobHash';
 
 export const buildRewriteFileJob = (
@@ -7,7 +7,7 @@ export const buildRewriteFileJob = (
 	outputUri: Uri,
 	codemodSetName: string,
 	codemodName: string,
-): RewriteFileJob => {
+): Job => {
 	return {
 		kind: JobKind.rewriteFile,
 		inputUri,

@@ -1,19 +1,24 @@
 import type { Uri } from 'vscode';
 import { buildJobHash } from './buildJobHash';
-import { CreateFileJob, JobKind } from './types';
+import { Job, JobKind } from './types';
 
 export const buildCreateFileJob = (
-	inputUri: Uri,
-	outputUri: Uri,
+	newUri: Uri,
+	newContentUri: Uri,
 	codemodSetName: string,
 	codemodName: string,
-): CreateFileJob => {
-	return {
+): Job => {
+	const hashlessJob: Omit<Job, 'hash'> = {
 		kind: JobKind.createFile,
-		inputUri,
-		hash: buildJobHash([inputUri, outputUri], codemodSetName, codemodName),
-		outputUri,
-		codemodName,
+		oldUri: null,
+		newUri,
+		newContentUri,
 		codemodSetName,
+		codemodName,
+	};
+
+	return {
+		...hashlessJob,
+		hash: buildJobHash(hashlessJob),
 	};
 };

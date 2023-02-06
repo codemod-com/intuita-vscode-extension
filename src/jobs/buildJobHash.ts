@@ -1,17 +1,19 @@
-import type { Uri } from 'vscode';
 import { buildUriHash } from '../uris/buildUriHash';
 import { buildHash } from '../utilities';
-import { JobHash } from './types';
+import { Job, JobHash } from './types';
 
-export const buildJobHash = (
-	uris: ReadonlyArray<Uri>,
-	codemodSetName: string,
-	codemodName: string,
-): JobHash => {
-	const uriHashes = uris.map((uri) => buildUriHash(uri));
-
+export const buildJobHash = (hashlessJob: Omit<Job, 'hash'>): JobHash => {
 	const hash = buildHash(
-		[...uriHashes, codemodSetName, codemodName].join(','),
+		[
+			hashlessJob.kind,
+			hashlessJob.oldUri ? buildUriHash(hashlessJob.oldUri) : '',
+			hashlessJob.newUri ? buildUriHash(hashlessJob.newUri) : '',
+			hashlessJob.newContentUri
+				? buildUriHash(hashlessJob.newContentUri)
+				: '',
+			hashlessJob.codemodSetName,
+			hashlessJob.codemodName,
+		].join(','),
 	);
 
 	return hash as JobHash;

@@ -173,8 +173,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				title: 'Diff View',
 				command: 'vscode.diff',
 				arguments: [
-					element.uri,
-					element.job.outputUri,
+					element.job.oldUri,
+					element.job.newContentUri,
 					'Proposed change',
 				],
 			};
@@ -186,7 +186,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			treeItem.command = {
 				title: 'Open View',
 				command: 'vscode.open',
-				arguments: [element.job.outputUri],
+				arguments: [element.job.newUri],
 			};
 		}
 
@@ -234,10 +234,11 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		}
 
 		const showTheFirstJob = async () => {
+			// TODO check the job kind
 			await commands.executeCommand(
 				'vscode.diff',
-				firstJobElement.uri,
-				firstJobElement.job.outputUri,
+				firstJobElement.job.oldUri,
+				firstJobElement.job.newContentUri,
 				'Proposed change',
 			);
 
