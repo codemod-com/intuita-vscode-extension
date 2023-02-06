@@ -191,7 +191,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				treeItem.command = {
 					title: 'Delete File',
 					command: 'vscode.diff',
-					arguments: [element.job.oldContentUri, null, 'Delete File'],
+					arguments: [null, element.job.oldContentUri, 'Delete File'],
 				};
 			}
 
