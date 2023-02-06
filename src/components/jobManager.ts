@@ -1,7 +1,7 @@
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { Job, JobHash } from '../jobs/types';
+import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 
@@ -148,6 +148,8 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
+		// HERE
+
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(message.jobHashes);
 
@@ -177,7 +179,10 @@ export class JobManager {
 		}
 
 		{
-			const uriJobOutputs: [Uri, Uri][] = [];
+			const createJobOutputs: [Uri, Uri][] = [];
+			const updateJobOutputs: [Uri, Uri][] = [];
+			const deleteJobOutputs: Uri[] = [];
+			const moveJobOutputs: [Uri, Uri, Uri][] = [];
 
 			for (const {
 				uriHash,
@@ -187,8 +192,43 @@ export class JobManager {
 					.map((jobHash) => this.#jobMap.get(jobHash))
 					.filter(isNeitherNullNorUndefined);
 
-				if (jobs[0] && jobs[0].newUri && jobs[0].newContentUri) {
-					uriJobOutputs.push([jobs[0].newUri, jobs[0].newContentUri]);
+				const job = jobs[0];
+
+				if (
+					job &&
+					job.kind === JobKind.createFile &&
+					job.newUri &&
+					job.newContentUri
+				) {
+					createJobOutputs.push([job.newUri, job.newContentUri]);
+				}
+
+				if (job && job.kind === JobKind.deleteFile && job.oldUri) {
+					deleteJobOutputs.push(job.oldUri);
+				}
+
+				if (
+					job &&
+					(job.kind === JobKind.moveAndRewriteFile ||
+						job.kind === JobKind.moveFile) &&
+					job.oldUri &&
+					job.newUri &&
+					job.newContentUri
+				) {
+					moveJobOutputs.push([
+						job.oldUri,
+						job.newUri,
+						job.newContentUri,
+					]);
+				}
+
+				if (
+					job &&
+					job.kind === JobKind.rewriteFile &&
+					job.oldUri &&
+					job.newContentUri
+				) {
+					updateJobOutputs.push([job.oldUri, job.newContentUri]);
 				}
 
 				const otherJobHashes =
@@ -202,11 +242,37 @@ export class JobManager {
 				}
 			}
 
-			uriJobOutputs.forEach(([uri, jobOutputUri]) => {
+			// TODO here
+
+			createJobOutputs.forEach(([newUri, newContentUri]) => {
+				messages.push({
+					kind: MessageKind.createFile,
+					newUri,
+					newContentUri,
+				});
+			});
+
+			updateJobOutputs.forEach(([uri, jobOutputUri]) => {
 				messages.push({
 					kind: MessageKind.updateFile,
 					uri,
 					contentUri: jobOutputUri,
+				});
+			});
+
+			moveJobOutputs.forEach(([oldUri, newUri, newContentUri]) => {
+				messages.push({
+					kind: MessageKind.moveFile,
+					oldUri,
+					newUri,
+					newContentUri,
+				});
+			});
+
+			deleteJobOutputs.forEach((oldUri) => {
+				messages.push({
+					kind: MessageKind.deleteFiles,
+					uris: [oldUri],
 				});
 			});
 		}
@@ -248,7 +314,12 @@ export class JobManager {
 		for (const jobHash of message.jobHashes) {
 			const job = this.#jobMap.get(jobHash);
 
-			if (job && job.newContentUri) {
+			if (
+				job &&
+				(job.kind === JobKind.rewriteFile ||
+					job.kind === JobKind.moveAndRewriteFile) &&
+				job.newContentUri
+			) {
 				messages.push({
 					kind: MessageKind.deleteFiles,
 					uris: [job.newContentUri],
@@ -300,7 +371,11 @@ export class JobManager {
 		const uris: Uri[] = [];
 
 		for (const job of this.#jobMap.values()) {
-			if (job.newContentUri) {
+			if (
+				(job.kind === JobKind.rewriteFile ||
+					job.kind === JobKind.moveAndRewriteFile) &&
+				job.newContentUri
+			) {
 				uris.push(job.newContentUri);
 			}
 		}
