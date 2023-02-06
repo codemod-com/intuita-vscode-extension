@@ -148,6 +148,8 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
+		// HERE
+
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(message.jobHashes);
 
@@ -201,6 +203,8 @@ export class JobManager {
 					this.#jobMap.delete(jobHash);
 				}
 			}
+
+			// TODO here
 
 			uriJobOutputs.forEach(([uri, jobOutputUri]) => {
 				messages.push({
