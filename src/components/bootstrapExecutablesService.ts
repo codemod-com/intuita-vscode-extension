@@ -37,6 +37,7 @@ export class BootstrapExecutablesService {
 		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
 			await Promise.all([
 				this.#bootstrapNoraNodeEngineExecutableUri(),
+				// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
 				this.#bootstrapNoraRustEngineExecutableUri(),
 			]);
 

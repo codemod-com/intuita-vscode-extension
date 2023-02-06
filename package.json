@@ -51,6 +51,10 @@
 				"title": "Intuita: execute Next.js v13 codemods over the workspace"
 			},
 			{
+				"command": "intuita.executeNextJsExperimentalCodemods",
+				"title": "Intuita: execute Next.js v13 Experimental codemods over the workspace"
+			},
+			{
 				"command": "intuita.executePagesToAppsCodemods",
 				"title": "Intuita: execute Next.js v13 Pages-to-Apps codemods over the workspace (experimental)"
 			},
