@@ -191,6 +191,12 @@ export type Message =
 			kind: MessageKind.createFile;
 			newUri: Uri;
 			newContentUri: Uri;
+	  }>
+	| Readonly<{
+			kind: MessageKind.moveFile;
+			newUri: Uri;
+			oldUri: Uri;
+			newContentUri: Uri;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

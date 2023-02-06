@@ -16,6 +16,10 @@ export class FileService {
 			this.#onUpdateFile(message),
 		);
 
+		this.#messageBus.subscribe(MessageKind.moveFile, (message) =>
+			this.#onMoveFile(message),
+		);
+
 		this.#messageBus.subscribe(MessageKind.deleteFiles, (message) =>
 			this.#onDeleteFile(message),
 		);
@@ -44,6 +48,21 @@ export class FileService {
 		this.#messageBus.publish({
 			kind: MessageKind.deleteFiles,
 			uris: [message.contentUri],
+		});
+	}
+
+	async #onMoveFile(message: Message & { kind: MessageKind.moveFile }) {
+		const content = await workspace.fs.readFile(message.newContentUri);
+
+		const directory = dirname(message.newUri.fsPath);
+
+		await workspace.fs.createDirectory(Uri.file(directory));
+
+		await workspace.fs.writeFile(message.newUri, content);
+
+		this.#messageBus.publish({
+			kind: MessageKind.deleteFiles,
+			uris: [message.oldUri, message.newContentUri],
 		});
 	}
 
