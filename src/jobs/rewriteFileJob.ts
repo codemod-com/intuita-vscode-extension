@@ -11,7 +11,7 @@ export const buildRewriteFileJob = (
 	const hashlessJob: Omit<Job, 'hash'> = {
 		kind: JobKind.rewriteFile,
 		oldUri,
-		newUri: null,
+		newUri: oldUri,
 		newContentUri,
 		oldContentUri: oldUri,
 		codemodSetName,
