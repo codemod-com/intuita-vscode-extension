@@ -3,17 +3,23 @@ import { Job, JobKind } from './types';
 import { buildJobHash } from './buildJobHash';
 
 export const buildRewriteFileJob = (
-	inputUri: Uri,
-	outputUri: Uri,
+	oldUri: Uri,
+	newContentUri: Uri,
 	codemodSetName: string,
 	codemodName: string,
 ): Job => {
-	return {
+	const hashlessJob: Omit<Job, 'hash'> = {
 		kind: JobKind.rewriteFile,
-		inputUri,
-		hash: buildJobHash([inputUri, outputUri], codemodSetName, codemodName),
-		outputUri,
+		oldUri,
+		newUri: null,
+		newContentUri,
+		oldContentUri: oldUri,
 		codemodSetName,
 		codemodName,
+	};
+
+	return {
+		...hashlessJob,
+		hash: buildJobHash(hashlessJob),
 	};
 };

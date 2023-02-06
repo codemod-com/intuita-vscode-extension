@@ -12,6 +12,7 @@ export const buildCreateFileJob = (
 		kind: JobKind.createFile,
 		oldUri: null,
 		newUri,
+		oldContentUri: null,
 		newContentUri,
 		codemodSetName,
 		codemodName,

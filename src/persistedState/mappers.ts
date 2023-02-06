@@ -7,6 +7,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 	kind: job.kind,
 	oldPath: job.oldUri?.fsPath ?? null,
 	newPath: job.newUri?.fsPath ?? null,
+	oldContentPath: job.oldContentUri?.fsPath ?? null,
 	newContentPath: job.newContentUri?.fsPath ?? null,
 	hash: job.hash,
 	codemodSetName: job.codemodSetName,
@@ -17,6 +18,9 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	kind: persistedJob.kind,
 	oldUri: persistedJob.oldPath ? Uri.file(persistedJob.oldPath) : null,
 	newUri: persistedJob.newPath ? Uri.file(persistedJob.newPath) : null,
+	oldContentUri: persistedJob.oldContentPath
+		? Uri.file(persistedJob.oldContentPath)
+		: null,
 	newContentUri: persistedJob.newContentPath
 		? Uri.file(persistedJob.newContentPath)
 		: null,

@@ -13,6 +13,7 @@ export const persistedJobCodec = buildTypeCodec({
 	]),
 	oldPath: t.union([t.string, t.null]),
 	newPath: t.union([t.string, t.null]),
+	oldContentPath: t.union([t.string, t.null]),
 	newContentPath: t.union([t.string, t.null]),
 	hash: t.string,
 	codemodSetName: t.string,

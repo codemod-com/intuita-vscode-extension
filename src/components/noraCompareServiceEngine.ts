@@ -6,7 +6,7 @@ import prettyReporter from 'io-ts-reporters';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
-import { Job, JobHash, JobKind, RewriteFileJob } from '../jobs/types';
+import { Job, JobHash, JobKind } from '../jobs/types';
 import { singleQuotify } from '../utilities';
 
 class CompareProcessWrapper {
@@ -66,15 +66,16 @@ class CompareProcessWrapper {
 		return this.#exited;
 	}
 
-	write(job: RewriteFileJob) {
-		const leftUri = job.inputUri;
-		const rightUri = job.outputUri;
+	write(job: Job) {
+		if (!job.oldContentUri || !job.newContentUri) {
+			return;
+		}
 
 		const data = JSON.stringify({
 			k: 5,
 			i: job.hash,
-			l: leftUri.fsPath,
-			r: rightUri.fsPath,
+			l: job.oldContentUri.fsPath,
+			r: job.newContentUri.fsPath,
 		});
 
 		this.#process.stdin.write(data + '\n', (error) => {

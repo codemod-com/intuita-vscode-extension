@@ -15,6 +15,7 @@ export type Job = Readonly<{
 	kind: JobKind;
 	oldUri: Uri | null;
 	newUri: Uri | null;
+	oldContentUri: Uri | null;
 	newContentUri: Uri | null;
 	codemodSetName: string;
 	codemodName: string;
