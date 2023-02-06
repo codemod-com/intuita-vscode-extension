@@ -1,27 +1,25 @@
 import { Job, JobKind } from '../jobs/types';
 import type { JobElement, ElementHash } from './types';
 
-export const buildJobElement = (
-	job: Job,
-	fileElementLabel: string,
-): JobElement => {
-	let verb: string;
+export const buildJobElement = (job: Job, rootPath: string): JobElement => {
+	const oldPath = job.oldUri?.fsPath.replace(rootPath, '') ?? '';
+	const newPath = job.newUri?.fsPath.replace(rootPath, '') ?? '';
+
+	let label: string;
 
 	if (job.kind === JobKind.createFile) {
-		verb = 'Create';
+		label = `Create ${newPath}`;
 	} else if (job.kind === JobKind.deleteFile) {
-		verb = 'Delete';
+		label = `Delete ${oldPath}`;
 	} else if (job.kind === JobKind.moveAndRewriteFile) {
-		verb = 'Move & Rewrite';
+		label = `Move & Rewrite ${oldPath} -> ${newPath}`;
 	} else if (job.kind === JobKind.moveFile) {
-		verb = 'Move';
+		label = `Move ${oldPath} -> ${newPath}`;
 	} else if (job.kind === JobKind.rewriteFile) {
-		verb = 'Rewrite';
+		label = `Rewrite ${oldPath}`;
 	} else {
 		throw new Error();
 	}
-
-	const label = `${verb} ${fileElementLabel}`;
 
 	return {
 		kind: 'JOB' as const,

@@ -381,7 +381,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 							job.newUri?.toString() === uri.toString() ||
 							job.oldUri?.toString() === uri.toString(),
 					)
-					.map((job) => buildJobElement(job, label));
+					.map((job) => buildJobElement(job, rootPath));
 
 				return buildFileElement(
 					caseWithJobHashes.hash,
