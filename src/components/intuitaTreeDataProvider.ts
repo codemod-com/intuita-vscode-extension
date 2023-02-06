@@ -361,12 +361,12 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			const uriSet = new Set<Uri>();
 
 			for (const job of jobs) {
-				if (job.oldUri) {
-					uriSet.add(job.oldUri);
+				if (job.kind === JobKind.createFile && job.newUri) {
+					uriSet.add(job.newUri);
 				}
 
-				if (job.newUri) {
-					uriSet.add(job.newUri);
+				if (job.kind !== JobKind.createFile && job.oldUri) {
+					uriSet.add(job.oldUri);
 				}
 			}
 
