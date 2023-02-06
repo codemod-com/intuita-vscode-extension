@@ -7,7 +7,6 @@ import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
-import { buildCreateFileJob } from '../jobs/createFileJob';
 import { Job, JobKind } from '../jobs/types';
 import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
