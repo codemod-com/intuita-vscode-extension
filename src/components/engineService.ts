@@ -16,11 +16,11 @@ export const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
 	rewrite = 3,
-	create = 4,
 	compare = 5,
 	progress = 6,
 	delete = 7,
 	move = 8,
+	create = 9,
 }
 
 export const messageCodec = t.union([
@@ -34,12 +34,6 @@ export const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.rewrite),
 		i: t.string,
-		o: t.string,
-		c: t.string,
-	}),
-	buildTypeCodec({
-		k: t.literal(EngineMessageKind.create),
-		p: t.string,
 		o: t.string,
 		c: t.string,
 	}),
@@ -65,6 +59,12 @@ export const messageCodec = t.union([
 		k: t.literal(EngineMessageKind.move),
 		oldFilePath: t.string,
 		newFilePath: t.string,
+		modId: t.string,
+	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.create),
+		newFilePath: t.string,
+		newContentPath: t.string,
 		modId: t.string,
 	}),
 ]);
@@ -296,8 +296,8 @@ export class EngineService {
 			const codemodName = 'modId' in message ? message.modId : message.c;
 
 			if (message.k === EngineMessageKind.create) {
-				const newUri = Uri.file(message.p);
-				const newContentUri = Uri.file(message.o);
+				const newUri = Uri.file(message.newFilePath);
+				const newContentUri = Uri.file(message.newContentPath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
 					kind: JobKind.createFile,
