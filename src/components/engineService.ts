@@ -294,7 +294,7 @@ export class EngineService {
 
 			let job: Job;
 
-			const codemodName = message.c;
+			const codemodName = 'modId' in message ? message.modId : message.c;
 
 			if (message.k === EngineMessageKind.create) {
 				const newUri = Uri.file(message.p);
@@ -333,8 +333,42 @@ export class EngineService {
 					hash: buildJobHash(hashlessJob),
 				};
 			} else if (message.k === EngineMessageKind.delete) {
-				// job = {
-				// }
+				const oldUri = Uri.file(message.oldFilePath);
+
+				const hashlessJob: Omit<Job, 'hash'> = {
+					kind: JobKind.rewriteFile,
+					oldUri,
+					newUri: null,
+					newContentUri: null,
+					oldContentUri: oldUri,
+					codemodSetName,
+					codemodName,
+				};
+
+				job = {
+					...hashlessJob,
+					hash: buildJobHash(hashlessJob),
+				};
+			} else if (message.k === EngineMessageKind.move) {
+				const oldUri = Uri.file(message.oldFilePath);
+				const newUri = Uri.file(message.newFilePath);
+
+				const hashlessJob: Omit<Job, 'hash'> = {
+					kind: JobKind.rewriteFile,
+					oldUri,
+					newUri,
+					newContentUri: oldUri,
+					oldContentUri: oldUri,
+					codemodSetName,
+					codemodName,
+				};
+
+				job = {
+					...hashlessJob,
+					hash: buildJobHash(hashlessJob),
+				};
+			} else {
+				throw new Error();
 			}
 
 			this.#messageBus.publish({
@@ -342,7 +376,7 @@ export class EngineService {
 				noraRustEngineExecutableUri,
 				job,
 				caseKind,
-				caseSubKind: 'modId' in message ? message.modId : message.c,
+				caseSubKind: codemodName,
 				executionId,
 				codemodSetName,
 				codemodName,
