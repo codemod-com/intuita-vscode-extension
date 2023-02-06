@@ -9,6 +9,7 @@ import {
 	TreeItem2,
 	TreeItemCollapsibleState,
 	TreeView,
+	Uri,
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
@@ -357,17 +358,28 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				jobs.push(job);
 			}
 
-			const inputUris = Array.from(
-				new Set(jobs.map((job) => job.inputUri)),
-			);
+			const uriSet = new Set<Uri>();
 
-			const children = inputUris.map((inputUri): FileElement => {
-				const label = inputUri.fsPath.replace(rootPath, '');
+			for (const job of jobs) {
+				if (job.oldUri) {
+					uriSet.add(job.oldUri);
+				}
+
+				if (job.newUri) {
+					uriSet.add(job.newUri);
+				}
+			}
+
+			const uris = Array.from(uriSet);
+
+			const children = uris.map((uri): FileElement => {
+				const label = uri.fsPath.replace(rootPath, '');
 
 				const children = jobs
 					.filter(
 						(job) =>
-							job.inputUri.toString() === inputUri.toString(),
+							job.newUri?.toString() === uri.toString() ||
+							job.oldUri?.toString() === uri.toString(),
 					)
 					.map((job) => buildJobElement(job, label));
 
