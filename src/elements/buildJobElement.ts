@@ -5,7 +5,21 @@ export const buildJobElement = (
 	job: Job,
 	fileElementLabel: string,
 ): JobElement => {
-	const verb = job.kind === JobKind.createFile ? 'Create' : 'Rewrite';
+	let verb: string;
+
+	if (job.kind === JobKind.createFile) {
+		verb = 'Create';
+	} else if (job.kind === JobKind.deleteFile) {
+		verb = 'Delete';
+	} else if (job.kind === JobKind.moveAndRewriteFile) {
+		verb = 'Move & Rewrite';
+	} else if (job.kind === JobKind.moveFile) {
+		verb = 'Move';
+	} else if (job.kind === JobKind.rewriteFile) {
+		verb = 'Rewrite';
+	} else {
+		throw new Error();
+	}
 
 	const label = `${verb} ${fileElementLabel}`;
 

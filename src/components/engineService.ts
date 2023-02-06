@@ -336,7 +336,7 @@ export class EngineService {
 				const oldUri = Uri.file(message.oldFilePath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
-					kind: JobKind.rewriteFile,
+					kind: JobKind.deleteFile,
 					oldUri,
 					newUri: null,
 					newContentUri: null,
@@ -354,7 +354,7 @@ export class EngineService {
 				const newUri = Uri.file(message.newFilePath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
-					kind: JobKind.rewriteFile,
+					kind: JobKind.moveFile,
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
