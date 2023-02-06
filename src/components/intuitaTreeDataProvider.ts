@@ -164,31 +164,60 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			getElementIconBaseName(element.kind),
 		);
 
-		if (
-			element.kind === 'JOB' &&
-			element.job.kind === JobKind.rewriteFile
-		) {
+		if (element.kind === 'JOB') {
 			treeItem.contextValue = 'jobElement';
 
-			treeItem.command = {
-				title: 'Diff View',
-				command: 'vscode.diff',
-				arguments: [
-					element.job.oldUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
-			};
-		}
+			if (element.job.kind === JobKind.rewriteFile) {
+				treeItem.command = {
+					title: 'Diff View',
+					command: 'vscode.diff',
+					arguments: [
+						element.job.oldContentUri,
+						element.job.newContentUri,
+						'Proposed change',
+					],
+				};
+			}
 
-		if (element.kind === 'JOB' && element.job.kind === JobKind.createFile) {
-			treeItem.contextValue = 'jobElement';
+			if (element.job.kind === JobKind.createFile) {
+				treeItem.command = {
+					title: 'Create File',
+					command: 'vscode.open',
+					arguments: [element.job.newContentUri],
+				};
+			}
 
-			treeItem.command = {
-				title: 'Open View',
-				command: 'vscode.open',
-				arguments: [element.job.newUri],
-			};
+			if (element.job.kind === JobKind.deleteFile) {
+				treeItem.command = {
+					title: 'Delete File',
+					command: 'vscode.diff',
+					arguments: [null, element.job.oldContentUri, 'Delete File'],
+				};
+			}
+
+			if (element.job.kind === JobKind.moveAndRewriteFile) {
+				treeItem.command = {
+					title: 'Move & Rewrite File',
+					command: 'vscode.diff',
+					arguments: [
+						element.job.oldContentUri,
+						element.job.newContentUri,
+						'Proposed change',
+					],
+				};
+			}
+
+			if (element.job.kind === JobKind.moveFile) {
+				treeItem.command = {
+					title: 'Move File',
+					command: 'vscode.diff',
+					arguments: [
+						element.job.oldContentUri,
+						element.job.newContentUri,
+						'Proposed change',
+					],
+				};
+			}
 		}
 
 		if (element.kind === 'CASE') {
