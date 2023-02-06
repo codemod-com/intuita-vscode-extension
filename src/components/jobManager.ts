@@ -1,7 +1,7 @@
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { Job, JobHash } from '../jobs/types';
+import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 
@@ -248,7 +248,12 @@ export class JobManager {
 		for (const jobHash of message.jobHashes) {
 			const job = this.#jobMap.get(jobHash);
 
-			if (job && job.newContentUri) {
+			if (
+				job &&
+				(job.kind === JobKind.rewriteFile ||
+					job.kind === JobKind.moveAndRewriteFile) &&
+				job.newContentUri
+			) {
 				messages.push({
 					kind: MessageKind.deleteFiles,
 					uris: [job.newContentUri],
@@ -300,7 +305,11 @@ export class JobManager {
 		const uris: Uri[] = [];
 
 		for (const job of this.#jobMap.values()) {
-			if (job.newContentUri) {
+			if (
+				(job.kind === JobKind.rewriteFile ||
+					job.kind === JobKind.moveAndRewriteFile) &&
+				job.newContentUri
+			) {
 				uris.push(job.newContentUri);
 			}
 		}
