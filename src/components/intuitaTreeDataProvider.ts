@@ -182,8 +182,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			if (element.job.kind === JobKind.createFile) {
 				treeItem.command = {
 					title: 'Create File',
-					command: 'vscode.open',
-					arguments: [element.job.newContentUri],
+					command: 'vscode.diff',
+					arguments: [null, element.job.newContentUri, 'Create File'],
 				};
 			}
 
@@ -191,7 +191,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				treeItem.command = {
 					title: 'Delete File',
 					command: 'vscode.diff',
-					arguments: [null, element.job.oldContentUri, 'Delete File'],
+					arguments: [element.job.oldContentUri, null, 'Delete File'],
 				};
 			}
 
