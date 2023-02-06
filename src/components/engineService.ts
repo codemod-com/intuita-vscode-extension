@@ -6,9 +6,9 @@ import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
+import { buildJobHash } from '../jobs/buildJobHash';
 import { buildCreateFileJob } from '../jobs/createFileJob';
-import { buildRewriteFileJob } from '../jobs/rewriteFileJob';
-import { Job } from '../jobs/types';
+import { Job, JobKind } from '../jobs/types';
 import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
@@ -20,6 +20,8 @@ export const enum EngineMessageKind {
 	create = 4,
 	compare = 5,
 	progress = 6,
+	delete = 7,
+	move = 8,
 }
 
 export const messageCodec = t.union([
@@ -54,6 +56,17 @@ export const messageCodec = t.union([
 		k: t.literal(EngineMessageKind.progress),
 		p: t.number,
 		t: t.number,
+	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.delete),
+		oldFilePath: t.string,
+		modId: t.string,
+	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.move),
+		oldFilePath: t.string,
+		newFilePath: t.string,
+		modId: t.string,
 	}),
 ]);
 
@@ -284,25 +297,44 @@ export class EngineService {
 			const codemodName = message.c;
 
 			if (message.k === EngineMessageKind.create) {
-				const inputUri = Uri.file(message.p);
-				const outputUri = Uri.file(message.o);
+				const newUri = Uri.file(message.p);
+				const newContentUri = Uri.file(message.o);
 
-				job = buildCreateFileJob(
-					inputUri,
-					outputUri,
+				const hashlessJob: Omit<Job, 'hash'> = {
+					kind: JobKind.createFile,
+					oldUri: null,
+					newUri,
+					oldContentUri: null,
+					newContentUri,
 					codemodSetName,
 					codemodName,
-				);
-			} else {
-				const inputUri = Uri.file(message.i);
-				const outputUri = Uri.file(message.o);
+				};
 
-				job = buildRewriteFileJob(
-					inputUri,
-					outputUri,
+				job = {
+					...hashlessJob,
+					hash: buildJobHash(hashlessJob),
+				};
+			} else if (message.k === EngineMessageKind.rewrite) {
+				const oldUri = Uri.file(message.i);
+				const newContentUri = Uri.file(message.o);
+
+				const hashlessJob: Omit<Job, 'hash'> = {
+					kind: JobKind.rewriteFile,
+					oldUri,
+					newUri: oldUri,
+					newContentUri,
+					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
-				);
+				};
+
+				job = {
+					...hashlessJob,
+					hash: buildJobHash(hashlessJob),
+				};
+			} else if (message.k === EngineMessageKind.delete) {
+				// job = {
+				// }
 			}
 
 			this.#messageBus.publish({
@@ -310,7 +342,7 @@ export class EngineService {
 				noraRustEngineExecutableUri,
 				job,
 				caseKind,
-				caseSubKind: message.c,
+				caseSubKind: 'modId' in message ? message.modId : message.c,
 				executionId,
 				codemodSetName,
 				codemodName,
