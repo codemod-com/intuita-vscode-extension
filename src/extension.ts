@@ -30,6 +30,7 @@ import { buildTypeCodec } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
+import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 
 const messageBus = new MessageBus();
 
@@ -743,6 +744,46 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeRecipeWithinPath',
+			async (uri: vscode.Uri) => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					throw new Error('No storage URI, aborting the command.');
+				}
+
+				const group = await vscode.window.showQuickPick(
+					RECIPE_NAMES.slice(),
+					{
+						placeHolder:
+							'Pick the codemod set (recipe) to execute over the selected path',
+					},
+				);
+
+				if (!recipeNameCodec.is(group)) {
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						group,
+						uri,
+					},
+					executionId,
+					happenedAt,
 				});
 			},
 		),

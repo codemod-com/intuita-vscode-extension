@@ -120,6 +120,10 @@
 			{
 				"command": "intuita.executeAsCodemod",
 				"title": "Intuita: Run as a codemod"
+			},
+			{
+				"command": "intuita.executeRecipeWithinPath",
+				"title": "Intuita: Execute Recipe Within Path"
 			}
 		],
 		"configuration": {
@@ -208,6 +212,11 @@
 					"command": "intuita.executeAsCodemod",
 					"group": "2_workspace",
 					"when": "resourceExtname == .js || resourceExtname == .ts"
+				},
+				{
+					"command": "intuita.executeRecipeWithinPath",
+					"group": "2_workspace",
+					"when": "explorerResourceIsFolder"
 				}
 			],
 			"view/title": [

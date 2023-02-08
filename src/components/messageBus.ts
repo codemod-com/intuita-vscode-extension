@@ -49,6 +49,7 @@ export const enum MessageKind {
 }
 
 export type Engine = 'node' | 'rust';
+
 export type Group =
 	| 'nextJs'
 	| 'next_13_composite'
