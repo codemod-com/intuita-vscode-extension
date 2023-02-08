@@ -218,8 +218,8 @@ export class EngineService {
 				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
 			}
 
-			if ('group' in message.command) {
-				args.push('-g', message.command.group);
+			if ('recipeName' in message.command) {
+				args.push('-g', message.command.recipeName);
 			}
 
 			args.push('-o', singleQuotify(outputUri.fsPath));
@@ -246,7 +246,7 @@ export class EngineService {
 		const executionId = message.executionId;
 
 		const codemodSetName =
-			'group' in message.command ? message.command.group : '';
+			'recipeName' in message.command ? message.command.recipeName : '';
 
 		this.#execution = {
 			childProcess,

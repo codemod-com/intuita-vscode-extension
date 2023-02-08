@@ -53,7 +53,7 @@ export type Engine = 'node' | 'rust';
 
 export type Command =
 	| Readonly<{
-			group: RecipeName;
+			recipeName: RecipeName;
 			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;

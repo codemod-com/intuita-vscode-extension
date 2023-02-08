@@ -72,7 +72,9 @@ export class TelemetryService {
 			happenedAt: String(Date.now()),
 			executionId: message.executionId,
 			codemodSetName:
-				'group' in message.command ? message.command.group : '',
+				'recipeName' in message.command
+					? message.command.recipeName
+					: '',
 		});
 	}
 

@@ -259,7 +259,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					engine: 'node',
 					storageUri,
 					uri,
-					group: recipeName,
+					recipeName: recipeName,
 				},
 				executionId,
 				happenedAt,
@@ -295,7 +295,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'nextJs',
+						recipeName: 'nextJs',
 						uri,
 					},
 					executionId,
@@ -333,7 +333,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'next_13_composite',
+						recipeName: 'next_13_composite',
 						uri,
 					},
 					executionId,
@@ -371,7 +371,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'rust',
 						storageUri,
-						group: 'nextJs',
+						recipeName: 'nextJs',
 						uri,
 					},
 					executionId,
@@ -409,7 +409,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'mui',
+						recipeName: 'mui',
 						uri,
 					},
 					executionId,
@@ -447,7 +447,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'reactrouterv4',
+						recipeName: 'reactrouterv4',
 						uri,
 					},
 					executionId,
@@ -485,7 +485,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'reactrouterv6',
+						recipeName: 'reactrouterv6',
 						uri,
 					},
 					executionId,
@@ -522,7 +522,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				command: {
 					engine: 'node',
 					storageUri,
-					group: 'immutablejsv0',
+					recipeName: 'immutablejsv0',
 					uri,
 				},
 				executionId,
@@ -559,7 +559,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'immutablejsv4',
+						recipeName: 'immutablejsv4',
 						uri,
 					},
 					executionId,
@@ -597,7 +597,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'redwoodjs_core_4',
+						recipeName: 'redwoodjs_core_4',
 						uri,
 					},
 					executionId,
@@ -759,7 +759,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('No storage URI, aborting the command.');
 				}
 
-				const group = await vscode.window.showQuickPick(
+				const recipeName = await vscode.window.showQuickPick(
 					RECIPE_NAMES.slice(),
 					{
 						placeHolder:
@@ -767,7 +767,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 				);
 
-				if (!recipeNameCodec.is(group)) {
+				if (!recipeNameCodec.is(recipeName)) {
 					return;
 				}
 
@@ -779,7 +779,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group,
+						recipeName,
 						uri,
 					},
 					executionId,

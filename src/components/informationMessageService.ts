@@ -61,7 +61,7 @@ export class InformationMessageService {
 				engine: 'node',
 				storageUri,
 				uri,
-				group,
+				recipeName: group,
 			},
 			executionId,
 			happenedAt,
