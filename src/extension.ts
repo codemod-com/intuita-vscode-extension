@@ -23,13 +23,14 @@ import {
 } from './persistedState/mappers';
 // import { DependencyService } from './dependencies/dependencyService';
 import {
-	dependencyNameToGroup,
+	dependencyNameToRecipeName,
 	InformationMessageService,
 } from './components/informationMessageService';
 import { buildTypeCodec } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
+import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 
 const messageBus = new MessageBus();
 
@@ -243,9 +244,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const uri = vscode.Uri.file(path);
 
-			const group = dependencyNameToGroup[dependencyName];
+			const recipeName = dependencyNameToRecipeName[dependencyName];
 
-			if (!group) {
+			if (!recipeName) {
 				return;
 			}
 
@@ -258,7 +259,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					engine: 'node',
 					storageUri,
 					uri,
-					group,
+					recipeName: recipeName,
 				},
 				executionId,
 				happenedAt,
@@ -294,7 +295,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'nextJs',
+						recipeName: 'nextJs',
 						uri,
 					},
 					executionId,
@@ -332,7 +333,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'next_13_composite',
+						recipeName: 'next_13_composite',
 						uri,
 					},
 					executionId,
@@ -370,7 +371,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'rust',
 						storageUri,
-						group: 'nextJs',
+						recipeName: 'nextJs',
 						uri,
 					},
 					executionId,
@@ -408,7 +409,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'mui',
+						recipeName: 'mui',
 						uri,
 					},
 					executionId,
@@ -446,7 +447,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'reactrouterv4',
+						recipeName: 'reactrouterv4',
 						uri,
 					},
 					executionId,
@@ -484,7 +485,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'reactrouterv6',
+						recipeName: 'reactrouterv6',
 						uri,
 					},
 					executionId,
@@ -521,7 +522,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				command: {
 					engine: 'node',
 					storageUri,
-					group: 'immutablejsv0',
+					recipeName: 'immutablejsv0',
 					uri,
 				},
 				executionId,
@@ -558,7 +559,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'immutablejsv4',
+						recipeName: 'immutablejsv4',
 						uri,
 					},
 					executionId,
@@ -596,7 +597,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						group: 'redwoodjs_core_4',
+						recipeName: 'redwoodjs_core_4',
 						uri,
 					},
 					executionId,
@@ -743,6 +744,46 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeRecipeWithinPath',
+			async (uri: vscode.Uri) => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					throw new Error('No storage URI, aborting the command.');
+				}
+
+				const recipeName = await vscode.window.showQuickPick(
+					RECIPE_NAMES.slice(),
+					{
+						placeHolder:
+							'Pick the codemod set (recipe) to execute over the selected path',
+					},
+				);
+
+				if (!recipeNameCodec.is(recipeName)) {
+					return;
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						recipeName,
+						uri,
+					},
+					executionId,
+					happenedAt,
 				});
 			},
 		),

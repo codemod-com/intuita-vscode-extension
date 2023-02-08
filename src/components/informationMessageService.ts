@@ -1,8 +1,9 @@
 import { Uri, window } from 'vscode';
+import { RecipeName } from '../recipes/codecs';
 import { buildExecutionId } from '../telemetry/hashes';
-import { Group, Message, MessageBus, MessageKind } from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 
-export const dependencyNameToGroup: Record<string, Group> = {
+export const dependencyNameToRecipeName: Record<string, RecipeName> = {
 	next: 'nextJs',
 	'@material-ui/core': 'mui',
 	'@redwoodjs/core': 'redwoodjs_core_4',
@@ -45,9 +46,9 @@ export class InformationMessageService {
 			return;
 		}
 
-		const group = dependencyNameToGroup[message.dependencyName];
+		const recipeName = dependencyNameToRecipeName[message.dependencyName];
 
-		if (!group) {
+		if (!recipeName) {
 			return;
 		}
 
@@ -60,7 +61,7 @@ export class InformationMessageService {
 				engine: 'node',
 				storageUri,
 				uri,
-				group,
+				recipeName,
 			},
 			executionId,
 			happenedAt,
