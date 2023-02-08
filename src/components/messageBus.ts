@@ -1,6 +1,7 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
+import { RecipeName } from '../recipes/codecs';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -50,19 +51,9 @@ export const enum MessageKind {
 
 export type Engine = 'node' | 'rust';
 
-export type Group =
-	| 'nextJs'
-	| 'next_13_composite'
-	| 'mui'
-	| 'reactrouterv4'
-	| 'reactrouterv6'
-	| 'immutablejsv4'
-	| 'immutablejsv0'
-	| 'redwoodjs_core_4';
-
 export type Command =
 	| Readonly<{
-			group: Group;
+			group: RecipeName;
 			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;

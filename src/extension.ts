@@ -23,7 +23,7 @@ import {
 } from './persistedState/mappers';
 // import { DependencyService } from './dependencies/dependencyService';
 import {
-	dependencyNameToGroup,
+	dependencyNameToRecipeName,
 	InformationMessageService,
 } from './components/informationMessageService';
 import { buildTypeCodec } from './utilities';
@@ -244,9 +244,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const uri = vscode.Uri.file(path);
 
-			const group = dependencyNameToGroup[dependencyName];
+			const recipeName = dependencyNameToRecipeName[dependencyName];
 
-			if (!group) {
+			if (!recipeName) {
 				return;
 			}
 
@@ -259,7 +259,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					engine: 'node',
 					storageUri,
 					uri,
-					group,
+					group: recipeName,
 				},
 				executionId,
 				happenedAt,

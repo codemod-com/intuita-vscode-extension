@@ -1,7 +1,5 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
-import { Uri } from 'vscode';
-import { basename } from 'path';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
