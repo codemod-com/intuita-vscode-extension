@@ -46,9 +46,9 @@ export class InformationMessageService {
 			return;
 		}
 
-		const group = dependencyNameToRecipeName[message.dependencyName];
+		const recipeName = dependencyNameToRecipeName[message.dependencyName];
 
-		if (!group) {
+		if (!recipeName) {
 			return;
 		}
 
@@ -61,7 +61,7 @@ export class InformationMessageService {
 				engine: 'node',
 				storageUri,
 				uri,
-				recipeName: group,
+				recipeName,
 			},
 			executionId,
 			happenedAt,
