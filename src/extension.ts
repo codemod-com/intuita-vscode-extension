@@ -725,11 +725,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
 			(uri: vscode.Uri) => {
+				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+
+				if (!rootUri) {
+					throw new Error('No workspace has been opened.');
+				}
+
 				const { storageUri } = context;
 
 				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
+					throw new Error('No storage URI, aborting the command.');
 				}
 
 				const happenedAt = String(Date.now());
@@ -738,6 +743,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
+						uri: rootUri,
 						engine: 'node',
 						storageUri,
 						fileUri: uri,
