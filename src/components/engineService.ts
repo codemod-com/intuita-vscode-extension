@@ -216,6 +216,14 @@ export class EngineService {
 
 			if ('fileUri' in message.command) {
 				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
+
+				const { fsPath } = Uri.joinPath(
+					message.command.uri,
+					`**/*.{js,jsx,ts,tsx}`,
+				);
+
+				args.push('-p', fsPath);
+				args.push('-p', '!**/node_modules');
 			}
 
 			if ('recipeName' in message.command) {

@@ -62,6 +62,7 @@ export type Command =
 			fileUri: Uri;
 			engine: Engine;
 			storageUri: Uri;
+			uri: Uri;
 	  }>;
 
 export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';
