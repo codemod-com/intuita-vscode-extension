@@ -4,6 +4,7 @@ export const recipeNameCodec = t.union([
 	t.literal('nextJs'),
 	t.literal('next_13_composite'),
 	t.literal('mui'),
+	t.literal('react-redux_0'),
 	t.literal('reactrouterv4'),
 	t.literal('reactrouterv6'),
 	t.literal('immutablejsv4'),
