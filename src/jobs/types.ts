@@ -8,6 +8,7 @@ export const enum JobKind {
 	deleteFile = 3,
 	moveFile = 4,
 	moveAndRewriteFile = 5,
+	copyFile = 6,
 }
 
 export type Job = Readonly<{

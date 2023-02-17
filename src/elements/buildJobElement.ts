@@ -15,6 +15,8 @@ export const buildJobElement = (job: Job, rootPath: string): JobElement => {
 		label = `Move & Rewrite ${oldPath} -> ${newPath}`;
 	} else if (job.kind === JobKind.moveFile) {
 		label = `Move ${oldPath} -> ${newPath}`;
+	} else if (job.kind === JobKind.copyFile) {
+		label = `Copy ${oldPath} -> ${newPath}`;
 	} else if (job.kind === JobKind.rewriteFile) {
 		label = `Rewrite ${oldPath}`;
 	} else {

@@ -10,6 +10,7 @@ export const persistedJobCodec = buildTypeCodec({
 		t.literal(JobKind.deleteFile),
 		t.literal(JobKind.moveAndRewriteFile),
 		t.literal(JobKind.moveFile),
+		t.literal(JobKind.copyFile),
 	]),
 	oldPath: t.union([t.string, t.null]),
 	newPath: t.union([t.string, t.null]),

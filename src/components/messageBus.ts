@@ -185,6 +185,7 @@ export type Message =
 			kind: MessageKind.createFile;
 			newUri: Uri;
 			newContentUri: Uri;
+			deleteNewContentUri: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.moveFile;
