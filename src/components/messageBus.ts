@@ -185,6 +185,7 @@ export type Message =
 			kind: MessageKind.createFile;
 			newUri: Uri;
 			newContentUri: Uri;
+			deleteNewContentUri: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.moveFile;
@@ -225,6 +226,8 @@ export class MessageBus {
 
 	publish(message: Message): void {
 		const emitter = this.#emitters[message.kind];
+
+		console.log(message);
 
 		emitter?.fire(message);
 	}

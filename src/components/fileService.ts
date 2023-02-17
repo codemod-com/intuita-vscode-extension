@@ -34,10 +34,12 @@ export class FileService {
 
 		await workspace.fs.writeFile(message.newUri, content);
 
-		this.#messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris: [message.newContentUri],
-		});
+		if (message.deleteNewContentUri) {
+			this.#messageBus.publish({
+				kind: MessageKind.deleteFiles,
+				uris: [message.newContentUri],
+			});
+		}
 	}
 
 	async #onUpdateFile(message: Message & { kind: MessageKind.updateFile }) {
