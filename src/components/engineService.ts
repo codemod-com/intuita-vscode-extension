@@ -21,6 +21,7 @@ export const enum EngineMessageKind {
 	delete = 7,
 	move = 8,
 	create = 9,
+	copy = 10,
 }
 
 export const messageCodec = t.union([
@@ -65,6 +66,12 @@ export const messageCodec = t.union([
 		k: t.literal(EngineMessageKind.create),
 		newFilePath: t.string,
 		newContentPath: t.string,
+		modId: t.string,
+	}),
+	buildTypeCodec({
+		k: t.literal(EngineMessageKind.copy),
+		oldFilePath: t.string,
+		newFilePath: t.string,
 		modId: t.string,
 	}),
 ]);
@@ -374,8 +381,26 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob),
 				};
+			} else if (message.k === EngineMessageKind.copy) {
+				const oldUri = Uri.file(message.oldFilePath);
+				const newUri = Uri.file(message.newFilePath);
+
+				const hashlessJob: Omit<Job, 'hash'> = {
+					kind: JobKind.copyFile,
+					oldUri,
+					newUri,
+					newContentUri: oldUri,
+					oldContentUri: oldUri,
+					codemodSetName,
+					codemodName,
+				};
+
+				job = {
+					...hashlessJob,
+					hash: buildJobHash(hashlessJob),
+				};
 			} else {
-				throw new Error();
+				throw new Error(`Unrecognized message`);
 			}
 
 			this.#messageBus.publish({
