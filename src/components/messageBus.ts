@@ -227,8 +227,6 @@ export class MessageBus {
 	publish(message: Message): void {
 		const emitter = this.#emitters[message.kind];
 
-		console.log(message);
-
 		emitter?.fire(message);
 	}
 }
