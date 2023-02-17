@@ -231,6 +231,15 @@ export class JobManager {
 					updateJobOutputs.push([job.oldUri, job.newContentUri]);
 				}
 
+				if (
+					job &&
+					job.kind === JobKind.copyFile &&
+					job.newUri &&
+					job.newContentUri
+				) {
+					createJobOutputs.push([job.newUri, job.newContentUri]);
+				}
+
 				const otherJobHashes =
 					this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
 						uriHash,
