@@ -31,6 +31,7 @@ import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
 import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
+import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 
 const messageBus = new MessageBus();
 
@@ -816,11 +817,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	const intuitaTextDocumentContentProvider =
+		new IntuitaTextDocumentContentProvider();
+
 	context.subscriptions.push(
-		vscode.workspace.registerTextDocumentContentProvider('intuita', {
-			provideTextDocumentContent: function (
-				uri: vscode.Uri,
-			): vscode.ProviderResult<string> {
+		vscode.workspace.registerTextDocumentContentProvider(
+			'intuita',
+			intuitaTextDocumentContentProvider,
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri: async (uri) => {
 				const searchParams = new URLSearchParams(uri.query);
 				const base64EncodedContent = searchParams.get('c');
 
@@ -833,22 +842,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					'base64',
 				);
 
-				return buffer.toString('utf8');
-			},
-		}),
-	);
+				const content = buffer.toString('utf8');
 
-	context.subscriptions.push(
-		vscode.window.registerUriHandler({
-			handleUri: (uri) => {
-				const searchParams = new URLSearchParams(uri.query);
-				const c = searchParams.get('c');
+				intuitaTextDocumentContentProvider.setContent(content);
 
-				const textDocumentUri = vscode.Uri.parse(
-					`intuita:jscodeshiftCodemod?c=${c}`,
+				const document = await vscode.workspace.openTextDocument(
+					intuitaTextDocumentContentProvider.URI,
 				);
 
-				vscode.workspace.openTextDocument(textDocumentUri);
+				vscode.window.showTextDocument(document);
 			},
 		}),
 	);
