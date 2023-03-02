@@ -31,6 +31,7 @@ import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
 import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
+import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 
 const messageBus = new MessageBus();
 
@@ -127,6 +128,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		messageBus,
 	);
+
+	const intuitaTextDocumentContentProvider =
+		new IntuitaTextDocumentContentProvider();
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
@@ -796,6 +800,49 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeImportedModOnPath',
+			async (uri: vscode.Uri) => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					throw new Error('No storage URI, aborting the command.');
+				}
+
+				const modUri = vscode.Uri.joinPath(
+					storageUri,
+					'jscodeshiftCodemod.ts',
+				);
+
+				const document = await vscode.workspace.openTextDocument(
+					intuitaTextDocumentContentProvider.URI,
+				);
+
+				const text = document.getText();
+				const buffer = Buffer.from(text);
+				const content = new Uint8Array(buffer);
+
+				vscode.workspace.fs.writeFile(modUri, content);
+
+				const happenedAt = String(Date.now());
+				const executionId = buildExecutionId();
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						uri,
+						engine: 'node',
+						storageUri,
+						fileUri: modUri,
+					},
+					happenedAt,
+					executionId,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
@@ -813,6 +860,43 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus.publish({
 				kind: MessageKind.clearState,
 			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(
+			'intuita',
+			intuitaTextDocumentContentProvider,
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri: async (uri) => {
+				const searchParams = new URLSearchParams(uri.query);
+				const base64EncodedContent = searchParams.get('c');
+
+				if (base64EncodedContent === null) {
+					throw new Error(
+						'You need to provide a base64 encoded content parameter "c"',
+					);
+				}
+
+				const buffer = Buffer.from(
+					decodeURIComponent(base64EncodedContent),
+					'base64',
+				);
+
+				const content = buffer.toString('utf8');
+
+				intuitaTextDocumentContentProvider.setContent(content);
+
+				const document = await vscode.workspace.openTextDocument(
+					intuitaTextDocumentContentProvider.URI,
+				);
+
+				vscode.window.showTextDocument(document);
+			},
 		}),
 	);
 
