@@ -9,10 +9,11 @@ import {
 export class IntuitaTextDocumentContentProvider
 	implements TextDocumentContentProvider
 {
-	URI = Uri.parse('intuita:jscodeshiftCodemod.ts');
-	#onDidChangeEmitter = new EventEmitter<Uri>();
+	readonly URI = Uri.parse('intuita:jscodeshiftCodemod.ts');
+	readonly #onDidChangeEmitter = new EventEmitter<Uri>();
+	readonly onDidChange: Event<Uri> | undefined = undefined;
+
 	#content = '';
-	onDidChange: Event<Uri> | undefined = undefined;
 
 	constructor() {
 		this.onDidChange = this.#onDidChangeEmitter.event;
