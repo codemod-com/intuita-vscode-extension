@@ -26,7 +26,9 @@ export class IntuitaTextDocumentContentProvider
 
 	provideTextDocumentContent(uri: Uri): ProviderResult<string> {
 		if (uri.toString() !== this.URI.toString()) {
-			throw new Error();
+			throw new Error(
+				`You can only read the content of ${this.URI.toString()}`,
+			);
 		}
 
 		return this.#content;
