@@ -124,7 +124,11 @@
 			},
 			{
 				"command": "intuita.executeRecipeWithinPath",
-				"title": "Intuita: Execute Recipe Within Path"
+				"title": "Intuita: Execute Recipe On Path"
+			},
+			{
+				"command": "intuita.executeImportedModOnPath",
+				"title": "Intuita: Execute Imported Mod On Path"
 			}
 		],
 		"configuration": {
@@ -216,6 +220,11 @@
 				},
 				{
 					"command": "intuita.executeRecipeWithinPath",
+					"group": "2_workspace",
+					"when": "explorerResourceIsFolder"
+				},
+				{
+					"command": "intuita.executeImportedModOnPath",
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				}

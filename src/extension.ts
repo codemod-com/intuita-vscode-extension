@@ -129,6 +129,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const intuitaTextDocumentContentProvider =
+		new IntuitaTextDocumentContentProvider();
+
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
 			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
@@ -797,6 +800,49 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeImportedModOnPath',
+			async (uri: vscode.Uri) => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					throw new Error('No storage URI, aborting the command.');
+				}
+
+				const modUri = vscode.Uri.joinPath(
+					storageUri,
+					'jscodeshiftCodemod.ts',
+				);
+
+				const document = await vscode.workspace.openTextDocument(
+					intuitaTextDocumentContentProvider.URI,
+				);
+
+				const text = document.getText();
+				const buffer = Buffer.from(text);
+				const content = new Uint8Array(buffer);
+
+				vscode.workspace.fs.writeFile(modUri, content);
+
+				const happenedAt = String(Date.now());
+				const executionId = buildExecutionId();
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						uri,
+						engine: 'node',
+						storageUri,
+						fileUri: modUri,
+					},
+					happenedAt,
+					executionId,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((event) => {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
@@ -817,9 +863,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const intuitaTextDocumentContentProvider =
-		new IntuitaTextDocumentContentProvider();
-
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(
 			'intuita',
@@ -834,7 +877,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				const base64EncodedContent = searchParams.get('c');
 
 				if (base64EncodedContent === null) {
-					throw new Error();
+					throw new Error(
+						'You need to provide a base64 encoded content parameter "c"',
+					);
 				}
 
 				const buffer = Buffer.from(
