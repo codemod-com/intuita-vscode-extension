@@ -889,8 +889,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const content = buffer.toString('utf8');
 
-				console.log(base64UrlEncodedContent, content);
-
 				intuitaTextDocumentContentProvider.setContent(content);
 
 				const document = await vscode.workspace.openTextDocument(
