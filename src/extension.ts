@@ -816,6 +816,43 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider('intuita', {
+			provideTextDocumentContent: function (
+				uri: vscode.Uri,
+			): vscode.ProviderResult<string> {
+				const searchParams = new URLSearchParams(uri.query);
+				const base64EncodedContent = searchParams.get('c');
+
+				if (base64EncodedContent === null) {
+					throw new Error();
+				}
+
+				const buffer = Buffer.from(
+					decodeURIComponent(base64EncodedContent),
+					'base64',
+				);
+
+				return buffer.toString('utf8');
+			},
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri: (uri) => {
+				const searchParams = new URLSearchParams(uri.query);
+				const c = searchParams.get('c');
+
+				const textDocumentUri = vscode.Uri.parse(
+					`intuita:jscodeshiftCodemod?c=${c}`,
+				);
+
+				vscode.workspace.openTextDocument(textDocumentUri);
+			},
+		}),
+	);
+
 	messageBus.publish({
 		kind: MessageKind.updateElements,
 		trigger: 'bootstrap',
