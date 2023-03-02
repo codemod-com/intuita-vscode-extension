@@ -874,20 +874,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerUriHandler({
 			handleUri: async (uri) => {
 				const searchParams = new URLSearchParams(uri.query);
-				const base64EncodedContent = searchParams.get('c');
+				const base64UrlEncodedContent = searchParams.get('c');
 
-				if (base64EncodedContent === null) {
+				if (base64UrlEncodedContent === null) {
 					throw new Error(
 						'You need to provide a base64 encoded content parameter "c"',
 					);
 				}
 
 				const buffer = Buffer.from(
-					decodeURIComponent(base64EncodedContent),
-					'base64',
+					base64UrlEncodedContent,
+					'base64url',
 				);
 
 				const content = buffer.toString('utf8');
+
+				console.log(base64UrlEncodedContent, content);
 
 				intuitaTextDocumentContentProvider.setContent(content);
 
