@@ -864,6 +864,33 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.sendAsBeforeSnippet',
+			async () => {
+				const { activeTextEditor } = vscode.window;
+
+				if (!activeTextEditor) {
+					console.error(
+						'No active text editor, sendAsBeforeSnippet will not be executed',
+					);
+					return;
+				}
+
+				const selection = activeTextEditor.selection;
+				const text = activeTextEditor.document.getText(selection);
+
+				const beforeSnippet = Buffer.from(text).toString('base64url');
+
+				const uri = vscode.Uri.parse(
+					`https://codemod.studio?beforeSnippet=${beforeSnippet}`,
+				);
+
+				await vscode.env.openExternal(uri);
+			},
+		),
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(
 			'intuita',
 			intuitaTextDocumentContentProvider,

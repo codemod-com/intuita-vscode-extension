@@ -129,6 +129,10 @@
 			{
 				"command": "intuita.executeImportedModOnPath",
 				"title": "Intuita: Execute Imported Mod On Path"
+			},
+			{
+				"command": "intuita.sendAsBeforeSnippet",
+				"title": "Intuita: Send as before snippet to the Codemod Studio"
 			}
 		],
 		"configuration": {
@@ -210,6 +214,13 @@
 				{
 					"command": "intuita.rejectCase",
 					"when": "false"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "intuita.sendAsBeforeSnippet",
+					"when": "editorHasSelection",
+					"group": "9_cutcopypaste"
 				}
 			],
 			"explorer/context": [
