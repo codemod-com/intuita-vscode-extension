@@ -132,7 +132,11 @@
 			},
 			{
 				"command": "intuita.sendAsBeforeSnippet",
-				"title": "Intuita: Send as before snippet to the Codemod Studio"
+				"title": "Intuita: Send as Before Snippet to the Codemod Studio"
+			},
+			{
+				"command": "intuita.sendAsAfterSnippet",
+				"title": "Intuita: Send as After Snippet to the Codemod Studio"
 			}
 		],
 		"configuration": {
@@ -219,6 +223,11 @@
 			"editor/context": [
 				{
 					"command": "intuita.sendAsBeforeSnippet",
+					"when": "editorHasSelection",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"command": "intuita.sendAsAfterSnippet",
 					"when": "editorHasSelection",
 					"group": "9_cutcopypaste"
 				}
