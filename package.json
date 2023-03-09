@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Upgrade dependencies faster with high-quality codemods.",
-	"version": "0.11.1",
+	"version": "0.12.0",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -129,6 +129,14 @@
 			{
 				"command": "intuita.executeImportedModOnPath",
 				"title": "Intuita: Execute Imported Mod On Path"
+			},
+			{
+				"command": "intuita.sendAsBeforeSnippet",
+				"title": "Intuita: Send as Before Snippet to the Codemod Studio"
+			},
+			{
+				"command": "intuita.sendAsAfterSnippet",
+				"title": "Intuita: Send as After Snippet to the Codemod Studio"
 			}
 		],
 		"configuration": {
@@ -210,6 +218,18 @@
 				{
 					"command": "intuita.rejectCase",
 					"when": "false"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "intuita.sendAsBeforeSnippet",
+					"when": "editorHasSelection",
+					"group": "9_cutcopypaste"
+				},
+				{
+					"command": "intuita.sendAsAfterSnippet",
+					"when": "editorHasSelection",
+					"group": "9_cutcopypaste"
 				}
 			],
 			"explorer/context": [
