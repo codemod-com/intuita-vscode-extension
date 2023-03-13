@@ -19,7 +19,8 @@ export const getConfiguration = () => {
 			? configuration.get<boolean>('telemetryEnabled') ?? true
 			: false;
 
-	const workerThreadCount = configuration.get<number>('workerThreadCount') ?? 4;
+	const workerThreadCount =
+		configuration.get<number>('workerThreadCount') ?? 4;
 
 	return {
 		saveDocumentOnJobAccept,
