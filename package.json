@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": "Upgrade dependencies faster with high-quality codemods.",
-	"version": "0.12.0",
+	"version": "0.13.0",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -159,6 +159,12 @@
 					"type": "boolean",
 					"default": "true",
 					"description": "Send [telemetry data](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) to Intuita. "
+				},
+				"intuita.workerThreadCount": {
+					"order": 3,
+					"type": "number",
+					"default": 4,
+					"description": "The number of worker threads to execute any codemod over"
 				}
 			}
 		},

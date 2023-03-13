@@ -198,6 +198,13 @@ export class EngineService {
 
 				args.push('-p', '!**/node_modules');
 
+				args.push(
+					'-w',
+					String(
+						this.#configurationContainer.get().workerThreadCount,
+					),
+				);
+
 				args.push('-l', String(fileLimit));
 			} else if (
 				message.command.engine === 'rust' &&
