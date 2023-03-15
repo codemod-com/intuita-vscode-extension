@@ -177,7 +177,6 @@ export class NoraCompareServiceEngine {
 			casesWithJobHashes: [caseWithJobHashes],
 			jobs: [job],
 			inactiveJobHashes: new Set(),
-			trigger: 'onCommand',
 			executionId: message.executionId,
 		});
 	}

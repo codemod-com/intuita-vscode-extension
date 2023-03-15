@@ -28,7 +28,6 @@ export const enum MessageKind {
 	enginesBootstrapped = 14,
 
 	/** state */
-	persistState = 15,
 	clearState = 16,
 
 	/** information message */
@@ -65,26 +64,21 @@ export type Command =
 			uri: Uri;
 	  }>;
 
-export type Trigger = 'onCommand' | 'onDidUpdateConfiguration' | 'bootstrap';
-
 export type Message =
 	| Readonly<{
 			kind: MessageKind.updateElements;
-			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
-			trigger: Trigger;
 			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
 			jobs: ReadonlyArray<Job>;
 			inactiveJobHashes: ReadonlySet<JobHash>;
-			trigger: Trigger;
 	  }>
 	| Readonly<{
 			kind: MessageKind.rejectCase;
@@ -139,9 +133,6 @@ export type Message =
 			kind: MessageKind.enginesBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
 			noraRustEngineExecutableUri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.persistState;
 	  }>
 	| Readonly<{
 			kind: MessageKind.clearState;
