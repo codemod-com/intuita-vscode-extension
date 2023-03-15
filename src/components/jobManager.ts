@@ -124,7 +124,6 @@ export class JobManager {
 
 		this.#messageBus.publish({
 			kind: MessageKind.updateElements,
-			trigger: message.trigger,
 		});
 	}
 
@@ -289,12 +288,12 @@ export class JobManager {
 				});
 			});
 
-			deleteJobOutputs.forEach((oldUri) => {
+			if (deleteJobOutputs.length !== 0) {
 				messages.push({
 					kind: MessageKind.deleteFiles,
-					uris: [oldUri],
+					uris: deleteJobOutputs.slice(),
 				});
-			});
+			}
 		}
 
 		for (const message of messages) {

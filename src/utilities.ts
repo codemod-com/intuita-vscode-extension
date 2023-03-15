@@ -26,15 +26,17 @@ export const buildTypeCodec = <T extends t.Props>(
 	props: T,
 ): t.ReadonlyC<t.ExactC<t.TypeC<T>>> => t.readonly(t.exact(t.type(props)));
 
-export const debounce = <T, R>(callback: (arg1: T) => R, ms: number) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const debounce = <R>(callback: (...args: any[]) => R, ms: number) => {
 	let timeout: ReturnType<typeof setTimeout> | null = null;
 
-	return (arg1: T) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (...args: any[]) => {
 		if (timeout !== null) {
 			clearTimeout(timeout);
 		}
 
-		timeout = setTimeout(() => callback(arg1), ms);
+		timeout = setTimeout(() => callback(...args), ms);
 	};
 };
 

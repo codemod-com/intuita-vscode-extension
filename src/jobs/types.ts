@@ -20,4 +20,5 @@ export type Job = Readonly<{
 	newContentUri: Uri | null;
 	codemodSetName: string;
 	codemodName: string;
+	createdAt: number;
 }>;

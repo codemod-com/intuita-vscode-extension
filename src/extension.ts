@@ -850,7 +850,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			messageBus.publish({
 				kind: MessageKind.updateElements,
-				trigger: 'onDidUpdateConfiguration',
 			});
 		}),
 	);
@@ -956,7 +955,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	messageBus.publish({
 		kind: MessageKind.updateElements,
-		trigger: 'bootstrap',
 	});
 
 	// const dependencyService = new DependencyService(messageBus);

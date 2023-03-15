@@ -104,7 +104,6 @@ export class CaseManager {
 			kind: MessageKind.upsertJobs,
 			jobs: message.jobs,
 			inactiveJobHashes: message.inactiveJobHashes,
-			trigger: message.trigger,
 		});
 	}
 
@@ -155,7 +154,6 @@ export class CaseManager {
 
 		this.#messageBus.publish({
 			kind: MessageKind.updateElements,
-			trigger: 'onCommand',
 		});
 	}
 

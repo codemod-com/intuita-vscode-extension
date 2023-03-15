@@ -27,6 +27,7 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	hash: persistedJob.hash as JobHash,
 	codemodSetName: persistedJob.codemodSetName,
 	codemodName: persistedJob.codemodName,
+	createdAt: Date.now(),
 });
 
 export const mapCaseToPersistedCase = (kase: Case): PersistedCase => ({

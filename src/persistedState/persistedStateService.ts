@@ -2,6 +2,7 @@ import { FileSystem, Uri } from 'vscode';
 import { CaseManager } from '../cases/caseManager';
 import { JobManager } from '../components/jobManager';
 import { MessageBus, MessageKind } from '../components/messageBus';
+import { debounce } from '../utilities';
 import { PersistedState } from './codecs';
 import { mapCaseToPersistedCase, mapJobToPersistedJob } from './mappers';
 
@@ -13,15 +14,20 @@ export class PersistedStateService {
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
 	) {
-		this.messageBus.subscribe(MessageKind.persistState, () =>
-			this.#onPersistStateMessage(),
+		const debouncedOnUpdateElementsMessage = debounce(
+			() => this.#onUpdateElementsMessage(),
+			1000,
+		);
+
+		this.messageBus.subscribe(MessageKind.updateElements, () =>
+			debouncedOnUpdateElementsMessage(),
 		);
 		this.messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
 	}
 
-	async #onPersistStateMessage() {
+	async #onUpdateElementsMessage() {
 		const uri = this.getStorageUri();
 
 		if (!uri) {

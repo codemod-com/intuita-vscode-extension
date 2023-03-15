@@ -1,6 +1,5 @@
 import { join } from 'node:path';
 import {
-	commands,
 	Event,
 	EventEmitter,
 	ProviderResult,
@@ -13,7 +12,7 @@ import {
 	workspace,
 } from 'vscode';
 import { JobManager } from './jobManager';
-import { Message, MessageBus, MessageKind } from './messageBus';
+import { MessageBus, MessageKind } from './messageBus';
 import { CaseWithJobHashes } from '../cases/types';
 import {
 	CaseElement,
@@ -31,7 +30,6 @@ import {
 	buildFileElement,
 	compareFileElements,
 } from '../elements/buildFileElement';
-import { getFirstJobElement } from '../elements/getFirstJobElement';
 import {
 	buildCaseElement,
 	compareCaseElements,
@@ -76,12 +74,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
-		const debouncedOnUpdateElementsMessage = debounce(
-			(message: Message & { kind: MessageKind.updateElements }) => {
-				return this.#onUpdateElementsMessage(message);
-			},
-			1000,
-		);
+		const debouncedOnUpdateElementsMessage = debounce(() => {
+			return this.#onUpdateElementsMessage();
+		}, 100);
 
 		this.#messageBus.subscribe(MessageKind.updateElements, (message) =>
 			debouncedOnUpdateElementsMessage(message),
@@ -227,16 +222,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return treeItem;
 	}
 
-	async #onUpdateElementsMessage(
-		message: Message & { kind: MessageKind.updateElements },
-	) {
+	async #onUpdateElementsMessage() {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
 		const casesWithJobHashes = this.#caseManager.getCasesWithJobHashes();
 
 		const jobMap = this.#buildJobMap(casesWithJobHashes);
 
-		const caseElements = this.#buildCaseElements(
+		const [caseElements, latestJob] = this.#buildCaseElementsAndLatestJob(
 			rootPath,
 			casesWithJobHashes,
 			jobMap,
@@ -254,29 +247,19 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this.#setElement(rootElement);
 
-		const firstJobElement = getFirstJobElement(rootElement);
-
 		// update the UX state
 		this.eventEmitter.fire();
 
-		if (!firstJobElement) {
+		if (!latestJob) {
 			return;
 		}
 
-		const showTheFirstJob = async () => {
-			// TODO check the job kind
-			await commands.executeCommand(
-				'vscode.diff',
-				firstJobElement.job.oldUri,
-				firstJobElement.job.newContentUri,
-				'Proposed change',
-			);
-
+		const revealTheFirstJobElement = async () => {
 			if (!this.#reveal) {
 				return;
 			}
 
-			await this.#reveal(firstJobElement.hash, {
+			await this.#reveal(latestJob.hash as unknown as ElementHash, {
 				select: true,
 				focus: true,
 			});
@@ -298,13 +281,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			this.#activeJobHashes.delete(jobHash);
 		}
 
-		if (message.trigger === 'onCommand') {
-			setImmediate(showTheFirstJob);
-
-			this.#messageBus.publish({
-				kind: MessageKind.persistState,
-			});
-		}
+		setImmediate(revealTheFirstJobElement);
 	}
 
 	#onClearStateMessage() {
@@ -367,12 +344,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return map;
 	}
 
-	#buildCaseElements(
+	#buildCaseElementsAndLatestJob(
 		rootPath: string,
 		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 		jobMap: ReadonlyMap<JobHash, Job>,
-	): ReadonlyArray<CaseElement> {
-		const caseElements: CaseElement[] = [];
+	): [ReadonlyArray<CaseElement>, Job | null] {
+		let latestJob: Job | null = null;
+
+		const unsortedCaseElements: CaseElement[] = [];
 
 		for (const caseWithJobHashes of casesWithJobHashes) {
 			const jobs: Job[] = [];
@@ -385,6 +364,10 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				}
 
 				jobs.push(job);
+
+				if (latestJob === null || latestJob.createdAt < job.createdAt) {
+					latestJob = job;
+				}
 			}
 
 			const uriSet = new Set<Uri>();
@@ -419,28 +402,34 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 				);
 			});
 
-			caseElements.push(buildCaseElement(caseWithJobHashes, children));
+			unsortedCaseElements.push(
+				buildCaseElement(caseWithJobHashes, children),
+			);
 		}
 
-		return caseElements.sort(compareCaseElements).map((caseElement) => {
-			const children = caseElement.children
-				.slice()
-				.sort(compareFileElements)
-				.map((fileElement) => {
-					const children = fileElement.children
-						.slice()
-						.sort(compareJobElements);
+		const sortedCaseElements = unsortedCaseElements
+			.sort(compareCaseElements)
+			.map((caseElement) => {
+				const children = caseElement.children
+					.slice()
+					.sort(compareFileElements)
+					.map((fileElement) => {
+						const children = fileElement.children
+							.slice()
+							.sort(compareJobElements);
 
-					return {
-						...fileElement,
-						children,
-					};
-				});
+						return {
+							...fileElement,
+							children,
+						};
+					});
 
-			return {
-				...caseElement,
-				children,
-			};
-		});
+				return {
+					...caseElement,
+					children,
+				};
+			});
+
+		return [sortedCaseElements, latestJob];
 	}
 }

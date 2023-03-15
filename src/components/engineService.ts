@@ -329,6 +329,7 @@ export class EngineService {
 					newContentUri,
 					codemodSetName,
 					codemodName,
+					createdAt: Date.now(),
 				};
 
 				job = {
@@ -347,6 +348,7 @@ export class EngineService {
 					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
+					createdAt: Date.now(),
 				};
 
 				job = {
@@ -364,6 +366,7 @@ export class EngineService {
 					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
+					createdAt: Date.now(),
 				};
 
 				job = {
@@ -382,6 +385,7 @@ export class EngineService {
 					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
+					createdAt: Date.now(),
 				};
 
 				job = {
@@ -400,6 +404,7 @@ export class EngineService {
 					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
+					createdAt: Date.now(),
 				};
 
 				job = {
