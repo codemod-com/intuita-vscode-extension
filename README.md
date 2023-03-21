@@ -9,6 +9,11 @@
   - **ImmutableJS x3 -> v4**
 - ⚠️ This extension is in <kbd>Public Beta</kbd>! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
 
+Intuita VS Code Extension now works with [Codemod Studio ->](https://codemod.studio).
+
+
+[Check out more from Intuita ->](https://intuita.io)
+
 ---
 
 ## How It Works 🪄
@@ -72,7 +77,7 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
 - The extension collects telemetry data to help us improve the product for you.
 - **We never send PII, OS information, file or folder names.**
 - Telemetry can be disabled in the settings.
-- See more details in our [telemetry compliance considerations](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) doc.
+- See more details in our [telemetry compliance considerations](https://docs.intuita.io/docs/about-intuita/legal/telemetry-compliance) doc.
 
 ---
 ## Share Feedback 🎁
@@ -81,7 +86,7 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
 
 ---
 ## Join Us 🙌🏼 
-- We are an early-stage startup backed by amazing angels in silicon valley! If you are a codemod nerd or passionate about building delightful devtools, [let's chat](https://www.linkedin.com/in/alexbit/)!
+- We are an early-stage startup backed by amazing angels in silicon valley! If you are a codemod nerd or passionate about building delightful devtools, [let's chat](https://www.linkedin.com/company/intuita-inc)!
 
 <br>  
 </br>
