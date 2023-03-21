@@ -151,7 +151,7 @@
 				"intuita.fileLimit": {
 					"order": 1,
 					"type": "number",
-					"default": 100,
+					"default": 2000,
 					"description": "The maximum number of files to execute any codemod over"
 				},
 				"intuita.telemetryEnabled": {
