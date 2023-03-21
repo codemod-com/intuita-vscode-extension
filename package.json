@@ -1,8 +1,8 @@
 {
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
-	"description": "Upgrade dependencies faster with high-quality codemods.",
-	"version": "0.13.1",
+	"description": " Discover, run & manage codemods faster & easier.",
+	"version": "0.13.2",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
