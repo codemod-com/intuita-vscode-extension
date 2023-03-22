@@ -1,6 +1,6 @@
 # Awesome codemods delivered to you!
 
-- [Intuita](https://intuita.io) is a codemod manager 🤖 that makes **migrations, dependency upgrades & large refactorings** faster & easier for codebases of any size.
+- Intuita is a codemod manager 🤖 that makes **migrations, dependency upgrades & large refactorings** faster & easier for codebases of any size.
 - Intuita's extension is [open source](https://github.com/intuita-inc/intuita-vscode-extension) & supports the best codemod engines out there, such as Facebook's
 JSCodeShift, Uber's Piranha, & soon ML-powered engines. If your
 favorite codemod engine is not supported yet, please [create an issue](https://github.com/intuita-inc/intuita-vscode-extension/issues/new) for us to prioritize.
@@ -13,6 +13,7 @@ already been added to the extension. If you want to upgrade a dependency in the 
 - If you want to add an existing codemod to the extension, [follow this tutorial →](https://docs.intuita.io/blog/adding-codemods-to-registry)
 - You can also create new codemods that directly integrate into the Intuita extension using Intuita’s [Codemod Studio →](https://codemod.studio)
 
+[Learn more at Intuita.io →](https://intuita.io)
 
 > **Warning**
 > This extension is in `Public Beta`! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
