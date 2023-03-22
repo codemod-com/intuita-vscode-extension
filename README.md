@@ -14,8 +14,8 @@ already been added to the extension. If you want to upgrade a dependency in the 
 - You can also create new codemods that directly integrate into the Intuita extension using Intuita’s [Codemod Studio →](https://codemod.studio)
 
 ---
-
-- ⚠️ This extension is in `Public Beta`! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
+> **Warning**
+> This extension is in `Public Beta`! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
 ---
 
 ## How It Works 🪄
