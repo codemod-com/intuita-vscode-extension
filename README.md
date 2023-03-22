@@ -13,7 +13,7 @@ already been added to the extension. If you want to upgrade a dependency in the 
 - If you want to add an existing codemod to the extension, [follow this tutorial →](https://docs.intuita.io/blog/adding-codemods-to-registry)
 - You can also create new codemods that directly integrate into the Intuita extension using Intuita’s [Codemod Studio →](https://codemod.studio)
 
----
+
 > **Warning**
 > This extension is in `Public Beta`! [Get in touch](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA) if you are planning to use this extension for large upgrades & you have some feature requests!
 ---
