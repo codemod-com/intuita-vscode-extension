@@ -1,17 +1,14 @@
 import * as vscode from 'vscode';
 
 export class GlobalStateAccountStorage {
+	constructor(private readonly globalState: vscode.Memento) {}
 
-	constructor(
-		private readonly globalState: vscode.Memento, 
-	) {}
+	getUserAccount() {
+		const userAccount = this.globalState.get('userAccount');
+		return typeof userAccount === 'string' ? userAccount : null;
+	}
 
-  getUserAccount() {
-    const userAccount =  this.globalState.get('userAccount') ;
-    return typeof userAccount === 'string' ? userAccount : null;
-  }
-
-  setUserAccount(userAccount: string | undefined) {
-    this.globalState.update('userAccount', userAccount);
-  }
+	setUserAccount(userAccount: string | undefined) {
+		this.globalState.update('userAccount', userAccount);
+	}
 }

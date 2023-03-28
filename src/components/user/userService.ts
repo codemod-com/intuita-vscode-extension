@@ -4,17 +4,13 @@ export class AlreadyLinkedError extends Error {
 	}
 }
 
-
 export interface UserAccountStorage {
 	getUserAccount(): string | null;
 	setUserAccount(value: string | undefined): void;
 }
 
 export class UserService {
-	constructor(
-		private readonly storage: UserAccountStorage, 
-	) {}
-
+	constructor(private readonly storage: UserAccountStorage) {}
 
 	getLinkedAccount() {
 		return this.storage.getUserAccount();
@@ -27,9 +23,9 @@ export class UserService {
 	linkUsersIntuitaAccount(userId: string): void {
 		const linkedAccount = this.getLinkedAccount();
 
-		if(linkedAccount && linkedAccount !== userId) {
+		if (linkedAccount && linkedAccount !== userId) {
 			throw new AlreadyLinkedError();
-		} 
+		}
 
 		this.storage.setUserAccount(userId);
 	}

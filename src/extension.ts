@@ -134,7 +134,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const globalStateAccountStorage = new GlobalStateAccountStorage(context.globalState);
+	const globalStateAccountStorage = new GlobalStateAccountStorage(
+		context.globalState,
+	);
 	const userService = new UserService(globalStateAccountStorage);
 
 	const textEditorDecorationType =
@@ -940,23 +942,23 @@ export async function activate(context: vscode.ExtensionContext) {
 						base64UrlEncodedContent,
 						'base64url',
 					);
-	
+
 					const content = buffer.toString('utf8');
-	
+
 					intuitaTextDocumentContentProvider.setContent(content);
-	
+
 					const document = await vscode.workspace.openTextDocument(
 						intuitaTextDocumentContentProvider.URI,
 					);
-	
+
 					vscode.window.showTextDocument(document);
 				}
 
-				if(userId) {
+				if (userId) {
 					try {
 						userService.linkUsersIntuitaAccount(userId);
-					} catch(e) {
-						if(e instanceof AlreadyLinkedError) {
+					} catch (e) {
+						if (e instanceof AlreadyLinkedError) {
 							// @TODO show warning asking to replace with new account
 						}
 					}
