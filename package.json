@@ -30,7 +30,8 @@
 	"activationEvents": [
 		"onUri",
 		"workspaceContains:**/*.ts*",
-		"workspaceContains:**/*.js*"
+		"workspaceContains:**/*.js*", 
+		"onView:intuita-webview"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -179,6 +180,11 @@
 		},
 		"views": {
 			"explorer": [
+				{
+          "type": "webview",
+          "id": "intuita-webview",
+          "name": "Intuita"
+        },
 				{
 					"id": "explorerIntuitaViewId",
 					"name": "Intuita",

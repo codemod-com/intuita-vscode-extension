@@ -34,6 +34,7 @@ import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
+import { IntuitaPanel } from './panels/IntuitaPanel';
 
 const messageBus = new MessageBus();
 
@@ -138,6 +139,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalState,
 	);
 	const userService = new UserService(globalStateAccountStorage);
+
+	const intuitaWebviewProvider =  new IntuitaPanel(context?.extensionUri, {});
+	const view = vscode.window.registerWebviewViewProvider(
+		'intuita-webview',
+		intuitaWebviewProvider,
+	);
+
+  context.subscriptions.push(view);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
