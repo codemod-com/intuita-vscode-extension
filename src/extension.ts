@@ -32,6 +32,8 @@ import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
 import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
+import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
+import { AlreadyLinkedError, UserService } from './components/user/userService';
 
 const messageBus = new MessageBus();
 
@@ -131,6 +133,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
+
+	const globalStateAccountStorage = new GlobalStateAccountStorage(
+		context.globalState,
+	);
+	const userService = new UserService(globalStateAccountStorage);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
@@ -928,27 +935,44 @@ export async function activate(context: vscode.ExtensionContext) {
 			handleUri: async (uri) => {
 				const searchParams = new URLSearchParams(uri.query);
 				const base64UrlEncodedContent = searchParams.get('c');
+				const userId = searchParams.get('userId');
 
-				if (base64UrlEncodedContent === null) {
-					throw new Error(
-						'You need to provide a base64 encoded content parameter "c"',
+				if (base64UrlEncodedContent) {
+					const buffer = Buffer.from(
+						base64UrlEncodedContent,
+						'base64url',
 					);
+
+					const content = buffer.toString('utf8');
+
+					intuitaTextDocumentContentProvider.setContent(content);
+
+					const document = await vscode.workspace.openTextDocument(
+						intuitaTextDocumentContentProvider.URI,
+					);
+
+					vscode.window.showTextDocument(document);
 				}
 
-				const buffer = Buffer.from(
-					base64UrlEncodedContent,
-					'base64url',
-				);
+				if (userId) {
+					try {
+						userService.linkUsersIntuitaAccount(userId);
+					} catch (e) {
+						if (e instanceof AlreadyLinkedError) {
+							const result =
+								await vscode.window.showInformationMessage(
+									'It seems like your extension is already linked to another Intuita account. Would you like to link it to your new Intuita account instead?',
+									{ modal: true },
+									'Link account',
+								);
 
-				const content = buffer.toString('utf8');
-
-				intuitaTextDocumentContentProvider.setContent(content);
-
-				const document = await vscode.workspace.openTextDocument(
-					intuitaTextDocumentContentProvider.URI,
-				);
-
-				vscode.window.showTextDocument(document);
+							if (result === 'Link account') {
+								userService.unlinkUserIntuitaAccount();
+								userService.linkUsersIntuitaAccount(userId);
+							}
+						}
+					}
+				}
 			},
 		}),
 	);
