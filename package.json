@@ -46,6 +46,10 @@
 			{
 				"view": "explorerIntuitaViewId",
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+			},
+			{
+				"view": "intuita-available-codemod-tree-view",
+				"contents": "No available codmods right now based on package.json file. Please check back later!"
 			}
 		],
 		"commands": [
