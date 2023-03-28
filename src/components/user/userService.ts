@@ -33,17 +33,4 @@ export class UserService {
 
 		this.storage.setUserAccount(userId);
 	}
-
-	// async getOAuthAccessToken(userId: string, provider: string): Promise<string> {
-	// 	try {
-	// 		const result = await this.userRepository.getOAuthAccessToken(userId, provider);
-
-	// 		if(!result[0]) throw new Error('Missing OAuth token for provider:' + provider);
-			
-	// 		return result[0].token;
-
-	// 	} catch(e) {
-	// 		throw new Error('Unable to get OAuthToken:' + (e as Error).message);
-	// 	}
-	// }
 }
