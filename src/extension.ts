@@ -990,12 +990,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 
 	messageBus.publish({ kind: MessageKind.extensionActivated });
-
-	context.subscriptions.push(vscode.window.registerUriHandler({
-		handleUri(uri: vscode.Uri) {
-			console.log(uri.query, 'test');
-		}
-}));
 }
 
 export function deactivate() {
