@@ -1,6 +1,10 @@
 import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
-import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import {
+	ChildProcess,
+	ChildProcessWithoutNullStreams,
+	spawn,
+} from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
@@ -11,6 +15,14 @@ import { Job, JobKind } from '../jobs/types';
 import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+
+export const Messages = {
+	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
+	errorRunningCodemod: 'An error occurred while running the codemod',
+	codemodUnrecognized: 'The codemod is invalid / unsupported',
+};
+
+type CodemodExecutionErrorType = 'unrecognizedCodemod' | 'errorRunningCodemod';
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -87,6 +99,7 @@ type Execution = {
 	readonly codemodSetName: string;
 	totalFileCount: number;
 	halted: boolean;
+	affectedFiles: Set<string>;
 };
 
 export class EngineService {
@@ -261,10 +274,49 @@ export class EngineService {
 			shell: true,
 		});
 
-		childProcess.stderr.on('data', (data) => {
-			console.error(data.toString());
+		const errMsg = new Set();
+		const errDetails = new Set();
+		let errorKind: CodemodExecutionErrorType = 'errorRunningCodemod';
+
+		childProcess.stderr.on('data', function (err: Buffer) {
+			if (!err || !(err instanceof Buffer)) return;
+			try {
+				const msg = err.toString();
+				const error = JSON.parse(msg);
+				if ('message' in error) {
+					errMsg.add(error.message);
+				}
+				if ('caseTitle' in error) {
+					errDetails.add(error.caseTitle);
+				}
+				if ('group' in error) {
+					errDetails.add(error.group);
+				}
+				if ('kind' in error) {
+					errorKind = error.kind as CodemodExecutionErrorType;
+				}
+			} catch (e) {
+				errMsg.add(err.toString());
+			}
 		});
 
+		childProcess.stderr.on('end', () => {
+			if (!this.#execution?.affectedFiles.size) {
+				window.showWarningMessage(Messages.noAffectedFiles);
+			}
+			if (errorKind === 'unrecognizedCodemod' && errMsg.size)
+				window.showErrorMessage(
+					`${Messages.errorRunningCodemod}. Error: ${Array.from(
+						errMsg,
+					).join('')}. Details: ${Array.from(errDetails).join('')}`,
+				);
+			if (errorKind === 'errorRunningCodemod' && errMsg.size)
+				window.showErrorMessage(
+					`${Messages.codemodUnrecognized}. Error: ${Array.from(
+						errMsg,
+					).join('')}. Details: ${Array.from(errDetails).join('')}`,
+				);
+		});
 		const executionId = message.executionId;
 
 		const codemodSetName =
@@ -275,7 +327,8 @@ export class EngineService {
 			executionId,
 			codemodSetName,
 			halted: false,
-			totalFileCount: 0, // that is the lower bound
+			totalFileCount: 0, // that is the lower bound,
+			affectedFiles: new Set(),
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -414,7 +467,9 @@ export class EngineService {
 			} else {
 				throw new Error(`Unrecognized message`);
 			}
-
+			if (job.newUri?.fsPath) {
+				this.#execution.affectedFiles?.add(job.newUri?.fsPath);
+			}
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				noraRustEngineExecutableUri,
@@ -429,7 +484,6 @@ export class EngineService {
 
 		interfase.on('close', () => {
 			this.#statusBarItemManager.moveToStandby();
-
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,

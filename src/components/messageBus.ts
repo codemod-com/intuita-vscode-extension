@@ -46,6 +46,8 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
+	/** error states */
+	showErrorMessage = 26,
 }
 
 export type Engine = 'node' | 'rust';
@@ -68,6 +70,10 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.updateElements;
 	  }>
+	| Readonly<{
+			kind: MessageKind.showErrorMessage;
+			message: string;
+	}>							
 	| Readonly<{
 			kind: MessageKind.upsertCases;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
