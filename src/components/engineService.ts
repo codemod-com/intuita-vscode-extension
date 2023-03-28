@@ -283,10 +283,10 @@ export class EngineService {
 					errorMessage.add(error.message);
 				}
 				if ('caseTitle' in error) {
-					errDetails.add(error.caseTitle);
+					errDetails.add(`caseTitle: ${error.caseTitle}`);
 				}
 				if ('group' in error) {
-					errDetails.add(error.group);
+					errDetails.add(`group: ${error.group}`);
 				}
 				if ('kind' in error) {
 					errorKind = error.kind as CodemodExecutionErrorType;
@@ -299,20 +299,20 @@ export class EngineService {
 		});
 
 		childProcess.stderr.on('end', () => {
-			if (!this.#execution?.affectedFiles.size) {
+			if (!errorMessage.size && !this.#execution?.affectedFiles.size) {
 				window.showWarningMessage(Messages.noAffectedFiles);
 			}
 			if (errorKind === 'unrecognizedCodemod' && errorMessage.size)
 				window.showErrorMessage(
-					`${Messages.errorRunningCodemod}. Error: ${Array.from(
+					`${Messages.codemodUnrecognized}. Error: ${Array.from(
 						errorMessage,
 					).join('')}. Details: ${Array.from(errDetails).join('')}`,
 				);
 			if (errorKind === 'errorRunningCodemod' && errorMessage.size)
 				window.showErrorMessage(
-					`${Messages.codemodUnrecognized}. Error: ${Array.from(
+					`${Messages.errorRunningCodemod}. Error: ${Array.from(
 						errorMessage,
-					).join('')}. Details: ${Array.from(errDetails).join('')}`,
+					).join(',')}. Details: ${Array.from(errDetails).join(',')}`,
 				);
 		});
 		const executionId = message.executionId;
