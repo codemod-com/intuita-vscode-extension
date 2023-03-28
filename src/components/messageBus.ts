@@ -67,7 +67,7 @@ export type Command =
 export type Message =
 	| Readonly<{
 			kind: MessageKind.updateElements;
-	  }>							
+	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
