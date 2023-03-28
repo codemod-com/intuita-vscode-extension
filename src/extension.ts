@@ -959,7 +959,17 @@ export async function activate(context: vscode.ExtensionContext) {
 						userService.linkUsersIntuitaAccount(userId);
 					} catch (e) {
 						if (e instanceof AlreadyLinkedError) {
-							// @TODO show warning asking to replace with new account
+							const result =
+								await vscode.window.showInformationMessage(
+									'It seems like your extension is already linked to another Intuita account. Would you like to link it to your new Intuita account instead?',
+									{ modal: true },
+									'Link account',
+								);
+
+							if (result === 'Link account') {
+								userService.unlinkUserIntuitaAccount();
+								userService.linkUsersIntuitaAccount(userId);
+							}
 						}
 					}
 				}

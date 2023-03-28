@@ -10,14 +10,14 @@ export interface UserAccountStorage {
 }
 
 export class UserService {
-	constructor(private readonly storage: UserAccountStorage) {}
+	constructor(private readonly __storage: UserAccountStorage) {}
 
 	getLinkedAccount() {
-		return this.storage.getUserAccount();
+		return this.__storage.getUserAccount();
 	}
 
 	unlinkUserIntuitaAccount(): void {
-		this.storage.setUserAccount(undefined);
+		this.__storage.setUserAccount(undefined);
 	}
 
 	linkUsersIntuitaAccount(userId: string): void {
@@ -27,6 +27,6 @@ export class UserService {
 			throw new AlreadyLinkedError();
 		}
 
-		this.storage.setUserAccount(userId);
+		this.__storage.setUserAccount(userId);
 	}
 }
