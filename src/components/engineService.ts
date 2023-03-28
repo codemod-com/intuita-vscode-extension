@@ -332,7 +332,6 @@ export class EngineService {
 		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
 		interfase.on('line', async (line) => {
-			
 			if (!this.#execution) {
 				return;
 			}
