@@ -1,10 +1,6 @@
 import * as t from 'io-ts';
 import prettyReporter from 'io-ts-reporters';
-import {
-	ChildProcess,
-	ChildProcessWithoutNullStreams,
-	spawn,
-} from 'node:child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
