@@ -113,6 +113,10 @@
 				"title": "✓ Apply"
 			},
 			{
+				"command": "intuita.runCodemod",
+				"title": "✓ Run"
+			},
+			{
 				"command": "intuita.rejectJob",
 				"title": "✗ Dismiss"
 			},
@@ -365,6 +369,11 @@
 				{
 					"command": "intuita.acceptJob",
 					"when": "viewItem == jobElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.runCodemod",
+					"when": "viewItem == codemodItem",
 					"group": "inline"
 				},
 				{
