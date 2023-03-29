@@ -34,7 +34,7 @@ import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
-import { IntuitaPanel } from './panels/IntuitaPanel';
+import { initWebview } from './components/webview';
 
 const messageBus = new MessageBus();
 
@@ -135,18 +135,17 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
+	// @TODO split this large file to modules
+
+	/**
+	 * User
+	 */
 	const globalStateAccountStorage = new GlobalStateAccountStorage(
 		context.globalState,
 	);
 	const userService = new UserService(globalStateAccountStorage);
 
-	const intuitaWebviewProvider =  new IntuitaPanel(context?.extensionUri, {});
-	const view = vscode.window.registerWebviewViewProvider(
-		'intuita-webview',
-		intuitaWebviewProvider,
-	);
-
-  context.subscriptions.push(view);
+	initWebview(vscode.window, vscode.commands, context);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
@@ -229,6 +228,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (vscode.window.activeTextEditor) {
 		handleActiveTextEditor(vscode.window.activeTextEditor);
 	}
+
+
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {

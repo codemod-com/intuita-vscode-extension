@@ -1,36 +1,59 @@
-import { WebviewViewProvider, WebviewView, Webview, Uri, EventEmitter} from "vscode";
-import { getNonce } from "../utilities";
+import { WebviewViewProvider, WebviewView, Webview, Uri, commands, ExtensionContext } from "vscode";
+import { getNonce } from "../../utilities";
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
   return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-export class IntuitaPanel implements WebviewViewProvider {
-	constructor(
-		private readonly extensionPath: Uri,
-		private data: any,
-		private _view: any = null
-	) {}
-    private onDidChangeTreeData: EventEmitter<any | undefined | null | void> = new EventEmitter<any | undefined | null | void>();
+type WebViewMessage = {
+  command: 'submitIssue', 
+  title: string, 
+  body: string, 
+};
 
-    refresh(context: any): void {
-        this.onDidChangeTreeData.fire(null);
-        this._view.webview.html = this._getHtmlForWebview(this._view?.webview);
+export class IntuitaPanel implements WebviewViewProvider {
+  __view: WebviewView | null = null
+  __extensionPath: Uri;
+  
+	constructor(
+		context: ExtensionContext,
+	) {
+    this.__extensionPath = context.extensionUri;
+  }
+
+    refresh(): void {
+        if(this.__view) {
+          this.__view.webview.html = this._getHtmlForWebview(this.__view?.webview);
+        }
     }
 
-	//called when a view first becomes visible
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		webviewView.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [this.extensionPath],
+			localResourceRoots: [this.__extensionPath],
 		};
+
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-		this._view = webviewView;
+		this.__view = webviewView;
+    this.activateMessageListener();
+	}
+
+  private activateMessageListener() {
+    if(!this.__view) {
+      return;
+    }
+
+		this.__view.webview.onDidReceiveMessage((message: WebViewMessage) => {
+      // @TODO
+      if(message.command === 'submitIssue') {
+        commands.executeCommand('intuita.sourceControl.submitIssue', message);
+      }
+		});
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
 		// The CSS file from the React build output
-    const stylesUri = getUri(webview, this.extensionPath, [
+    const stylesUri = getUri(webview, this.__extensionPath, [
       "intuita-webview",
       "build",
       "static",
@@ -38,7 +61,7 @@ export class IntuitaPanel implements WebviewViewProvider {
       "main.css",
     ]);
     // The JS file from the React build output
-    const scriptUri = getUri(webview, this.extensionPath, [
+    const scriptUri = getUri(webview, this.__extensionPath, [
       "intuita-webview",
       "build",
       "static",

@@ -9,6 +9,7 @@ specifiers:
   '@types/react': ^18.0.30
   '@types/react-dom': ^18.0.11
   '@types/testing-library__jest-dom': ^5.14.5
+  '@types/vscode-webview': ^1.57.1
   '@vscode/webview-ui-toolkit': ^1.2.2
   react: ^18.2.0
   react-dom: ^18.2.0
@@ -34,6 +35,7 @@ dependencies:
 
 devDependencies:
   '@types/testing-library__jest-dom': 5.14.5
+  '@types/vscode-webview': 1.57.1
   rewire: 6.0.0
 
 packages:
@@ -2562,6 +2564,10 @@ packages:
   /@types/trusted-types/2.0.3:
     resolution: {integrity: sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==}
     dev: false
+
+  /@types/vscode-webview/1.57.1:
+    resolution: {integrity: sha512-ghW5SfuDmsGDS2A4xkvGsLwDRNc3Vj5rS6rPOyPm/IryZuf3wceZKxgYaUoW+k9f0f/CB7y2c1rRsdOWZWn0PQ==}
+    dev: true
 
   /@types/ws/8.5.4:
     resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}

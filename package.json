@@ -172,6 +172,11 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
+					"id": "intuita-webview",
+					"title": "Intuita2",
+					"icon": "img/intuita.svg"
+				},
+				{
 					"id": "intuitaViewId",
 					"title": "Intuita",
 					"icon": "img/intuita.svg"
@@ -181,16 +186,20 @@
 		"views": {
 			"explorer": [
 				{
-          "type": "webview",
-          "id": "intuita-webview",
-          "name": "Intuita"
-        },
-				{
 					"id": "explorerIntuitaViewId",
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
 				}
+			],
+			"intuita-webview": [
+				{
+          "type": "webview",
+          "id": "intuita-webview",
+          "name": "Intuita", 
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita2"
+        }
 			],
 			"intuitaViewId": [
 				{
