@@ -268,24 +268,24 @@ export class EngineService {
 			shell: true,
 		});
 
-		const errorMessage = new Set<string>();
+		const errorMessages = new Set<string>();
 
 		childProcess.stderr.on('data', function (err: unknown) {
 			if (!(err instanceof Buffer)) return;
 			try {
 				const error = err.toString();
-				errorMessage.add(error);
+				errorMessages.add(error);
 			} catch (err) {
 				console.error(err);
 			}
 		});
 
 		childProcess.stderr.on('end', () => {
-			if (!errorMessage.size && !this.#execution?.affectedFiles.size) {
+			if (!errorMessages.size && !this.#execution?.affectedFiles.size) {
 				window.showWarningMessage(Messages.noAffectedFiles);
 			}
 
-			errorMessage.forEach((error) => {
+			errorMessages.forEach((error) => {
 				try {
 					const parsedError = JSON.parse(error);
 					window.showErrorMessage(
