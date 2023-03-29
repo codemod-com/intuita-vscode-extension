@@ -12,6 +12,12 @@ import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
+export const Messages = {
+	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
+	errorRunningCodemod: 'An error occurred while running the codemod',
+	codemodUnrecognized: 'The codemod is invalid / unsupported',
+};
+
 export const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
@@ -87,6 +93,7 @@ type Execution = {
 	readonly codemodSetName: string;
 	totalFileCount: number;
 	halted: boolean;
+	affectedFiles: Set<string>;
 };
 
 export class EngineService {
@@ -261,10 +268,40 @@ export class EngineService {
 			shell: true,
 		});
 
-		childProcess.stderr.on('data', (data) => {
-			console.error(data.toString());
+		const errorMessages = new Set<string>();
+
+		childProcess.stderr.on('data', function (err: unknown) {
+			if (!(err instanceof Buffer)) return;
+			try {
+				const error = err.toString();
+				errorMessages.add(error);
+			} catch (err) {
+				console.error(err);
+			}
 		});
 
+		childProcess.stderr.on('end', () => {
+			if (!errorMessages.size && !this.#execution?.affectedFiles.size) {
+				window.showWarningMessage(Messages.noAffectedFiles);
+			}
+
+			errorMessages.forEach((error) => {
+				try {
+					const parsedError = JSON.parse(error);
+					window.showErrorMessage(
+						`${
+							'kind' in parsedError &&
+							parsedError.kind === 'unrecognizedCodemod'
+								? Messages.codemodUnrecognized
+								: Messages.errorRunningCodemod
+						}. Error: ${error}`,
+					);
+				} catch (err) {
+					window.showErrorMessage(`Error: ${error}`);
+					console.error(err);
+				}
+			});
+		});
 		const executionId = message.executionId;
 
 		const codemodSetName =
@@ -275,7 +312,8 @@ export class EngineService {
 			executionId,
 			codemodSetName,
 			halted: false,
-			totalFileCount: 0, // that is the lower bound
+			totalFileCount: 0, // that is the lower bound,
+			affectedFiles: new Set(),
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -414,7 +452,9 @@ export class EngineService {
 			} else {
 				throw new Error(`Unrecognized message`);
 			}
-
+			if (job.newUri?.fsPath) {
+				this.#execution.affectedFiles?.add(job.newUri?.fsPath);
+			}
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				noraRustEngineExecutableUri,
@@ -429,7 +469,6 @@ export class EngineService {
 
 		interfase.on('close', () => {
 			this.#statusBarItemManager.moveToStandby();
-
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
