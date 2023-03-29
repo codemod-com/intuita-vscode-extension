@@ -6,7 +6,7 @@ import {
 	commands,
 	ExtensionContext,
 } from 'vscode';
-import { getNonce } from '../../utilities';
+import { randomBytes } from 'crypto';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
@@ -73,7 +73,7 @@ export class IntuitaPanel implements WebviewViewProvider {
 			'main.js',
 		]);
 
-		const nonce = getNonce();
+		const nonce = randomBytes(48).toString('hex');
 
 		// Tip: Install the es6-string-html VS Code extension to enable code highlighting below
 		return /*html*/ `

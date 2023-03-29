@@ -14,3 +14,5 @@ vsc-extension-quickstart.md
 **/*.ts
 .idea
 .github
+
+intuita-webview/node_modules/**

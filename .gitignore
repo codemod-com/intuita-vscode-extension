@@ -7,3 +7,5 @@ node_modules
 *.js
 yarn-error.log
 .DS_Store
+
+build

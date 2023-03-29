@@ -40,6 +40,7 @@ import {
 	SourceControlService,
 } from './components/webview/sourceControl';
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
+import { isAxiosError } from 'axios';
 
 const messageBus = new MessageBus();
 
@@ -176,20 +177,20 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						sourceControl.createIssue(decoded.right);
+						await	sourceControl.createIssue(decoded.right);
 					}
 				} catch (e) {
 					// @TODO prettify error messages
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
-							'Missing repositoryPath, ensure that you provided correct path in the extension settings.',
+							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
 						);
 					}
 
 					if (e instanceof NotFoundIntuitaAccount) {
 						const result =
 							await vscode.window.showInformationMessage(
-								'Extension is not connected to your Intuita account. Please, sign in and connect you account to the extension to unlock more features',
+								'Your extension is not currently connected to your Intuita account. Please sign in and connect your account to the extension to unlock additional features.',
 								{ modal: true },
 								'Sign In',
 							);
@@ -200,6 +201,11 @@ export async function activate(context: vscode.ExtensionContext) {
 							);
 						}
 					}
+
+					if(isAxiosError<{ message: string}>(e)) {
+						vscode.window.showWarningMessage(e.response?.data.message ?? '');
+					}
+
 				}
 			},
 		),
