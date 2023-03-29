@@ -177,7 +177,8 @@ export class EngineService {
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
 
-		const { fileLimit , includePattern, excludePattern } = this.#configurationContainer.get();
+		const { fileLimit, includePatterns, excludePatterns } =
+			this.#configurationContainer.get();
 
 		const buildArguments = () => {
 			const args: string[] = [];
@@ -185,21 +186,15 @@ export class EngineService {
 			if (message.command.engine === 'node' && 'uri' in message.command) {
 				const commandUri = message.command.uri;
 
-				includePattern.forEach((extension) => {
-					const { fsPath } = Uri.joinPath(
-						commandUri,
-						extension,
-					);
+				includePatterns.forEach((extension) => {
+					const { fsPath } = Uri.joinPath(commandUri, extension);
 
 					const path = singleQuotify(fsPath);
 
 					args.push('-p', path);
 				});
-				excludePattern.forEach((extension) => {
-					const { fsPath } = Uri.joinPath(
-						commandUri,
-						extension,
-					);
+				excludePatterns.forEach((extension) => {
+					const { fsPath } = Uri.joinPath(commandUri, extension);
 
 					const path = singleQuotify(fsPath);
 
@@ -213,6 +208,7 @@ export class EngineService {
 				);
 
 				args.push('-l', String(fileLimit));
+				console.log('args', args);
 			} else if (
 				message.command.engine === 'rust' &&
 				'uri' in message.command

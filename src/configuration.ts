@@ -21,16 +21,16 @@ export const getConfiguration = () => {
 
 	const workerThreadCount =
 		configuration.get<number>('workerThreadCount') ?? 4;
-	const includePattern = configuration.get<string[]>('intuita:includePattern') ?? ['**/*.{js,ts,jsx,tsx,cjs,mjs}'];
-	const excludePattern = configuration.get<string[]>('intuita:excludePattern') ?? ['**/node_modules/**'];
+	const includePatterns = configuration.get<string[]>('includePatterns') ?? ['**/*.{js,ts,jsx,tsx,cjs,mjs}'];
+	const excludePatterns = configuration.get<string[]>('excludePatterns') ?? ['**/node_modules'];
 
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
 		telemetryEnabled,
 		workerThreadCount,
-		includePattern,
-		excludePattern
+		includePatterns,
+		excludePatterns
 	};
 };
 
