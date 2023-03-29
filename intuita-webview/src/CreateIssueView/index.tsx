@@ -25,18 +25,15 @@ const CreateIssue = () => {
 		<div className={styles.root}>
 			<h1 className={styles.header}>Create an Issue</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
-				{/* @ts-ignore */}
 				<VSCodeTextField
 					value={title}
-					onInput={(e) => setTitle(e.target.value)}
+					onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
 				>
 					Title
 				</VSCodeTextField>
-				{/* @ts-ignore */}
 				<VSCodeTextArea
-					labels={['Issue body']}
 					value={body}
-					onInput={(e) => setBody(e.target.value)}
+					onInput={(e) => setBody((e.target as HTMLInputElement).value)}
 				>
 					Description
 				</VSCodeTextArea>
