@@ -276,7 +276,7 @@ export class EngineService {
 				const error = err.toString();
 				errorMessage.add(error);
 			} catch (err) {
-				console.log(err);
+				console.error(err);
 			}
 		});
 
@@ -288,8 +288,6 @@ export class EngineService {
 			errorMessage.forEach((error) => {
 				try {
 					const parsedError = JSON.parse(error);
-					console.log('parsed error');
-
 					window.showErrorMessage(
 						`${
 							'kind' in parsedError &&
