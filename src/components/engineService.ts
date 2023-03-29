@@ -270,50 +270,42 @@ export class EngineService {
 			shell: true,
 		});
 
-		const errorMessage = new Set();
-		const errDetails = new Set();
-		let errorKind: CodemodExecutionErrorType = 'errorRunningCodemod';
+		const errorMessage = new Set<string>();
 
 		childProcess.stderr.on('data', function (err: unknown) {
 			if (!(err instanceof Buffer)) return;
-			try {
-				const msg = err.toString();
-				const error = JSON.parse(msg);
-				if ('message' in error) {
-					errorMessage.add(error.message);
-				}
-				if ('caseTitle' in error) {
-					errDetails.add(`caseTitle: ${error.caseTitle}`);
-				}
-				if ('group' in error) {
-					errDetails.add(`group: ${error.group}`);
-				}
-				if ('kind' in error) {
-					errorKind = error.kind as CodemodExecutionErrorType;
-				}
-			} catch (e) {
-				if (e instanceof Error) {
-					errorMessage.add(String(err));
-				}
-			}
+			const error = err.toString();
+			errorMessage.add(error);
 		});
 
 		childProcess.stderr.on('end', () => {
 			if (!errorMessage.size && !this.#execution?.affectedFiles.size) {
 				window.showWarningMessage(Messages.noAffectedFiles);
 			}
-			if (errorKind === 'unrecognizedCodemod' && errorMessage.size)
-				window.showErrorMessage(
-					`${Messages.codemodUnrecognized}. Error: ${Array.from(
-						errorMessage,
-					).join('')}. Details: ${Array.from(errDetails).join('')}`,
-				);
-			if (errorKind === 'errorRunningCodemod' && errorMessage.size)
-				window.showErrorMessage(
-					`${Messages.errorRunningCodemod}. Error: ${Array.from(
-						errorMessage,
-					).join(',')}. Details: ${Array.from(errDetails).join(',')}`,
-				);
+
+			errorMessage.forEach((error) => {
+				try {
+					const parsedError = JSON.parse(error);
+					console.log('parsed error');
+					if ('kind' in parsedError) {
+						window.showErrorMessage(
+							`${
+								parsedError.kind === 'unrecognizedCodemod'
+									? Messages.codemodUnrecognized
+									: Messages.errorRunningCodemod
+							}. Error: ${error}`,
+						);
+					}
+					if (!('kind' in parsedError)) {
+						window.showErrorMessage(
+							`${Messages.errorRunningCodemod}. Error: ${error}`,
+						);
+					}
+				} catch (err) {
+ 					window.showErrorMessage(`Error: ${error}`);
+					console.error(err);
+				}
+			});
 		});
 		const executionId = message.executionId;
 
