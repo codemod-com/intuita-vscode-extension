@@ -125,7 +125,7 @@ export class IntuitaTreeDataProvider
 		if (element.kind === 'ROOT') {
 			const children = element.children.filter(hasChildren);
 			if (children.length) {
-				return element.children.filter(hasChildren).map(getHash);
+				return children.map(getHash);
 			}
 			return this.#codemodService.getChildren();
 		}
