@@ -548,9 +548,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	vscode.commands.registerCommand('intuita.runCodemod', async (item: CodemodItem) => {
- 		vscode.commands.executeCommand(item.commandToExecute);
-	});
+	vscode.commands.registerCommand(
+		'intuita.runCodemod',
+		async (item: CodemodItem) => {
+			vscode.commands.executeCommand(item.commandToExecute);
+		},
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
