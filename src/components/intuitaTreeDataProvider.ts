@@ -117,9 +117,6 @@ export class IntuitaTreeDataProvider
 			return [];
 		}
 
-		if (!element) {
-			return [];
-		}
 		const hasChildren = (element: CaseElement | FileElement) =>
 			element.children.length;
 		const getHash = (element: CaseElement | FileElement | JobElement) =>

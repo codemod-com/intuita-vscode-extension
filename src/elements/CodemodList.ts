@@ -187,14 +187,14 @@ class CodemodService {
 		version: string,
 	): null | PackageUpgradeItem {
 		// replace ^, ~ , *
-		const versionStripped = version.replace(/[^0-9.]/g, '');
+		const actualVersion = version.replace(/[^0-9.]/g, '');
 
 		const codemod = dependenciesRecord[dependencyName];
 		if (codemod) {
 			const { leastVersionSupported, leastSupportedUpgrade } = codemod;
 			if (
-				versionStripped < leastVersionSupported &&
-				versionStripped > leastSupportedUpgrade
+				actualVersion < leastVersionSupported &&
+				actualVersion >= leastSupportedUpgrade
 			) {
 				return codemod;
 			}
