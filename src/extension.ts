@@ -180,7 +180,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						await	sourceControl.createIssue(decoded.right);
 					}
 				} catch (e) {
-					// @TODO prettify error messages
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
 							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
