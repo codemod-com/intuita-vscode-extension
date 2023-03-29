@@ -1,13 +1,39 @@
 
 import axios from 'axios';
+export class NotFoundRepositoryPath extends Error {}
+export class NotFoundIntuitaAccount extends Error {}
+interface ConfigurationService {
+  getConfiguration(): { repositoryPath: string}
+}
+interface UserAccountStorage {
+	getUserAccount(): string | null;
+}
+
 
 export class SourceControlService {
-  async createIssue() {
-    axios.post('https://telemetry.intuita.io/sourceControl/github/issues', {
-      "repo": "https://github.com/DmytroHryshyn/test_repo", 
-      "userId": "user_2NMmXLkS75wUgdnuS7Tj55L1u50", 
-      "body": "issue body",
-      "title": "issue title 2"
-    })
+  constructor(private readonly __configurationService: ConfigurationService, private readonly __userAccountStorage: UserAccountStorage) {
+  }
+
+  async createIssue(title: string, body: string) {
+      const { repositoryPath} =this. __configurationService.getConfiguration();
+    
+      if(!repositoryPath) {
+        throw new NotFoundRepositoryPath('Missing repositoryPath, check extension configuration.')
+      }
+  
+      const userId = this.__userAccountStorage.getUserAccount();
+  
+      if(!userId) {
+        throw new NotFoundIntuitaAccount('Intuita account is not connected.')
+      }
+  
+      const result = await  axios.post('https://telemetry.intuita.io/sourceControl/github/issues', {
+        "repo": repositoryPath, 
+        "userId": userId, 
+        "body": body,
+        "title": title,
+      });
+
+      return result.data;
   }
 }

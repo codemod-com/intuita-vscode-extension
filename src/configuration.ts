@@ -22,11 +22,14 @@ export const getConfiguration = () => {
 	const workerThreadCount =
 		configuration.get<number>('workerThreadCount') ?? 4;
 
+	const repositoryPath = configuration.get<string>('repositoryPath');
+
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
 		telemetryEnabled,
 		workerThreadCount,
+		repositoryPath, 
 	};
 };
 
