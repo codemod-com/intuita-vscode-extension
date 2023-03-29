@@ -34,6 +34,7 @@ import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
+import { CodemodItem } from './elements/CodemodList';
 
 const messageBus = new MessageBus();
 
@@ -52,7 +53,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
 	);
-
+	const rootPath =
+		vscode.workspace.workspaceFolders &&
+		vscode.workspace.workspaceFolders.length > 0
+			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
+			: null;
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		new Set((persistedState?.rejectedJobHashes ?? []) as JobHash[]),
@@ -71,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		caseManager,
 		messageBus,
 		jobManager,
+		rootPath,
 	);
 
 	const explorerTreeView = vscode.window.createTreeView(
@@ -541,6 +547,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			});
 		},
 	);
+
+	vscode.commands.registerCommand('intuita.runCodemod', async (item: CodemodItem) => {
+ 		vscode.commands.executeCommand(item.commandToExecute);
+	});
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(

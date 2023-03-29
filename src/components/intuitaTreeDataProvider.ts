@@ -37,6 +37,7 @@ import {
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
 import { debounce } from '../utilities';
+import { CodemodService, CodemodItem } from '../elements/CodemodList';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -51,7 +52,9 @@ const getElementIconBaseName = (kind: Element['kind']): string => {
 	}
 };
 
-export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
+export class IntuitaTreeDataProvider
+	implements TreeDataProvider<ElementHash | CodemodItem>
+{
 	public readonly eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 	readonly #elementMap = new Map<ElementHash, Element>();
@@ -60,6 +63,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	readonly #caseManager: CaseManager;
 	readonly #messageBus: MessageBus;
 	readonly #jobManager: JobManager;
+	readonly #codemodService: CodemodService;
 
 	#reveal: TreeView<ElementHash>['reveal'] | null = null;
 
@@ -67,13 +71,14 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		caseManager: CaseManager,
 		messageBus: MessageBus,
 		jobManager: JobManager,
+		rootPath: string | null | undefined,
 	) {
 		this.#caseManager = caseManager;
 		this.#messageBus = messageBus;
 		this.#jobManager = jobManager;
 
 		this.onDidChangeTreeData = this.eventEmitter.event;
-
+		this.#codemodService = new CodemodService(rootPath);
 		const debouncedOnUpdateElementsMessage = debounce(() => {
 			return this.#onUpdateElementsMessage();
 		}, 100);
@@ -95,23 +100,37 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	}
 
 	public getChildren(
-		elementHash: ElementHash | undefined,
-	): ProviderResult<ElementHash[]> {
+		elementHash: ElementHash | CodemodItem | undefined,
+	): ProviderResult<ElementHash[] | CodemodItem[]> {
 		const element = this.#elementMap.get(
 			(elementHash ?? '') as ElementHash,
 		);
+		if (!element) {
+			return this.#codemodService.getChildren();
+		}
+		if (
+			elementHash &&
+			typeof elementHash !== 'string' &&
+			'kind' in elementHash &&
+			elementHash.kind === 'codemodItem'
+		) {
+			return [];
+		}
 
 		if (!element) {
 			return [];
 		}
-
 		const hasChildren = (element: CaseElement | FileElement) =>
 			element.children.length;
 		const getHash = (element: CaseElement | FileElement | JobElement) =>
 			element.hash;
 
 		if (element.kind === 'ROOT') {
-			return element.children.filter(hasChildren).map(getHash);
+			const children = element.children.filter(hasChildren);
+			if (children.length) {
+				return element.children.filter(hasChildren).map(getHash);
+			}
+			return this.#codemodService.getChildren();
 		}
 
 		if (element.kind === 'CASE') {
@@ -123,15 +142,20 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (element.kind === 'FILE') {
 			return element.children.map(getHash);
 		}
-
 		return [];
 	}
 
 	public getTreeItem(
-		elementHash: ElementHash,
-	): TreeItem | Thenable<TreeItem> {
-		const element = this.#elementMap.get(elementHash);
-
+		elementHash: ElementHash | CodemodItem,
+	): TreeItem | CodemodItem | Thenable<TreeItem> {
+		if (
+			typeof elementHash !== 'string' &&
+			'kind' in elementHash &&
+			elementHash.kind === 'codemodItem'
+		) {
+			return this.#codemodService.getElement(elementHash);
+		}
+		const element = this.#elementMap.get(elementHash as ElementHash);
 		if (!element) {
 			throw new Error(
 				`Could not find an element with hash ${elementHash}`,
