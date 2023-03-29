@@ -1,4 +1,4 @@
-import { TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 
@@ -186,7 +186,7 @@ class CodemodService {
 		dependencyName: string,
 		version: string,
 	): null | PackageUpgradeItem {
-		// replace ^, ~ , * 
+		// replace ^, ~ , *
 		const versionStripped = version.replace(/[^0-9.]/g, '');
 
 		const codemod = dependenciesRecord[dependencyName];
