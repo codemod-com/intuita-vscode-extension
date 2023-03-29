@@ -152,7 +152,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		intuitaWebviewProvider,
 	);
 
-  context.subscriptions.push(view);
+	context.subscriptions.push(view);
 
 	const sourceControl = new SourceControlService({ getConfiguration }, globalStateAccountStorage);
 

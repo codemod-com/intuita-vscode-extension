@@ -1,4 +1,4 @@
-import CreateIssue from "./CreateIssue";
+import CreateIssue from "./CreateIssueView";
 
 function App() {
   return (
