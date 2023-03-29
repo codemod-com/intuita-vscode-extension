@@ -224,6 +224,54 @@
 				{
 					"command": "intuita.rejectCase",
 					"when": "false"
+				},
+				{
+					"command": "intuita.executeNextJsCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeNextJsExperimentalCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executePagesToAppsCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeMuiCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeReactRouterv4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeReactRouterv6Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImmutableJSv0Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImmutableJSv4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeRedwoodJsCore4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeAsCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeRecipeWithinPath",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImportedModOnPath",
+					"when": "false"
 				}
 			],
 			"editor/context": [
