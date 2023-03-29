@@ -186,15 +186,15 @@ export class EngineService {
 			if (message.command.engine === 'node' && 'uri' in message.command) {
 				const commandUri = message.command.uri;
 
-				includePatterns.forEach((extension) => {
-					const { fsPath } = Uri.joinPath(commandUri, extension);
+				includePatterns.forEach((includePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, includePattern);
 
 					const path = singleQuotify(fsPath);
 
 					args.push('-p', path);
 				});
-				excludePatterns.forEach((extension) => {
-					const { fsPath } = Uri.joinPath(commandUri, extension);
+				excludePatterns.forEach((excludePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
 
 					const path = singleQuotify(fsPath);
 
@@ -208,8 +208,7 @@ export class EngineService {
 				);
 
 				args.push('-l', String(fileLimit));
-				console.log('args', args);
-			} else if (
+ 			} else if (
 				message.command.engine === 'rust' &&
 				'uri' in message.command
 			) {
