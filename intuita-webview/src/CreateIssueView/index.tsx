@@ -27,13 +27,17 @@ const CreateIssue = () => {
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<VSCodeTextField
 					value={title}
-					onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
+					onInput={(e) =>
+						setTitle((e.target as HTMLInputElement).value)
+					}
 				>
 					Title
 				</VSCodeTextField>
 				<VSCodeTextArea
 					value={body}
-					onInput={(e) => setBody((e.target as HTMLInputElement).value)}
+					onInput={(e) =>
+						setBody((e.target as HTMLInputElement).value)
+					}
 				>
 					Description
 				</VSCodeTextArea>
