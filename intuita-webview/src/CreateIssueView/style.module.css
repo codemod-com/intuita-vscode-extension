@@ -1,9 +1,9 @@
 .root {
-  padding: 4px;
+	padding: 4px;
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
-  row-gap: 8px;
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
 }

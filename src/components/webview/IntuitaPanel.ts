@@ -1,31 +1,38 @@
-import { WebviewViewProvider, WebviewView, Webview, Uri, commands, ExtensionContext } from "vscode";
-import { getNonce } from "../../utilities";
+import {
+	WebviewViewProvider,
+	WebviewView,
+	Webview,
+	Uri,
+	commands,
+	ExtensionContext,
+} from 'vscode';
+import { getNonce } from '../../utilities';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
-  return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
+	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
 type WebViewMessage = {
-  command: 'submitIssue', 
-  title: string, 
-  body: string, 
+	command: 'submitIssue';
+	title: string;
+	body: string;
 };
 
 export class IntuitaPanel implements WebviewViewProvider {
-  __view: WebviewView | null = null
-  __extensionPath: Uri;
-  
-	constructor(
-		context: ExtensionContext,
-	) {
-    this.__extensionPath = context.extensionUri;
-  }
+	__view: WebviewView | null = null;
+	__extensionPath: Uri;
 
-    refresh(): void {
-        if(this.__view) {
-          this.__view.webview.html = this._getHtmlForWebview(this.__view?.webview);
-        }
-    }
+	constructor(context: ExtensionContext) {
+		this.__extensionPath = context.extensionUri;
+	}
+
+	refresh(): void {
+		if (this.__view) {
+			this.__view.webview.html = this._getHtmlForWebview(
+				this.__view?.webview,
+			);
+		}
+	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		webviewView.webview.options = {
@@ -35,41 +42,41 @@ export class IntuitaPanel implements WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 		this.__view = webviewView;
-    this.activateMessageListener();
+		this.activateMessageListener();
 	}
 
-  private activateMessageListener() {
-    if(!this.__view) {
-      return;
-    }
+	private activateMessageListener() {
+		if (!this.__view) {
+			return;
+		}
 
 		this.__view.webview.onDidReceiveMessage((message: WebViewMessage) => {
-        commands.executeCommand(message.command, message);
+			commands.executeCommand(message.command, message);
 		});
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
 		// The CSS file from the React build output
-    const stylesUri = getUri(webview, this.__extensionPath, [
-      "intuita-webview",
-      "build",
-      "static",
-      "css",
-      "main.css",
-    ]);
-    // The JS file from the React build output
-    const scriptUri = getUri(webview, this.__extensionPath, [
-      "intuita-webview",
-      "build",
-      "static",
-      "js",
-      "main.js",
-    ]);
+		const stylesUri = getUri(webview, this.__extensionPath, [
+			'intuita-webview',
+			'build',
+			'static',
+			'css',
+			'main.css',
+		]);
+		// The JS file from the React build output
+		const scriptUri = getUri(webview, this.__extensionPath, [
+			'intuita-webview',
+			'build',
+			'static',
+			'js',
+			'main.js',
+		]);
 
-    const nonce = getNonce();
+		const nonce = getNonce();
 
-    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
-    return /*html*/ `
+		// Tip: Install the es6-string-html VS Code extension to enable code highlighting below
+		return /*html*/ `
       <!DOCTYPE html>
       <html lang="en">
         <head>

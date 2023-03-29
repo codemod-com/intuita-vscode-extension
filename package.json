@@ -30,7 +30,7 @@
 	"activationEvents": [
 		"onUri",
 		"workspaceContains:**/*.ts*",
-		"workspaceContains:**/*.js*", 
+		"workspaceContains:**/*.js*",
 		"onView:intuita-webview"
 	],
 	"capabilities": {
@@ -166,7 +166,7 @@
 					"type": "number",
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
-				}, 
+				},
 				"intuita.repositoryPath": {
 					"order": 4,
 					"type": "string",
@@ -199,14 +199,14 @@
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
-				}, 
+				},
 				{
-          "type": "webview",
-          "id": "intuita-webview",
-          "name": "Intuita Source Control", 
+					"type": "webview",
+					"id": "intuita-webview",
+					"name": "Intuita Source Control",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita Source Control"
-        }
+				}
 			]
 		},
 		"menus": {

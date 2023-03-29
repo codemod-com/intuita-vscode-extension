@@ -29,7 +29,7 @@ export const getConfiguration = () => {
 		fileLimit,
 		telemetryEnabled,
 		workerThreadCount,
-		repositoryPath, 
+		repositoryPath,
 	};
 };
 
