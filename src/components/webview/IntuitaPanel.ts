@@ -12,11 +12,11 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-type WebViewMessage = {
+type WebViewMessage = Readonly<{
 	command: 'submitIssue';
 	title: string;
 	body: string;
-};
+}>;
 
 export class IntuitaPanel implements WebviewViewProvider {
 	__view: WebviewView | null = null;
