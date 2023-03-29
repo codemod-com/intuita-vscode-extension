@@ -18,8 +18,6 @@ export const Messages = {
 	codemodUnrecognized: 'The codemod is invalid / unsupported',
 };
 
-type CodemodExecutionErrorType = 'unrecognizedCodemod' | 'errorRunningCodemod';
-
 export const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
