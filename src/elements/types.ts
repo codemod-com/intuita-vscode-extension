@@ -32,11 +32,4 @@ export type RootElement = Readonly<{
 	children: ReadonlyArray<CaseElement>;
 }>;
 
-export type CommandElement = Readonly<{
-	hash: ElementHash;
-	kind: 'COMMAND';
-	label: string;
-	command: string;
-}>;
-
-export type Element = RootElement | CaseElement | FileElement | JobElement | CommandElement;
+export type Element = RootElement | CaseElement | FileElement | JobElement;
