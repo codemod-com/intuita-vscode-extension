@@ -272,8 +272,12 @@ export class EngineService {
 
 		childProcess.stderr.on('data', function (err: unknown) {
 			if (!(err instanceof Buffer)) return;
-			const error = err.toString();
-			errorMessage.add(error);
+			try {
+				const error = err.toString();
+				errorMessage.add(error);
+			} catch (err) {
+				console.log(err);
+			}
 		});
 
 		childProcess.stderr.on('end', () => {
@@ -285,20 +289,15 @@ export class EngineService {
 				try {
 					const parsedError = JSON.parse(error);
 					console.log('parsed error');
-					if ('kind' in parsedError) {
-						window.showErrorMessage(
-							`${
-								parsedError.kind === 'unrecognizedCodemod'
-									? Messages.codemodUnrecognized
-									: Messages.errorRunningCodemod
-							}. Error: ${error}`,
-						);
-					}
-					if (!('kind' in parsedError)) {
-						window.showErrorMessage(
-							`${Messages.errorRunningCodemod}. Error: ${error}`,
-						);
-					}
+
+					window.showErrorMessage(
+						`${
+							'kind' in parsedError &&
+							parsedError.kind === 'unrecognizedCodemod'
+								? Messages.codemodUnrecognized
+								: Messages.errorRunningCodemod
+						}. Error: ${error}`,
+					);
 				} catch (err) {
 					window.showErrorMessage(`Error: ${error}`);
 					console.error(err);
