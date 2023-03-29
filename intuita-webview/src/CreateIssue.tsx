@@ -10,7 +10,7 @@ const CreateIssue = () => {
     e.preventDefault();
 
     vscode.postMessage({
-      command: "submitIssue",
+      command: "intuita.sourceControl.submitIssue",
       title, 
       body, 
     });

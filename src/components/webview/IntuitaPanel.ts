@@ -44,10 +44,7 @@ export class IntuitaPanel implements WebviewViewProvider {
     }
 
 		this.__view.webview.onDidReceiveMessage((message: WebViewMessage) => {
-      // @TODO
-      if(message.command === 'submitIssue') {
-        commands.executeCommand('intuita.sourceControl.submitIssue', message);
-      }
+        commands.executeCommand(message.command, message);
 		});
 	}
 
