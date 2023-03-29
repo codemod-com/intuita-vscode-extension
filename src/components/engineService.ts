@@ -184,7 +184,8 @@ export class EngineService {
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
 
-		const { fileLimit } = this.#configurationContainer.get();
+		const { fileLimit, includePatterns, excludePatterns } =
+			this.#configurationContainer.get();
 
 		const buildArguments = () => {
 			const args: string[] = [];
@@ -192,19 +193,20 @@ export class EngineService {
 			if (message.command.engine === 'node' && 'uri' in message.command) {
 				const commandUri = message.command.uri;
 
-				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
-					const { fsPath } = Uri.joinPath(
-						commandUri,
-						`**/*.${extension}`,
-					);
+				includePatterns.forEach((includePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, includePattern);
 
 					const path = singleQuotify(fsPath);
 
 					args.push('-p', path);
 				});
+				excludePatterns.forEach((excludePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
 
-				args.push('-p', '!**/node_modules');
+					const path = singleQuotify(fsPath);
 
+					args.push('-p', `!${path}`);
+				});
 				args.push(
 					'-w',
 					String(
