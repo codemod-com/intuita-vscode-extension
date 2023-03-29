@@ -302,7 +302,7 @@ export class EngineService {
 						);
 					}
 				} catch (err) {
- 					window.showErrorMessage(`Error: ${error}`);
+					window.showErrorMessage(`Error: ${error}`);
 					console.error(err);
 				}
 			});
