@@ -169,14 +169,17 @@
 				"intuita.includePatterns": {
 					"order": 4,
 					"type": "array",
-					"default": ["**/*.{js,ts,jsx,tsx,cjs,mjs}"],
+					"default": [
+						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
+					],
 					"description": "The glob pattern to use when searching for files to execute codemods over"
-
 				},
 				"intuita.excludePatterns": {
 					"order": 5,
 					"type": "array",
-					"default": ["**/node_modules"],
+					"default": [
+						"**/node_modules"
+					],
 					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
 				}
 			}

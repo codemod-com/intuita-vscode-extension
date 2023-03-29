@@ -21,8 +21,12 @@ export const getConfiguration = () => {
 
 	const workerThreadCount =
 		configuration.get<number>('workerThreadCount') ?? 4;
-	const includePatterns = configuration.get<string[]>('includePatterns') ?? ['**/*.{js,ts,jsx,tsx,cjs,mjs}'];
-	const excludePatterns = configuration.get<string[]>('excludePatterns') ?? ['**/node_modules'];
+	const includePatterns = configuration.get<string[]>('includePatterns') ?? [
+		'**/*.{js,ts,jsx,tsx,cjs,mjs}',
+	];
+	const excludePatterns = configuration.get<string[]>('excludePatterns') ?? [
+		'**/node_modules',
+	];
 
 	return {
 		saveDocumentOnJobAccept,
@@ -30,7 +34,7 @@ export const getConfiguration = () => {
 		telemetryEnabled,
 		workerThreadCount,
 		includePatterns,
-		excludePatterns
+		excludePatterns,
 	};
 };
 

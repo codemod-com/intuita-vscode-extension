@@ -208,7 +208,7 @@ export class EngineService {
 				);
 
 				args.push('-l', String(fileLimit));
- 			} else if (
+			} else if (
 				message.command.engine === 'rust' &&
 				'uri' in message.command
 			) {
