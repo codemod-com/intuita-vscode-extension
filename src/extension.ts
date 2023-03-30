@@ -149,9 +149,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const globalStateAccountStorage = new GlobalStateAccountStorage(
 		context.globalState,
 	);
-	const userService = new UserService(globalStateAccountStorage);
 
-	const intuitaWebviewProvider = new IntuitaPanel(context);
+	const userService = new UserService(globalStateAccountStorage, messageBus);
+	const intuitaWebviewProvider = new IntuitaPanel(context, { getConfiguration}, globalStateAccountStorage, messageBus);
+
 	const view = vscode.window.registerWebviewViewProvider(
 		'intuita-webview',
 		intuitaWebviewProvider,
@@ -164,6 +165,21 @@ export async function activate(context: vscode.ExtensionContext) {
 		globalStateAccountStorage,
 	);
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.user.unlinkIntuitaAccount', () => {
+			userService.unlinkUserIntuitaAccount();
+	}))
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.redirect', (arg0) => {
+			try {
+				vscode.env.openExternal(vscode.Uri.parse(arg0));
+			} catch(e) {
+				vscode.window.showWarningMessage('Invalid URL:' + arg0);
+			}
+	}))
+			
+			
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.submitIssue',
@@ -926,6 +942,11 @@ export async function activate(context: vscode.ExtensionContext) {
 			if (!event.affectsConfiguration('intuita')) {
 				return;
 			}
+
+			messageBus.publish({
+				kind: MessageKind.onAfterConfigurationChanged, 
+				nextConfiguration:  getConfiguration(), 
+			})
 
 			messageBus.publish({
 				kind: MessageKind.updateElements,

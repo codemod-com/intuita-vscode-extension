@@ -7,23 +7,57 @@ import {
 	ExtensionContext,
 } from 'vscode';
 import { randomBytes } from 'crypto';
+import { MessageBus, MessageKind } from '../messageBus';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-type WebViewMessage = Readonly<{
-	command: 'submitIssue';
-	title: string;
-	body: string;
-}>;
+type WebViewMessage = {
+	command: string;
+	value: unknown;
+}
+
+interface ConfigurationService {
+	getConfiguration(): { repositoryPath: string | undefined };
+}
+interface UserAccountStorage {
+	getUserAccount(): string | null;
+}
 
 export class IntuitaPanel implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 
-	constructor(context: ExtensionContext) {
+	constructor(
+		context: ExtensionContext, 
+		private readonly __configurationService: ConfigurationService,
+		private readonly __userAccountStorage: UserAccountStorage,
+		private readonly __messageBus: MessageBus,
+		) {
+
 		this.__extensionPath = context.extensionUri;
+		this.__messageBus.subscribe(MessageKind.onAfterUnlinkedAccount, (message) => {
+			this.__view?.webview.postMessage(message);
+		});
+
+		this.__messageBus.subscribe(MessageKind.onAfterLinkedAccount, (message) => {
+			this.__view?.webview.postMessage(message);
+		});
+
+		this.__messageBus.subscribe(MessageKind.onAfterConfigurationChanged, (message) => {
+			this.__view?.webview.postMessage(message);
+		});
+	}
+
+	#prepareWebviewInitialData = () => {
+		const {repositoryPath} = this.__configurationService.getConfiguration();
+		const userId = this.__userAccountStorage.getUserAccount();
+
+		return {
+			repositoryPath, 
+			userId
+		}
 	}
 
 	refresh(): void {
@@ -51,7 +85,7 @@ export class IntuitaPanel implements WebviewViewProvider {
 		}
 
 		this.__view.webview.onDidReceiveMessage((message: WebViewMessage) => {
-			commands.executeCommand(message.command, message);
+			commands.executeCommand(message.command, message.value);
 		});
 	}
 
@@ -90,6 +124,9 @@ export class IntuitaPanel implements WebviewViewProvider {
         <body>
           <noscript>You need to enable JavaScript to run this app.</noscript>
           <div id="root"></div>
+					<script nonce="${nonce}">
+					window.INITIAL_STATE=${JSON.stringify(this.#prepareWebviewInitialData())}
+					</script>
           <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
       </html>

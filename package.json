@@ -138,6 +138,11 @@
 			{
 				"command": "intuita.sendAsAfterSnippet",
 				"title": "Intuita: Send as After Snippet to the Codemod Studio"
+			}, 
+			{
+				"command": "intuita.user.unlinkIntuitaAccount",
+				"title": "Unlink account", 
+				"icon": "$(link)"
 			}
 		],
 		"configuration": {
@@ -346,6 +351,11 @@
 				},
 				{
 					"command": "intuita.openYouTubeChannel",
+					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"group": "navigation"
+				}, 
+				{
+					"command": "intuita.user.unlinkIntuitaAccount",
 					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
 					"group": "navigation"
 				}
