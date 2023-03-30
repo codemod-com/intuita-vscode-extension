@@ -2,7 +2,7 @@ import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { MessageBus, MessageKind } from './components/messageBus';
+import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
@@ -863,14 +863,25 @@ export async function activate(context: vscode.ExtensionContext) {
 				const executionId = buildExecutionId();
 				const happenedAt = String(Date.now());
 
+				const command: Command =
+					recipeName === 'redwoodjs_experimental'
+						? {
+								kind: 'repomod',
+								engine: 'node',
+								repomodFilePath: recipeName,
+								storageUri,
+								inputPath: uri,
+						  }
+						: {
+								engine: 'node',
+								storageUri,
+								recipeName,
+								uri,
+						  };
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName,
-						uri,
-					},
+					command,
 					executionId,
 					happenedAt,
 				});
