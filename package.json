@@ -172,6 +172,22 @@
 					"type": "string",
 					"default": "",
 					"description": "Repository path (example: https://github.com/octocat/Hello-World)"
+				},
+				"intuita.includePatterns": {
+					"order": 4,
+					"type": "array",
+					"default": [
+						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
+					],
+					"description": "The glob pattern to use when searching for files to execute codemods over"
+				},
+				"intuita.excludePatterns": {
+					"order": 5,
+					"type": "array",
+					"default": [
+						"**/node_modules"
+					],
+					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
 				}
 			}
 		},
@@ -237,6 +253,54 @@
 				},
 				{
 					"command": "intuita.rejectCase",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeNextJsCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeNextJsExperimentalCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executePagesToAppsCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeMuiCodemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeReactRouterv4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeReactRouterv6Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImmutableJSv0Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImmutableJSv4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeRedwoodJsCore4Codemods",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeAsCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeRecipeWithinPath",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImportedModOnPath",
 					"when": "false"
 				}
 			],

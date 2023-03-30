@@ -21,6 +21,12 @@ export const getConfiguration = () => {
 
 	const workerThreadCount =
 		configuration.get<number>('workerThreadCount') ?? 4;
+	const includePatterns = configuration.get<string[]>('includePatterns') ?? [
+		'**/*.{js,ts,jsx,tsx,cjs,mjs}',
+	];
+	const excludePatterns = configuration.get<string[]>('excludePatterns') ?? [
+		'**/node_modules',
+	];
 
 	const repositoryPath = configuration.get<string>('repositoryPath');
 
@@ -30,6 +36,8 @@ export const getConfiguration = () => {
 		telemetryEnabled,
 		workerThreadCount,
 		repositoryPath,
+		includePatterns,
+		excludePatterns,
 	};
 };
 

@@ -55,8 +55,8 @@ If you like videos better, here is a quick YouTube [tutorial](https://www.youtub
   - [Enterprise feature] for large teams, we will be building integrations with Jira/Slack/Github to automatically assign tasks & send reminders to teams, leadership dashboard for tracking & coordinating the campaign.
 
 ### Codemod Builders 🥷🏼
-- ❌ **Without Intuita** ❌ you go the codemod journey alone! You ask yourself:
-  - What are the best codemod engines out there for the type of transformation i want to build?
+- ❌ **Without Intuita** ❌ you go through the codemod journey alone! You ask yourself:
+  - What are the best codemod engines out there for the type of transformation I want to build?
   - What's the easiest way to build codemods? Any tool out there? How about creating test cases?
   - Has anyone out there built the exact codemod I want to build?
   - How can my codemod be discovered & used by thousands of other developers out there who could benefit from it sooner or later?
