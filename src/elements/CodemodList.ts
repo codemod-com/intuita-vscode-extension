@@ -1,6 +1,7 @@
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { ProviderResult, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
+import { buildHash } from '../utilities';
 
 type PackageUpgradeItem = {
 	id: string;
@@ -97,6 +98,7 @@ const dependenciesRecord = packageUpgradeList.reduce((acc, curr) => {
 
 class CodemodItem extends TreeItem {
 	readonly kind: string;
+	readonly hash: string;
 	constructor(
 		public readonly label: string,
 		public readonly description: string,
@@ -109,6 +111,7 @@ class CodemodItem extends TreeItem {
 		this.kind = 'codemodItem';
 		this.contextValue = 'codemodItem';
 		this.commandToExecute = commandToExecute;
+		this.hash = buildHash(`${this.label} ${this.commandToExecute}`);
 	}
 	iconPath = path.join(
 		__filename,
@@ -120,12 +123,14 @@ class CodemodItem extends TreeItem {
 }
 
 class CodemodService {
+
 	rootPath: string | null | undefined;
+
 	constructor(path: string | null | undefined) {
 		this.rootPath = path;
 	}
 
-	getChildren(): CodemodItem[] {
+	getChildren(): ProviderResult<CodemodItem[]> {
 		if (this.rootPath) return this.getDepsInPackageJson();
 		else return [];
 	}

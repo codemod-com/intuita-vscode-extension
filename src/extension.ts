@@ -4,7 +4,6 @@ import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
-import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
@@ -42,6 +41,7 @@ import {
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
+import { CombineTreeProviders } from './components/combineTreeProviders';
 import { CodemodItem } from './elements/CodemodList';
 
 const messageBus = new MessageBus();
@@ -61,11 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
 	);
-	const rootPath =
-		vscode.workspace.workspaceFolders &&
-		vscode.workspace.workspaceFolders.length > 0
-			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
-			: null;
+
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		new Set((persistedState?.rejectedJobHashes ?? []) as JobHash[]),
@@ -79,8 +75,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new FileService(messageBus);
-
-	const treeDataProvider = new IntuitaTreeDataProvider(
+	const rootPath =
+		vscode.workspace.workspaceFolders &&
+		vscode.workspace.workspaceFolders.length > 0
+			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
+			: null;
+	const treeDataProvider = new CombineTreeProviders(
 		caseManager,
 		messageBus,
 		jobManager,
@@ -664,7 +664,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			});
 		},
 	);
-
 	vscode.commands.registerCommand(
 		'intuita.runCodemod',
 		async (item: CodemodItem) => {
