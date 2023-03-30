@@ -10,6 +10,7 @@ export const recipeNameCodec = t.union([
 	t.literal('immutablejsv4'),
 	t.literal('immutablejsv0'),
 	t.literal('redwoodjs_core_4'),
+	t.literal('redwoodjs_experimental'),
 ]);
 
 export type RecipeName = t.TypeOf<typeof recipeNameCodec>;

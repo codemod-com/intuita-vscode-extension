@@ -93,7 +93,7 @@ type Execution = {
 	readonly codemodSetName: string;
 	totalFileCount: number;
 	halted: boolean;
-	affectedFiles: Set<string>;
+	affectedAnyFile: boolean;
 };
 
 export class EngineService {
@@ -190,7 +190,22 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if (message.command.engine === 'node' && 'uri' in message.command) {
+			if ('kind' in message.command) {
+				args.push('repomod');
+				args.push('-f', singleQuotify(message.command.repomodFilePath));
+				args.push(
+					'-i',
+					singleQuotify(message.command.inputPath.fsPath),
+				);
+				args.push(
+					'-o',
+					singleQuotify(message.command.storageUri.fsPath),
+				);
+
+				return args;
+			}
+
+			if (message.command.engine === 'node') {
 				const commandUri = message.command.uri;
 
 				includePatterns.forEach((includePattern) => {
@@ -215,10 +230,7 @@ export class EngineService {
 				);
 
 				args.push('-l', String(fileLimit));
-			} else if (
-				message.command.engine === 'rust' &&
-				'uri' in message.command
-			) {
+			} else if (message.command.engine === 'rust') {
 				const commandUri = message.command.uri;
 
 				args.push('-d', singleQuotify(commandUri.fsPath));
@@ -282,28 +294,6 @@ export class EngineService {
 			}
 		});
 
-		childProcess.stderr.on('end', () => {
-			if (!errorMessages.size && !this.#execution?.affectedFiles.size) {
-				window.showWarningMessage(Messages.noAffectedFiles);
-			}
-
-			errorMessages.forEach((error) => {
-				try {
-					const parsedError = JSON.parse(error);
-					window.showErrorMessage(
-						`${
-							'kind' in parsedError &&
-							parsedError.kind === 'unrecognizedCodemod'
-								? Messages.codemodUnrecognized
-								: Messages.errorRunningCodemod
-						}. Error: ${error}`,
-					);
-				} catch (err) {
-					window.showErrorMessage(`Error: ${error}`);
-					console.error(err);
-				}
-			});
-		});
 		const executionId = message.executionId;
 
 		const codemodSetName =
@@ -315,7 +305,7 @@ export class EngineService {
 			codemodSetName,
 			halted: false,
 			totalFileCount: 0, // that is the lower bound,
-			affectedFiles: new Set(),
+			affectedAnyFile: false,
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -454,9 +444,9 @@ export class EngineService {
 			} else {
 				throw new Error(`Unrecognized message`);
 			}
-			if (job.newUri?.fsPath) {
-				this.#execution.affectedFiles?.add(job.newUri?.fsPath);
-			}
+
+			this.#execution.affectedAnyFile = true;
+
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				noraRustEngineExecutableUri,
@@ -478,6 +468,27 @@ export class EngineService {
 					codemodSetName: this.#execution.codemodSetName,
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
+				});
+
+				if (!errorMessages.size && this.#execution?.affectedAnyFile) {
+					window.showWarningMessage(Messages.noAffectedFiles);
+				}
+
+				errorMessages.forEach((error) => {
+					try {
+						const parsedError = JSON.parse(error);
+						window.showErrorMessage(
+							`${
+								'kind' in parsedError &&
+								parsedError.kind === 'unrecognizedCodemod'
+									? Messages.codemodUnrecognized
+									: Messages.errorRunningCodemod
+							}. Error: ${error}`,
+						);
+					} catch (err) {
+						window.showErrorMessage(`Error: ${error}`);
+						console.error(err);
+					}
 				});
 			}
 
