@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.13.2",
+	"version": "0.14.1",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -383,9 +383,9 @@
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
 		"spellcheck": "yarn cspell '**.*'",
-		"install:webview": "cd intuita-webview && yarn install",
-		"build:webview": "cd intuita-webview && yarn build",
-		"watch:webview": "cd intuita-webview && yarn start"
+		"install:webview": "cd intuita-webview && pnpm install",
+		"build:webview": "cd intuita-webview && pnpm build",
+		"watch:webview": "cd intuita-webview && pnpm start"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.4",
