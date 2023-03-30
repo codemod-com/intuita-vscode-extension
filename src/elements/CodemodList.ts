@@ -1,9 +1,4 @@
-import {
-	ProviderResult,
-	TreeItem,
-	TreeItemCollapsibleState,
-	commands,
-} from 'vscode';
+import { TreeItem, TreeItemCollapsibleState, commands } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash } from '../utilities';
