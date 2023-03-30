@@ -177,7 +177,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						await	sourceControl.createIssue(decoded.right);
+						await sourceControl.createIssue(decoded.right);
 					}
 				} catch (e) {
 					if (e instanceof NotFoundRepositoryPath) {
@@ -201,10 +201,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
-					if(isAxiosError<{ message: string}>(e)) {
-						vscode.window.showWarningMessage(e.response?.data.message ?? '');
+					if (isAxiosError<{ message: string }>(e)) {
+						vscode.window.showWarningMessage(
+							e.response?.data.message ?? '',
+						);
 					}
-
 				}
 			},
 		),
