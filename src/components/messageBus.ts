@@ -72,6 +72,13 @@ export type Engine = 'node' | 'rust';
 
 export type Command =
 	| Readonly<{
+			kind: 'repomod';
+			engine: Engine;
+			inputPath: Uri;
+			storageUri: Uri;
+			repomodFilePath: string;
+	  }>
+	| Readonly<{
 			recipeName: RecipeName;
 			engine: Engine;
 			storageUri: Uri;
