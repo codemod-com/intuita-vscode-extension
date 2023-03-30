@@ -238,14 +238,13 @@ export type Message =
 			kind: MessageKind.onAfterCreateIssue;
 	  }>
 	| Readonly<{
-<<<<<<< HEAD
 			kind: MessageKind.showProgress;
 			processedFiles: number;
 			totalFiles: number;
-=======
+	}>
+	| Readonly<{
 			kind: MessageKind.runCodemod;
 			codemodHash: string;
->>>>>>> 7c76546 (move the codemodlist to another class)
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
