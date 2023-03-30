@@ -30,7 +30,8 @@
 	"activationEvents": [
 		"onUri",
 		"workspaceContains:**/*.ts*",
-		"workspaceContains:**/*.js*"
+		"workspaceContains:**/*.js*",
+		"onView:intuita-webview"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -166,6 +167,12 @@
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
 				},
+				"intuita.repositoryPath": {
+					"order": 4,
+					"type": "string",
+					"default": "",
+					"description": "Repository path (example: https://github.com/octocat/Hello-World)"
+				},
 				"intuita.includePatterns": {
 					"order": 4,
 					"type": "array",
@@ -208,6 +215,13 @@
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
+				},
+				{
+					"type": "webview",
+					"id": "intuita-webview",
+					"name": "Intuita Source Control",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita Source Control"
 				}
 			]
 		},

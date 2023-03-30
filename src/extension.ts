@@ -34,6 +34,13 @@ import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
+import {
+	NotFoundIntuitaAccount,
+	NotFoundRepositoryPath,
+	SourceControlService,
+} from './components/webview/sourceControl';
+import { IntuitaPanel } from './components/webview/IntuitaPanel';
+import { isAxiosError } from 'axios';
 
 const messageBus = new MessageBus();
 
@@ -134,10 +141,75 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
+	// @TODO split this large file to modules
+
+	/**
+	 * User
+	 */
 	const globalStateAccountStorage = new GlobalStateAccountStorage(
 		context.globalState,
 	);
 	const userService = new UserService(globalStateAccountStorage);
+
+	const intuitaWebviewProvider = new IntuitaPanel(context);
+	const view = vscode.window.registerWebviewViewProvider(
+		'intuita-webview',
+		intuitaWebviewProvider,
+	);
+
+	context.subscriptions.push(view);
+
+	const sourceControl = new SourceControlService(
+		{ getConfiguration },
+		globalStateAccountStorage,
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.sourceControl.submitIssue',
+			async (arg0) => {
+				try {
+					const codec = buildTypeCodec({
+						title: t.string,
+						body: t.string,
+					});
+
+					const decoded = codec.decode(arg0);
+
+					if (decoded._tag === 'Right') {
+						await sourceControl.createIssue(decoded.right);
+					}
+				} catch (e) {
+					if (e instanceof NotFoundRepositoryPath) {
+						vscode.window.showInformationMessage(
+							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
+						);
+					}
+
+					if (e instanceof NotFoundIntuitaAccount) {
+						const result =
+							await vscode.window.showInformationMessage(
+								'Your extension is not currently connected to your Intuita account. Please sign in and connect your account to the extension to unlock additional features.',
+								{ modal: true },
+								'Sign In',
+							);
+
+						if (result === 'Sign In') {
+							vscode.env.openExternal(
+								vscode.Uri.parse('https://codemod.studio/'),
+							);
+						}
+					}
+
+					if (isAxiosError<{ message: string }>(e)) {
+						vscode.window.showWarningMessage(
+							e.response?.data.message ?? '',
+						);
+					}
+				}
+			},
+		),
+	);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
