@@ -1,13 +1,14 @@
-import { ProviderResult, TreeItem } from 'vscode';
+import { TreeItem } from 'vscode';
 import { ElementHash } from '../elements/types';
 import { IntuitaTreeDataProvider } from './intuitaTreeDataProvider';
 import type { CaseManager } from '../cases/caseManager';
-import { MessageBus } from './messageBus';
+import { MessageBus, MessageKind } from './messageBus';
 import { JobManager } from './jobManager';
 import { CodemodItem, CodemodService } from '../elements/CodemodList';
 
 export class CombineTreeProviders extends IntuitaTreeDataProvider {
 	private codemodProvider: CodemodService;
+	readonly #messageBus: MessageBus;
 	public constructor(
 		caseManager: CaseManager,
 		messageBus: MessageBus,
@@ -16,9 +17,17 @@ export class CombineTreeProviders extends IntuitaTreeDataProvider {
 	) {
 		super(caseManager, messageBus, jobManager);
 		this.codemodProvider = new CodemodService(rootPath);
+		this.#messageBus = messageBus;
+		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
+			const codemodItemFound = this.codemodProvider.getElement(
+				message.codemodHash as ElementHash,
+			);
+			this.codemodProvider.runCodemod(codemodItemFound.commandToExecute);
+		});
 	}
-	// TODO: update this by implementing the getChildren using hash	
-	public getChildren(elementHash?: ElementHash) {
+
+	// TODO: update this by implementing the getChildren using hash
+	public getChildren(elementHash?: ElementHash): ElementHash[] {
 		if (elementHash && this.isCodemodItem(elementHash)) {
 			return this.codemodProvider.getChildren();
 		}
@@ -33,8 +42,9 @@ export class CombineTreeProviders extends IntuitaTreeDataProvider {
 	public getTreeItem(
 		elementHash: ElementHash,
 	): TreeItem | Thenable<TreeItem> {
-		if (elementHash && !(typeof elementHash === 'string')) {
- 			return this.codemodProvider.getElement(elementHash);
+		const codemodItemFound = this.codemodProvider.getElement(elementHash);
+		if (codemodItemFound) {
+			return codemodItemFound;
 		}
 		return super.getTreeItem(elementHash);
 	}

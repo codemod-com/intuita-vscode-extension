@@ -46,6 +46,8 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
+	/** run codemod */
+	runCodemod = 26,
 }
 
 export type Engine = 'node' | 'rust';
@@ -183,6 +185,10 @@ export type Message =
 			newUri: Uri;
 			oldUri: Uri;
 			newContentUri: Uri;
+	  }>
+	| Readonly<{
+			kind: MessageKind.runCodemod;
+			codemodHash: string;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
