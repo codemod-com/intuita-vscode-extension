@@ -334,7 +334,11 @@ export class EngineService {
 
 			if (message.k === EngineMessageKind.progress) {
 				this.#statusBarItemManager.moveToProgress(message.p, message.t);
-
+				this.#messageBus.publish({
+					kind: MessageKind.showProgress,
+					totalFiles: message.t,
+					processedFiles: message.p,
+				});
 				this.#execution.totalFileCount = message.t;
 				return;
 			}

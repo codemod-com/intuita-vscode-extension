@@ -31,7 +31,8 @@
 		"onUri",
 		"workspaceContains:**/*.ts*",
 		"workspaceContains:**/*.js*",
-		"onView:intuita-webview"
+		"onView:intuita-webview",
+		"onView:intuita-progress-webview"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -207,6 +208,12 @@
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
+				},
+				{
+					"type": "webview",
+					"id": "intuita-progress-webview",
+					"name": "Intuita: Execution Progress",
+ 					"contextualTitle": "Intuita: Execution Progress"
 				}
 			],
 			"intuitaViewId": [
