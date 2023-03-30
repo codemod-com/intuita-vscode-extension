@@ -13,7 +13,10 @@ export interface UserAccountStorage {
 }
 
 export class UserService {
-	constructor(private readonly __storage: UserAccountStorage, private readonly __messageBus: MessageBus) {}
+	constructor(
+		private readonly __storage: UserAccountStorage,
+		private readonly __messageBus: MessageBus,
+	) {}
 
 	getLinkedAccount() {
 		return this.__storage.getUserAccount();
@@ -21,14 +24,14 @@ export class UserService {
 
 	unlinkUserIntuitaAccount(): void {
 		this.__storage.setUserAccount(undefined);
-		this.__messageBus.publish({ kind: MessageKind.onAfterUnlinkedAccount});
+		this.__messageBus.publish({ kind: MessageKind.onAfterUnlinkedAccount });
 	}
 
 	linkUsersIntuitaAccount(userId: string): void {
-		if(!userId.trim()) {
+		if (!userId.trim()) {
 			throw new InvalidIntuitaAccount();
 		}
-		
+
 		const linkedAccount = this.getLinkedAccount();
 
 		if (linkedAccount && linkedAccount !== userId) {
@@ -36,6 +39,9 @@ export class UserService {
 		}
 
 		this.__storage.setUserAccount(userId);
-		this.__messageBus.publish({ kind: MessageKind.onAfterLinkedAccount, account: userId});
+		this.__messageBus.publish({
+			kind: MessageKind.onAfterLinkedAccount,
+			account: userId,
+		});
 	}
 }

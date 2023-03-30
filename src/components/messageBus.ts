@@ -51,14 +51,21 @@ export const enum MessageKind {
 	/**
 	 * account events
 	 */
-	onAfterLinkedAccount = 26, 
+	onAfterLinkedAccount = 26,
 	onAfterUnlinkedAccount = 27,
 
 	/**
 	 * config events
 	 */
 
-	onAfterConfigurationChanged = 28
+	onAfterConfigurationChanged = 28,
+
+	/**
+	 * source control
+	 */
+
+	onBeforeCreateIssue = 29,
+	onAfterCreateIssue = 30,
 }
 
 export type Engine = 'node' | 'rust';
@@ -198,18 +205,25 @@ export type Message =
 			newContentUri: Uri;
 	  }>
 	| Readonly<{
-		kind: MessageKind.onAfterUnlinkedAccount
-	}>
+			kind: MessageKind.onAfterUnlinkedAccount;
+	  }>
 	| Readonly<{
-		kind: MessageKind.onAfterLinkedAccount, 
-		account: string
-	}>
+			kind: MessageKind.onAfterLinkedAccount;
+			account: string;
+	  }>
 	| Readonly<{
-		kind: MessageKind.onAfterConfigurationChanged, 
-		nextConfiguration: Configuration,
-	}>
-	
-
+			kind: MessageKind.onAfterConfigurationChanged;
+			nextConfiguration: Configuration;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onBeforeCreateIssue;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onBeforeCreateIssue;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onAfterCreateIssue;
+	  }>;
 
 type EmitterMap<K extends MessageKind> = {
 	[k in K]?: EventEmitter<Message & { kind: K }>;

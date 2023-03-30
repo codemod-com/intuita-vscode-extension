@@ -16,7 +16,7 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 type WebViewMessage = {
 	command: string;
 	value: unknown;
-}
+};
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -30,35 +30,35 @@ export class IntuitaPanel implements WebviewViewProvider {
 	__extensionPath: Uri;
 
 	constructor(
-		context: ExtensionContext, 
+		context: ExtensionContext,
 		private readonly __configurationService: ConfigurationService,
 		private readonly __userAccountStorage: UserAccountStorage,
 		private readonly __messageBus: MessageBus,
-		) {
-
+	) {
 		this.__extensionPath = context.extensionUri;
-		this.__messageBus.subscribe(MessageKind.onAfterUnlinkedAccount, (message) => {
-			this.__view?.webview.postMessage(message);
-		});
-
-		this.__messageBus.subscribe(MessageKind.onAfterLinkedAccount, (message) => {
-			this.__view?.webview.postMessage(message);
-		});
-
-		this.__messageBus.subscribe(MessageKind.onAfterConfigurationChanged, (message) => {
-			this.__view?.webview.postMessage(message);
+		[
+			MessageKind.onAfterUnlinkedAccount,
+			MessageKind.onAfterLinkedAccount,
+			MessageKind.onAfterConfigurationChanged,
+			MessageKind.onBeforeCreateIssue,
+			MessageKind.onAfterCreateIssue,
+		].forEach((kind) => {
+			this.__messageBus.subscribe(kind, (message) => {
+				this.__view?.webview.postMessage(message);
+			});
 		});
 	}
 
 	#prepareWebviewInitialData = () => {
-		const {repositoryPath} = this.__configurationService.getConfiguration();
+		const { repositoryPath } =
+			this.__configurationService.getConfiguration();
 		const userId = this.__userAccountStorage.getUserAccount();
 
 		return {
-			repositoryPath, 
-			userId
-		}
-	}
+			repositoryPath,
+			userId,
+		};
+	};
 
 	refresh(): void {
 		if (this.__view) {
@@ -117,7 +117,9 @@ export class IntuitaPanel implements WebviewViewProvider {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
           <meta name="theme-color" content="#000000">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${
+				webview.cspSource
+			}; script-src 'nonce-${nonce}';">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
           <title>Hello World</title>
         </head>
