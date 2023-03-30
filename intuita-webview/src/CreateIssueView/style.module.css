@@ -1,9 +1,12 @@
-.root {
-	padding: 4px;
-}
-
 .form {
 	display: flex;
 	flex-direction: column;
 	row-gap: 8px;
+	padding: 4px;
+}
+
+.submitButton {
+	height: 20px;
+	width: 160px;
+	align-self: end;
 }

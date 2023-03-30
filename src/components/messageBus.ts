@@ -2,6 +2,7 @@ import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
+import type { Configuration } from '../configuration';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -46,6 +47,25 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
+
+	/**
+	 * account events
+	 */
+	onAfterLinkedAccount = 26,
+	onAfterUnlinkedAccount = 27,
+
+	/**
+	 * config events
+	 */
+
+	onAfterConfigurationChanged = 28,
+
+	/**
+	 * source control
+	 */
+
+	onBeforeCreateIssue = 29,
+	onAfterCreateIssue = 30,
 }
 
 export type Engine = 'node' | 'rust';
@@ -190,6 +210,26 @@ export type Message =
 			newUri: Uri;
 			oldUri: Uri;
 			newContentUri: Uri;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onAfterUnlinkedAccount;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onAfterLinkedAccount;
+			account: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onAfterConfigurationChanged;
+			nextConfiguration: Configuration;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onBeforeCreateIssue;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onBeforeCreateIssue;
+	  }>
+	| Readonly<{
+			kind: MessageKind.onAfterCreateIssue;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

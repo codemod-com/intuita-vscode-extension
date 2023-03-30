@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { MessageBus, MessageKind } from '../messageBus';
 export class NotFoundRepositoryPath extends Error {}
 export class NotFoundIntuitaAccount extends Error {}
 interface ConfigurationService {
@@ -12,6 +13,7 @@ export class SourceControlService {
 	constructor(
 		private readonly __configurationService: ConfigurationService,
 		private readonly __userAccountStorage: UserAccountStorage,
+		private readonly __messageBus: MessageBus,
 	) {}
 
 	async createIssue(params: { title: string; body: string }) {
@@ -30,6 +32,8 @@ export class SourceControlService {
 
 		const { title, body } = params;
 
+		this.__messageBus.publish({ kind: MessageKind.onBeforeCreateIssue });
+
 		const result = await axios.post(
 			'https://telemetry.intuita.io/sourceControl/github/issues',
 			{
@@ -40,6 +44,7 @@ export class SourceControlService {
 			},
 		);
 
+		this.__messageBus.publish({ kind: MessageKind.onAfterCreateIssue });
 		return result.data;
 	}
 }
