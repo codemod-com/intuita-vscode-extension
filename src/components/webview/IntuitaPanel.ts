@@ -54,10 +54,17 @@ export class IntuitaPanel implements WebviewViewProvider {
 			this.__configurationService.getConfiguration();
 		const userId = this.__userAccountStorage.getUserAccount();
 
-		return {
-			repositoryPath,
-			userId,
-		};
+		const result: { repositoryPath?: string; userId?: string } = {};
+
+		if (repositoryPath) {
+			result.repositoryPath = repositoryPath;
+		}
+
+		if (userId) {
+			result.userId = userId;
+		}
+
+		return result;
 	};
 
 	refresh(): void {
