@@ -42,7 +42,7 @@ import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { CombineTreeProviders } from './components/combineTreeProviders';
-import { CodemodItem } from './elements/CodemodList';
+import { ElementHash } from './elements/types';
 
 const messageBus = new MessageBus();
 
@@ -666,8 +666,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand(
 		'intuita.runCodemod',
-		async (item: CodemodItem) => {
-			vscode.commands.executeCommand(item.commandToExecute);
+		async (item: ElementHash) => {
+			messageBus.publish({
+				kind: MessageKind.runCodemod,
+				codemodHash: item,
+			});
 		},
 	);
 

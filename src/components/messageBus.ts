@@ -70,6 +70,8 @@ export const enum MessageKind {
 	 * show progress
 	 */
 	showProgress = 31,
+	/** run codemod */
+	runCodemod = 32,
 }
 
 export type Engine = 'node' | 'rust';
@@ -236,9 +238,14 @@ export type Message =
 			kind: MessageKind.onAfterCreateIssue;
 	  }>
 	| Readonly<{
+<<<<<<< HEAD
 			kind: MessageKind.showProgress;
 			processedFiles: number;
 			totalFiles: number;
+=======
+			kind: MessageKind.runCodemod;
+			codemodHash: string;
+>>>>>>> 7c76546 (move the codemodlist to another class)
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

@@ -1,7 +1,13 @@
-import { ProviderResult, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import {
+	ProviderResult,
+	TreeItem,
+	TreeItemCollapsibleState,
+	commands,
+} from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash } from '../utilities';
+import { ElementHash } from './types';
 
 type PackageUpgradeItem = {
 	id: string;
@@ -90,11 +96,11 @@ const packageUpgradeList: PackageUpgradeItem[] = [
 	},
 ];
 
-// make a record of the packageUpgradeList
-const dependenciesRecord = packageUpgradeList.reduce((acc, curr) => {
-	acc[curr.packageName] = curr;
-	return acc;
-}, {} as Record<string, PackageUpgradeItem>);
+const buildCodemodItemHash = (codemodItem: CodemodItem) => {
+	return buildHash(
+		`${codemodItem.label} ${codemodItem.id} ${codemodItem.commandToExecute}`,
+	) as ElementHash;
+};
 
 class CodemodItem extends TreeItem {
 	readonly kind: string;
@@ -123,58 +129,71 @@ class CodemodItem extends TreeItem {
 }
 
 class CodemodService {
-
 	rootPath: string | null | undefined;
+	#codemodItemsMap: Map<ElementHash, CodemodItem> = new Map();
 
 	constructor(path: string | null | undefined) {
 		this.rootPath = path;
+		const dependencies = this.getDepsInPackageJson();
+		if (dependencies) {
+			this.#codemodItemsMap = dependencies;
+		}
 	}
 
-	getChildren(): ProviderResult<CodemodItem[]> {
-		if (this.rootPath) return this.getDepsInPackageJson();
-		else return [];
+	getChildren(): ElementHash[] {
+		if (this.rootPath) {
+			return Array.from(this.#codemodItemsMap.keys());
+		}
+		return [];
 	}
 
-	getElement(element: CodemodItem) {
-		return element;
+	public runCodemod(codemod: string) {
+		commands.executeCommand(codemod);
 	}
 
-	private getDepsInPackageJson(): CodemodItem[] {
-		if (!this.rootPath) return [];
+	getElement(element: ElementHash): CodemodItem {
+		const el = this.#codemodItemsMap.get(element) as CodemodItem;
+		return el;
+	}
+
+	private getDepsInPackageJson(): Map<ElementHash, CodemodItem> | null {
+		if (!this.rootPath) return null;
 		const packageJsonPath = path.join(this.rootPath, 'package.json');
 		if (this.pathExists(packageJsonPath)) {
 			const document = JSON.parse(
 				readFileSync(packageJsonPath, 'utf-8'),
 			) as { dependencies: Record<string, string> };
-			const dependencyCodemods: PackageUpgradeItem[] = [];
+			let dependencyCodemods: PackageUpgradeItem[] = [];
 			const foundDependencies = document.dependencies;
 			for (const key in foundDependencies) {
 				const checkedDependency = this.checkIfCodemodIsAvailable(
 					key,
 					foundDependencies[key] as string,
 				);
-				if (checkedDependency) {
-					dependencyCodemods.push(checkedDependency);
+				if (checkedDependency && checkedDependency.length > 0) {
+					dependencyCodemods =
+						dependencyCodemods.concat(checkedDependency);
 				}
 			}
 			const codemodList = dependencyCodemods
-				.map((dependencyName) => {
-					if (!dependencyName) return null;
+				.filter((el) => el)
+				.reduce((acc, curr) => {
+					const command = commandList[curr.id] as string;
 
-					const command = commandList[dependencyName.id] as string;
-
-					return new CodemodItem(
-						dependencyName.name,
-						`${dependencyName.kind} ${dependencyName.packageName} ${dependencyName.leastVersionSupported} - ${dependencyName.latestVersionSupported}`,
+					const codemodItem = new CodemodItem(
+						curr.name,
+						`${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
 						TreeItemCollapsibleState.None,
 						command,
 					);
-				})
-				.filter(Boolean) as CodemodItem[];
 
+					const hash = buildCodemodItemHash(codemodItem);
+					acc.set(hash, codemodItem);
+					return acc;
+				}, new Map() as Map<ElementHash, CodemodItem>);
 			return codemodList;
 		} else {
-			return [];
+			return null;
 		}
 	}
 
@@ -190,21 +209,28 @@ class CodemodService {
 	private checkIfCodemodIsAvailable(
 		dependencyName: string,
 		version: string,
-	): null | PackageUpgradeItem {
+	): null | PackageUpgradeItem[] {
 		// replace ^, ~ , *
 		const actualVersion = version.replace(/[^0-9.]/g, '');
 
-		const codemod = dependenciesRecord[dependencyName];
-		if (codemod) {
-			const { leastVersionSupported, leastSupportedUpgrade } = codemod;
-			if (
-				actualVersion < leastVersionSupported &&
-				actualVersion >= leastSupportedUpgrade
-			) {
-				return codemod;
-			}
-		}
-		return null;
+		const codemod = packageUpgradeList.filter(
+			(el) => el.packageName === dependencyName,
+		);
+		if (!codemod) return null;
+		return codemod
+			.map((el) => {
+				if (el) {
+					const { leastVersionSupported, leastSupportedUpgrade } = el;
+					if (
+						actualVersion < leastVersionSupported &&
+						actualVersion >= leastSupportedUpgrade
+					) {
+						return el;
+					}
+				}
+				return null;
+			})
+			.filter(Boolean) as PackageUpgradeItem[];
 	}
 }
 
