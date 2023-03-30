@@ -94,7 +94,9 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		return this.#childParentMap.get(elementHash);
 	}
 
-	public getChildren(elementHash: ElementHash | undefined) {
+	public getChildren(
+		elementHash: ElementHash | undefined,
+	): ProviderResult<ElementHash[]> {
 		const element = this.#elementMap.get(
 			(elementHash ?? '') as ElementHash,
 		);

@@ -8,7 +8,7 @@ type PackageUpgradeItem = {
 	id: string;
 	packageName: string;
 	name: string;
-	kind: 'upgrade' | 'migration' | 'refactor' | 'remove';
+	kind: 'upgrade' | 'migration' | 'remove';
 	leastVersionSupported: string;
 	latestVersionSupported: string;
 	leastSupportedUpgrade: string;
@@ -99,7 +99,6 @@ const buildCodemodItemHash = (codemodItem: CodemodItem) => {
 
 class CodemodItem extends TreeItem {
 	readonly kind: string;
-	readonly hash: string;
 	constructor(
 		public readonly label: string,
 		public readonly description: string,
@@ -112,7 +111,6 @@ class CodemodItem extends TreeItem {
 		this.kind = 'codemodItem';
 		this.contextValue = 'codemodItem';
 		this.commandToExecute = commandToExecute;
-		this.hash = buildHash(`${this.label} ${this.commandToExecute}`);
 	}
 	iconPath = path.join(
 		__filename,
