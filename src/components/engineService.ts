@@ -124,6 +124,10 @@ export class EngineService {
 		messageBus.subscribe(MessageKind.executeCodemodSet, (message) => {
 			this.#onExecuteCodemodSetMessage(message);
 		});
+
+		messageBus.subscribe(MessageKind.filesCompared, (message) => {
+			this.#onFilesComparedMessage(message);
+		});
 	}
 
 	#onEnginesBootstrappedMessage(
@@ -445,8 +449,6 @@ export class EngineService {
 				throw new Error(`Unrecognized message`);
 			}
 
-			this.#execution.affectedAnyFile = true;
-
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				noraRustEngineExecutableUri,
@@ -461,6 +463,7 @@ export class EngineService {
 
 		interfase.on('close', () => {
 			this.#statusBarItemManager.moveToStandby();
+
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
@@ -470,7 +473,7 @@ export class EngineService {
 					fileCount: this.#execution.totalFileCount,
 				});
 
-				if (!errorMessages.size && this.#execution?.affectedAnyFile) {
+				if (!errorMessages.size && !this.#execution.affectedAnyFile) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
 
@@ -494,6 +497,19 @@ export class EngineService {
 
 			this.#execution = null;
 		});
+	}
+
+	async #onFilesComparedMessage(
+		message: Message & { kind: MessageKind.filesCompared },
+	) {
+		if (
+			!this.#execution ||
+			this.#execution.executionId !== message.executionId
+		) {
+			return;
+		}
+
+		this.#execution.affectedAnyFile = true;
 	}
 
 	async clearOutputFiles(storageUri: Uri) {

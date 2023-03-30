@@ -868,7 +868,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						? {
 								kind: 'repomod',
 								engine: 'node',
-								repomodFilePath: 'redwoodjs',
+								repomodFilePath: recipeName,
 								storageUri,
 								inputPath: uri,
 						  }
