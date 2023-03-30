@@ -383,9 +383,9 @@
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
 		"spellcheck": "yarn cspell '**.*'", 
-		"install:webview": "cd intuita-webview && pnpm install",
-		"build:webview": "cd intuita-webview && pnpm build", 
-		"watch:webview": "cd intuita-webview && pnpm start"
+		"install:webview": "cd intuita-webview && yarn install",
+		"build:webview": "cd intuita-webview && yarn build", 
+		"watch:webview": "cd intuita-webview && yarn start"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.4",
