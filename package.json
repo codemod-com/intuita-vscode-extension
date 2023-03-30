@@ -382,9 +382,9 @@
 		"package": "yarn install:webview && yarn build:webview && webpack --mode production --devtool hidden-source-map",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
-		"spellcheck": "yarn cspell '**.*'", 
+		"spellcheck": "yarn cspell '**.*'",
 		"install:webview": "cd intuita-webview && yarn install",
-		"build:webview": "cd intuita-webview && yarn build", 
+		"build:webview": "cd intuita-webview && yarn build",
 		"watch:webview": "cd intuita-webview && yarn start"
 	},
 	"devDependencies": {
