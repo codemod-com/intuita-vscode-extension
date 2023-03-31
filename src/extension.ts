@@ -160,14 +160,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// @TODO remove, when added ability to show panel by clicking on jobs
 	context.subscriptions.push(
-		vscode.commands.registerCommand("intuita.showPanel", () => {
-			const instance = IntuitaPanel.getInstance(context,
+		vscode.commands.registerCommand('intuita.showPanel', () => {
+			const instance = IntuitaPanel.getInstance(
+				context,
 				{ getConfiguration },
 				globalStateAccountStorage,
-				messageBus);
+				messageBus,
+			);
 
-				instance.render();
-		}))
+			instance.render();
+		}),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(

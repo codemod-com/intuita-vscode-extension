@@ -3,10 +3,10 @@ import {
 	Uri,
 	commands,
 	ExtensionContext,
-  WebviewPanel,
-  window,
-  ViewColumn,
-  Disposable, 
+	WebviewPanel,
+	window,
+	ViewColumn,
+	Disposable,
 } from 'vscode';
 import { randomBytes } from 'crypto';
 import { MessageBus, MessageKind } from '../messageBus';
@@ -30,80 +30,97 @@ interface UserAccountStorage {
 export class IntuitaPanel {
 	private __view: Webview | null = null;
 	private __extensionPath: Uri;
-  private __panel: WebviewPanel |  null = null;
-  private __disposables: Disposable[] = [];
-  static __instance: IntuitaPanel | null = null;
+	private __panel: WebviewPanel | null = null;
+	private __disposables: Disposable[] = [];
+	static __instance: IntuitaPanel | null = null;
 
-  static getInstance(context: ExtensionContext, configurationService: ConfigurationService, userAccountStorage: UserAccountStorage, messageBus: MessageBus) {
-    if(this.__instance) {
-      return this.__instance; 
-    } 
+	static getInstance(
+		context: ExtensionContext,
+		configurationService: ConfigurationService,
+		userAccountStorage: UserAccountStorage,
+		messageBus: MessageBus,
+	) {
+		if (this.__instance) {
+			return this.__instance;
+		}
 
-    return new IntuitaPanel(context, configurationService, userAccountStorage, messageBus);
-  }
+		return new IntuitaPanel(
+			context,
+			configurationService,
+			userAccountStorage,
+			messageBus,
+		);
+	}
 
-  private constructor(
-    context: ExtensionContext, 
-    private readonly __configurationService: ConfigurationService,
+	private constructor(
+		context: ExtensionContext,
+		private readonly __configurationService: ConfigurationService,
 		private readonly __userAccountStorage: UserAccountStorage,
-		private readonly __messageBus: MessageBus
-    ) {
-
-    this.__extensionPath = context.extensionUri;
-    this.__panel = window.createWebviewPanel(
-      "intuitaPanel",
-      "Intuita Panel",
-      ViewColumn.One,
-      {
-        enableScripts: true,
-        localResourceRoots: [Uri.joinPath( this.__extensionPath, "out"), Uri.joinPath( this.__extensionPath, "intuita-webview/build")],
+		private readonly __messageBus: MessageBus,
+	) {
+		this.__extensionPath = context.extensionUri;
+		this.__panel = window.createWebviewPanel(
+			'intuitaPanel',
+			'Intuita Panel',
+			ViewColumn.One,
+			{
+				enableScripts: true,
+				localResourceRoots: [
+					Uri.joinPath(this.__extensionPath, 'out'),
+					Uri.joinPath(this.__extensionPath, 'intuita-webview/build'),
+				],
 				// this setting is needed to be able to communicate to webview panel when its not active (when we are on different tab)
-				retainContextWhenHidden: true, 
-      }
-    );;
+				retainContextWhenHidden: true,
+			},
+		);
 
-    this.__panel.onDidDispose(() => this.dispose(), null, this.__disposables);
-    this.__panel.webview.html = this._getHtmlForWebview(this.__panel.webview);
+		this.__panel.onDidDispose(
+			() => this.dispose(),
+			null,
+			this.__disposables,
+		);
+		this.__panel.webview.html = this._getHtmlForWebview(
+			this.__panel.webview,
+		);
 		this.__view = this.__panel.webview;
 
-    this.subscribe();
-    this.activateMessageListener();
-  }
+		this.subscribe();
+		this.activateMessageListener();
+	}
 
-  public render() {
-    this.__panel?.reveal();
-  }
+	public render() {
+		this.__panel?.reveal();
+	}
 
-  public dispose() {
-		console.log('dispose')
-    if(!this.__panel) return;
-    this.__panel.dispose();
+	public dispose() {
+		console.log('dispose');
+		if (!this.__panel) return;
+		this.__panel.dispose();
 
-    while (this.__disposables.length) {
-      const disposable = this.__disposables.pop();
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
+		while (this.__disposables.length) {
+			const disposable = this.__disposables.pop();
+			if (disposable) {
+				disposable.dispose();
+			}
+		}
 
-    // @TODO add ability to unsubscribe from messageBus
-  }
+		// @TODO add ability to unsubscribe from messageBus
+	}
 
-  private subscribe() {
-    [
-      		MessageKind.onAfterUnlinkedAccount,
-      		MessageKind.onAfterLinkedAccount,
-      		MessageKind.onAfterConfigurationChanged,
-      		MessageKind.onBeforeCreateIssue,
-      		MessageKind.onAfterCreateIssue,
-      	].forEach((kind) => {
-      		this.__messageBus.subscribe(kind, (message) => {
-						console.log(message, 'test')
-      			this.__view?.postMessage(message);
-      		});
-      	});
-  }
-  
+	private subscribe() {
+		[
+			MessageKind.onAfterUnlinkedAccount,
+			MessageKind.onAfterLinkedAccount,
+			MessageKind.onAfterConfigurationChanged,
+			MessageKind.onBeforeCreateIssue,
+			MessageKind.onAfterCreateIssue,
+		].forEach((kind) => {
+			this.__messageBus.subscribe(kind, (message) => {
+				console.log(message, 'test');
+				this.__view?.postMessage(message);
+			});
+		});
+	}
 
 	private prepareWebviewInitialData = () => {
 		const { repositoryPath } =
@@ -123,7 +140,6 @@ export class IntuitaPanel {
 		return result;
 	};
 
-
 	private activateMessageListener() {
 		if (!this.__view) {
 			return;
@@ -135,7 +151,7 @@ export class IntuitaPanel {
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
-		console.log('rebuild')
+		console.log('rebuild');
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
