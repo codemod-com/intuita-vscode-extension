@@ -268,7 +268,7 @@ export class MessageBus {
 			this.#emitters[kind] = emitter;
 		}
 
-		emitter.event(fn, this.#disposables);
+		return emitter.event(fn, this.#disposables);
 	}
 
 	publish(message: Message): void {
