@@ -10,7 +10,6 @@ interface UserAccountStorage {
 }
 
 type CreateIssueResponse = {
-	url: string;
 	html_url: string;
 };
 

@@ -208,7 +208,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 						const messageSelection =
 							await vscode.window.showInformationMessage(
-								'Successfully created issue',
+								`Successfully created issue: ${html_url}`,
 								'View on GitHub',
 							);
 
