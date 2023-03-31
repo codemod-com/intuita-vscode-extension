@@ -3,17 +3,29 @@ import {
 	VSCodeTextArea,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { vscode } from '../utilities/vscode';
 import styles from './style.module.css';
 
-type Props = {
+type Props = Readonly<{
 	loading: boolean;
-};
+	initialFormState: Partial<{
+		title: string;
+		description: string;
+	}>
+}>;
 
-const CreateIssue = ({ loading }: Props) => {
+const CreateIssue = ({ loading, initialFormState }: Props) => {
 	const [title, setTitle] = useState('');
 	const [body, setBody] = useState('');
+
+	const { title: initialTitle } =  initialFormState;
+
+	useEffect(() => {
+		if(initialTitle) {
+			setTitle(initialTitle);
+		}
+	}, [initialTitle])
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();

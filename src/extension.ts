@@ -179,6 +179,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
+			 const treeItem = await treeDataProvider.getTreeItem(arg0);
+			 intuitaWebviewProvider.postMessage({ kind: 'setFormState', title: treeItem.label as string });
+		})
+		)
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.user.unlinkIntuitaAccount',
 			() => {
@@ -808,6 +815,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
 			const caseHash: string | null =
 				typeof arg0 === 'string' ? arg0 : null;
+
+			console.log(caseHash, 'test')
 
 			if (caseHash === null) {
 				throw new Error('Did not pass the caseHash into the command.');

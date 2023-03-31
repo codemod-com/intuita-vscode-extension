@@ -13,10 +13,10 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-type WebViewMessage = {
+type WebViewMessage = Readonly<{
 	command: string;
 	value: unknown;
-};
+}>;
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -24,6 +24,12 @@ interface ConfigurationService {
 interface UserAccountStorage {
 	getUserAccount(): string | null;
 }
+
+type Command = Readonly<{
+	kind: 'setFormState', 
+	title?: string, 
+	description?: string, 
+}>
 
 export class IntuitaPanel implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -49,6 +55,10 @@ export class IntuitaPanel implements WebviewViewProvider {
 		});
 	}
 
+	postMessage(message: Command) {
+		this.__view?.webview.postMessage(message);
+	}
+  
 	#prepareWebviewInitialData = () => {
 		const { repositoryPath } =
 			this.__configurationService.getConfiguration();

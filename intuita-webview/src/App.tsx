@@ -40,6 +40,16 @@ type Message =
 	| Readonly<{
 			kind: MessageKind.onAfterCreateIssue;
 	  }>;
+	
+type Command = Readonly<{
+		kind: 'setFormState';
+		title?: string;
+}>
+
+type FormState =  {
+	title: string;
+	description: string
+};
 
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState(
@@ -49,9 +59,10 @@ function App() {
 		!!window.INITIAL_STATE.userId,
 	);
 	const [loading, setLoading] = useState(false);
+	const [initialFormState, setInitialFormState] =  useState<Partial<FormState>>({});
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<Message>) => {
+		const handler = (e: MessageEvent<Message | Command>) => {
 			const message = e.data;
 
 			if (message.kind === MessageKind.onAfterLinkedAccount) {
@@ -74,6 +85,10 @@ function App() {
 
 			if (message.kind === MessageKind.onAfterCreateIssue) {
 				setLoading(false);
+			}
+
+			if(message.kind === 'setFormState') {
+				setInitialFormState(message)
 			}
 		};
 
@@ -101,7 +116,7 @@ function App() {
 	return (
 		<main className="App">
 			{configuredRepoPath && linkedAccount ? (
-				<CreateIssue loading={loading} />
+				<CreateIssue loading={loading} initialFormState={initialFormState} />
 			) : null}
 
 			{!configuredRepoPath ? (
