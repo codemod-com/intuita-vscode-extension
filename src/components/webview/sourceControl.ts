@@ -9,6 +9,11 @@ interface UserAccountStorage {
 	getUserAccount(): string | null;
 }
 
+type CreateIssueResponse  = {
+	url: string, 
+	html_url: string,
+}
+
 export class SourceControlService {
 	constructor(
 		private readonly __configurationService: ConfigurationService,
@@ -34,7 +39,7 @@ export class SourceControlService {
 
 		this.__messageBus.publish({ kind: MessageKind.onBeforeCreateIssue });
 
-		const result = await axios.post(
+		const result = await axios.post<CreateIssueResponse>(
 			'https://telemetry.intuita.io/sourceControl/github/issues',
 			{
 				repo: repositoryPath,

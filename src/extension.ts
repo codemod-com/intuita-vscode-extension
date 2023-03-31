@@ -203,10 +203,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						await sourceControl.createIssue(decoded.right);
-						vscode.window.showInformationMessage(
-							'Successfully created issue.',
+						const { html_url } = await sourceControl.createIssue(decoded.right);
+						const messageSelection = await vscode.window.showInformationMessage(
+							'Successfully created issue', "View on GitHub"
 						);
+
+						if(messageSelection ===  'View on GitHub') {
+							vscode.env.openExternal(vscode.Uri.parse(html_url));
+						} 
 					}
 				} catch (e) {
 					if (e instanceof NotFoundRepositoryPath) {
