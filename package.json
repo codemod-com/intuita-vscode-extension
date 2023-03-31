@@ -49,6 +49,10 @@
 		],
 		"commands": [
 			{
+				"command": "intuita.showPanel",
+				"title": "Intuita:show panel"
+			},
+			{
 				"command": "intuita.executeNextJsCodemods",
 				"title": "Intuita: execute Next.js v13 codemods over the workspace"
 			},
