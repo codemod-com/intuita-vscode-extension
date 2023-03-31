@@ -93,7 +93,9 @@ export class IntuitaPanel {
 	}
 
 	public dispose() {
-		if (!this.__panel) return;
+		if (!this.__panel) {
+			return;
+		}
 		this.__panel.dispose();
 
 		while (this.__disposables.length) {
@@ -102,8 +104,6 @@ export class IntuitaPanel {
 				disposable.dispose();
 			}
 		}
-
-		// @TODO add ability to unsubscribe from messageBus
 	}
 
 	private subscribe() {
@@ -114,9 +114,11 @@ export class IntuitaPanel {
 			MessageKind.onBeforeCreateIssue,
 			MessageKind.onAfterCreateIssue,
 		].forEach((kind) => {
-			this.__messageBus.subscribe(kind, (message) => {
+			const disposable = this.__messageBus.subscribe(kind, (message) => {
 				this.__view?.postMessage(message);
 			});
+
+			this.__disposables.push(disposable);
 		});
 	}
 

@@ -68,11 +68,11 @@ export class IntuitaPanel implements WebviewViewProvider {
 	};
 
 	refresh(): void {
-		if (this.__view) {
-			this.__view.webview.html = this._getHtmlForWebview(
-				this.__view?.webview,
-			);
+		if (!this.__view) {
+			return;
 		}
+
+		this.__view.webview.html = this._getHtmlForWebview(this.__view.webview);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -128,7 +128,6 @@ export class IntuitaPanel implements WebviewViewProvider {
 				webview.cspSource
 			}; script-src 'nonce-${nonce}';">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
-          <title>Hello World</title>
         </head>
         <body>
           <noscript>You need to enable JavaScript to run this app.</noscript>
