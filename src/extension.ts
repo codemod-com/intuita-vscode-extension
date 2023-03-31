@@ -158,24 +158,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
-	const intuitaWebviewProvider = new IntuitaPanel(
-		context,
-		{ getConfiguration },
-		globalStateAccountStorage,
-		messageBus,
-	);
-
-	const view = vscode.window.registerWebviewViewProvider(
-		'intuita-webview',
-		intuitaWebviewProvider,
-	);
-
-	context.subscriptions.push(view);
 
 	const sourceControl = new SourceControlService(
 		{ getConfiguration },
 		globalStateAccountStorage,
 		messageBus,
+	);
+
+	// @TODO remove, when added ability to show panel by clicking on jobs
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.showPanel', () => {
+			const instance = IntuitaPanel.getInstance(
+				context,
+				{ getConfiguration },
+				globalStateAccountStorage,
+				messageBus,
+			);
+
+			instance.render();
+		}),
 	);
 
 	context.subscriptions.push(
