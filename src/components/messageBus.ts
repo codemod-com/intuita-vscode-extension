@@ -66,6 +66,10 @@ export const enum MessageKind {
 
 	onBeforeCreateIssue = 29,
 	onAfterCreateIssue = 30,
+	/**
+	 * show progress
+	 */
+	showProgress = 31,
 }
 
 export type Engine = 'node' | 'rust';
@@ -230,6 +234,11 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.onAfterCreateIssue;
+	  }>
+	| Readonly<{
+			kind: MessageKind.showProgress;
+			processedFiles: number;
+			totalFiles: number;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

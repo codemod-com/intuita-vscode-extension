@@ -41,6 +41,7 @@ import {
 } from './components/webview/sourceControl';
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
+import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 
 const messageBus = new MessageBus();
 
@@ -93,6 +94,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'intuita-progress-webview',
+			new CodemodExecutionProgressWebviewViewProvider(messageBus),
+		),
+	);
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
