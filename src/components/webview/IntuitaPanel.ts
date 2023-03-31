@@ -93,7 +93,6 @@ export class IntuitaPanel {
 	}
 
 	public dispose() {
-		console.log('dispose');
 		if (!this.__panel) return;
 		this.__panel.dispose();
 
@@ -116,7 +115,6 @@ export class IntuitaPanel {
 			MessageKind.onAfterCreateIssue,
 		].forEach((kind) => {
 			this.__messageBus.subscribe(kind, (message) => {
-				console.log(message, 'test');
 				this.__view?.postMessage(message);
 			});
 		});
@@ -151,7 +149,6 @@ export class IntuitaPanel {
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
-		console.log('rebuild');
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
