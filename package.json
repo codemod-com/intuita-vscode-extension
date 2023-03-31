@@ -213,7 +213,7 @@
 					"type": "webview",
 					"id": "intuita-progress-webview",
 					"name": "Intuita: Execution Progress",
- 					"contextualTitle": "Intuita: Execution Progress"
+					"contextualTitle": "Intuita: Execution Progress"
 				}
 			],
 			"intuitaViewId": [
