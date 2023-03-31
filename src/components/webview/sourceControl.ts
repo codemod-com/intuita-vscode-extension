@@ -9,10 +9,10 @@ interface UserAccountStorage {
 	getUserAccount(): string | null;
 }
 
-type CreateIssueResponse  = {
-	url: string, 
-	html_url: string,
-}
+type CreateIssueResponse = {
+	url: string;
+	html_url: string;
+};
 
 export class SourceControlService {
 	constructor(
