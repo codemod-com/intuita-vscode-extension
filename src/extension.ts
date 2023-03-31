@@ -165,24 +165,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	// @TODO remove, when added ability to show panel by clicking on jobs
+	
+
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.showPanel', () => {
-			const instance = IntuitaPanel.getInstance(
+		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
+			 const treeItem = await treeDataProvider.getTreeItem(arg0);
+			 const panelInstance = IntuitaPanel.getInstance(
 				context,
 				{ getConfiguration },
 				globalStateAccountStorage,
 				messageBus,
 			);
-
-			instance.render();
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
-			 const treeItem = await treeDataProvider.getTreeItem(arg0);
-			 intuitaWebviewProvider.postMessage({ kind: 'setFormState', title: treeItem.label as string });
+			await panelInstance.render();
+			panelInstance.postMessage({ kind: 'setFormState', title: treeItem.label as string });
 		})
 		)
 

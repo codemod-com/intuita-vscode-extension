@@ -62,6 +62,10 @@ function App() {
 	const [initialFormState, setInitialFormState] =  useState<Partial<FormState>>({});
 
 	useEffect(() => {
+		vscode.postMessage('onAfterWebviewMounted');
+	}, []);
+
+	useEffect(() => {
 		const handler = (e: MessageEvent<Message | Command>) => {
 			const message = e.data;
 

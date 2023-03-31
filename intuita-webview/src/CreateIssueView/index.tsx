@@ -16,8 +16,8 @@ type Props = Readonly<{
 }>;
 
 const CreateIssue = ({ loading, initialFormState }: Props) => {
-	const [title, setTitle] = useState('');
-	const [body, setBody] = useState('');
+	const [title, setTitle] = useState('777');
+	const [body, setBody] = useState('777fef');
 
 	const { title: initialTitle } =  initialFormState;
 

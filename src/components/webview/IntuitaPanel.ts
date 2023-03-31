@@ -89,7 +89,32 @@ export class IntuitaPanel {
 	}
 
 	public render() {
-		this.__panel?.reveal();
+		const initWebviewPromise = new Promise((resolve, reject) => {
+			this.__panel?.reveal();
+			const timeout = setTimeout(() => {
+							this.__panel?.dispose();
+							reject('Timeout');
+				}, 5000)
+
+			const disposable = this.__panel?.webview.onDidReceiveMessage(message => {
+				if(message === 'onAfterWebviewMounted') {
+					disposable?.dispose();
+					clearTimeout(timeout);
+					resolve('Resolved');
+				}
+			})
+		}
+		)
+	
+		return initWebviewPromise;
+	}
+
+	public postMessage(message: unknown) {
+		if(!this.__view) {
+			return;
+		}
+
+		this.__view.postMessage(message);
 	}
 
 	public dispose() {
@@ -146,6 +171,10 @@ export class IntuitaPanel {
 		}
 
 		this.__view.onDidReceiveMessage((message: WebViewMessage) => {
+			if(!message.command) {
+				return;
+			}
+
 			commands.executeCommand(message.command, message.value);
 		});
 	}
