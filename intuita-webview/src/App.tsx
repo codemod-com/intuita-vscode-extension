@@ -12,39 +12,25 @@ declare global {
 	}
 }
 
-enum MessageKind {
-	onAfterLinkedAccount = 26,
-	onAfterUnlinkedAccount = 27,
-	onAfterConfigurationChanged = 28,
-	onBeforeCreateIssue = 29,
-	onAfterCreateIssue = 30,
-}
-
 type Message =
 	| Readonly<{
-			kind: MessageKind.onAfterUnlinkedAccount;
+			kind: 'webview.createIssue.setFormData',
+			value: Partial<FormState>
 	  }>
 	| Readonly<{
-			kind: MessageKind.onAfterLinkedAccount;
-			account: string;
+			kind: 'webview.createIssue.setLoading';
+			value: boolean;
 	  }>
 	| Readonly<{
-			kind: MessageKind.onAfterConfigurationChanged;
-			nextConfiguration: {
-				repositoryPath: string;
-			};
+			kind: 'webview.global.setUserAccount';
+			value: string;
 	  }>
 	| Readonly<{
-			kind: MessageKind.onBeforeCreateIssue;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterCreateIssue;
-	  }>;
-	
-type Command = Readonly<{
-		kind: 'setFormState';
-		title?: string;
-}>
+		kind: 'webview.global.setConfiguration';
+		value: {
+			repositoryPath: string;
+		};
+	}>
 
 type FormState =  {
 	title: string;
@@ -53,10 +39,10 @@ type FormState =  {
 
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState(
-		!!window.INITIAL_STATE.repositoryPath,
+		window.INITIAL_STATE.repositoryPath,
 	);
 	const [linkedAccount, setLinkedAccount] = useState(
-		!!window.INITIAL_STATE.userId,
+		window.INITIAL_STATE.userId,
 	);
 	const [loading, setLoading] = useState(false);
 	const [initialFormState, setInitialFormState] =  useState<Partial<FormState>>({});
@@ -66,33 +52,23 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<Message | Command>) => {
+		const handler = (e: MessageEvent<Message>) => {
 			const message = e.data;
 
-			if (message.kind === MessageKind.onAfterLinkedAccount) {
-				setLinkedAccount(true);
+			if (message.kind === 'webview.global.setUserAccount') {
+				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === MessageKind.onAfterUnlinkedAccount) {
-				setLinkedAccount(false);
+			if (message.kind === 'webview.global.setConfiguration') {
+				setConfiguredRepoPath(message.value.repositoryPath);
 			}
 
-			if (message.kind === MessageKind.onAfterConfigurationChanged) {
-				const hasConfigPath =
-					!!message.nextConfiguration.repositoryPath.trim().length;
-				setConfiguredRepoPath(hasConfigPath);
+			if (message.kind === 'webview.createIssue.setLoading') {
+				setLoading(message.value);
 			}
 
-			if (message.kind === MessageKind.onBeforeCreateIssue) {
-				setLoading(true);
-			}
-
-			if (message.kind === MessageKind.onAfterCreateIssue) {
-				setLoading(false);
-			}
-
-			if(message.kind === 'setFormState') {
-				setInitialFormState(message)
+			if(message.kind === 'webview.createIssue.setFormData') {
+				setInitialFormState(message.value);
 			}
 		};
 

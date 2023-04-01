@@ -109,7 +109,14 @@ export class IntuitaPanel {
 		return initWebviewPromise;
 	}
 
-	public postMessage(message: unknown) {
+	public setFormData(data: {title?: string, description?: string}) {
+		this.postMessage({
+			kind: "webview.createIssue.setFormData", 
+			value: data, 
+		})
+	}
+
+	private postMessage(message: unknown) {
 		if(!this.__view) {
 			return;
 		}
@@ -135,16 +142,43 @@ export class IntuitaPanel {
 		[
 			MessageKind.onAfterUnlinkedAccount,
 			MessageKind.onAfterLinkedAccount,
-			MessageKind.onAfterConfigurationChanged,
-			MessageKind.onBeforeCreateIssue,
-			MessageKind.onAfterCreateIssue,
 		].forEach((kind) => {
 			const disposable = this.__messageBus.subscribe(kind, (message) => {
-				this.__view?.postMessage(message);
+				const value = message.kind === MessageKind.onAfterLinkedAccount ? message.account : null;
+
+			this.postMessage({
+					kind: 'webview.global.setUserAccount', 
+					value,
+				});
 			});
 
 			this.__disposables.push(disposable);
 		});
+
+		const disposable =  this.__messageBus.subscribe(MessageKind.onAfterConfigurationChanged, (message) => {
+				this.postMessage({
+					kind: 'webview.global.setConfiguration', 
+					value: message.nextConfiguration,
+				});
+			});
+
+			this.__disposables.push(disposable);
+
+			[
+				MessageKind.onBeforeCreateIssue,
+				MessageKind.onAfterCreateIssue,
+			].forEach((kind) => {
+				const disposable = this.__messageBus.subscribe(kind, (message) => {
+					const value = message.kind === MessageKind.onBeforeCreateIssue;
+	
+					this.postMessage({
+						kind: 'webview.createIssue.setLoading', 
+						value,
+					});
+				});
+	
+				this.__disposables.push(disposable);
+			});
 	}
 
 	private prepareWebviewInitialData = () => {
