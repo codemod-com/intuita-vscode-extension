@@ -36,7 +36,7 @@ export class SourceControlService {
 
 		const { title, body } = params;
 
-		this.__messageBus.publish({ kind: MessageKind.onBeforeCreateIssue });
+		this.__messageBus.publish({ kind: MessageKind.beforeCreateIssue });
 
 		const result = await axios.post<CreateIssueResponse>(
 			'https://telemetry.intuita.io/sourceControl/github/issues',
@@ -48,7 +48,7 @@ export class SourceControlService {
 			},
 		);
 
-		this.__messageBus.publish({ kind: MessageKind.onAfterCreateIssue });
+		this.__messageBus.publish({ kind: MessageKind.afterCreateIssue });
 		return result.data;
 	}
 }

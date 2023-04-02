@@ -9,7 +9,7 @@ import {
 	Disposable,
 } from 'vscode';
 import { randomBytes } from 'crypto';
-import { MessageBus, MessageKind } from '../messageBus';
+import { MessageBus, MessageKind, Message } from '../messageBus';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
@@ -138,46 +138,44 @@ export class IntuitaPanel {
 		}
 	}
 
+	private addHook<T extends MessageKind>(kind: T, handler: (message: Message & { kind: T }) => void) {
+		const disposable = this.__messageBus.subscribe<T>(kind, handler);
+		this.__disposables.push(disposable);
+	}
+
 	private subscribe() {
 		[
-			MessageKind.onAfterUnlinkedAccount,
-			MessageKind.onAfterLinkedAccount,
+			MessageKind.afterUnlinkedAccount,
+			MessageKind.afterLinkedAccount,
 		].forEach((kind) => {
-			const disposable = this.__messageBus.subscribe(kind, (message) => {
-				const value = message.kind === MessageKind.onAfterLinkedAccount ? message.account : null;
+			this.addHook(kind, 	(message) => {
+				const value = message.kind === MessageKind.afterLinkedAccount ? message.account : null;
 
 			this.postMessage({
 					kind: 'webview.global.setUserAccount', 
 					value,
 				});
-			});
-
-			this.__disposables.push(disposable);
-		});
-
-		const disposable =  this.__messageBus.subscribe(MessageKind.onAfterConfigurationChanged, (message) => {
+			})})
+		
+			this.addHook(MessageKind.afterConfigurationChanged, (message) => {
 				this.postMessage({
 					kind: 'webview.global.setConfiguration', 
 					value: message.nextConfiguration,
 				});
 			});
 
-			this.__disposables.push(disposable);
 
 			[
-				MessageKind.onBeforeCreateIssue,
-				MessageKind.onAfterCreateIssue,
+				MessageKind.beforeCreateIssue,
+				MessageKind.afterCreateIssue,
 			].forEach((kind) => {
-				const disposable = this.__messageBus.subscribe(kind, (message) => {
-					const value = message.kind === MessageKind.onBeforeCreateIssue;
-	
+				this.addHook(kind, (message) => {
+					const value = message.kind === MessageKind.beforeCreateIssue;
 					this.postMessage({
 						kind: 'webview.createIssue.setLoading', 
 						value,
 					});
 				});
-	
-				this.__disposables.push(disposable);
 			});
 	}
 
