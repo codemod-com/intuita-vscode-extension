@@ -453,7 +453,7 @@ export class EngineService {
 				throw new Error(`Unrecognized message`);
 			}
 
-			if(job && !this.#execution.affectedAnyFile)   {
+			if (job && !this.#execution.affectedAnyFile) {
 				this.#execution.affectedAnyFile = true;
 			}
 
