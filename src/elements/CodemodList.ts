@@ -1,9 +1,10 @@
-import { TreeItem, TreeItemCollapsibleState, commands } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState, commands, window } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash } from '../utilities';
-import { ElementHash } from './types';
 import { MessageBus, MessageKind } from '../components/messageBus';
+
+export type CodemodHash = string & { __type: 'CodemodHash' };
 
 type PackageUpgradeItem = {
 	id: string;
@@ -95,7 +96,7 @@ const packageUpgradeList: PackageUpgradeItem[] = [
 const buildCodemodItemHash = (codemodItem: CodemodItem) => {
 	return buildHash(
 		`${codemodItem.label} ${codemodItem.id} ${codemodItem.commandToExecute}`,
-	) as ElementHash;
+	) as CodemodHash;
 };
 
 class CodemodItem extends TreeItem {
@@ -125,10 +126,14 @@ class CodemodItem extends TreeItem {
 class CodemodTreeProvider {
 	rootPath: string | null | undefined;
 	#messageBus: MessageBus;
-	#codemodItemsMap: Map<ElementHash, CodemodItem> = new Map();
+	#codemodItemsMap: Map<CodemodHash, CodemodItem> = new Map();
 
-	constructor(path: string | null | undefined, messageBus: MessageBus) {
+	constructor(path: string | null, messageBus: MessageBus) {
 		this.rootPath = path;
+		if (!this.rootPath) {
+			this.showRootPathUndefinedMessage();
+		}
+
 		const dependencies = this.getDepsInPackageJson();
 		if (dependencies) {
 			this.#codemodItemsMap = dependencies;
@@ -136,13 +141,19 @@ class CodemodTreeProvider {
 		this.#messageBus = messageBus;
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
 			const codemodItemFound = this.getTreeItem(
-				message.codemodHash as ElementHash,
+				message.codemodHash as CodemodHash,
 			);
 			this.runCodemod(codemodItemFound.commandToExecute);
 		});
 	}
 
-	getChildren(): ElementHash[] {
+	showRootPathUndefinedMessage() {
+		window.showInformationMessage(
+			'Unable to find package.json to list avaliable codemods. Please open a project folder.',
+		);
+	}
+
+	getChildren(): CodemodHash[] {
 		if (this.rootPath) {
 			return Array.from(this.#codemodItemsMap.keys());
 		}
@@ -153,50 +164,49 @@ class CodemodTreeProvider {
 		commands.executeCommand(codemod);
 	}
 
-	getTreeItem(element: ElementHash): CodemodItem {
-		const el = this.#codemodItemsMap.get(element) as CodemodItem;
-		return el;
+	getTreeItem(element: CodemodHash): CodemodItem {
+		return this.#codemodItemsMap.get(element) as CodemodItem;
 	}
 
-	private getDepsInPackageJson(): Map<ElementHash, CodemodItem> | null {
+	private getDepsInPackageJson(): Map<CodemodHash, CodemodItem> | null {
 		if (!this.rootPath) return null;
 		const packageJsonPath = path.join(this.rootPath, 'package.json');
-		if (this.pathExists(packageJsonPath)) {
-			const document = JSON.parse(
-				readFileSync(packageJsonPath, 'utf-8'),
-			) as { dependencies: Record<string, string> };
-			let dependencyCodemods: PackageUpgradeItem[] = [];
-			const foundDependencies = document.dependencies;
-			for (const key in foundDependencies) {
-				const checkedDependency = this.checkIfCodemodIsAvailable(
-					key,
-					foundDependencies[key] as string,
-				);
-				if (checkedDependency && checkedDependency.length > 0) {
-					dependencyCodemods =
-						dependencyCodemods.concat(checkedDependency);
-				}
-			}
-			const codemodList = dependencyCodemods
-				.filter((el) => el)
-				.reduce((acc, curr) => {
-					const command = commandList[curr.id] as string;
-
-					const codemodItem = new CodemodItem(
-						curr.name,
-						`${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
-						TreeItemCollapsibleState.None,
-						command,
-					);
-
-					const hash = buildCodemodItemHash(codemodItem);
-					acc.set(hash, codemodItem);
-					return acc;
-				}, new Map() as Map<ElementHash, CodemodItem>);
-			return codemodList;
-		} else {
+		if (!this.pathExists(packageJsonPath)) {
 			return null;
 		}
+
+		const document = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
+			dependencies: Record<string, string>;
+		};
+		let dependencyCodemods: PackageUpgradeItem[] = [];
+		const foundDependencies = document.dependencies;
+		for (const key in foundDependencies) {
+			const checkedDependency = this.checkIfCodemodIsAvailable(
+				key,
+				foundDependencies[key] as string,
+			);
+			if (checkedDependency && checkedDependency.length > 0) {
+				dependencyCodemods =
+					dependencyCodemods.concat(checkedDependency);
+			}
+		}
+		const codemodList = dependencyCodemods
+			.filter((el) => el)
+			.reduce((acc, curr) => {
+				const command = commandList[curr.id] as string;
+
+				const codemodItem = new CodemodItem(
+					curr.name,
+					`${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
+					TreeItemCollapsibleState.None,
+					command,
+				);
+
+				const hash = buildCodemodItemHash(codemodItem);
+				acc.set(hash, codemodItem);
+				return acc;
+			}, new Map() as Map<CodemodHash, CodemodItem>);
+		return codemodList;
 	}
 
 	private pathExists(p: string): boolean {
@@ -218,7 +228,9 @@ class CodemodTreeProvider {
 		const codemod = packageUpgradeList.filter(
 			(el) => el.packageName === dependencyName,
 		);
-		if (!codemod) return null;
+		if (!codemod.length) {
+			return null;
+		}
 		return codemod
 			.map((el) => {
 				if (el) {
@@ -230,7 +242,9 @@ class CodemodTreeProvider {
 						return el;
 					}
 				}
-				return null;
+				{
+					return null;
+				}
 			})
 			.filter(Boolean) as PackageUpgradeItem[];
 	}

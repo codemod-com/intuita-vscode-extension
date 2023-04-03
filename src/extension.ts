@@ -41,9 +41,8 @@ import {
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
-import { ElementHash } from './elements/types';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
-import { CodemodTreeProvider } from './elements/CodemodList';
+import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
 
 const messageBus = new MessageBus();
 
@@ -81,7 +80,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.workspaceFolders.length > 0
 			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
 			: null;
-	const codemodTreeProvider = new CodemodTreeProvider(rootPath, messageBus);
+	const codemodTreeProvider = new CodemodTreeProvider(
+		rootPath ?? null,
+		messageBus,
+	);
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,
 		messageBus,
@@ -676,7 +678,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand(
 		'intuita.runCodemod',
-		async (item: ElementHash) => {
+		async (item: CodemodHash) => {
 			messageBus.publish({
 				kind: MessageKind.runCodemod,
 				codemodHash: item,
