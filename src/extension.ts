@@ -165,8 +165,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			 const treeItem = await treeDataProvider.getTreeItem(arg0);
@@ -177,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus,
 			);
 			await panelInstance.render();
-			panelInstance.postMessage({ kind: 'setFormState', title: treeItem.label as string });
+			panelInstance.setFormData({ title: treeItem.label as string });
 		})
 		)
 
@@ -988,7 +986,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			messageBus.publish({
-				kind: MessageKind.onAfterConfigurationChanged,
+				kind: MessageKind.afterConfigurationChanged,
 				nextConfiguration: getConfiguration(),
 			});
 

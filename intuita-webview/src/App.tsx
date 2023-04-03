@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
+import type  {WebviewMessage } from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -12,25 +13,6 @@ declare global {
 	}
 }
 
-type Message =
-	| Readonly<{
-			kind: 'webview.createIssue.setFormData',
-			value: Partial<FormState>
-	  }>
-	| Readonly<{
-			kind: 'webview.createIssue.setLoading';
-			value: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.global.setUserAccount';
-			value: string;
-	  }>
-	| Readonly<{
-		kind: 'webview.global.setConfiguration';
-		value: {
-			repositoryPath: string;
-		};
-	}>
 
 type FormState =  {
 	title: string;
@@ -38,21 +20,21 @@ type FormState =  {
 };
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState(
+	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
 		window.INITIAL_STATE.repositoryPath,
 	);
-	const [linkedAccount, setLinkedAccount] = useState(
+	const [linkedAccount, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
 	const [loading, setLoading] = useState(false);
 	const [initialFormState, setInitialFormState] =  useState<Partial<FormState>>({});
 
 	useEffect(() => {
-		vscode.postMessage('onAfterWebviewMounted');
+		vscode.postMessage('afterWebviewMounted');
 	}, []);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<Message>) => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
 			if (message.kind === 'webview.global.setUserAccount') {

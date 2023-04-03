@@ -15,10 +15,35 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-type WebViewMessage = Readonly<{
-	command: string;
-	value: unknown;
-}>;
+export type WebviewMessage =
+	| Readonly<{
+			kind: 'webview.createIssue.setFormData',
+			value: Partial<{
+				title: string, 
+				description: string,
+			}>
+	  }>
+	| Readonly<{
+			kind: 'webview.createIssue.setLoading';
+			value: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setUserAccount';
+			value: string | null;
+	  }>
+	| Readonly<{
+		kind: 'webview.global.setConfiguration';
+		value: {
+			repositoryPath: string | null;
+		};
+	}>
+ | Readonly<{
+		kind: 'webview.createIssue.submitIssue', 
+		value: {
+			title: string, 
+			body: string
+		}
+ 	}>
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -91,13 +116,14 @@ export class IntuitaPanel {
 	public render() {
 		const initWebviewPromise = new Promise((resolve, reject) => {
 			this.__panel?.reveal();
+
 			const timeout = setTimeout(() => {
 							this.__panel?.dispose();
 							reject('Timeout');
 				}, 5000)
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(message => {
-				if(message === 'onAfterWebviewMounted') {
+				if(message === 'afterWebviewMounted') {
 					disposable?.dispose();
 					clearTimeout(timeout);
 					resolve('Resolved');
@@ -116,7 +142,7 @@ export class IntuitaPanel {
 		})
 	}
 
-	private postMessage(message: unknown) {
+	private postMessage(message: WebviewMessage) {
 		if(!this.__view) {
 			return;
 		}
@@ -160,7 +186,7 @@ export class IntuitaPanel {
 			this.addHook(MessageKind.afterConfigurationChanged, (message) => {
 				this.postMessage({
 					kind: 'webview.global.setConfiguration', 
-					value: message.nextConfiguration,
+					value: { repositoryPath: message.nextConfiguration.repositoryPath ?? null },
 				});
 			});
 
@@ -202,12 +228,11 @@ export class IntuitaPanel {
 			return;
 		}
 
-		this.__view.onDidReceiveMessage((message: WebViewMessage) => {
-			if(!message.command) {
-				return;
+		this.__view.onDidReceiveMessage((message: WebviewMessage) => {
+			console.log(message, 'tets')
+			if(message.kind === 'webview.createIssue.submitIssue') {
+				commands.executeCommand('intuita.sourceControl.submitIssue', message.value);
 			}
-
-			commands.executeCommand(message.command, message.value);
 		});
 	}
 

@@ -16,8 +16,8 @@ type Props = Readonly<{
 }>;
 
 const CreateIssue = ({ loading, initialFormState }: Props) => {
-	const [title, setTitle] = useState('777');
-	const [body, setBody] = useState('777fef');
+	const [title, setTitle] = useState('');
+	const [body, setBody] = useState('');
 
 	const { title: initialTitle } =  initialFormState;
 
@@ -31,7 +31,7 @@ const CreateIssue = ({ loading, initialFormState }: Props) => {
 		e.preventDefault();
 
 		vscode.postMessage({
-			command: 'intuita.sourceControl.submitIssue',
+			kind: 'webview.createIssue.submitIssue',
 			value: {
 				title,
 				body,
