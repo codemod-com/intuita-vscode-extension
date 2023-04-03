@@ -113,6 +113,10 @@
 				"title": "✓ Apply"
 			},
 			{
+				"command": "intuita.runCodemod",
+				"title": "✓ Run"
+			},
+			{
 				"command": "intuita.rejectJob",
 				"title": "✗ Dismiss"
 			},
@@ -238,6 +242,11 @@
 					"name": "Intuita Source Control",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita Source Control"
+				},
+				{
+					"id": "intuita-available-codemod-tree-view",
+					"name": "Available Codemods",
+					"contextualTitle": "Available Codemods"
 				}
 			]
 		},
@@ -370,6 +379,11 @@
 				{
 					"command": "intuita.acceptJob",
 					"when": "viewItem == jobElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.runCodemod",
+					"when": "viewItem == codemodItem",
 					"group": "inline"
 				},
 				{

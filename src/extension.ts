@@ -4,7 +4,6 @@ import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
-import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
 import { CaseManager } from './cases/caseManager';
@@ -42,6 +41,8 @@ import {
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
+import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
+import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
 
 const messageBus = new MessageBus();
 
@@ -74,7 +75,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new FileService(messageBus);
+	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
+	const codemodTreeProvider = new CodemodTreeProvider(
+		rootPath ?? null,
+		messageBus,
+	);
 	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,
 		messageBus,
@@ -90,10 +96,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		treeDataProvider,
 	});
 
+	const codemodTreeView = vscode.window.createTreeView(
+		'intuita-available-codemod-tree-view',
+		{
+			treeDataProvider: codemodTreeProvider,
+		},
+	);
+
 	treeDataProvider.setReveal(explorerTreeView.reveal);
 
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
+	context.subscriptions.push(codemodTreeView);
+
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuita-progress-webview',
@@ -655,6 +670,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				},
 				executionId,
 				happenedAt,
+			});
+		},
+	);
+	vscode.commands.registerCommand(
+		'intuita.runCodemod',
+		async (item: CodemodHash) => {
+			messageBus.publish({
+				kind: MessageKind.runCodemod,
+				codemodHash: item,
 			});
 		},
 	);
