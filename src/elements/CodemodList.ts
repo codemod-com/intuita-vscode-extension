@@ -3,6 +3,7 @@ import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash } from '../utilities';
 import { ElementHash } from './types';
+import { MessageBus, MessageKind } from '../components/messageBus';
 
 type PackageUpgradeItem = {
 	id: string;
@@ -121,16 +122,24 @@ class CodemodItem extends TreeItem {
 	);
 }
 
-class CodemodService {
+class CodemodTreeProvider {
 	rootPath: string | null | undefined;
+	#messageBus: MessageBus;
 	#codemodItemsMap: Map<ElementHash, CodemodItem> = new Map();
 
-	constructor(path: string | null | undefined) {
+	constructor(path: string | null | undefined, messageBus: MessageBus) {
 		this.rootPath = path;
 		const dependencies = this.getDepsInPackageJson();
 		if (dependencies) {
 			this.#codemodItemsMap = dependencies;
 		}
+		this.#messageBus = messageBus;
+		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
+			const codemodItemFound = this.getTreeItem(
+				message.codemodHash as ElementHash,
+			);
+			this.runCodemod(codemodItemFound.commandToExecute);
+		});
 	}
 
 	getChildren(): ElementHash[] {
@@ -144,7 +153,7 @@ class CodemodService {
 		commands.executeCommand(codemod);
 	}
 
-	getElement(element: ElementHash): CodemodItem {
+	getTreeItem(element: ElementHash): CodemodItem {
 		const el = this.#codemodItemsMap.get(element) as CodemodItem;
 		return el;
 	}
@@ -227,4 +236,4 @@ class CodemodService {
 	}
 }
 
-export { CodemodItem, CodemodService };
+export { CodemodItem, CodemodTreeProvider };

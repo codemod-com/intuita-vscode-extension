@@ -41,8 +41,9 @@ import {
 import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
-import { CombineTreeProviders } from './components/combineTreeProviders';
 import { ElementHash } from './elements/types';
+import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
+import { CodemodTreeProvider } from './elements/CodemodList';
 
 const messageBus = new MessageBus();
 
@@ -80,11 +81,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.workspaceFolders.length > 0
 			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
 			: null;
-	const treeDataProvider = new CombineTreeProviders(
+	const codemodTreeProvider = new CodemodTreeProvider(rootPath, messageBus);
+	const treeDataProvider = new IntuitaTreeDataProvider(
 		caseManager,
 		messageBus,
 		jobManager,
-		rootPath,
 	);
 
 	const explorerTreeView = vscode.window.createTreeView(
@@ -96,10 +97,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		treeDataProvider,
 	});
 
+	const codemodTreeView = vscode.window.createTreeView(
+		'intuita-available-codemod-tree-view',
+		{
+			treeDataProvider: codemodTreeProvider,
+		},
+	);
+
 	treeDataProvider.setReveal(explorerTreeView.reveal);
 
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
+	context.subscriptions.push(codemodTreeView);
+
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuita-progress-webview',

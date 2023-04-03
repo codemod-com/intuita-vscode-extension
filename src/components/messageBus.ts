@@ -241,7 +241,7 @@ export type Message =
 			kind: MessageKind.showProgress;
 			processedFiles: number;
 			totalFiles: number;
-	}>
+	  }>
 	| Readonly<{
 			kind: MessageKind.runCodemod;
 			codemodHash: string;
