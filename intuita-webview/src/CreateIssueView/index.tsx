@@ -12,20 +12,20 @@ type Props = Readonly<{
 	initialFormState: Partial<{
 		title: string;
 		description: string;
-	}>
+	}>;
 }>;
 
 const CreateIssue = ({ loading, initialFormState }: Props) => {
 	const [title, setTitle] = useState('');
 	const [body, setBody] = useState('');
 
-	const { title: initialTitle } =  initialFormState;
+	const { title: initialTitle } = initialFormState;
 
 	useEffect(() => {
-		if(initialTitle) {
+		if (initialTitle) {
 			setTitle(initialTitle);
 		}
-	}, [initialTitle])
+	}, [initialTitle]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();

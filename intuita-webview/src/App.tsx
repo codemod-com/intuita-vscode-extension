@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
-import type  {WebviewMessage } from '../../src/components/webview/IntuitaPanel';
+import type { WebviewMessage } from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -13,10 +13,9 @@ declare global {
 	}
 }
 
-
-type FormState =  {
+type FormState = {
 	title: string;
-	description: string
+	description: string;
 };
 
 function App() {
@@ -27,7 +26,9 @@ function App() {
 		window.INITIAL_STATE.userId,
 	);
 	const [loading, setLoading] = useState(false);
-	const [initialFormState, setInitialFormState] =  useState<Partial<FormState>>({});
+	const [initialFormState, setInitialFormState] = useState<
+		Partial<FormState>
+	>({});
 
 	useEffect(() => {
 		vscode.postMessage('afterWebviewMounted');
@@ -49,7 +50,7 @@ function App() {
 				setLoading(message.value);
 			}
 
-			if(message.kind === 'webview.createIssue.setFormData') {
+			if (message.kind === 'webview.createIssue.setFormData') {
 				setInitialFormState(message.value);
 			}
 		};
@@ -78,7 +79,10 @@ function App() {
 	return (
 		<main className="App">
 			{configuredRepoPath && linkedAccount ? (
-				<CreateIssue loading={loading} initialFormState={initialFormState} />
+				<CreateIssue
+					loading={loading}
+					initialFormState={initialFormState}
+				/>
 			) : null}
 
 			{!configuredRepoPath ? (

@@ -17,11 +17,11 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 
 export type WebviewMessage =
 	| Readonly<{
-			kind: 'webview.createIssue.setFormData',
+			kind: 'webview.createIssue.setFormData';
 			value: Partial<{
-				title: string, 
-				description: string,
-			}>
+				title: string;
+				description: string;
+			}>;
 	  }>
 	| Readonly<{
 			kind: 'webview.createIssue.setLoading';
@@ -32,18 +32,18 @@ export type WebviewMessage =
 			value: string | null;
 	  }>
 	| Readonly<{
-		kind: 'webview.global.setConfiguration';
-		value: {
-			repositoryPath: string | null;
-		};
-	}>
- | Readonly<{
-		kind: 'webview.createIssue.submitIssue', 
-		value: {
-			title: string, 
-			body: string
-		}
- 	}>
+			kind: 'webview.global.setConfiguration';
+			value: {
+				repositoryPath: string | null;
+			};
+	  }>
+	| Readonly<{
+			kind: 'webview.createIssue.submitIssue';
+			value: {
+				title: string;
+				body: string;
+			};
+	  }>;
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -118,32 +118,33 @@ export class IntuitaPanel {
 			this.__panel?.reveal();
 
 			const timeout = setTimeout(() => {
-							this.__panel?.dispose();
-							reject('Timeout');
-				}, 5000)
+				this.__panel?.dispose();
+				reject('Timeout');
+			}, 5000);
 
-			const disposable = this.__panel?.webview.onDidReceiveMessage(message => {
-				if(message === 'afterWebviewMounted') {
-					disposable?.dispose();
-					clearTimeout(timeout);
-					resolve('Resolved');
-				}
-			})
-		}
-		)
-	
+			const disposable = this.__panel?.webview.onDidReceiveMessage(
+				(message) => {
+					if (message === 'afterWebviewMounted') {
+						disposable?.dispose();
+						clearTimeout(timeout);
+						resolve('Resolved');
+					}
+				},
+			);
+		});
+
 		return initWebviewPromise;
 	}
 
-	public setFormData(data: {title?: string, description?: string}) {
+	public setFormData(data: { title?: string; description?: string }) {
 		this.postMessage({
-			kind: "webview.createIssue.setFormData", 
-			value: data, 
-		})
+			kind: 'webview.createIssue.setFormData',
+			value: data,
+		});
 	}
 
 	private postMessage(message: WebviewMessage) {
-		if(!this.__view) {
+		if (!this.__view) {
 			return;
 		}
 
@@ -164,7 +165,10 @@ export class IntuitaPanel {
 		}
 	}
 
-	private addHook<T extends MessageKind>(kind: T, handler: (message: Message & { kind: T }) => void) {
+	private addHook<T extends MessageKind>(
+		kind: T,
+		handler: (message: Message & { kind: T }) => void,
+	) {
 		const disposable = this.__messageBus.subscribe<T>(kind, handler);
 		this.__disposables.push(disposable);
 	}
@@ -174,35 +178,41 @@ export class IntuitaPanel {
 			MessageKind.afterUnlinkedAccount,
 			MessageKind.afterLinkedAccount,
 		].forEach((kind) => {
-			this.addHook(kind, 	(message) => {
-				const value = message.kind === MessageKind.afterLinkedAccount ? message.account : null;
+			this.addHook(kind, (message) => {
+				const value =
+					message.kind === MessageKind.afterLinkedAccount
+						? message.account
+						: null;
 
-			this.postMessage({
-					kind: 'webview.global.setUserAccount', 
+				this.postMessage({
+					kind: 'webview.global.setUserAccount',
 					value,
 				});
-			})})
-		
-			this.addHook(MessageKind.afterConfigurationChanged, (message) => {
-				this.postMessage({
-					kind: 'webview.global.setConfiguration', 
-					value: { repositoryPath: message.nextConfiguration.repositoryPath ?? null },
-				});
 			});
+		});
 
+		this.addHook(MessageKind.afterConfigurationChanged, (message) => {
+			this.postMessage({
+				kind: 'webview.global.setConfiguration',
+				value: {
+					repositoryPath:
+						message.nextConfiguration.repositoryPath ?? null,
+				},
+			});
+		});
 
-			[
-				MessageKind.beforeCreateIssue,
-				MessageKind.afterCreateIssue,
-			].forEach((kind) => {
+		[MessageKind.beforeCreateIssue, MessageKind.afterCreateIssue].forEach(
+			(kind) => {
 				this.addHook(kind, (message) => {
-					const value = message.kind === MessageKind.beforeCreateIssue;
+					const value =
+						message.kind === MessageKind.beforeCreateIssue;
 					this.postMessage({
-						kind: 'webview.createIssue.setLoading', 
+						kind: 'webview.createIssue.setLoading',
 						value,
 					});
 				});
-			});
+			},
+		);
 	}
 
 	private prepareWebviewInitialData = () => {
@@ -229,9 +239,12 @@ export class IntuitaPanel {
 		}
 
 		this.__view.onDidReceiveMessage((message: WebviewMessage) => {
-			console.log(message, 'tets')
-			if(message.kind === 'webview.createIssue.submitIssue') {
-				commands.executeCommand('intuita.sourceControl.submitIssue', message.value);
+			console.log(message, 'tets');
+			if (message.kind === 'webview.createIssue.submitIssue') {
+				commands.executeCommand(
+					'intuita.sourceControl.submitIssue',
+					message.value,
+				);
 			}
 		});
 	}

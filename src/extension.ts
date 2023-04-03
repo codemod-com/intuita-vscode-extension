@@ -167,8 +167,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
-			 const treeItem = await treeDataProvider.getTreeItem(arg0);
-			 const panelInstance = IntuitaPanel.getInstance(
+			const treeItem = await treeDataProvider.getTreeItem(arg0);
+			const panelInstance = IntuitaPanel.getInstance(
 				context,
 				{ getConfiguration },
 				globalStateAccountStorage,
@@ -176,8 +176,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			);
 			await panelInstance.render();
 			panelInstance.setFormData({ title: treeItem.label as string });
-		})
-		)
+		}),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -810,7 +810,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const caseHash: string | null =
 				typeof arg0 === 'string' ? arg0 : null;
 
-			console.log(caseHash, 'test')
+			console.log(caseHash, 'test');
 
 			if (caseHash === null) {
 				throw new Error('Did not pass the caseHash into the command.');
