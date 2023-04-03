@@ -31,7 +31,7 @@ function App() {
 	>({});
 
 	useEffect(() => {
-		vscode.postMessage('afterWebviewMounted');
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
 	useEffect(() => {
@@ -64,15 +64,13 @@ function App() {
 
 	const handleLinkAccount = () => {
 		vscode.postMessage({
-			command: 'intuita.redirect',
-			value: 'https://codemod.studio/auth/sign-in',
+			kind: 'webview.global.redirectToSignIn',
 		});
 	};
 
 	const handleOpenExtensionSettings = () => {
 		vscode.postMessage({
-			command: 'workbench.action.openSettings',
-			value: '@ext:Intuita.intuita-vscode-extension',
+			kind: 'webview.global.openConfiguration',
 		});
 	};
 

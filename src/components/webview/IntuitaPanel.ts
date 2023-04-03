@@ -36,13 +36,24 @@ export type WebviewMessage =
 			value: {
 				repositoryPath: string | null;
 			};
-	  }>
+	  }>;
+
+export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.createIssue.submitIssue';
 			value: {
 				title: string;
 				body: string;
 			};
+	  }>
+	| Readonly<{
+			kind: 'webview.global.redirectToSignIn';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.openConfiguration';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.afterWebviewMounted';
 	  }>;
 
 interface ConfigurationService {
@@ -123,8 +134,8 @@ export class IntuitaPanel {
 			}, 5000);
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
-				(message) => {
-					if (message === 'afterWebviewMounted') {
+				(message: WebviewResponse) => {
+					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
 						clearTimeout(timeout);
 						resolve('Resolved');
@@ -238,11 +249,25 @@ export class IntuitaPanel {
 			return;
 		}
 
-		this.__view.onDidReceiveMessage((message: WebviewMessage) => {
+		this.__view.onDidReceiveMessage((message: WebviewResponse) => {
 			if (message.kind === 'webview.createIssue.submitIssue') {
 				commands.executeCommand(
 					'intuita.sourceControl.submitIssue',
 					message.value,
+				);
+			}
+
+			if (message.kind === 'webview.global.redirectToSignIn') {
+				commands.executeCommand(
+					'intuita.redirect',
+					'https://codemod.studio/auth/sign-in',
+				);
+			}
+
+			if (message.kind === 'webview.global.openConfiguration') {
+				commands.executeCommand(
+					'workbench.action.openSettings',
+					'@ext:Intuita.intuita-vscode-extension',
 				);
 			}
 		});
