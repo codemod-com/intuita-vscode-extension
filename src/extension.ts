@@ -75,11 +75,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	new FileService(messageBus);
-	const rootPath =
-		vscode.workspace.workspaceFolders &&
-		vscode.workspace.workspaceFolders.length > 0
-			? vscode.workspace.workspaceFolders[0]?.uri.fsPath
-			: null;
+	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
+
 	const codemodTreeProvider = new CodemodTreeProvider(
 		rootPath ?? null,
 		messageBus,
