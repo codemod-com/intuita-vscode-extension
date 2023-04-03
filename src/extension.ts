@@ -810,8 +810,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			const caseHash: string | null =
 				typeof arg0 === 'string' ? arg0 : null;
 
-			console.log(caseHash, 'test');
-
 			if (caseHash === null) {
 				throw new Error('Did not pass the caseHash into the command.');
 			}

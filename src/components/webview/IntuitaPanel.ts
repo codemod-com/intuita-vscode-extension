@@ -239,7 +239,6 @@ export class IntuitaPanel {
 		}
 
 		this.__view.onDidReceiveMessage((message: WebviewMessage) => {
-			console.log(message, 'tets');
 			if (message.kind === 'webview.createIssue.submitIssue') {
 				commands.executeCommand(
 					'intuita.sourceControl.submitIssue',
