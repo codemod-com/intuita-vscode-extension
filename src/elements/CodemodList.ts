@@ -242,12 +242,17 @@ class CodemodTreeProvider {
 						return el;
 					}
 				}
-				{
-					return null;
-				}
+
+				return null;
 			})
-			.filter(Boolean) as PackageUpgradeItem[];
+			.filter(isNeitherNullNorUndefined) as PackageUpgradeItem[];
 	}
 }
+
+const isNeitherNullNorUndefined = <T>(
+	value: T | null | undefined,
+): value is T => {
+	return value !== null && value !== undefined;
+};
 
 export { CodemodItem, CodemodTreeProvider };
