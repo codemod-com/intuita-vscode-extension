@@ -6,7 +6,7 @@ import { MessageBus, MessageKind } from '../components/messageBus';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
 
-type PackageUpgradeItem = {
+type PackageUpgradeItem = Readonly<{
 	id: string;
 	packageName: string;
 	name: string;
@@ -14,7 +14,7 @@ type PackageUpgradeItem = {
 	leastVersionSupported: string;
 	latestVersionSupported: string;
 	leastSupportedUpgrade: string;
-};
+}>;
 
 const commandList: Record<string, string> = {
 	next13: 'intuita.executeNextJsCodemods',
@@ -154,10 +154,11 @@ class CodemodTreeProvider {
 	}
 
 	getChildren(): CodemodHash[] {
-		if (this.rootPath) {
-			return Array.from(this.#codemodItemsMap.keys());
+		if (!this.rootPath) {
+			return [];
 		}
-		return [];
+
+		return Array.from(this.#codemodItemsMap.keys());
 	}
 
 	public runCodemod(codemod: string) {
@@ -169,7 +170,10 @@ class CodemodTreeProvider {
 	}
 
 	private getDepsInPackageJson(): Map<CodemodHash, CodemodItem> | null {
-		if (!this.rootPath) return null;
+		if (!this.rootPath) {
+			return null;
+		}
+
 		const packageJsonPath = path.join(this.rootPath, 'package.json');
 		if (!this.pathExists(packageJsonPath)) {
 			return null;
@@ -178,8 +182,10 @@ class CodemodTreeProvider {
 		const document = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
 			dependencies: Record<string, string>;
 		};
+
 		let dependencyCodemods: PackageUpgradeItem[] = [];
 		const foundDependencies = document.dependencies;
+
 		for (const key in foundDependencies) {
 			const checkedDependency = this.checkIfCodemodIsAvailable(
 				key,
@@ -190,7 +196,8 @@ class CodemodTreeProvider {
 					dependencyCodemods.concat(checkedDependency);
 			}
 		}
-		const codemodList = dependencyCodemods
+
+		return dependencyCodemods
 			.filter((el) => el)
 			.reduce((acc, curr) => {
 				const command = commandList[curr.id] as string;
@@ -206,7 +213,6 @@ class CodemodTreeProvider {
 				acc.set(hash, codemodItem);
 				return acc;
 			}, new Map() as Map<CodemodHash, CodemodItem>);
-		return codemodList;
 	}
 
 	private pathExists(p: string): boolean {
@@ -221,26 +227,27 @@ class CodemodTreeProvider {
 	private checkIfCodemodIsAvailable(
 		dependencyName: string,
 		version: string,
-	): null | PackageUpgradeItem[] {
+	): null | readonly PackageUpgradeItem[] {
 		// replace ^, ~ , *
 		const actualVersion = version.replace(/[^0-9.]/g, '');
 
 		const codemod = packageUpgradeList.filter(
 			(el) => el.packageName === dependencyName,
 		);
+
 		if (!codemod.length) {
 			return null;
 		}
+
 		return codemod
 			.map((el) => {
-				if (el) {
-					const { leastVersionSupported, leastSupportedUpgrade } = el;
-					if (
-						actualVersion < leastVersionSupported &&
-						actualVersion >= leastSupportedUpgrade
-					) {
-						return el;
-					}
+				const { leastVersionSupported, leastSupportedUpgrade } = el;
+
+				if (
+					actualVersion < leastVersionSupported &&
+					actualVersion >= leastSupportedUpgrade
+				) {
+					return el;
 				}
 
 				return null;
