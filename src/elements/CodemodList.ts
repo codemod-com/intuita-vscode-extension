@@ -1,7 +1,7 @@
 import { TreeItem, TreeItemCollapsibleState, commands, window } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
-import { buildHash } from '../utilities';
+import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
@@ -245,14 +245,8 @@ class CodemodTreeProvider {
 
 				return null;
 			})
-			.filter(isNeitherNullNorUndefined) as PackageUpgradeItem[];
+			.filter(isNeitherNullNorUndefined);
 	}
 }
-
-const isNeitherNullNorUndefined = <T>(
-	value: T | null | undefined,
-): value is T => {
-	return value !== null && value !== undefined;
-};
 
 export { CodemodItem, CodemodTreeProvider };
