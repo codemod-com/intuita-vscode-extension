@@ -19,16 +19,10 @@ export class JobManager {
 	readonly #messageBus: MessageBus;
 
 	#jobMap: Map<JobHash, Job>;
-	#rejectedJobHashes: Set<JobHash>;
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
-	public constructor(
-		jobs: ReadonlyArray<Job>,
-		rejectedJobHashes: Set<JobHash>,
-		messageBus: MessageBus,
-	) {
+	public constructor(jobs: ReadonlyArray<Job>, messageBus: MessageBus) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
-		this.#rejectedJobHashes = rejectedJobHashes;
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
 				jobs.flatMap((job) => {
@@ -67,10 +61,6 @@ export class JobManager {
 		return this.#jobMap.values();
 	}
 
-	public getRejectedJobHashes(): IterableIterator<JobHash> {
-		return this.#rejectedJobHashes.values();
-	}
-
 	public getJob(jobHash: JobHash): Job | null {
 		return this.#jobMap.get(jobHash) ?? null;
 	}
@@ -82,10 +72,6 @@ export class JobManager {
 			this.#uriHashJobHashSetManager.getRightHashesByLeftHash(uriHash);
 
 		for (const jobHash of jobHashes) {
-			if (this.#rejectedJobHashes.has(jobHash)) {
-				continue;
-			}
-
 			const job = this.#jobMap.get(jobHash);
 
 			if (job) {
@@ -103,10 +89,6 @@ export class JobManager {
 		});
 
 		for (const job of message.jobs) {
-			if (this.#rejectedJobHashes.has(job.hash)) {
-				continue;
-			}
-
 			this.#jobMap.set(job.hash, job);
 
 			if (job.oldUri) {
@@ -399,7 +381,6 @@ export class JobManager {
 		}
 
 		this.#jobMap.clear();
-		this.#rejectedJobHashes.clear();
 		this.#uriHashJobHashSetManager.clear();
 
 		this.#messageBus.publish({
