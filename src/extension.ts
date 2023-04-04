@@ -216,7 +216,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const baseBranch = sourceControl.getBaseBranchName();
 			const title = 'Title';
 			const body = 'Body';
-			const targetBranch = 'branchName';
+			const targetBranch = 'targetBranchName';
 
 			await panelInstance.render();
 			panelInstance.setView({

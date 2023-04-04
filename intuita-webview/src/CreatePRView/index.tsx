@@ -5,12 +5,13 @@ import {
 	VSCodeDropdown,
 	VSCodeOption,
 } from '@vscode/webview-ui-toolkit/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './style.module.css';
 import { vscode } from '../utilities/vscode';
 
 type Props = {
 	loading: boolean;
+	initialFormData: Partial<FormData>;
 };
 
 type FormData = {
@@ -20,15 +21,15 @@ type FormData = {
 	body: string;
 };
 
-const initialFormData: FormData = {
+const initialFormState: FormData = {
 	baseBranch: 'main',
 	targetBranch: '',
 	title: '',
 	body: '',
 };
 
-const CreatePR = ({ loading }: Props) => {
-	const [formData, setFormData] = useState<FormData>(initialFormData);
+const CreatePR = ({ loading, initialFormData }: Props) => {
+	const [formData, setFormData] = useState<FormData>(initialFormState);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -40,6 +41,13 @@ const CreatePR = ({ loading }: Props) => {
 	};
 
 	const { title, body, baseBranch, targetBranch } = formData;
+
+	useEffect(() => {
+		setFormData((prevFormData) => ({
+			...prevFormData,
+			...initialFormData,
+		}));
+	}, [initialFormData]);
 
 	return (
 		<div className={styles.root}>
@@ -61,7 +69,7 @@ const CreatePR = ({ loading }: Props) => {
 					onChange={(e) => {
 						setFormData({
 							...formData,
-							baseBranch: (e.target as HTMLSelectElement).value,
+							targetBranch: (e.target as HTMLSelectElement).value,
 						});
 					}}
 				>

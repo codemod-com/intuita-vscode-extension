@@ -22,7 +22,7 @@ export class SourceControlService {
 
 	// @TODO
 	getBaseBranchName() {
-		return 'main';
+		return 'MainBranchName';
 	}
 
 	async createPR() {

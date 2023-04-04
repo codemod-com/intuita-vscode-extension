@@ -73,7 +73,7 @@ export type ViewId = 'createIssue' | 'createPR';
 
 export type View =
 	| Readonly<{
-			viewId: ViewId;
+			viewId: ViewId & 'createIssue';
 			viewProps: {
 				error: string;
 				loading: boolean;
@@ -84,7 +84,7 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: ViewId;
+			viewId: ViewId & 'createPR';
 			viewProps: {
 				loading: boolean;
 				error: string;
