@@ -43,6 +43,9 @@ import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
+import type { GitExtension } from '../git.d.ts';
+import { Git } from './components/webview/git';
+import { ElementHash } from './elements/types';
 
 const messageBus = new MessageBus();
 
@@ -211,6 +214,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus,
 			);
 
+			
+
 			//@TODO connect in next subtask
 			const baseBranch = sourceControl.getBaseBranchName();
 			const title = 'Title';
@@ -318,6 +323,18 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
+
+	const e = vscode.extensions.getExtension('vscode.git');
+	await e?.activate();
+	const gitExtension =
+		vscode.extensions.getExtension<GitExtension>('vscode.git');
+	const activeGitExtension = gitExtension?.isActive
+		? gitExtension.exports
+		: await gitExtension?.activate();
+
+	const git = activeGitExtension?.getAPI(1);
+
+	const gitService = new Git(git!);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
@@ -853,10 +870,23 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 				}
 
+				const treeItem = await treeDataProvider.getTreeItem(
+					jobHash as ElementHash,
+				);
+				const { label } = treeItem;
+				const jobTitle =
+					typeof label === 'object' ? label.label : label ?? '';
+			
+
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
 					jobHashes: new Set([jobHash as JobHash]),
 				});
+
+				// @TODO
+				setTimeout(() => {
+					gitService.submitChanges(jobHash, jobTitle);
+				}, 3000);
 			},
 		),
 	);
