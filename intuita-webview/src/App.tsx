@@ -4,7 +4,11 @@ import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
-import type { View, ViewId, WebviewMessage } from '../../src/components/webview/IntuitaPanel';
+import type {
+	View,
+	ViewId,
+	WebviewMessage,
+} from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -50,10 +54,9 @@ function App() {
 				setConfiguredRepoPath(message.value.repositoryPath);
 			}
 
-			if(message.kind === 'webview.global.setView') {
+			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
 			}
-
 		};
 
 		window.addEventListener('message', handler);

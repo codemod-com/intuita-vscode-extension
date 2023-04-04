@@ -7,6 +7,7 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import { useState } from 'react';
 import styles from './style.module.css';
+import { vscode } from '../utilities/vscode';
 
 type Props = {
 	loading: boolean;
@@ -32,10 +33,10 @@ const CreatePR = ({ loading }: Props) => {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// vscode.postMessage({
-		// 	command: 'intuita.sourceControl.createPR',
-		// 	value: formData,
-		// });
+		vscode.postMessage({
+			kind: 'webview.createPR.submitPR',
+			value: formData,
+		});
 	};
 
 	const { title, body, baseBranch, targetBranch } = formData;

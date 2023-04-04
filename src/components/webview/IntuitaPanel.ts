@@ -38,9 +38,9 @@ export type WebviewMessage =
 			};
 	  }>
 	| Readonly<{
-		kind: 'webview.global.setView';
-		value: View;
-	}>
+			kind: 'webview.global.setView';
+			value: View;
+	  }>;
 
 export type WebviewResponse =
 	| Readonly<{
@@ -58,6 +58,15 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.afterWebviewMounted';
+	  }>
+	| Readonly<{
+			kind: 'webview.createPR.submitPR';
+			value: {
+				title: string;
+				body: string;
+				baseBranch: string;
+				targetBranch: string;
+			};
 	  }>;
 
 export type ViewId = 'createIssue' | 'createPR';
@@ -181,9 +190,9 @@ export class IntuitaPanel {
 
 	public setView(data: View) {
 		this.postMessage({
-			kind: 'webview.global.setView', 
-			value: data
-		})
+			kind: 'webview.global.setView',
+			value: data,
+		});
 	}
 
 	private postMessage(message: WebviewMessage) {
@@ -294,6 +303,13 @@ export class IntuitaPanel {
 			commands.executeCommand(
 				'workbench.action.openSettings',
 				'@ext:Intuita.intuita-vscode-extension',
+			);
+		}
+
+		if (message.kind === 'webview.createPR.submitPR') {
+			commands.executeCommand(
+				'intuita.sourceControl.createPR',
+				message.value,
 			);
 		}
 	}
