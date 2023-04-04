@@ -50,6 +50,10 @@
 		],
 		"commands": [
 			{
+				"command": "intuita.createPR",
+				"title": "Intuita:create pr"
+			},
+			{
 				"command": "intuita.showPanel",
 				"title": "Intuita:show panel"
 			},
@@ -151,6 +155,11 @@
 			{
 				"command": "intuita.createIssue",
 				"title": "Create Issue",
+				"icon": "$(github)"
+			},
+			{
+				"command": "intuita.createPR",
+				"title": "Create PR",
 				"icon": "$(github)"
 			}
 		],

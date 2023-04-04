@@ -197,6 +197,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.createPR', async () => {
+			const panelInstance = IntuitaPanel.getInstance(
+				context,
+				{ getConfiguration },
+				globalStateAccountStorage,
+				messageBus,
+			);
+			await panelInstance.render();
+			panelInstance.setView({ viewId: 'createPR', viewProps:  { initialFormData: { title: "Something" }, loading: false, error: '' } });
+		}),
+	);
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.user.unlinkIntuitaAccount',
 			() => {

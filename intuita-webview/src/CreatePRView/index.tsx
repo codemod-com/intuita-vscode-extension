@@ -6,7 +6,6 @@ import {
 	VSCodeOption,
 } from '@vscode/webview-ui-toolkit/react';
 import { useState } from 'react';
-import { vscode } from '../utilities/vscode';
 import styles from './style.module.css';
 
 type Props = {
@@ -43,7 +42,7 @@ const CreatePR = ({ loading }: Props) => {
 
 	return (
 		<div className={styles.root}>
-			<h1 className={styles.header}>Create an Issue</h1>
+			<h1 className={styles.header}>Create Pull Request</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<VSCodeDropdown
 					value={baseBranch}
@@ -89,10 +88,10 @@ const CreatePR = ({ loading }: Props) => {
 						})
 					}
 				>
-					Description
+					Body
 				</VSCodeTextArea>
 				<VSCodeButton type="submit" className={styles.submitButton}>
-					{loading ? 'Submitting...' : 'Create Issue'}
+					{loading ? 'Submitting...' : 'Create Pull Request'}
 				</VSCodeButton>
 			</form>
 		</div>
