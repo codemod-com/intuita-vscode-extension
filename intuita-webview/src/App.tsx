@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
-import type { WebviewMessage } from '../../src/components/webview/IntuitaPanel';
+import CreatePR from './CreatePRView';
+import type {
+	View,
+	WebviewMessage,
+} from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -13,9 +17,14 @@ declare global {
 	}
 }
 
-type FormState = {
-	title: string;
-	description: string;
+const getViewComponent = (viewId: View['viewId']) => {
+	switch (viewId) {
+		case 'createIssue': {
+			return CreateIssue;
+		}
+		case 'createPR':
+			return CreatePR;
+	}
 };
 
 function App() {
@@ -25,10 +34,8 @@ function App() {
 	const [linkedAccount, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
-	const [loading, setLoading] = useState(false);
-	const [initialFormState, setInitialFormState] = useState<
-		Partial<FormState>
-	>({});
+
+	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
@@ -46,12 +53,8 @@ function App() {
 				setConfiguredRepoPath(message.value.repositoryPath);
 			}
 
-			if (message.kind === 'webview.createIssue.setLoading') {
-				setLoading(message.value);
-			}
-
-			if (message.kind === 'webview.createIssue.setFormData') {
-				setInitialFormState(message.value);
+			if (message.kind === 'webview.global.setView') {
+				setView(message.value);
 			}
 		};
 
@@ -74,36 +77,39 @@ function App() {
 		});
 	};
 
+	if (!configuredRepoPath) {
+		return (
+			<WarningMessage
+				message="In order to create issues, configure you repository settings"
+				actionButtons={[
+					<VSCodeButton onClick={handleOpenExtensionSettings}>
+						Open settings
+					</VSCodeButton>,
+				]}
+			/>
+		);
+	}
+
+	if (!linkedAccount) {
+		<WarningMessage
+			message="In order to create issues, link your Intuita account"
+			actionButtons={[
+				<VSCodeButton onClick={handleLinkAccount}>
+					Link account
+				</VSCodeButton>,
+			]}
+		/>;
+	}
+
+	if (!view) {
+		return null;
+	}
+
+	const ViewComponent = getViewComponent(view.viewId);
+
 	return (
 		<main className="App">
-			{configuredRepoPath && linkedAccount ? (
-				<CreateIssue
-					loading={loading}
-					initialFormState={initialFormState}
-				/>
-			) : null}
-
-			{!configuredRepoPath ? (
-				<WarningMessage
-					message="In order to create issues, configure you repository settings"
-					actionButtons={[
-						<VSCodeButton onClick={handleOpenExtensionSettings}>
-							Open settings
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
-
-			{!linkedAccount ? (
-				<WarningMessage
-					message="In order to create issues, link your Intuita account"
-					actionButtons={[
-						<VSCodeButton onClick={handleLinkAccount}>
-							Link account{' '}
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
+			<ViewComponent {...view.viewProps} />
 		</main>
 	);
 }

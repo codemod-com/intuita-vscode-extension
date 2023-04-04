@@ -191,7 +191,41 @@ export async function activate(context: vscode.ExtensionContext) {
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
-			panelInstance.setFormData({ title });
+			panelInstance.setView({
+				viewId: 'createIssue',
+				viewProps: {
+					initialFormData: { title },
+					loading: false,
+					error: '',
+				},
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.createPR', async () => {
+			const panelInstance = IntuitaPanel.getInstance(
+				context,
+				{ getConfiguration },
+				globalStateAccountStorage,
+				messageBus,
+			);
+
+			//@TODO connect in next subtask
+			const baseBranch = sourceControl.getBaseBranchName();
+			const title = 'Title';
+			const body = 'Body';
+			const targetBranch = 'targetBranchName';
+
+			await panelInstance.render();
+			panelInstance.setView({
+				viewId: 'createPR',
+				viewProps: {
+					initialFormData: { title, body, baseBranch, targetBranch },
+					loading: false,
+					error: '',
+				},
+			});
 		}),
 	);
 
@@ -212,6 +246,19 @@ export async function activate(context: vscode.ExtensionContext) {
 				vscode.window.showWarningMessage('Invalid URL:' + arg0);
 			}
 		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.sourceControl.createPR',
+			async () => {
+				try {
+					await sourceControl.createPR();
+				} catch (e) {
+					console.error(e);
+				}
+			},
+		),
 	);
 
 	context.subscriptions.push(

@@ -9,17 +9,17 @@ import styles from './style.module.css';
 
 type Props = Readonly<{
 	loading: boolean;
-	initialFormState: Partial<{
+	initialFormData: Partial<{
 		title: string;
 		description: string;
 	}>;
 }>;
 
-const CreateIssue = ({ loading, initialFormState }: Props) => {
+const CreateIssue = ({ loading, initialFormData }: Props) => {
 	const [title, setTitle] = useState('');
 	const [body, setBody] = useState('');
 
-	const { title: initialTitle } = initialFormState;
+	const { title: initialTitle } = initialFormData;
 
 	useEffect(() => {
 		if (initialTitle) {

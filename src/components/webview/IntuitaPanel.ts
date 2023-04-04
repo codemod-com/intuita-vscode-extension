@@ -36,6 +36,10 @@ export type WebviewMessage =
 			value: {
 				repositoryPath: string | null;
 			};
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setView';
+			value: View;
 	  }>;
 
 export type WebviewResponse =
@@ -54,6 +58,41 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.afterWebviewMounted';
+	  }>
+	| Readonly<{
+			kind: 'webview.createPR.submitPR';
+			value: {
+				title: string;
+				body: string;
+				baseBranch: string;
+				targetBranch: string;
+			};
+	  }>;
+
+export type View =
+	| Readonly<{
+			viewId: 'createIssue';
+			viewProps: {
+				error: string;
+				loading: boolean;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+				}>;
+			};
+	  }>
+	| Readonly<{
+			viewId: 'createPR';
+			viewProps: {
+				loading: boolean;
+				error: string;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+					baseBranch: string;
+					targetBranch: string;
+				}>;
+			};
 	  }>;
 
 interface ConfigurationService {
@@ -147,9 +186,9 @@ export class IntuitaPanel {
 		return initWebviewPromise;
 	}
 
-	public setFormData(data: { title?: string; description?: string }) {
+	public setView(data: View) {
 		this.postMessage({
-			kind: 'webview.createIssue.setFormData',
+			kind: 'webview.global.setView',
 			value: data,
 		});
 	}
@@ -262,6 +301,13 @@ export class IntuitaPanel {
 			commands.executeCommand(
 				'workbench.action.openSettings',
 				'@ext:Intuita.intuita-vscode-extension',
+			);
+		}
+
+		if (message.kind === 'webview.createPR.submitPR') {
+			commands.executeCommand(
+				'intuita.sourceControl.createPR',
+				message.value,
 			);
 		}
 	}

@@ -20,6 +20,15 @@ export class SourceControlService {
 		private readonly __messageBus: MessageBus,
 	) {}
 
+	// @TODO
+	getBaseBranchName() {
+		return 'MainBranchName';
+	}
+
+	async createPR() {
+		throw new Error('Not implemented');
+	}
+
 	async createIssue(params: { title: string; body: string }) {
 		const { repositoryPath } =
 			this.__configurationService.getConfiguration();

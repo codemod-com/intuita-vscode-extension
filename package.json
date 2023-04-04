@@ -54,6 +54,10 @@
 		],
 		"commands": [
 			{
+				"command": "intuita.createPR",
+				"title": "Intuita: Create a Pull Request"
+			},
+			{
 				"command": "intuita.showPanel",
 				"title": "Intuita:show panel"
 			},
@@ -155,6 +159,11 @@
 			{
 				"command": "intuita.createIssue",
 				"title": "Create Issue",
+				"icon": "$(github)"
+			},
+			{
+				"command": "intuita.createPR",
+				"title": "Create a Pull Request",
 				"icon": "$(github)"
 			}
 		],
