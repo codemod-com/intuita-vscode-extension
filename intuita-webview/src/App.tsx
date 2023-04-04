@@ -4,6 +4,7 @@ import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
+import type { View, ViewId, WebviewMessage } from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -12,63 +13,6 @@ declare global {
 		};
 	}
 }
-
-enum MessageKind {
-	onAfterLinkedAccount = 26,
-	onAfterUnlinkedAccount = 27,
-	onAfterConfigurationChanged = 28,
-	onBeforeCreateIssue = 29,
-	onAfterCreateIssue = 30,
-}
-
-type Message =
-	| Readonly<{
-			kind: MessageKind.onAfterUnlinkedAccount;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterLinkedAccount;
-			account: string;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterConfigurationChanged;
-			nextConfiguration: {
-				repositoryPath: string;
-			};
-	  }>
-	| Readonly<{
-			kind: MessageKind.onBeforeCreateIssue;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterCreateIssue;
-	  }>;
-
-type ViewId = 'createIssue' | 'createPR';
-
-type View =
-	| Readonly<{
-			viewId: ViewId;
-			viewProps: {
-				error: string;
-				loading: boolean;
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-				}>;
-			};
-	  }>
-	| Readonly<{
-			viewId: ViewId;
-			viewProps: {
-				loading: boolean;
-				error: string;
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					baseBranch: string;
-					targetBranch: string;
-				}>;
-			};
-	  }>;
 
 const getViewComponent = (viewId: ViewId) => {
 	switch (viewId) {
@@ -81,32 +25,35 @@ const getViewComponent = (viewId: ViewId) => {
 };
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState(
-		!!window.INITIAL_STATE.repositoryPath,
+	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
+		window.INITIAL_STATE.repositoryPath,
 	);
-	const [linkedAccount, setLinkedAccount] = useState(
-		!!window.INITIAL_STATE.userId,
+	const [linkedAccount, setLinkedAccount] = useState<string | null>(
+		window.INITIAL_STATE.userId,
 	);
 
 	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<Message>) => {
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+	}, []);
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
-			if (message.kind === MessageKind.onAfterLinkedAccount) {
-				setLinkedAccount(true);
+			if (message.kind === 'webview.global.setUserAccount') {
+				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === MessageKind.onAfterUnlinkedAccount) {
-				setLinkedAccount(false);
+			if (message.kind === 'webview.global.setConfiguration') {
+				setConfiguredRepoPath(message.value.repositoryPath);
 			}
 
-			if (message.kind === MessageKind.onAfterConfigurationChanged) {
-				const hasConfigPath =
-					!!message.nextConfiguration.repositoryPath.trim().length;
-				setConfiguredRepoPath(hasConfigPath);
+			if(message.kind === 'webview.global.setView') {
+				setView(message.value);
 			}
+
 		};
 
 		window.addEventListener('message', handler);
@@ -118,15 +65,13 @@ function App() {
 
 	const handleLinkAccount = () => {
 		vscode.postMessage({
-			command: 'intuita.redirect',
-			value: 'https://codemod.studio/auth/sign-in',
+			kind: 'webview.global.redirectToSignIn',
 		});
 	};
 
 	const handleOpenExtensionSettings = () => {
 		vscode.postMessage({
-			command: 'workbench.action.openSettings',
-			value: '@ext:Intuita.intuita-vscode-extension',
+			kind: 'webview.global.openConfiguration',
 		});
 	};
 

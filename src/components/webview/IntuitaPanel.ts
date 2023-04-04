@@ -9,16 +9,84 @@ import {
 	Disposable,
 } from 'vscode';
 import { randomBytes } from 'crypto';
-import { MessageBus, MessageKind } from '../messageBus';
+import { MessageBus, MessageKind, Message } from '../messageBus';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-type WebViewMessage = {
-	command: string;
-	value: unknown;
-};
+export type WebviewMessage =
+	| Readonly<{
+			kind: 'webview.createIssue.setFormData';
+			value: Partial<{
+				title: string;
+				description: string;
+			}>;
+	  }>
+	| Readonly<{
+			kind: 'webview.createIssue.setLoading';
+			value: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setUserAccount';
+			value: string | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setConfiguration';
+			value: {
+				repositoryPath: string | null;
+			};
+	  }>
+	| Readonly<{
+		kind: 'webview.global.setView';
+		value: View;
+	}>
+
+export type WebviewResponse =
+	| Readonly<{
+			kind: 'webview.createIssue.submitIssue';
+			value: {
+				title: string;
+				body: string;
+			};
+	  }>
+	| Readonly<{
+			kind: 'webview.global.redirectToSignIn';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.openConfiguration';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.afterWebviewMounted';
+	  }>;
+
+export type ViewId = 'createIssue' | 'createPR';
+
+export type View =
+	| Readonly<{
+			viewId: ViewId;
+			viewProps: {
+				error: string;
+				loading: boolean;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+				}>;
+			};
+	  }>
+	| Readonly<{
+			viewId: ViewId;
+			viewProps: {
+				loading: boolean;
+				error: string;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+					baseBranch: string;
+					targetBranch: string;
+				}>;
+			};
+	  }>;
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -89,7 +157,48 @@ export class IntuitaPanel {
 	}
 
 	public render() {
-		this.__panel?.reveal();
+		const initWebviewPromise = new Promise((resolve, reject) => {
+			this.__panel?.reveal();
+
+			const timeout = setTimeout(() => {
+				this.__panel?.dispose();
+				reject('Timeout');
+			}, 5000);
+
+			const disposable = this.__panel?.webview.onDidReceiveMessage(
+				(message: WebviewResponse) => {
+					if (message.kind === 'webview.global.afterWebviewMounted') {
+						disposable?.dispose();
+						clearTimeout(timeout);
+						resolve('Resolved');
+					}
+				},
+			);
+		});
+
+		return initWebviewPromise;
+	}
+
+	public setFormData(data: { title?: string; description?: string }) {
+		this.postMessage({
+			kind: 'webview.createIssue.setFormData',
+			value: data,
+		});
+	}
+
+	public setView(data: View) {
+		this.postMessage({
+			kind: 'webview.global.setView', 
+			value: data
+		})
+	}
+
+	private postMessage(message: WebviewMessage) {
+		if (!this.__view) {
+			return;
+		}
+
+		this.__view.postMessage(message);
 	}
 
 	public dispose() {
@@ -106,20 +215,53 @@ export class IntuitaPanel {
 		}
 	}
 
-	private subscribe() {
-		[
-			MessageKind.onAfterUnlinkedAccount,
-			MessageKind.onAfterLinkedAccount,
-			MessageKind.onAfterConfigurationChanged,
-			MessageKind.onBeforeCreateIssue,
-			MessageKind.onAfterCreateIssue,
-		].forEach((kind) => {
-			const disposable = this.__messageBus.subscribe(kind, (message) => {
-				this.__view?.postMessage(message);
-			});
+	private addHook<T extends MessageKind>(
+		kind: T,
+		handler: (message: Message & { kind: T }) => void,
+	) {
+		const disposable = this.__messageBus.subscribe<T>(kind, handler);
+		this.__disposables.push(disposable);
+	}
 
-			this.__disposables.push(disposable);
+	private subscribe() {
+		[MessageKind.accountUnlinked, MessageKind.accountLinked].forEach(
+			(kind) => {
+				this.addHook(kind, (message) => {
+					const value =
+						message.kind === MessageKind.accountLinked
+							? message.account
+							: null;
+
+					this.postMessage({
+						kind: 'webview.global.setUserAccount',
+						value,
+					});
+				});
+			},
+		);
+
+		this.addHook(MessageKind.configurationChanged, (message) => {
+			this.postMessage({
+				kind: 'webview.global.setConfiguration',
+				value: {
+					repositoryPath:
+						message.nextConfiguration.repositoryPath ?? null,
+				},
+			});
 		});
+
+		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
+			(kind) => {
+				this.addHook(kind, (message) => {
+					const value =
+						message.kind === MessageKind.beforeIssueCreated;
+					this.postMessage({
+						kind: 'webview.createIssue.setLoading',
+						value,
+					});
+				});
+			},
+		);
 	}
 
 	private prepareWebviewInitialData = () => {
@@ -140,14 +282,35 @@ export class IntuitaPanel {
 		return result;
 	};
 
+	private onDidReceiveMessage(message: WebviewResponse) {
+		if (message.kind === 'webview.createIssue.submitIssue') {
+			commands.executeCommand(
+				'intuita.sourceControl.submitIssue',
+				message.value,
+			);
+		}
+
+		if (message.kind === 'webview.global.redirectToSignIn') {
+			commands.executeCommand(
+				'intuita.redirect',
+				'https://codemod.studio/auth/sign-in',
+			);
+		}
+
+		if (message.kind === 'webview.global.openConfiguration') {
+			commands.executeCommand(
+				'workbench.action.openSettings',
+				'@ext:Intuita.intuita-vscode-extension',
+			);
+		}
+	}
+
 	private activateMessageListener() {
 		if (!this.__view) {
 			return;
 		}
 
-		this.__view.onDidReceiveMessage((message: WebViewMessage) => {
-			commands.executeCommand(message.command, message.value);
-		});
+		this.__view.onDidReceiveMessage(this.onDidReceiveMessage);
 	}
 
 	private _getHtmlForWebview(webview: Webview) {

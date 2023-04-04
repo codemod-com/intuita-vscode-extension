@@ -33,10 +33,10 @@ const CreatePR = ({ loading }: Props) => {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		vscode.postMessage({
-			command: 'intuita.sourceControl.createPR',
-			value: formData,
-		});
+		// vscode.postMessage({
+		// 	command: 'intuita.sourceControl.createPR',
+		// 	value: formData,
+		// });
 	};
 
 	const { title, body, baseBranch, targetBranch } = formData;

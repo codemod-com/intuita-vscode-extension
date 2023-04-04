@@ -147,6 +147,11 @@
 			{
 				"command": "intuita.sendAsAfterSnippet",
 				"title": "Intuita: Send as After Snippet to the Codemod Studio"
+			},
+			{
+				"command": "intuita.createIssue",
+				"title": "Create Issue",
+				"icon": "$(github)"
 			}
 		],
 		"configuration": {
@@ -393,6 +398,17 @@
 				},
 				{
 					"command": "intuita.rejectCase",
+					"when": "viewItem == caseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createIssue",
+					"when": "viewItem == jobElement",
+					"group": "inline",
+					"icon": "$(link)"
+				},
+				{
+					"command": "intuita.createIssue",
 					"when": "viewItem == caseElement",
 					"group": "inline"
 				}
