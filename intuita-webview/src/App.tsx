@@ -6,7 +6,6 @@ import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
 import type {
 	View,
-	ViewId,
 	WebviewMessage,
 } from '../../src/components/webview/IntuitaPanel';
 declare global {
@@ -18,7 +17,7 @@ declare global {
 	}
 }
 
-const getViewComponent = (viewId: ViewId) => {
+const getViewComponent = (viewId: View['viewId']) => {
 	switch (viewId) {
 		case 'createIssue': {
 			return CreateIssue;
@@ -102,7 +101,9 @@ function App() {
 		/>;
 	}
 
-	if (!view) return null;
+	if (!view) {
+		return null;
+	}
 
 	const ViewComponent = getViewComponent(view.viewId);
 

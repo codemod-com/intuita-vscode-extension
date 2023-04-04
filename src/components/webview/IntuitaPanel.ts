@@ -69,11 +69,9 @@ export type WebviewResponse =
 			};
 	  }>;
 
-export type ViewId = 'createIssue' | 'createPR';
-
 export type View =
 	| Readonly<{
-			viewId: ViewId & 'createIssue';
+			viewId: 'createIssue';
 			viewProps: {
 				error: string;
 				loading: boolean;
@@ -84,7 +82,7 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: ViewId & 'createPR';
+			viewId: 'createPR';
 			viewProps: {
 				loading: boolean;
 				error: string;

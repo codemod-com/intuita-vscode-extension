@@ -254,7 +254,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.createPR',
 			async () => {
 				try {
-					sourceControl.createPR();
+					await sourceControl.createPR();
 				} catch (e) {
 					console.error(e);
 				}
