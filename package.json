@@ -49,7 +49,7 @@
 			},
 			{
 				"view": "intuita-available-codemod-tree-view",
-				"contents": "No available codmods right now based on package.json file. Please check back later!"
+				"contents": "No available codemods right now based on package.json file. Please check back later!"
 			}
 		],
 		"commands": [
