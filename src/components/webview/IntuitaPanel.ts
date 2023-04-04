@@ -179,13 +179,6 @@ export class IntuitaPanel {
 		return initWebviewPromise;
 	}
 
-	public setFormData(data: { title?: string; description?: string }) {
-		this.postMessage({
-			kind: 'webview.createIssue.setFormData',
-			value: data,
-		});
-	}
-
 	public setView(data: View) {
 		this.postMessage({
 			kind: 'webview.global.setView', 

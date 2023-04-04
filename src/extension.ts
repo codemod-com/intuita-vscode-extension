@@ -192,7 +192,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
-			panelInstance.setFormData({ title });
+			panelInstance.setView({ viewId: 'createIssue', viewProps:  { initialFormData: { title }, loading: false, error: '' } });
 		}),
 	);
 
