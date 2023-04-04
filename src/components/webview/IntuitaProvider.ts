@@ -37,11 +37,11 @@ export class IntuitaPanel implements WebviewViewProvider {
 	) {
 		this.__extensionPath = context.extensionUri;
 		[
-			MessageKind.afterUnlinkedAccount,
-			MessageKind.afterLinkedAccount,
-			MessageKind.afterConfigurationChanged,
-			MessageKind.beforeCreateIssue,
-			MessageKind.afterCreateIssue,
+			MessageKind.accountUnlinked,
+			MessageKind.accountLinked,
+			MessageKind.configurationChanged,
+			MessageKind.beforeIssueCreated,
+			MessageKind.afterIssueCreated,
 		].forEach((kind) => {
 			this.__messageBus.subscribe(kind, (message) => {
 				this.__view?.webview.postMessage(message);

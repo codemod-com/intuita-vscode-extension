@@ -190,7 +190,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus,
 			);
 			await panelInstance.render();
-			panelInstance.setFormData({ title: treeItem.label as string });
+			const { label } = treeItem;
+			const title = typeof label === 'object' ? label.label : label ?? '';
+			panelInstance.setFormData({ title });
 		}),
 	);
 
@@ -1008,7 +1010,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			messageBus.publish({
-				kind: MessageKind.afterConfigurationChanged,
+				kind: MessageKind.configurationChanged,
 				nextConfiguration: getConfiguration(),
 			});
 

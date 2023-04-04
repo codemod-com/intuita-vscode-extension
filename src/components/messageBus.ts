@@ -51,21 +51,21 @@ export const enum MessageKind {
 	/**
 	 * account events
 	 */
-	afterLinkedAccount = 26,
-	afterUnlinkedAccount = 27,
+	accountLinked = 26,
+	accountUnlinked = 27,
 
 	/**
 	 * config events
 	 */
 
-	afterConfigurationChanged = 28,
+	configurationChanged = 28,
 
 	/**
 	 * source control
 	 */
 
-	beforeCreateIssue = 29,
-	afterCreateIssue = 30,
+	beforeIssueCreated = 29,
+	afterIssueCreated = 30,
 	/**
 	 * show progress
 	 */
@@ -218,24 +218,24 @@ export type Message =
 			newContentUri: Uri;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterUnlinkedAccount;
+			kind: MessageKind.accountUnlinked;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterLinkedAccount;
+			kind: MessageKind.accountLinked;
 			account: string;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterConfigurationChanged;
+			kind: MessageKind.configurationChanged;
 			nextConfiguration: Configuration;
 	  }>
 	| Readonly<{
-			kind: MessageKind.beforeCreateIssue;
+			kind: MessageKind.beforeIssueCreated;
 	  }>
 	| Readonly<{
-			kind: MessageKind.beforeCreateIssue;
+			kind: MessageKind.beforeIssueCreated;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterCreateIssue;
+			kind: MessageKind.afterIssueCreated;
 	  }>
 	| Readonly<{
 			kind: MessageKind.showProgress;

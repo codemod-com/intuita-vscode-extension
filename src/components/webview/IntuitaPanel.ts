@@ -185,24 +185,23 @@ export class IntuitaPanel {
 	}
 
 	private subscribe() {
-		[
-			MessageKind.afterUnlinkedAccount,
-			MessageKind.afterLinkedAccount,
-		].forEach((kind) => {
-			this.addHook(kind, (message) => {
-				const value =
-					message.kind === MessageKind.afterLinkedAccount
-						? message.account
-						: null;
+		[MessageKind.accountUnlinked, MessageKind.accountLinked].forEach(
+			(kind) => {
+				this.addHook(kind, (message) => {
+					const value =
+						message.kind === MessageKind.accountLinked
+							? message.account
+							: null;
 
-				this.postMessage({
-					kind: 'webview.global.setUserAccount',
-					value,
+					this.postMessage({
+						kind: 'webview.global.setUserAccount',
+						value,
+					});
 				});
-			});
-		});
+			},
+		);
 
-		this.addHook(MessageKind.afterConfigurationChanged, (message) => {
+		this.addHook(MessageKind.configurationChanged, (message) => {
 			this.postMessage({
 				kind: 'webview.global.setConfiguration',
 				value: {
@@ -212,11 +211,11 @@ export class IntuitaPanel {
 			});
 		});
 
-		[MessageKind.beforeCreateIssue, MessageKind.afterCreateIssue].forEach(
+		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
 				this.addHook(kind, (message) => {
 					const value =
-						message.kind === MessageKind.beforeCreateIssue;
+						message.kind === MessageKind.beforeIssueCreated;
 					this.postMessage({
 						kind: 'webview.createIssue.setLoading',
 						value,
@@ -244,33 +243,35 @@ export class IntuitaPanel {
 		return result;
 	};
 
+	private onDidReceiveMessage(message: WebviewResponse) {
+		if (message.kind === 'webview.createIssue.submitIssue') {
+			commands.executeCommand(
+				'intuita.sourceControl.submitIssue',
+				message.value,
+			);
+		}
+
+		if (message.kind === 'webview.global.redirectToSignIn') {
+			commands.executeCommand(
+				'intuita.redirect',
+				'https://codemod.studio/auth/sign-in',
+			);
+		}
+
+		if (message.kind === 'webview.global.openConfiguration') {
+			commands.executeCommand(
+				'workbench.action.openSettings',
+				'@ext:Intuita.intuita-vscode-extension',
+			);
+		}
+	}
+
 	private activateMessageListener() {
 		if (!this.__view) {
 			return;
 		}
 
-		this.__view.onDidReceiveMessage((message: WebviewResponse) => {
-			if (message.kind === 'webview.createIssue.submitIssue') {
-				commands.executeCommand(
-					'intuita.sourceControl.submitIssue',
-					message.value,
-				);
-			}
-
-			if (message.kind === 'webview.global.redirectToSignIn') {
-				commands.executeCommand(
-					'intuita.redirect',
-					'https://codemod.studio/auth/sign-in',
-				);
-			}
-
-			if (message.kind === 'webview.global.openConfiguration') {
-				commands.executeCommand(
-					'workbench.action.openSettings',
-					'@ext:Intuita.intuita-vscode-extension',
-				);
-			}
-		});
+		this.__view.onDidReceiveMessage(this.onDidReceiveMessage);
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
