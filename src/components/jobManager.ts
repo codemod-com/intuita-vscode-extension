@@ -345,7 +345,6 @@ export class JobManager {
 				});
 			}
 
-			this.#rejectedJobHashes.add(jobHash);
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 			this.#jobMap.delete(jobHash);
 		}
