@@ -95,7 +95,7 @@ function App() {
 			message="In order to create issues, link your Intuita account"
 			actionButtons={[
 				<VSCodeButton onClick={handleLinkAccount}>
-					Link account{' '}
+					Link account
 				</VSCodeButton>,
 			]}
 		/>;
