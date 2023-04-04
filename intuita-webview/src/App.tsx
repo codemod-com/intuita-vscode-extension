@@ -104,11 +104,11 @@ function App() {
 
 	if (!view) return null;
 
-	const ViewComponent = getViewComponent(view?.viewId);
+	const ViewComponent = getViewComponent(view.viewId);
 
 	return (
 		<main className="App">
-			<ViewComponent {...view?.viewProps} />
+			<ViewComponent {...view.viewProps} />
 		</main>
 	);
 }
