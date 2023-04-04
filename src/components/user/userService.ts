@@ -24,7 +24,7 @@ export class UserService {
 
 	unlinkUserIntuitaAccount(): void {
 		this.__storage.setUserAccount(undefined);
-		this.__messageBus.publish({ kind: MessageKind.onAfterUnlinkedAccount });
+		this.__messageBus.publish({ kind: MessageKind.accountUnlinked });
 	}
 
 	linkUsersIntuitaAccount(userId: string): void {
@@ -40,7 +40,7 @@ export class UserService {
 
 		this.__storage.setUserAccount(userId);
 		this.__messageBus.publish({
-			kind: MessageKind.onAfterLinkedAccount,
+			kind: MessageKind.accountLinked,
 			account: userId,
 		});
 	}
