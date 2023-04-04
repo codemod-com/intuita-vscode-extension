@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
+import CreatePR from './CreatePRView';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -41,6 +42,44 @@ type Message =
 			kind: MessageKind.onAfterCreateIssue;
 	  }>;
 
+type ViewId = 'createIssue' | 'createPR';
+
+type View =
+	| Readonly<{
+			viewId: ViewId;
+			viewProps: {
+				error: string;
+				loading: boolean;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+				}>;
+			};
+	  }>
+	| Readonly<{
+			viewId: ViewId;
+			viewProps: {
+				loading: boolean;
+				error: string;
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+					baseBranch: string;
+					targetBranch: string;
+				}>;
+			};
+	  }>;
+
+const getViewComponent = (viewId: ViewId) => {
+	switch (viewId) {
+		case 'createIssue': {
+			return CreateIssue;
+		}
+		case 'createPR':
+			return CreatePR;
+	}
+};
+
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState(
 		!!window.INITIAL_STATE.repositoryPath,
@@ -48,7 +87,8 @@ function App() {
 	const [linkedAccount, setLinkedAccount] = useState(
 		!!window.INITIAL_STATE.userId,
 	);
-	const [loading, setLoading] = useState(false);
+
+	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<Message>) => {
@@ -66,14 +106,6 @@ function App() {
 				const hasConfigPath =
 					!!message.nextConfiguration.repositoryPath.trim().length;
 				setConfiguredRepoPath(hasConfigPath);
-			}
-
-			if (message.kind === MessageKind.onBeforeCreateIssue) {
-				setLoading(true);
-			}
-
-			if (message.kind === MessageKind.onAfterCreateIssue) {
-				setLoading(false);
 			}
 		};
 
@@ -98,33 +130,37 @@ function App() {
 		});
 	};
 
+	if (!configuredRepoPath) {
+		return (
+			<WarningMessage
+				message="In order to create issues, configure you repository settings"
+				actionButtons={[
+					<VSCodeButton onClick={handleOpenExtensionSettings}>
+						Open settings
+					</VSCodeButton>,
+				]}
+			/>
+		);
+	}
+
+	if (!linkedAccount) {
+		<WarningMessage
+			message="In order to create issues, link your Intuita account"
+			actionButtons={[
+				<VSCodeButton onClick={handleLinkAccount}>
+					Link account{' '}
+				</VSCodeButton>,
+			]}
+		/>;
+	}
+
+	if (!view) return null;
+
+	const ViewComponent = getViewComponent(view?.viewId);
+
 	return (
 		<main className="App">
-			{configuredRepoPath && linkedAccount ? (
-				<CreateIssue loading={loading} />
-			) : null}
-
-			{!configuredRepoPath ? (
-				<WarningMessage
-					message="In order to create issues, configure you repository settings"
-					actionButtons={[
-						<VSCodeButton onClick={handleOpenExtensionSettings}>
-							Open settings
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
-
-			{!linkedAccount ? (
-				<WarningMessage
-					message="In order to create issues, link your Intuita account"
-					actionButtons={[
-						<VSCodeButton onClick={handleLinkAccount}>
-							Link account{' '}
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
+			<ViewComponent {...view?.viewProps} />
 		</main>
 	);
 }
