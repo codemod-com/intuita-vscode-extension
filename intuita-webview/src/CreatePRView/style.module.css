@@ -10,3 +10,8 @@
 	width: 160px;
 	align-self: end;
 }
+
+.formField {
+	display: flex;
+	flex-direction: column;
+}

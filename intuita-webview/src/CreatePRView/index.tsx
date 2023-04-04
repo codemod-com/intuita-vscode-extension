@@ -53,28 +53,38 @@ const CreatePR = ({ loading, initialFormData }: Props) => {
 		<div className={styles.root}>
 			<h1 className={styles.header}>Create Pull Request</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
-				<VSCodeDropdown
-					value={baseBranch}
-					onChange={(e) => {
-						setFormData({
-							...formData,
-							baseBranch: (e.target as HTMLSelectElement).value,
-						});
-					}}
-				>
-					<VSCodeOption value="main"> Main </VSCodeOption>
-				</VSCodeDropdown>
-				<VSCodeDropdown
-					value={targetBranch}
-					onChange={(e) => {
-						setFormData({
-							...formData,
-							targetBranch: (e.target as HTMLSelectElement).value,
-						});
-					}}
-				>
-					<VSCodeOption value="target"> Target </VSCodeOption>
-				</VSCodeDropdown>
+				<div className={styles.formField}>
+					<label htmlFor="baseBranch">Base branch:</label>
+					<VSCodeDropdown
+						id="baseBranch"
+						value={baseBranch}
+						onChange={(e) => {
+							setFormData({
+								...formData,
+								baseBranch: (e.target as HTMLSelectElement)
+									.value,
+							});
+						}}
+					>
+						<VSCodeOption value="main"> Main </VSCodeOption>
+					</VSCodeDropdown>
+				</div>
+				<div className={styles.formField}>
+					<label htmlFor="targetBranch">Target branch:</label>
+					<VSCodeDropdown
+						id="targetBranch"
+						value={targetBranch}
+						onChange={(e) => {
+							setFormData({
+								...formData,
+								targetBranch: (e.target as HTMLSelectElement)
+									.value,
+							});
+						}}
+					>
+						<VSCodeOption value="target"> Target </VSCodeOption>
+					</VSCodeDropdown>
+				</div>
 				<VSCodeTextField
 					placeholder="title"
 					value={title}
