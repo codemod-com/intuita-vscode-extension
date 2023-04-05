@@ -42,7 +42,14 @@ import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
-import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
+import {
+	checkIfCodemodIsAvailable,
+	CodemodHash,
+	CodemodTreeProvider,
+	commandList,
+	PackageUpgradeItem,
+	packageUpgradeList,
+} from './elements/CodemodList';
 
 const messageBus = new MessageBus();
 
@@ -322,84 +329,181 @@ export async function activate(context: vscode.ExtensionContext) {
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
 			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
+			after: {
+				fontStyle: 'italic',
+			},
 		});
 
-	const dependencies = ['next', '@material-ui/core', '@redwoodjs/core'];
-
-	const handleActiveTextEditor = (editor: vscode.TextEditor) => {
+	const handleActiveTextEditor = () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return;
+		}
 		const { document } = editor;
 
 		if (!document.uri.fsPath.endsWith('package.json')) {
 			return;
 		}
+		const selection = editor.selection;
 
 		const uri = vscode.Uri.joinPath(document.uri, '..');
 		const path = encodeURIComponent(uri.fsPath);
+		const ranges: [vscode.Range, readonly PackageUpgradeItem[]][] = [];
+		const packagesWithNoCodemod: [
+			vscode.Range,
+			{
+				dependency: string;
+				version: string;
+			},
+		][] = [];
 
-		const ranges: [string, vscode.Range][] = [];
+		const parsedPackageJson = JSON.parse(document.getText());
+
+		const dependencies = parsedPackageJson?.dependencies;
 
 		for (let i = 0; i < document.lineCount; i++) {
 			const textLine = document.lineAt(i);
 
-			for (const dependency of dependencies) {
-				if (textLine.text.includes(`"${dependency}"`)) {
-					ranges.push([dependency, textLine.range]);
+			const textWithoutSpace = textLine.text.replace(/\s/g, '');
+			const dependencyAndVersionExtractpattern =
+				/"(.+)":"(?:(?:\*|\^|~)\s*)?(\d+\.\d+\.\d+)/;
+			const dependencyMatcher = textWithoutSpace.match(
+				dependencyAndVersionExtractpattern,
+			);
+			const dependency = dependencyMatcher?.[1];
+			const version = dependencyMatcher?.[2];
+
+			if (!dependency || !version) {
+				continue;
+			}
+			const checkedDependency = checkIfCodemodIsAvailable(
+				dependency,
+				version,
+			);
+			if (checkedDependency && checkedDependency.length) {
+				ranges.push([
+					textLine.range,
+					checkedDependency.reduce((acc, curr) => {
+						acc.push(curr);
+						return acc;
+					}, [] as PackageUpgradeItem[]),
+				]);
+			}
+			if (
+				Object.keys(dependencies).includes(dependency) &&
+				(!checkedDependency || !checkedDependency?.length)
+			) {
+				const codmodsAvaliable = packageUpgradeList.find(
+					(el) => el.packageName === dependency,
+				);
+				if (
+					!textLine.range.intersection(selection) ||
+					codmodsAvaliable
+				) {
+					continue;
 				}
+				packagesWithNoCodemod.push([
+					textLine.range,
+					{
+						dependency,
+						version,
+					},
+				]);
 			}
 		}
 
-		const rangesOrOptions: vscode.DecorationOptions[] = ranges.map(
-			([dependencyName, range]) => {
-				const args = {
-					path,
-					dependencyName,
-				};
-
+		const rangesWithDependency: vscode.DecorationOptions[] =
+			packagesWithNoCodemod.map(([range, { version, dependency }]) => {
 				const commandUri = vscode.Uri.parse(
-					`command:intuita.executeCodemods?${encodeURIComponent(
-						JSON.stringify(args),
-					)}`,
+					'https://github.com/intuita-inc/codemod-registry/issues/new',
 				);
 
 				const hoverMessage = new vscode.MarkdownString(
-					`[Execute "${dependencyName}" codemods](${commandUri})`,
+					`[Request a codemod](${commandUri})`,
 				);
 				hoverMessage.isTrusted = true;
 				hoverMessage.supportHtml = true;
-
 				return {
-					range,
-					hoverMessage,
+					range: range.with({
+						start: range.start.with({
+							character:
+								range.start.character + range.end.character,
+						}),
+					}),
+					hoverMessage: hoverMessage,
 					renderOptions: {
 						after: {
-							color: 'gray',
-							contentText: `Hover over to upgrade your codebase to the latest version of "${dependencyName}"`,
-							margin: '2em',
+							contentText: `Request codemod for ${dependency}:${version}`,
+							margin: '0 0 0 1em',
 							fontStyle: 'italic',
+							color: new vscode.ThemeColor(
+								'editorLineNumber.foreground',
+							),
 						},
 					},
 				};
-			},
-		);
+			});
 
-		editor.setDecorations(textEditorDecorationType, rangesOrOptions);
+		const rangesOrOptions: vscode.DecorationOptions[] = ranges
+			.map(([range, dependencyList]) => {
+				return dependencyList.map((el) => {
+					const args = {
+						path,
+					};
+
+					const commandUri = vscode.Uri.parse(
+						`command:${commandList[el.id]}?${encodeURIComponent(
+							JSON.stringify(args),
+						)}`,
+					);
+
+					const hoverMessage = new vscode.MarkdownString(
+						`[Execute ${el.name}](${commandUri})`,
+					);
+					hoverMessage.isTrusted = true;
+					hoverMessage.supportHtml = true;
+
+					return {
+						range: range.with({
+							start: range.start.with({
+								character:
+									range.start.character + range.end.character,
+							}),
+						}),
+						hoverMessage,
+						renderOptions: {
+							after: {
+								color: new vscode.ThemeColor(
+									'list.activeSelectionForeground',
+								),
+								contentText: `${el.name} ${el.kind} to ${el.latestVersionSupported}`,
+								margin: '0 0 0 1em',
+								fontStyle: 'italic',
+							},
+						},
+					};
+				});
+			})
+			.flat();
+
+		editor.setDecorations(textEditorDecorationType, [
+			...rangesOrOptions,
+			...rangesWithDependency,
+		]);
 	};
 
-	vscode.window.onDidChangeActiveTextEditor((editor) => {
-		if (editor) {
-			handleActiveTextEditor(editor);
-		}
+	vscode.window.onDidChangeActiveTextEditor(() => {
+		handleActiveTextEditor();
 	});
-
 	vscode.workspace.onDidChangeTextDocument(() => {
-		if (vscode.window.activeTextEditor) {
-			handleActiveTextEditor(vscode.window.activeTextEditor);
-		}
+		handleActiveTextEditor();
 	});
 
-	if (vscode.window.activeTextEditor) {
-		handleActiveTextEditor(vscode.window.activeTextEditor);
-	}
+	vscode.window.onDidChangeTextEditorSelection(() => {
+		handleActiveTextEditor();
+	});
+
+	handleActiveTextEditor();
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
