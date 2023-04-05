@@ -236,7 +236,6 @@ export class JobManager {
 
 				for (const jobHash of otherJobHashes) {
 					this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
-					this.#jobMap.delete(jobHash);
 				}
 			}
 
