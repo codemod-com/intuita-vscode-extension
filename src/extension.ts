@@ -226,6 +226,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createPR', async (arg0) => {
 			try {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
 				if (!repositoryService) {
 					throw new Error('Unable to initialize repositoryService');
 				}
@@ -242,14 +250,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				if (!hasChanges) {
 					throw new Error('Nothing to commit');
-				}
-
-				const jobHash = typeof arg0 === 'string' ? arg0 : null;
-
-				if (jobHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
 				}
 
 				const treeItem = await treeDataProvider.getTreeItem(
@@ -278,7 +278,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				await panelInstance.render();
 
-				// @TODO check why branch name can be undefined
 				const currentBranchName = currentBranch.name ?? '';
 
 				panelInstance.setView({
