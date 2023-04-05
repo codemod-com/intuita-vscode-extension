@@ -44,7 +44,7 @@ import { CodemodExecutionProgressWebviewViewProvider } from './components/progre
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
 import type { GitExtension } from '../git.d.ts';
-import { Git } from './components/webview/git';
+import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
 const messageBus = new MessageBus();
@@ -182,6 +182,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const gitExtension =
+		vscode.extensions.getExtension<GitExtension>('vscode.git');
+	const activeGitExtension = gitExtension?.isActive
+		? gitExtension.exports
+		: await gitExtension?.activate();
+
+	const git = activeGitExtension?.getAPI(1);
+
+	const repositoryService = new RepositoryService(git!);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
@@ -206,7 +216,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createPR', async () => {
+		vscode.commands.registerCommand('intuita.createPR', async (arg0) => {
+			const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+			if (jobHash === null) {
+				throw new Error(
+					`Could not decode the first positional arguments: it should have been a string`,
+				);
+			}
+
+			const treeItem = await treeDataProvider.getTreeItem(
+				jobHash as ElementHash,
+			);
+
+			const { label } = treeItem;
+			const jobTitle =
+				typeof label === 'object' ? label.label : label ?? '';
+
 			const panelInstance = IntuitaPanel.getInstance(
 				context,
 				{ getConfiguration },
@@ -214,18 +240,22 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus,
 			);
 
-			
-
 			//@TODO connect in next subtask
-			const baseBranch = sourceControl.getBaseBranchName();
-			const title = 'Title';
-			const body = 'Body';
-			const targetBranch = 'targetBranchName';
+			const baseBranch = repositoryService.getBaseBranchName();
+			const title = jobTitle;
+			const body = 'Add description';
+			const targetBranch = repositoryService.getBranchName(
+				jobHash,
+				jobTitle,
+			);
 
 			await panelInstance.render();
 			panelInstance.setView({
 				viewId: 'createPR',
 				viewProps: {
+					// @TODO allow changing base branch in UI
+					baseBranchOptions: [baseBranch],
+					targetBranchOptions: [targetBranch],
 					initialFormData: { title, body, baseBranch, targetBranch },
 					loading: false,
 					error: '',
@@ -256,9 +286,31 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.createPR',
-			async () => {
+			async (arg0) => {
 				try {
-					await sourceControl.createPR();
+					const codec = buildTypeCodec({
+						title: t.string,
+						body: t.string,
+						baseBranch: t.string,
+						targetBranch: t.string,
+					});
+
+					const decoded = codec.decode(arg0);
+
+					if (decoded._tag === 'Right') {
+						const { html_url } = await sourceControl.createPR(
+							decoded.right,
+						);
+						const messageSelection =
+							await vscode.window.showInformationMessage(
+								`Successfully created PR: ${html_url}`,
+								'View on GitHub',
+							);
+
+						if (messageSelection === 'View on GitHub') {
+							vscode.env.openExternal(vscode.Uri.parse(html_url));
+						}
+					}
 				} catch (e) {
 					console.error(e);
 				}
@@ -323,18 +375,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
-
-	const e = vscode.extensions.getExtension('vscode.git');
-	await e?.activate();
-	const gitExtension =
-		vscode.extensions.getExtension<GitExtension>('vscode.git');
-	const activeGitExtension = gitExtension?.isActive
-		? gitExtension.exports
-		: await gitExtension?.activate();
-
-	const git = activeGitExtension?.getAPI(1);
-
-	const gitService = new Git(git!);
 
 	const textEditorDecorationType =
 		vscode.window.createTextEditorDecorationType({
@@ -870,23 +910,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 				}
 
-				const treeItem = await treeDataProvider.getTreeItem(
-					jobHash as ElementHash,
-				);
-				const { label } = treeItem;
-				const jobTitle =
-					typeof label === 'object' ? label.label : label ?? '';
-			
-
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
 					jobHashes: new Set([jobHash as JobHash]),
 				});
-
-				// @TODO
-				setTimeout(() => {
-					gitService.submitChanges(jobHash, jobTitle);
-				}, 3000);
 			},
 		),
 	);

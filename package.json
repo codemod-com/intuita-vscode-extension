@@ -415,13 +415,12 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.createIssue",
+					"command": "intuita.createPR",
 					"when": "viewItem == jobElement",
-					"group": "inline",
-					"icon": "$(link)"
+					"group": "inline"
 				},
 				{
-					"command": "intuita.createIssue",
+					"command": "intuita.createPR",
 					"when": "viewItem == caseElement",
 					"group": "inline"
 				}

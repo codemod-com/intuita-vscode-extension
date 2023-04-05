@@ -12,6 +12,8 @@ import { vscode } from '../utilities/vscode';
 type Props = {
 	loading: boolean;
 	initialFormData: Partial<FormData>;
+	baseBranchOptions: string[];
+	targetBranchOptions: string[];
 };
 
 type FormData = {
@@ -28,7 +30,12 @@ const initialFormState: FormData = {
 	body: '',
 };
 
-const CreatePR = ({ loading, initialFormData }: Props) => {
+const CreatePR = ({
+	loading,
+	initialFormData,
+	baseBranchOptions,
+	targetBranchOptions,
+}: Props) => {
 	const [formData, setFormData] = useState<FormData>(initialFormState);
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -66,7 +73,12 @@ const CreatePR = ({ loading, initialFormData }: Props) => {
 							});
 						}}
 					>
-						<VSCodeOption value="main"> Main </VSCodeOption>
+						{baseBranchOptions.map((opt, index) => (
+							<VSCodeOption value={opt} key={index}>
+								{' '}
+								{opt}{' '}
+							</VSCodeOption>
+						))}
 					</VSCodeDropdown>
 				</div>
 				<div className={styles.formField}>
@@ -82,7 +94,12 @@ const CreatePR = ({ loading, initialFormData }: Props) => {
 							});
 						}}
 					>
-						<VSCodeOption value="target"> Target </VSCodeOption>
+						{targetBranchOptions.map((opt, index) => (
+							<VSCodeOption value={opt} key={index}>
+								{' '}
+								{opt}{' '}
+							</VSCodeOption>
+						))}
 					</VSCodeDropdown>
 				</div>
 				<VSCodeTextField

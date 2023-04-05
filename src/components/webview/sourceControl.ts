@@ -13,6 +13,10 @@ type CreateIssueResponse = {
 	html_url: string;
 };
 
+type CreatePRResponse = {
+	html_url: string;
+};
+
 export class SourceControlService {
 	constructor(
 		private readonly __configurationService: ConfigurationService,
@@ -20,13 +24,44 @@ export class SourceControlService {
 		private readonly __messageBus: MessageBus,
 	) {}
 
-	// @TODO
-	getBaseBranchName() {
-		return 'MainBranchName';
-	}
+	async createPR(params: {
+		title: string;
+		body: string;
+		baseBranch: string;
+		targetBranch: string;
+	}) {
+		// @TODO repository path is responsibility of RepositoryService
+		const { repositoryPath } =
+			this.__configurationService.getConfiguration();
 
-	async createPR() {
-		throw new Error('Not implemented');
+		if (!repositoryPath) {
+			throw new NotFoundRepositoryPath();
+		}
+
+		const userId = this.__userAccountStorage.getUserAccount();
+
+		if (!userId) {
+			throw new NotFoundIntuitaAccount();
+		}
+
+		const { title, body, baseBranch, targetBranch } = params;
+
+		this.__messageBus.publish({ kind: MessageKind.beforePRCreated });
+
+		const result = await axios.post<CreatePRResponse>(
+			'https://telemetry.intuita.io/sourceControl/github/pulls',
+			{
+				repo: repositoryPath,
+				userId: userId,
+				body: body,
+				title: title,
+				head: targetBranch,
+				base: baseBranch,
+			},
+		);
+
+		this.__messageBus.publish({ kind: MessageKind.afterIssueCreated });
+		return result.data;
 	}
 
 	async createIssue(params: { title: string; body: string }) {
