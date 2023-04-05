@@ -14,7 +14,7 @@ import { watchFile } from '../fileWatcher';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
 
-type PackageUpgradeItem = Readonly<{
+export type PackageUpgradeItem = Readonly<{
 	id: string;
 	packageName: string;
 	name: string;
@@ -24,7 +24,7 @@ type PackageUpgradeItem = Readonly<{
 	leastSupportedUpgrade: string;
 }>;
 
-const commandList: Record<string, string> = {
+export const commandList: Record<string, string> = {
 	next13: 'intuita.executeNextJsCodemods',
 	next13experimental: 'intuita.executeNextJsExperimentalCodemods',
 	materialUI5: 'intuita.executeMuiCodemods',
@@ -35,7 +35,7 @@ const commandList: Record<string, string> = {
 };
 
 // TODO: get this from an API
-const packageUpgradeList: PackageUpgradeItem[] = [
+export const packageUpgradeList: PackageUpgradeItem[] = [
 	{
 		id: 'next13',
 		packageName: 'next',
@@ -100,6 +100,10 @@ const packageUpgradeList: PackageUpgradeItem[] = [
 		leastSupportedUpgrade: '3.0.0',
 	},
 ];
+
+export const packageListMap = new Map<string, PackageUpgradeItem>(
+	packageUpgradeList.map((item) => [item.id, item]),
+);
 
 const buildCodemodItemHash = (codemodItem: CodemodItem) => {
 	return buildHash(
@@ -223,10 +227,11 @@ class CodemodTreeProvider {
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
-			const checkedDependency = this.checkIfCodemodIsAvailable(
-				key,
-				foundDependencies[key] as string,
-			);
+			const checkedDependency =
+				CodemodTreeProvider.checkIfCodemodIsAvailable(
+					key,
+					foundDependencies[key] as string,
+				);
 			if (checkedDependency && checkedDependency.length > 0) {
 				dependencyCodemods =
 					dependencyCodemods.concat(checkedDependency);
@@ -261,7 +266,7 @@ class CodemodTreeProvider {
 		return true;
 	}
 
-	private checkIfCodemodIsAvailable(
+	public static checkIfCodemodIsAvailable(
 		dependencyName: string,
 		version: string,
 	): null | readonly PackageUpgradeItem[] {
