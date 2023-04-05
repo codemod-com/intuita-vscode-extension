@@ -373,49 +373,49 @@ export async function activate(context: vscode.ExtensionContext) {
 			const dependency = dependencyMatcher?.[1];
 			const version = dependencyMatcher?.[2];
 
-			if (dependency && version) {
-				const checkedDependency = checkIfCodemodIsAvailable(
-					dependency,
-					version,
+			if (!dependency || !version) {
+				continue;
+			}
+			const checkedDependency = checkIfCodemodIsAvailable(
+				dependency,
+				version,
+			);
+			if (checkedDependency && checkedDependency.length) {
+				ranges.push([
+					textLine.range,
+					checkedDependency.reduce((acc, curr) => {
+						acc.push(curr);
+						return acc;
+					}, [] as PackageUpgradeItem[]),
+				]);
+			}
+			if (
+				Object.keys(dependencies).includes(dependency) &&
+				(!checkedDependency || !checkedDependency?.length)
+			) {
+				const codmodsAvaliable = packageUpgradeList.find(
+					(el) => el.packageName === dependency,
 				);
-				if (checkedDependency && checkedDependency.length) {
-					ranges.push([
-						textLine.range,
-						checkedDependency.reduce((acc, curr) => {
-							acc.push(curr);
-							return acc;
-						}, [] as PackageUpgradeItem[]),
-					]);
-				}
 				if (
-					Object.keys(dependencies).includes(dependency) &&
-					(!checkedDependency || !checkedDependency?.length)
+					!textLine.range.intersection(selection) ||
+					codmodsAvaliable
 				) {
-					const codmodsAvaliable = packageUpgradeList.find(
-						(el) => el.packageName === dependency,
-					);
-					if (
-						!textLine.range.intersection(selection) ||
-						codmodsAvaliable
-					) {
-						continue;
-					}
-					packagesWithNoCodemod.push([
-						textLine.range,
-						{
-							dependency,
-							version,
-						},
-					]);
+					continue;
 				}
+				packagesWithNoCodemod.push([
+					textLine.range,
+					{
+						dependency,
+						version,
+					},
+				]);
 			}
 		}
 
 		const rangesWithDependency: vscode.DecorationOptions[] =
-			// TODO: check if we already have a codemod for this dependency ( and the current version is the latest )
 			packagesWithNoCodemod.map(([range, { version, dependency }]) => {
 				const commandUri = vscode.Uri.parse(
-					`https://github.com/intuita-inc/intuita-vscode-extension/issues/new`,
+					'https://github.com/intuita-inc/codemod-registry/issues/new',
 				);
 
 				const hoverMessage = new vscode.MarkdownString(
