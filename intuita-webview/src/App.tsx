@@ -3,6 +3,11 @@ import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
 import WarningMessage from './WarningMessage';
+import CreatePR from './CreatePRView';
+import type {
+	View,
+	WebviewMessage,
+} from '../../src/components/webview/IntuitaPanel';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -12,68 +17,44 @@ declare global {
 	}
 }
 
-enum MessageKind {
-	onAfterLinkedAccount = 26,
-	onAfterUnlinkedAccount = 27,
-	onAfterConfigurationChanged = 28,
-	onBeforeCreateIssue = 29,
-	onAfterCreateIssue = 30,
-}
-
-type Message =
-	| Readonly<{
-			kind: MessageKind.onAfterUnlinkedAccount;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterLinkedAccount;
-			account: string;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterConfigurationChanged;
-			nextConfiguration: {
-				repositoryPath: string;
-			};
-	  }>
-	| Readonly<{
-			kind: MessageKind.onBeforeCreateIssue;
-	  }>
-	| Readonly<{
-			kind: MessageKind.onAfterCreateIssue;
-	  }>;
+const getViewComponent = (viewId: View['viewId']) => {
+	switch (viewId) {
+		case 'createIssue': {
+			return CreateIssue;
+		}
+		case 'createPR':
+			return CreatePR;
+	}
+};
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState(
-		!!window.INITIAL_STATE.repositoryPath,
+	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
+		window.INITIAL_STATE.repositoryPath,
 	);
-	const [linkedAccount, setLinkedAccount] = useState(
-		!!window.INITIAL_STATE.userId,
+	const [linkedAccount, setLinkedAccount] = useState<string | null>(
+		window.INITIAL_STATE.userId,
 	);
-	const [loading, setLoading] = useState(false);
+
+	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<Message>) => {
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+	}, []);
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
-			if (message.kind === MessageKind.onAfterLinkedAccount) {
-				setLinkedAccount(true);
+			if (message.kind === 'webview.global.setUserAccount') {
+				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === MessageKind.onAfterUnlinkedAccount) {
-				setLinkedAccount(false);
+			if (message.kind === 'webview.global.setConfiguration') {
+				setConfiguredRepoPath(message.value.repositoryPath);
 			}
 
-			if (message.kind === MessageKind.onAfterConfigurationChanged) {
-				const hasConfigPath =
-					!!message.nextConfiguration.repositoryPath.trim().length;
-				setConfiguredRepoPath(hasConfigPath);
-			}
-
-			if (message.kind === MessageKind.onBeforeCreateIssue) {
-				setLoading(true);
-			}
-
-			if (message.kind === MessageKind.onAfterCreateIssue) {
-				setLoading(false);
+			if (message.kind === 'webview.global.setView') {
+				setView(message.value);
 			}
 		};
 
@@ -86,45 +67,49 @@ function App() {
 
 	const handleLinkAccount = () => {
 		vscode.postMessage({
-			command: 'intuita.redirect',
-			value: 'https://codemod.studio/auth/sign-in',
+			kind: 'webview.global.redirectToSignIn',
 		});
 	};
 
 	const handleOpenExtensionSettings = () => {
 		vscode.postMessage({
-			command: 'workbench.action.openSettings',
-			value: '@ext:Intuita.intuita-vscode-extension',
+			kind: 'webview.global.openConfiguration',
 		});
 	};
 
+	if (!configuredRepoPath) {
+		return (
+			<WarningMessage
+				message="In order to create issues, configure you repository settings"
+				actionButtons={[
+					<VSCodeButton onClick={handleOpenExtensionSettings}>
+						Open settings
+					</VSCodeButton>,
+				]}
+			/>
+		);
+	}
+
+	if (!linkedAccount) {
+		<WarningMessage
+			message="In order to create issues, link your Intuita account"
+			actionButtons={[
+				<VSCodeButton onClick={handleLinkAccount}>
+					Link account
+				</VSCodeButton>,
+			]}
+		/>;
+	}
+
+	if (!view) {
+		return null;
+	}
+
+	const ViewComponent = getViewComponent(view.viewId);
+
 	return (
 		<main className="App">
-			{configuredRepoPath && linkedAccount ? (
-				<CreateIssue loading={loading} />
-			) : null}
-
-			{!configuredRepoPath ? (
-				<WarningMessage
-					message="In order to create issues, configure you repository settings"
-					actionButtons={[
-						<VSCodeButton onClick={handleOpenExtensionSettings}>
-							Open settings
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
-
-			{!linkedAccount ? (
-				<WarningMessage
-					message="In order to create issues, link your Intuita account"
-					actionButtons={[
-						<VSCodeButton onClick={handleLinkAccount}>
-							Link account{' '}
-						</VSCodeButton>,
-					]}
-				/>
-			) : null}
+			<ViewComponent {...view.viewProps} />
 		</main>
 	);
 }

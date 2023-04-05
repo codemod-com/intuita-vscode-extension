@@ -3,23 +3,35 @@ import {
 	VSCodeTextArea,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { vscode } from '../utilities/vscode';
 import styles from './style.module.css';
 
-type Props = {
+type Props = Readonly<{
 	loading: boolean;
-};
+	initialFormData: Partial<{
+		title: string;
+		description: string;
+	}>;
+}>;
 
-const CreateIssue = ({ loading }: Props) => {
+const CreateIssue = ({ loading, initialFormData }: Props) => {
 	const [title, setTitle] = useState('');
 	const [body, setBody] = useState('');
+
+	const { title: initialTitle } = initialFormData;
+
+	useEffect(() => {
+		if (initialTitle) {
+			setTitle(initialTitle);
+		}
+	}, [initialTitle]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		vscode.postMessage({
-			command: 'intuita.sourceControl.submitIssue',
+			kind: 'webview.createIssue.submitIssue',
 			value: {
 				title,
 				body,

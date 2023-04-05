@@ -1,12 +1,20 @@
-import { TreeItem, TreeItemCollapsibleState, commands, window } from 'vscode';
+import {
+	TreeItem,
+	TreeItemCollapsibleState,
+	commands,
+	window,
+	Event,
+	EventEmitter,
+} from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
-import { buildHash, isNeitherNullNorUndefined } from '../utilities';
+import { buildHash, debounce, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
+import { watchFile } from '../fileWatcher';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
 
-type PackageUpgradeItem = Readonly<{
+export type PackageUpgradeItem = Readonly<{
 	id: string;
 	packageName: string;
 	name: string;
@@ -16,7 +24,7 @@ type PackageUpgradeItem = Readonly<{
 	leastSupportedUpgrade: string;
 }>;
 
-const commandList: Record<string, string> = {
+export const commandList: Record<string, string> = {
 	next13: 'intuita.executeNextJsCodemods',
 	next13experimental: 'intuita.executeNextJsExperimentalCodemods',
 	materialUI5: 'intuita.executeMuiCodemods',
@@ -27,7 +35,7 @@ const commandList: Record<string, string> = {
 };
 
 // TODO: get this from an API
-const packageUpgradeList: PackageUpgradeItem[] = [
+export const packageUpgradeList: PackageUpgradeItem[] = [
 	{
 		id: 'next13',
 		packageName: 'next',
@@ -93,10 +101,45 @@ const packageUpgradeList: PackageUpgradeItem[] = [
 	},
 ];
 
+export const packageListMap = new Map<string, PackageUpgradeItem>(
+	packageUpgradeList.map((item) => [item.id, item]),
+);
+
 const buildCodemodItemHash = (codemodItem: CodemodItem) => {
 	return buildHash(
 		`${codemodItem.label} ${codemodItem.id} ${codemodItem.commandToExecute}`,
 	) as CodemodHash;
+};
+
+const checkIfCodemodIsAvailable = (
+	dependencyName: string,
+	version: string,
+): null | readonly PackageUpgradeItem[] => {
+	// replace ^, ~ , *
+	const actualVersion = version.replace(/[^0-9.]/g, '');
+
+	const codemod = packageUpgradeList.filter(
+		(el) => el.packageName === dependencyName,
+	);
+
+	if (!codemod.length) {
+		return null;
+	}
+
+	return codemod
+		.map((el) => {
+			const { leastVersionSupported, leastSupportedUpgrade } = el;
+
+			if (
+				actualVersion < leastVersionSupported &&
+				actualVersion >= leastSupportedUpgrade
+			) {
+				return el;
+			}
+
+			return null;
+		})
+		.filter(isNeitherNullNorUndefined);
 };
 
 class CodemodItem extends TreeItem {
@@ -124,20 +167,27 @@ class CodemodItem extends TreeItem {
 }
 
 class CodemodTreeProvider {
-	rootPath: string | null | undefined;
+	#packageJsonPath: string | null;
 	#messageBus: MessageBus;
 	#codemodItemsMap: Map<CodemodHash, CodemodItem> = new Map();
+	#watchedPackageJson: ReturnType<typeof watchFile> | undefined;
+	readonly #eventEmitter = new EventEmitter<void>();
+	public readonly onDidChangeTreeData: Event<void>;
 
-	constructor(path: string | null, messageBus: MessageBus) {
-		this.rootPath = path;
-		if (!this.rootPath) {
+	constructor(rootPath: string | null, messageBus: MessageBus) {
+		const packageJsonPath = rootPath && path.join(rootPath, 'package.json');
+		this.#packageJsonPath =
+			packageJsonPath && this.pathExists(packageJsonPath)
+				? packageJsonPath
+				: null;
+		if (!this.#packageJsonPath) {
 			this.showRootPathUndefinedMessage();
 		}
 
-		const dependencies = this.getDepsInPackageJson();
-		if (dependencies) {
-			this.#codemodItemsMap = dependencies;
-		}
+		this.#messageBus = messageBus;
+		this.#watchedPackageJson = this.watchPackageJson();
+		this.updateCodemodItemsMap();
+		this.onDidChangeTreeData = this.#eventEmitter.event;
 		this.#messageBus = messageBus;
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
 			const codemodItemFound = this.getTreeItem(
@@ -145,6 +195,32 @@ class CodemodTreeProvider {
 			);
 			this.runCodemod(codemodItemFound.commandToExecute);
 		});
+
+		this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => {
+			this.dispose();
+		});
+	}
+
+	watchPackageJson() {
+		if (!this.#packageJsonPath) {
+			return;
+		}
+		return watchFile(
+			this.#packageJsonPath,
+			debounce(this.updateCodemodItemsMap.bind(this), 50),
+		);
+	}
+
+	dispose() {
+		this.#watchedPackageJson?.dispose();
+	}
+
+	updateCodemodItemsMap() {
+		const dependencies = this.getDepsInPackageJson();
+		if (dependencies) {
+			this.#codemodItemsMap = dependencies;
+			this.#eventEmitter.fire();
+		}
 	}
 
 	showRootPathUndefinedMessage() {
@@ -154,10 +230,9 @@ class CodemodTreeProvider {
 	}
 
 	getChildren(): CodemodHash[] {
-		if (!this.rootPath) {
+		if (!this.#packageJsonPath) {
 			return [];
 		}
-
 		return Array.from(this.#codemodItemsMap.keys());
 	}
 
@@ -170,24 +245,20 @@ class CodemodTreeProvider {
 	}
 
 	private getDepsInPackageJson(): Map<CodemodHash, CodemodItem> | null {
-		if (!this.rootPath) {
+		if (!this.#packageJsonPath) {
 			return null;
 		}
 
-		const packageJsonPath = path.join(this.rootPath, 'package.json');
-		if (!this.pathExists(packageJsonPath)) {
-			return null;
-		}
-
-		const document = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
+		const document = JSON.parse(
+			readFileSync(this.#packageJsonPath, 'utf-8'),
+		) as {
 			dependencies: Record<string, string>;
 		};
-
 		let dependencyCodemods: PackageUpgradeItem[] = [];
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
-			const checkedDependency = this.checkIfCodemodIsAvailable(
+			const checkedDependency = checkIfCodemodIsAvailable(
 				key,
 				foundDependencies[key] as string,
 			);
@@ -211,8 +282,9 @@ class CodemodTreeProvider {
 
 				const hash = buildCodemodItemHash(codemodItem);
 				acc.set(hash, codemodItem);
+
 				return acc;
-			}, new Map() as Map<CodemodHash, CodemodItem>);
+			}, new Map<CodemodHash, CodemodItem>());
 	}
 
 	private pathExists(p: string): boolean {
@@ -223,37 +295,6 @@ class CodemodTreeProvider {
 		}
 		return true;
 	}
-
-	private checkIfCodemodIsAvailable(
-		dependencyName: string,
-		version: string,
-	): null | readonly PackageUpgradeItem[] {
-		// replace ^, ~ , *
-		const actualVersion = version.replace(/[^0-9.]/g, '');
-
-		const codemod = packageUpgradeList.filter(
-			(el) => el.packageName === dependencyName,
-		);
-
-		if (!codemod.length) {
-			return null;
-		}
-
-		return codemod
-			.map((el) => {
-				const { leastVersionSupported, leastSupportedUpgrade } = el;
-
-				if (
-					actualVersion < leastVersionSupported &&
-					actualVersion >= leastSupportedUpgrade
-				) {
-					return el;
-				}
-
-				return null;
-			})
-			.filter(isNeitherNullNorUndefined);
-	}
 }
 
-export { CodemodItem, CodemodTreeProvider };
+export { CodemodItem, CodemodTreeProvider, checkIfCodemodIsAvailable };

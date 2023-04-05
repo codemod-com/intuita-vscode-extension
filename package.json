@@ -46,9 +46,17 @@
 			{
 				"view": "explorerIntuitaViewId",
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+			},
+			{
+				"view": "intuita-available-codemod-tree-view",
+				"contents": "No available codemods right now based on package.json file. Please check back later!"
 			}
 		],
 		"commands": [
+			{
+				"command": "intuita.createPR",
+				"title": "Intuita: Create a Pull Request"
+			},
 			{
 				"command": "intuita.showPanel",
 				"title": "Intuita:show panel"
@@ -147,6 +155,16 @@
 			{
 				"command": "intuita.sendAsAfterSnippet",
 				"title": "Intuita: Send as After Snippet to the Codemod Studio"
+			},
+			{
+				"command": "intuita.createIssue",
+				"title": "Create Issue",
+				"icon": "$(github)"
+			},
+			{
+				"command": "intuita.createPR",
+				"title": "Create a Pull Request",
+				"icon": "$(github)"
 			}
 		],
 		"configuration": {
@@ -393,6 +411,17 @@
 				},
 				{
 					"command": "intuita.rejectCase",
+					"when": "viewItem == caseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createIssue",
+					"when": "viewItem == jobElement",
+					"group": "inline",
+					"icon": "$(link)"
+				},
+				{
+					"command": "intuita.createIssue",
 					"when": "viewItem == caseElement",
 					"group": "inline"
 				}

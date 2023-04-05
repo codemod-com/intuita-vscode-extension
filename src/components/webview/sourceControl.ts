@@ -20,6 +20,15 @@ export class SourceControlService {
 		private readonly __messageBus: MessageBus,
 	) {}
 
+	// @TODO
+	getBaseBranchName() {
+		return 'MainBranchName';
+	}
+
+	async createPR() {
+		throw new Error('Not implemented');
+	}
+
 	async createIssue(params: { title: string; body: string }) {
 		const { repositoryPath } =
 			this.__configurationService.getConfiguration();
@@ -36,7 +45,7 @@ export class SourceControlService {
 
 		const { title, body } = params;
 
-		this.__messageBus.publish({ kind: MessageKind.onBeforeCreateIssue });
+		this.__messageBus.publish({ kind: MessageKind.beforeIssueCreated });
 
 		const result = await axios.post<CreateIssueResponse>(
 			'https://telemetry.intuita.io/sourceControl/github/issues',
@@ -48,7 +57,7 @@ export class SourceControlService {
 			},
 		);
 
-		this.__messageBus.publish({ kind: MessageKind.onAfterCreateIssue });
+		this.__messageBus.publish({ kind: MessageKind.afterIssueCreated });
 		return result.data;
 	}
 }

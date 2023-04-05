@@ -1,4 +1,5 @@
 import type { WebviewApi } from 'vscode-webview';
+import { WebviewResponse } from '../../../src/components/webview/IntuitaPanel';
 
 class VSCodeAPIWrapper {
 	private readonly vsCodeApi: WebviewApi<unknown> | undefined;
@@ -9,7 +10,7 @@ class VSCodeAPIWrapper {
 		}
 	}
 
-	public postMessage(message: unknown) {
+	public postMessage(message: WebviewResponse) {
 		if (this.vsCodeApi) {
 			this.vsCodeApi.postMessage(message);
 		} else {

@@ -58,15 +58,11 @@ export class PersistedStateService {
 		const jobs = Array.from(this.jobManager.getJobs()).map((job) =>
 			mapJobToPersistedJob(job),
 		);
-		const rejectedJobHashes = Array.from(
-			this.jobManager.getRejectedJobHashes(),
-		);
 
 		return {
 			cases,
 			caseHashJobHashes,
 			jobs,
-			rejectedJobHashes,
 		};
 	}
 
@@ -87,7 +83,6 @@ export class PersistedStateService {
 			cases: [],
 			caseHashJobHashes: [],
 			jobs: [],
-			rejectedJobHashes: [],
 		};
 
 		const buffer = Buffer.from(JSON.stringify(persistedState));
