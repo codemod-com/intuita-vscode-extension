@@ -1,5 +1,6 @@
 import { APIState } from '../../../git';
 import { API, Repository } from '../../../git';
+import { assertsNeitherNullOrUndefined } from '../../utilities';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str.toLowerCase();
@@ -38,30 +39,23 @@ export class RepositoryService {
 		}
 	};
 
-	private ensureRepoInitialized(
-		this: RepositoryService,
-	): asserts this is { __repo: Repository } {
-		if (!this.__repo) {
-			throw new UninitializedError();
-		}
-	}
 
 	public getAllBranches = async () => {
 		// @TODO instead of this checks in each methods, just init repo before creating service...
 		// repo service should not exist without repo...
-		this.ensureRepoInitialized();
+		assertsNeitherNullOrUndefined(this.__repo);
 
 		return this.__repo.getBranches({ remote: true });
 	};
 
 	public getCurrentBranch = async () => {
-		this.ensureRepoInitialized();
+		assertsNeitherNullOrUndefined(this.__repo);
 
 		return this.__repo.state.HEAD;
 	};
 
 	public getWorkingTreeChanges = async () => {
-		this.ensureRepoInitialized();
+		assertsNeitherNullOrUndefined(this.__repo);
 
 		return this.__repo.state.workingTreeChanges;
 	};
@@ -81,7 +75,7 @@ export class RepositoryService {
 	};
 
 	public submitChanges = async (branchName: string) => {
-		this.ensureRepoInitialized();
+		assertsNeitherNullOrUndefined(this.__repo);
 
 		await this.__repo.createBranch(branchName, true);
 		await this.__repo.add([]);

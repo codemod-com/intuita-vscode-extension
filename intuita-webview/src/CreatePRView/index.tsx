@@ -75,8 +75,7 @@ const CreatePR = ({
 					>
 						{baseBranchOptions.map((opt, index) => (
 							<VSCodeOption value={opt} key={index}>
-								{' '}
-								{opt}{' '}
+								{opt}
 							</VSCodeOption>
 						))}
 					</VSCodeDropdown>
@@ -96,8 +95,7 @@ const CreatePR = ({
 					>
 						{targetBranchOptions.map((opt, index) => (
 							<VSCodeOption value={opt} key={index}>
-								{' '}
-								{opt}{' '}
+								{opt}
 							</VSCodeOption>
 						))}
 					</VSCodeDropdown>
