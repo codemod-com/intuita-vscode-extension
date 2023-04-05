@@ -39,7 +39,6 @@ export class RepositoryService {
 		}
 	};
 
-
 	public getAllBranches = async () => {
 		// @TODO instead of this checks in each methods, just init repo before creating service...
 		// repo service should not exist without repo...
