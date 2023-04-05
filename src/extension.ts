@@ -43,6 +43,7 @@ import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import {
+	checkIfCodemodIsAvailable,
 	CodemodHash,
 	CodemodTreeProvider,
 	commandList,
@@ -373,11 +374,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			const version = dependencyMatcher?.[2];
 
 			if (dependency && version) {
-				const checkedDependency =
-					CodemodTreeProvider.checkIfCodemodIsAvailable(
-						dependency,
-						version,
-					);
+				const checkedDependency = checkIfCodemodIsAvailable(
+					dependency,
+					version,
+				);
 				if (checkedDependency && checkedDependency.length) {
 					ranges.push([
 						textLine.range,

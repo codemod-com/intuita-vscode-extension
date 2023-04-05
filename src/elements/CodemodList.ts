@@ -111,6 +111,37 @@ const buildCodemodItemHash = (codemodItem: CodemodItem) => {
 	) as CodemodHash;
 };
 
+const checkIfCodemodIsAvailable = (
+	dependencyName: string,
+	version: string,
+): null | readonly PackageUpgradeItem[] => {
+	// replace ^, ~ , *
+	const actualVersion = version.replace(/[^0-9.]/g, '');
+
+	const codemod = packageUpgradeList.filter(
+		(el) => el.packageName === dependencyName,
+	);
+
+	if (!codemod.length) {
+		return null;
+	}
+
+	return codemod
+		.map((el) => {
+			const { leastVersionSupported, leastSupportedUpgrade } = el;
+
+			if (
+				actualVersion < leastVersionSupported &&
+				actualVersion >= leastSupportedUpgrade
+			) {
+				return el;
+			}
+
+			return null;
+		})
+		.filter(isNeitherNullNorUndefined);
+};
+
 class CodemodItem extends TreeItem {
 	readonly kind: string;
 	constructor(
@@ -227,11 +258,10 @@ class CodemodTreeProvider {
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
-			const checkedDependency =
-				CodemodTreeProvider.checkIfCodemodIsAvailable(
-					key,
-					foundDependencies[key] as string,
-				);
+			const checkedDependency = checkIfCodemodIsAvailable(
+				key,
+				foundDependencies[key] as string,
+			);
 			if (checkedDependency && checkedDependency.length > 0) {
 				dependencyCodemods =
 					dependencyCodemods.concat(checkedDependency);
@@ -265,37 +295,6 @@ class CodemodTreeProvider {
 		}
 		return true;
 	}
-
-	public static checkIfCodemodIsAvailable(
-		dependencyName: string,
-		version: string,
-	): null | readonly PackageUpgradeItem[] {
-		// replace ^, ~ , *
-		const actualVersion = version.replace(/[^0-9.]/g, '');
-
-		const codemod = packageUpgradeList.filter(
-			(el) => el.packageName === dependencyName,
-		);
-
-		if (!codemod.length) {
-			return null;
-		}
-
-		return codemod
-			.map((el) => {
-				const { leastVersionSupported, leastSupportedUpgrade } = el;
-
-				if (
-					actualVersion < leastVersionSupported &&
-					actualVersion >= leastSupportedUpgrade
-				) {
-					return el;
-				}
-
-				return null;
-			})
-			.filter(isNeitherNullNorUndefined);
-	}
 }
 
-export { CodemodItem, CodemodTreeProvider };
+export { CodemodItem, CodemodTreeProvider, checkIfCodemodIsAvailable };
