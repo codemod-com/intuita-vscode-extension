@@ -40,4 +40,13 @@ export const debounce = <R>(callback: (...args: any[]) => R, ms: number) => {
 	};
 };
 
+export const timeout = (ms: number) =>
+	new Promise((_, reject) =>
+		setTimeout(
+			() =>
+				reject(new Error('Timeout while looking for a git repository')),
+			ms,
+		),
+	);
+
 export const singleQuotify = (str: string) => `'${str}'`;
