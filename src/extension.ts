@@ -43,9 +43,10 @@ import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { CodemodHash, CodemodTreeProvider } from './elements/CodemodList';
-import type { GitExtension } from '../git.d.ts';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
+
+import type { GitExtension } from '../git';
 
 const messageBus = new MessageBus();
 
@@ -190,7 +191,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const git = activeGitExtension?.getAPI(1);
 
-	const repositoryService = new RepositoryService(git!);
+	const repositoryService = git ? new RepositoryService(git) : null;
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
@@ -217,50 +218,81 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createPR', async (arg0) => {
-			const jobHash = typeof arg0 === 'string' ? arg0 : null;
+			try {
+				if (!repositoryService) {
+					throw new Error('Unable to initialize repositoryService');
+				}
 
-			if (jobHash === null) {
-				throw new Error(
-					`Could not decode the first positional arguments: it should have been a string`,
+				const currentBranch =
+					await repositoryService.getCurrentBranch();
+
+				if (!currentBranch) {
+					throw new Error('Unable to get HEAD');
+				}
+
+				const hasChanges =
+					await repositoryService.hasWorkingTreeChanges();
+
+				if (!hasChanges) {
+					throw new Error('Nothing to commit');
+				}
+
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				const treeItem = await treeDataProvider.getTreeItem(
+					jobHash as ElementHash,
 				);
+
+				const { label } = treeItem;
+				const jobTitle =
+					typeof label === 'object' ? label.label : label ?? '';
+
+				const panelInstance = IntuitaPanel.getInstance(
+					context,
+					{ getConfiguration },
+					globalStateAccountStorage,
+					messageBus,
+				);
+
+				// @TODO figure out more informative title and description
+				const title = jobTitle;
+				const body = 'Add description';
+
+				const targetBranch = repositoryService.getBranchName(
+					jobHash,
+					jobTitle,
+				);
+
+				await panelInstance.render();
+
+				// @TODO check why branch name can be undefined
+				const currentBranchName = currentBranch.name ?? '';
+
+				panelInstance.setView({
+					viewId: 'createPR',
+					viewProps: {
+						// branching from current branch
+						baseBranchOptions: [currentBranchName],
+						targetBranchOptions: [targetBranch],
+						initialFormData: {
+							title,
+							body,
+							baseBranch: currentBranchName,
+							targetBranch,
+						},
+						loading: false,
+						error: '',
+					},
+				});
+			} catch (e) {
+				vscode.window.showErrorMessage((e as Error).message);
 			}
-
-			const treeItem = await treeDataProvider.getTreeItem(
-				jobHash as ElementHash,
-			);
-
-			const { label } = treeItem;
-			const jobTitle =
-				typeof label === 'object' ? label.label : label ?? '';
-
-			const panelInstance = IntuitaPanel.getInstance(
-				context,
-				{ getConfiguration },
-				globalStateAccountStorage,
-				messageBus,
-			);
-
-			//@TODO connect in next subtask
-			const baseBranch = repositoryService.getBaseBranchName();
-			const title = jobTitle;
-			const body = 'Add description';
-			const targetBranch = repositoryService.getBranchName(
-				jobHash,
-				jobTitle,
-			);
-
-			await panelInstance.render();
-			panelInstance.setView({
-				viewId: 'createPR',
-				viewProps: {
-					// @TODO allow changing base branch in UI
-					baseBranchOptions: [baseBranch],
-					targetBranchOptions: [targetBranch],
-					initialFormData: { title, body, baseBranch, targetBranch },
-					loading: false,
-					error: '',
-				},
-			});
 		}),
 	);
 
@@ -288,6 +320,11 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.createPR',
 			async (arg0) => {
 				try {
+					if (!repositoryService) {
+						throw new Error(
+							'Unable to initialize repositoryService',
+						);
+					}
 					const codec = buildTypeCodec({
 						title: t.string,
 						body: t.string,
@@ -298,6 +335,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
+						await repositoryService.submitChanges(
+							decoded.right.targetBranch,
+						);
+
 						const { html_url } = await sourceControl.createPR(
 							decoded.right,
 						);
@@ -312,7 +353,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} catch (e) {
-					console.error(e);
+					vscode.window.showWarningMessage((e as Error).message);
 				}
 			},
 		),

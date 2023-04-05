@@ -45,7 +45,6 @@ export class SourceControlService {
 		}
 
 		const { title, body, baseBranch, targetBranch } = params;
-
 		this.__messageBus.publish({ kind: MessageKind.beforePRCreated });
 
 		const result = await axios.post<CreatePRResponse>(

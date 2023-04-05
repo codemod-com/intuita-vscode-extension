@@ -166,7 +166,7 @@ export class JobManager {
 			const moveJobOutputs: [Uri, Uri, Uri][] = [];
 
 			for (const {
-				uriHash,
+				// uriHash,
 				jobHashes,
 			} of this.#getUriHashesWithJobHashes(message.jobHashes)) {
 				const jobs = Array.from(jobHashes)
@@ -228,16 +228,16 @@ export class JobManager {
 						false,
 					]);
 				}
+				// We should not delete the job after "apply". User may want to create PR for this job
+				// const otherJobHashes =
+				// 	this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
+				// 		uriHash,
+				// 	);
 
-				const otherJobHashes =
-					this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
-						uriHash,
-					);
-
-				for (const jobHash of otherJobHashes) {
-					this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
-					this.#jobMap.delete(jobHash);
-				}
+				// for (const jobHash of otherJobHashes) {
+				// 	this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
+				// 	this.#jobMap.delete(jobHash);
+				// }
 			}
 
 			// TODO here

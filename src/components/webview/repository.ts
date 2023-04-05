@@ -46,26 +46,30 @@ export class RepositoryService {
 		}
 	}
 
-	private getBranch = async (name: string) => {
+	public getAllBranches = async () => {
+		// @TODO instead of this checks in each methods, just init repo before creating service...
+		// repo service should not exist without repo...
 		this.ensureRepoInitialized();
 
-		return this.__repo.getBranch(name);
+		return this.__repo.getBranches({ remote: true });
 	};
 
-	private getRemotes = async () => {
+	public getCurrentBranch = async () => {
 		this.ensureRepoInitialized();
-		return this.__repo.state.remotes;
+
+		return this.__repo.state.HEAD;
 	};
 
-	private commitAll = async (message: string) => {
+	public getWorkingTreeChanges = async () => {
 		this.ensureRepoInitialized();
-		this.__repo.add([]);
-		return this.__repo.commit(message, { all: true });
+
+		return this.__repo.state.workingTreeChanges;
 	};
 
-	private push = async () => {
-		this.ensureRepoInitialized();
-		this.__repo.push();
+	public hasWorkingTreeChanges = async () => {
+		const changes = await this.getWorkingTreeChanges();
+
+		return changes.length !== 0;
 	};
 
 	public getBranchName = (jobHash: string, jobTitle: string) => {
@@ -73,16 +77,15 @@ export class RepositoryService {
 	};
 
 	public getBaseBranchName = () => {
-		// @TODO probably will have to make call to cli git
 		return 'main';
 	};
 
-	public submitChanges = async (jobHash: string, jobTitle: string) => {
+	public submitChanges = async (branchName: string) => {
 		this.ensureRepoInitialized();
 
-		const branchName = this.getBranchName(jobHash, jobTitle);
-		this.__repo.createBranch(branchName, true);
-		this.commitAll('Test commit');
-		this.__repo.push('origin', branchName, true);
+		await this.__repo.createBranch(branchName, true);
+		await this.__repo.add([]);
+		await this.__repo.commit('Test commit', { all: true });
+		await this.__repo.push('origin', branchName, true);
 	};
 }
