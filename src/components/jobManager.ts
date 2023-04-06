@@ -250,16 +250,6 @@ export class JobManager {
 						false,
 					]);
 				}
-				// We should not delete the job after "apply". User may want to create PR for this job
-				// const otherJobHashes =
-				// 	this.#uriHashJobHashSetManager.getRightHashesByLeftHash(
-				// 		uriHash,
-				// 	);
-
-				// for (const jobHash of otherJobHashes) {
-				// 	this.#uriHashJobHashSetManager.delete(uriHash, jobHash);
-				// 	this.#jobMap.delete(jobHash);
-				// }
 			}
 
 			// TODO here
