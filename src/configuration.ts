@@ -104,12 +104,10 @@ export class DefaultConfigurationClass {
 					resolve(repo.state.remotes[0]?.fetchUrl);
 				});
 			});
-		} else {
-			const remotePath =
-				gitApi.repositories[0]?.state.remotes[0]?.pushUrl;
-			if (remotePath) {
-				return resolve(remotePath);
-			}
+		}
+		const remotePath = gitApi.repositories[0]?.state.remotes[0]?.pushUrl;
+		if (remotePath) {
+			return resolve(remotePath);
 		}
 	};
 }
