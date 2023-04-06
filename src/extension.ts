@@ -11,7 +11,7 @@ import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
-import { EngineService } from './components/engineService';
+import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
@@ -33,7 +33,6 @@ import {
 	projectNameCodec,
 	PROJECT_NAMES,
 	RECIPE_MAP,
-	RecipeName,
 	recipeNameCodec,
 } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
@@ -1265,9 +1264,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				);
 
 				const text = document.getText();
+
+				// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
+				if (!text) {
+					vscode.window.showWarningMessage(Messages.noImportedMod);
+					return;
+				}
+
 				const buffer = Buffer.from(text);
 				const content = new Uint8Array(buffer);
-
 				vscode.workspace.fs.writeFile(modUri, content);
 
 				const happenedAt = String(Date.now());
