@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- * Sourced from https://github.com/gitkraken/vscode-gitlens/blob/main/src/%40types/vscode.git.d.ts
+ *  Sourced from https://github.com/gitkraken/vscode-gitlens/blob/main/src/%40types/vscode.git.d.ts
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
