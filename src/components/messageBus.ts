@@ -61,7 +61,7 @@ export const enum MessageKind {
 	configurationChanged = 28,
 
 	/**
-	 * source control
+	 * create issue
 	 */
 
 	beforeIssueCreated = 29,
@@ -72,6 +72,13 @@ export const enum MessageKind {
 	showProgress = 31,
 	/** run codemod */
 	runCodemod = 32,
+
+	/**
+	 * create PR
+	 */
+
+	beforePRCreated = 33,
+	afterPRCreated = 34,
 }
 
 export type Engine = 'node' | 'rust';
@@ -245,6 +252,12 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.runCodemod;
 			codemodHash: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.beforePRCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.afterPRCreated;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

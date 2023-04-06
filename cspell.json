@@ -1,4 +1,5 @@
 {
+	"ignorePaths": ["**/*.d.ts"],
 	"dictionaries": [
 		"en_US",
 		"typescript",

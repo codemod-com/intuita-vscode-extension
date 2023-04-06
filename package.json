@@ -158,13 +158,13 @@
 			},
 			{
 				"command": "intuita.createIssue",
-				"title": "Create Issue",
-				"icon": "$(github)"
+				"title": "Issue",
+				"icon": "$(issues)"
 			},
 			{
 				"command": "intuita.createPR",
-				"title": "Create a Pull Request",
-				"icon": "$(github)"
+				"title": "Pull Request",
+				"icon": "$(git-pull-request)"
 			}
 		],
 		"configuration": {
@@ -416,13 +416,22 @@
 				},
 				{
 					"command": "intuita.createIssue",
-					"when": "viewItem == jobElement",
-					"group": "inline",
-					"icon": "$(link)"
+					"when": "viewItem == acceptedJobElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createPR",
+					"when": "viewItem == acceptedJobElement",
+					"group": "inline"
 				},
 				{
 					"command": "intuita.createIssue",
-					"when": "viewItem == caseElement",
+					"when": "viewItem == acceptedCaseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createPR",
+					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
 				}
 			]

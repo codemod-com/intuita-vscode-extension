@@ -29,9 +29,6 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
 			this.#onAcceptCaseMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-			this.#onJobsAcceptedOrJobsRejectedMessage(message),
-		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);

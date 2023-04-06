@@ -86,6 +86,8 @@ export type View =
 			viewProps: {
 				loading: boolean;
 				error: string;
+				baseBranchOptions: string[];
+				targetBranchOptions: string[];
 				initialFormData: Partial<{
 					title: string;
 					body: string;
