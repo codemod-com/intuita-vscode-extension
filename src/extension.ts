@@ -42,6 +42,10 @@ import { IntuitaPanel } from './components/webview/IntuitaPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
+import { RepositoryService } from './components/webview/repository';
+import { ElementHash } from './elements/types';
+
+import type { GitExtension } from '../git';
 import {
 	checkIfCodemodIsAvailable,
 	CodemodHash,
@@ -71,6 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
+		persistedState?.acceptedJobsHashes as JobHash[],
 		messageBus,
 	);
 
@@ -186,6 +191,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const gitExtension =
+		vscode.extensions.getExtension<GitExtension>('vscode.git');
+	const activeGitExtension = gitExtension?.isActive
+		? gitExtension.exports
+		: await gitExtension?.activate();
+
+	const git = activeGitExtension?.getAPI(1);
+
+	const repositoryService = git ? new RepositoryService(git) : null;
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
@@ -210,29 +225,81 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createPR', async () => {
-			const panelInstance = IntuitaPanel.getInstance(
-				context,
-				{ getConfiguration },
-				globalStateAccountStorage,
-				messageBus,
-			);
+		vscode.commands.registerCommand('intuita.createPR', async (arg0) => {
+			try {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
 
-			//@TODO connect in next subtask
-			const baseBranch = sourceControl.getBaseBranchName();
-			const title = 'Title';
-			const body = 'Body';
-			const targetBranch = 'targetBranchName';
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
 
-			await panelInstance.render();
-			panelInstance.setView({
-				viewId: 'createPR',
-				viewProps: {
-					initialFormData: { title, body, baseBranch, targetBranch },
-					loading: false,
-					error: '',
-				},
-			});
+				if (!repositoryService) {
+					throw new Error('Unable to initialize repositoryService');
+				}
+
+				const currentBranch =
+					await repositoryService.getCurrentBranch();
+
+				if (!currentBranch) {
+					throw new Error('Unable to get HEAD');
+				}
+
+				const hasChanges =
+					await repositoryService.hasWorkingTreeChanges();
+
+				if (!hasChanges) {
+					throw new Error('Nothing to commit');
+				}
+
+				const treeItem = await treeDataProvider.getTreeItem(
+					jobHash as ElementHash,
+				);
+
+				const { label } = treeItem;
+				const jobTitle =
+					typeof label === 'object' ? label.label : label ?? '';
+
+				const panelInstance = IntuitaPanel.getInstance(
+					context,
+					{ getConfiguration },
+					globalStateAccountStorage,
+					messageBus,
+				);
+
+				// @TODO figure out more informative title and description
+				const title = jobTitle;
+				const body = 'Add description';
+
+				const targetBranch = repositoryService.getBranchName(
+					jobHash,
+					jobTitle,
+				);
+
+				await panelInstance.render();
+
+				const currentBranchName = currentBranch.name ?? '';
+
+				panelInstance.setView({
+					viewId: 'createPR',
+					viewProps: {
+						// branching from current branch
+						baseBranchOptions: [currentBranchName],
+						targetBranchOptions: [targetBranch],
+						initialFormData: {
+							title,
+							body,
+							baseBranch: currentBranchName,
+							targetBranch,
+						},
+						loading: false,
+						error: '',
+					},
+				});
+			} catch (e) {
+				vscode.window.showErrorMessage((e as Error).message);
+			}
 		}),
 	);
 
@@ -258,11 +325,42 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.createPR',
-			async () => {
+			async (arg0) => {
 				try {
-					await sourceControl.createPR();
+					if (!repositoryService) {
+						throw new Error(
+							'Unable to initialize repositoryService',
+						);
+					}
+					const codec = buildTypeCodec({
+						title: t.string,
+						body: t.string,
+						baseBranch: t.string,
+						targetBranch: t.string,
+					});
+
+					const decoded = codec.decode(arg0);
+
+					if (decoded._tag === 'Right') {
+						await repositoryService.submitChanges(
+							decoded.right.targetBranch,
+						);
+
+						const { html_url } = await sourceControl.createPR(
+							decoded.right,
+						);
+						const messageSelection =
+							await vscode.window.showInformationMessage(
+								`Successfully created PR: ${html_url}`,
+								'View on GitHub',
+							);
+
+						if (messageSelection === 'View on GitHub') {
+							vscode.env.openExternal(vscode.Uri.parse(html_url));
+						}
+					}
 				} catch (e) {
-					console.error(e);
+					vscode.window.showWarningMessage((e as Error).message);
 				}
 			},
 		),

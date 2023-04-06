@@ -13,7 +13,7 @@ import {
 } from 'vscode';
 import { JobManager } from './jobManager';
 import { MessageBus, MessageKind } from './messageBus';
-import { CaseWithJobHashes } from '../cases/types';
+import { CaseHash, CaseWithJobHashes } from '../cases/types';
 import {
 	CaseElement,
 	JobElement,
@@ -213,10 +213,24 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 					],
 				};
 			}
+
+			if (this.#jobManager.isJobAccepted(element.jobHash)) {
+				treeItem.contextValue = 'acceptedJobElement';
+			}
 		}
 
 		if (element.kind === 'CASE') {
 			treeItem.contextValue = 'caseElement';
+			const caseJobHashes = this.#caseManager.getJobHashes([
+				String(element.hash) as CaseHash,
+			]);
+			const caseAccepted = Array.from(caseJobHashes).every((jobHash) =>
+				this.#jobManager.isJobAccepted(jobHash),
+			);
+
+			if (caseAccepted) {
+				treeItem.contextValue = 'acceptedCaseElement';
+			}
 		}
 
 		return treeItem;

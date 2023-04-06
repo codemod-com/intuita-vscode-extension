@@ -17,13 +17,13 @@ declare global {
 	}
 }
 
-const getViewComponent = (viewId: View['viewId']) => {
-	switch (viewId) {
+const getViewComponent = (view: View) => {
+	switch (view.viewId) {
 		case 'createIssue': {
-			return CreateIssue;
+			return <CreateIssue {...view.viewProps} />;
 		}
 		case 'createPR':
-			return CreatePR;
+			return <CreatePR {...view.viewProps} />;
 	}
 };
 
@@ -77,10 +77,11 @@ function App() {
 		});
 	};
 
+	// @TODO detect remote automatically
 	if (!configuredRepoPath) {
 		return (
 			<WarningMessage
-				message="In order to create issues, configure you repository settings"
+				message="In order to create pull requests and issues, configure you repository settings"
 				actionButtons={[
 					<VSCodeButton onClick={handleOpenExtensionSettings}>
 						Open settings
@@ -92,7 +93,7 @@ function App() {
 
 	if (!linkedAccount) {
 		<WarningMessage
-			message="In order to create issues, link your Intuita account"
+			message="In order to create pull requests and issues, link your Intuita account"
 			actionButtons={[
 				<VSCodeButton onClick={handleLinkAccount}>
 					Link account
@@ -105,13 +106,7 @@ function App() {
 		return null;
 	}
 
-	const ViewComponent = getViewComponent(view.viewId);
-
-	return (
-		<main className="App">
-			<ViewComponent {...view.viewProps} />
-		</main>
-	);
+	return <main className="App">{getViewComponent(view)}</main>;
 }
 
 export default App;
