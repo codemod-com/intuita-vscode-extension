@@ -1197,8 +1197,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const version = await vscode.window.showQuickPick(
-					Object.keys(recipeMap),
+				let version = await vscode.window.showQuickPick(
+					Object.keys(recipeMap).map((version) =>
+						!isNaN(parseFloat(version)) ? `v${version}` : version,
+					),
 					{
 						placeHolder:
 							'Pick the codemod set (recipe) to execute over the selected path',
@@ -1207,6 +1209,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				if (!version) {
 					return;
+				}
+
+				if (
+					version.startsWith('v') &&
+					!isNaN(parseFloat(version.slice(1)))
+				) {
+					version = version.slice(1);
 				}
 
 				const recipeName = recipeMap[version];
