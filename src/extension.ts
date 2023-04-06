@@ -246,8 +246,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to get HEAD');
 				}
 
-				const hasChanges =
-					await repositoryService.hasWorkingTreeChanges();
+				const hasChanges = await repositoryService.hasChangesToCommit();
 
 				if (!hasChanges) {
 					throw new Error('Nothing to commit');
@@ -360,7 +359,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} catch (e) {
-					vscode.window.showWarningMessage((e as Error).message);
+					const message =
+						isAxiosError<{ message: string }>(e) && e.response
+							? e.response.data.message
+							: e instanceof Error
+							? e.message
+							: String(e);
+					vscode.window.showErrorMessage(message);
 				}
 			},
 		),
@@ -414,11 +419,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
-					if (isAxiosError<{ message: string }>(e)) {
-						vscode.window.showWarningMessage(
-							e.response?.data.message ?? '',
-						);
-					}
+					const message =
+						isAxiosError<{ message: string }>(e) && e.response
+							? e.response.data.message
+							: e instanceof Error
+							? e.message
+							: String(e);
+					vscode.window.showErrorMessage(message);
 				}
 			},
 		),

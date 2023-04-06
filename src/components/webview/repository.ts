@@ -46,20 +46,20 @@ export class RepositoryService {
 
 	public async getCurrentBranch() {
 		assertsNeitherNullOrUndefined(this.__repo);
-
 		return this.__repo.state.HEAD;
 	}
 
 	public async getWorkingTreeChanges() {
 		assertsNeitherNullOrUndefined(this.__repo);
-
 		return this.__repo.state.workingTreeChanges;
 	}
 
-	public async hasWorkingTreeChanges() {
-		const changes = await this.getWorkingTreeChanges();
-
-		return changes.length !== 0;
+	public async hasChangesToCommit() {
+		assertsNeitherNullOrUndefined(this.__repo);
+		return (
+			this.__repo.state.indexChanges.length ||
+			this.__repo.state.workingTreeChanges.length
+		);
 	}
 
 	public getBranchName(jobHash: string, jobTitle: string) {
