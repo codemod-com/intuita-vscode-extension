@@ -31,8 +31,8 @@ export class RepositoryService {
 	}
 
 	private __onDidChangeState = (state: APIState) => {
-		if (state === 'initialized' && this.__gitAPI.repositories[0]) {
-			this.__repo = this.__gitAPI.repositories[0];
+		if (state === 'initialized') {
+			this.__repo = this.__gitAPI.repositories[0] ?? null
 		}
 	};
 
@@ -58,7 +58,7 @@ export class RepositoryService {
 		assertsNeitherNullOrUndefined(this.__repo);
 		return (
 			this.__repo.state.indexChanges.length ||
-			this.__repo.state.workingTreeChanges
+			this.__repo.state.workingTreeChanges.length
 		);
 	}
 
