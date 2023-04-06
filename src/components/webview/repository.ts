@@ -1,7 +1,6 @@
 import { APIState } from '../../../git';
 import { API, Repository } from '../../../git';
 import { assertsNeitherNullOrUndefined } from '../../utilities';
-import * as vscode from 'vscode';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -32,11 +31,7 @@ export class RepositoryService {
 	}
 
 	private __onDidChangeState = (state: APIState) => {
-		vscode.window.showInformationMessage(
-			`state change ${state}, ${this.__gitAPI.repositories.length}`,
-		);
 		if (state === 'initialized' && this.__gitAPI.repositories[0]) {
-			vscode.window.showInformationMessage('erpo installed');
 			this.__repo = this.__gitAPI.repositories[0];
 		}
 	};
@@ -60,9 +55,6 @@ export class RepositoryService {
 	}
 
 	public async hasChangesToCommit() {
-		vscode.window.showInformationMessage(
-			this.__repo ? 'has repo' : 'no repo',
-		);
 		assertsNeitherNullOrUndefined(this.__repo);
 		return (
 			this.__repo.state.indexChanges.length ||
