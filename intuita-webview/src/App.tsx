@@ -8,6 +8,7 @@ import type {
 	View,
 	WebviewMessage,
 } from '../../src/components/webview/IntuitaPanel';
+import TreeView from './TreeView';
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -17,6 +18,11 @@ declare global {
 	}
 }
 
+window.INITIAL_STATE = {
+	repositoryPath: 'string',
+	userId: "string",
+}
+
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'createIssue': {
@@ -24,8 +30,25 @@ const getViewComponent = (view: View) => {
 		}
 		case 'createPR':
 			return <CreatePR {...view.viewProps} />;
+		case 'treeView': 
+			return view.viewProps.node ? <TreeView {...view.viewProps} /> : null
 	}
 };
+
+const mock = {
+	id: 'teste', 
+	label: 'esdsfd', 
+	children: [
+		{
+			id: 'dfsdfd', 
+			label: 'dfdfgdfg'
+		}, 
+		{
+			id: 'dfsdfdffd', 
+			label: 'dfdfgdfsdfsddfg'
+		}
+	]
+}
 
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
@@ -35,7 +58,12 @@ function App() {
 		window.INITIAL_STATE.userId,
 	);
 
-	const [view, setView] = useState<View | null>(null);
+	const [view, setView] = useState<View | null>({
+		viewId: 'treeView', 
+		viewProps: {
+			node: mock
+		}
+	});
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });

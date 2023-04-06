@@ -15,6 +15,12 @@ function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
+type TreeNode = {
+	id: string;
+	label: string;
+	children?: TreeNode[];
+};
+
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createIssue.setFormData';
@@ -95,7 +101,13 @@ export type View =
 					targetBranch: string;
 				}>;
 			};
-	  }>;
+	  }>
+		| Readonly<{
+			viewId: 'treeView';
+			viewProps: {
+				node: TreeNode
+			}
+		}>
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
