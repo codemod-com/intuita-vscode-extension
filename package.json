@@ -201,7 +201,7 @@
 					"description": "Repository path (example: https://github.com/octocat/Hello-World)"
 				},
 				"intuita.includePatterns": {
-					"order": 4,
+					"order": 5,
 					"type": "array",
 					"default": [
 						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
@@ -209,7 +209,7 @@
 					"description": "The glob pattern to use when searching for files to execute codemods over"
 				},
 				"intuita.excludePatterns": {
-					"order": 5,
+					"order": 6,
 					"type": "array",
 					"default": [
 						"**/node_modules"
@@ -484,5 +484,8 @@
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
 		"semver": "^7.3.8"
-	}
+	},
+	"extensionDependencies": [
+		"vscode.git"
+	]
 }

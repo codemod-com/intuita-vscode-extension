@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import * as vscode from 'vscode';
-import { getConfiguration } from './configuration';
+import { DefaultConfigurationClass, getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -51,7 +51,7 @@ import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
-import type { GitExtension } from '../git';
+import type { GitExtension } from './types/git';
 import {
 	checkIfCodemodIsAvailable,
 	CodemodHash,
@@ -65,7 +65,7 @@ const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
-
+	new DefaultConfigurationClass(messageBus);
 	const configurationContainer = buildContainer(getConfiguration());
 
 	context.subscriptions.push(
