@@ -29,10 +29,6 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
 			this.#onAcceptCaseMessage(message),
 		);
-		// We should not delete the job after "apply". User may want to create PR for this job
-		// this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-		// 	this.#onJobsAcceptedOrJobsRejectedMessage(message),
-		// );
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);

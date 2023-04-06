@@ -19,10 +19,18 @@ export class JobManager {
 	readonly #messageBus: MessageBus;
 
 	#jobMap: Map<JobHash, Job>;
+	#acceptedJobsHashes: Set<JobHash>;
+
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
-	public constructor(jobs: ReadonlyArray<Job>, messageBus: MessageBus) {
+	public constructor(
+		jobs: ReadonlyArray<Job>,
+		acceptedJobsHashes: ReadonlyArray<JobHash>,
+		messageBus: MessageBus,
+	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
+		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
+
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
 				jobs.flatMap((job) => {
@@ -82,6 +90,14 @@ export class JobManager {
 		return jobs;
 	}
 
+	public getAcceptedJobsHashes() {
+		return this.#acceptedJobsHashes;
+	}
+
+	public isJobAccepted(jobHash: JobHash) {
+		return this.#acceptedJobsHashes.has(jobHash);
+	}
+
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
 		message.inactiveJobHashes.forEach((jobHash) => {
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
@@ -135,6 +151,12 @@ export class JobManager {
 			this.#buildCodemodObjects(message.jobHashes);
 
 		const messages: Message[] = [];
+
+		for (const jobHash of message.jobHashes) {
+			this.#acceptedJobsHashes.add(jobHash);
+		}
+
+		messages.push({ kind: MessageKind.updateElements });
 
 		{
 			const codemodHashes = codemodHashJobHashSetManager.getLeftHashes();
@@ -382,6 +404,7 @@ export class JobManager {
 
 		this.#jobMap.clear();
 		this.#uriHashJobHashSetManager.clear();
+		this.#acceptedJobsHashes.clear();
 
 		this.#messageBus.publish({
 			kind: MessageKind.deleteFiles,
