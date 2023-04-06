@@ -33,7 +33,6 @@ import {
 	projectNameCodec,
 	PROJECT_NAMES,
 	RECIPE_MAP,
-	RecipeName,
 	recipeNameCodec,
 } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';

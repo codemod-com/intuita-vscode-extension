@@ -41,15 +41,15 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"intuita: Execute Recipe On Path\" and select a recipe you want to execute.\n  i.e. You can configure include and exclude patterns in the settings.json file."
 			},
 			{
 				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"intuita: Execute Recipe On Path\" and select a recipe you want to execute.\n  i.e. You can configure include and exclude patterns in the settings.json file."
 			},
 			{
 				"view": "intuita-available-codemod-tree-view",
-				"contents": "No available codemods right now based on package.json file. Please check back later!"
+				"contents": "No available codemods right now based on package.json file. You can create a codemod on [Codemod Studio](https://codemod.studio) and import it here.\n[Open Codemod Studio](https://codemod.studio)"
 			}
 		],
 		"commands": [
