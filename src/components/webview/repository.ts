@@ -1,6 +1,7 @@
 import { APIState } from '../../../git';
 import { API, Repository } from '../../../git';
 import { assertsNeitherNullOrUndefined } from '../../utilities';
+import * as vscode from 'vscode';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -31,8 +32,12 @@ export class RepositoryService {
 	}
 
 	private __onDidChangeState = (state: APIState) => {
-		if (state === 'initialized') {
-			this.__repo = this.__gitAPI.repositories[0] ?? null;
+		vscode.window.showInformationMessage(
+			`state change ${state}, ${this.__gitAPI.repositories.length}`,
+		);
+		if (state === 'initialized' && this.__gitAPI.repositories[0]) {
+			vscode.window.showInformationMessage('erpo installed');
+			this.__repo = this.__gitAPI.repositories[0];
 		}
 	};
 
@@ -46,20 +51,23 @@ export class RepositoryService {
 
 	public async getCurrentBranch() {
 		assertsNeitherNullOrUndefined(this.__repo);
-
 		return this.__repo.state.HEAD;
 	}
 
 	public async getWorkingTreeChanges() {
 		assertsNeitherNullOrUndefined(this.__repo);
-
 		return this.__repo.state.workingTreeChanges;
 	}
 
-	public async hasWorkingTreeChanges() {
-		const changes = await this.getWorkingTreeChanges();
-
-		return changes.length !== 0;
+	public async hasChangesToCommit() {
+		vscode.window.showInformationMessage(
+			this.__repo ? 'has repo' : 'no repo',
+		);
+		assertsNeitherNullOrUndefined(this.__repo);
+		return (
+			this.__repo.state.indexChanges.length ||
+			this.__repo.state.workingTreeChanges
+		);
 	}
 
 	public getBranchName(jobHash: string, jobTitle: string) {
