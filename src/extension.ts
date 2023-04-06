@@ -29,7 +29,13 @@ import { buildTypeCodec } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
-import { recipeNameCodec, RECIPE_NAMES } from './recipes/codecs';
+import {
+	projectNameCodec,
+	PROJECT_NAMES,
+	RECIPE_MAP,
+	RecipeName,
+	recipeNameCodec,
+} from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
@@ -1167,13 +1173,37 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('No storage URI, aborting the command.');
 				}
 
-				const recipeName = await vscode.window.showQuickPick(
-					RECIPE_NAMES.slice(),
+				const projectName = await vscode.window.showQuickPick(
+					PROJECT_NAMES.slice(),
+					{
+						placeHolder:
+							'Pick the project to execute a codemod set (recipe) over the selected path',
+					},
+				);
+
+				if (!projectNameCodec.is(projectName)) {
+					return;
+				}
+
+				const recipeMap = RECIPE_MAP.get(projectName);
+
+				if (!recipeMap) {
+					return;
+				}
+
+				const version = await vscode.window.showQuickPick(
+					Object.keys(recipeMap),
 					{
 						placeHolder:
 							'Pick the codemod set (recipe) to execute over the selected path',
 					},
 				);
+
+				if (!version) {
+					return;
+				}
+
+				const recipeName = recipeMap[version];
 
 				if (!recipeNameCodec.is(recipeName)) {
 					return;
