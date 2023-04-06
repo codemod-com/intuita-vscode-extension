@@ -32,7 +32,7 @@ export class RepositoryService {
 
 	private __onDidChangeState = (state: APIState) => {
 		if (state === 'initialized') {
-			this.__repo = this.__gitAPI.repositories[0] ?? null
+			this.__repo = this.__gitAPI.repositories[0] ?? null;
 		}
 	};
 
