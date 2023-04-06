@@ -12,6 +12,8 @@ code {
 		monospace;
 }
 
+@import '@vscode/codicons/dist/codicon.css';
+
 /* global styles required by react-treeview */
 
 .tree-view_item {

@@ -350,6 +350,8 @@ export class IntuitaPanel {
 			'main.js',
 		]);
 
+		// const codiconsUri = getUri(webview, this.__extensionPath, ['node_modules', '@vscode/codicons', 'dist', 'codicon.css']);
+
 		const nonce = randomBytes(48).toString('hex');
 
 		return /*html*/ `

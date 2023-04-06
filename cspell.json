@@ -35,6 +35,7 @@
 		"userdata",
 		"vsix",
 		"yarnrc",
-		"cutcopypaste"
+		"cutcopypaste", 
+		"codicons"
 	]
 }
