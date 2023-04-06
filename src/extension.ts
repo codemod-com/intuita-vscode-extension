@@ -45,7 +45,7 @@ import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
-import type { GitExtension } from '../git';
+import type { GitExtension } from './types/git';
 import {
 	checkIfCodemodIsAvailable,
 	CodemodHash,

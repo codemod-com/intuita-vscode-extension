@@ -1,5 +1,4 @@
-import { APIState } from '../../../git';
-import { API, Repository } from '../../../git';
+import { APIState, API, Repository } from '../../types/git';
 import { assertsNeitherNullOrUndefined } from '../../utilities';
 
 const branchNameFromStr = (str: string): string => {
