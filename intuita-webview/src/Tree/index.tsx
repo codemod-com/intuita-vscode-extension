@@ -3,7 +3,11 @@ import { ReactNode, memo, useState } from 'react';
 
 type Props = {
 	node: TreeNode;
-	renderItem(node: TreeNode, open: boolean, setIsOpen: (value: boolean) => void): ReactNode;
+	renderItem(
+		node: TreeNode,
+		open: boolean,
+		setIsOpen: (value: boolean) => void,
+	): ReactNode;
 };
 
 type TreeNode = {
@@ -12,10 +16,7 @@ type TreeNode = {
 	children?: TreeNode[];
 };
 
-const Tree = ({
-	node,
-	renderItem,
-}: Props) => {
+const Tree = ({ node, renderItem }: Props) => {
 	const [open, setIsOpen] = useState(false);
 
 	const label = renderItem(node, open, setIsOpen);

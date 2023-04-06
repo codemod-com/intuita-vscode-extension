@@ -18,11 +18,6 @@ declare global {
 	}
 }
 
-window.INITIAL_STATE = {
-	repositoryPath: 'string',
-	userId: "string",
-}
-
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'createIssue': {
@@ -30,25 +25,27 @@ const getViewComponent = (view: View) => {
 		}
 		case 'createPR':
 			return <CreatePR {...view.viewProps} />;
-		case 'treeView': 
-			return view.viewProps.node ? <TreeView {...view.viewProps} /> : null
+		case 'treeView':
+			return view.viewProps.node ? (
+				<TreeView {...view.viewProps} />
+			) : null;
 	}
 };
 
 const mock = {
-	id: 'teste', 
-	label: 'esdsfd', 
+	id: 'teste',
+	label: 'esdsfd',
 	children: [
 		{
-			id: 'dfsdfd', 
-			label: 'dfdfgdfg'
-		}, 
+			id: 'dfsdfd',
+			label: 'dfdfgdfg',
+		},
 		{
-			id: 'dfsdfdffd', 
-			label: 'dfdfgdfsdfsddfg'
-		}
-	]
-}
+			id: 'dfsdfdffd',
+			label: 'dfdfgdfsdfsddfg',
+		},
+	],
+};
 
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
@@ -59,10 +56,10 @@ function App() {
 	);
 
 	const [view, setView] = useState<View | null>({
-		viewId: 'treeView', 
+		viewId: 'treeView',
 		viewProps: {
-			node: mock
-		}
+			node: mock,
+		},
 	});
 
 	useEffect(() => {

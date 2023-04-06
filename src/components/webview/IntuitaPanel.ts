@@ -10,10 +10,25 @@ import {
 } from 'vscode';
 import { randomBytes } from 'crypto';
 import { MessageBus, MessageKind, Message } from '../messageBus';
+import { Element } from '../../elements/types';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
+
+const mapMessageToTreeNode = (message: Element): TreeNode => {
+	const mappedNode = {
+		id: message.hash,
+		label: 'label' in message ? message.label : 'Recipe',
+		type: message.kind,
+		children:
+			'children' in message
+				? message.children.map(mapMessageToTreeNode)
+				: [],
+	};
+
+	return mappedNode;
+};
 
 type TreeNode = {
 	id: string;
@@ -102,12 +117,12 @@ export type View =
 				}>;
 			};
 	  }>
-		| Readonly<{
+	| Readonly<{
 			viewId: 'treeView';
 			viewProps: {
-				node: TreeNode
-			}
-		}>
+				node: TreeNode;
+			};
+	  }>;
 
 interface ConfigurationService {
 	getConfiguration(): { repositoryPath: string | undefined };
@@ -276,6 +291,15 @@ export class IntuitaPanel {
 				});
 			},
 		);
+
+		this.addHook(MessageKind.afterElementsUpdated, (message) => {
+			this.setView({
+				viewId: 'treeView',
+				viewProps: {
+					node: mapMessageToTreeNode(message.element),
+				},
+			});
+		});
 	}
 
 	private prepareWebviewInitialData = () => {

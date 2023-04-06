@@ -1,28 +1,42 @@
 import { useCallback } from 'react';
-import Tree, { TreeNode } from  '../Tree';
+import Tree, { TreeNode } from '../Tree';
 import TreeItem from './TreeItem';
 
 type Props = {
-  node: TreeNode, 
-}
+	node: TreeNode;
+};
 
 const TreeView = ({ node }: Props) => {
+	const handleClick = useCallback((node: TreeNode) => {
+		console.log(node);
+	}, []);
 
-  // const handleClick = useCallback((node: TreeNode) => {
-  //   console.log(node);
-  // }, []);
+	const renderItem = useCallback(
+		(
+			node: TreeNode,
+			open: boolean,
+			setIsOpen: (value: boolean) => void,
+		) => {
+			const icon = null;
+			const actionButtons = null;
 
-  const renderItem = useCallback((node: TreeNode) => {
+			return (
+				<TreeItem
+					id={node.id}
+					label={node.label}
+					icon={icon}
+					onClick={() => {
+						handleClick(node);
+						setIsOpen(!open);
+					}}
+					actionButtons={actionButtons}
+				/>
+			);
+		},
+		[handleClick],
+	);
 
-    const icon = null;
-    const actionButtons = null;
+	return <Tree node={node} renderItem={renderItem} />;
+};
 
-    return <TreeItem id={node.id} label={node.label} icon={icon} onClick={() => {}} actionButtons={actionButtons}/>
-  }, []);
-
-  return (
-   <Tree node={node} renderItem={renderItem} />
-  )
-}
-
-export default TreeView
+export default TreeView;
