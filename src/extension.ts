@@ -202,9 +202,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		? gitExtension.exports
 		: await gitExtension?.activate();
 
-	const git = activeGitExtension?.getAPI(1);
+	const git = activeGitExtension?.getAPI(1) ?? null;
 
-	const repositoryService = git ? new RepositoryService(git) : null;
+	const repositoryService = new RepositoryService(git);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
@@ -244,14 +244,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to initialize repositoryService');
 				}
 
-				const currentBranch =
-					await repositoryService.getCurrentBranch();
+				const currentBranch = repositoryService.getCurrentBranch();
 
 				if (!currentBranch) {
 					throw new Error('Unable to get HEAD');
 				}
 
-				const hasChanges = await repositoryService.hasChangesToCommit();
+				const hasChanges = repositoryService.hasChangesToCommit();
 
 				if (!hasChanges) {
 					throw new Error('Nothing to commit');

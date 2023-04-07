@@ -1,5 +1,4 @@
-import { APIState, API, Repository } from '../../types/git';
-import { assertsNeitherNullOrUndefined } from '../../utilities';
+import { APIState, API, Repository, Branch, Change } from '../../types/git';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -20,53 +19,54 @@ const branchNameFromStr = (str: string): string => {
 	return branchName;
 };
 
-export class UninitializedError extends Error {}
-
 export class RepositoryService {
 	__repo: Repository | null = null;
 
-	constructor(private readonly __gitAPI: API) {
-		this.__gitAPI.onDidChangeState(this.__onDidChangeState);
-	}
+	constructor(private readonly __gitAPI: API | null) {
+		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
-	private __onDidChangeState = (state: APIState) => {
-		if (state === 'initialized') {
-			this.__repo = this.__gitAPI.repositories[0] ?? null;
-		}
-	};
-
-	public async getAllBranches() {
-		// @TODO instead of this checks in each methods, just init repo before creating service...
-		// repo service should not exist without repo...
-		assertsNeitherNullOrUndefined(this.__repo);
-
-		return this.__repo.getBranches({ remote: true });
-	}
-
-	public async getCurrentBranch() {
-		assertsNeitherNullOrUndefined(this.__repo);
-		return this.__repo.state.HEAD;
-	}
-
-	public async getWorkingTreeChanges() {
-		assertsNeitherNullOrUndefined(this.__repo);
-		return this.__repo.state.workingTreeChanges;
-	}
-
-	public async hasChangesToCommit() {
-		assertsNeitherNullOrUndefined(this.__repo);
-		return (
-			this.__repo.state.indexChanges.length ||
-			this.__repo.state.workingTreeChanges.length
+		this.__gitAPI?.onDidChangeState((state) =>
+			this.__onDidChangeState(state),
 		);
 	}
 
-	public getBranchName(jobHash: string, jobTitle: string) {
+	private __onDidChangeState(state: APIState): void {
+		if (state === 'initialized') {
+			this.__repo = this.__gitAPI?.repositories[0] ?? null;
+		}
+	}
+
+	public async getAllBranches() {
+		return this.__repo?.getBranches({ remote: true });
+	}
+
+	public getCurrentBranch(): Branch | null {
+		return this.__repo?.state.HEAD ?? null;
+	}
+
+	public getWorkingTreeChanges(): ReadonlyArray<Change> | null {
+		return this.__repo?.state.workingTreeChanges ?? null;
+	}
+
+	public hasChangesToCommit(): boolean {
+		if (this.__repo === null) {
+			return false;
+		}
+
+		return (
+			this.__repo.state.indexChanges.length !== 0 ||
+			this.__repo.state.workingTreeChanges.length !== 0
+		);
+	}
+
+	public getBranchName(jobHash: string, jobTitle: string): string {
 		return branchNameFromStr(`${jobTitle}-${jobHash}`);
 	}
 
-	public async submitChanges(branchName: string) {
-		assertsNeitherNullOrUndefined(this.__repo);
+	public async submitChanges(branchName: string): Promise<void> {
+		if (this.__repo === null) {
+			return;
+		}
 
 		await this.__repo.createBranch(branchName, true);
 		await this.__repo.add([]);
