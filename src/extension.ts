@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import * as vscode from 'vscode';
-import { DefaultConfigurationClass, getConfiguration } from './configuration';
+import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -64,7 +64,7 @@ const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
-	new DefaultConfigurationClass(messageBus);
+
 	const configurationContainer = buildContainer(getConfiguration());
 
 	context.subscriptions.push(
@@ -190,12 +190,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
 
-	const sourceControl = new SourceControlService(
-		{ getConfiguration },
-		globalStateAccountStorage,
-		messageBus,
-	);
-
 	const gitExtension =
 		vscode.extensions.getExtension<GitExtension>('vscode.git');
 	const activeGitExtension = gitExtension?.isActive
@@ -204,16 +198,22 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const git = activeGitExtension?.getAPI(1) ?? null;
 
-	const repositoryService = new RepositoryService(git);
+	const repositoryService = new RepositoryService(git, messageBus);
+
+	const sourceControl = new SourceControlService(
+		globalStateAccountStorage,
+		messageBus,
+		repositoryService,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 			const panelInstance = IntuitaPanel.getInstance(
 				context,
-				{ getConfiguration },
-				globalStateAccountStorage,
 				messageBus,
+				repositoryService,
+				globalStateAccountStorage,
 			);
 			await panelInstance.render();
 			const { label } = treeItem;
@@ -266,9 +266,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const panelInstance = IntuitaPanel.getInstance(
 					context,
-					{ getConfiguration },
-					globalStateAccountStorage,
 					messageBus,
+					repositoryService,
+					globalStateAccountStorage,
 				);
 
 				// @TODO figure out more informative title and description
@@ -405,7 +405,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				} catch (e) {
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
-							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
+							'Missing the repository path. Ensure your workspace is connected to a Git remote.',
 						);
 					}
 
@@ -432,6 +432,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							: e instanceof Error
 							? e.message
 							: String(e);
+
 					vscode.window.showErrorMessage(message);
 				}
 			},

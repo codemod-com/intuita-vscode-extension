@@ -10,6 +10,7 @@ import {
 } from 'vscode';
 import { randomBytes } from 'crypto';
 import { MessageBus, MessageKind, Message } from '../messageBus';
+import { RepositoryService } from './repository';
 
 function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
@@ -32,10 +33,8 @@ export type WebviewMessage =
 			value: string | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setConfiguration';
-			value: {
-				repositoryPath: string | null;
-			};
+			kind: 'webview.global.setRepositoryPath';
+			repositoryPath: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setView';
@@ -97,9 +96,6 @@ export type View =
 			};
 	  }>;
 
-interface ConfigurationService {
-	getConfiguration(): { repositoryPath: string | undefined };
-}
 interface UserAccountStorage {
 	getUserAccount(): string | null;
 }
@@ -113,9 +109,9 @@ export class IntuitaPanel {
 
 	static getInstance(
 		context: ExtensionContext,
-		configurationService: ConfigurationService,
-		userAccountStorage: UserAccountStorage,
 		messageBus: MessageBus,
+		repositoryService: RepositoryService,
+		userAccountStorage: UserAccountStorage,
 	) {
 		if (this.__instance) {
 			return this.__instance;
@@ -123,17 +119,17 @@ export class IntuitaPanel {
 
 		return new IntuitaPanel(
 			context,
-			configurationService,
-			userAccountStorage,
 			messageBus,
+			repositoryService,
+			userAccountStorage,
 		);
 	}
 
 	private constructor(
 		context: ExtensionContext,
-		private readonly __configurationService: ConfigurationService,
-		private readonly __userAccountStorage: UserAccountStorage,
 		private readonly __messageBus: MessageBus,
+		private readonly __repositoryService: RepositoryService,
+		private readonly __userAccountStorage: UserAccountStorage,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__panel = window.createWebviewPanel(
@@ -242,16 +238,6 @@ export class IntuitaPanel {
 			},
 		);
 
-		this.addHook(MessageKind.configurationChanged, (message) => {
-			this.postMessage({
-				kind: 'webview.global.setConfiguration',
-				value: {
-					repositoryPath:
-						message.nextConfiguration.repositoryPath ?? null,
-				},
-			});
-		});
-
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
 				this.addHook(kind, (message) => {
@@ -264,24 +250,26 @@ export class IntuitaPanel {
 				});
 			},
 		);
+
+		this.addHook(MessageKind.repositoryPathChanged, (message) => {
+			this.postMessage({
+				kind: 'webview.global.setRepositoryPath',
+				repositoryPath: message.repositoryPath,
+			});
+		});
 	}
 
-	private prepareWebviewInitialData = () => {
-		const { repositoryPath } =
-			this.__configurationService.getConfiguration();
+	private prepareWebviewInitialData = (): Readonly<{
+		repositoryPath: string | null;
+		userId: string | null;
+	}> => {
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
 		const userId = this.__userAccountStorage.getUserAccount();
 
-		const result: { repositoryPath?: string; userId?: string } = {};
-
-		if (repositoryPath) {
-			result.repositoryPath = repositoryPath;
-		}
-
-		if (userId) {
-			result.userId = userId;
-		}
-
-		return result;
+		return {
+			repositoryPath,
+			userId,
+		};
 	};
 
 	private onDidReceiveMessage(message: WebviewResponse) {

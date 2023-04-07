@@ -11,8 +11,8 @@ import type {
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			repositoryPath: string;
-			userId: string;
+			repositoryPath: string | null;
+			userId: string | null;
 		};
 	}
 }
@@ -49,8 +49,8 @@ function App() {
 				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === 'webview.global.setConfiguration') {
-				setConfiguredRepoPath(message.value.repositoryPath);
+			if (message.kind === 'webview.global.setRepositoryPath') {
+				setConfiguredRepoPath(message.repositoryPath);
 			}
 
 			if (message.kind === 'webview.global.setView') {
