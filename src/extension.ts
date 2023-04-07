@@ -33,7 +33,6 @@ import {
 	projectNameCodec,
 	PROJECT_NAMES,
 	RECIPE_MAP,
-	RecipeName,
 	recipeNameCodec,
 } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
@@ -44,7 +43,7 @@ import {
 	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/webview/sourceControl';
-import { IntuitaPanel } from './components/webview/IntuitaPanel';
+import { IntuitaPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -60,6 +59,7 @@ import {
 	PackageUpgradeItem,
 	packageUpgradeList,
 } from './elements/CodemodList';
+import { IntuitaProvider } from './components/webview/MainWebviewProvider';
 
 const messageBus = new MessageBus();
 
@@ -207,18 +207,29 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const repositoryService = git ? new RepositoryService(git) : null;
 
+	const intuitaWebviewProvider = new IntuitaProvider(
+		context,
+		messageBus,
+	);
+
+	const view = vscode.window.registerWebviewViewProvider(
+		'intuita-webview',
+		intuitaWebviewProvider,
+	);
+
+	context.subscriptions.push(view);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 			const panelInstance = IntuitaPanel.getInstance(
 				context,
-				{ getConfiguration },
-				globalStateAccountStorage,
 				messageBus,
 			);
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
+			
 			panelInstance.setView({
 				viewId: 'createIssue',
 				viewProps: {
@@ -268,8 +279,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const panelInstance = IntuitaPanel.getInstance(
 					context,
-					{ getConfiguration },
-					globalStateAccountStorage,
 					messageBus,
 				);
 

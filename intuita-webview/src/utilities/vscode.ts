@@ -1,5 +1,5 @@
 import type { WebviewApi } from 'vscode-webview';
-import { WebviewResponse } from '../../../src/components/webview/IntuitaPanel';
+import { WebviewResponse } from '../../../src/components/webview/WebviewResolver';
 
 class VSCodeAPIWrapper {
 	private readonly vsCodeApi: WebviewApi<unknown> | undefined;

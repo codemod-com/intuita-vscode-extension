@@ -4,7 +4,7 @@ import TreeItem from './TreeItem';
 
 type Props = {
 	node: TreeNode;
-};
+}; 
 
 const TreeView = ({ node }: Props) => {
 	const handleClick = useCallback((node: TreeNode) => {

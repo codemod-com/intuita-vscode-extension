@@ -7,7 +7,8 @@ import CreatePR from './CreatePRView';
 import type {
 	View,
 	WebviewMessage,
-} from '../../src/components/webview/IntuitaPanel';
+} from '../../src/components/webview/WebviewResolver';
+
 import TreeView from './TreeView';
 declare global {
 	interface Window {
@@ -32,21 +33,6 @@ const getViewComponent = (view: View) => {
 	}
 };
 
-const mock = {
-	id: 'teste',
-	label: 'esdsfd',
-	children: [
-		{
-			id: 'dfsdfd',
-			label: 'dfdfgdfg',
-		},
-		{
-			id: 'dfsdfdffd',
-			label: 'dfdfgdfsdfsddfg',
-		},
-	],
-};
-
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
 		window.INITIAL_STATE.repositoryPath,
@@ -55,12 +41,7 @@ function App() {
 		window.INITIAL_STATE.userId,
 	);
 
-	const [view, setView] = useState<View | null>({
-		viewId: 'treeView',
-		viewProps: {
-			node: mock,
-		},
-	});
+	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
