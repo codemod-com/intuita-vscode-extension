@@ -117,20 +117,20 @@
 				"icon": "$(clear-all)"
 			},
 			{
-				"command": "intuita.acceptJob",
-				"title": "✓ Apply"
-			},
-			{
 				"command": "intuita.runCodemod",
 				"title": "✓ Run"
 			},
 			{
-				"command": "intuita.rejectJob",
-				"title": "✗ Dismiss"
+				"command": "intuita.acceptJob",
+				"title": "✓ Apply"
 			},
 			{
 				"command": "intuita.acceptCase",
 				"title": "✓ Apply"
+			},
+			{
+				"command": "intuita.rejectJob",
+				"title": "✗ Dismiss"
 			},
 			{
 				"command": "intuita.rejectCase",
@@ -269,11 +269,11 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.rejectJob",
+					"command": "intuita.acceptCase",
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
+					"command": "intuita.rejectJob",
 					"when": "false"
 				},
 				{
@@ -377,17 +377,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "intuita.acceptJob",
-					"when": "viewItem == jobElement",
-					"group": "inline"
-				},
-				{
 					"command": "intuita.runCodemod",
 					"when": "viewItem == codemodItem",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectJob",
+					"command": "intuita.acceptJob",
 					"when": "viewItem == jobElement",
 					"group": "inline"
 				},
@@ -397,18 +392,8 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectCase",
-					"when": "viewItem == caseElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.createIssue",
-					"when": "viewItem == acceptedJobElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.createPR",
-					"when": "viewItem == acceptedJobElement",
+					"command": "intuita.rejectJob",
+					"when": "viewItem == jobElement",
 					"group": "inline"
 				},
 				{
@@ -417,17 +402,32 @@
 					"group": "inline"
 				},
 				{
+					"command": "intuita.rejectCase",
+					"when": "viewItem == caseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectCase",
+					"when": "viewItem == acceptedCaseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createIssue",
+					"when": "viewItem == acceptedJobElement",
+					"group": "inline"
+				},
+				{
 					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
 				},
 				{
 					"command": "intuita.createPR",
-					"when": "viewItem == acceptedCaseElement",
+					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectCase",
+					"command": "intuita.createPR",
 					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
 				}
