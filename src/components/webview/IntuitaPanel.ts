@@ -33,10 +33,8 @@ export type WebviewMessage =
 			value: string | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setConfiguration';
-			value: {
-				repositoryPath: string | null;
-			};
+			kind: 'webview.global.setRepositoryPath';
+			repositoryPath: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setView';
@@ -255,10 +253,8 @@ export class IntuitaPanel {
 
 		this.addHook(MessageKind.repositoryPathChanged, (message) => {
 			this.postMessage({
-				kind: 'webview.global.setConfiguration',
-				value: {
-					repositoryPath: message.repositoryPath,
-				},
+				kind: 'webview.global.setRepositoryPath',
+				repositoryPath: message.repositoryPath,
 			});
 		});
 	}

@@ -49,8 +49,8 @@ function App() {
 				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === 'webview.global.setConfiguration') {
-				setConfiguredRepoPath(message.value.repositoryPath);
+			if (message.kind === 'webview.global.setRepositoryPath') {
+				setConfiguredRepoPath(message.repositoryPath);
 			}
 
 			if (message.kind === 'webview.global.setView') {
