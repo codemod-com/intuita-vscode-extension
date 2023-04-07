@@ -41,19 +41,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-<<<<<<< HEAD
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
 			},
 			{
 				"view": "explorerIntuitaViewId",
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
-=======
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"intuita: Excute Recipe On Path\" and select a recipe you want to excute.\n  i.e. You can configure include and exclude patterns in the settings.json file."
-			},
-			{
-				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"intuita: Excute Recipe On Path\" and select a recipe you want to excute.\n  i.e. You can configure include and exclude patterns in the settings.json file."
->>>>>>> c39b120 (update: update welcome message on tree-view)
 			},
 			{
 				"view": "intuita-available-codemod-tree-view",
