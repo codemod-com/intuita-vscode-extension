@@ -6,12 +6,8 @@ import {
 	commands,
 	ExtensionContext,
 } from 'vscode';
-import { randomBytes } from 'crypto';
 import { MessageBus, MessageKind } from '../messageBus';
-
-function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
-	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
-}
+import { getHTML } from './getHtml';
 
 type WebViewMessage = {
 	command: string;
@@ -49,7 +45,7 @@ export class IntuitaPanel implements WebviewViewProvider {
 		});
 	}
 
-	#prepareWebviewInitialData = () => {
+	private prepareWebviewInitialData = () => {
 		const { repositoryPath } =
 			this.__configurationService.getConfiguration();
 		const userId = this.__userAccountStorage.getUserAccount();
@@ -97,47 +93,6 @@ export class IntuitaPanel implements WebviewViewProvider {
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
-		// The CSS file from the React build output
-		const stylesUri = getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			'static',
-			'css',
-			'main.css',
-		]);
-		// The JS file from the React build output
-		const scriptUri = getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			'static',
-			'js',
-			'main.js',
-		]);
-
-		const nonce = randomBytes(48).toString('hex');
-
-		// Tip: Install the es6-string-html VS Code extension to enable code highlighting below
-		return /*html*/ `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-          <meta name="theme-color" content="#000000">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${
-				webview.cspSource
-			}; script-src 'nonce-${nonce}';">
-          <link rel="stylesheet" type="text/css" href="${stylesUri}">
-        </head>
-        <body>
-          <noscript>You need to enable JavaScript to run this app.</noscript>
-          <div id="root"></div>
-					<script nonce="${nonce}">
-					window.INITIAL_STATE=${JSON.stringify(this.#prepareWebviewInitialData())}
-					</script>
-          <script nonce="${nonce}" src="${scriptUri}"></script>
-        </body>
-      </html>
-    `;
+		return getHTML(webview, this.__extensionPath, this.prepareWebviewInitialData());
 	}
 }

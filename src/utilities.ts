@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
+import { Uri, Webview } from 'vscode';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
@@ -41,3 +42,7 @@ export const debounce = <R>(callback: (...args: any[]) => R, ms: number) => {
 };
 
 export const singleQuotify = (str: string) => `'${str}'`;
+
+export function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
+	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
+}

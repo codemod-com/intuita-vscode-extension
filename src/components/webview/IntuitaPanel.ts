@@ -8,13 +8,11 @@ import {
 	ViewColumn,
 	Disposable,
 } from 'vscode';
-import { randomBytes } from 'crypto';
 import { MessageBus, MessageKind, Message } from '../messageBus';
 import { Element } from '../../elements/types';
+import { getHTML } from './getHtml';
 
-function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
-	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
-}
+
 
 const mapMessageToTreeNode = (message: Element): TreeNode => {
 	const mappedNode = {
@@ -359,47 +357,6 @@ export class IntuitaPanel {
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
-		const stylesUri = getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			'static',
-			'css',
-			'main.css',
-		]);
-		const scriptUri = getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			'static',
-			'js',
-			'main.js',
-		]);
-
-		// const codiconsUri = getUri(webview, this.__extensionPath, ['node_modules', '@vscode/codicons', 'dist', 'codicon.css']);
-
-		const nonce = randomBytes(48).toString('hex');
-
-		return /*html*/ `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-          <meta name="theme-color" content="#000000">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${
-				webview.cspSource
-			}; script-src 'nonce-${nonce}';">
-          <link rel="stylesheet" type="text/css" href="${stylesUri}">
-          <title>Intuita Panel</title>
-        </head>
-        <body>
-          <noscript>You need to enable JavaScript to run this app.</noscript>
-          <div id="root"></div>
-					<script nonce="${nonce}">
-					window.INITIAL_STATE=${JSON.stringify(this.prepareWebviewInitialData())}
-					</script>
-          <script nonce="${nonce}" src="${scriptUri}"></script>
-        </body>
-      </html>
-    `;
+		return getHTML(webview, this.__extensionPath, this.prepareWebviewInitialData());
 	}
 }
