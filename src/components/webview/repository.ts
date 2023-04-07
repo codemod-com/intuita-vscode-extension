@@ -1,5 +1,4 @@
 import { APIState, API, Repository } from '../../types/git';
-import { assertsNeitherNullOrUndefined } from '../../utilities';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -25,39 +24,40 @@ export class UninitializedError extends Error {}
 export class RepositoryService {
 	__repo: Repository | null = null;
 
-	constructor(private readonly __gitAPI: API) {
-		this.__gitAPI.onDidChangeState(this.__onDidChangeState);
+	constructor(private readonly __gitAPI: API | null) {
+		this.__repo = this.__gitAPI?.repositories[0] ?? null;
+
+		this.__gitAPI?.onDidChangeState((state) =>
+			this.__onDidChangeState(state),
+		);
 	}
 
-	private __onDidChangeState = (state: APIState) => {
+	private __onDidChangeState(state: APIState): void {
 		if (state === 'initialized') {
-			this.__repo = this.__gitAPI.repositories[0] ?? null;
+			this.__repo = this.__gitAPI?.repositories[0] ?? null;
 		}
-	};
+	}
 
 	public async getAllBranches() {
-		// @TODO instead of this checks in each methods, just init repo before creating service...
-		// repo service should not exist without repo...
-		assertsNeitherNullOrUndefined(this.__repo);
-
-		return this.__repo.getBranches({ remote: true });
+		return this.__repo?.getBranches({ remote: true });
 	}
 
 	public async getCurrentBranch() {
-		assertsNeitherNullOrUndefined(this.__repo);
-		return this.__repo.state.HEAD;
+		return this.__repo?.state.HEAD;
 	}
 
 	public async getWorkingTreeChanges() {
-		assertsNeitherNullOrUndefined(this.__repo);
-		return this.__repo.state.workingTreeChanges;
+		return this.__repo?.state.workingTreeChanges;
 	}
 
-	public async hasChangesToCommit() {
-		assertsNeitherNullOrUndefined(this.__repo);
+	public async hasChangesToCommit(): Promise<boolean> {
+		if (this.__repo === null) {
+			return false;
+		}
+
 		return (
-			this.__repo.state.indexChanges.length ||
-			this.__repo.state.workingTreeChanges.length
+			this.__repo.state.indexChanges.length !== 0 ||
+			this.__repo.state.workingTreeChanges.length !== 0
 		);
 	}
 
@@ -65,8 +65,10 @@ export class RepositoryService {
 		return branchNameFromStr(`${jobTitle}-${jobHash}`);
 	}
 
-	public async submitChanges(branchName: string) {
-		assertsNeitherNullOrUndefined(this.__repo);
+	public async submitChanges(branchName: string): Promise<void> {
+		if (this.__repo === null) {
+			return;
+		}
 
 		await this.__repo.createBranch(branchName, true);
 		await this.__repo.add([]);

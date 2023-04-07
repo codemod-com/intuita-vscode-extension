@@ -202,9 +202,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		? gitExtension.exports
 		: await gitExtension?.activate();
 
-	const git = activeGitExtension?.getAPI(1);
+	const git = activeGitExtension?.getAPI(1) ?? null;
 
-	const repositoryService = git ? new RepositoryService(git) : null;
+	const repositoryService = new RepositoryService(git);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
