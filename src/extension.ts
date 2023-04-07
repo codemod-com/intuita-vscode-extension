@@ -403,9 +403,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} catch (e) {
+					console.error(e);
+
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
-							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
+							'Missing the repository path. Ensure your workspace has git configuration.',
 						);
 					}
 
@@ -432,6 +434,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							: e instanceof Error
 							? e.message
 							: String(e);
+
 					vscode.window.showErrorMessage(message);
 				}
 			},
