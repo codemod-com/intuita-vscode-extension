@@ -407,7 +407,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
-							'Missing the repository path. Ensure your workspace has git configuration.',
+							'Missing the repository path. Ensure your workspace is connected to a Git remote.',
 						);
 					}
 
