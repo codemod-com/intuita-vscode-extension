@@ -250,13 +250,6 @@
 					"contextualTitle": "Intuita"
 				},
 				{
-					"type": "webview",
-					"id": "intuita-webview",
-					"name": "Intuita Source Control",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita Source Control"
-				},
-				{
 					"id": "intuita-available-codemod-tree-view",
 					"name": "Available Codemods",
 					"contextualTitle": "Available Codemods"
