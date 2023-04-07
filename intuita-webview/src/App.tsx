@@ -1,13 +1,13 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+// import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
 import CreateIssue from './CreateIssueView';
 import { vscode } from './utilities/vscode';
-import WarningMessage from './WarningMessage';
+// import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
 import type {
 	View,
 	WebviewMessage,
-} from '../../src/components/webview/WebviewResolver';
+} from '../../src/components/webview/webviewEvents';
 
 import TreeView from './TreeView';
 declare global {
@@ -34,10 +34,10 @@ const getViewComponent = (view: View) => {
 };
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
+	const [, setConfiguredRepoPath] = useState<string | null>(
 		window.INITIAL_STATE.repositoryPath,
 	);
-	const [linkedAccount, setLinkedAccount] = useState<string | null>(
+	const [, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
 
@@ -71,42 +71,42 @@ function App() {
 		};
 	}, []);
 
-	const handleLinkAccount = () => {
-		vscode.postMessage({
-			kind: 'webview.global.redirectToSignIn',
-		});
-	};
+	// const handleLinkAccount = () => {
+	// 	vscode.postMessage({
+	// 		kind: 'webview.global.redirectToSignIn',
+	// 	});
+	// };
 
-	const handleOpenExtensionSettings = () => {
-		vscode.postMessage({
-			kind: 'webview.global.openConfiguration',
-		});
-	};
+	// const handleOpenExtensionSettings = () => {
+	// 	vscode.postMessage({
+	// 		kind: 'webview.global.openConfiguration',
+	// 	});
+	// };
 
-	// @TODO detect remote automatically
-	if (!configuredRepoPath) {
-		return (
-			<WarningMessage
-				message="In order to create pull requests and issues, configure you repository settings"
-				actionButtons={[
-					<VSCodeButton onClick={handleOpenExtensionSettings}>
-						Open settings
-					</VSCodeButton>,
-				]}
-			/>
-		);
-	}
+	// // @TODO detect remote automatically
+	// if (!configuredRepoPath) {
+	// 	return (
+	// 		<WarningMessage
+	// 			message="In order to create pull requests and issues, configure you repository settings"
+	// 			actionButtons={[
+	// 				<VSCodeButton onClick={handleOpenExtensionSettings}>
+	// 					Open settings
+	// 				</VSCodeButton>,
+	// 			]}
+	// 		/>
+	// 	);
+	// }
 
-	if (!linkedAccount) {
-		<WarningMessage
-			message="In order to create pull requests and issues, link your Intuita account"
-			actionButtons={[
-				<VSCodeButton onClick={handleLinkAccount}>
-					Link account
-				</VSCodeButton>,
-			]}
-		/>;
-	}
+	// if (!linkedAccount) {
+	// 	<WarningMessage
+	// 		message="In order to create pull requests and issues, link your Intuita account"
+	// 		actionButtons={[
+	// 			<VSCodeButton onClick={handleLinkAccount}>
+	// 				Link account
+	// 			</VSCodeButton>,
+	// 		]}
+	// 	/>;
+	// }
 
 	if (!view) {
 		return null;

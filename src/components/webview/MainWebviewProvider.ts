@@ -5,12 +5,12 @@ import {
 	ExtensionContext,
 } from 'vscode';
 import { MessageBus } from '../messageBus';
-import { WebviewResolver } from './SourceControlWebviewResolver';
+import { WebviewResolver } from './MainWebviewResolver';
 
 export class IntuitaProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
-	__webviewResolved: WebviewResolver | null = null;
+	__webviewResolver: WebviewResolver | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -18,7 +18,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 	) {
 		this.__extensionPath = context.extensionUri;
 
-		this.__webviewResolved  = new WebviewResolver(this.__extensionPath, this.__messageBus);
+		this.__webviewResolver  = new WebviewResolver(this.__extensionPath, this.__messageBus);
 	}
 
 	refresh(): void {
@@ -26,13 +26,13 @@ export class IntuitaProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolved?.resolveWebview(this.__view.webview, {});
+		this.__webviewResolver?.resolveWebview(this.__view.webview, {});
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		if(!webviewView.webview) return;
 
-		this.__webviewResolved?.resolveWebview(webviewView.webview, {});
+		this.__webviewResolver?.resolveWebview(webviewView.webview, {});
 		this.__view = webviewView;
 	}
 }
