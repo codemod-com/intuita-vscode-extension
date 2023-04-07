@@ -242,15 +242,15 @@ export class IntuitaPanel {
 			},
 		);
 
-		this.addHook(MessageKind.configurationChanged, (message) => {
-			this.postMessage({
-				kind: 'webview.global.setConfiguration',
-				value: {
-					repositoryPath:
-						message.nextConfiguration.repositoryPath ?? null,
-				},
-			});
-		});
+		// this.addHook(MessageKind.configurationChanged, (message) => {
+		// 	this.postMessage({
+		// 		kind: 'webview.global.setConfiguration',
+		// 		value: {
+		// 			repositoryPath:
+		// 				message.nextConfiguration.repositoryPath ?? null,
+		// 		},
+		// 	});
+		// });
 
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {

@@ -73,4 +73,8 @@ export class RepositoryService {
 		await this.__repo.commit('Test commit', { all: true });
 		await this.__repo.push('origin', branchName, true);
 	}
+
+	public getRepositoryPath(): string | null {
+		return this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null;
+	}
 }
