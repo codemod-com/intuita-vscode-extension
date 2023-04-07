@@ -365,7 +365,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 				} catch (e) {
 					const message =
-						isAxiosError<{ message: string }>(e) && e.response
+						isAxiosError<{ message?: string }>(e) &&
+						e.response?.data.message
 							? e.response.data.message
 							: e instanceof Error
 							? e.message
@@ -424,8 +425,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
+					// @TODO create parseError helper or something like that
 					const message =
-						isAxiosError<{ message: string }>(e) && e.response
+						isAxiosError<{ message?: string }>(e) &&
+						e.response?.data.message
 							? e.response.data.message
 							: e instanceof Error
 							? e.message

@@ -48,7 +48,7 @@ export class SourceControlService {
 		this.__messageBus.publish({ kind: MessageKind.beforePRCreated });
 
 		const result = await axios.post<CreatePRResponse>(
-			'https://telemetry.intuita.io/sourceControl/github/pulls',
+			'https://codemod-studio.vercel.app/sourceControl/github/pulls',
 			{
 				repo: repositoryPath,
 				userId: userId,
@@ -82,7 +82,7 @@ export class SourceControlService {
 		this.__messageBus.publish({ kind: MessageKind.beforeIssueCreated });
 
 		const result = await axios.post<CreateIssueResponse>(
-			'https://telemetry.intuita.io/sourceControl/github/issues',
+			'https://codemod-studio.vercel.app/sourceControl/github/issues',
 			{
 				repo: repositoryPath,
 				userId: userId,
