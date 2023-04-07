@@ -198,7 +198,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const git = activeGitExtension?.getAPI(1) ?? null;
 
-	const repositoryService = new RepositoryService(git);
+	const repositoryService = new RepositoryService(git, messageBus);
 
 	const sourceControl = new SourceControlService(
 		globalStateAccountStorage,

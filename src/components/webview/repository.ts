@@ -1,4 +1,5 @@
 import { APIState, API, Repository, Branch, Change } from '../../types/git';
+import { MessageBus, MessageKind } from '../messageBus';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -22,7 +23,10 @@ const branchNameFromStr = (str: string): string => {
 export class RepositoryService {
 	__repo: Repository | null = null;
 
-	constructor(private readonly __gitAPI: API | null) {
+	constructor(
+		private readonly __gitAPI: API | null,
+		private readonly __messageBus: MessageBus,
+	) {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
 		this.__gitAPI?.onDidChangeState((state) =>
@@ -33,6 +37,13 @@ export class RepositoryService {
 	private __onDidChangeState(state: APIState): void {
 		if (state === 'initialized') {
 			this.__repo = this.__gitAPI?.repositories[0] ?? null;
+
+			const repositoryPath = this.getRepositoryPath();
+
+			this.__messageBus.publish({
+				kind: MessageKind.repositoryPathChanged,
+				repositoryPath,
+			});
 		}
 	}
 
@@ -75,6 +86,8 @@ export class RepositoryService {
 	}
 
 	public getRepositoryPath(): string | null {
-		return this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null;
+		return (
+			this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null
+		);
 	}
 }
