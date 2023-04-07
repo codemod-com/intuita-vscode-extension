@@ -211,9 +211,9 @@ export async function activate(context: vscode.ExtensionContext) {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 			const panelInstance = IntuitaPanel.getInstance(
 				context,
-				{ getConfiguration },
-				globalStateAccountStorage,
 				messageBus,
+				repositoryService,
+				globalStateAccountStorage,
 			);
 			await panelInstance.render();
 			const { label } = treeItem;
@@ -266,9 +266,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const panelInstance = IntuitaPanel.getInstance(
 					context,
-					{ getConfiguration },
-					globalStateAccountStorage,
 					messageBus,
+					repositoryService,
+					globalStateAccountStorage,
 				);
 
 				// @TODO figure out more informative title and description
