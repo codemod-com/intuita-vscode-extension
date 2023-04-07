@@ -14,7 +14,7 @@ import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash, debounce, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
-import { watchFiles } from '../fileWatcher';
+import { watchFileWithPattern, watchFiles } from '../fileWatcher';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
 export type PathHash = string & { __type: 'PathHash' };
@@ -214,7 +214,7 @@ class CodemodTreeProvider {
 		}
 		const watcher = this.watchPackageJson(packageJsonList);
 		this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => {
-			watcher?.dispose();
+			watcher?.forEach((el) => el.dispose());
 		});
 
 		this.getCodemods();
@@ -309,7 +309,13 @@ class CodemodTreeProvider {
 		if (!uri.length) {
 			return;
 		}
-		return watchFiles(uri, debounce(this.getCodemods.bind(this), 50));
+		return [
+			watchFiles(uri, debounce(this.getCodemods.bind(this), 50)),
+			watchFileWithPattern(
+				'**/package.json',
+				debounce(this.getCodemods.bind(this), 50),
+			),
+		];
 	}
 
 	showRootPathUndefinedMessage() {
