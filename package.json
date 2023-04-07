@@ -194,7 +194,7 @@
 					"description": "The number of worker threads to execute any codemod over"
 				},
 				"intuita.includePatterns": {
-					"order": 4,
+					"order": 5,
 					"type": "array",
 					"default": [
 						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
@@ -202,7 +202,7 @@
 					"description": "The glob pattern to use when searching for files to execute codemods over"
 				},
 				"intuita.excludePatterns": {
-					"order": 5,
+					"order": 6,
 					"type": "array",
 					"default": [
 						"**/node_modules"
@@ -490,6 +490,14 @@
 	]
 =======
 		"semver": "^7.3.8"
+<<<<<<< HEAD
 	}
 >>>>>>> 87081d8 (update: update welcome message on tree-view)
 }
+=======
+	},
+	"extensionDependencies": [
+		"vscode.git"
+	]
+}
+>>>>>>> 4fc5fd2 (update: update package.json)
