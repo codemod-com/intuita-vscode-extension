@@ -330,7 +330,10 @@ export class JobManager {
 			if (
 				job &&
 				(job.kind === JobKind.rewriteFile ||
-					job.kind === JobKind.moveAndRewriteFile) &&
+					job.kind === JobKind.moveAndRewriteFile ||
+					job.kind === JobKind.createFile ||
+					job.kind === JobKind.moveFile ||
+					job.kind === JobKind.copyFile) &&
 				job.newContentUri
 			) {
 				messages.push({
