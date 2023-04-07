@@ -19,8 +19,6 @@ const branchNameFromStr = (str: string): string => {
 	return branchName;
 };
 
-export class UninitializedError extends Error {}
-
 export class RepositoryService {
 	__repo: Repository | null = null;
 

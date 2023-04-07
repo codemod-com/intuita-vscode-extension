@@ -250,7 +250,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to get HEAD');
 				}
 
-				const hasChanges = await repositoryService.hasChangesToCommit();
+				const hasChanges = repositoryService.hasChangesToCommit();
 
 				if (!hasChanges) {
 					throw new Error('Nothing to commit');
