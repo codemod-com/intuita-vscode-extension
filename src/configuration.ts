@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { GitExtension } from './types/git';
 
 export const getConfiguration = () => {
 	const configuration = vscode.workspace.getConfiguration('intuita');

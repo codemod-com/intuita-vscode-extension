@@ -3,9 +3,7 @@ import { MessageBus, MessageKind } from '../messageBus';
 import { RepositoryService } from './repository';
 export class NotFoundRepositoryPath extends Error {}
 export class NotFoundIntuitaAccount extends Error {}
-interface ConfigurationService {
-	getConfiguration(): { repositoryPath: string | undefined };
-}
+
 interface UserAccountStorage {
 	getUserAccount(): string | null;
 }
@@ -20,7 +18,6 @@ type CreatePRResponse = {
 
 export class SourceControlService {
 	constructor(
-		// private readonly __configurationService: ConfigurationService,
 		private readonly __userAccountStorage: UserAccountStorage,
 		private readonly __messageBus: MessageBus,
 		private readonly __repositoryService: RepositoryService,
@@ -32,10 +29,7 @@ export class SourceControlService {
 		baseBranch: string;
 		targetBranch: string;
 	}) {
-		const x = this.__repositoryService.
-
-		const { repositoryPath } =
-			this.__configurationService.getConfiguration();
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
 
 		if (!repositoryPath) {
 			throw new NotFoundRepositoryPath();
@@ -67,8 +61,7 @@ export class SourceControlService {
 	}
 
 	async createIssue(params: { title: string; body: string }) {
-		const { repositoryPath } =
-			this.__configurationService.getConfiguration();
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
 
 		if (!repositoryPath) {
 			throw new NotFoundRepositoryPath();

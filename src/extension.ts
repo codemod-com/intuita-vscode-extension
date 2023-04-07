@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import * as vscode from 'vscode';
-import { DefaultConfigurationClass, getConfiguration } from './configuration';
+import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -64,7 +64,7 @@ const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
-	new DefaultConfigurationClass();
+
 	const configurationContainer = buildContainer(getConfiguration());
 
 	context.subscriptions.push(
@@ -190,12 +190,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
 
-	const sourceControl = new SourceControlService(
-		{ getConfiguration },
-		globalStateAccountStorage,
-		messageBus,
-	);
-
 	const gitExtension =
 		vscode.extensions.getExtension<GitExtension>('vscode.git');
 	const activeGitExtension = gitExtension?.isActive
@@ -205,6 +199,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	const git = activeGitExtension?.getAPI(1) ?? null;
 
 	const repositoryService = new RepositoryService(git);
+
+	const sourceControl = new SourceControlService(
+		globalStateAccountStorage,
+		messageBus,
+		repositoryService,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
