@@ -1,4 +1,4 @@
-import { APIState, API, Repository } from '../../types/git';
+import { APIState, API, Repository, Branch, Change } from '../../types/git';
 
 const branchNameFromStr = (str: string): string => {
 	let branchName = str
@@ -42,15 +42,15 @@ export class RepositoryService {
 		return this.__repo?.getBranches({ remote: true });
 	}
 
-	public async getCurrentBranch() {
-		return this.__repo?.state.HEAD;
+	public getCurrentBranch(): Branch | null {
+		return this.__repo?.state.HEAD ?? null;
 	}
 
-	public async getWorkingTreeChanges() {
-		return this.__repo?.state.workingTreeChanges;
+	public getWorkingTreeChanges(): ReadonlyArray<Change> | null {
+		return this.__repo?.state.workingTreeChanges ?? null;
 	}
 
-	public async hasChangesToCommit(): Promise<boolean> {
+	public hasChangesToCommit(): boolean {
 		if (this.__repo === null) {
 			return false;
 		}
@@ -61,7 +61,7 @@ export class RepositoryService {
 		);
 	}
 
-	public getBranchName(jobHash: string, jobTitle: string) {
+	public getBranchName(jobHash: string, jobTitle: string): string {
 		return branchNameFromStr(`${jobTitle}-${jobHash}`);
 	}
 

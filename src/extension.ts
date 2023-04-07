@@ -244,8 +244,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to initialize repositoryService');
 				}
 
-				const currentBranch =
-					await repositoryService.getCurrentBranch();
+				const currentBranch = repositoryService.getCurrentBranch();
 
 				if (!currentBranch) {
 					throw new Error('Unable to get HEAD');
