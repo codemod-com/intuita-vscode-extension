@@ -417,11 +417,6 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectJob",
-					"when": "viewItem == acceptedJobElement",
-					"group": "inline"
-				},
-				{
 					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
@@ -433,11 +428,6 @@
 				},
 				{
 					"command": "intuita.createPR",
-					"when": "viewItem == acceptedCaseElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.rejectCase",
 					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
 				}
