@@ -240,16 +240,6 @@ export class IntuitaPanel {
 			},
 		);
 
-		// this.addHook(MessageKind.configurationChanged, (message) => {
-		// 	this.postMessage({
-		// 		kind: 'webview.global.setConfiguration',
-		// 		value: {
-		// 			repositoryPath:
-		// 				message.nextConfiguration.repositoryPath ?? null,
-		// 		},
-		// 	});
-		// });
-
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
 				this.addHook(kind, (message) => {
@@ -264,21 +254,17 @@ export class IntuitaPanel {
 		);
 	}
 
-	private prepareWebviewInitialData = () => {
+	private prepareWebviewInitialData = (): Readonly<{
+		repositoryPath: string | null;
+		userId: string | null;
+	}> => {
 		const repositoryPath = this.__repositoryService.getRepositoryPath();
 		const userId = this.__userAccountStorage.getUserAccount();
 
-		const result: { repositoryPath?: string; userId?: string } = {};
-
-		if (repositoryPath) {
-			result.repositoryPath = repositoryPath;
-		}
-
-		if (userId) {
-			result.userId = userId;
-		}
-
-		return result;
+		return {
+			repositoryPath,
+			userId,
+		};
 	};
 
 	private onDidReceiveMessage(message: WebviewResponse) {

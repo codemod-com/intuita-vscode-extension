@@ -11,8 +11,8 @@ import type {
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			repositoryPath: string;
-			userId: string;
+			repositoryPath: string | null;
+			userId: string | null;
 		};
 	}
 }
