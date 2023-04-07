@@ -119,6 +119,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
+	treeDataProvider.setReveal(explorerTreeView.reveal);
+
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
 	context.subscriptions.push(codemodTreeView);
