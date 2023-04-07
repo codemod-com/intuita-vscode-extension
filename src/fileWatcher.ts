@@ -1,19 +1,37 @@
-import { workspace, Disposable } from 'vscode';
+import { workspace, Disposable, Uri } from 'vscode';
 
-export const watchFile = (
-	filePath: string,
+export const watchFiles = (
+	filePath: Uri[],
 	callback: () => void,
 ): Disposable => {
-	const watcher = workspace.createFileSystemWatcher(filePath);
+	const watchers = filePath.map((el) =>
+		workspace.createFileSystemWatcher(el.fsPath.toString()),
+	);
 
-	const disposable = watcher.onDidChange(() => {
-		callback();
-	});
+	// watch for changes
+	watchers.forEach((watcher) =>
+		watcher.onDidChange(() => {
+			callback();
+		}),
+	);
+
+	// watch for creation
+	watchers.forEach((watcher) =>
+		watcher.onDidCreate(() => {
+			callback();
+		}),
+	);
+
+	// watch for deletion
+	watchers.forEach((watcher) =>
+		watcher.onDidDelete(() => {
+			callback();
+		}),
+	);
 
 	return {
 		dispose: () => {
-			disposable.dispose();
-			watcher.dispose();
+			watchers.forEach((el) => el.dispose());
 		},
 	};
 };
