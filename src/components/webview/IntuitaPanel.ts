@@ -252,6 +252,15 @@ export class IntuitaPanel {
 				});
 			},
 		);
+
+		this.addHook(MessageKind.repositoryPathChanged, (message) => {
+			this.postMessage({
+				kind: 'webview.global.setConfiguration',
+				value: {
+					repositoryPath: message.repositoryPath,
+				},
+			});
+		});
 	}
 
 	private prepareWebviewInitialData = (): Readonly<{
