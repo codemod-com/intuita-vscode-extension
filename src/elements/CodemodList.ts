@@ -5,20 +5,27 @@ import {
 	window,
 	Event,
 	EventEmitter,
+	workspace,
+	Uri,
+	TreeItem2,
+	ThemeIcon,
 } from 'vscode';
 import path from 'path';
 import { accessSync, readFileSync } from 'fs';
 import { buildHash, debounce, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
-import { watchFile } from '../fileWatcher';
+import { watchFiles } from '../fileWatcher';
 
 export type CodemodHash = string & { __type: 'CodemodHash' };
+export type PathHash = string & { __type: 'PathHash' };
+
+type CodemodKind = 'upgrade' | 'migration' | 'remove';
 
 export type PackageUpgradeItem = Readonly<{
 	id: string;
 	packageName: string;
 	name: string;
-	kind: 'upgrade' | 'migration' | 'remove';
+	kind: CodemodKind;
 	leastVersionSupported: string;
 	latestVersionSupported: string;
 	leastSupportedUpgrade: string;
@@ -143,7 +150,6 @@ const checkIfCodemodIsAvailable = (
 };
 
 class CodemodItem extends TreeItem {
-	readonly kind: string;
 	constructor(
 		public readonly label: string,
 		public readonly description: string,
@@ -153,10 +159,10 @@ class CodemodItem extends TreeItem {
 		super(label, collapsibleState);
 		this.description = description;
 		this.tooltip = `${label}-${description}`;
-		this.kind = 'codemodItem';
 		this.contextValue = 'codemodItem';
 		this.commandToExecute = commandToExecute;
 	}
+
 	iconPath = path.join(
 		__filename,
 		'..',
@@ -166,61 +172,144 @@ class CodemodItem extends TreeItem {
 	);
 }
 
+type Path = {
+	hash: PathHash;
+	path: string;
+	label: string;
+	kind: 'path';
+	children: (PathHash | CodemodHash)[];
+};
+
 class CodemodTreeProvider {
-	#packageJsonPath: string | null;
+	#rootPath: string | null;
 	#messageBus: MessageBus;
-	#codemodItemsMap: Map<CodemodHash, CodemodItem> = new Map();
-	#watchedPackageJson: ReturnType<typeof watchFile> | undefined;
+	#codemodItemsMap: Map<CodemodHash | PathHash, CodemodItem | Path> =
+		new Map();
 	readonly #eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 
 	constructor(rootPath: string | null, messageBus: MessageBus) {
-		const packageJsonPath = rootPath && path.join(rootPath, 'package.json');
-		this.#packageJsonPath =
-			packageJsonPath && this.pathExists(packageJsonPath)
-				? packageJsonPath
-				: null;
-		if (!this.#packageJsonPath) {
-			this.showRootPathUndefinedMessage();
-		}
-
+		this.#rootPath = rootPath;
 		this.#messageBus = messageBus;
-		this.#watchedPackageJson = this.watchPackageJson();
-		this.updateCodemodItemsMap();
 		this.onDidChangeTreeData = this.#eventEmitter.event;
-		this.#messageBus = messageBus;
+		this.getPackageJsonListAndWatch();
+
+		// TODO: support for codemod execution on different paths
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
 			const codemodItemFound = this.getTreeItem(
 				message.codemodHash as CodemodHash,
-			);
+			) as CodemodItem | undefined;
+			if (!codemodItemFound) {
+				return;
+			}
 			this.runCodemod(codemodItemFound.commandToExecute);
 		});
-
-		this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => {
-			this.dispose();
-		});
 	}
 
-	watchPackageJson() {
-		if (!this.#packageJsonPath) {
+	async getPackageJsonListAndWatch() {
+		const packageJsonList = await this.getPackageJsonList();
+		if (!packageJsonList.length) {
+			this.showRootPathUndefinedMessage();
 			return;
 		}
-		return watchFile(
-			this.#packageJsonPath,
-			debounce(this.updateCodemodItemsMap.bind(this), 50),
-		);
+		const watcher = this.watchPackageJson(packageJsonList);
+		this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => {
+			watcher?.dispose();
+		});
+
+		this.getCodemods();
 	}
 
-	dispose() {
-		this.#watchedPackageJson?.dispose();
-	}
-
-	updateCodemodItemsMap() {
-		const dependencies = this.getDepsInPackageJson();
-		if (dependencies) {
-			this.#codemodItemsMap = dependencies;
-			this.#eventEmitter.fire();
+	async getCodemods() {
+		if (!this.#rootPath) {
+			return;
 		}
+		const packageJsonList = await this.getPackageJsonList();
+
+		const codemods: Map<CodemodHash | PathHash, CodemodItem | Path> =
+			new Map();
+		const codemodPaths: Map<CodemodHash, PathHash> = new Map();
+
+		packageJsonList.forEach((uri) => {
+			if (!this.pathExists(uri.fsPath)) {
+				return;
+			}
+			const CodemodsFromPackageJson = this.getDepsInPackageJson(
+				uri.fsPath,
+			);
+			if (!CodemodsFromPackageJson?.size) {
+				return;
+			}
+			const pathFromRoot = uri.fsPath
+				.replace('/package.json', '')
+				.replace(this.#rootPath as string, '');
+
+			const splitParts = pathFromRoot.split('/');
+			CodemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
+				codemods.set(codemodHash, codemodItem);
+			});
+			splitParts.forEach((part, index, parts) => {
+				const currentPWD = `${this.#rootPath}${parts
+					.slice(0, index + 1)
+					.join('/')}`;
+
+				const nextPWD =
+					index + 1 < parts.length
+						? `${this.#rootPath}${parts
+								.slice(0, index + 2)
+								.join('/')}`
+						: null;
+
+				const pathHash = buildHash(currentPWD) as PathHash;
+				const children = [] as (PathHash | CodemodHash)[];
+				if (!nextPWD) {
+					CodemodsFromPackageJson.forEach((_, codemodHash) => {
+						codemodPaths.set(codemodHash, pathHash);
+					});
+					children.push(...CodemodsFromPackageJson.keys());
+				} else {
+					children.push(buildHash(nextPWD) as PathHash);
+				}
+
+				if (codemods.has(pathHash)) {
+					const current = codemods.get(pathHash) as Path;
+
+					current.children = [...children, ...current.children];
+					codemods.set(pathHash, current);
+					return;
+				}
+				const path = {
+					hash: pathHash,
+					kind: 'path',
+					path: currentPWD,
+					label: part,
+					children,
+				} as Path;
+				codemods.set(pathHash, path);
+			});
+		});
+		this.#codemodItemsMap = codemods;
+		this.#eventEmitter.fire();
+	}
+
+	async getPackageJsonList() {
+		try {
+			const uris = await workspace.findFiles(
+				'**/package.json',
+				'node_modules/**',
+				100,
+			);
+			return uris;
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	}
+	watchPackageJson(uri: Uri[]) {
+		if (!uri.length) {
+			return;
+		}
+		return watchFiles(uri, debounce(this.getCodemods.bind(this), 50));
 	}
 
 	showRootPathUndefinedMessage() {
@@ -229,29 +318,54 @@ class CodemodTreeProvider {
 		);
 	}
 
-	getChildren(): CodemodHash[] {
-		if (!this.#packageJsonPath) {
-			return [];
+	getChildren(el: CodemodHash | PathHash): (CodemodHash | PathHash)[] {
+		if (!this.#rootPath) return [];
+
+		if (el) {
+			const parent = this.#codemodItemsMap.get(el);
+			if (!parent) {
+				return [];
+			}
+			if ('kind' in parent && parent.kind === 'path') {
+				return parent?.children || [];
+			}
+			return [el];
 		}
-		return Array.from(this.#codemodItemsMap.keys());
+		// List codemods starting from the root
+		const root = this.#codemodItemsMap.get(
+			buildHash(this.#rootPath) as PathHash,
+		) as Path;
+		return root?.children || [];
 	}
 
-	public runCodemod(codemod: string) {
-		commands.executeCommand(codemod);
+	public runCodemod(command: string) {
+		commands.executeCommand(command);
 	}
 
-	getTreeItem(element: CodemodHash): CodemodItem {
-		return this.#codemodItemsMap.get(element) as CodemodItem;
+	getTreeItem(element: CodemodHash | PathHash) {
+		const foundElement = this.#codemodItemsMap.get(element);
+		if (!foundElement) {
+			return null;
+		}
+		if ('kind' in foundElement && foundElement.kind === 'path') {
+			const treeItem = new TreeItem2(foundElement.label);
+			treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
+			treeItem.iconPath = new ThemeIcon('folder');
+
+			return treeItem;
+		}
+
+		return foundElement;
 	}
 
-	private getDepsInPackageJson(): Map<CodemodHash, CodemodItem> | null {
-		if (!this.#packageJsonPath) {
+	private getDepsInPackageJson(
+		path: string,
+	): Map<CodemodHash, CodemodItem> | null {
+		if (!this.pathExists(path)) {
 			return null;
 		}
 
-		const document = JSON.parse(
-			readFileSync(this.#packageJsonPath, 'utf-8'),
-		) as {
+		const document = JSON.parse(readFileSync(path, 'utf-8')) as {
 			dependencies: Record<string, string>;
 		};
 		let dependencyCodemods: PackageUpgradeItem[] = [];
