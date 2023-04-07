@@ -342,10 +342,12 @@ class CodemodTreeProvider {
 		commands.executeCommand(command);
 	}
 
-	getTreeItem(element: CodemodHash | PathHash) {
+	getTreeItem(
+		element: CodemodHash | PathHash,
+	): CodemodItem | Path | TreeItem2 {
 		const foundElement = this.#codemodItemsMap.get(element);
 		if (!foundElement) {
-			return null;
+			throw new Error('Element not found');
 		}
 		if ('kind' in foundElement && foundElement.kind === 'path') {
 			const treeItem = new TreeItem2(foundElement.label);
