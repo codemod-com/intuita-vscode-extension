@@ -488,6 +488,7 @@
 	"extensionDependencies": [
 		"vscode.git"
 	]
+<<<<<<< HEAD
 =======
 		"semver": "^7.3.8"
 <<<<<<< HEAD
@@ -501,3 +502,6 @@
 	]
 }
 >>>>>>> 4fc5fd2 (update: update package.json)
+=======
+}
+>>>>>>> ad23d40 (update: package.json)
