@@ -121,6 +121,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	treeDataProvider.setReveal(explorerTreeView.reveal);
 
+	explorerTreeView.onDidChangeVisibility(({ visible }) => {
+		if (visible) {
+			treeDataProvider.setReveal(explorerTreeView.reveal);
+		} else {
+			treeDataProvider.setReveal(intuitaTreeView.reveal);
+		}
+	});
+
 	context.subscriptions.push(explorerTreeView);
 	context.subscriptions.push(intuitaTreeView);
 	context.subscriptions.push(codemodTreeView);
