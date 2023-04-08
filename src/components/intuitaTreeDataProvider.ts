@@ -311,7 +311,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			this.#activeJobHashes.delete(jobHash);
 		}
 
-		setImmediate(revealTheFirstJobElement);
+		// setImmediate(revealTheFirstJobElement);
 	}
 
 	#onClearStateMessage() {

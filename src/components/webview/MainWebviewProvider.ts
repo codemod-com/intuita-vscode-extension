@@ -58,6 +58,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__webviewResolver?.resolveWebview(webviewView.webview, 'main', {});
 		this.__view = webviewView;
+		this.__view.onDidChangeVisibility(() => {
+			this.__messageBus.publish({ kind: MessageKind.updateElements });
+		})
 	}
 
 	public setView(data: View) {

@@ -233,6 +233,13 @@
 				},
 				{
 					"type": "webview",
+					"id": "intuita-webview",
+					"name": "Intuita",
+					"icon": "img/intuita.svg",
+					"contextualTitle": "Intuita"
+				},
+				{
+					"type": "webview",
 					"id": "intuita-progress-webview",
 					"name": "Intuita: Execution Progress",
 					"contextualTitle": "Intuita: Execution Progress"
@@ -248,9 +255,9 @@
 				{
 					"type": "webview",
 					"id": "intuita-webview",
-					"name": "Intuita Source Control",
+					"name": "Intuita",
 					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita Source Control"
+					"contextualTitle": "Intuita"
 				},
 				{
 					"id": "intuita-available-codemod-tree-view",
