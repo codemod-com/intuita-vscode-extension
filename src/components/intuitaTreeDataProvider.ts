@@ -75,7 +75,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
 		const debouncedOnUpdateElementsMessage = debounce(() => {
-			return this.#onUpdateElementsMessage();
+			 this.#onUpdateElementsMessage();
 		}, 100);
 
 		this.#messageBus.subscribe(MessageKind.updateElements, (message) =>
@@ -84,22 +84,6 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
-
-		this.eventEmitter.event(() => {
-			const elements = this.#elementMap.values();
-			const rootElement = Array.from(elements).find(
-				(el) => el.kind === 'ROOT',
-			) as RootElement;
-
-			if (!rootElement) {
-				return;
-			}
-
-			this.#messageBus.publish({
-				kind: MessageKind.afterElementsUpdated,
-				element: rootElement,
-			});
-		});
 	}
 
 	public setReveal(reveal: TreeView<ElementHash>['reveal']) {
@@ -311,7 +295,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			this.#activeJobHashes.delete(jobHash);
 		}
 
-		// setImmediate(revealTheFirstJobElement);
+		setImmediate(revealTheFirstJobElement);
 	}
 
 	#onClearStateMessage() {

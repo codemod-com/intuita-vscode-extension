@@ -30,15 +30,11 @@ code {
 }
 
 .tree-view_arrow:not(.tree-view_arrow-collapsed):after {
-	content: '\25be';
-	@apply text-gray-dark;
-	@apply dark:text-gray-lighter;
+	display: none;
 }
 
 .tree-view_arrow.tree-view_arrow-collapsed:after {
-	content: '\25b8';
-	@apply text-gray-dark;
-	@apply dark:text-gray-lighter;
+	display: none;
 }
 
 .tree-view_disabled {

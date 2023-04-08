@@ -1,9 +1,18 @@
-type TreeNode = {
+export type Command = {
+	title: string, 
+	command: string, 
+	arguments: any[],
+}
+
+export type TreeNode = {
 	id: string;
-	label: string;
+	label?: string;
+	iconName?: string;
+	kind?: string;
+	command?: Command,
+	actions?: Command[]
 	children?: TreeNode[];
 };
-
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createIssue.setFormData';
@@ -65,6 +74,10 @@ export type WebviewResponse =
 	}>
 	| Readonly<{
 		kind: 'webview.global.openYouTubeChannel'
+	}>
+	| Readonly<{
+		kind: 'webview.command', 
+		value: Command,
 	}>
 	
 

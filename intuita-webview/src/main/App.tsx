@@ -9,17 +9,6 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
-
-declare global {
-	interface Window {
-		INITIAL_STATE: {
-			repositoryPath: string;
-			userId: string;
-		};
-	}
-}
-
-// @TODO 
 type MainViews = Extract<View, {viewId: 'treeView'}>;
 
 // @ts-ignore
@@ -62,7 +51,7 @@ function App() {
 		return null;
 	}
 
-	return <main className="App">{getViewComponent(view)}</main>;
+	return <main className="App"><TreeView {...view.viewProps}/></main>;
 }
 
 export default App;

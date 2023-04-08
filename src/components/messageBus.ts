@@ -264,7 +264,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.afterElementsUpdated;
-			element: RootElement;
+			element: RootElement | null;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

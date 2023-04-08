@@ -210,6 +210,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaWebviewProvider = new IntuitaProvider(
 		context,
 		messageBus,
+		jobManager, 
+		caseManager,
 	);
 
 	const view = vscode.window.registerWebviewViewProvider(
