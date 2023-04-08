@@ -4,7 +4,7 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
-import { vscode } from '../utilities/vscode';
+import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 
 type Props = Readonly<{

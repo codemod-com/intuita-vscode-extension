@@ -1,15 +1,19 @@
-// import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
+
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+
+import { vscode } from '../shared/utilities/vscode';
+import WarningMessage from '../shared/WarningMessage';
+
 import CreateIssue from './CreateIssueView';
-import { vscode } from './utilities/vscode';
-// import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
+
 import type {
 	View,
 	WebviewMessage,
-} from '../../src/components/webview/webviewEvents';
+} from '../../../src/components/webview/webviewEvents';
 
-import TreeView from './TreeView';
+
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -19,6 +23,7 @@ declare global {
 	}
 }
 
+// @ts-ignore
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'createIssue': {
@@ -26,18 +31,14 @@ const getViewComponent = (view: View) => {
 		}
 		case 'createPR':
 			return <CreatePR {...view.viewProps} />;
-		case 'treeView':
-			return view.viewProps.node ? (
-				<TreeView {...view.viewProps} />
-			) : null;
 	}
 };
 
 function App() {
-	const [, setConfiguredRepoPath] = useState<string | null>(
+	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
 		window.INITIAL_STATE.repositoryPath,
 	);
-	const [, setLinkedAccount] = useState<string | null>(
+	const [linkedAccount, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
 
@@ -71,42 +72,42 @@ function App() {
 		};
 	}, []);
 
-	// const handleLinkAccount = () => {
-	// 	vscode.postMessage({
-	// 		kind: 'webview.global.redirectToSignIn',
-	// 	});
-	// };
+	const handleLinkAccount = () => {
+		vscode.postMessage({
+			kind: 'webview.global.redirectToSignIn',
+		});
+	};
 
-	// const handleOpenExtensionSettings = () => {
-	// 	vscode.postMessage({
-	// 		kind: 'webview.global.openConfiguration',
-	// 	});
-	// };
+	const handleOpenExtensionSettings = () => {
+		vscode.postMessage({
+			kind: 'webview.global.openConfiguration',
+		});
+	};
 
-	// // @TODO detect remote automatically
-	// if (!configuredRepoPath) {
-	// 	return (
-	// 		<WarningMessage
-	// 			message="In order to create pull requests and issues, configure you repository settings"
-	// 			actionButtons={[
-	// 				<VSCodeButton onClick={handleOpenExtensionSettings}>
-	// 					Open settings
-	// 				</VSCodeButton>,
-	// 			]}
-	// 		/>
-	// 	);
-	// }
+	// @TODO detect remote automatically
+	if (!configuredRepoPath) {
+		return (
+			<WarningMessage
+				message="In order to create pull requests and issues, configure you repository settings"
+				actionButtons={[
+					<VSCodeButton onClick={handleOpenExtensionSettings}>
+						Open settings
+					</VSCodeButton>,
+				]}
+			/>
+		);
+	}
 
-	// if (!linkedAccount) {
-	// 	<WarningMessage
-	// 		message="In order to create pull requests and issues, link your Intuita account"
-	// 		actionButtons={[
-	// 			<VSCodeButton onClick={handleLinkAccount}>
-	// 				Link account
-	// 			</VSCodeButton>,
-	// 		]}
-	// 	/>;
-	// }
+	if (!linkedAccount) {
+		<WarningMessage
+			message="In order to create pull requests and issues, link your Intuita account"
+			actionButtons={[
+				<VSCodeButton onClick={handleLinkAccount}>
+					Link account
+				</VSCodeButton>,
+			]}
+		/>;
+	}
 
 	if (!view) {
 		return null;
