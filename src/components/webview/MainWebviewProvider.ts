@@ -173,6 +173,10 @@ export class IntuitaProvider implements WebviewViewProvider {
 					? element.children.map(this.__getTree)
 					: [];
 
+				if(element.kind === 'CASE') {
+					mappedNode.children = element.children.flatMap((fileElement) => fileElement.children).map(this.__getTree);
+				}
+
 			return mappedNode;
 	}
 
