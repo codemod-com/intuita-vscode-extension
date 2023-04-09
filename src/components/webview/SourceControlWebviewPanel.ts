@@ -7,7 +7,7 @@ import {
 	commands,
 	Webview,
 } from 'vscode';
-import { Message, MessageBus, MessageKind, } from '../messageBus';
+import { Message, MessageBus, MessageKind } from '../messageBus';
 import { WebviewResolver } from './WebviewResolver';
 import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
 
@@ -17,26 +17,19 @@ export class IntuitaPanel {
 	private __disposables: Disposable[] = [];
 	static __instance: IntuitaPanel | null = null;
 
-	static getInstance(
-		context: ExtensionContext,
-		messageBus: MessageBus,
-	) {
+	static getInstance(context: ExtensionContext, messageBus: MessageBus) {
 		if (this.__instance) {
 			return this.__instance;
 		}
 
-		return new IntuitaPanel(
-			context,
-			messageBus,
-		);
+		return new IntuitaPanel(context, messageBus);
 	}
 
 	private constructor(
 		context: ExtensionContext,
- 	  private readonly __messageBus: MessageBus,
+		private readonly __messageBus: MessageBus,
 	) {
-
-		const webviewResolver  = new WebviewResolver(context.extensionUri);
+		const webviewResolver = new WebviewResolver(context.extensionUri);
 
 		this.__panel = window.createWebviewPanel(
 			'intuitaPanel',
@@ -55,7 +48,11 @@ export class IntuitaPanel {
 			this.__disposables,
 		);
 
-		webviewResolver.resolveWebview(this.__panel.webview, 'sourceControl', {});
+		webviewResolver.resolveWebview(
+			this.__panel.webview,
+			'sourceControl',
+			{},
+		);
 		this.__view = this.__panel.webview;
 
 		this.__attachExtensionEventListeners();
@@ -74,7 +71,7 @@ export class IntuitaPanel {
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
 				(message) => {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
-						console.log('HERE')
+						console.log('HERE');
 						disposable?.dispose();
 						clearTimeout(timeout);
 						resolve('Resolved');

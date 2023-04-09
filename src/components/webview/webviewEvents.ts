@@ -1,16 +1,16 @@
 export type Command = {
-	title: string, 
-	command: string, 
-	arguments: any[],
-}
+	title: string;
+	command: string;
+	arguments: any[];
+};
 
 export type TreeNode = {
 	id: string;
 	label?: string;
 	iconName?: string;
 	kind?: string;
-	command?: Command,
-	actions?: Command[]
+	command?: Command;
+	actions?: Command[];
 	children?: TreeNode[];
 };
 export type WebviewMessage =
@@ -67,19 +67,18 @@ export type WebviewResponse =
 			};
 	  }>
 	| Readonly<{
-			kind: 'webview.tree.clearOutputFiles', 
-	}>
+			kind: 'webview.tree.clearOutputFiles';
+	  }>
 	| Readonly<{
-		kind: 'webview.global.requestFeature',
-	}>
+			kind: 'webview.global.requestFeature';
+	  }>
 	| Readonly<{
-		kind: 'webview.global.openYouTubeChannel'
-	}>
+			kind: 'webview.global.openYouTubeChannel';
+	  }>
 	| Readonly<{
-		kind: 'webview.command', 
-		value: Command,
-	}>
-	
+			kind: 'webview.command';
+			value: Command;
+	  }>;
 
 export type View =
 	| Readonly<{

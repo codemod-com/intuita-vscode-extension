@@ -43,6 +43,10 @@ export const debounce = <R>(callback: (...args: any[]) => R, ms: number) => {
 
 export const singleQuotify = (str: string) => `'${str}'`;
 
-export function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
+export function getUri(
+	webview: Webview,
+	extensionUri: Uri,
+	pathList: string[],
+) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }

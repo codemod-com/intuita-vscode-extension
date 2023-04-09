@@ -13,7 +13,6 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
-
 declare global {
 	interface Window {
 		INITIAL_STATE: {

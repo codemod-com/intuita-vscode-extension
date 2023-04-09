@@ -9,7 +9,7 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
-type MainViews = Extract<View, {viewId: 'treeView'}>;
+type MainViews = Extract<View, { viewId: 'treeView' }>;
 
 // @ts-ignore
 const getViewComponent = (view: MainViews) => {
@@ -33,7 +33,7 @@ function App() {
 
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
-				if(message.value.viewId === 'treeView') {
+				if (message.value.viewId === 'treeView') {
 					setView(message.value);
 				}
 			}
@@ -46,12 +46,15 @@ function App() {
 		};
 	}, []);
 
-
 	if (!view) {
 		return null;
 	}
 
-	return <main className="App"><TreeView {...view.viewProps}/></main>;
+	return (
+		<main className="App">
+			<TreeView {...view.viewProps} />
+		</main>
+	);
 }
 
 export default App;

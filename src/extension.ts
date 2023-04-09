@@ -210,7 +210,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaWebviewProvider = new IntuitaProvider(
 		context,
 		messageBus,
-		jobManager, 
+		jobManager,
 		caseManager,
 	);
 
@@ -224,14 +224,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = IntuitaPanel.getInstance(
-				context,
-				messageBus,
-			);
+			const panelInstance = IntuitaPanel.getInstance(context, messageBus);
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
-			
+
 			panelInstance.setView({
 				viewId: 'createIssue',
 				viewProps: {

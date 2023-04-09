@@ -479,6 +479,7 @@
 		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
+		"@vscode/codicons": "^0.0.32",
 		"axios": "^1.2.2",
 		"fp-ts": "^2.13.1",
 		"io-ts": "^2.2.20",
@@ -486,6 +487,7 @@
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
-		"semver": "^7.3.8"
+		"semver": "^7.3.8",
+		"vscode-codicons": "^0.0.17"
 	}
 }

@@ -1,33 +1,41 @@
-import {
-	Webview,
-	Uri,
-} from 'vscode';
-
+import { Webview, Uri } from 'vscode';
 import { randomBytes } from 'crypto';
 import { getUri } from '../../utilities';
 
 export class WebviewResolver {
-
-	constructor(
-		private readonly __extensionPath: Uri,
-	) {
-	}
+	constructor(private readonly __extensionPath: Uri) {}
 
 	public getWebviewOptions() {
 		return {
 			enableScripts: true,
 			localResourceRoots: [
 				Uri.joinPath(this.__extensionPath, 'intuita-webview/build'),
+				Uri.joinPath(
+					this.__extensionPath,
+					'node_modules/vscode-codicons',
+				),
 			],
-		}
-	}
-  
-	public resolveWebview(webview: Webview,  webviewName: string, initialData: any) {
-		webview.options = this.getWebviewOptions();
-		webview.html = this.__getHtmlForWebview(webview, webviewName, initialData);
+		};
 	}
 
-  private __getHtmlForWebview(webview: Webview, webviewName: string,  initialData: any) {
+	public resolveWebview(
+		webview: Webview,
+		webviewName: string,
+		initialData: any,
+	) {
+		webview.options = this.getWebviewOptions();
+		webview.html = this.__getHtmlForWebview(
+			webview,
+			webviewName,
+			initialData,
+		);
+	}
+
+	private __getHtmlForWebview(
+		webview: Webview,
+		webviewName: string,
+		initialData: any,
+	) {
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
@@ -42,9 +50,15 @@ export class WebviewResolver {
 			'js',
 			`${webviewName}.js`,
 		]);
-	
+
 		const nonce = randomBytes(48).toString('hex');
-	
+		const codiconsUri = getUri(webview, this.__extensionPath, [
+			'node_modules',
+			'vscode-codicons',
+			'dist',
+			'codicon.css',
+		]);
+
 		return /*html*/ `
 			<!DOCTYPE html>
 			<html lang="en">
@@ -52,14 +66,14 @@ export class WebviewResolver {
 					<meta charset="utf-8">
 					<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 					<meta name="theme-color" content="#000000">
-					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${
-				webview.cspSource
-			}; script-src 'nonce-${nonce}';">
+					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${
+			webview.cspSource
+		}; style-src ${webview.cspSource}">
+					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
 				</head>
 				<body>
-					<noscript>You need to enable JavaScript to run this app.</noscript>
 					<div id="root"></div>
 					<script nonce="${nonce}">
 					window.INITIAL_STATE=${JSON.stringify(initialData)}

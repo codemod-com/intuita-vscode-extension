@@ -8,16 +8,32 @@ type Props = {
 	open: boolean;
 	icon: ReactNode;
 	actionButtons: ReactNode;
+	hasChildren: boolean;
 	onClick(): void;
 };
 
-const TreeItem = ({ id,  label, icon, actionButtons, open, onClick}: Props) => {
+const TreeItem = ({
+	id,
+	label,
+	icon,
+	open,
+	actionButtons,
+	hasChildren,
+	onClick,
+}: Props) => {
 	return (
 		<div id={id} className={styles.root} onClick={onClick}>
-			<i className={cn('codicon', {
-				'chevron-right': !open, 
-				'chevron-down': open,
-			})} />
+			{hasChildren ? (
+				<div className={styles.codicon}>
+					<span
+						className={cn('codicon', {
+							'codicon-chevron-right': !open,
+							'codicon-chevron-down': open,
+						})}
+					/>
+				</div>
+			) : null}
+
 			<div className={styles.icon}>{icon}</div>
 			<span className={styles.label}>{label}</span>
 			<div className={styles.actions}>{actionButtons}</div>

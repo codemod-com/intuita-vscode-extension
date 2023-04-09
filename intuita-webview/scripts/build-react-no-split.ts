@@ -24,9 +24,12 @@ config.plugins[5].options.filename = 'static/css/[name].css';
 config.plugins[5].options.moduleFilename = () => 'static/css/main.css';
 
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 // Remove ManifestPlugin
 config.plugins.splice(6, 1);
 
-config.entry = { 'sourceControl': resolveApp('src/sourceControl/index.tsx'), 'main': resolveApp('src/main/index.tsx') }
+config.entry = {
+	sourceControl: resolveApp('src/sourceControl/index.tsx'),
+	main: resolveApp('src/main/index.tsx'),
+};
