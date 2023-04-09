@@ -47,8 +47,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__extensionPath = context.extensionUri;
 
 		this.__webviewResolver  = new WebviewResolver(this.__extensionPath);
-		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners();
 	}
 
 	refresh(): void {
@@ -66,8 +64,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view = webviewView;
 
 		this.__view.onDidChangeVisibility(() => {
-			this.__messageBus.publish({ kind: MessageKind.updateElements });
+			this.__onUpdateElementsMessage();
 		})
+
+		this.__attachExtensionEventListeners();
+		this.__attachWebviewEventListeners();
 	}
 
 	public setView(data: View) {
@@ -149,7 +150,18 @@ export class IntuitaProvider implements WebviewViewProvider {
 							],
 						};
 					}
-				
+
+					mappedNode.actions = [{
+						title: 'Accept Job',
+						command: 'intuita.acceptJob',
+						arguments: [element.job.hash],
+					}, 
+					{
+						title: 'Reject Job',
+						command: 'intuita.rejectJob',
+						arguments: [element.job.hash],
+					}, 
+				]
 				}
 		
 				if (element.kind === 'CASE') {
@@ -325,9 +337,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__elementMap.clear();
 		this.__setElement(rootElement);
-
 		const tree = this.__getTree(rootElement);
-		console.log(tree, 'test')
+		console.log('send', tree)
 		this.setView({
 			viewId: 'treeView', 
 			viewProps: {
@@ -346,13 +357,28 @@ export class IntuitaProvider implements WebviewViewProvider {
 		);
 	}
 
-	private __onDidReceiveMessage(message: WebviewResponse) {
+	private __onDidReceiveMessage = (message: WebviewResponse) => {
 		if(message.kind === 'webview.command') {
-			commands.executeCommand(message.value.command, ...message.value.arguments);
+
+			if(message.value.command === 'vscode.diff'){
+				const args= message.value.arguments;
+				const left = Uri.parse(args[0].path);
+				const right = Uri.parse(args[1].path);
+				const title = args[2];
+				
+				commands.executeCommand(message.value.command, left, right, title);
+			}
+		}
+
+
+		if(message.kind === 'webview.global.afterWebviewMounted') {
+			this.__onUpdateElementsMessage();
 		}
 	}
 
 	private __attachWebviewEventListeners() {
-		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		if(!this.__view) return;
+
+		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
