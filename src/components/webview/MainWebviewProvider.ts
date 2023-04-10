@@ -184,6 +184,19 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			if (this.__jobManager.isJobAccepted(element.jobHash)) {
 				mappedNode.kind = 'acceptedJobElement';
+
+				mappedNode.actions = [
+					{
+						title: 'Issue',
+						command: 'intuita.createIssue',
+						arguments: [element.job.hash],
+					},
+					{
+						title: 'PR',
+						command: 'intuita.createPR',
+						arguments: [element.job.hash],
+					},
+				];
 			}
 		}
 
@@ -211,6 +224,19 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			if (caseAccepted) {
 				mappedNode.kind = 'acceptedCaseElement';
+
+				mappedNode.actions = [
+					{
+						title: 'Issue',
+						command: 'intuita.createIssue',
+						arguments: [element.hash],
+					},
+					{
+						title: 'PR',
+						command: 'intuita.createPR',
+						arguments: [element.hash],
+					},
+				];
 			}
 		}
 
@@ -379,12 +405,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 		const tree = this.__getTree(rootElement);
 
 		this.setView({
-			viewId: 'treeView', 
+			viewId: 'treeView',
 			viewProps: {
-				node: tree
-			}
-		})
-
+				node: tree,
+			},
+		});
 	}
 
 	private __onUpdateElementsMessage() {
@@ -427,7 +452,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 		);
 
 		this.__addHook(MessageKind.clearState, () =>
-		this.__onClearStateMessage())
+			this.__onClearStateMessage(),
+		);
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {

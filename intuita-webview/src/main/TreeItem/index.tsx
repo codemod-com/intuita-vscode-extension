@@ -25,15 +25,20 @@ const TreeItem = ({
 }: Props) => {
 	return (
 		<div id={id} className={styles.root} onClick={onClick}>
-			<div className={styles.indent} style={{ minWidth: `${indent}px` }} />
-			{hasChildren ? (<div className={styles.codicon}>
-  					<span
+			<div
+				className={styles.indent}
+				style={{ minWidth: `${indent}px` }}
+			/>
+			{hasChildren ? (
+				<div className={styles.codicon}>
+					<span
 						className={cn('codicon', {
 							'codicon-chevron-right': !open,
 							'codicon-chevron-down': open,
 						})}
 					/>
-			</div>	) : null}
+				</div>
+			) : null}
 			<div className={styles.icon}>{icon}</div>
 			<span className={styles.label}>{label}</span>
 			<div className={styles.actions}>{actionButtons}</div>

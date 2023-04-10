@@ -71,7 +71,6 @@ export class IntuitaPanel {
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
 				(message) => {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
-						console.log('HERE');
 						disposable?.dispose();
 						clearTimeout(timeout);
 						resolve('Resolved');

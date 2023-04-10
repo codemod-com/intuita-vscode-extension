@@ -44,8 +44,8 @@
 	flex-grow: 1;
 	color: var(--vscode-foreground);
 	text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
 .actions {

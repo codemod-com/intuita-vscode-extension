@@ -104,15 +104,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 	);
 
-	const explorerTreeView = vscode.window.createTreeView(
-		'explorerIntuitaViewId',
-		{ treeDataProvider },
-	);
-
-	const intuitaTreeView = vscode.window.createTreeView('intuitaViewId', {
-		treeDataProvider,
-	});
-
 	const codemodTreeView = vscode.window.createTreeView(
 		'intuita-available-codemod-tree-view',
 		{
@@ -120,10 +111,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	treeDataProvider.setReveal(explorerTreeView.reveal);
-
-	context.subscriptions.push(explorerTreeView);
-	context.subscriptions.push(intuitaTreeView);
 	context.subscriptions.push(codemodTreeView);
 
 	context.subscriptions.push(
@@ -214,8 +201,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		caseManager,
 	);
 
+	const viewExplorer = vscode.window.registerWebviewViewProvider(
+		'intuitaMainWebviewExplorer',
+		intuitaWebviewProvider,
+	);
+	context.subscriptions.push(viewExplorer);
+
 	const view = vscode.window.registerWebviewViewProvider(
-		'intuita-webview',
+		'intuitaMainWebview',
 		intuitaWebviewProvider,
 	);
 

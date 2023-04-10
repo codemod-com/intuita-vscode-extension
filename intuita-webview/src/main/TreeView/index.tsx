@@ -32,22 +32,23 @@ const TreeView = ({ node }: Props) => {
 
 	const renderItem = (
 		node: TreeNode,
-		depth: number, 
+		depth: number,
 		open: boolean,
 		setIsOpen: (value: boolean) => void,
 	) => {
 		const icon =
 			node.iconName === 'case.svg' ? <CaseIcon /> : <BlueLightBulbIcon />;
-		// eslint-disable-next-line jsx-a11y/anchor-is-valid
 		const actionButtons = (node.actions ?? []).map((action) => (
+			// eslint-disable-next-line jsx-a11y/anchor-is-valid
 			<a
 				title={action.title}
 				role="button"
-				onClick={() => {
+				onClick={(e) => {
+					e.stopPropagation();
 					handleActionButtonClick(action);
 				}}
 			>
-				{action.title}{' '}
+				{action.title}
 			</a>
 		));
 
@@ -57,7 +58,7 @@ const TreeView = ({ node }: Props) => {
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
-				indent={depth*30}
+				indent={depth * 30}
 				open={open}
 				onClick={() => {
 					handleClick(node);
@@ -68,8 +69,13 @@ const TreeView = ({ node }: Props) => {
 		);
 	};
 
-	if(!node.children?.length) {
-		return <p className={styles.welcomeMessage}>No change to review! Run some codemods via VS Code Command & check back later!</p>
+	if (!node.children?.length) {
+		return (
+			<p className={styles.welcomeMessage}>
+				No change to review! Run some codemods via VS Code Command &
+				check back later!
+			</p>
+		);
 	}
 
 	return <Tree node={node} renderItem={renderItem} />;
