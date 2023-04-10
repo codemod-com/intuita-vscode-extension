@@ -11,15 +11,6 @@ import type {
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
-// @ts-ignore
-const getViewComponent = (view: MainViews) => {
-	switch (view.viewId) {
-		case 'treeView': {
-			return <TreeView {...view.viewProps} />;
-		}
-	}
-};
-
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
 

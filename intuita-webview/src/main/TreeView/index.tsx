@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import Tree from '../Tree';
-import TreeItem from './TreeItem';
+import TreeItem from '../TreeItem';
 import {
 	Command,
 	TreeNode,
@@ -8,7 +8,7 @@ import {
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
-// import {ReactComponent as Ts2Icon } from '../../assets/ts2.svg';
+import styles from './style.module.css';
 
 type Props = {
 	node: TreeNode;
@@ -66,7 +66,9 @@ const TreeView = ({ node }: Props) => {
 		);
 	};
 
-	console.log(node, 'test');
+	if(!node.children?.length) {
+		return <p className={styles.welcomeMessage}>No change to review! Run some codemods via VS Code Command & check back later!</p>
+	}
 
 	return <Tree node={node} renderItem={renderItem} />;
 };

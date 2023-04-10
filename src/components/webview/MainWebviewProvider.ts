@@ -365,6 +365,28 @@ export class IntuitaProvider implements WebviewViewProvider {
 		});
 	}
 
+	private __onClearStateMessage() {
+		this.__elementMap.clear();
+
+		const rootElement = {
+			hash: ROOT_ELEMENT_HASH,
+			kind: 'ROOT',
+			children: [],
+		} as RootElement;
+
+		this.__setElement(rootElement);
+
+		const tree = this.__getTree(rootElement);
+
+		this.setView({
+			viewId: 'treeView', 
+			viewProps: {
+				node: tree
+			}
+		})
+
+	}
+
 	private __onUpdateElementsMessage() {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
@@ -387,7 +409,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__elementMap.clear();
 		this.__setElement(rootElement);
 		const tree = this.__getTree(rootElement);
-		console.log('send', tree);
 		this.setView({
 			viewId: 'treeView',
 			viewProps: {
@@ -404,6 +425,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.updateElements, (message) =>
 			debouncedOnUpdateElementsMessage(message),
 		);
+
+		this.__addHook(MessageKind.clearState, () =>
+		this.__onClearStateMessage())
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
