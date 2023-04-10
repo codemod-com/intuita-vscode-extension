@@ -9,6 +9,7 @@ type Props = {
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
+	indent: number;
 	onClick(): void;
 };
 
@@ -19,21 +20,20 @@ const TreeItem = ({
 	open,
 	actionButtons,
 	hasChildren,
+	indent,
 	onClick,
 }: Props) => {
 	return (
 		<div id={id} className={styles.root} onClick={onClick}>
-			{hasChildren ? (
-				<div className={styles.codicon}>
-					<span
+			<div className={styles.indent} style={{ minWidth: `${indent}px` }} />
+			{hasChildren ? (<div className={styles.codicon}>
+  					<span
 						className={cn('codicon', {
 							'codicon-chevron-right': !open,
 							'codicon-chevron-down': open,
 						})}
 					/>
-				</div>
-			) : null}
-
+			</div>	) : null}
 			<div className={styles.icon}>{icon}</div>
 			<span className={styles.label}>{label}</span>
 			<div className={styles.actions}>{actionButtons}</div>

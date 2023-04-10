@@ -32,6 +32,7 @@ const TreeView = ({ node }: Props) => {
 
 	const renderItem = (
 		node: TreeNode,
+		depth: number, 
 		open: boolean,
 		setIsOpen: (value: boolean) => void,
 	) => {
@@ -56,6 +57,7 @@ const TreeView = ({ node }: Props) => {
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
+				indent={depth*30}
 				open={open}
 				onClick={() => {
 					handleClick(node);
