@@ -33,24 +33,12 @@ export class FileService {
 		await workspace.fs.createDirectory(Uri.file(directory));
 
 		await workspace.fs.writeFile(message.newUri, content);
-
-		if (message.deleteNewContentUri) {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFiles,
-				uris: [message.newContentUri],
-			});
-		}
 	}
 
 	async #onUpdateFile(message: Message & { kind: MessageKind.updateFile }) {
 		const content = await workspace.fs.readFile(message.contentUri);
 
 		await workspace.fs.writeFile(message.uri, content);
-
-		this.#messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris: [message.contentUri],
-		});
 	}
 
 	async #onMoveFile(message: Message & { kind: MessageKind.moveFile }) {
@@ -64,7 +52,7 @@ export class FileService {
 
 		this.#messageBus.publish({
 			kind: MessageKind.deleteFiles,
-			uris: [message.oldUri, message.newContentUri],
+			uris: [message.oldUri],
 		});
 	}
 

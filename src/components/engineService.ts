@@ -14,6 +14,7 @@ import { StatusBarItemManager } from './statusBarItemManager';
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
+	noImportedMod: 'No imported codemod was found',
 	errorRunningCodemod: 'An error occurred while running the codemod',
 	codemodUnrecognized: 'The codemod is invalid / unsupported',
 };

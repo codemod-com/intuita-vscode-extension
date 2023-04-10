@@ -11,7 +11,7 @@ import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
-import { EngineService } from './components/engineService';
+import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
@@ -50,7 +50,7 @@ import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
-import type { GitExtension } from '../git';
+import type { GitExtension } from './types/git';
 import {
 	checkIfCodemodIsAvailable,
 	CodemodHash,
@@ -178,21 +178,21 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
 
-	const sourceControl = new SourceControlService(
-		{ getConfiguration },
-		globalStateAccountStorage,
-		messageBus,
-	);
-
 	const gitExtension =
 		vscode.extensions.getExtension<GitExtension>('vscode.git');
 	const activeGitExtension = gitExtension?.isActive
 		? gitExtension.exports
 		: await gitExtension?.activate();
 
-	const git = activeGitExtension?.getAPI(1);
+	const git = activeGitExtension?.getAPI(1) ?? null;
 
-	const repositoryService = git ? new RepositoryService(git) : null;
+	const repositoryService = new RepositoryService(git, messageBus);
+
+	const sourceControl = new SourceControlService(
+		globalStateAccountStorage,
+		messageBus,
+		repositoryService,
+	);
 
 	const intuitaWebviewProvider = new IntuitaProvider(
 		context,
@@ -217,7 +217,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = IntuitaPanel.getInstance(context, messageBus);
+			const panelInstance = IntuitaPanel.getInstance(
+				context,
+				messageBus,
+				repositoryService,
+				globalStateAccountStorage,
+			);
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
@@ -248,14 +253,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to initialize repositoryService');
 				}
 
-				const currentBranch =
-					await repositoryService.getCurrentBranch();
+				const currentBranch = repositoryService.getCurrentBranch();
 
 				if (!currentBranch) {
 					throw new Error('Unable to get HEAD');
 				}
 
-				const hasChanges = await repositoryService.hasChangesToCommit();
+				const hasChanges = repositoryService.hasChangesToCommit();
 
 				if (!hasChanges) {
 					throw new Error('Nothing to commit');
@@ -272,6 +276,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				const panelInstance = IntuitaPanel.getInstance(
 					context,
 					messageBus,
+					repositoryService,
+					globalStateAccountStorage,
 				);
 
 				// @TODO figure out more informative title and description
@@ -367,7 +373,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 				} catch (e) {
 					const message =
-						isAxiosError<{ message: string }>(e) && e.response
+						isAxiosError<{ message?: string }>(e) &&
+						e.response?.data.message
 							? e.response.data.message
 							: e instanceof Error
 							? e.message
@@ -407,7 +414,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				} catch (e) {
 					if (e instanceof NotFoundRepositoryPath) {
 						vscode.window.showInformationMessage(
-							'Missing `repositoryPath`. Please ensure that you have provided the correct path in the extension settings.',
+							'Missing the repository path. Ensure your workspace is connected to a Git remote.',
 						);
 					}
 
@@ -426,12 +433,15 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
+					// @TODO create parseError helper or something like that
 					const message =
-						isAxiosError<{ message: string }>(e) && e.response
+						isAxiosError<{ message?: string }>(e) &&
+						e.response?.data.message
 							? e.response.data.message
 							: e instanceof Error
 							? e.message
 							: String(e);
+
 					vscode.window.showErrorMessage(message);
 				}
 			},
@@ -1199,8 +1209,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const version = await vscode.window.showQuickPick(
-					Object.keys(recipeMap),
+				let version = await vscode.window.showQuickPick(
+					Object.keys(recipeMap).map((version) =>
+						!isNaN(parseFloat(version)) ? `v${version}` : version,
+					),
 					{
 						placeHolder:
 							'Pick the codemod set (recipe) to execute over the selected path',
@@ -1209,6 +1221,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				if (!version) {
 					return;
+				}
+
+				if (
+					version.startsWith('v') &&
+					!isNaN(parseFloat(version.slice(1)))
+				) {
+					version = version.slice(1);
 				}
 
 				const recipeName = recipeMap[version];
@@ -1266,9 +1285,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				);
 
 				const text = document.getText();
+
+				// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
+				if (!text) {
+					vscode.window.showWarningMessage(Messages.noImportedMod);
+					return;
+				}
+
 				const buffer = Buffer.from(text);
 				const content = new Uint8Array(buffer);
-
 				vscode.workspace.fs.writeFile(modUri, content);
 
 				const happenedAt = String(Date.now());

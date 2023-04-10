@@ -3,7 +3,6 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
-import { RootElement } from '../elements/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -81,7 +80,7 @@ export const enum MessageKind {
 	beforePRCreated = 33,
 	afterPRCreated = 34,
 
-	afterElementsUpdated = 35,
+	repositoryPathChanged = 35,
 }
 
 export type Engine = 'node' | 'rust';
@@ -263,8 +262,8 @@ export type Message =
 			kind: MessageKind.afterPRCreated;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterElementsUpdated;
-			element: RootElement | null;
+			kind: MessageKind.repositoryPathChanged;
+			repositoryPath: string | null;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

@@ -28,14 +28,11 @@ export const getConfiguration = () => {
 		'**/node_modules',
 	];
 
-	const repositoryPath = configuration.get<string>('repositoryPath');
-
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
 		telemetryEnabled,
 		workerThreadCount,
-		repositoryPath,
 		includePatterns,
 		excludePatterns,
 	};

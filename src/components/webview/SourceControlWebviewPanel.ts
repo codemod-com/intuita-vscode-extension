@@ -10,6 +10,8 @@ import {
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { WebviewResolver } from './WebviewResolver';
 import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
+import { RepositoryService } from './repository';
+import { UserAccountStorage } from '../user/userService';
 
 export class IntuitaPanel {
 	private __view: Webview | null = null;
@@ -17,17 +19,29 @@ export class IntuitaPanel {
 	private __disposables: Disposable[] = [];
 	static __instance: IntuitaPanel | null = null;
 
-	static getInstance(context: ExtensionContext, messageBus: MessageBus) {
+	static getInstance(
+		context: ExtensionContext,
+		messageBus: MessageBus,
+		repositoryService: RepositoryService,
+		userAccountStorage: UserAccountStorage,
+	) {
 		if (this.__instance) {
 			return this.__instance;
 		}
 
-		return new IntuitaPanel(context, messageBus);
+		return new IntuitaPanel(
+			context,
+			messageBus,
+			repositoryService,
+			userAccountStorage,
+		);
 	}
 
 	private constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
+		private readonly __repositoryService: RepositoryService,
+		private readonly __userAccountStorage: UserAccountStorage,
 	) {
 		const webviewResolver = new WebviewResolver(context.extensionUri);
 
@@ -51,7 +65,7 @@ export class IntuitaPanel {
 		webviewResolver.resolveWebview(
 			this.__panel.webview,
 			'sourceControl',
-			{},
+			this.__prepareWebviewInitialData(),
 		);
 		this.__view = this.__panel.webview;
 
@@ -103,6 +117,19 @@ export class IntuitaPanel {
 		}
 	}
 
+	private __prepareWebviewInitialData = (): Readonly<{
+		repositoryPath: string | null;
+		userId: string | null;
+	}> => {
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
+		const userId = this.__userAccountStorage.getUserAccount();
+
+		return {
+			repositoryPath,
+			userId,
+		};
+	};
+
 	private __postMessage(message: WebviewMessage) {
 		if (!this.__view) {
 			return;
@@ -136,13 +163,10 @@ export class IntuitaPanel {
 			},
 		);
 
-		this.__addHook(MessageKind.configurationChanged, (message) => {
+		this.__addHook(MessageKind.repositoryPathChanged, (message) => {
 			this.__postMessage({
-				kind: 'webview.global.setConfiguration',
-				value: {
-					repositoryPath:
-						message.nextConfiguration.repositoryPath ?? null,
-				},
+				kind: 'webview.global.setRepositoryPath',
+				repositoryPath: message.repositoryPath,
 			});
 		});
 

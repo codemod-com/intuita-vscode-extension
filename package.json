@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.14.1",
+	"version": "0.15.1",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -41,11 +41,11 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
 			},
 			{
 				"view": "intuita-available-codemod-tree-view",
-				"contents": "No available codemods right now based on package.json file. Please check back later!"
+				"contents": "No available codemods right now based on package.json file. You can create a codemod on [Codemod Studio](https://codemod.studio) and import it here.\n[Open Codemod Studio](https://codemod.studio)"
 			}
 		],
 		"commands": [
@@ -109,20 +109,20 @@
 				"icon": "$(clear-all)"
 			},
 			{
-				"command": "intuita.acceptJob",
-				"title": "✓ Apply"
-			},
-			{
 				"command": "intuita.runCodemod",
 				"title": "✓ Run"
 			},
 			{
-				"command": "intuita.rejectJob",
-				"title": "✗ Dismiss"
+				"command": "intuita.acceptJob",
+				"title": "✓ Apply"
 			},
 			{
 				"command": "intuita.acceptCase",
 				"title": "✓ Apply"
+			},
+			{
+				"command": "intuita.rejectJob",
+				"title": "✗ Dismiss"
 			},
 			{
 				"command": "intuita.rejectCase",
@@ -186,14 +186,8 @@
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
 				},
-				"intuita.repositoryPath": {
-					"order": 4,
-					"type": "string",
-					"default": "",
-					"description": "Repository path (example: https://github.com/octocat/Hello-World)"
-				},
 				"intuita.includePatterns": {
-					"order": 4,
+					"order": 5,
 					"type": "array",
 					"default": [
 						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
@@ -201,7 +195,7 @@
 					"description": "The glob pattern to use when searching for files to execute codemods over"
 				},
 				"intuita.excludePatterns": {
-					"order": 5,
+					"order": 6,
 					"type": "array",
 					"default": [
 						"**/node_modules"
@@ -269,11 +263,11 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.rejectJob",
+					"command": "intuita.acceptCase",
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
+					"command": "intuita.rejectJob",
 					"when": "false"
 				},
 				{
@@ -377,17 +371,12 @@
 			],
 			"view/item/context": [
 				{
-					"command": "intuita.acceptJob",
-					"when": "viewItem == jobElement",
-					"group": "inline"
-				},
-				{
 					"command": "intuita.runCodemod",
 					"when": "viewItem == codemodItem",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectJob",
+					"command": "intuita.acceptJob",
 					"when": "viewItem == jobElement",
 					"group": "inline"
 				},
@@ -397,23 +386,38 @@
 					"group": "inline"
 				},
 				{
+					"command": "intuita.rejectJob",
+					"when": "viewItem == jobElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectJob",
+					"when": "viewItem == acceptedJobElement",
+					"group": "inline"
+				},
+				{
 					"command": "intuita.rejectCase",
 					"when": "viewItem == caseElement",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.createIssue",
-					"when": "viewItem == acceptedJobElement",
+					"command": "intuita.rejectCase",
+					"when": "viewItem == acceptedCaseElement",
 					"group": "inline"
 				},
 				{
-					"command": "intuita.createPR",
+					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
 				},
 				{
 					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedCaseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createPR",
+					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
 				},
 				{
@@ -472,5 +476,8 @@
 		"newtype-ts": "^0.3.5",
 		"semver": "^7.3.8",
 		"vscode-codicons": "^0.0.17"
-	}
+	},
+	"extensionDependencies": [
+		"vscode.git"
+	]
 }
