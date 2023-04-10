@@ -5,7 +5,7 @@ import {
 	Event,
 	EventEmitter,
 	workspace,
-	TreeItem2,
+	TreeItem,
 	ThemeIcon,
 	Uri,
 } from 'vscode';
@@ -32,7 +32,6 @@ class CodemodTreeProvider {
 		this.onDidChangeTreeData = this.#eventEmitter.event;
 		this.getPackageJsonListAndWatch();
 
-		// TODO: support for codemod execution on different paths
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
 			const codemodItemFound = this.getTreeItem(
 				message.codemodHash as CodemodHash,
@@ -69,7 +68,6 @@ class CodemodTreeProvider {
 
 		const codemods: Map<CodemodHash | PathHash, CodemodItem | Path> =
 			new Map();
-		const codemodPaths: Map<CodemodHash, PathHash> = new Map();
 
 		packageJsonList.forEach((uri) => {
 			if (!pathExists(uri.fsPath)) {
@@ -104,9 +102,6 @@ class CodemodTreeProvider {
 				const pathHash = buildHash(currentPWD) as PathHash;
 				const children = new Set<PathHash | CodemodHash>();
 				if (!nextPWD) {
-					CodemodsFromPackageJson.forEach((_, codemodHash) => {
-						codemodPaths.set(codemodHash, pathHash);
-					});
 					const codemodsHash = [...CodemodsFromPackageJson.keys()];
 					codemodsHash.forEach((codemodHash) => {
 						children.add(codemodHash);
@@ -217,13 +212,13 @@ class CodemodTreeProvider {
 
 	getTreeItem(
 		element: CodemodHash | PathHash,
-	): CodemodItem | Path | TreeItem2 {
+	): CodemodItem | Path | TreeItem {
 		const foundElement = this.#codemodItemsMap.get(element);
 		if (!foundElement) {
 			throw new Error('Element not found');
 		}
 		if ('kind' in foundElement && foundElement.kind === 'path') {
-			const treeItem = new TreeItem2(foundElement.label);
+			const treeItem = new TreeItem(foundElement.label);
 			treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
 			treeItem.iconPath = new ThemeIcon('folder');
 
