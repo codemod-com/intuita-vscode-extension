@@ -26,7 +26,8 @@ config.plugins[5].options.moduleFilename = () => 'static/css/main.css';
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
-// Remove ManifestPlugin
+// @TODO fix ManifestPlugin so it dont break build with custom entrypoints
+// as quick fix just removed it
 config.plugins.splice(6, 1);
 
 config.entry = {

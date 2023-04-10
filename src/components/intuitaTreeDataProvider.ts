@@ -75,7 +75,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		this.onDidChangeTreeData = this.eventEmitter.event;
 
 		const debouncedOnUpdateElementsMessage = debounce(() => {
-			this.#onUpdateElementsMessage();
+			return this.#onUpdateElementsMessage();
 		}, 100);
 
 		this.#messageBus.subscribe(MessageKind.updateElements, (message) =>

@@ -361,17 +361,17 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaViewId || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.requestFeature",
-					"when": "view == intuitaViewId || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaViewId || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				}
 			],
@@ -463,7 +463,6 @@
 		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
-		"@vscode/codicons": "^0.0.32",
 		"axios": "^1.2.2",
 		"fp-ts": "^2.13.1",
 		"io-ts": "^2.2.20",
