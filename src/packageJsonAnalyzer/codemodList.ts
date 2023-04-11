@@ -28,6 +28,7 @@ import {
 	buildCodemodItemHash,
 } from './utils';
 import path from 'path';
+import { satisfies } from 'semver';
 
 export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 	#rootPath: string | null;
@@ -118,39 +119,41 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 								.join('/')}`
 						: null;
 
-				const pathHash = buildHash(currentWD) as CodemodHash;
+				const pathHash = buildHash(currentWD) as CodemodHash; // TODO construct the proper hash digest here
 				const children = new Set<CodemodHash>();
-				
+
 				if (!nextWD) {
-					const codemodsHash = [...codemodsFromPackageJson.keys()];
-					codemodsHash.forEach((codemodHash) => {
+					for (const codemodHash of codemodsFromPackageJson.keys()) {
 						children.add(codemodHash);
-					});
+					}
 				} else {
 					children.add(buildHash(nextWD) as CodemodHash);
 				}
 
-				if (codemods.has(pathHash)) {
-					const current = codemods.get(pathHash) as CodemodPath;
-					current.children.forEach((child) => {
-						children.add(child);
-					});
+				{
+					const current = codemods.get(pathHash);
 
-					codemods.set(pathHash, {
-						...current,
-						children: Array.from(children),
-					});
+					if (current && current.kind === 'path') {
+						current.children.forEach((child) => {
+							children.add(child);
+						});
 
-					return;
+						codemods.set(pathHash, {
+							...current,
+							children: Array.from(children),
+						});
+
+						return;
+					}
 				}
-				const path: CodemodPath = {
+
+				codemods.set(pathHash, {
 					hash: pathHash,
 					kind: 'path',
 					path: currentWD,
 					label: part,
 					children: Array.from(children),
-				};
-				codemods.set(pathHash, path);
+				});
 			});
 		}
 
@@ -186,7 +189,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		// List codemods starting from the root
 		const root = this.#codemodItemsMap.get(
 			buildHash(this.#rootPath) as CodemodHash,
-		) as CodemodPath;
+		) as CodemodPath; // TODO remove "as"
 		return root?.children || [];
 	}
 
