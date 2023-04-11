@@ -47,6 +47,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		this.getPackageJsonListAndWatch();
 
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
+			// TODO fix types
 			const codemodItemFound = this.#codemodItemsMap.get(
 				message.codemodHash as CodemodHash,
 			) as CodemodItem | undefined;
