@@ -25,9 +25,9 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 	return (
 		<TreeView collapsed={!open} nodeLabel={label}>
 			{open
-				? node.children.map((child, index) => (
+				? node.children.map((child) => (
 						<Tree
-							key={index}
+							key={child.id}
 							node={child}
 							renderItem={renderItem}
 							depth={depth + 1}

@@ -187,6 +187,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 				mappedNode.actions = [
 					{
+						title: '✗ Dismiss',
+						command: 'intuita.rejectCase',
+						arguments: [element.hash],
+					},
+					{
 						title: 'Issue',
 						command: 'intuita.createIssue',
 						arguments: [element.job.hash],
@@ -226,6 +231,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.kind = 'acceptedCaseElement';
 
 				mappedNode.actions = [
+					{
+						title: '✗ Dismiss',
+						command: 'intuita.rejectCase',
+						arguments: [element.hash],
+					},
 					{
 						title: 'Issue',
 						command: 'intuita.createIssue',
