@@ -19,11 +19,8 @@ export const getDependencyUpgrades = (
 	// replace ^, ~ , *
 	const actualVersion = version.replace(/[^0-9.]/g, '');
 
-	const codemods = packageUpgradeList.filter(
-		(el) => el.packageName === dependencyName,
-	);
-
-	return codemods
+	return packageUpgradeList
+		.filter((el) => el.packageName === dependencyName)
 		.map((el) => {
 			const { leastVersionSupported, leastSupportedUpgrade } = el;
 

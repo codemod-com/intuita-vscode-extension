@@ -254,12 +254,12 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
-			const checkedDependency = getDependencyUpgrades(
+			const checkedDependencies = getDependencyUpgrades(
 				key,
 				foundDependencies[key] as string,
 			);
-			if (checkedDependency.length !== 0) {
-				dependencyCodemods.push(...checkedDependency);
+			if (checkedDependencies.length !== 0) {
+				dependencyCodemods.push(...checkedDependencies);
 			}
 		}
 

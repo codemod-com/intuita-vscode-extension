@@ -52,11 +52,11 @@ export const handleActiveTextEditor = () => {
 		if (!dependency || !version) {
 			continue;
 		}
-		const checkedDependency = getDependencyUpgrades(dependency, version);
-		if (checkedDependency.length) {
+		const checkedDependencies = getDependencyUpgrades(dependency, version);
+		if (checkedDependencies.length) {
 			ranges.push([
 				textLine.range,
-				checkedDependency.reduce((acc, curr) => {
+				checkedDependencies.reduce((acc, curr) => {
 					acc.push(curr);
 					return acc;
 				}, [] as PackageUpgradeItem[]),
@@ -64,7 +64,7 @@ export const handleActiveTextEditor = () => {
 		}
 		if (
 			Object.keys(dependencies).includes(dependency) &&
-			(!checkedDependency.length)
+			(!checkedDependencies.length)
 		) {
 			const codmodsAvaliable = packageUpgradeList.find(
 				(el) => el.packageName === dependency,
