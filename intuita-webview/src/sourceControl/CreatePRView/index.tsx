@@ -14,6 +14,7 @@ type Props = {
 	initialFormData: Partial<FormData>;
 	baseBranchOptions: string[];
 	targetBranchOptions: string[];
+	PRAlreadyExists: boolean;
 };
 
 type FormData = {
@@ -35,6 +36,7 @@ const CreatePR = ({
 	initialFormData,
 	baseBranchOptions,
 	targetBranchOptions,
+	PRAlreadyExists
 }: Props) => {
 	const [formData, setFormData] = useState<FormData>(initialFormState);
 
@@ -100,7 +102,8 @@ const CreatePR = ({
 						))}
 					</VSCodeDropdown>
 				</div>
-				<VSCodeTextField
+				{ !PRAlreadyExists  ? <>
+					<VSCodeTextField
 					placeholder="title"
 					value={title}
 					onInput={(e) =>
@@ -124,8 +127,9 @@ const CreatePR = ({
 				>
 					Body
 				</VSCodeTextArea>
+				</> : null}
 				<VSCodeButton type="submit" className={styles.submitButton}>
-					{loading ? 'Submitting...' : 'Create Pull Request'}
+					{loading ? 'Submitting...' : PRAlreadyExists ? 'Update Pull Request' : 'Create Pull Request'}
 				</VSCodeButton>
 			</form>
 		</div>

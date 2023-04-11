@@ -28,7 +28,7 @@ const getViewComponent = (view: View) => {
 		case 'createIssue': {
 			return <CreateIssue {...view.viewProps} />;
 		}
-		case 'createPR':
+		case 'createOrUpdatePR':
 			return <CreatePR {...view.viewProps} />;
 	}
 };

@@ -88,7 +88,7 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'createPR';
+			viewId: 'createOrUpdatePR';
 			viewProps: {
 				loading: boolean;
 				error: string;
@@ -100,6 +100,7 @@ export type View =
 					baseBranch: string;
 					targetBranch: string;
 				}>;
+				PRAlreadyExists: boolean;
 			};
 	  }>
 	| Readonly<{
