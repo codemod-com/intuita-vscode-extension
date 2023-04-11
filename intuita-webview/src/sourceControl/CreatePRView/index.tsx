@@ -36,7 +36,7 @@ const CreatePR = ({
 	initialFormData,
 	baseBranchOptions,
 	targetBranchOptions,
-	PRAlreadyExists
+	PRAlreadyExists,
 }: Props) => {
 	const [formData, setFormData] = useState<FormData>(initialFormState);
 
@@ -102,34 +102,40 @@ const CreatePR = ({
 						))}
 					</VSCodeDropdown>
 				</div>
-				{ !PRAlreadyExists  ? <>
-					<VSCodeTextField
-					placeholder="title"
-					value={title}
-					onInput={(e) =>
-						setFormData({
-							...formData,
-							title: (e.target as HTMLInputElement).value,
-						})
-					}
-				>
-					Title
-				</VSCodeTextField>
-				<VSCodeTextArea
-					placeholder="Description"
-					value={body}
-					onInput={(e) =>
-						setFormData({
-							...formData,
-							body: (e.target as HTMLInputElement).value,
-						})
-					}
-				>
-					Body
-				</VSCodeTextArea>
-				</> : null}
+				{!PRAlreadyExists ? (
+					<>
+						<VSCodeTextField
+							placeholder="title"
+							value={title}
+							onInput={(e) =>
+								setFormData({
+									...formData,
+									title: (e.target as HTMLInputElement).value,
+								})
+							}
+						>
+							Title
+						</VSCodeTextField>
+						<VSCodeTextArea
+							placeholder="Description"
+							value={body}
+							onInput={(e) =>
+								setFormData({
+									...formData,
+									body: (e.target as HTMLInputElement).value,
+								})
+							}
+						>
+							Body
+						</VSCodeTextArea>
+					</>
+				) : null}
 				<VSCodeButton type="submit" className={styles.submitButton}>
-					{loading ? 'Submitting...' : PRAlreadyExists ? 'Update Pull Request' : 'Create Pull Request'}
+					{loading
+						? 'Submitting...'
+						: PRAlreadyExists
+						? 'Update Pull Request'
+						: 'Create Pull Request'}
 				</VSCodeButton>
 			</form>
 		</div>

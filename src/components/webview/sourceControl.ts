@@ -19,8 +19,8 @@ type CreatePRResponse = {
 type ListPRResponse = {
 	html_url: string;
 	head: {
-		ref: string
-	}
+		ref: string;
+	};
 }[];
 
 export class SourceControlService {
@@ -120,6 +120,6 @@ export class SourceControlService {
 
 	async getPRForBranch(branchName: string) {
 		const PRList = await this.listPR();
-		return PRList.find(pr => pr.head.ref === branchName);
+		return PRList.find((pr) => pr.head.ref === branchName);
 	}
 }

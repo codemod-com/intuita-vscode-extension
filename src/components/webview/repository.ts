@@ -87,7 +87,7 @@ export class RepositoryService {
 	}
 
 	public async isBranchExists(branchName: string): Promise<boolean> {
-		return await this.getBranch(branchName) !== null
+		return (await this.getBranch(branchName)) !== null;
 	}
 
 	public async submitChanges(branchName: string): Promise<void> {
@@ -97,7 +97,7 @@ export class RepositoryService {
 
 		const branchAlreadyExists = await this.isBranchExists(branchName);
 
-		if(branchAlreadyExists) {
+		if (branchAlreadyExists) {
 			await this.__repo.checkout(branchName);
 		} else {
 			await this.__repo.createBranch(branchName, true);
