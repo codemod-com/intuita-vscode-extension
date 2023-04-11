@@ -7,7 +7,7 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
 import styles from './style.module.css';
-import { vscode } from '../utilities/vscode';
+import { vscode } from '../../shared/utilities/vscode';
 
 type Props = {
 	loading: boolean;

@@ -31,7 +31,7 @@
 		"onUri",
 		"workspaceContains:**/*.ts*",
 		"workspaceContains:**/*.js*",
-		"onView:intuita-webview",
+		"onView:intuitaMainWebview",
 		"onView:intuita-progress-webview"
 	],
 	"capabilities": {
@@ -44,10 +44,6 @@
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
 			},
 			{
-				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
-			},
-			{
 				"view": "intuita-available-codemod-tree-view",
 				"contents": "No available codemods right now based on package.json file. You can create a codemod on [Codemod Studio](https://codemod.studio) and import it here.\n[Open Codemod Studio](https://codemod.studio)"
 			}
@@ -56,10 +52,6 @@
 			{
 				"command": "intuita.createPR",
 				"title": "Intuita: Create a Pull Request"
-			},
-			{
-				"command": "intuita.showPanel",
-				"title": "Intuita:show panel"
 			},
 			{
 				"command": "intuita.executeNextJsCodemods",
@@ -224,7 +216,8 @@
 		"views": {
 			"explorer": [
 				{
-					"id": "explorerIntuitaViewId",
+					"type": "webview",
+					"id": "intuitaMainWebviewExplorer",
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
@@ -238,7 +231,8 @@
 			],
 			"intuitaViewId": [
 				{
-					"id": "intuitaViewId",
+					"type": "webview",
+					"id": "intuitaMainWebview",
 					"name": "Intuita",
 					"icon": "img/intuita.svg",
 					"contextualTitle": "Intuita"
@@ -361,17 +355,17 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.requestFeature",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
 				}
 			],
@@ -480,7 +474,8 @@
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
-		"semver": "^7.3.8"
+		"semver": "^7.3.8",
+		"vscode-codicons": "^0.0.17"
 	},
 	"extensionDependencies": [
 		"vscode.git"

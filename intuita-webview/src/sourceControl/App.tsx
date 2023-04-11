@@ -1,13 +1,18 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
+
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+
+import { vscode } from '../shared/utilities/vscode';
+import WarningMessage from '../shared/WarningMessage';
+
 import CreateIssue from './CreateIssueView';
-import { vscode } from './utilities/vscode';
-import WarningMessage from './WarningMessage';
 import CreatePR from './CreatePRView';
+
 import type {
 	View,
 	WebviewMessage,
-} from '../../src/components/webview/IntuitaPanel';
+} from '../../../src/components/webview/webviewEvents';
+
 declare global {
 	interface Window {
 		INITIAL_STATE: {
@@ -17,6 +22,7 @@ declare global {
 	}
 }
 
+// @ts-ignore
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'createIssue': {
