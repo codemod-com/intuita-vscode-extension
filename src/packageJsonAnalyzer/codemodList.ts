@@ -43,16 +43,17 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		this.getPackageJsonListAndWatch();
 
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
-			// TODO fix types
-			const codemodItemFound = this.#codemodItemsMap.get(
-				message.codemodHash as CodemodHash,
-			) as CodemodItem | undefined;
-			if (!codemodItemFound) {
+			const codemodElement = this.#codemodItemsMap.get(
+				message.codemodHash,
+			);
+
+			if (!codemodElement || codemodElement.kind !== 'codemodItem') {
 				return;
 			}
+
 			this.runCodemod(
-				codemodItemFound.commandToExecute,
-				codemodItemFound.pathToExecute,
+				codemodElement.commandToExecute,
+				codemodElement.pathToExecute,
 			);
 		});
 	}
