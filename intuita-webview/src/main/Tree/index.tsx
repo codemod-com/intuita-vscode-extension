@@ -3,7 +3,7 @@ import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 
 type Props = {
-	depth?: number;
+	depth: number;
 	node: TreeNode;
 	renderItem(
 		node: TreeNode,
@@ -18,7 +18,7 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 
 	const label = renderItem(node, depth, open, setIsOpen);
 
-	if (!node.children?.length) {
+	if (!node.children || node.children.length === 0) {
 		return <>{label}</>;
 	}
 

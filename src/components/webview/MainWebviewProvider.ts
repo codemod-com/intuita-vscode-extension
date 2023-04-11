@@ -52,6 +52,7 @@ const getElementIconBaseName = (kind: Element['kind']): string => {
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
+// @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -74,13 +75,21 @@ export class IntuitaProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(this.__view.webview, 'main', {});
+		this.__webviewResolver?.resolveWebview(
+			this.__view.webview,
+			'main',
+			'{}',
+		);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) return;
 
-		this.__webviewResolver?.resolveWebview(webviewView.webview, 'main', {});
+		this.__webviewResolver?.resolveWebview(
+			webviewView.webview,
+			'main',
+			'{}',
+		);
 		this.__view = webviewView;
 
 		this.__view.onDidChangeVisibility(() => {
@@ -270,12 +279,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 	}
 
 	private __buildJobMap(
-		caseDataTransferObjects: Iterable<CaseWithJobHashes>,
+		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 	): ReadonlyMap<JobHash, Job> {
 		const map = new Map<JobHash, Job>();
 
-		for (const caseDto of caseDataTransferObjects) {
-			for (const jobHash of caseDto.jobHashes) {
+		for (const kase of casesWithJobHashes) {
+			for (const jobHash of kase.jobHashes) {
 				const job = this.__jobManager.getJob(jobHash);
 
 				if (!job) {
@@ -470,6 +479,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'vscode.diff') {
 				const args = message.value.arguments;
+
+				if (!args) {
+					return;
+				}
+
 				const left = Uri.parse(args[0].path);
 				const right = Uri.parse(args[1].path);
 				const title = args[2];
@@ -484,7 +498,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			commands.executeCommand(
 				message.value.command,
-				...message.value.arguments,
+				...(message.value.arguments ?? []),
 			);
 		}
 
@@ -494,7 +508,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 	};
 
 	private __attachWebviewEventListeners() {
-		if (!this.__view) return;
+		if (!this.__view) {
+			return;
+		}
 
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}

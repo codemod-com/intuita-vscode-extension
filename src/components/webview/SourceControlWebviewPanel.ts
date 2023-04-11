@@ -65,7 +65,7 @@ export class IntuitaPanel {
 		webviewResolver.resolveWebview(
 			this.__panel.webview,
 			'sourceControl',
-			this.__prepareWebviewInitialData(),
+			JSON.stringify(this.__prepareWebviewInitialData()),
 		);
 		this.__view = this.__panel.webview;
 
@@ -109,12 +109,11 @@ export class IntuitaPanel {
 		}
 		this.__panel.dispose();
 
-		while (this.__disposables.length) {
-			const disposable = this.__disposables.pop();
-			if (disposable) {
-				disposable.dispose();
-			}
-		}
+		this.__disposables.forEach((disposable) => {
+			disposable.dispose();
+		});
+
+		this.__disposables = [];
 	}
 
 	private __prepareWebviewInitialData = (): Readonly<{

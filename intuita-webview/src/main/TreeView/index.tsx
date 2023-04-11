@@ -54,7 +54,7 @@ const TreeView = ({ node }: Props) => {
 
 		return (
 			<TreeItem
-				hasChildren={Boolean(node.children?.length)}
+				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
@@ -69,7 +69,7 @@ const TreeView = ({ node }: Props) => {
 		);
 	};
 
-	if (!node.children?.length) {
+	if ((node.children?.length ?? 0) === 0) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via VS Code Command &
@@ -78,7 +78,7 @@ const TreeView = ({ node }: Props) => {
 		);
 	}
 
-	return <Tree node={node} renderItem={renderItem} />;
+	return <Tree node={node} renderItem={renderItem} depth={0} />;
 };
 
 export default TreeView;

@@ -21,7 +21,7 @@ export class WebviewResolver {
 	public resolveWebview(
 		webview: Webview,
 		webviewName: string,
-		initialData: any,
+		initialData: string,
 	) {
 		webview.options = this.getWebviewOptions();
 		webview.html = this.__getHtmlForWebview(
@@ -34,7 +34,7 @@ export class WebviewResolver {
 	private __getHtmlForWebview(
 		webview: Webview,
 		webviewName: string,
-		initialData: any,
+		initialData: string,
 	) {
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
@@ -51,7 +51,7 @@ export class WebviewResolver {
 			`${webviewName}.js`,
 		]);
 
-		const nonce = randomBytes(48).toString('hex');
+		const nonce = randomBytes(16).toString('hex');
 		const codiconsUri = getUri(webview, this.__extensionPath, [
 			'node_modules',
 			'vscode-codicons',
@@ -66,9 +66,7 @@ export class WebviewResolver {
 					<meta charset="utf-8">
 					<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 					<meta name="theme-color" content="#000000">
-					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${
-			webview.cspSource
-		}; style-src ${webview.cspSource}">
+					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; style-src ${webview.cspSource}">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
@@ -76,7 +74,7 @@ export class WebviewResolver {
 				<body>
 					<div id="root"></div>
 					<script nonce="${nonce}">
-					window.INITIAL_STATE=${JSON.stringify(initialData)}
+					window.INITIAL_STATE=${initialData}
 					</script>
 					<script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>

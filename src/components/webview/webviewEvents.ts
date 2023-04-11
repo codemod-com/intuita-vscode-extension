@@ -1,8 +1,5 @@
-export type Command = {
-	title: string;
-	command: string;
-	arguments: any[];
-};
+import { Command } from 'vscode';
+export type { Command } from 'vscode';
 
 export type TreeNode = {
 	id: string;
