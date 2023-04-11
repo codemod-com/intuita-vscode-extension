@@ -172,8 +172,8 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 			if (!parent) {
 				return [];
 			}
-			if ('kind' in parent && parent.kind === 'path') {
-				return parent?.children || [];
+			if (parent.kind === 'path') {
+				return parent.children;
 			}
 			return [el];
 		}
