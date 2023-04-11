@@ -20,6 +20,7 @@ import {
 	getPackageJsonList,
 	buildCodemodItemHash,
 } from './utils';
+import path from 'path';
 
 class CodemodTreeProvider {
 	#rootPath: string | null;
@@ -213,7 +214,13 @@ class CodemodTreeProvider {
 				: TreeItemCollapsibleState.Collapsed,
 		);
 		treeItem.iconPath = isCodemod
-			? new ThemeIcon('lightbulb')
+			? path.join(
+					__filename,
+					'..',
+					'..',
+					'resources',
+					'bluelightbulb.svg',
+			  )
 			: new ThemeIcon('folder');
 		treeItem.contextValue = isCodemod ? 'codemodItem' : 'path';
 
