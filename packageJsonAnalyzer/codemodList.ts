@@ -33,7 +33,7 @@ import {
 } from './utils';
 import path from 'path';
 
-class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
+export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 	#rootPath: string | null;
 	#messageBus: MessageBus;
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
@@ -261,7 +261,7 @@ class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 				key,
 				foundDependencies[key] as string,
 			);
-			if (checkedDependency && checkedDependency.length > 0) {
+			if (checkedDependency.length !== 0) {
 				dependencyCodemods.push(...checkedDependency);
 			}
 		}
@@ -292,9 +292,3 @@ class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		);
 	}
 }
-
-export {
-	CodemodItem,
-	CodemodTreeProvider,
-	getDependencyUpgrades as checkIfCodemodIsAvailable,
-};

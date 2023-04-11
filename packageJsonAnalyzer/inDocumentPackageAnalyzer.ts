@@ -53,7 +53,7 @@ export const handleActiveTextEditor = () => {
 			continue;
 		}
 		const checkedDependency = getDependencyUpgrades(dependency, version);
-		if (checkedDependency && checkedDependency.length) {
+		if (checkedDependency.length) {
 			ranges.push([
 				textLine.range,
 				checkedDependency.reduce((acc, curr) => {
@@ -64,7 +64,7 @@ export const handleActiveTextEditor = () => {
 		}
 		if (
 			Object.keys(dependencies).includes(dependency) &&
-			(!checkedDependency || !checkedDependency?.length)
+			(!checkedDependency.length)
 		) {
 			const codmodsAvaliable = packageUpgradeList.find(
 				(el) => el.packageName === dependency,

@@ -15,19 +15,15 @@ export const buildCodemodItemHash = (
 export const getDependencyUpgrades = (
 	dependencyName: string,
 	version: string,
-): null | readonly PackageUpgradeItem[] => {
+): readonly PackageUpgradeItem[] => {
 	// replace ^, ~ , *
 	const actualVersion = version.replace(/[^0-9.]/g, '');
 
-	const codemod = packageUpgradeList.filter(
+	const codemods = packageUpgradeList.filter(
 		(el) => el.packageName === dependencyName,
 	);
 
-	if (!codemod.length) {
-		return null;
-	}
-
-	return codemod
+	return codemods
 		.map((el) => {
 			const { leastVersionSupported, leastSupportedUpgrade } = el;
 
