@@ -10,12 +10,11 @@ import {
 	TreeDataProvider,
 } from 'vscode';
 import { readFileSync } from 'fs';
-import { buildHash, debounce, isNeitherNullNorUndefined } from '../utilities';
+import { debounce, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { watchFileWithPattern } from '../fileWatcher';
 import {
 	CodemodHash,
-	CodemodPath,
 	CodemodItem,
 	PackageUpgradeItem,
 	CodemodElement,
@@ -25,10 +24,9 @@ import {
 	getDependencyUpgrades,
 	doesPathExist,
 	getPackageJsonUris,
-	buildCodemodItemHash,
+	buildCodemodElementHash,
 } from './utils';
 import path from 'path';
-import { satisfies } from 'semver';
 
 export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 	#rootPath: string | null;
@@ -118,27 +116,46 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 								.slice(0, index + 2)
 								.join('/')}`
 						: null;
-
-				const pathHash = buildHash(currentWD) as CodemodHash; // TODO construct the proper hash digest here
+				const nextLabel =
+					index + 1 < splitParts.length
+						? splitParts[index + 1]
+						: null;
+				const currentWDHashlessCodemodPath = {
+					label: part,
+					kind: 'path' as const,
+					path: currentWD,
+					children: [],
+				};
+				const codemodPathHash = buildCodemodElementHash(
+					currentWDHashlessCodemodPath,
+				);
 				const children = new Set<CodemodHash>();
 
-				if (!nextWD) {
+				if (!nextWD || !nextLabel) {
 					for (const codemodHash of codemodsFromPackageJson.keys()) {
 						children.add(codemodHash);
 					}
 				} else {
-					children.add(buildHash(nextWD) as CodemodHash);
+					const nextHashlessCodemodPath = {
+						label: nextLabel,
+						kind: 'path' as const,
+						path: nextWD,
+						children: [],
+					};
+					children.add(
+						buildCodemodElementHash(nextHashlessCodemodPath),
+					);
 				}
 
 				{
-					const current = codemods.get(pathHash);
+					const current = codemods.get(codemodPathHash);
 
 					if (current && current.kind === 'path') {
 						current.children.forEach((child) => {
 							children.add(child);
 						});
 
-						codemods.set(pathHash, {
+						codemods.set(codemodPathHash, {
 							...current,
 							children: Array.from(children),
 						});
@@ -147,11 +164,9 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 					}
 				}
 
-				codemods.set(pathHash, {
-					hash: pathHash,
-					kind: 'path',
-					path: currentWD,
-					label: part,
+				codemods.set(codemodPathHash, {
+					...currentWDHashlessCodemodPath,
+					hash: codemodPathHash,
 					children: Array.from(children),
 				});
 			});
@@ -187,10 +202,13 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 			return [el];
 		}
 		// List codemods starting from the root
-		const root = this.#codemodItemsMap.get(
-			buildHash(this.#rootPath) as CodemodHash,
-		) as CodemodPath; // TODO remove "as"
-		return root?.children || [];
+		const rootCodemodPath = Array.from(this.#codemodItemsMap.values()).find(
+			(el) => el.kind === 'path' && el.path === this.#rootPath,
+		);
+		if (!rootCodemodPath || rootCodemodPath.kind !== 'path') {
+			return [];
+		}
+		return rootCodemodPath.children;
 	}
 
 	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
@@ -275,29 +293,26 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 			}
 		}
 
-		return (
-			dependencyCodemods
-				.filter((el) => el)
-				// TODO replace with .forEach
-				.reduce((acc, curr) => {
-					const command = commandList[curr.id] as string;
+		const codemodsHashMap = new Map<CodemodHash, CodemodItem>();
+		dependencyCodemods
+			.filter((el) => el)
+			.forEach((codemod) => {
+				const command = commandList[codemod.id] as string;
 
-					const hashlessCodemodItem: Omit<CodemodItem, 'hash'> = {
-						commandToExecute: command,
-						pathToExecute: executionPath,
-						label: curr.name,
-						kind: 'codemodItem',
-						description: `${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
-					};
+				const hashlessCodemodItem: Omit<CodemodItem, 'hash'> = {
+					commandToExecute: command,
+					pathToExecute: executionPath,
+					label: codemod.name,
+					kind: 'codemodItem',
+					description: `${codemod.kind} ${codemod.packageName} ${codemod.leastVersionSupported} - ${codemod.latestVersionSupported}`,
+				};
 
-					const hash = buildCodemodItemHash(hashlessCodemodItem);
-					acc.set(hash, {
-						...hashlessCodemodItem,
-						hash,
-					});
-
-					return acc;
-				}, new Map<CodemodHash, CodemodItem>())
-		);
+				const hash = buildCodemodElementHash(hashlessCodemodItem);
+				codemodsHashMap.set(hash, {
+					...hashlessCodemodItem,
+					hash,
+				});
+			});
+		return codemodsHashMap;
 	}
 }

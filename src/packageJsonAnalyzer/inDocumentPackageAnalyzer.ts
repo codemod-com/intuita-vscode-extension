@@ -64,7 +64,7 @@ export const handleActiveTextEditor = () => {
 		}
 		if (
 			Object.keys(dependencies).includes(dependency) &&
-			(!checkedDependencies.length)
+			!checkedDependencies.length
 		) {
 			const codmodsAvaliable = packageUpgradeList.find(
 				(el) => el.packageName === dependency,

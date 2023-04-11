@@ -1,14 +1,24 @@
 import { Uri, workspace } from 'vscode';
-import { CodemodItem } from './types';
+import { CodemodElement } from './types';
 import { CodemodHash, PackageUpgradeItem } from './types';
-import { buildHash, isNeitherNullNorUndefined } from '../utilities';
+import {
+	buildHash,
+	isNeitherNullNorUndefined,
+	DistributiveOmit,
+} from '../utilities';
 import { packageUpgradeList } from './constants';
 
-export const buildCodemodItemHash = (
-	codemodItem: Omit<CodemodItem, 'hash'>,
+export const buildCodemodElementHash = (
+	element: DistributiveOmit<CodemodElement, 'hash'>,
 ) => {
+	if (element.kind === 'codemodItem') {
+		return buildHash(
+			`${element.label}${element.commandToExecute}${element.pathToExecute}`,
+		) as CodemodHash;
+	}
+
 	return buildHash(
-		`${codemodItem.label}${codemodItem.commandToExecute}${codemodItem.pathToExecute}`,
+		`${element.path}${element.kind}${element.label}`,
 	) as CodemodHash;
 };
 
