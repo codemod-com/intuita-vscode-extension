@@ -1,7 +1,6 @@
 export type CodemodHash = string & { __type: 'CodemodHash' };
 
-// ? perhaps codemod path
-export type Path = Readonly<{
+export type CodemodPath = Readonly<{
 	hash: CodemodHash;
 	kind: 'path';
 	label: string;
@@ -18,7 +17,7 @@ export type CodemodItem = Readonly<{
 	description: string;
 }>;
 
-export type CodemodElement = CodemodItem | Path;
+export type CodemodElement = CodemodItem | CodemodPath;
 
 export type PackageUpgradeItem = Readonly<{
 	id: string;

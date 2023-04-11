@@ -10,16 +10,12 @@ import {
 	TreeDataProvider,
 } from 'vscode';
 import { readFileSync } from 'fs';
-import {
-	buildHash,
-	debounce,
-	isNeitherNullNorUndefined,
-} from '../utilities';
+import { buildHash, debounce, isNeitherNullNorUndefined } from '../utilities';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { watchFileWithPattern } from '../fileWatcher';
 import {
 	CodemodHash,
-	Path,
+	CodemodPath,
 	CodemodItem,
 	PackageUpgradeItem,
 	CodemodElement,
@@ -81,7 +77,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		}
 		const packageJsonList = await getPackageJsonList();
 
-		const codemods: Map<CodemodHash, CodemodItem | Path> = new Map();
+		const codemods: Map<CodemodHash, CodemodItem | CodemodPath> = new Map();
 
 		for (const uri of packageJsonList) {
 			const pathExist = await doesPathExist(uri.fsPath);
@@ -126,7 +122,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 				}
 
 				if (codemods.has(pathHash)) {
-					const current = codemods.get(pathHash) as Path;
+					const current = codemods.get(pathHash) as CodemodPath;
 					current.children.forEach((child) => {
 						children.add(child);
 					});
@@ -138,7 +134,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 
 					return;
 				}
-				const path: Path = {
+				const path: CodemodPath = {
 					hash: pathHash,
 					kind: 'path',
 					path: currentWD,
@@ -181,7 +177,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		// List codemods starting from the root
 		const root = this.#codemodItemsMap.get(
 			buildHash(this.#rootPath) as CodemodHash,
-		) as Path;
+		) as CodemodPath;
 		return root?.children || [];
 	}
 
