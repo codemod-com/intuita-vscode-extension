@@ -14,9 +14,9 @@ import {
 	buildHash,
 	debounce,
 	isNeitherNullNorUndefined,
-} from '../src/utilities';
-import { MessageBus, MessageKind } from '../src/components/messageBus';
-import { watchFileWithPattern } from '../src/fileWatcher';
+} from '../utilities';
+import { MessageBus, MessageKind } from '../components/messageBus';
+import { watchFileWithPattern } from '../fileWatcher';
 import {
 	CodemodHash,
 	Path,

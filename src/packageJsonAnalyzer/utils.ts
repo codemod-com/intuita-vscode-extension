@@ -1,7 +1,7 @@
 import { Uri, workspace } from 'vscode';
 import { CodemodItem } from './types';
 import { CodemodHash, PackageUpgradeItem } from './types';
-import { buildHash, isNeitherNullNorUndefined } from '../src/utilities';
+import { buildHash, isNeitherNullNorUndefined } from '../utilities';
 import { packageUpgradeList } from './constants';
 
 export const buildCodemodItemHash = (
