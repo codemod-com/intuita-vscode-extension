@@ -43,7 +43,7 @@ import {
 	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/webview/sourceControl';
-import { IntuitaPanel } from './components/webview/IntuitaPanel';
+import { IntuitaPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -59,6 +59,7 @@ import {
 	PackageUpgradeItem,
 	packageUpgradeList,
 } from './elements/CodemodList';
+import { IntuitaProvider } from './components/webview/MainWebviewProvider';
 
 const messageBus = new MessageBus();
 
@@ -103,15 +104,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 	);
 
-	const explorerTreeView = vscode.window.createTreeView(
-		'explorerIntuitaViewId',
-		{ treeDataProvider },
-	);
-
-	const intuitaTreeView = vscode.window.createTreeView('intuitaViewId', {
-		treeDataProvider,
-	});
-
 	const codemodTreeView = vscode.window.createTreeView(
 		'intuita-available-codemod-tree-view',
 		{
@@ -119,18 +111,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	treeDataProvider.setReveal(explorerTreeView.reveal);
-
-	explorerTreeView.onDidChangeVisibility(({ visible }) => {
-		if (visible) {
-			treeDataProvider.setReveal(explorerTreeView.reveal);
-		} else {
-			treeDataProvider.setReveal(intuitaTreeView.reveal);
-		}
-	});
-
-	context.subscriptions.push(explorerTreeView);
-	context.subscriptions.push(intuitaTreeView);
 	context.subscriptions.push(codemodTreeView);
 
 	context.subscriptions.push(
@@ -214,6 +194,26 @@ export async function activate(context: vscode.ExtensionContext) {
 		repositoryService,
 	);
 
+	const intuitaWebviewProvider = new IntuitaProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+	);
+
+	const viewExplorer = vscode.window.registerWebviewViewProvider(
+		'intuitaMainWebviewExplorer',
+		intuitaWebviewProvider,
+	);
+	context.subscriptions.push(viewExplorer);
+
+	const view = vscode.window.registerWebviewViewProvider(
+		'intuitaMainWebview',
+		intuitaWebviewProvider,
+	);
+
+	context.subscriptions.push(view);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
@@ -226,6 +226,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			await panelInstance.render();
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
+
 			panelInstance.setView({
 				viewId: 'createIssue',
 				viewProps: {
