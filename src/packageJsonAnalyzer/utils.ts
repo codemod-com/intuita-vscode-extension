@@ -46,14 +46,13 @@ export const doesPathExist = async (path: string): Promise<boolean> => {
 	}
 };
 
-export const getPackageJsonList = async () => {
+export const getPackageJsonUris = async (): Promise<ReadonlyArray<Uri>> => {
 	try {
-		const uris = await workspace.findFiles(
+		return await workspace.findFiles(
 			'**/package.json',
 			'node_modules/**',
 			100,
 		);
-		return uris;
 	} catch (error) {
 		console.error(error);
 		return [];

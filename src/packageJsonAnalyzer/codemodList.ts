@@ -24,7 +24,7 @@ import { commandList } from './constants';
 import {
 	getDependencyUpgrades,
 	doesPathExist,
-	getPackageJsonList,
+	getPackageJsonUris,
 	buildCodemodItemHash,
 } from './utils';
 import path from 'path';
@@ -59,7 +59,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 	}
 
 	async getPackageJsonListAndWatch() {
-		const packageJsonList = await getPackageJsonList();
+		const packageJsonList = await getPackageJsonUris();
 		if (!packageJsonList.length) {
 			this.showRootPathUndefinedMessage();
 			return;
@@ -72,49 +72,57 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		this.getCodemods();
 	}
 
-	async getCodemods() {
-		if (!this.#rootPath) {
+	async getCodemods(): Promise<void> {
+		const rootPath = this.#rootPath;
+
+		if (rootPath === null) {
 			return;
 		}
-		const packageJsonList = await getPackageJsonList();
 
-		const codemods: Map<CodemodHash, CodemodItem | CodemodPath> = new Map();
+		const packageJsonList = await getPackageJsonUris();
+
+		const codemods: Map<CodemodHash, CodemodElement> = new Map();
 
 		for (const uri of packageJsonList) {
-			const pathExist = await doesPathExist(uri.fsPath);
-			if (!pathExist) {
+			const pathExists = await doesPathExist(uri.fsPath);
+			if (!pathExists) {
 				continue;
 			}
-			const CodemodsFromPackageJson = await this.getDepsInPackageJson(
+
+			const codemodsFromPackageJson = await this.getDepsInPackageJson(
 				uri.fsPath,
 			);
-			if (!CodemodsFromPackageJson?.size) {
+
+			if (!codemodsFromPackageJson.size) {
 				continue;
 			}
-			const pathFromRoot = uri.fsPath
-				.replace('/package.json', '')
-				.replace(this.#rootPath as string, '');
 
-			const splitParts = pathFromRoot.split('/');
-			CodemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
+			const splitParts: readonly string[] = uri.fsPath
+				.replace('/package.json', '')
+				.replace(rootPath, '')
+				.split('/');
+
+			codemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
 				codemods.set(codemodHash, codemodItem);
 			});
-			splitParts.forEach((part, index, parts) => {
-				const currentWD = `${this.#rootPath}${parts
+
+			splitParts.forEach((part, index) => {
+				const currentWD = `${rootPath}${splitParts
 					.slice(0, index + 1)
 					.join('/')}`;
 
 				const nextWD =
-					index + 1 < parts.length
-						? `${this.#rootPath}${parts
+					index + 1 < splitParts.length
+						? `${rootPath}${splitParts
 								.slice(0, index + 2)
 								.join('/')}`
 						: null;
 
 				const pathHash = buildHash(currentWD) as CodemodHash;
 				const children = new Set<CodemodHash>();
+				
 				if (!nextWD) {
-					const codemodsHash = [...CodemodsFromPackageJson.keys()];
+					const codemodsHash = [...codemodsFromPackageJson.keys()];
 					codemodsHash.forEach((codemodHash) => {
 						children.add(codemodHash);
 					});
