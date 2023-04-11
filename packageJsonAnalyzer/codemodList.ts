@@ -4,7 +4,6 @@ import {
 	window,
 	Event,
 	EventEmitter,
-	workspace,
 	TreeItem,
 	ThemeIcon,
 	Uri,
@@ -13,16 +12,19 @@ import { readFileSync } from 'fs';
 import { buildHash, debounce } from '../src/utilities';
 import { MessageBus, MessageKind } from '../src/components/messageBus';
 import { watchFileWithPattern } from '../src/fileWatcher';
-import { CodemodHash, PathHash, Path, PackageUpgradeItem } from './types';
-import { CodemodItem } from './codemodItem';
+import { CodemodHash, Path, CodemodItem, PackageUpgradeItem } from './types';
 import { commandList } from './constants';
-import { checkIfCodemodIsAvailable, pathExists } from './utils';
+import {
+	getDependencyUpgrades,
+	pathExists,
+	getPackageJsonList,
+	buildCodemodItemHash,
+} from './utils';
 
 class CodemodTreeProvider {
 	#rootPath: string | null;
 	#messageBus: MessageBus;
-	#codemodItemsMap: Map<CodemodHash | PathHash, CodemodItem | Path> =
-		new Map();
+	#codemodItemsMap: Map<CodemodHash, CodemodItem | Path> = new Map();
 	readonly #eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 
@@ -33,7 +35,7 @@ class CodemodTreeProvider {
 		this.getPackageJsonListAndWatch();
 
 		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
-			const codemodItemFound = this.getTreeItem(
+			const codemodItemFound = this.#codemodItemsMap.get(
 				message.codemodHash as CodemodHash,
 			) as CodemodItem | undefined;
 			if (!codemodItemFound) {
@@ -47,7 +49,7 @@ class CodemodTreeProvider {
 	}
 
 	async getPackageJsonListAndWatch() {
-		const packageJsonList = await this.getPackageJsonList();
+		const packageJsonList = await getPackageJsonList();
 		if (!packageJsonList.length) {
 			this.showRootPathUndefinedMessage();
 			return;
@@ -64,20 +66,20 @@ class CodemodTreeProvider {
 		if (!this.#rootPath) {
 			return;
 		}
-		const packageJsonList = await this.getPackageJsonList();
+		const packageJsonList = await getPackageJsonList();
 
-		const codemods: Map<CodemodHash | PathHash, CodemodItem | Path> =
-			new Map();
+		const codemods: Map<CodemodHash, CodemodItem | Path> = new Map();
 
-		packageJsonList.forEach((uri) => {
-			if (!pathExists(uri.fsPath)) {
-				return;
+		for (const uri of packageJsonList) {
+			const pathExist = await pathExists(uri.fsPath);
+			if (!pathExist) {
+				continue;
 			}
-			const CodemodsFromPackageJson = this.getDepsInPackageJson(
+			const CodemodsFromPackageJson = await this.getDepsInPackageJson(
 				uri.fsPath,
 			);
 			if (!CodemodsFromPackageJson?.size) {
-				return;
+				continue;
 			}
 			const pathFromRoot = uri.fsPath
 				.replace('/package.json', '')
@@ -88,26 +90,26 @@ class CodemodTreeProvider {
 				codemods.set(codemodHash, codemodItem);
 			});
 			splitParts.forEach((part, index, parts) => {
-				const currentPWD = `${this.#rootPath}${parts
+				const currentWD = `${this.#rootPath}${parts
 					.slice(0, index + 1)
 					.join('/')}`;
 
-				const nextPWD =
+				const nextWD =
 					index + 1 < parts.length
 						? `${this.#rootPath}${parts
 								.slice(0, index + 2)
 								.join('/')}`
 						: null;
 
-				const pathHash = buildHash(currentPWD) as PathHash;
-				const children = new Set<PathHash | CodemodHash>();
-				if (!nextPWD) {
+				const pathHash = buildHash(currentWD) as CodemodHash;
+				const children = new Set<CodemodHash>();
+				if (!nextWD) {
 					const codemodsHash = [...CodemodsFromPackageJson.keys()];
 					codemodsHash.forEach((codemodHash) => {
 						children.add(codemodHash);
 					});
 				} else {
-					children.add(buildHash(nextPWD) as PathHash);
+					children.add(buildHash(nextWD) as CodemodHash);
 				}
 
 				if (codemods.has(pathHash)) {
@@ -123,30 +125,18 @@ class CodemodTreeProvider {
 				const path = {
 					hash: pathHash,
 					kind: 'path',
-					path: currentPWD,
+					path: currentWD,
 					label: part,
 					children: Array.from(children),
 				} as Path;
 				codemods.set(pathHash, path);
 			});
-		});
+		}
+
 		this.#codemodItemsMap = codemods;
 		this.#eventEmitter.fire();
 	}
 
-	async getPackageJsonList() {
-		try {
-			const uris = await workspace.findFiles(
-				'**/package.json',
-				'node_modules/**',
-				100,
-			);
-			return uris;
-		} catch (error) {
-			console.error(error);
-			return [];
-		}
-	}
 	watchPackageJson() {
 		return watchFileWithPattern(
 			'**/package.json',
@@ -160,9 +150,7 @@ class CodemodTreeProvider {
 		);
 	}
 
-	getUnsortedChildren(
-		el: CodemodHash | PathHash,
-	): (CodemodHash | PathHash)[] {
+	getUnsortedChildren(el: CodemodHash): CodemodHash[] {
 		if (!this.#rootPath) return [];
 		if (el) {
 			const parent = this.#codemodItemsMap.get(el);
@@ -176,12 +164,12 @@ class CodemodTreeProvider {
 		}
 		// List codemods starting from the root
 		const root = this.#codemodItemsMap.get(
-			buildHash(this.#rootPath) as PathHash,
+			buildHash(this.#rootPath) as CodemodHash,
 		) as Path;
 		return root?.children || [];
 	}
 
-	getChildren(el: CodemodHash | PathHash): (CodemodHash | PathHash)[] {
+	getChildren(el: CodemodHash): CodemodHash[] {
 		const children = this.getUnsortedChildren(el);
 		const sortedChildren = children
 			.map((el) => this.#codemodItemsMap.get(el))
@@ -210,28 +198,37 @@ class CodemodTreeProvider {
 		commands.executeCommand(command, Uri.parse(path));
 	}
 
-	getTreeItem(
-		element: CodemodHash | PathHash,
-	): CodemodItem | Path | TreeItem {
+	getTreeItem(element: CodemodHash): TreeItem {
 		const foundElement = this.#codemodItemsMap.get(element);
 		if (!foundElement) {
 			throw new Error('Element not found');
 		}
-		if ('kind' in foundElement && foundElement.kind === 'path') {
-			const treeItem = new TreeItem(foundElement.label);
-			treeItem.collapsibleState = TreeItemCollapsibleState.Collapsed;
-			treeItem.iconPath = new ThemeIcon('folder');
+		const isCodemod =
+			'kind' in foundElement && foundElement.kind === 'codemodItem';
 
-			return treeItem;
+		const treeItem = new TreeItem(
+			foundElement.label,
+			isCodemod
+				? TreeItemCollapsibleState.None
+				: TreeItemCollapsibleState.Collapsed,
+		);
+		treeItem.iconPath = isCodemod
+			? new ThemeIcon('lightbulb')
+			: new ThemeIcon('folder');
+		treeItem.contextValue = isCodemod ? 'codemodItem' : 'path';
+
+		if (isCodemod) {
+			treeItem.description = foundElement.description;
 		}
 
-		return foundElement;
+		return treeItem;
 	}
 
-	private getDepsInPackageJson(
+	private async getDepsInPackageJson(
 		path: string,
-	): Map<CodemodHash, CodemodItem> | null {
-		if (!pathExists(path)) {
+	): Promise<Map<CodemodHash, CodemodItem> | null> {
+		const pathExist = await pathExists(path);
+		if (!pathExist) {
 			return null;
 		}
 		const executionPath = path.replace('/package.json', '');
@@ -242,7 +239,7 @@ class CodemodTreeProvider {
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
-			const checkedDependency = checkIfCodemodIsAvailable(
+			const checkedDependency = getDependencyUpgrades(
 				key,
 				foundDependencies[key] as string,
 			);
@@ -257,19 +254,26 @@ class CodemodTreeProvider {
 			.reduce((acc, curr) => {
 				const command = commandList[curr.id] as string;
 
-				const codemodItem = new CodemodItem(
-					curr.name,
-					`${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
-					TreeItemCollapsibleState.None,
-					command,
-					executionPath,
-				);
-
-				acc.set(codemodItem.hash, codemodItem);
+				const hashlessCodemodItem = {
+					commandToExecute: command,
+					pathToExecute: executionPath,
+					label: curr.name,
+					kind: 'codemodItem',
+					description: `${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
+				} as Omit<CodemodItem, 'hash'>;
+				const hash = buildCodemodItemHash(hashlessCodemodItem);
+				acc.set(hash, {
+					...hashlessCodemodItem,
+					hash,
+				});
 
 				return acc;
 			}, new Map<CodemodHash, CodemodItem>());
 	}
 }
 
-export { CodemodItem, CodemodTreeProvider, checkIfCodemodIsAvailable };
+export {
+	CodemodItem,
+	CodemodTreeProvider,
+	getDependencyUpgrades as checkIfCodemodIsAvailable,
+};

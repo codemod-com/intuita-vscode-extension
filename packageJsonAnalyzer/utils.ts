@@ -1,16 +1,18 @@
-import { CodemodItem } from './codemodItem';
+import { Uri, workspace } from 'vscode';
+import { CodemodItem } from './types';
 import { CodemodHash, PackageUpgradeItem } from './types';
 import { buildHash, isNeitherNullNorUndefined } from '../src/utilities';
 import { packageUpgradeList } from './constants';
-import { accessSync } from 'fs';
 
-export const buildCodemodItemHash = (codemodItem: CodemodItem) => {
+export const buildCodemodItemHash = (
+	codemodItem: Omit<CodemodItem, 'hash'>,
+) => {
 	return buildHash(
-		`${codemodItem.label} ${codemodItem.id} ${codemodItem.commandToExecute}${codemodItem.pathToExecute}`,
+		`${codemodItem.label}${codemodItem.commandToExecute}${codemodItem.pathToExecute}`,
 	) as CodemodHash;
 };
 
-export const checkIfCodemodIsAvailable = (
+export const getDependencyUpgrades = (
 	dependencyName: string,
 	version: string,
 ): null | readonly PackageUpgradeItem[] => {
@@ -41,11 +43,25 @@ export const checkIfCodemodIsAvailable = (
 		.filter(isNeitherNullNorUndefined);
 };
 
-export const pathExists = (p: string): boolean => {
+export const pathExists = async (path: string): Promise<boolean> => {
 	try {
-		accessSync(p);
+		await workspace.fs.stat(Uri.file(path));
 	} catch (err) {
 		return false;
 	}
 	return true;
+};
+
+export const getPackageJsonList = async () => {
+	try {
+		const uris = await workspace.findFiles(
+			'**/package.json',
+			'node_modules/**',
+			100,
+		);
+		return uris;
+	} catch (error) {
+		console.error(error);
+		return [];
+	}
 };

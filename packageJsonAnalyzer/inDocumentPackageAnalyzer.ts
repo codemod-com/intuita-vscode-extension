@@ -1,7 +1,7 @@
 import vscode from 'vscode';
 import { PackageUpgradeItem } from './types';
 import { commandList, packageUpgradeList } from './constants';
-import { checkIfCodemodIsAvailable } from './utils';
+import { getDependencyUpgrades } from './utils';
 
 const textEditorDecorationType = vscode.window.createTextEditorDecorationType({
 	rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
@@ -52,10 +52,7 @@ export const handleActiveTextEditor = () => {
 		if (!dependency || !version) {
 			continue;
 		}
-		const checkedDependency = checkIfCodemodIsAvailable(
-			dependency,
-			version,
-		);
+		const checkedDependency = getDependencyUpgrades(dependency, version);
 		if (checkedDependency && checkedDependency.length) {
 			ranges.push([
 				textLine.range,
