@@ -292,8 +292,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
+				const PR = await sourceControl.getPRForBranch(targetBranch);
+
 				panelInstance.setView({
-					viewId: 'createPR',
+					viewId: 'createOrUpdatePR',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [currentBranchName],
@@ -306,6 +308,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						loading: false,
 						error: '',
+						PRAlreadyExists: Boolean(PR),
 					},
 				});
 			} catch (e) {
@@ -357,9 +360,10 @@ export async function activate(context: vscode.ExtensionContext) {
 							decoded.right.targetBranch,
 						);
 
-						const { html_url } = await sourceControl.createPR(
+						const { html_url } = await sourceControl.getPRForBranch(decoded.right.targetBranch) ?? await sourceControl.createPR(
 							decoded.right,
 						);
+
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Successfully created PR: ${html_url}`,

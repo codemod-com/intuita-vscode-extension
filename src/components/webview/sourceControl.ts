@@ -16,6 +16,13 @@ type CreatePRResponse = {
 	html_url: string;
 };
 
+type ListPRResponse = {
+	html_url: string;
+	head: {
+		ref: string
+	}
+}[];
+
 export class SourceControlService {
 	constructor(
 		private readonly __userAccountStorage: UserAccountStorage,
@@ -89,5 +96,30 @@ export class SourceControlService {
 
 		this.__messageBus.publish({ kind: MessageKind.afterIssueCreated });
 		return result.data;
+	}
+
+	async listPR() {
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
+
+		if (!repositoryPath) {
+			throw new NotFoundRepositoryPath();
+		}
+
+		const userId = this.__userAccountStorage.getUserAccount();
+
+		if (!userId) {
+			throw new NotFoundIntuitaAccount();
+		}
+
+		const result = await axios.get<ListPRResponse>(
+			'https://telemetry.intuita.io/sourceControl/github/pulls',
+		);
+
+		return result.data;
+	}
+
+	async getPRForBranch(branchName: string) {
+		const PRList = await this.listPR();
+		return PRList.find(pr => pr.head.ref === branchName);
 	}
 }
