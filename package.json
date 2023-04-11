@@ -44,13 +44,6 @@
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
 			},
 			{
-<<<<<<< HEAD
-=======
-				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
-			},
-			{
->>>>>>> 87081d8 (update: update welcome message on tree-view)
 				"view": "intuita-available-codemod-tree-view",
 				"contents": "No available codemods right now based on package.json file. You can create a codemod on [Codemod Studio](https://codemod.studio) and import it here.\n[Open Codemod Studio](https://codemod.studio)"
 			}
@@ -481,27 +474,10 @@
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
-<<<<<<< HEAD
 		"semver": "^7.3.8",
 		"vscode-codicons": "^0.0.17"
 	},
 	"extensionDependencies": [
 		"vscode.git"
 	]
-<<<<<<< HEAD
-=======
-		"semver": "^7.3.8"
-<<<<<<< HEAD
-	}
->>>>>>> 87081d8 (update: update welcome message on tree-view)
 }
-=======
-	},
-	"extensionDependencies": [
-		"vscode.git"
-	]
-}
->>>>>>> 4fc5fd2 (update: update package.json)
-=======
-}
->>>>>>> ad23d40 (update: package.json)
