@@ -7,25 +7,36 @@ import {
 	TreeItem,
 	ThemeIcon,
 	Uri,
+	TreeDataProvider,
 } from 'vscode';
 import { readFileSync } from 'fs';
-import { buildHash, debounce } from '../src/utilities';
+import {
+	buildHash,
+	debounce,
+	isNeitherNullNorUndefined,
+} from '../src/utilities';
 import { MessageBus, MessageKind } from '../src/components/messageBus';
 import { watchFileWithPattern } from '../src/fileWatcher';
-import { CodemodHash, Path, CodemodItem, PackageUpgradeItem } from './types';
+import {
+	CodemodHash,
+	Path,
+	CodemodItem,
+	PackageUpgradeItem,
+	CodemodElement,
+} from './types';
 import { commandList } from './constants';
 import {
 	getDependencyUpgrades,
-	pathExists,
+	doesPathExist,
 	getPackageJsonList,
 	buildCodemodItemHash,
 } from './utils';
 import path from 'path';
 
-class CodemodTreeProvider {
+class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 	#rootPath: string | null;
 	#messageBus: MessageBus;
-	#codemodItemsMap: Map<CodemodHash, CodemodItem | Path> = new Map();
+	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	readonly #eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 
@@ -72,7 +83,7 @@ class CodemodTreeProvider {
 		const codemods: Map<CodemodHash, CodemodItem | Path> = new Map();
 
 		for (const uri of packageJsonList) {
-			const pathExist = await pathExists(uri.fsPath);
+			const pathExist = await doesPathExist(uri.fsPath);
 			if (!pathExist) {
 				continue;
 			}
@@ -119,17 +130,20 @@ class CodemodTreeProvider {
 						children.add(child);
 					});
 
-					current.children = Array.from(children);
-					codemods.set(pathHash, current);
+					codemods.set(pathHash, {
+						...current,
+						children: Array.from(children),
+					});
+
 					return;
 				}
-				const path = {
+				const path: Path = {
 					hash: pathHash,
 					kind: 'path',
 					path: currentWD,
 					label: part,
 					children: Array.from(children),
-				} as Path;
+				};
 				codemods.set(pathHash, path);
 			});
 		}
@@ -151,7 +165,7 @@ class CodemodTreeProvider {
 		);
 	}
 
-	getUnsortedChildren(el: CodemodHash): CodemodHash[] {
+	getUnsortedChildren(el: CodemodHash | null): CodemodHash[] {
 		if (!this.#rootPath) return [];
 		if (el) {
 			const parent = this.#codemodItemsMap.get(el);
@@ -170,29 +184,25 @@ class CodemodTreeProvider {
 		return root?.children || [];
 	}
 
-	getChildren(el: CodemodHash): CodemodHash[] {
-		const children = this.getUnsortedChildren(el);
+	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
+		const children = this.getUnsortedChildren(el ?? null);
+
 		const sortedChildren = children
 			.map((el) => this.#codemodItemsMap.get(el))
+			.filter(isNeitherNullNorUndefined)
 			.sort((a, b) => {
-				if (!a || !b) return 0;
-				if (
-					'kind' in a &&
-					a.kind === 'path' &&
-					'kind' in b &&
-					b.kind === 'path'
-				) {
+				if (a.kind === 'path' && b.kind === 'path') {
 					return a.label.localeCompare(b.label);
 				}
-				if ('kind' in b && b.kind === 'path') {
+				if (b.kind === 'path') {
 					return -1;
 				}
-				if ('kind' in a && a.kind === 'path') {
+				if (a.kind === 'path') {
 					return 1;
 				}
 				return 0;
 			});
-		return sortedChildren.flatMap((el) => (el?.hash ? [el.hash] : []));
+		return sortedChildren.map(({ hash }) => hash);
 	}
 
 	public runCodemod(command: string, path: string) {
@@ -233,16 +243,17 @@ class CodemodTreeProvider {
 
 	private async getDepsInPackageJson(
 		path: string,
-	): Promise<Map<CodemodHash, CodemodItem> | null> {
-		const pathExist = await pathExists(path);
-		if (!pathExist) {
-			return null;
+	): Promise<Map<CodemodHash, CodemodItem>> {
+		const pathExists = await doesPathExist(path);
+		if (!pathExists) {
+			return new Map();
 		}
+
 		const executionPath = path.replace('/package.json', '');
 		const document = JSON.parse(readFileSync(path, 'utf-8')) as {
 			dependencies: Record<string, string>;
 		};
-		let dependencyCodemods: PackageUpgradeItem[] = [];
+		const dependencyCodemods: PackageUpgradeItem[] = [];
 		const foundDependencies = document.dependencies;
 
 		for (const key in foundDependencies) {
@@ -251,31 +262,34 @@ class CodemodTreeProvider {
 				foundDependencies[key] as string,
 			);
 			if (checkedDependency && checkedDependency.length > 0) {
-				dependencyCodemods =
-					dependencyCodemods.concat(checkedDependency);
+				dependencyCodemods.push(...checkedDependency);
 			}
 		}
 
-		return dependencyCodemods
-			.filter((el) => el)
-			.reduce((acc, curr) => {
-				const command = commandList[curr.id] as string;
+		return (
+			dependencyCodemods
+				.filter((el) => el)
+				// TODO replace with .forEach
+				.reduce((acc, curr) => {
+					const command = commandList[curr.id] as string;
 
-				const hashlessCodemodItem = {
-					commandToExecute: command,
-					pathToExecute: executionPath,
-					label: curr.name,
-					kind: 'codemodItem',
-					description: `${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
-				} as Omit<CodemodItem, 'hash'>;
-				const hash = buildCodemodItemHash(hashlessCodemodItem);
-				acc.set(hash, {
-					...hashlessCodemodItem,
-					hash,
-				});
+					const hashlessCodemodItem: Omit<CodemodItem, 'hash'> = {
+						commandToExecute: command,
+						pathToExecute: executionPath,
+						label: curr.name,
+						kind: 'codemodItem',
+						description: `${curr.kind} ${curr.packageName} ${curr.leastVersionSupported} - ${curr.latestVersionSupported}`,
+					};
 
-				return acc;
-			}, new Map<CodemodHash, CodemodItem>());
+					const hash = buildCodemodItemHash(hashlessCodemodItem);
+					acc.set(hash, {
+						...hashlessCodemodItem,
+						hash,
+					});
+
+					return acc;
+				}, new Map<CodemodHash, CodemodItem>())
+		);
 	}
 }
 

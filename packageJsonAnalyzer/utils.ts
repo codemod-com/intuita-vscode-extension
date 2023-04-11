@@ -43,13 +43,14 @@ export const getDependencyUpgrades = (
 		.filter(isNeitherNullNorUndefined);
 };
 
-export const pathExists = async (path: string): Promise<boolean> => {
+export const doesPathExist = async (path: string): Promise<boolean> => {
 	try {
 		await workspace.fs.stat(Uri.file(path));
+
+		return true;
 	} catch (err) {
 		return false;
 	}
-	return true;
 };
 
 export const getPackageJsonList = async () => {

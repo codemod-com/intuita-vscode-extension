@@ -1,29 +1,30 @@
 export type CodemodHash = string & { __type: 'CodemodHash' };
 
-export type Path = {
+// ? perhaps codemod path
+export type Path = Readonly<{
 	hash: CodemodHash;
-	path: string;
-	label: string;
 	kind: 'path';
+	label: string;
+	path: string;
 	children: CodemodHash[];
-};
+}>;
 
-export type CodemodItem = {
+export type CodemodItem = Readonly<{
 	hash: CodemodHash;
+	kind: 'codemodItem';
+	label: string;
 	commandToExecute: string;
 	pathToExecute: string;
-	label: string;
-	kind: 'codemodItem';
 	description: string;
-};
+}>;
 
-type CodemodKind = 'upgrade' | 'migration' | 'remove';
+export type CodemodElement = CodemodItem | Path;
 
 export type PackageUpgradeItem = Readonly<{
 	id: string;
 	packageName: string;
 	name: string;
-	kind: CodemodKind;
+	kind: 'upgrade' | 'migration' | 'remove';
 	leastVersionSupported: string;
 	latestVersionSupported: string;
 	leastSupportedUpgrade: string;
