@@ -53,7 +53,7 @@ import { ElementHash } from './elements/types';
 import type { GitExtension } from './types/git';
 import { IntuitaProvider } from './components/webview/MainWebviewProvider';
 import { CodemodTreeProvider } from '../packageJsonAnalyzer/codemodList';
- import { handleActiveTextEditor } from '../packageJsonAnalyzer/inDocumentPackageAnalyzer';
+import { handleActiveTextEditor } from '../packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 const messageBus = new MessageBus();
