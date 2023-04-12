@@ -6,6 +6,8 @@ import {
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
+import { ReactComponent as TS2Icon } from '../../assets/ts2.svg';
+import { ReactComponent as FolderIcon } from '../../assets/folder.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -36,8 +38,25 @@ const TreeView = ({ node }: Props) => {
 		open: boolean,
 		setIsOpen: (value: boolean) => void,
 	) => {
-		const icon =
-			node.iconName === 'case.svg' ? <CaseIcon /> : <BlueLightBulbIcon />;
+		let icon = null;
+		switch (node.iconName) {
+			case 'case.svg':
+				icon = <CaseIcon />;
+				break;
+			case 'bluelightbulb.svg':
+				icon = <BlueLightBulbIcon />;
+				break;
+			case 'ts2.svg':
+				icon = <TS2Icon />;
+				break;
+			case 'folder.svg':
+				icon = <FolderIcon />;
+				break;
+			default:
+				icon = <BlueLightBulbIcon />;
+				break;
+		}
+
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
 			<a
