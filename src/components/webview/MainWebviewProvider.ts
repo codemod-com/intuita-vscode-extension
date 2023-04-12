@@ -115,7 +115,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view.webview.postMessage(message);
 	}
 
-	private __getTree = (element: Element): TreeNode => {
+	private __getTree = async (element: Element): Promise<TreeNode> => {
 		const mappedNode: TreeNode = {
 			id: element.hash,
 		};
@@ -213,7 +213,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 				];
 			}
 
-			if(this.__jobManager.isJobStale(element.jobHash)) {
+			const isStale = await this.__jobManager.isJobStale(element.jobHash);
+			if(isStale) {
 				mappedNode.actions = [
 					{
 						title: 'Rerun',
@@ -269,13 +270,17 @@ export class IntuitaProvider implements WebviewViewProvider {
 			}
 		}
 
-		mappedNode.children =
+		const childrenPromises  =
 			'children' in element ? element.children.map(this.__getTree) : [];
 
+		mappedNode.children  = await Promise.all(childrenPromises);	
+
 		if (element.kind === 'CASE') {
-			mappedNode.children = element.children
+			const childrenPromises = element.children
 				.flatMap((fileElement) => fileElement.children)
 				.map(this.__getTree);
+
+				mappedNode.children  = await Promise.all(childrenPromises);	
 		}
 
 		return mappedNode;
@@ -420,7 +425,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __onClearStateMessage() {
+	private async __onClearStateMessage() {
 		this.__elementMap.clear();
 
 		const rootElement = {
@@ -431,7 +436,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__setElement(rootElement);
 
-		const tree = this.__getTree(rootElement);
+		const tree = await this.__getTree(rootElement);
 
 		this.setView({
 			viewId: 'treeView',
@@ -441,7 +446,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __onUpdateElementsMessage() {
+	private async __onUpdateElementsMessage() {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
@@ -462,7 +467,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__elementMap.clear();
 		this.__setElement(rootElement);
-		const tree = this.__getTree(rootElement);
+		const tree = await this.__getTree(rootElement);
 		this.setView({
 			viewId: 'treeView',
 			viewProps: {

@@ -4,6 +4,7 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+import { FileSystemUtilities } from './fileSystemUtilities';
 
 type Codemod = Readonly<{
 	setName: string;
@@ -22,15 +23,17 @@ export class JobManager {
 	#acceptedJobsHashes: Set<JobHash>;
 
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
+	#fileSystemUtilities: FileSystemUtilities;
 
 	public constructor(
 		jobs: ReadonlyArray<Job>,
 		acceptedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
+		fileSystemUtilities: FileSystemUtilities,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
-
+		this.#fileSystemUtilities = fileSystemUtilities;
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
 				jobs.flatMap((job) => {
@@ -98,28 +101,24 @@ export class JobManager {
 		return Array.from(this.#acceptedJobsHashes).map(jobHash => this.#jobMap.get(jobHash)).filter(isNeitherNullNorUndefined)
 	}
 
-
 	public isJobAccepted(jobHash: JobHash) {
 		return this.#acceptedJobsHashes.has(jobHash);
 	}
 
-	public isJobStale(jobHash: JobHash) {
+	public async isJobStale(jobHash: JobHash) {
 		const job = this.#jobMap.get(jobHash);
 
 		if(!job) {
 			throw new Error('Job not found');
 		}
 
-		const acceptedJobs = this.getAcceptedJobs();
-		console.log(acceptedJobs, job, 'test')
-		const isStale = acceptedJobs.some(acceptedJob => 
-			job.hash !== acceptedJob.hash 
-			&& job.oldUri 
-			&& acceptedJob.oldUri
-			 && job.oldUri.path === acceptedJob.oldUri.path 
-			 && job.createdAt <= acceptedJob.createdAt)
-		
-		return isStale;
+		if(!job.oldUri) {
+			throw new Error('Why?');
+		}
+
+		const fileModificationTime = await this.#fileSystemUtilities.getModificationTime(job.oldUri);
+		console.log(job.createdAt, fileModificationTime, 'test')
+		return fileModificationTime  >= job.createdAt;
 	}
 
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {

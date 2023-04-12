@@ -79,10 +79,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		() => context.storageUri ?? null,
 	);
 
+
+	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
+	
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		persistedState?.acceptedJobsHashes as JobHash[],
 		messageBus,
+		fileSystemUtilities,
 	);
 
 	const caseManager = new CaseManager(
@@ -120,7 +124,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
+	
 
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,
