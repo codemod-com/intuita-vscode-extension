@@ -44,7 +44,7 @@ import {
 	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/webview/sourceControl';
-import { IntuitaPanel } from './components/webview/SourceControlWebviewPanel';
+import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -52,15 +52,10 @@ import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
 import type { GitExtension } from './types/git';
-import {
-	checkIfCodemodIsAvailable,
-	CodemodHash,
-	CodemodTreeProvider,
-	commandList,
-	PackageUpgradeItem,
-	packageUpgradeList,
-} from './elements/CodemodList';
 import { IntuitaProvider } from './components/webview/MainWebviewProvider';
+import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
+import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
+import { CodemodHash } from './packageJsonAnalyzer/types';
 
 const messageBus = new MessageBus();
 
@@ -222,7 +217,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = IntuitaPanel.getInstance(
+			const panelInstance = SourceControlWebviewPanel.getInstance(
 				context,
 				messageBus,
 				repositoryService,
@@ -278,7 +273,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobTitle =
 					typeof label === 'object' ? label.label : label ?? '';
 
-				const panelInstance = IntuitaPanel.getInstance(
+				const panelInstance = SourceControlWebviewPanel.getInstance(
 					context,
 					messageBus,
 					repositoryService,
@@ -298,8 +293,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
+				const pullRequest = await sourceControl.getPRForBranch(
+					targetBranch,
+				);
+				const pullRequestAlreadyExists = pullRequest !== null;
+
 				panelInstance.setView({
-					viewId: 'createPR',
+					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [currentBranchName],
@@ -312,6 +312,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						loading: false,
 						error: '',
+						pullRequestAlreadyExists,
 					},
 				});
 			} catch (e) {
@@ -363,12 +364,18 @@ export async function activate(context: vscode.ExtensionContext) {
 							decoded.right.targetBranch,
 						);
 
-						const { html_url } = await sourceControl.createPR(
-							decoded.right,
-						);
+						const existingPullRequest =
+							await sourceControl.getPRForBranch(
+								decoded.right.targetBranch,
+							);
+
+						const { html_url } =
+							existingPullRequest ??
+							(await sourceControl.createPR(decoded.right));
+
 						const messageSelection =
 							await vscode.window.showInformationMessage(
-								`Successfully created PR: ${html_url}`,
+								`Changes successfully submitted: ${html_url}`,
 								'View on GitHub',
 							);
 
@@ -502,172 +509,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const textEditorDecorationType =
-		vscode.window.createTextEditorDecorationType({
-			rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
-			after: {
-				fontStyle: 'italic',
-			},
-		});
-
-	const handleActiveTextEditor = () => {
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			return;
-		}
-		const { document } = editor;
-
-		if (!document.uri.fsPath.endsWith('package.json')) {
-			return;
-		}
-		const selection = editor.selection;
-
-		const uri = vscode.Uri.joinPath(document.uri, '..');
-		const path = encodeURIComponent(uri.fsPath);
-		const ranges: [vscode.Range, readonly PackageUpgradeItem[]][] = [];
-		const packagesWithNoCodemod: [
-			vscode.Range,
-			{
-				dependency: string;
-				version: string;
-			},
-		][] = [];
-
-		const parsedPackageJson = JSON.parse(document.getText());
-
-		const dependencies = parsedPackageJson?.dependencies;
-
-		for (let i = 0; i < document.lineCount; i++) {
-			const textLine = document.lineAt(i);
-
-			const textWithoutSpace = textLine.text.replace(/\s/g, '');
-			const dependencyAndVersionExtractpattern =
-				/"(.+)":"(?:(?:\*|\^|~)\s*)?(\d+\.\d+\.\d+)/;
-			const dependencyMatcher = textWithoutSpace.match(
-				dependencyAndVersionExtractpattern,
-			);
-			const dependency = dependencyMatcher?.[1];
-			const version = dependencyMatcher?.[2];
-
-			if (!dependency || !version) {
-				continue;
-			}
-			const checkedDependency = checkIfCodemodIsAvailable(
-				dependency,
-				version,
-			);
-			if (checkedDependency && checkedDependency.length) {
-				ranges.push([
-					textLine.range,
-					checkedDependency.reduce((acc, curr) => {
-						acc.push(curr);
-						return acc;
-					}, [] as PackageUpgradeItem[]),
-				]);
-			}
-			if (
-				Object.keys(dependencies).includes(dependency) &&
-				(!checkedDependency || !checkedDependency?.length)
-			) {
-				const codmodsAvaliable = packageUpgradeList.find(
-					(el) => el.packageName === dependency,
-				);
-				if (
-					!textLine.range.intersection(selection) ||
-					codmodsAvaliable
-				) {
-					continue;
-				}
-				packagesWithNoCodemod.push([
-					textLine.range,
-					{
-						dependency,
-						version,
-					},
-				]);
-			}
-		}
-
-		const rangesWithDependency: vscode.DecorationOptions[] =
-			packagesWithNoCodemod.map(([range, { version, dependency }]) => {
-				const commandUri = vscode.Uri.parse(
-					'https://github.com/intuita-inc/codemod-registry/issues/new',
-				);
-
-				const hoverMessage = new vscode.MarkdownString(
-					`[Request a codemod](${commandUri})`,
-				);
-				hoverMessage.isTrusted = true;
-				hoverMessage.supportHtml = true;
-				return {
-					range: range.with({
-						start: range.start.with({
-							character:
-								range.start.character + range.end.character,
-						}),
-					}),
-					hoverMessage: hoverMessage,
-					renderOptions: {
-						after: {
-							contentText: `Request codemod for ${dependency}:${version}`,
-							margin: '0 0 0 1em',
-							fontStyle: 'italic',
-							color: new vscode.ThemeColor(
-								'editorLineNumber.foreground',
-							),
-						},
-					},
-				};
-			});
-
-		const rangesOrOptions: vscode.DecorationOptions[] = ranges
-			.map(([range, dependencyList]) => {
-				return dependencyList.map((el) => {
-					const args = {
-						path,
-					};
-
-					const commandUri = vscode.Uri.parse(
-						`command:${commandList[el.id]}?${encodeURIComponent(
-							JSON.stringify(args),
-						)}`,
-					);
-
-					const hoverMessage = new vscode.MarkdownString(
-						`[Execute ${el.name}](${commandUri})`,
-					);
-					hoverMessage.isTrusted = true;
-					hoverMessage.supportHtml = true;
-
-					return {
-						range: range.with({
-							start: range.start.with({
-								character:
-									range.start.character + range.end.character,
-							}),
-						}),
-						hoverMessage,
-						renderOptions: {
-							after: {
-								color: new vscode.ThemeColor(
-									'list.activeSelectionForeground',
-								),
-								contentText: `${el.name} ${el.kind} to ${el.latestVersionSupported}`,
-								margin: '0 0 0 1em',
-								fontStyle: 'italic',
-							},
-						},
-					};
-				});
-			})
-			.flat();
-
-		editor.setDecorations(textEditorDecorationType, [
-			...rangesOrOptions,
-			...rangesWithDependency,
-		]);
-	};
-
 	vscode.window.onDidChangeActiveTextEditor(() => {
 		handleActiveTextEditor();
 	});
@@ -741,7 +582,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeNextJsCodemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -749,7 +590,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -779,7 +620,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeNextJsExperimentalCodemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -787,7 +628,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -817,7 +658,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executePagesToAppsCodemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -825,7 +666,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -855,7 +696,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeMuiCodemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -863,7 +704,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -893,7 +734,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeReactRouterv4Codemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -901,7 +742,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -931,7 +772,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeReactRouterv6Codemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -939,7 +780,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -968,7 +809,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.registerCommand(
 		'intuita.executeImmutableJSv0Codemods',
-		async () => {
+		async (path?: vscode.Uri) => {
 			const { storageUri } = context;
 
 			if (!storageUri) {
@@ -976,7 +817,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+			const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 			if (!uri) {
 				console.warn(
@@ -1014,7 +855,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeImmutableJSv4Codemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -1022,7 +863,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -1052,7 +893,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeRedwoodJsCore4Codemods',
-			async () => {
+			async (path?: vscode.Uri) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -1060,7 +901,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!uri) {
 					console.warn(
@@ -1389,6 +1230,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.clearState', () => {
 			messageBus.publish({
 				kind: MessageKind.clearState,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.caseBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.caseBreakdown,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.folderBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.folderBreakdown,
 			});
 		}),
 	);

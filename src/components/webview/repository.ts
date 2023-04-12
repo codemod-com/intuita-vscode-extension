@@ -74,12 +74,36 @@ export class RepositoryService {
 		return branchNameFromStr(`${jobTitle}-${jobHash}`);
 	}
 
+	public async getBranch(branchName: string): Promise<Branch | null> {
+		if (this.__repo === null) {
+			return null;
+		}
+
+		try {
+			return this.__repo.getBranch(branchName);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	public async isBranchExists(branchName: string): Promise<boolean> {
+		const branch = await this.getBranch(branchName);
+		return branch !== null;
+	}
+
 	public async submitChanges(branchName: string): Promise<void> {
 		if (this.__repo === null) {
 			return;
 		}
 
-		await this.__repo.createBranch(branchName, true);
+		const branchAlreadyExists = await this.isBranchExists(branchName);
+
+		if (branchAlreadyExists) {
+			await this.__repo.checkout(branchName);
+		} else {
+			await this.__repo.createBranch(branchName, true);
+		}
+
 		await this.__repo.add([]);
 		await this.__repo.commit('Test commit', { all: true });
 		await this.__repo.push('origin', branchName, true);

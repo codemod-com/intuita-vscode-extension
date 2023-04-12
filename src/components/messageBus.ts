@@ -3,6 +3,7 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
+import type { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -81,6 +82,13 @@ export const enum MessageKind {
 	afterPRCreated = 34,
 
 	repositoryPathChanged = 35,
+
+	/**
+	 * view breakdown
+	 */
+
+	caseBreakdown = 36,
+	folderBreakdown = 37,
 }
 
 export type Engine = 'node' | 'rust';
@@ -180,6 +188,12 @@ export type Message =
 			kind: MessageKind.clearState;
 	  }>
 	| Readonly<{
+			kind: MessageKind.caseBreakdown;
+	  }>
+	| Readonly<{
+			kind: MessageKind.folderBreakdown;
+	  }>
+	| Readonly<{
 			kind: MessageKind.showInformationMessage;
 			packageSettingsUri: Uri;
 			dependencyName: string;
@@ -253,7 +267,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.runCodemod;
-			codemodHash: string;
+			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.beforePRCreated;

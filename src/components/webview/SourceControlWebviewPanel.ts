@@ -5,7 +5,6 @@ import {
 	ViewColumn,
 	Disposable,
 	commands,
-	Webview,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { WebviewResolver } from './WebviewResolver';
@@ -13,11 +12,11 @@ import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { RepositoryService } from './repository';
 import { UserAccountStorage } from '../user/userService';
 
-export class IntuitaPanel {
-	private __view: Webview | null = null;
+export class SourceControlWebviewPanel {
 	private __panel: WebviewPanel | null = null;
 	private __disposables: Disposable[] = [];
-	static __instance: IntuitaPanel | null = null;
+	private __webviewMounted = false;
+	static instance: SourceControlWebviewPanel | null = null;
 
 	static getInstance(
 		context: ExtensionContext,
@@ -25,16 +24,16 @@ export class IntuitaPanel {
 		repositoryService: RepositoryService,
 		userAccountStorage: UserAccountStorage,
 	) {
-		if (this.__instance) {
-			return this.__instance;
+		if (!SourceControlWebviewPanel.instance) {
+			SourceControlWebviewPanel.instance = new SourceControlWebviewPanel(
+				context,
+				messageBus,
+				repositoryService,
+				userAccountStorage,
+			);
 		}
 
-		return new IntuitaPanel(
-			context,
-			messageBus,
-			repositoryService,
-			userAccountStorage,
-		);
+		return SourceControlWebviewPanel.instance;
 	}
 
 	private constructor(
@@ -44,7 +43,6 @@ export class IntuitaPanel {
 		private readonly __userAccountStorage: UserAccountStorage,
 	) {
 		const webviewResolver = new WebviewResolver(context.extensionUri);
-
 		this.__panel = window.createWebviewPanel(
 			'intuitaPanel',
 			'Intuita Panel',
@@ -67,26 +65,24 @@ export class IntuitaPanel {
 			'sourceControl',
 			JSON.stringify(this.__prepareWebviewInitialData()),
 		);
-		this.__view = this.__panel.webview;
 
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
 
 	public render() {
-		const initWebviewPromise = new Promise((resolve, reject) => {
+		const initWebviewPromise = new Promise((resolve) => {
 			this.__panel?.reveal();
 
-			const timeout = setTimeout(() => {
-				this.__panel?.dispose();
-				reject('Timeout');
-			}, 5000);
+			if (this.__webviewMounted) {
+				resolve('Resolved');
+			}
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
 				(message) => {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
-						clearTimeout(timeout);
+						this.__webviewMounted = true;
 						resolve('Resolved');
 					}
 				},
@@ -104,6 +100,7 @@ export class IntuitaPanel {
 	}
 
 	public dispose() {
+		SourceControlWebviewPanel.instance = null;
 		if (!this.__panel) {
 			return;
 		}
@@ -130,11 +127,11 @@ export class IntuitaPanel {
 	};
 
 	private __postMessage(message: WebviewMessage) {
-		if (!this.__view) {
+		if (!this.__panel) {
 			return;
 		}
 
-		this.__view.postMessage(message);
+		this.__panel.webview.postMessage(message);
 	}
 
 	private __addHook<T extends MessageKind>(
@@ -214,6 +211,6 @@ export class IntuitaPanel {
 	}
 
 	private __attachWebviewEventListeners() {
-		this.__view?.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this.__panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
