@@ -176,12 +176,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		if (element.kind === ElementKind.ROOT) {
 			element.children.forEach(this.__getTreeByDirectory);
+			const treeNode = this.__folderMap.get(ROOT_FOLDER_KEY) ?? null;
+
 			return {
 				...mappedNode,
 				label: 'Recipe',
-				children: this.__folderMap.has(ROOT_FOLDER_KEY)
-					? [this.__folderMap.get(ROOT_FOLDER_KEY) as TreeNode]
-					: [],
+				children: treeNode !== null ? [treeNode] : [],
 			};
 		}
 
@@ -203,9 +203,16 @@ export class IntuitaProvider implements WebviewViewProvider {
 			// e.g., 'index.tsx'
 			const fileName = directories[directories.length - 1];
 			let path = '';
-			let node: TreeNode = { id: '' };
+
 			for (const dir of directories) {
 				const isFile = dir === fileName;
+				const parentNode = this.__folderMap.get(path);
+
+				// file element must have a parent node
+				if (isFile && !parentNode) {
+					continue;
+				}
+
 				path += `${dir.startsWith('/') ? '' : '/'}${dir}`;
 				if (!this.__folderMap.has(path)) {
 					const newNode = {
@@ -215,27 +222,25 @@ export class IntuitaProvider implements WebviewViewProvider {
 						iconName: isFile
 							? getElementIconBaseName(element.kind)
 							: 'folder.svg',
-						children: isFile
-							? (element.children.map(
-									this.__getTreeByDirectory,
-							  ) as TreeNode[])
-							: [],
+						children: [],
 					};
 
 					this.__folderMap.set(path, newNode);
-					node.children = [...(node.children || []), newNode];
-					node = newNode;
-					continue;
+
+					if (parentNode?.children) {
+						parentNode.children.push(newNode);
+					}
 				}
 
-				node = this.__folderMap.get(path) as TreeNode;
 				if (isFile) {
-					node.children = [
-						...(node.children || []),
-						...(element.children.map(
-							this.__getTreeByDirectory,
-						) as TreeNode[]),
-					];
+					const currNode = this.__folderMap.get(path);
+					if (currNode?.children) {
+						currNode.children.push(
+							...(element.children.map(
+								this.__getTreeByDirectory,
+							) as TreeNode[]),
+						);
+					}
 				}
 			}
 		}
