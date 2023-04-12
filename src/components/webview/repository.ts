@@ -87,7 +87,8 @@ export class RepositoryService {
 	}
 
 	public async isBranchExists(branchName: string): Promise<boolean> {
-		return (await this.getBranch(branchName)) !== null;
+		const branch = await this.getBranch(branchName);
+		return branch !== null;
 	}
 
 	public async submitChanges(branchName: string): Promise<void> {

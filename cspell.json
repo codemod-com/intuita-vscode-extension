@@ -36,6 +36,8 @@
 		"vsix",
 		"yarnrc",
 		"cutcopypaste",
-		"codicons"
+		"codicons",
+		"codicon",
+		"upsert"
 	]
 }

@@ -88,7 +88,7 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'createOrUpdatePR';
+			viewId: 'upsertPullRequest';
 			viewProps: {
 				loading: boolean;
 				error: string;
@@ -100,7 +100,7 @@ export type View =
 					baseBranch: string;
 					targetBranch: string;
 				}>;
-				PRAlreadyExists: boolean;
+				pullRequestAlreadyExists: boolean;
 			};
 	  }>
 	| Readonly<{

@@ -12,16 +12,12 @@ type CreateIssueResponse = {
 	html_url: string;
 };
 
-type CreatePRResponse = {
-	html_url: string;
-};
-
-type ListPRResponse = {
+type PullRequest = Readonly<{
 	html_url: string;
 	head: {
 		ref: string;
 	};
-}[];
+}>;
 
 export class SourceControlService {
 	constructor(
@@ -51,7 +47,7 @@ export class SourceControlService {
 		const { title, body, baseBranch, targetBranch } = params;
 		this.__messageBus.publish({ kind: MessageKind.beforePRCreated });
 
-		const result = await axios.post<CreatePRResponse>(
+		const result = await axios.post<PullRequest>(
 			'https://telemetry.intuita.io/sourceControl/github/pulls',
 			{
 				repo: repositoryPath,
@@ -111,15 +107,17 @@ export class SourceControlService {
 			throw new NotFoundIntuitaAccount();
 		}
 
-		const result = await axios.get<ListPRResponse>(
-			'https://telemetry.intuita.io/sourceControl/github/pulls',
+		const query = new URLSearchParams({ userId, repo: repositoryPath });
+
+		const result = await axios.get<PullRequest[]>(
+			`https://telemetry.intuita.io/sourceControl/github/pulls?${query.toString()}`,
 		);
 
 		return result.data;
 	}
 
-	async getPRForBranch(branchName: string) {
+	async getPRForBranch(branchName: string): Promise<PullRequest | null> {
 		const PRList = await this.listPR();
-		return PRList.find((pr) => pr.head.ref === branchName);
+		return PRList.find((pr) => pr.head.ref === branchName) ?? null;
 	}
 }

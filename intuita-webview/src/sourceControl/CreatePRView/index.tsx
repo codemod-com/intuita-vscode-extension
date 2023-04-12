@@ -14,7 +14,7 @@ type Props = {
 	initialFormData: Partial<FormData>;
 	baseBranchOptions: string[];
 	targetBranchOptions: string[];
-	PRAlreadyExists: boolean;
+	pullRequestAlreadyExists: boolean;
 };
 
 type FormData = {
@@ -36,7 +36,7 @@ const CreatePR = ({
 	initialFormData,
 	baseBranchOptions,
 	targetBranchOptions,
-	PRAlreadyExists,
+	pullRequestAlreadyExists,
 }: Props) => {
 	const [formData, setFormData] = useState<FormData>(initialFormState);
 
@@ -58,6 +58,17 @@ const CreatePR = ({
 		}));
 	}, [initialFormData]);
 
+	const onChangeFormField =
+		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
+			const value = (e as React.ChangeEvent<HTMLInputElement>).target
+				.value;
+
+			setFormData({
+				...formData,
+				[fieldName]: value,
+			});
+		};
+
 	return (
 		<div className={styles.root}>
 			<h1 className={styles.header}>Create Pull Request</h1>
@@ -67,13 +78,7 @@ const CreatePR = ({
 					<VSCodeDropdown
 						id="baseBranch"
 						value={baseBranch}
-						onChange={(e) => {
-							setFormData({
-								...formData,
-								baseBranch: (e.target as HTMLSelectElement)
-									.value,
-							});
-						}}
+						onChange={onChangeFormField('baseBranch')}
 					>
 						{baseBranchOptions.map((opt, index) => (
 							<VSCodeOption value={opt} key={index}>
@@ -87,13 +92,7 @@ const CreatePR = ({
 					<VSCodeDropdown
 						id="targetBranch"
 						value={targetBranch}
-						onChange={(e) => {
-							setFormData({
-								...formData,
-								targetBranch: (e.target as HTMLSelectElement)
-									.value,
-							});
-						}}
+						onChange={onChangeFormField('targetBranch')}
 					>
 						{targetBranchOptions.map((opt, index) => (
 							<VSCodeOption value={opt} key={index}>
@@ -102,29 +101,19 @@ const CreatePR = ({
 						))}
 					</VSCodeDropdown>
 				</div>
-				{!PRAlreadyExists ? (
+				{!pullRequestAlreadyExists ? (
 					<>
 						<VSCodeTextField
 							placeholder="title"
 							value={title}
-							onInput={(e) =>
-								setFormData({
-									...formData,
-									title: (e.target as HTMLInputElement).value,
-								})
-							}
+							onInput={onChangeFormField('title')}
 						>
 							Title
 						</VSCodeTextField>
 						<VSCodeTextArea
 							placeholder="Description"
 							value={body}
-							onInput={(e) =>
-								setFormData({
-									...formData,
-									body: (e.target as HTMLInputElement).value,
-								})
-							}
+							onInput={onChangeFormField('body')}
 						>
 							Body
 						</VSCodeTextArea>
@@ -133,7 +122,7 @@ const CreatePR = ({
 				<VSCodeButton type="submit" className={styles.submitButton}>
 					{loading
 						? 'Submitting...'
-						: PRAlreadyExists
+						: pullRequestAlreadyExists
 						? 'Update Pull Request'
 						: 'Create Pull Request'}
 				</VSCodeButton>

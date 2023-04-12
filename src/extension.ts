@@ -293,10 +293,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
-				const PR = await sourceControl.getPRForBranch(targetBranch);
+				const pullRequest = await sourceControl.getPRForBranch(
+					targetBranch,
+				);
+				const pullRequestAlreadyExists = pullRequest !== null;
 
 				panelInstance.setView({
-					viewId: 'createOrUpdatePR',
+					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [currentBranchName],
@@ -309,7 +312,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						loading: false,
 						error: '',
-						PRAlreadyExists: Boolean(PR),
+						pullRequestAlreadyExists,
 					},
 				});
 			} catch (e) {
@@ -361,10 +364,14 @@ export async function activate(context: vscode.ExtensionContext) {
 							decoded.right.targetBranch,
 						);
 
-						const { html_url } =
-							(await sourceControl.getPRForBranch(
+						const existingPullRequest =
+							await sourceControl.getPRForBranch(
 								decoded.right.targetBranch,
-							)) ?? (await sourceControl.createPR(decoded.right));
+							);
+
+						const { html_url } =
+							existingPullRequest ??
+							(await sourceControl.createPR(decoded.right));
 
 						const messageSelection =
 							await vscode.window.showInformationMessage(
