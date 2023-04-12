@@ -54,7 +54,7 @@ const getElementIconBaseName = (kind: Element['kind']): string => {
 };
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-const ROOT_FOLDER_KEY = '/root';
+const ROOT_FOLDER_KEY = '/';
 
 // @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
@@ -186,19 +186,21 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (element.kind === ElementKind.FILE) {
 			// e.g., extract the path from '/packages/app/src/index.tsx (1)'
 			const filePath = element.label.split(' ')[0];
-			if (!filePath) return;
+			if (!filePath) {
+				return;
+			}
 
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
-			// e.g., ['root', 'packages', 'app', 'src', 'index.tsx']
-			directories = ['root', ...directories];
+			// e.g., ['/', 'packages', 'app', 'src', 'index.tsx']
+			directories = ['/', ...directories];
 			// e.g., 'index.tsx'
 			const fileName = directories[directories.length - 1];
 			let path = '';
 			let node: TreeNode = { id: '' };
 			for (const dir of directories) {
 				const isFile = dir === fileName;
-				path += `/${dir}`;
+				path += `${dir.startsWith('/') ? '' : '/'}${dir}`;
 				if (!this.__folderMap.has(path)) {
 					const newNode = {
 						id: dir,
@@ -403,7 +405,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 	private __onViewBreakdownMessage(
 		message: MessageKind.caseBreakdown | MessageKind.folderBreakdown,
 	) {
-		if (this.__viewBreakdown === message) return;
+		if (this.__viewBreakdown === message) {
+			return;
+		}
 
 		this.__viewBreakdown = message;
 		this.__onUpdateElementsMessage();
