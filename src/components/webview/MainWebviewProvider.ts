@@ -123,7 +123,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 	}
 
 	private __getTreeByCase = (element: Element): TreeNode => {
-		const mappedNode: TreeNode = {
+		let mappedNode: TreeNode = {
 			id: element.hash,
 		};
 
@@ -131,11 +131,17 @@ export class IntuitaProvider implements WebviewViewProvider {
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
 		if (element.kind === ElementKind.JOB) {
-			this.__buildJobTree(element, mappedNode);
+			mappedNode = {
+				...mappedNode,
+				...this.__buildJobTree(element),
+			};
 		}
 
 		if (element.kind === ElementKind.CASE) {
-			this.__buildCaseTree(element, mappedNode);
+			mappedNode = {
+				...mappedNode,
+				...this.__buildCaseTree(element),
+			};
 		}
 
 		mappedNode.children =
@@ -159,7 +165,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		};
 
 		if (element.kind === ElementKind.JOB) {
-			this.__buildJobTree(element, mappedNode);
+			this.__buildJobTree(element);
 			return {
 				...mappedNode,
 				label:
@@ -517,11 +523,23 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 
-	private __buildJobTree = (
-		element: JobElement,
-		mappedNode: TreeNode,
-	): void => {
-		mappedNode.kind = 'jobElement';
+	private __buildJobTree = (element: JobElement): TreeNode => {
+		const mappedNode: TreeNode = {
+			id: element.hash,
+			kind: 'jobElement',
+			actions: [
+				{
+					title: '✓ Apply',
+					command: 'intuita.acceptJob',
+					arguments: [element.job.hash],
+				},
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectJob',
+					arguments: [element.job.hash],
+				},
+			],
+		};
 
 
 		if (element.job.kind === JobKind.rewriteFile) {
@@ -576,19 +594,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 			};
 		}
 
-		mappedNode.actions = [
-			{
-				title: '✓ Apply',
-				command: 'intuita.acceptJob',
-				arguments: [element.job.hash],
-			},
-			{
-				title: '✗ Dismiss',
-				command: 'intuita.rejectJob',
-				arguments: [element.job.hash],
-			},
-		];
-
 		if (this.__jobManager.isJobAccepted(element.jobHash)) {
 			mappedNode.kind = 'acceptedJobElement';
 
@@ -610,25 +615,26 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			];
 		}
+		return mappedNode;
 	};
 
-	private __buildCaseTree = (
-		element: CaseElement,
-		mappedNode: TreeNode,
-	): void => {
-		mappedNode.kind = 'caseElement';
-		mappedNode.actions = [
-			{
-				title: '✓ Apply',
-				command: 'intuita.acceptCase',
-				arguments: [element.hash],
-			},
-			{
-				title: '✗ Dismiss',
-				command: 'intuita.rejectCase',
-				arguments: [element.hash],
-			},
-		];
+	private __buildCaseTree = (element: CaseElement): TreeNode => {
+		const mappedNode: TreeNode = {
+			id: element.hash,
+			kind: 'caseElement',
+			actions: [
+				{
+					title: '✓ Apply',
+					command: 'intuita.acceptCase',
+					arguments: [element.hash],
+				},
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectCase',
+					arguments: [element.hash],
+				},
+			],
+		};
 
 		const caseJobHashes = this.__caseManager.getJobHashes([
 			String(element.hash) as CaseHash,
@@ -658,5 +664,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			];
 		}
+		return mappedNode;
 	};
 }
