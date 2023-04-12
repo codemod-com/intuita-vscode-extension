@@ -141,16 +141,16 @@ export class IntuitaProvider implements WebviewViewProvider {
 			if (element.job.kind === JobKind.createFile) {
 				mappedNode.command = {
 					title: 'Create File',
-					command: 'vscode.diff',
-					arguments: [null, element.job.newContentUri, 'Create File'],
+					command: 'vscode.open',
+					arguments: [element.job.newContentUri],
 				};
 			}
 
 			if (element.job.kind === JobKind.deleteFile) {
 				mappedNode.command = {
 					title: 'Delete File',
-					command: 'vscode.diff',
-					arguments: [null, element.job.oldContentUri, 'Delete File'],
+					command: 'vscode.open',
+					arguments: [element.job.oldContentUri, 'Delete File'],
 				};
 			}
 
@@ -480,20 +480,32 @@ export class IntuitaProvider implements WebviewViewProvider {
 			if (message.value.command === 'vscode.diff') {
 				const args = message.value.arguments;
 
-				if (!args) {
-					return;
+				if (!args?.[0]?.path || !args?.[1]?.path) {
+					throw new Error(
+						'Expected args[0] and args[1] to be resource Uri',
+					);
 				}
 
-				const left = Uri.parse(args[0].path);
-				const right = Uri.parse(args[1].path);
+				const leftUri = Uri.parse(args[0].path);
+				const rightUri = Uri.parse(args[1].path);
 				const title = args[2];
 
 				commands.executeCommand(
 					message.value.command,
-					left,
-					right,
+					leftUri,
+					rightUri,
 					title,
 				);
+			}
+
+			if (message.value.command === 'vscode.open') {
+				const args = message.value.arguments;
+				if (!args?.[0]?.path) {
+					throw new Error('Expected args[0] to be resource Uri');
+				}
+				const resourceUri = Uri.parse(args[0].path);
+
+				commands.executeCommand(message.value.command, resourceUri);
 			}
 
 			commands.executeCommand(
