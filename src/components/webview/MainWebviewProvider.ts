@@ -165,9 +165,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 		};
 
 		if (element.kind === ElementKind.JOB) {
-			this.__buildJobTree(element);
 			return {
 				...mappedNode,
+				...this.__buildJobTree(element),
 				label:
 					jobKindCopyMap[element.job.kind] +
 					` from ${element.job.codemodName}`,
