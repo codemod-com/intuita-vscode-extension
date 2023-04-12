@@ -34,6 +34,7 @@ import {
 	PROJECT_NAMES,
 	RECIPE_MAP,
 	recipeNameCodec,
+	RecipeName,
 } from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
@@ -81,7 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
-	
+
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		persistedState?.acceptedJobsHashes as JobHash[],
@@ -448,6 +449,55 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					vscode.window.showErrorMessage(message);
 				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.refreshJob',
+			async (arg0) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				const job = jobManager.getJob(jobHash as JobHash);
+
+				if(!job) {
+					throw new Error(`Job not found: ${jobHash}`);
+				}
+
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				const uri = job.oldUri;
+
+				if(!uri) {
+					throw new Error('Missing Uri');
+				}
+
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						recipeName: job.codemodName as RecipeName,
+						uri,
+					},
+					executionId,
+					happenedAt,
+				});
 			},
 		),
 	);

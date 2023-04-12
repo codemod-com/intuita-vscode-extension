@@ -218,7 +218,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.actions = [
 					{
 						title: 'Rerun',
-						command: 'intuita.rerunJob',
+						command: 'intuita.refreshJob',
 						arguments: [element.hash],
 					},
 				]	

@@ -117,7 +117,6 @@ export class JobManager {
 		}
 
 		const fileModificationTime = await this.#fileSystemUtilities.getModificationTime(job.oldUri);
-		console.log(job.createdAt, fileModificationTime, 'test')
 		return fileModificationTime  >= job.createdAt;
 	}
 
