@@ -21,6 +21,7 @@ import {
 	ElementHash,
 	FileElement,
 	RootElement,
+	ElementKind,
 } from '../elements/types';
 import {
 	buildJobElement,
@@ -42,9 +43,9 @@ export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
 	switch (kind) {
-		case 'CASE':
+		case ElementKind.CASE:
 			return 'case.svg';
-		case 'FILE':
+		case ElementKind.FILE:
 			return 'ts2.svg';
 		default:
 			return 'bluelightbulb.svg';
@@ -110,17 +111,17 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		const getHash = (element: CaseElement | FileElement | JobElement) =>
 			element.hash;
 
-		if (element.kind === 'ROOT') {
+		if (element.kind === ElementKind.ROOT) {
 			return element.children.filter(hasChildren).map(getHash);
 		}
 
-		if (element.kind === 'CASE') {
+		if (element.kind === ElementKind.CASE) {
 			return element.children
 				.flatMap((fileElement) => fileElement.children)
 				.map(getHash);
 		}
 
-		if (element.kind === 'FILE') {
+		if (element.kind === ElementKind.FILE) {
 			return element.children.map(getHash);
 		}
 
@@ -138,7 +139,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			);
 		}
 
-		if (element.kind === 'ROOT') {
+		if (element.kind === ElementKind.ROOT) {
 			throw new Error(`Cannot get a tree item for the root element`);
 		}
 
@@ -147,7 +148,8 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		treeItem.id = element.hash;
 
 		treeItem.collapsibleState =
-			element.kind === 'FILE' || element.kind === 'CASE'
+			element.kind === ElementKind.FILE ||
+			element.kind === ElementKind.CASE
 				? TreeItemCollapsibleState.Collapsed
 				: TreeItemCollapsibleState.None;
 
@@ -159,7 +161,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			getElementIconBaseName(element.kind),
 		);
 
-		if (element.kind === 'JOB') {
+		if (element.kind === ElementKind.JOB) {
 			treeItem.contextValue = 'jobElement';
 
 			if (element.job.kind === JobKind.rewriteFile) {
@@ -219,7 +221,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			}
 		}
 
-		if (element.kind === 'CASE') {
+		if (element.kind === ElementKind.CASE) {
 			treeItem.contextValue = 'caseElement';
 			const caseJobHashes = this.#caseManager.getJobHashes([
 				String(element.hash) as CaseHash,
@@ -251,7 +253,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
+			kind: ElementKind.ROOT,
 			children: caseElements,
 		};
 
@@ -304,7 +306,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 
 		this.#setElement({
 			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
+			kind: ElementKind.ROOT,
 			children: [],
 		});
 
@@ -317,7 +319,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 		if (!('children' in element)) {
 			return;
 		}
-		if (element.kind === 'CASE') {
+		if (element.kind === ElementKind.CASE) {
 			const jobElement = element.children.flatMap(
 				(fileElement) => fileElement.children,
 			);
