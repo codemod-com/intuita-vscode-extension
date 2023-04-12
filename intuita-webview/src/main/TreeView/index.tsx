@@ -1,4 +1,4 @@
-import { ReactElement, useCallback } from 'react';
+import { ReactNode, useCallback } from 'react';
 import Tree from '../Tree';
 import TreeItem from '../TreeItem';
 import {
@@ -16,7 +16,11 @@ type Props = {
 	node: TreeNode;
 };
 
-const getIcon = (iconName?: string): ReactElement => {
+const getIcon = (iconName: string | null): ReactNode => {
+	if (iconName === null) {
+		return <BlueLightBulbIcon />;
+	}
+
 	let icon = null;
 	switch (iconName) {
 		case 'case.svg':
@@ -30,9 +34,6 @@ const getIcon = (iconName?: string): ReactElement => {
 			break;
 		case 'folder.svg':
 			icon = <FolderIcon />;
-			break;
-		default:
-			icon = <BlueLightBulbIcon />;
 			break;
 	}
 	return icon;
@@ -60,7 +61,7 @@ const TreeView = ({ node }: Props) => {
 		open: boolean,
 		setIsOpen: (value: boolean) => void,
 	) => {
-		const icon = getIcon(node.iconName);
+		const icon = getIcon(node.iconName ?? null);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
