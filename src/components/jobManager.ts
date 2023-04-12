@@ -94,8 +94,32 @@ export class JobManager {
 		return this.#acceptedJobsHashes;
 	}
 
+	public getAcceptedJobs() {
+		return Array.from(this.#acceptedJobsHashes).map(jobHash => this.#jobMap.get(jobHash)).filter(isNeitherNullNorUndefined)
+	}
+
+
 	public isJobAccepted(jobHash: JobHash) {
 		return this.#acceptedJobsHashes.has(jobHash);
+	}
+
+	public isJobStale(jobHash: JobHash) {
+		const job = this.#jobMap.get(jobHash);
+
+		if(!job) {
+			throw new Error('Job not found');
+		}
+
+		const acceptedJobs = this.getAcceptedJobs();
+		console.log(acceptedJobs, job, 'test')
+		const isStale = acceptedJobs.some(acceptedJob => 
+			job.hash !== acceptedJob.hash 
+			&& job.oldUri 
+			&& acceptedJob.oldUri
+			 && job.oldUri.path === acceptedJob.oldUri.path 
+			 && job.createdAt <= acceptedJob.createdAt)
+		
+		return isStale;
 	}
 
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {

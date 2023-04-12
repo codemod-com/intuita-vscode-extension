@@ -212,6 +212,16 @@ export class IntuitaProvider implements WebviewViewProvider {
 					},
 				];
 			}
+
+			if(this.__jobManager.isJobStale(element.jobHash)) {
+				mappedNode.actions = [
+					{
+						title: 'Rerun',
+						command: 'intuita.rerunJob',
+						arguments: [element.hash],
+					},
+				]	
+			}
 		}
 
 		if (element.kind === 'CASE') {
