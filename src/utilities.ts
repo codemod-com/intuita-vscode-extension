@@ -11,6 +11,10 @@ export function isNeitherNullNorUndefined<T>(
 	return value !== null && value !== undefined;
 }
 
+export type DistributiveOmit<T, K extends keyof T> = T extends unknown
+	? Omit<T, K>
+	: never;
+
 export function assertsNeitherNullOrUndefined<T>(
 	value: T,
 	// eslint-disable-next-line @typescript-eslint/ban-types

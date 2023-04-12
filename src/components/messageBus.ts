@@ -3,6 +3,7 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
+import type { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -253,7 +254,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.runCodemod;
-			codemodHash: string;
+			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.beforePRCreated;

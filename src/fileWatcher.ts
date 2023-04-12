@@ -1,18 +1,28 @@
 import { workspace, Disposable } from 'vscode';
 
-export const watchFile = (
-	filePath: string,
+export const watchFileWithPattern = (
+	path: string,
 	callback: () => void,
 ): Disposable => {
-	const watcher = workspace.createFileSystemWatcher(filePath);
+	const watcher = workspace.createFileSystemWatcher(path);
 
-	const disposable = watcher.onDidChange(() => {
+	// watch for changes
+	watcher.onDidChange(() => {
+		callback();
+	});
+
+	// watch for creation
+	watcher.onDidCreate(() => {
+		callback();
+	});
+
+	// watch for deletion
+	watcher.onDidDelete(() => {
 		callback();
 	});
 
 	return {
 		dispose: () => {
-			disposable.dispose();
 			watcher.dispose();
 		},
 	};
