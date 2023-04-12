@@ -43,7 +43,7 @@ import {
 	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/webview/sourceControl';
-import { IntuitaPanel } from './components/webview/SourceControlWebviewPanel';
+import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -212,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = IntuitaPanel.getInstance(
+			const panelInstance = SourceControlWebviewPanel.getInstance(
 				context,
 				messageBus,
 				repositoryService,
@@ -268,7 +268,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobTitle =
 					typeof label === 'object' ? label.label : label ?? '';
 
-				const panelInstance = IntuitaPanel.getInstance(
+				const panelInstance = SourceControlWebviewPanel.getInstance(
 					context,
 					messageBus,
 					repositoryService,
