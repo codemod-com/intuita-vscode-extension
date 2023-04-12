@@ -1,4 +1,4 @@
-import TreeView from 'react-treeview';
+import ReactTreeView from 'react-treeview';
 import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 
@@ -23,7 +23,7 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 	}
 
 	return (
-		<TreeView collapsed={!open} nodeLabel={label}>
+		<ReactTreeView collapsed={!open} nodeLabel={label}>
 			{open
 				? node.children.map((child) => (
 						<Tree
@@ -34,7 +34,7 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 						/>
 				  ))
 				: null}
-		</TreeView>
+		</ReactTreeView>
 	);
 };
 
