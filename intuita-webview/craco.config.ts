@@ -45,6 +45,7 @@ module.exports = {
 				config.entry = {
 					sourceControl: resolveApp('src/sourceControl/index.tsx'),
 					main: resolveApp('src/main/index.tsx'),
+					jobDiffView: resolveApp('src/jobDiffView/index.tsx'),
 				};
 			} else if (env === 'development') {
 				const targetApp = process.env.TARGET_APP;

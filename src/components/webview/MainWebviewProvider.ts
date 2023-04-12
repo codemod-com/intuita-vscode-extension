@@ -124,17 +124,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
 		if (element.kind === 'JOB') {
+			const commandArguments = { arguments: [element.job.hash] };
 			mappedNode.kind = 'jobElement';
 
 			if (element.job.kind === JobKind.rewriteFile) {
 				mappedNode.command = {
 					title: 'Diff View',
 					command: 'intuita.openJobDiff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
+					...commandArguments,
 				};
 			}
 
@@ -142,7 +139,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.command = {
 					title: 'Create File',
 					command: 'intuita.openJobDiff',
-					arguments: [null, element.job.newContentUri, 'Create File'],
+					...commandArguments,
 				};
 			}
 
@@ -150,7 +147,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.command = {
 					title: 'Delete File',
 					command: 'intuita.openJobDiff',
-					arguments: [null, element.job.oldContentUri, 'Delete File'],
+					...commandArguments,
 				};
 			}
 
@@ -158,11 +155,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.command = {
 					title: 'Move & Rewrite File',
 					command: 'intuita.openJobDiff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
+					...commandArguments,
 				};
 			}
 
@@ -170,11 +163,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				mappedNode.command = {
 					title: 'Move File',
 					command: 'intuita.openJobDiff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
+					...commandArguments,
 				};
 			}
 
@@ -479,23 +468,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'intuita.openJobDiff') {
 				const args = message.value.arguments;
-
-				if (!args?.[0]?.path || !args?.[1]?.path) {
-					throw new Error(
-						'Expected args[0] and args[1] to be resource Uri',
-					);
+				if (!args || !args[0]) {
+					throw new Error('Expected args[0] to be job hash');
 				}
+				const jobHash = args[0];
 
-				const leftUri = Uri.parse(args[0].path);
-				const rightUri = Uri.parse(args[1].path);
-				const title = args[2];
-
-				commands.executeCommand(
-					message.value.command,
-					leftUri,
-					rightUri,
-					title,
-				);
+				commands.executeCommand(message.value.command, jobHash);
 
 				return;
 			}

@@ -24,6 +24,7 @@
 	"scripts": {
 		"start:main": "TARGET_APP=main craco start",
 		"start:sourceControl": "TARGET_APP=sourceControl craco start",
+		"start:diffView": "TARGET_APP=jobDiffView craco start",
 		"build": "craco build",
 		"test": "craco test"
 	},

@@ -56,7 +56,7 @@ import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-
+ 
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -166,49 +166,28 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openJobDiff',
-			async (
-				oldUri: vscode.Uri | null,
-				newUri: vscode.Uri | null,
-				title: string,
-			) => {
-				const panelInstance = DiffWebviewPanel.getInstance(
-					context,
-					messageBus,
-				);
-
-				await panelInstance.render();
+			async (jobHash?: JobHash) => {
+				if(!jobHash) return;
 				try {
-					const oldFileContent = oldUri
-						? (
-								await vscode.workspace.fs.readFile(oldUri)
-						  ).toString()
-						: null;
-					const newFileContent = newUri
-						? (
-								await vscode.workspace.fs.readFile(newUri)
-						  ).toString()
-						: null;
-					const newFileTitle = newUri
-						? newUri.path.toString() ?? ''
-						: 'New File';
-					const oldFileTitle = oldUri
-						? oldUri.path?.toString() ?? ''
-						: 'Old File';
-
+					const panelInstance = DiffWebviewPanel.getInstance(
+						context,
+						messageBus,
+						jobManager,
+					);
+					await panelInstance.render();
+					const viewProps = await panelInstance.getViewData(
+						jobHash,
+						rootPath,
+					);
+					if (!viewProps) return;
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							// branching from current branch
-							data: {
-								oldFileContent,
-								newFileContent,
-								newFileTitle,
-								oldFileTitle,
-							},
+ 							data: viewProps,
 						},
 					});
 				} catch (err) {
-					console.error(err)
+					console.error('ERR', err);
 				}
 			},
 		),

@@ -1,0 +1,46 @@
+.hljs {
+    background-color: var(--vscode-background);
+    color: var(--vscode-foreground);
+  }
+  
+  .hljs-comment,
+  .hljs-quote {
+    color: var(--vscode-comment);
+  }
+  
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-subst,
+  .hljs-title,
+  .hljs-section,
+  .hljs-tag,
+  .hljs-name {
+    color: var(--vscode-keyword);
+  }
+  
+  .hljs-function,
+  .hljs-params,
+  .hljs-method,
+  .hljs-property {
+    color: var(--vscode-function);
+  }
+  
+  .hljs-string,
+  .hljs-title,
+  .hljs-type,
+  .hljs-built_in,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: var(--vscode-string);
+  }
+  
+  .hljs-number {
+    color: var(--vscode-number);
+  }
+  
+  .hljs-addition,
+  .hljs-deletion,
+  .hljs-selector-attr,
+  .hljs-selector-pseudo {
+    color: var(--vscode-operator);
+  }
