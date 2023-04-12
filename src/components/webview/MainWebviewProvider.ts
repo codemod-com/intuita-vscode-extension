@@ -496,6 +496,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 					rightUri,
 					title,
 				);
+
+				return;
 			}
 
 			if (message.value.command === 'vscode.open') {
@@ -503,9 +505,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 				if (!args?.[0]?.path) {
 					throw new Error('Expected args[0] to be resource Uri');
 				}
+
 				const resourceUri = Uri.parse(args[0].path);
 
 				commands.executeCommand(message.value.command, resourceUri);
+
+				return;
 			}
 
 			commands.executeCommand(
