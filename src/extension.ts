@@ -1169,6 +1169,22 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.caseBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.caseBreakdown,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.folderBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.folderBreakdown,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sendAsBeforeSnippet',
 			async () => {

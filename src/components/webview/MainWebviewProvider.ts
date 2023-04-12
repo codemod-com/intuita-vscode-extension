@@ -59,6 +59,8 @@ const ROOT_FOLDER_KEY = '/root';
 // @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
+	__viewBreakdown: MessageKind.caseBreakdown | MessageKind.folderBreakdown =
+		MessageKind.caseBreakdown;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
@@ -384,7 +386,10 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__setElement(rootElement);
 
-		const tree = this.__getTreeByDirectory(rootElement);
+		const tree =
+			this.__viewBreakdown === MessageKind.caseBreakdown
+				? this.__getTreeByCase(rootElement)
+				: this.__getTreeByDirectory(rootElement);
 		if (tree) {
 			this.setView({
 				viewId: 'treeView',
@@ -393,6 +398,15 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			});
 		}
+	}
+
+	private __onViewBreakdownMessage(
+		message: MessageKind.caseBreakdown | MessageKind.folderBreakdown,
+	) {
+		if (this.__viewBreakdown === message) return;
+
+		this.__viewBreakdown = message;
+		this.__onUpdateElementsMessage();
 	}
 
 	private __onUpdateElementsMessage() {
@@ -418,7 +432,10 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__folderMap.clear();
 		this.__setElement(rootElement);
 
-		const tree = this.__getTreeByDirectory(rootElement);
+		const tree =
+			this.__viewBreakdown === MessageKind.caseBreakdown
+				? this.__getTreeByCase(rootElement)
+				: this.__getTreeByDirectory(rootElement);
 
 		if (tree) {
 			this.setView({
@@ -441,6 +458,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
+		);
+
+		this.__addHook(MessageKind.caseBreakdown, () =>
+			this.__onViewBreakdownMessage(MessageKind.caseBreakdown),
+		);
+
+		this.__addHook(MessageKind.folderBreakdown, () =>
+			this.__onViewBreakdownMessage(MessageKind.folderBreakdown),
 		);
 	}
 
