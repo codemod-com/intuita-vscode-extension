@@ -13,16 +13,18 @@ module.exports = {
 			{ env }: { env: 'production' | 'development' },
 		) => {
 			if (env === 'production') {
-				if (config.optimization) {
-					config.optimization.splitChunks = {
-						cacheGroups: {
-							default: false,
-						},
-					};
-
-					// Disable code chunks
-					config.optimization.runtimeChunk = false;
+				if (!config.optimization) {
+					config.optimization = {};
 				}
+
+				config.optimization.splitChunks = {
+					cacheGroups: {
+						default: false,
+					},
+				};
+
+				// Disable code chunks
+				config.optimization.runtimeChunk = false;
 
 				if (config.output) {
 					// Rename main.{hash}.js to main.js
