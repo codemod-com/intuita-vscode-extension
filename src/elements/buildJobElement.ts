@@ -14,7 +14,7 @@ export const buildJobElement = (job: Job, rootPath: string): JobElement => {
 	const oldPath = job.oldUri?.fsPath.replace(rootPath, '') ?? '';
 	const newPath = job.newUri?.fsPath.replace(rootPath, '') ?? '';
 
-	let label: string = jobKindCopyMap[JobKind.createFile];
+	let label: string = jobKindCopyMap[job.kind];
 
 	if (job.kind === JobKind.createFile) {
 		label += ` ${newPath}`;
