@@ -94,6 +94,12 @@ export type View =
 					targetBranch: string;
 				}>;
 			};
+	  }>
+	| Readonly<{
+			viewId: 'jobDiffView';
+			viewProps: {
+				data: unknown
+			};
 	  }>;
 
 interface UserAccountStorage {

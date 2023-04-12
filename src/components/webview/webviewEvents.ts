@@ -107,4 +107,15 @@ export type View =
 			viewProps: {
 				node: TreeNode;
 			};
+	  }>
+	| Readonly<{
+			viewId: 'jobDiffView';
+			viewProps: {
+				data: {
+					oldFileContent: string | null;
+					newFileContent: string | null;
+					oldFileTitle: string;
+					newFileTitle: string;
+				};
+			};
 	  }>;

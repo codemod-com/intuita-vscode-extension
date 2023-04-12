@@ -54,6 +54,10 @@
 				"title": "Intuita: Create a Pull Request"
 			},
 			{
+				"command": "intuita.openJobDiff",
+				"title": "Intuita: Open Job Diff"
+			},
+			{
 				"command": "intuita.executeNextJsCodemods",
 				"title": "Intuita: execute Next.js v13 codemods over the workspace"
 			},
@@ -249,6 +253,10 @@
 				{
 					"command": "intuita.requestFeature",
 					"when": "false"
+				},
+				{
+					"command": "intuita.openJobDiff",
+					"when": "true"
 				},
 				{
 					"command": "intuita.openYouTubeChannel",
