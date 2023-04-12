@@ -48,7 +48,6 @@
 		"@craco/types": "^7.1.0",
 		"@types/react-treeview": "^0.4.3",
 		"@types/testing-library__jest-dom": "^5.14.5",
-		"@types/vscode-webview": "^1.57.1",
-		"rewire": "^6.0.0"
+		"@types/vscode-webview": "^1.57.1"
 	}
 }
