@@ -480,12 +480,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 			if (message.value.command === '_workbench.diff') {
 				const args = message.value.arguments;
 
-				if(!args?.[1]?.path) {
+				if (!args?.[1]?.path) {
 					throw new Error('Expected args[1] to be resource Uri');
 				}
 
-				const leftUri = args?.[0]?.path ? Uri.parse(args[0].path) : null;
-				const rightUri =  Uri.parse(args[1].path);
+				const leftUri = args?.[0]?.path
+					? Uri.parse(args[0].path)
+					: null;
+				const rightUri = Uri.parse(args[1].path);
 				const title = args[2];
 
 				commands.executeCommand(
@@ -497,7 +499,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 				return;
 			}
-			
+
 			commands.executeCommand(
 				message.value.command,
 				...(message.value.arguments ?? []),
