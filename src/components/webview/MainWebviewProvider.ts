@@ -18,6 +18,7 @@ import {
 	CaseElement,
 	Element,
 	ElementHash,
+	ElementKind,
 	FileElement,
 	RootElement,
 } from '../../elements/types';
@@ -28,6 +29,7 @@ import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
 	buildJobElement,
 	compareJobElements,
+	jobKindCopyMap,
 } from '../../elements/buildJobElement';
 import {
 	buildFileElement,
@@ -38,12 +40,13 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
+import { JobElement } from '../../elements/types';
 
 const getElementIconBaseName = (kind: Element['kind']): string => {
 	switch (kind) {
-		case 'CASE':
+		case ElementKind.CASE:
 			return 'case.svg';
-		case 'FILE':
+		case ElementKind.FILE:
 			return 'ts2.svg';
 		default:
 			return 'bluelightbulb.svg';
@@ -51,6 +54,7 @@ const getElementIconBaseName = (kind: Element['kind']): string => {
 };
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
+const ROOT_FOLDER_KEY = '/root';
 
 // @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
@@ -58,6 +62,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
+	__folderMap = new Map<string, TreeNode>();
 
 	constructor(
 		context: ExtensionContext,
@@ -115,7 +120,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view.webview.postMessage(message);
 	}
 
-	private __getTree = (element: Element): TreeNode => {
+	private __getTreeByCase = (element: Element): TreeNode => {
 		const mappedNode: TreeNode = {
 			id: element.hash,
 		};
@@ -123,152 +128,109 @@ export class IntuitaProvider implements WebviewViewProvider {
 		mappedNode.label = 'label' in element ? element.label : 'Recipe';
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
-		if (element.kind === 'JOB') {
-			mappedNode.kind = 'jobElement';
-
-			if (element.job.kind === JobKind.rewriteFile) {
-				mappedNode.command = {
-					title: 'Diff View',
-					command: '_workbench.diff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
-				};
-			}
-
-			if (element.job.kind === JobKind.createFile) {
-				mappedNode.command = {
-					title: 'Create File',
-					command: '_workbench.diff',
-					arguments: [null, element.job.newContentUri, 'Create File'],
-				};
-			}
-
-			if (element.job.kind === JobKind.deleteFile) {
-				mappedNode.command = {
-					title: 'Delete File',
-					command: '_workbench.diff',
-					arguments: [null, element.job.oldContentUri, 'Delete File'],
-				};
-			}
-
-			if (element.job.kind === JobKind.moveAndRewriteFile) {
-				mappedNode.command = {
-					title: 'Move & Rewrite File',
-					command: '_workbench.diff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
-				};
-			}
-
-			if (element.job.kind === JobKind.moveFile) {
-				mappedNode.command = {
-					title: 'Move File',
-					command: '_workbench.diff',
-					arguments: [
-						element.job.oldContentUri,
-						element.job.newContentUri,
-						'Proposed change',
-					],
-				};
-			}
-
-			mappedNode.actions = [
-				{
-					title: '✓ Apply',
-					command: 'intuita.acceptJob',
-					arguments: [element.job.hash],
-				},
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectJob',
-					arguments: [element.job.hash],
-				},
-			];
-
-			if (this.__jobManager.isJobAccepted(element.jobHash)) {
-				mappedNode.kind = 'acceptedJobElement';
-
-				mappedNode.actions = [
-					{
-						title: '✗ Dismiss',
-						command: 'intuita.rejectCase',
-						arguments: [element.hash],
-					},
-					{
-						title: 'Issue',
-						command: 'intuita.createIssue',
-						arguments: [element.job.hash],
-					},
-					{
-						title: 'PR',
-						command: 'intuita.createPR',
-						arguments: [element.job.hash],
-					},
-				];
-			}
+		if (element.kind === ElementKind.JOB) {
+			this.__buildJobTree(element, mappedNode);
 		}
 
-		if (element.kind === 'CASE') {
-			mappedNode.kind = 'caseElement';
-			mappedNode.actions = [
-				{
-					title: '✓ Apply',
-					command: 'intuita.acceptCase',
-					arguments: [element.hash],
-				},
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCase',
-					arguments: [element.hash],
-				},
-			];
-
-			const caseJobHashes = this.__caseManager.getJobHashes([
-				String(element.hash) as CaseHash,
-			]);
-			const caseAccepted = Array.from(caseJobHashes).every((jobHash) =>
-				this.__jobManager.isJobAccepted(jobHash),
-			);
-
-			if (caseAccepted) {
-				mappedNode.kind = 'acceptedCaseElement';
-
-				mappedNode.actions = [
-					{
-						title: '✗ Dismiss',
-						command: 'intuita.rejectCase',
-						arguments: [element.hash],
-					},
-					{
-						title: 'Issue',
-						command: 'intuita.createIssue',
-						arguments: [element.hash],
-					},
-					{
-						title: 'PR',
-						command: 'intuita.createPR',
-						arguments: [element.hash],
-					},
-				];
-			}
+		if (element.kind === ElementKind.CASE) {
+			this.__buildCaseTree(element, mappedNode);
 		}
 
 		mappedNode.children =
-			'children' in element ? element.children.map(this.__getTree) : [];
+			'children' in element
+				? element.children.map(this.__getTreeByCase)
+				: [];
 
-		if (element.kind === 'CASE') {
+		if (element.kind === ElementKind.CASE) {
 			mappedNode.children = element.children
 				.flatMap((fileElement) => fileElement.children)
-				.map(this.__getTree);
+				.map(this.__getTreeByCase);
 		}
 
 		return mappedNode;
+	};
+
+	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
+		const mappedNode: TreeNode = {
+			id: element.hash,
+			iconName: getElementIconBaseName(element.kind),
+		};
+
+		if (element.kind === ElementKind.JOB) {
+			this.__buildJobTree(element, mappedNode);
+			return {
+				...mappedNode,
+				label:
+					jobKindCopyMap[element.job.kind] +
+					` from ${element.job.codemodName}`,
+			};
+		}
+
+		if (element.kind === ElementKind.ROOT) {
+			element.children.forEach(this.__getTreeByDirectory);
+			return {
+				...mappedNode,
+				label: 'Recipe',
+				children: this.__folderMap.has(ROOT_FOLDER_KEY)
+					? [this.__folderMap.get(ROOT_FOLDER_KEY) as TreeNode]
+					: [],
+			};
+		}
+
+		if (element.kind === ElementKind.CASE) {
+			element.children.forEach(this.__getTreeByDirectory);
+		}
+
+		if (element.kind === ElementKind.FILE) {
+			// e.g., extract the path from '/packages/app/src/index.tsx (1)'
+			const filePath = element.label.split(' ')[0];
+			if (!filePath) return;
+
+			// e.g., ['packages', 'app', 'src', 'index.tsx']
+			let directories = filePath.split('/').filter((item) => item !== '');
+			// e.g., ['root', 'packages', 'app', 'src', 'index.tsx']
+			directories = ['root', ...directories];
+			// e.g., 'index.tsx'
+			const fileName = directories[directories.length - 1];
+			let path = '';
+			let node: TreeNode = { id: '' };
+			for (const dir of directories) {
+				const isFile = dir === fileName;
+				path += `/${dir}`;
+				if (!this.__folderMap.has(path)) {
+					const newNode = {
+						id: dir,
+						label: dir,
+						kind: isFile ? 'fileElement' : 'folderElement',
+						iconName: isFile
+							? getElementIconBaseName(element.kind)
+							: 'folder.svg',
+						children: isFile
+							? (element.children.map(
+									this.__getTreeByDirectory,
+							  ) as TreeNode[])
+							: [],
+					};
+
+					this.__folderMap.set(path, newNode);
+					node.children = [...(node.children || []), newNode];
+					node = newNode;
+					continue;
+				}
+
+				node = this.__folderMap.get(path) as TreeNode;
+				if (isFile) {
+					node.children = [
+						...(node.children || []),
+						...(element.children.map(
+							this.__getTreeByDirectory,
+						) as TreeNode[]),
+					];
+				}
+			}
+		}
+
+		return;
 	};
 
 	private __addHook<T extends MessageKind>(
@@ -393,7 +355,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (!('children' in element)) {
 			return;
 		}
-		if (element.kind === 'CASE') {
+		if (element.kind === ElementKind.CASE) {
 			const jobElement = element.children.flatMap(
 				(fileElement) => fileElement.children,
 			);
@@ -412,23 +374,25 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 	private __onClearStateMessage() {
 		this.__elementMap.clear();
+		this.__folderMap.clear();
 
 		const rootElement = {
 			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
+			kind: ElementKind.ROOT,
 			children: [],
 		} as RootElement;
 
 		this.__setElement(rootElement);
 
-		const tree = this.__getTree(rootElement);
-
-		this.setView({
-			viewId: 'treeView',
-			viewProps: {
-				node: tree,
-			},
-		});
+		const tree = this.__getTreeByDirectory(rootElement);
+		if (tree) {
+			this.setView({
+				viewId: 'treeView',
+				viewProps: {
+					node: tree,
+				},
+			});
+		}
 	}
 
 	private __onUpdateElementsMessage() {
@@ -446,19 +410,24 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		const rootElement: RootElement = {
 			hash: ROOT_ELEMENT_HASH,
-			kind: 'ROOT',
+			kind: ElementKind.ROOT,
 			children: caseElements,
 		};
 
 		this.__elementMap.clear();
+		this.__folderMap.clear();
 		this.__setElement(rootElement);
-		const tree = this.__getTree(rootElement);
-		this.setView({
-			viewId: 'treeView',
-			viewProps: {
-				node: tree,
-			},
-		});
+
+		const tree = this.__getTreeByDirectory(rootElement);
+
+		if (tree) {
+			this.setView({
+				viewId: 'treeView',
+				viewProps: {
+					node: tree,
+				},
+			});
+		}
 	}
 
 	private __attachExtensionEventListeners() {
@@ -518,4 +487,147 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
+
+	private __buildJobTree = (
+		element: JobElement,
+		mappedNode: TreeNode,
+	): void => {
+		mappedNode.kind = 'jobElement';
+
+
+		if (element.job.kind === JobKind.rewriteFile) {
+			mappedNode.command = {
+				title: 'Diff View',
+				command: '_workbench.diff',
+				arguments: [
+					element.job.oldContentUri,
+					element.job.newContentUri,
+					'Proposed change',
+				],
+			};
+		}
+
+		if (element.job.kind === JobKind.createFile) {
+			mappedNode.command = {
+				title: 'Create File',
+				command: '_workbench.diff',
+				arguments: [null, element.job.newContentUri, 'Create File'],
+			};
+		}
+
+		if (element.job.kind === JobKind.deleteFile) {
+			mappedNode.command = {
+				title: 'Delete File',
+				command: '_workbench.diff',
+				arguments: [null, element.job.oldContentUri, 'Delete File'],
+			};
+		}
+
+		if (element.job.kind === JobKind.moveAndRewriteFile) {
+			mappedNode.command = {
+				title: 'Move & Rewrite File',
+				command: '_workbench.diff',
+				arguments: [
+					element.job.oldContentUri,
+					element.job.newContentUri,
+					'Proposed change',
+				],
+			};
+		}
+
+		if (element.job.kind === JobKind.moveFile) {
+			mappedNode.command = {
+				title: 'Move File',
+				command: '_workbench.diff',
+				arguments: [
+					element.job.oldContentUri,
+					element.job.newContentUri,
+					'Proposed change',
+				],
+			};
+		}
+
+		mappedNode.actions = [
+			{
+				title: '✓ Apply',
+				command: 'intuita.acceptJob',
+				arguments: [element.job.hash],
+			},
+			{
+				title: '✗ Dismiss',
+				command: 'intuita.rejectJob',
+				arguments: [element.job.hash],
+			},
+		];
+
+		if (this.__jobManager.isJobAccepted(element.jobHash)) {
+			mappedNode.kind = 'acceptedJobElement';
+
+			mappedNode.actions = [
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectCase',
+					arguments: [element.hash],
+				},
+				{
+					title: 'Issue',
+					command: 'intuita.createIssue',
+					arguments: [element.job.hash],
+				},
+				{
+					title: 'PR',
+					command: 'intuita.createPR',
+					arguments: [element.job.hash],
+				},
+			];
+		}
+	};
+
+	private __buildCaseTree = (
+		element: CaseElement,
+		mappedNode: TreeNode,
+	): void => {
+		mappedNode.kind = 'caseElement';
+		mappedNode.actions = [
+			{
+				title: '✓ Apply',
+				command: 'intuita.acceptCase',
+				arguments: [element.hash],
+			},
+			{
+				title: '✗ Dismiss',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
+		];
+
+		const caseJobHashes = this.__caseManager.getJobHashes([
+			String(element.hash) as CaseHash,
+		]);
+		const caseAccepted = Array.from(caseJobHashes).every((jobHash) =>
+			this.__jobManager.isJobAccepted(jobHash),
+		);
+
+		if (caseAccepted) {
+			mappedNode.kind = 'acceptedCaseElement';
+
+			mappedNode.actions = [
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectCase',
+					arguments: [element.hash],
+				},
+				{
+					title: 'Issue',
+					command: 'intuita.createIssue',
+					arguments: [element.hash],
+				},
+				{
+					title: 'PR',
+					command: 'intuita.createPR',
+					arguments: [element.hash],
+				},
+			];
+		}
+	};
 }
