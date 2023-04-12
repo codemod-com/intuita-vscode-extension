@@ -546,7 +546,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 			],
 		};
 
-
 		if (element.job.kind === JobKind.rewriteFile) {
 			mappedNode.command = {
 				title: 'Diff View',
