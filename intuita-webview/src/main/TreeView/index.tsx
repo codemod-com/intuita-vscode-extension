@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { ReactElement, useCallback } from 'react';
 import Tree from '../Tree';
 import TreeItem from '../TreeItem';
 import {
@@ -14,6 +14,28 @@ import styles from './style.module.css';
 
 type Props = {
 	node: TreeNode;
+};
+
+const getIcon = (iconName?: string): ReactElement => {
+	let icon = null;
+	switch (iconName) {
+		case 'case.svg':
+			icon = <CaseIcon />;
+			break;
+		case 'bluelightbulb.svg':
+			icon = <BlueLightBulbIcon />;
+			break;
+		case 'ts2.svg':
+			icon = <TS2Icon />;
+			break;
+		case 'folder.svg':
+			icon = <FolderIcon />;
+			break;
+		default:
+			icon = <BlueLightBulbIcon />;
+			break;
+	}
+	return icon;
 };
 
 const TreeView = ({ node }: Props) => {
@@ -38,24 +60,7 @@ const TreeView = ({ node }: Props) => {
 		open: boolean,
 		setIsOpen: (value: boolean) => void,
 	) => {
-		let icon = null;
-		switch (node.iconName) {
-			case 'case.svg':
-				icon = <CaseIcon />;
-				break;
-			case 'bluelightbulb.svg':
-				icon = <BlueLightBulbIcon />;
-				break;
-			case 'ts2.svg':
-				icon = <TS2Icon />;
-				break;
-			case 'folder.svg':
-				icon = <FolderIcon />;
-				break;
-			default:
-				icon = <BlueLightBulbIcon />;
-				break;
-		}
+		const icon = getIcon(node.iconName);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
