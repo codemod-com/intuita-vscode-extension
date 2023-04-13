@@ -6,6 +6,10 @@
 	width: 100%;
 }
 
+.w-half {
+	width: 50%;
+}
+
 .flex-col {
 	flex-direction: column;
 }
@@ -29,16 +33,20 @@
 	justify-content: flex-end;
 }
 
-.justify-between{
+.justify-between {
 	justify-content: space-between;
 }
 
-.container{
+.container {
 	width: 100%;
- 	display: flex;
+	display: flex;
 	background-color: var(--vscode-editor-background);
- }
+	font-family: var(--vscode-editor-font-family);
+}
 
-.container-header {
-	padding: 0.5rem;
+.text-center {
+	text-align: center;
+}
+.p-10 {
+	padding: 10px;
 }

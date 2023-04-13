@@ -5,7 +5,9 @@ import {
 	WebviewMessage,
 	JobDiffViewProps,
 } from '../../../src/components/webview/webviewEvents';
+
 import { JobDiffView } from './DiffViewer/index';
+import './app.css';
 
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
@@ -35,7 +37,7 @@ function App() {
 					setView({
 						...view,
 						viewProps: {
- 							data: {
+							data: {
 								...data,
 							},
 						},

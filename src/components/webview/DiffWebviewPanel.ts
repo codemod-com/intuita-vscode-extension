@@ -9,15 +9,9 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { WebviewResolver } from './WebviewResolver';
-import {
-	JobDiffViewProps,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { JobDiffViewProps, View, WebviewMessage } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
-import { debounce } from '../../utilities';
 
 export class DiffWebviewPanel {
 	private __view: Webview | null = null;
@@ -70,7 +64,6 @@ export class DiffWebviewPanel {
 		this.__view = this.__panel.webview;
 
 		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners();
 	}
 
 	public render() {
@@ -230,13 +223,5 @@ export class DiffWebviewPanel {
 		this.__addHook(MessageKind.jobsAccepted, (message) => {
 			this.__onUpdateJobMessage(message.deletedJobHashes);
 		});
-	}
-
-	private __onDidReceiveMessage(message: WebviewResponse) {
-		// TODO: change events here
-	}
-
-	private __attachWebviewEventListeners() {
-		this.__view?.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
