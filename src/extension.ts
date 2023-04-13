@@ -43,7 +43,7 @@ import {
 	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/webview/sourceControl';
-import { IntuitaPanel } from './components/webview/SourceControlWebviewPanel';
+import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
@@ -241,7 +241,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = IntuitaPanel.getInstance(
+			const panelInstance = SourceControlWebviewPanel.getInstance(
 				context,
 				messageBus,
 				repositoryService,
@@ -297,7 +297,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobTitle =
 					typeof label === 'object' ? label.label : label ?? '';
 
-				const panelInstance = IntuitaPanel.getInstance(
+				const panelInstance = SourceControlWebviewPanel.getInstance(
 					context,
 					messageBus,
 					repositoryService,
@@ -317,8 +317,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
+				const pullRequest = await sourceControl.getPRForBranch(
+					targetBranch,
+				);
+				const pullRequestAlreadyExists = pullRequest !== null;
+
 				panelInstance.setView({
-					viewId: 'createPR',
+					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [currentBranchName],
@@ -331,6 +336,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						loading: false,
 						error: '',
+						pullRequestAlreadyExists,
 					},
 				});
 			} catch (e) {
@@ -382,12 +388,18 @@ export async function activate(context: vscode.ExtensionContext) {
 							decoded.right.targetBranch,
 						);
 
-						const { html_url } = await sourceControl.createPR(
-							decoded.right,
-						);
+						const existingPullRequest =
+							await sourceControl.getPRForBranch(
+								decoded.right.targetBranch,
+							);
+
+						const { html_url } =
+							existingPullRequest ??
+							(await sourceControl.createPR(decoded.right));
+
 						const messageSelection =
 							await vscode.window.showInformationMessage(
-								`Successfully created PR: ${html_url}`,
+								`Changes successfully submitted: ${html_url}`,
 								'View on GitHub',
 							);
 
@@ -1193,6 +1205,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.clearState', () => {
 			messageBus.publish({
 				kind: MessageKind.clearState,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.caseBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.caseBreakdown,
+			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.folderBreakdown', () => {
+			messageBus.publish({
+				kind: MessageKind.folderBreakdown,
 			});
 		}),
 	);

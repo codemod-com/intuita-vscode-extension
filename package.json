@@ -113,6 +113,16 @@
 				"icon": "$(clear-all)"
 			},
 			{
+				"command": "intuita.folderBreakdown",
+				"title": "View by folder",
+				"icon": "$(list-tree)"
+			},
+			{
+				"command": "intuita.caseBreakdown",
+				"title": "View by codemod",
+				"icon": "$(list-unordered)"
+			},
+			{
 				"command": "intuita.runCodemod",
 				"title": "✓ Run"
 			},
@@ -263,6 +273,14 @@
 					"when": "false"
 				},
 				{
+					"command": "intuita.caseBreakdown",
+					"when": "false"
+				},
+				{
+					"command": "intuita.folderBreakdown",
+					"when": "false"
+				},
+				{
 					"command": "intuita.clearState",
 					"when": "false"
 				},
@@ -361,6 +379,16 @@
 				}
 			],
 			"view/title": [
+				{
+					"command": "intuita.caseBreakdown",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"group": "navigation"
+				},
+				{
+					"command": "intuita.folderBreakdown",
+					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"group": "navigation"
+				},
 				{
 					"command": "intuita.clearState",
 					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
