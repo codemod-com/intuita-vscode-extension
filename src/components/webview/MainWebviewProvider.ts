@@ -304,11 +304,24 @@ export class IntuitaProvider implements WebviewViewProvider {
 			const uriSet = new Set<Uri>();
 
 			for (const job of jobs) {
-				if (job.kind === JobKind.createFile && job.newUri) {
+				if (
+					[
+						JobKind.createFile,
+						JobKind.moveFile,
+						JobKind.moveAndRewriteFile,
+						JobKind.copyFile,
+					].includes(job.kind) &&
+					job.newUri
+				) {
 					uriSet.add(job.newUri);
 				}
 
-				if (job.kind !== JobKind.createFile && job.oldUri) {
+				if (
+					[JobKind.rewriteFile, JobKind.deleteFile].includes(
+						job.kind,
+					) &&
+					job.oldUri
+				) {
 					uriSet.add(job.oldUri);
 				}
 			}
