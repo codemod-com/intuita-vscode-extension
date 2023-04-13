@@ -17,6 +17,9 @@ type PullRequest = Readonly<{
 	head: {
 		ref: string;
 	};
+	base: {
+		ref: string;
+	};
 }>;
 
 export class SourceControlService {
