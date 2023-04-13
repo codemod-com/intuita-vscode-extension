@@ -292,17 +292,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					targetBranch,
 				);
 				const pullRequestAlreadyExists = pullRequest !== null;
-
+				const baseBranchName = pullRequestAlreadyExists
+					? pullRequest.base.ref
+					: currentBranchName;
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
-						baseBranchOptions: [currentBranchName],
+						baseBranchOptions: [baseBranchName],
 						targetBranchOptions: [targetBranch],
 						initialFormData: {
 							title,
 							body,
-							baseBranch: currentBranchName,
+							baseBranch: baseBranchName,
 							targetBranch,
 						},
 						loading: false,

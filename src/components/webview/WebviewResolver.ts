@@ -10,10 +10,7 @@ export class WebviewResolver {
 			enableScripts: true,
 			localResourceRoots: [
 				Uri.joinPath(this.__extensionPath, 'intuita-webview/build'),
-				Uri.joinPath(
-					this.__extensionPath,
-					'node_modules/vscode-codicons',
-				),
+				Uri.joinPath(this.__extensionPath, 'resources'),
 			],
 		};
 	}
@@ -53,9 +50,7 @@ export class WebviewResolver {
 
 		const nonce = randomBytes(16).toString('hex');
 		const codiconsUri = getUri(webview, this.__extensionPath, [
-			'node_modules',
-			'vscode-codicons',
-			'dist',
+			'resources',
 			'codicon.css',
 		]);
 

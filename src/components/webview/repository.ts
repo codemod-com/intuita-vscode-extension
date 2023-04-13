@@ -80,7 +80,7 @@ export class RepositoryService {
 		}
 
 		try {
-			return this.__repo.getBranch(branchName);
+			return await this.__repo.getBranch(branchName);
 		} catch (e) {
 			return null;
 		}

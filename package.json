@@ -502,8 +502,7 @@
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
-		"semver": "^7.3.8",
-		"vscode-codicons": "^0.0.17"
+		"semver": "^7.3.8"
 	},
 	"extensionDependencies": [
 		"vscode.git"
