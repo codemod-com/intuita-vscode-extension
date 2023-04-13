@@ -4,15 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { useElementSize } from '../hooks/useElementSize';
 import { Container } from './Container';
 import { JobDiffViewProps } from '../App';
-
-enum JobKind {
-	rewriteFile = 1,
-	createFile = 2,
-	deleteFile = 3,
-	moveFile = 4,
-	moveAndRewriteFile = 5,
-	copyFile = 6,
-}
+import { JobKind } from '../../shared/constants';
 
 export const JobDiffView = ({
 	jobKind,

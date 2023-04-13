@@ -1,14 +1,14 @@
 import React from 'react';
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
 
-type ContainerProps = {
+type Props = Readonly<{
 	title: string;
 	oldFileName: string | null;
 	newFileName: string | null;
 	viewType: 'inline' | 'side-by-side';
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	children: React.ReactNode;
-};
+}>;
 
 export const Container = ({
 	title,
@@ -17,19 +17,21 @@ export const Container = ({
 	children,
 	viewType,
 	onViewTypeChange,
-}: ContainerProps) => {
+}: Props) => {
+	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
+		const value = (e.target as HTMLSelectElement).value as
+			| 'inline'
+			| 'side-by-side';
+		onViewTypeChange(value);
+	};
+
 	return (
 		<div className="flex  flex-wrap w-full container flex-col">
 			<div className="f p-10  container-header">
 				<VSCodeDropdown
 					value={viewType}
 					selectedIndex={viewType === 'inline' ? 0 : 1}
-					onChange={(e) => {
-						const value = (e.target as HTMLSelectElement).value as
-							| 'inline'
-							| 'side-by-side';
-						onViewTypeChange(value);
-					}}
+					onChange={handleChange}
 				>
 					<VSCodeOption value="inline"> Inline </VSCodeOption>
 					<VSCodeOption value="side-by-side">

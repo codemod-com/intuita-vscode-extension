@@ -1,9 +1,9 @@
 import { useState, useEffect, RefObject } from 'react';
 
-interface Size {
+type Size = Readonly<{
 	width: number;
 	height: number;
-}
+}>;
 export function useElementSize<T extends HTMLElement>(ref: RefObject<T>): Size {
 	const [size, setSize] = useState<Size>({ width: 0, height: 0 });
 
@@ -11,7 +11,9 @@ export function useElementSize<T extends HTMLElement>(ref: RefObject<T>): Size {
 		const element = ref.current;
 
 		function handleResize() {
-			if (!element) return;
+			if (!element) {
+				return;
+			}
 			setSize({
 				width: element.offsetWidth,
 				height: element.offsetHeight,
@@ -23,7 +25,7 @@ export function useElementSize<T extends HTMLElement>(ref: RefObject<T>): Size {
 			window.addEventListener('resize', handleResize);
 		}
 		return () => {
-			window?.removeEventListener('resize', handleResize);
+			window.removeEventListener('resize', handleResize);
 		};
 	}, [ref]);
 
