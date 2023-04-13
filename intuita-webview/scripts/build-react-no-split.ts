@@ -31,5 +31,5 @@ config.plugins.splice(6, 1);
 config.entry = {
 	sourceControl: resolveApp('src/sourceControl/index.tsx'),
 	main: resolveApp('src/main/index.tsx'),
-	diffView: resolveApp('src/JobDiffView/index.tsx'),
+	diffView: resolveApp('src/jobDiffView/index.tsx'),
 };

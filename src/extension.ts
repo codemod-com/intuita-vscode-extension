@@ -56,7 +56,7 @@ import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
- 
+
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -167,27 +167,25 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.openJobDiff',
 			async (jobHash?: JobHash) => {
-				if(!jobHash) return;
+				if (!jobHash || !rootPath) return;
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						context,
 						messageBus,
 						jobManager,
-					);
-					await panelInstance.render();
-					const viewProps = await panelInstance.getViewData(
-						jobHash,
 						rootPath,
 					);
+					await panelInstance.render();
+					const viewProps = await panelInstance.getViewData(jobHash);
 					if (!viewProps) return;
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
- 							data: viewProps,
+							data: viewProps,
 						},
 					});
 				} catch (err) {
-					console.error('ERR', err);
+					console.error(err);
 				}
 			},
 		),

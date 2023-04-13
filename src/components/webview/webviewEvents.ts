@@ -3,6 +3,7 @@ import { JobHash, JobKind } from '../../jobs/types';
 export type { Command } from 'vscode';
 
 export type JobDiffViewProps = Readonly<{
+	jobHash: JobHash;
 	jobKind: JobKind;
 	oldFileContent: string | null;
 	newFileContent: string | null;
@@ -46,7 +47,11 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
-	  }>;
+	  }>
+	| Readonly<{
+		kind: 'webview.diffView.updateDiffViewProps';
+		data: JobDiffViewProps;
+	}>
 
 export type WebviewResponse =
 	| Readonly<{

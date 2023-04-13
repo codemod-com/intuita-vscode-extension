@@ -17,6 +17,7 @@ import {
 } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
+import { debounce } from '../../utilities';
 
 export class DiffWebviewPanel {
 	private __view: Webview | null = null;
@@ -28,18 +29,20 @@ export class DiffWebviewPanel {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		jobManager: JobManager,
+		rootPath: string,
 	) {
 		if (this.__instance) {
 			return this.__instance;
 		}
 
-		return new DiffWebviewPanel(context, messageBus, jobManager);
+		return new DiffWebviewPanel(context, messageBus, jobManager, rootPath);
 	}
 
 	private constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
+		public readonly __rootPath: string,
 	) {
 		const webviewResolver = new WebviewResolver(context.extensionUri);
 		this.__panel = window.createWebviewPanel(
@@ -62,7 +65,7 @@ export class DiffWebviewPanel {
 		webviewResolver.resolveWebview(
 			this.__panel.webview,
 			'jobDiffView',
-			JSON.stringify(this.__prepareWebviewInitialData()),
+			'{}',
 		);
 		this.__view = this.__panel.webview;
 
@@ -92,15 +95,16 @@ export class DiffWebviewPanel {
 
 		return initWebviewPromise;
 	}
+
 	public async getViewData(
 		jobHash: JobHash,
-		rootPath: string | null,
 	): Promise<JobDiffViewProps | null> {
-		if (!rootPath) {
+		if (!this.__rootPath) {
 			return null;
 		}
 
 		const job = this.__jobManager.getJob(jobHash);
+		const jobAccepted = this.__jobManager.isJobAccepted(jobHash);
 		if (!job) {
 			return null;
 		}
@@ -108,10 +112,10 @@ export class DiffWebviewPanel {
 		const { oldUri, newUri, kind, oldContentUri, newContentUri } = job;
 
 		const newFileTitle = newUri
-			? newUri.fsPath.replace(rootPath, '') ?? ''
+			? newUri.fsPath.replace(this.__rootPath, '') ?? ''
 			: null;
 		const oldFileTitle = oldUri
-			? oldUri.fsPath.replace(rootPath, '') ?? ''
+			? oldUri.fsPath.replace(this.__rootPath, '') ?? ''
 			: null;
 		const newFileContent = newContentUri
 			? (await workspace.fs.readFile(newContentUri)).toString()
@@ -122,23 +126,43 @@ export class DiffWebviewPanel {
 		const getTitle = function () {
 			switch (kind) {
 				case JobKind.createFile:
-					return `Create file ${newFileTitle}`;
+					return `${
+						jobAccepted ? 'Created' : 'Create'
+					} file ${newFileTitle}`;
 				case JobKind.deleteFile:
-					return `Delete file ${oldFileTitle}`;
+					return `${
+						jobAccepted ? 'Deleted' : 'Delete'
+					} file ${oldFileTitle}`;
+
 				case JobKind.moveFile:
-					return `Move file ${oldFileTitle} to ${newFileTitle}`;
+					return `${
+						jobAccepted ? 'Moved' : 'Move'
+					} file ${oldFileTitle} to ${newFileTitle}`;
+
 				case JobKind.moveAndRewriteFile:
-					return `Move and rewrite file ${oldFileTitle} to ${newFileTitle}`;
+					return `${
+						jobAccepted
+							? 'Moved and re-written'
+							: 'Move and rewrite'
+					} file ${oldFileTitle} to ${newFileTitle}`;
+
 				case JobKind.copyFile:
-					return `Copy file ${oldFileTitle} to ${newFileTitle}`;
+					return `${
+						jobAccepted ? 'Copied' : 'Copy'
+					} file ${oldFileTitle} to ${newFileTitle}`;
+
 				case JobKind.rewriteFile:
-					return `Rewrite file ${oldFileTitle}`;
+					return `${
+						jobAccepted ? 'Re-written' : 'Rewrite'
+					} file ${oldFileTitle}`;
+
 				default:
 					throw new Error('unknown jobkind');
 			}
 		};
 
 		return {
+			jobHash,
 			jobKind: kind,
 			...(oldFileTitle &&
 			[
@@ -175,8 +199,15 @@ export class DiffWebviewPanel {
 		this.__disposables = [];
 	}
 
-	private __prepareWebviewInitialData = () => {
-		/** empty */
+	private __onUpdateJobMessage = async (jobHashes: ReadonlySet<JobHash>) => {
+		for (const jobHash of Array.from(jobHashes)) {
+			const props = await this.getViewData(jobHash);
+			if (!props) continue;
+			this.__postMessage({
+				kind: 'webview.diffView.updateDiffViewProps',
+				data: props,
+			});
+		}
 	};
 
 	private __postMessage(message: WebviewMessage) {
@@ -196,7 +227,9 @@ export class DiffWebviewPanel {
 	}
 
 	private __attachExtensionEventListeners() {
-		// TODO: change events here
+		this.__addHook(MessageKind.jobsAccepted, (message) => {
+			this.__onUpdateJobMessage(message.deletedJobHashes);
+		});
 	}
 
 	private __onDidReceiveMessage(message: WebviewResponse) {

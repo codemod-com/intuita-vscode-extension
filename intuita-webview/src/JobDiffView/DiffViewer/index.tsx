@@ -5,14 +5,14 @@ import { useElementSize } from '../hooks/useElementSize';
 import { Container } from './Container';
 import { HeaderContainer } from './header';
 import type { JobDiffViewProps } from '../App';
-import { title } from 'process';
-
+ 
 export const JobDiffView = ({
 	//jobKind,
 	oldFileContent,
 	newFileContent,
 	// oldFileTitle,
 	// newFileTitle,
+	title,
 }: JobDiffViewProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const { width: containerWidth } =
@@ -42,15 +42,14 @@ export const JobDiffView = ({
 		<Container viewType={viewType} onViewTypeChange={setViewType}>
 			<div
 				style={{
-					backgroundColor: 'white',
-					width: '100%',
+ 					width: '100%',
 					maxWidth: '100%',
 					fontFamily: 'var(--vscode-editor-font-family)',
 				}}
 				ref={containerRef}
 			>
 				<div className="flex flex-row flex-wrap">
-					<HeaderContainer title={title} />
+					<HeaderContainer title={title ?? ''} />
 				</div>
 				<ReactDiffViewer
 					styles={{

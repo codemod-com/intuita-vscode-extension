@@ -12,6 +12,7 @@ const DiffHeader = ({ viewType, onViewTypeChange }: DiffHeaderProps) => {
 	return (
 		<div className="flex flex-row container-header flex-wrap justify-between">
 			<VSCodeDropdown
+			
 				value={viewType}
 				selectedIndex={viewType === 'inline' ? 0 : 1}
 				onChange={(e) => {
