@@ -130,8 +130,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 		mappedNode.label = 'label' in element ? element.label : 'Recipe';
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
-
-
 		if (element.kind === ElementKind.JOB) {
 			const jobTree = await this.__buildJobTree(element);
 			
@@ -147,7 +145,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 				...this.__buildCaseTree(element),
 			};
 		}
-
 
 		mappedNode.children ='children' in element
 		? await Promise.all(element.children.map(this.__getTreeByCase))
@@ -662,7 +659,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 		const caseJobHashes = this.__caseManager.getJobHashes([
 			String(element.hash) as CaseHash,
 		]);
-		const caseAccepted = Array.from(caseJobHashes).every((jobHash) =>
+
+
+		const caseJobHashesArr = Array.from(caseJobHashes);
+
+		const caseAccepted = caseJobHashesArr.every((jobHash) =>
 			this.__jobManager.isJobAccepted(jobHash),
 		);
 
@@ -687,6 +688,21 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			];
 		}
+
+		const caseStale = caseJobHashesArr.some((jobHash) =>
+		this.__jobManager.isJobStale(jobHash),
+	);
+
+	if(caseStale) {
+		mappedNode.actions = [
+			{
+				title: 'Refresh case',
+				command: 'intuita.refreshCase',
+				arguments: [element.hash],
+			},
+		]
+	}
+
 		return mappedNode;
 	};
 }

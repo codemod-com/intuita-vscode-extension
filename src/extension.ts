@@ -499,7 +499,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						recipeName: job.codemodName as RecipeName,
+						recipeName: job.codemodSetName as RecipeName,
 						uri,
 					},
 					executionId,

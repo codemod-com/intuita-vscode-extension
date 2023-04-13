@@ -105,6 +105,37 @@ export class JobManager {
 		return this.#acceptedJobsHashes.has(jobHash);
 	}
 
+	// public async getStateJobs() {
+	// 	const jobs = this.getJobs();
+	// 	const jobFilesModificationTimeMap = new Map<Uri, number>();
+
+	// 	const staleJobs: Job[] = [];
+
+	// 	for await (const job of jobs) {
+
+	// 		if(!job.oldUri) {
+	// 			continue;
+	// 		}
+
+	// 		const jobOldFileUri  = job.oldUri;
+
+	// 		if(!jobFilesModificationTimeMap.has(jobOldFileUri)) {
+	// 			const jobOldFileModifiedAt = await this.#fileSystemUtilities.getModificationTime(job.oldUri);
+	// 			jobFilesModificationTimeMap.set(jobOldFileUri, jobOldFileModifiedAt);
+	// 		}
+
+	// 		const jobAccepted = this.isJobAccepted(job.hash);
+	// 		const jobFileWasModified = jobFilesModificationTimeMap.get(jobOldFileUri)! >= job.createdAt;
+	// 		const jobStale = !jobAccepted && jobFileWasModified;
+			
+	// 		if(jobStale) {
+	// 			staleJobs.push(job);
+	// 		}
+	// 	}
+
+	// 	return staleJobs;
+	// }
+
 	public async isJobStale(jobHash: JobHash) {
 		const job = this.#jobMap.get(jobHash);
 
@@ -112,12 +143,13 @@ export class JobManager {
 			throw new Error('Job not found');
 		}
 
-		if(!job.oldUri) {
-			throw new Error('Why?');
+		if(!job.oldUri || !job.newContentUri) {
+				return false;
 		}
 
 		const fileModificationTime = await this.#fileSystemUtilities.getModificationTime(job.oldUri);
-		return fileModificationTime  >= job.createdAt;
+		const contentModificationTime  = await this.#fileSystemUtilities.getModificationTime(job.newContentUri);
+		return !this.isJobAccepted(jobHash) && fileModificationTime >= contentModificationTime;
 	}
 
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
@@ -167,7 +199,10 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
-		// HERE
+		
+		if(Array.from(message.jobHashes).some(this.isJobStale)) {
+			throw new Error('Cannot accept stale job. Please refresh the job and try again');
+		}
 
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(message.jobHashes);
@@ -318,6 +353,11 @@ export class JobManager {
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
+
+		if(Array.from(message.jobHashes).some(this.isJobStale)) {
+			throw new Error('Cannot reject stale job. Please refresh the job and try again');
+		}
+
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(message.jobHashes);
 
