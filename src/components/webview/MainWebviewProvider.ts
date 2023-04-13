@@ -592,12 +592,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (element.job.kind === JobKind.copyFile) {
 			mappedNode.command = {
 				title: 'Copy File',
-				command: '_workbench.diff',
-				arguments: [
-					element.job.oldContentUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
