@@ -55,6 +55,7 @@ import { IntuitaProvider } from './components/webview/MainWebviewProvider';
 import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { CodemodHash } from './packageJsonAnalyzer/types';
+import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 
 const messageBus = new MessageBus();
 
@@ -161,6 +162,34 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openJobDiff',
+			async (jobHash?: JobHash) => {
+				if (!jobHash || !rootPath) return;
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						context,
+						messageBus,
+						jobManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps = await panelInstance.getViewData(jobHash);
+					if (!viewProps) return;
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: viewProps,
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
 
 	// @TODO split this large file to modules
 

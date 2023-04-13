@@ -500,25 +500,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (message.value.command === '_workbench.diff') {
+			if (message.value.command === 'intuita.openJobDiff') {
 				const args = message.value.arguments;
-
-				if (!args?.[1]?.path) {
-					throw new Error('Expected args[1] to be resource Uri');
+				if (!args || !args[0]) {
+					throw new Error('Expected args[0] to be job hash');
 				}
+				const jobHash = args[0];
 
-				const leftUri = args?.[0]?.path
-					? Uri.parse(args[0].path)
-					: null;
-				const rightUri = Uri.parse(args[1].path);
-				const title = args[2];
-
-				commands.executeCommand(
-					message.value.command,
-					leftUri,
-					rightUri,
-					title,
-				);
+				commands.executeCommand(message.value.command, jobHash);
 
 				return;
 			}
@@ -563,64 +552,48 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (element.job.kind === JobKind.rewriteFile) {
 			mappedNode.command = {
 				title: 'Diff View',
-				command: '_workbench.diff',
-				arguments: [
-					element.job.oldContentUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
 		if (element.job.kind === JobKind.createFile) {
 			mappedNode.command = {
 				title: 'Create File',
-				command: '_workbench.diff',
-				arguments: [null, element.job.newContentUri, 'Create File'],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
 		if (element.job.kind === JobKind.deleteFile) {
 			mappedNode.command = {
 				title: 'Delete File',
-				command: '_workbench.diff',
-				arguments: [null, element.job.oldContentUri, 'Delete File'],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
 		if (element.job.kind === JobKind.moveAndRewriteFile) {
 			mappedNode.command = {
 				title: 'Move & Rewrite File',
-				command: '_workbench.diff',
-				arguments: [
-					element.job.oldContentUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
 		if (element.job.kind === JobKind.moveFile) {
 			mappedNode.command = {
 				title: 'Move File',
-				command: '_workbench.diff',
-				arguments: [
-					element.job.oldContentUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 
 		if (element.job.kind === JobKind.copyFile) {
 			mappedNode.command = {
 				title: 'Copy File',
-				command: '_workbench.diff',
-				arguments: [
-					element.job.oldContentUri,
-					element.job.newContentUri,
-					'Proposed change',
-				],
+				command: 'intuita.openJobDiff',
+				arguments: [element.job.hash],
 			};
 		}
 

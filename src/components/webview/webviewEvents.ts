@@ -1,12 +1,26 @@
 import { Command } from 'vscode';
+import { JobHash, JobKind } from '../../jobs/types';
 export type { Command } from 'vscode';
+
+export type JobDiffViewProps = Readonly<{
+	jobHash: JobHash;
+	jobKind: JobKind;
+	oldFileContent: string | null;
+	newFileContent: string | null;
+	oldFileTitle: string | null;
+	newFileTitle: string | null;
+	title: string | null;
+}>;
 
 export type TreeNode = {
 	id: string;
 	label?: string;
 	iconName?: string;
 	kind?: string;
-	command?: Command;
+	command?: Command & {
+		command: 'intuita.openJobDiff';
+		arguments?: JobHash[];
+	};
 	actions?: Command[];
 	children?: TreeNode[];
 };
@@ -33,6 +47,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
+	  }>
+	| Readonly<{
+			kind: 'webview.diffView.updateDiffViewProps';
+			data: JobDiffViewProps;
 	  }>;
 
 export type WebviewResponse =
@@ -108,4 +126,11 @@ export type View =
 			viewProps: {
 				node: TreeNode;
 			};
+	  }>
+	| Readonly<{
+			viewId: 'jobDiffView';
+			viewProps: {
+				data: JobDiffViewProps;
+			};
 	  }>;
+	  

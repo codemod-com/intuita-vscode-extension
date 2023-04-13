@@ -95,6 +95,12 @@ export type View =
 				}>;
 				pullRequestAlreadyExists: boolean;
 			};
+	  }>
+	| Readonly<{
+			viewId: 'jobDiffView';
+			viewProps: {
+				data: unknown;
+			};
 	  }>;
 
 interface UserAccountStorage {
