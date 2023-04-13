@@ -1,0 +1,44 @@
+.flex {
+	display: flex;
+}
+
+.w-full {
+	width: 100%;
+}
+
+.flex-col {
+	flex-direction: column;
+}
+
+.flex-row {
+	flex-direction: row;
+}
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-start {
+	justify-content: flex-start;
+}
+
+.justify-end {
+	justify-content: flex-end;
+}
+
+.justify-between{
+	justify-content: space-between;
+}
+
+.container{
+	width: 100%;
+ 	display: flex;
+	background-color: var(--vscode-editor-background);
+ }
+
+.container-header {
+	padding: 0.5rem;
+}
