@@ -346,6 +346,8 @@ export class JobManager {
 			this.#jobMap.delete(jobHash);
 		}
 
+		messages.push({ kind: MessageKind.updateElements });
+
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}

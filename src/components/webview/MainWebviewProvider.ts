@@ -403,6 +403,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			this.__viewBreakdown === MessageKind.caseBreakdown
 				? this.__getTreeByCase(rootElement)
 				: this.__getTreeByDirectory(rootElement);
+
 		if (tree) {
 			this.setView({
 				viewId: 'treeView',
@@ -589,6 +590,18 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (element.job.kind === JobKind.moveFile) {
 			mappedNode.command = {
 				title: 'Move File',
+				command: '_workbench.diff',
+				arguments: [
+					element.job.oldContentUri,
+					element.job.newContentUri,
+					'Proposed change',
+				],
+			};
+		}
+
+		if (element.job.kind === JobKind.copyFile) {
+			mappedNode.command = {
+				title: 'Copy File',
 				command: '_workbench.diff',
 				arguments: [
 					element.job.oldContentUri,
