@@ -44,7 +44,7 @@ export const Container = ({
 			</div>
 
 			{viewType === 'side-by-side' && newFileName && oldFileName && (
-				<div className="flex flex-row flex-wrap w-full">
+				<div className="flex flex-row w-full">
 					<div className="w-half ml-50">
 						<h3>{oldFileName}</h3>
 					</div>

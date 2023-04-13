@@ -5,7 +5,6 @@ import {
 	WebviewMessage,
 	JobDiffViewProps,
 } from '../../../src/components/webview/webviewEvents';
-
 import { JobDiffView } from './DiffViewer/index';
 import './index.css';
 
