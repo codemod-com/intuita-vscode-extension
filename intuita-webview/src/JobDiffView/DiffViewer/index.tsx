@@ -94,7 +94,7 @@ export const JobDiffView = ({
 							overflowX: 'auto',
 							display: 'block',
 							'& pre': { whiteSpace: 'pre' },
-						}
+						},
 					}}
 					showDiffOnly={true}
 					renderContent={renderContent}

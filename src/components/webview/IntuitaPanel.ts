@@ -99,7 +99,7 @@ export type View =
 	| Readonly<{
 			viewId: 'jobDiffView';
 			viewProps: {
-				data: unknown
+				data: unknown;
 			};
 	  }>;
 

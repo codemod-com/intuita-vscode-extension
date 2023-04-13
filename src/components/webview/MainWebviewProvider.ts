@@ -539,10 +539,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.command = {
 				title: 'Diff View',
 				command: 'intuita.openJobDiff',
-				arguments: [
-					element.job.hash
-					
-				],
+				arguments: [element.job.hash],
 			};
 		}
 
@@ -550,10 +547,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.command = {
 				title: 'Create File',
 				command: 'intuita.openJobDiff',
-				arguments: [
-					element.job.hash
-					
-				],
+				arguments: [element.job.hash],
 			};
 		}
 
@@ -561,10 +555,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.command = {
 				title: 'Delete File',
 				command: 'intuita.openJobDiff',
-				arguments: [
-					element.job.hash
-					
-				],
+				arguments: [element.job.hash],
 			};
 		}
 
@@ -572,10 +563,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.command = {
 				title: 'Move & Rewrite File',
 				command: 'intuita.openJobDiff',
-				arguments: [
-					element.job.hash
-					
-				],
+				arguments: [element.job.hash],
 			};
 		}
 
@@ -583,10 +571,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.command = {
 				title: 'Move File',
 				command: 'intuita.openJobDiff',
-				arguments: [
-					element.job.hash
-					
-				],
+				arguments: [element.job.hash],
 			};
 		}
 

@@ -49,9 +49,9 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
-		kind: 'webview.diffView.updateDiffViewProps';
-		data: JobDiffViewProps;
-	}>
+			kind: 'webview.diffView.updateDiffViewProps';
+			data: JobDiffViewProps;
+	  }>;
 
 export type WebviewResponse =
 	| Readonly<{

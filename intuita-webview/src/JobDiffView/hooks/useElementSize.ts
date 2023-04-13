@@ -16,7 +16,7 @@ export function useElementSize<T extends HTMLElement>(ref: RefObject<T>): Size {
 				width: element.offsetWidth,
 				height: element.offsetHeight,
 			});
- 		}
+		}
 
 		if (element) {
 			handleResize();
