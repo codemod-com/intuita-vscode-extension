@@ -7,7 +7,7 @@ import {
 } from '../../../src/components/webview/webviewEvents';
 
 import { JobDiffView } from './DiffViewer/index';
-import './app.css';
+import './App.css';
 
 const getViewComponent = (view: View) => {
 	switch (view.viewId) {
