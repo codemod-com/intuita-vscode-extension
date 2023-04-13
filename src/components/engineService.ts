@@ -44,6 +44,7 @@ export const messageCodec = t.union([
 		i: t.string,
 		o: t.string,
 		c: t.string,
+		oldDataPath: t.string,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.compare),
@@ -377,6 +378,7 @@ export class EngineService {
 				};
 			} else if (message.k === EngineMessageKind.rewrite) {
 				const oldUri = Uri.file(message.i);
+				const oldContentUri = Uri.file(message.oldDataPath);
 				const newContentUri = Uri.file(message.o);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
@@ -384,7 +386,7 @@ export class EngineService {
 					oldUri,
 					newUri: oldUri,
 					newContentUri,
-					oldContentUri: oldUri,
+					oldContentUri,
 					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),

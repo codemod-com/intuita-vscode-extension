@@ -304,11 +304,24 @@ export class IntuitaProvider implements WebviewViewProvider {
 			const uriSet = new Set<Uri>();
 
 			for (const job of jobs) {
-				if (job.kind === JobKind.createFile && job.newUri) {
+				if (
+					[
+						JobKind.createFile,
+						JobKind.moveFile,
+						JobKind.moveAndRewriteFile,
+						JobKind.copyFile,
+					].includes(job.kind) &&
+					job.newUri
+				) {
 					uriSet.add(job.newUri);
 				}
 
-				if (job.kind !== JobKind.createFile && job.oldUri) {
+				if (
+					[JobKind.rewriteFile, JobKind.deleteFile].includes(
+						job.kind,
+					) &&
+					job.oldUri
+				) {
 					uriSet.add(job.oldUri);
 				}
 			}
@@ -403,6 +416,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			this.__viewBreakdown === MessageKind.caseBreakdown
 				? this.__getTreeByCase(rootElement)
 				: this.__getTreeByDirectory(rootElement);
+
 		if (tree) {
 			this.setView({
 				viewId: 'treeView',
@@ -572,6 +586,18 @@ export class IntuitaProvider implements WebviewViewProvider {
 				title: 'Move File',
 				command: 'intuita.openJobDiff',
 				arguments: [element.job.hash],
+			};
+		}
+
+		if (element.job.kind === JobKind.copyFile) {
+			mappedNode.command = {
+				title: 'Copy File',
+				command: '_workbench.diff',
+				arguments: [
+					element.job.oldContentUri,
+					element.job.newContentUri,
+					'Proposed change',
+				],
 			};
 		}
 
