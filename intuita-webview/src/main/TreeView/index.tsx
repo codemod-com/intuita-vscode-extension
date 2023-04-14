@@ -8,6 +8,7 @@ import {
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as TS2Icon } from '../../assets/ts2.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
+import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import cn from 'classnames';
@@ -31,6 +32,9 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 			break;
 		case 'ts2.svg':
 			icon = <TS2Icon />;
+			break;
+		case 'wrench.svg':
+			icon = <WrenchIcon />;
 			break;
 		case 'folder.svg':
 			icon = (

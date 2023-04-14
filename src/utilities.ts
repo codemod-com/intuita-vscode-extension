@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
+import { Element, ElementKind } from './elements/types';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
@@ -63,3 +64,18 @@ export function getUri(
 ) {
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
+
+export const getElementIconBaseName = (kind: Element['kind']): string => {
+	switch (kind) {
+		case ElementKind.CASE:
+			return 'case.svg';
+		case ElementKind.FILE:
+			return 'ts2.svg';
+		case ElementKind.JOB:
+			return 'bluelightbulb.svg';
+		case ElementKind.ROOT:
+			return 'wrench.svg';
+		default:
+			return 'bluelightbulb.svg';
+	}
+};
