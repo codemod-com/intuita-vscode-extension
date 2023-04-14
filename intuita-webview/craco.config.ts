@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import type { Configuration, WebpackPluginInstance } from 'webpack';
-
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string) =>
 	path.resolve(appDirectory, relativePath);
@@ -40,7 +39,26 @@ module.exports = {
 						'static/css/main.css';
 
 					config.plugins.splice(6, 1);
+					// const monacoPlugin = new MonacoWebpackPlugin({
+					// 	globalAPI: true,
+ 					// 	languages: ['javascript', 'typescript'],
+					// }) as unknown as WebpackPluginInstance;
+					// config.plugins.push(monacoPlugin);
 				}
+				// if (config.module?.rules) {
+				// 	config.module.rules.push(
+				// 		...[
+				// 			{
+				// 				test: /\.css$/,
+				// 				use: ['style-loader', 'css-loader'],
+				// 			},
+				// 			{
+				// 				test: /\.ttf$/,
+				// 				use: ['file-loader'],
+				// 			},
+				// 		],
+				// 	);
+				// }
 
 				config.entry = {
 					sourceControl: resolveApp('src/sourceControl/index.tsx'),

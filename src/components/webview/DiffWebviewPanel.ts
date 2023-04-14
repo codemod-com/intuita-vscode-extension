@@ -6,12 +6,22 @@ import {
 	Disposable,
 	Webview,
 	workspace,
+	commands,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { WebviewResolver } from './WebviewResolver';
-import { JobDiffViewProps, View, WebviewMessage } from './webviewEvents';
+import {
+	JobDiffViewProps,
+	View,
+	WebviewMessage,
+	WebviewResponse,
+} from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
+import { isNeitherNullNorUndefined } from '../../utilities';
+import { ElementHash } from '../../elements/types';
+import { CaseManager } from '../../cases/caseManager';
+import { CaseHash } from '../../cases/types';
 
 export class DiffWebviewPanel {
 	private __view: Webview | null = null;
@@ -24,6 +34,7 @@ export class DiffWebviewPanel {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		jobManager: JobManager,
+		caseManager: CaseManager,
 		rootPath: string,
 	) {
 		if (!DiffWebviewPanel.instance) {
@@ -31,6 +42,7 @@ export class DiffWebviewPanel {
 				context,
 				messageBus,
 				jobManager,
+				caseManager,
 				rootPath,
 			);
 		}
@@ -42,6 +54,7 @@ export class DiffWebviewPanel {
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
+		private readonly __caseManager: CaseManager,
 		public readonly __rootPath: string,
 	) {
 		const webviewResolver = new WebviewResolver(context.extensionUri);
@@ -70,6 +83,19 @@ export class DiffWebviewPanel {
 		this.__view = this.__panel.webview;
 
 		this.__attachExtensionEventListeners();
+		this.__attachWebviewEventListeners();
+	}
+
+	private __attachWebviewEventListeners() {
+		this.__panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+	}
+	private __onDidReceiveMessage(message: WebviewResponse) {
+		if (message.kind === 'webview.command') {
+			commands.executeCommand(
+				message.value.command,
+				message.value.arguments,
+			);
+		}
 	}
 
 	// @TODO move this logic to the base class
@@ -95,7 +121,7 @@ export class DiffWebviewPanel {
 		return initWebviewPromise;
 	}
 
-	public async getViewData(
+	public async getViewDataForJob(
 		jobHash: JobHash,
 	): Promise<JobDiffViewProps | null> {
 		if (!this.__rootPath) {
@@ -178,6 +204,23 @@ export class DiffWebviewPanel {
 		};
 	}
 
+	public async getViewDataForJobsArray(
+		elementHash: ElementHash,
+	): Promise<JobDiffViewProps[]> {
+		const caseHash = elementHash as unknown as CaseHash;
+
+		const jobHashes = this.__caseManager.getJobHashes([caseHash]);
+		if (!jobHashes.size) {
+			return [];
+		}
+		const viewDataArray = await Promise.all(
+			Array.from(jobHashes).map((jobHash) =>
+				this.getViewDataForJob(jobHash),
+			),
+		);
+		return viewDataArray.filter(isNeitherNullNorUndefined);
+	}
+
 	public setView(data: View) {
 		this.__panel?.webview.postMessage({
 			kind: 'webview.global.setView',
@@ -204,7 +247,7 @@ export class DiffWebviewPanel {
 
 	private __onUpdateJobMessage = async (jobHashes: ReadonlySet<JobHash>) => {
 		for (const jobHash of Array.from(jobHashes)) {
-			const props = await this.getViewData(jobHash);
+			const props = await this.getViewDataForJob(jobHash);
 			if (!props) continue;
 			this.__postMessage({
 				kind: 'webview.diffView.updateDiffViewProps',

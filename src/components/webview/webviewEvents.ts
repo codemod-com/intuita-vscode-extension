@@ -1,5 +1,6 @@
 import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
+import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 
 export type JobDiffViewProps = Readonly<{
@@ -17,10 +18,15 @@ export type TreeNode = {
 	label?: string;
 	iconName?: string;
 	kind?: string;
-	command?: Command & {
-		command: 'intuita.openJobDiff';
-		arguments?: JobHash[];
-	};
+	command?:
+		| (Command & {
+				command: 'intuita.openJobDiff';
+				arguments?: JobHash[];
+		  })
+		| (Command & {
+				command: 'intuita.openCaseDiff';
+				arguments?: ElementHash[];
+		  });
 	actions?: Command[];
 	children?: TreeNode[];
 };
@@ -130,6 +136,6 @@ export type View =
 	| Readonly<{
 			viewId: 'jobDiffView';
 			viewProps: {
-				data: JobDiffViewProps;
+				data: JobDiffViewProps[];
 			};
 	  }>;

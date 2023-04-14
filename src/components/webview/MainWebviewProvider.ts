@@ -620,6 +620,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 		const mappedNode: TreeNode = {
 			id: element.hash,
 			kind: 'caseElement',
+			command: {
+				title: 'Diff View',
+				command: 'intuita.openCaseDiff',
+				arguments: [element.hash],
+			},
 			actions: [
 				{
 					title: '✓ Apply',
