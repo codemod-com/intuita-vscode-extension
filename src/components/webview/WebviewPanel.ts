@@ -61,11 +61,11 @@ export abstract class IntuitaWebviewPanel {
 		);
 
 		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners();
+		this.__attachWebviewEventListeners?.();
 	}
 
 	protected abstract __attachExtensionEventListeners(): void;
-	protected abstract __attachWebviewEventListeners(): void;
+	protected __attachWebviewEventListeners?(): void;
 
 	protected __postMessage(message: WebviewMessage) {
 		if (!this.__panel) {

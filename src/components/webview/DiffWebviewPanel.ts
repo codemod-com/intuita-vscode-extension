@@ -146,8 +146,4 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			this.__onUpdateJobMessage(message.deletedJobHashes);
 		});
 	}
-
-	__attachWebviewEventListeners() {
-		console.log('');
-	}
 }
