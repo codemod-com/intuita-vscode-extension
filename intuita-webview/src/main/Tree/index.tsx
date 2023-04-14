@@ -21,14 +21,14 @@ type Props = {
 const Tree = ({ node, depth = 0, renderItem }: Props) => {
 	const [open, setIsOpen] = useState(depth === 0);
 
-	const label = renderItem({ node, depth, open, setIsOpen });
+	const treeItem = renderItem({ node, depth, open, setIsOpen });
 
 	if (!node.children || node.children.length === 0) {
-		return <>{label}</>;
+		return <>{treeItem}</>;
 	}
 
 	return (
-		<ReactTreeView collapsed={!open} nodeLabel={label}>
+		<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
 			{open
 				? node.children.map((child) => (
 						<Tree
