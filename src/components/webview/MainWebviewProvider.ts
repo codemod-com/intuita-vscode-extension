@@ -667,10 +667,10 @@ export class IntuitaProvider implements WebviewViewProvider {
 		}
 
 		const [framework, version] = caseLabel.split('/');
-		if (framework && version) {
-			return `Upgrade ${capitalize(framework)} to v${version}`;
+		if (!framework || !version) {
+			return 'Recipe';
 		}
 
-		return 'Recipe';
+		return `Upgrade ${capitalize(framework)} to v${version}`;
 	};
 }
