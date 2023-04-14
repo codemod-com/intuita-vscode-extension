@@ -251,18 +251,20 @@ export class IntuitaProvider implements WebviewViewProvider {
 					mappedNode.actions = [
 						{
 							title: '✗ Dismiss',
-							command: 'intuita.rejectCase',
-							arguments: jobHashes,
+							command: 'intuita.rejectCaseByFolder',
+							arguments: [{ jobHashes }],
 						},
 						{
 							title: 'Issue',
 							command: 'intuita.createIssue',
-							arguments: jobHashes,
+							// TODO support creating issue by folder
+							arguments: [{ jobHashes }],
 						},
 						{
 							title: 'PR',
 							command: 'intuita.createPR',
-							arguments: jobHashes,
+							// TODO support creating PR by folder
+							arguments: [{ jobHashes }],
 						},
 					];
 				}
