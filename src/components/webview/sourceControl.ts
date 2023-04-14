@@ -22,6 +22,15 @@ type PullRequest = Readonly<{
 	};
 }>;
 
+type Assignee = Readonly<{
+	login: string;
+	id: number;
+	node_id: string;
+	avatar_url: string;
+	gravatar_id: string;
+	html_url: string;
+}>;
+
 export class SourceControlService {
 	constructor(
 		private readonly __userAccountStorage: UserAccountStorage,
@@ -97,7 +106,7 @@ export class SourceControlService {
 		return result.data;
 	}
 
-	async listPR() {
+	async getPullRequests() {
 		const repositoryPath = this.__repositoryService.getRepositoryPath();
 
 		if (!repositoryPath) {
@@ -120,7 +129,28 @@ export class SourceControlService {
 	}
 
 	async getPRForBranch(branchName: string): Promise<PullRequest | null> {
-		const PRList = await this.listPR();
+		const PRList = await this.getPullRequests();
 		return PRList.find((pr) => pr.head.ref === branchName) ?? null;
+	}
+
+
+	async getAssignees(): Promise<Assignee[]> {
+		const repositoryPath = this.__repositoryService.getRepositoryPath();
+
+		if (!repositoryPath) {
+			throw new NotFoundRepositoryPath();
+		}
+
+		const userId = this.__userAccountStorage.getUserAccount();
+
+		if (!userId) {
+			throw new NotFoundIntuitaAccount();
+		}
+
+		const result = await axios.get<Assignee[]>(
+			`https://telemetry.intuita.io/sourceControl/github/assignees`,
+		);
+
+		return result.data;
 	}
 }
