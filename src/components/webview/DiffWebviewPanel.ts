@@ -35,7 +35,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		super(options, messageBus);
 	}
 
-	public dispose() {
+	public override dispose() {
 		super.dispose();
 		DiffWebviewPanel.instance = null;
 	}
@@ -124,7 +124,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	public setView(data: View) {
-		this.__panel?.webview.postMessage({
+		this._panel?.webview.postMessage({
 			kind: 'webview.global.setView',
 			value: data,
 		});
@@ -134,15 +134,15 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		for (const jobHash of Array.from(jobHashes)) {
 			const props = await this.getViewData(jobHash);
 			if (!props) continue;
-			this.__postMessage({
+			this._postMessage({
 				kind: 'webview.diffView.updateDiffViewProps',
 				data: props,
 			});
 		}
 	};
 
-	__attachExtensionEventListeners() {
-		this.__addHook(MessageKind.jobsAccepted, (message) => {
+	_attachExtensionEventListeners() {
+		this._addHook(MessageKind.jobsAccepted, (message) => {
 			this.__onUpdateJobMessage(message.deletedJobHashes);
 		});
 	}

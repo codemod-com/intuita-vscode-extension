@@ -6,12 +6,8 @@ import { Message, MessageBus, MessageKind } from '../messageBus';
 type PanelOptions = Readonly<{
 	type: string;
 	title: string;
-	showOptions:
-		| ViewColumn
-		| {
-				readonly viewColumn: ViewColumn;
-				readonly preserveFocus?: boolean | undefined;
-		  };
+	viewColumn: ViewColumn;
+	preserveFocus?: boolean | undefined;
 }>;
 
 type WebviewOptions = Readonly<{
@@ -23,79 +19,79 @@ type WebviewOptions = Readonly<{
 export type Options = PanelOptions & WebviewOptions;
 
 export abstract class IntuitaWebviewPanel {
-	protected __panel: WebviewPanel | null = null;
-	protected __disposables: Disposable[] = [];
-	protected __webviewMounted = false;
+	protected _panel: WebviewPanel | null = null;
+	protected _disposables: Disposable[] = [];
+	protected _webviewMounted = false;
 
 	constructor(
-		protected readonly options: Options,
-		protected readonly __messageBus: MessageBus,
+		protected readonly _options: Options,
+		protected readonly _messageBus: MessageBus,
 	) {
 		const {
 			extensionUri,
 			type,
 			title,
-			showOptions,
+			viewColumn,
+			preserveFocus,
 			webviewName,
 			initialData,
-		} = options;
+		} = _options;
 		const webviewResolver = new WebviewResolver(extensionUri);
 
-		this.__panel = window.createWebviewPanel(
+		this._panel = window.createWebviewPanel(
 			type,
 			title,
-			showOptions,
+			{
+				viewColumn,
+				preserveFocus,
+			},
 			webviewResolver.getWebviewOptions(),
 		);
 
 		webviewResolver.resolveWebview(
-			this.__panel.webview,
+			this._panel.webview,
 			webviewName,
 			JSON.stringify(initialData),
 		);
 
-		this.__panel.onDidDispose(
-			() => this.dispose(),
-			null,
-			this.__disposables,
-		);
+		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
-		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners?.();
+		this._attachExtensionEventListeners();
+		this._attachWebviewEventListeners?.();
 	}
 
-	protected abstract __attachExtensionEventListeners(): void;
-	protected __attachWebviewEventListeners?(): void;
+	protected abstract _attachExtensionEventListeners(): void;
+	protected _attachWebviewEventListeners?(): void;
 
-	protected __postMessage(message: WebviewMessage) {
-		if (!this.__panel) {
+	protected _postMessage(message: WebviewMessage) {
+		if (!this._panel) {
 			return;
 		}
 
-		this.__panel.webview.postMessage(message);
+		this._panel.webview.postMessage(message);
 	}
 
-	protected __addHook<T extends MessageKind>(
+	protected _addHook<T extends MessageKind>(
 		kind: T,
 		handler: (message: Message & { kind: T }) => void,
 	) {
-		const disposable = this.__messageBus.subscribe<T>(kind, handler);
-		this.__disposables.push(disposable);
+		const disposable = this._messageBus.subscribe<T>(kind, handler);
+		this._disposables.push(disposable);
 	}
 
 	public render() {
 		const initWebviewPromise = new Promise((resolve) => {
-			this.__panel?.reveal();
+			this._panel?.reveal();
 
-			if (this.__webviewMounted) {
+			if (this._webviewMounted) {
 				resolve(null);
 			}
 
-			const disposable = this.__panel?.webview.onDidReceiveMessage(
+			const disposable = this._panel?.webview.onDidReceiveMessage(
 				(message) => {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
-						this.__webviewMounted = true;
+						this._webviewMounted = true;
 						resolve(null);
 					}
 				},
@@ -106,15 +102,15 @@ export abstract class IntuitaWebviewPanel {
 	}
 
 	public dispose() {
-		if (!this.__panel) {
+		if (!this._panel) {
 			return;
 		}
-		this.__panel.dispose();
+		this._panel.dispose();
 
-		this.__disposables.forEach((disposable) => {
+		this._disposables.forEach((disposable) => {
 			disposable.dispose();
 		});
 
-		this.__disposables = [];
+		this._disposables = [];
 	}
 }

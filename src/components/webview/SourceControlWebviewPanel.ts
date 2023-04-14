@@ -16,28 +16,28 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 		return SourceControlWebviewPanel.instance;
 	}
 
-	public dispose() {
+	public override dispose() {
 		super.dispose();
 		SourceControlWebviewPanel.instance = null;
 	}
 
 	public setView(data: View) {
-		this.__panel?.webview.postMessage({
+		this._panel?.webview.postMessage({
 			kind: 'webview.global.setView',
 			value: data,
 		});
 	}
 
-	__attachExtensionEventListeners() {
+	_attachExtensionEventListeners() {
 		[MessageKind.accountUnlinked, MessageKind.accountLinked].forEach(
 			(kind) => {
-				this.__addHook(kind, (message) => {
+				this._addHook(kind, (message) => {
 					const value =
 						message.kind === MessageKind.accountLinked
 							? message.account
 							: null;
 
-					this.__postMessage({
+					this._postMessage({
 						kind: 'webview.global.setUserAccount',
 						value,
 					});
@@ -45,8 +45,8 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 			},
 		);
 
-		this.__addHook(MessageKind.repositoryPathChanged, (message) => {
-			this.__postMessage({
+		this._addHook(MessageKind.repositoryPathChanged, (message) => {
+			this._postMessage({
 				kind: 'webview.global.setRepositoryPath',
 				repositoryPath: message.repositoryPath,
 			});
@@ -54,10 +54,10 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
-				this.__addHook(kind, (message) => {
+				this._addHook(kind, (message) => {
 					const value =
 						message.kind === MessageKind.beforeIssueCreated;
-					this.__postMessage({
+					this._postMessage({
 						kind: 'webview.createIssue.setLoading',
 						value,
 					});
@@ -96,7 +96,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 		}
 	}
 
-	__attachWebviewEventListeners() {
-		this.__panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+	_attachWebviewEventListeners() {
+		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
