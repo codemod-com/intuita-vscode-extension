@@ -246,26 +246,26 @@ export class IntuitaProvider implements WebviewViewProvider {
 				);
 
 				if (caseAccepted) {
-					mappedNode.kind = 'acceptedCaseElement';
+					caseNode.kind = 'acceptedCaseElement';
 
-					mappedNode.actions = [
+					caseNode.actions = [
 						{
 							title: '✗ Dismiss',
 							command: 'intuita.rejectCaseByFolder',
 							arguments: [{ jobHashes }],
 						},
-						{
-							title: 'Issue',
-							command: 'intuita.createIssue',
-							// TODO support creating issue by folder
-							arguments: [{ jobHashes }],
-						},
-						{
-							title: 'PR',
-							command: 'intuita.createPR',
-							// TODO support creating PR by folder
-							arguments: [{ jobHashes }],
-						},
+						// {
+						// 	title: 'Issue',
+						// 	command: 'intuita.createIssue',
+						// 	// TODO support creating issue by folder
+						// 	arguments: [{ jobHashes }],
+						// },
+						// {
+						// 	title: 'PR',
+						// 	command: 'intuita.createPR',
+						// 	// TODO support creating PR by folder
+						// 	arguments: [{ jobHashes }],
+						// },
 					];
 				}
 				parentNode.children?.push(caseNode);
