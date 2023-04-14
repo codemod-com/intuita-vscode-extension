@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import Tree from '../Tree';
 import TreeItem from '../TreeItem';
 import {
@@ -40,6 +40,8 @@ const getIcon = (iconName: string | null): ReactNode => {
 };
 
 const TreeView = ({ node }: Props) => {
+	const [focusedNodeId, setFocusedNodeId] = useState('');
+
 	const handleClick = useCallback((node: TreeNode) => {
 		if (!node.command) {
 			return;
@@ -55,12 +57,21 @@ const TreeView = ({ node }: Props) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
 	};
 
-	const renderItem = (
-		node: TreeNode,
-		depth: number,
-		open: boolean,
-		setIsOpen: (value: boolean) => void,
-	) => {
+	const renderItem = ({
+		node,
+		depth,
+		open,
+		setIsOpen,
+		focusedNodeId,
+		setFocusedNodeId,
+	}: {
+		node: TreeNode;
+		depth: number;
+		open: boolean;
+		setIsOpen: (value: boolean) => void;
+		focusedNodeId: string;
+		setFocusedNodeId: (value: string) => void;
+	}) => {
 		const icon = getIcon(node.iconName ?? null);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
@@ -85,9 +96,11 @@ const TreeView = ({ node }: Props) => {
 				icon={icon}
 				indent={depth * 12}
 				open={open}
+				focused={node.id === focusedNodeId}
 				onClick={() => {
 					handleClick(node);
 					setIsOpen(!open);
+					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
 			/>
@@ -103,7 +116,15 @@ const TreeView = ({ node }: Props) => {
 		);
 	}
 
-	return <Tree node={node} renderItem={renderItem} depth={0} />;
+	return (
+		<Tree
+			node={node}
+			renderItem={(props) =>
+				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
+			}
+			depth={0}
+		/>
+	);
 };
 
 export default TreeView;

@@ -22,6 +22,11 @@
 	display: flex;
 }
 
+.focused,
+.focused:hover {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
 .icon {
 	min-width: 22px;
 	max-width: 22px;

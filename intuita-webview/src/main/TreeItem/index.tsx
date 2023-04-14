@@ -6,6 +6,7 @@ type Props = {
 	id: string;
 	label: string;
 	open: boolean;
+	focused: boolean;
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
@@ -18,16 +19,19 @@ const TreeItem = ({
 	label,
 	icon,
 	open,
+	focused,
 	actionButtons,
 	hasChildren,
 	indent,
 	onClick,
 }: Props) => {
 	return (
-		<div id={id} className={styles.root} onClick={onClick}>
-			<div
-				style={{ minWidth: `${indent}px` }}
-			/>
+		<div
+			id={id}
+			className={cn(styles.root, focused && styles.focused)}
+			onClick={onClick}
+		>
+			<div style={{ minWidth: `${indent}px` }} />
 			{hasChildren ? (
 				<div className={styles.codicon}>
 					<span
