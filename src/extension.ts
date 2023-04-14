@@ -177,7 +177,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						rootPath,
 					);
 					await panelInstance.render();
-					const viewProps = await panelInstance.getViewDataForJob(jobHash);
+					const viewProps = await panelInstance.getViewDataForJob(
+						jobHash,
+					);
 					if (!viewProps) return;
 					panelInstance.setView({
 						viewId: 'jobDiffView',
@@ -206,7 +208,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						rootPath,
 					);
 					await panelInstance.render();
-					const viewProps = await panelInstance.getViewDataForJobsArray(caseHash);
+					const viewProps =
+						await panelInstance.getViewDataForJobsArray(caseHash);
 					if (!viewProps) return;
 					panelInstance.setView({
 						viewId: 'jobDiffView',

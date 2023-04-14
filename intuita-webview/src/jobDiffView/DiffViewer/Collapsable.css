@@ -1,7 +1,7 @@
 .collapsable {
 	display: flex;
 	flex-direction: column;
-   background-color: var(--vscode-textCodeBlock-background);
+	background-color: var(--vscode-textCodeBlock-background);
 }
 
 .collapsable__header {
@@ -13,16 +13,16 @@
 }
 
 .collapsable__arrow {
-    margin-right: 0.5rem;
-    width: 18px;
-    height: 18px;
-    transition: transform 0.2s ease-in-out;
+	margin-right: 0.5rem;
+	width: 18px;
+	height: 18px;
+	transition: transform 0.2s ease-in-out;
 }
 
 .collapsable__arrow--open {
-    transform: rotate(180deg);
+	transform: rotate(180deg);
 }
 
 .collapsable_content {
-    padding: 0 0 0 1.5rem;
+	padding: 0 0 0 1.5rem;
 }

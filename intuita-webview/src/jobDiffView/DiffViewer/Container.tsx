@@ -36,11 +36,8 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 				className="flex  flex-wrap w-full container flex-col"
 				ref={ref}
 			>
-				<div className='mb-10' >
-					<VSCodeDropdown
-						value={viewType}
-						onChange={handleChange}
-					>
+				<div className="mb-10">
+					<VSCodeDropdown value={viewType} onChange={handleChange}>
 						<VSCodeOption value="inline"> Inline </VSCodeOption>
 						<VSCodeOption value="side-by-side">
 							Side By Side
@@ -74,7 +71,12 @@ type HeaderProps = Readonly<{
 	children?: React.ReactNode;
 }>;
 
-export const Header = ({ title, children , viewed , onViewedChange }: HeaderProps) => {
+export const Header = ({
+	title,
+	children,
+	viewed,
+	onViewedChange,
+}: HeaderProps) => {
 	return (
 		<div className="f p-10 flex  w-full items-center container-header">
 			<div className="flex flex-row flex-1  justify-between flex-wrap">
@@ -83,10 +85,10 @@ export const Header = ({ title, children , viewed , onViewedChange }: HeaderProp
 					className="flex ml-10 justify-between checkbox-container items-center"
 					onClick={(e) => {
 						e.stopPropagation();
-						onViewedChange()
+						onViewedChange();
 					}}
 				>
-					<VSCodeCheckbox checked={viewed}  />
+					<VSCodeCheckbox checked={viewed} />
 					<p className="my-0 ml-10">Viewed</p>
 				</div>
 			</div>

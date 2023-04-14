@@ -5,7 +5,7 @@ import { useElementSize } from '../hooks/useElementSize';
 import { JobDiffViewProps } from '../App';
 
 export const DiffViewer = ({
- 	oldFileContent,
+	oldFileContent,
 	newFileContent,
 	viewType,
 }: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {

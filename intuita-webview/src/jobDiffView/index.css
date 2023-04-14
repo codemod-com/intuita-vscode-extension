@@ -47,7 +47,6 @@
 	flex-grow: 1;
 }
 
-
 .text-center {
 	text-align: center;
 }
@@ -75,7 +74,7 @@
 }
 .my-10 {
 	margin-top: 10px;
-	margin-bottom: 10px
+	margin-bottom: 10px;
 }
 .mb-10 {
 	margin-bottom: 10px;
@@ -87,7 +86,6 @@
 .ml-50 {
 	margin-left: 50px;
 }
-
 
 .rounded {
 	border-radius: 5px;

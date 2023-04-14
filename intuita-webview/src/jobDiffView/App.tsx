@@ -20,32 +20,38 @@ const getViewComponent = (view: View) => {
 
 function App() {
 	const [view, setView] = useState<View | null>(null);
-	const eventHandler = useCallback((event: MessageEvent<WebviewMessage>) => {
-		const { data: message } = event;
-		if (message.kind === 'webview.global.setView') {
-			setView(message.value);
-		}
-		if(message.kind === 'webview.diffView.updateDiffViewProps' && view?.viewId === 'jobDiffView') {
-			const jobHash = message?.data?.jobHash;
- 			if(!jobHash) {
-				return
+	const eventHandler = useCallback(
+		(event: MessageEvent<WebviewMessage>) => {
+			const { data: message } = event;
+			if (message.kind === 'webview.global.setView') {
+				setView(message.value);
 			}
-			const viewData = [...view?.viewProps?.data];
-			const index = viewData.findIndex((el) => el.jobHash === jobHash);
-			if(index === -1) {
-				return;
-			}
-			viewData[index] = message.data;
-			setView({
-				...view,
-				viewProps: {
- 					data: viewData
+			if (
+				message.kind === 'webview.diffView.updateDiffViewProps' &&
+				view?.viewId === 'jobDiffView'
+			) {
+				const jobHash = message?.data?.jobHash;
+				if (!jobHash) {
+					return;
 				}
-			})
-
-
-		}
-	}, [view]);
+				const viewData = [...view?.viewProps?.data];
+				const index = viewData.findIndex(
+					(el) => el.jobHash === jobHash,
+				);
+				if (index === -1) {
+					return;
+				}
+				viewData[index] = message.data;
+				setView({
+					...view,
+					viewProps: {
+						data: viewData,
+					},
+				});
+			}
+		},
+		[view],
+	);
 
 	useEffect(() => {
 		window.addEventListener('message', eventHandler);
