@@ -167,7 +167,7 @@ export class DiffWebviewPanel {
 				case JobKind.moveAndRewriteFile:
 					return `${
 						jobAccepted
-							? 'Moved and re-written'
+							? 'Moved and rewritten'
 							: 'Move and rewrite'
 					} file ${oldFileTitle} to ${newFileTitle}`;
 
@@ -178,7 +178,7 @@ export class DiffWebviewPanel {
 
 				case JobKind.rewriteFile:
 					return `${
-						jobAccepted ? 'Re-written' : 'Rewrite'
+						jobAccepted ? 'Rewritten' : 'Rewrite'
 					} file ${oldFileTitle}`;
 
 				default:

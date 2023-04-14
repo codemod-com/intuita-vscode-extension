@@ -70,10 +70,12 @@ type HeaderProps = Readonly<{
 	title: string;
 	viewType: 'inline' | 'side-by-side';
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
+	viewed?: boolean;
+	onViewedChange: () => void;
 	children?: React.ReactNode;
 }>;
 
-export const Header = ({ title, children }: HeaderProps) => {
+export const Header = ({ title, children , viewed , onViewedChange }: HeaderProps) => {
 	return (
 		<div className="f p-10 flex  w-full items-center container-header">
 			<div className="flex flex-row flex-1  justify-between flex-wrap">
@@ -82,9 +84,10 @@ export const Header = ({ title, children }: HeaderProps) => {
 					className="flex ml-10 justify-between checkbox-container items-center"
 					onClick={(e) => {
 						e.stopPropagation();
+						onViewedChange()
 					}}
 				>
-					<VSCodeCheckbox checked={true} />
+					<VSCodeCheckbox checked={viewed}  />
 					<p className="my-0 ml-10">Viewed</p>
 				</div>
 			</div>

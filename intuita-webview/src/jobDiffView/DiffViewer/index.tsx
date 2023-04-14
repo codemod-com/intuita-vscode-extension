@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { useElementSize } from '../hooks/useElementSize';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { JobKind } from '../../shared/constants';
@@ -16,8 +15,6 @@ export const JobDiffView = ({
 	title,
 }: JobDiffViewProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { height } = useElementSize<HTMLDivElement>(containerRef);
-	console.log('height', height);
 	const [viewType, setViewType] = useState<'inline' | 'side-by-side'>(() => {
 		return [
 			JobKind.copyFile,
@@ -28,12 +25,19 @@ export const JobDiffView = ({
 			? 'inline'
 			: 'side-by-side';
 	});
+	const [viewed, setViewed] = useState(false);
+
+	const toggleViewed = () => {
+		setViewed(!viewed);
+	};
 
 	return (
 		<Collapsable
 			className="m-10 px-10 rounded "
 			headerComponent={
 				<Header
+					viewed={viewed}
+					onViewedChange={toggleViewed}
 					title={title ?? ''}
 					viewType={viewType}
 					onViewTypeChange={setViewType}
@@ -48,6 +52,7 @@ export const JobDiffView = ({
 				onViewTypeChange={setViewType}
 			>
 				<DiffViewer
+					viewType={viewType}
 					newFileTitle={newFileTitle}
 					oldFileTitle={oldFileTitle}
 					jobKind={jobKind}

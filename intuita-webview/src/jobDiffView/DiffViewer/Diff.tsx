@@ -1,28 +1,17 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { useElementSize } from '../hooks/useElementSize';
 import { JobDiffViewProps } from '../App';
-import { JobKind } from '../../shared/constants';
 
 export const DiffViewer = ({
-	jobKind,
-	oldFileContent,
+ 	oldFileContent,
 	newFileContent,
-}: JobDiffViewProps) => {
+	viewType,
+}: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const { width: containerWidth } =
 		useElementSize<HTMLDivElement>(containerRef);
-	const [viewType] = useState<'inline' | 'side-by-side'>(() => {
-		return [
-			JobKind.copyFile,
-			JobKind.moveFile,
-			JobKind.deleteFile,
-			JobKind.createFile,
-		].includes(jobKind as unknown as JobKind)
-			? 'inline'
-			: 'side-by-side';
-	});
 
 	const renderContent = (value: string) => {
 		return (
