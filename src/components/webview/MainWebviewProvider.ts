@@ -216,7 +216,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				path += `${dir.startsWith('/') ? '' : '/'}${dir}`;
 				if (!this.__folderMap.has(path)) {
 					const newNode = {
-						id: dir,
+						id: path,
 						label: dir,
 						kind: isFile ? 'fileElement' : 'folderElement',
 						iconName: isFile
