@@ -116,7 +116,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			id: element.hash,
 		};
 
-		mappedNode.label = 'label' in element ? element.label : 'Upgrade to ';
+		mappedNode.label = 'label' in element ? element.label : 'Recipe';
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
 		if (element.kind === ElementKind.JOB) {
