@@ -61,7 +61,7 @@ export class WebviewResolver {
 					<meta charset="utf-8">
 					<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 					<meta name="theme-color" content="#000000">
-					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; style-src ${webview.cspSource}">
+					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
