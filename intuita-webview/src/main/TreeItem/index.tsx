@@ -10,7 +10,7 @@ type Props = {
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
-	indent: number;
+	indent: string;
 	onClick(): void;
 };
 
@@ -31,7 +31,7 @@ const TreeItem = ({
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
 		>
-			<div style={{ minWidth: `${indent}px` }} />
+			<div style={{ minWidth: indent }} />
 			{hasChildren ? (
 				<div className={styles.codicon}>
 					<span

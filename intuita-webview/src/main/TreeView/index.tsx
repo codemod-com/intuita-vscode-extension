@@ -101,7 +101,7 @@ const TreeView = ({ node }: Props) => {
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
-				indent={depth * 12}
+				indent={`${depth * 12}px`}
 				open={open}
 				focused={node.id === focusedNodeId}
 				onClick={() => {
