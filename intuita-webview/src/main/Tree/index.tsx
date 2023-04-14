@@ -19,7 +19,7 @@ type Props = {
 };
 
 const Tree = ({ node, depth = 0, renderItem }: Props) => {
-	const [open, setIsOpen] = useState(false);
+	const [open, setIsOpen] = useState(depth === 0);
 
 	const label = renderItem({ node, depth, open, setIsOpen });
 
