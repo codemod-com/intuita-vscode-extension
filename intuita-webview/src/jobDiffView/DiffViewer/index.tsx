@@ -3,10 +3,11 @@ import { useElementSize } from '../hooks/useElementSize';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { JobKind } from '../../shared/constants';
-import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { Collapsable } from './Collapsable';
+import { DiffViewer } from './Diff';
 
 export const JobDiffView = ({
+	jobHash,
 	jobKind,
 	oldFileContent,
 	newFileContent,
@@ -46,16 +47,14 @@ export const JobDiffView = ({
 				newFileName={newFileTitle}
 				onViewTypeChange={setViewType}
 			>
-				<MonacoDiffEditor
-					options={{
-						renderSideBySide: viewType === 'side-by-side',
-						wrappingStrategy: 'advanced',
-					}}
-					height="90vh"
-					loading={<div>Loading content ...</div>}
-					modified={newFileContent ?? undefined}
-					original={oldFileContent ?? undefined}
-					language="typescript"
+				<DiffViewer
+					newFileTitle={newFileTitle}
+					oldFileTitle={oldFileTitle}
+					jobKind={jobKind}
+					newFileContent={newFileContent}
+					oldFileContent={oldFileContent}
+					jobHash={jobHash}
+					title={title}
 				/>
 			</Container>
 		</Collapsable>
