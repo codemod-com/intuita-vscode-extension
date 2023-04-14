@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import Tree from '../Tree';
 import TreeItem from '../TreeItem';
 import {
@@ -7,16 +7,17 @@ import {
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as TS2Icon } from '../../assets/ts2.svg';
-import { ReactComponent as FolderIcon } from '../../assets/folder.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
+import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
+import cn from 'classnames';
 
 type Props = {
 	node: TreeNode;
 };
 
-const getIcon = (iconName: string | null): ReactNode => {
+const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
 		return <BlueLightBulbIcon />;
 	}
@@ -32,14 +33,26 @@ const getIcon = (iconName: string | null): ReactNode => {
 		case 'ts2.svg':
 			icon = <TS2Icon />;
 			break;
+		case 'wrench.svg':
+			icon = <WrenchIcon />;
+			break;
 		case 'folder.svg':
-			icon = <FolderIcon />;
+			icon = (
+				<span
+					className={cn(
+						'codicon',
+						!open ? 'codicon-folder' : 'codicon-folder-opened',
+					)}
+				/>
+			);
 			break;
 	}
 	return icon;
 };
 
 const TreeView = ({ node }: Props) => {
+	const [focusedNodeId, setFocusedNodeId] = useState('');
+
 	const handleClick = useCallback((node: TreeNode) => {
 		if (!node.command) {
 			return;
@@ -55,13 +68,22 @@ const TreeView = ({ node }: Props) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
 	};
 
-	const renderItem = (
-		node: TreeNode,
-		depth: number,
-		open: boolean,
-		setIsOpen: (value: boolean) => void,
-	) => {
-		const icon = getIcon(node.iconName ?? null);
+	const renderItem = ({
+		node,
+		depth,
+		open,
+		setIsOpen,
+		focusedNodeId,
+		setFocusedNodeId,
+	}: {
+		node: TreeNode;
+		depth: number;
+		open: boolean;
+		setIsOpen: (value: boolean) => void;
+		focusedNodeId: string;
+		setFocusedNodeId: (value: string) => void;
+	}) => {
+		const icon = getIcon(node.iconName ?? null, open);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
@@ -83,11 +105,13 @@ const TreeView = ({ node }: Props) => {
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
-				indent={depth * 30}
+				indent={`${depth * 12}px`}
 				open={open}
+				focused={node.id === focusedNodeId}
 				onClick={() => {
 					handleClick(node);
 					setIsOpen(!open);
+					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
 			/>
@@ -103,7 +127,15 @@ const TreeView = ({ node }: Props) => {
 		);
 	}
 
-	return <Tree node={node} renderItem={renderItem} depth={0} />;
+	return (
+		<Tree
+			node={node}
+			renderItem={(props) =>
+				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
+			}
+			depth={0}
+		/>
+	);
 };
 
 export default TreeView;

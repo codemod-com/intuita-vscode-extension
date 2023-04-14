@@ -37,20 +37,9 @@ import {
 } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
-import { debounce } from '../utilities';
+import { debounce, getElementIconBaseName } from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-
-const getElementIconBaseName = (kind: Element['kind']): string => {
-	switch (kind) {
-		case ElementKind.CASE:
-			return 'case.svg';
-		case ElementKind.FILE:
-			return 'ts2.svg';
-		default:
-			return 'bluelightbulb.svg';
-	}
-};
 
 export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 	public readonly eventEmitter = new EventEmitter<void>();

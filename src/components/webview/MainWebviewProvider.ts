@@ -23,7 +23,7 @@ import {
 	RootElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce } from '../../utilities';
+import { debounce, getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
@@ -41,17 +41,6 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { JobElement } from '../../elements/types';
-
-const getElementIconBaseName = (kind: Element['kind']): string => {
-	switch (kind) {
-		case ElementKind.CASE:
-			return 'case.svg';
-		case ElementKind.FILE:
-			return 'ts2.svg';
-		default:
-			return 'bluelightbulb.svg';
-	}
-};
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 const ROOT_FOLDER_KEY = '/';
@@ -216,7 +205,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				path += `${dir.startsWith('/') ? '' : '/'}${dir}`;
 				if (!this.__folderMap.has(path)) {
 					const newNode = {
-						id: dir,
+						id: path,
 						label: dir,
 						kind: isFile ? 'fileElement' : 'folderElement',
 						iconName: isFile
