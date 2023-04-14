@@ -79,3 +79,11 @@ export const getElementIconBaseName = (kind: Element['kind']): string => {
 			return 'bluelightbulb.svg';
 	}
 };
+
+export const capitalize = (str: string): string => {
+	if (typeof str !== 'string') {
+		return str;
+	}
+
+	return str.charAt(0).toUpperCase() + str.slice(1);
+};

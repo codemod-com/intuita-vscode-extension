@@ -23,7 +23,7 @@ import {
 	RootElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import { capitalize, debounce, getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
@@ -116,7 +116,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			id: element.hash,
 		};
 
-		mappedNode.label = 'label' in element ? element.label : 'Recipe';
+		mappedNode.label = 'label' in element ? element.label : 'Upgrade to ';
 		mappedNode.iconName = getElementIconBaseName(element.kind);
 
 		if (element.kind === ElementKind.JOB) {
@@ -169,7 +169,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			return {
 				...mappedNode,
-				label: 'Recipe',
+				label: element.label,
 				children: treeNode !== null ? [treeNode] : [],
 			};
 		}
@@ -397,6 +397,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: [],
+			label: '',
 		} as RootElement;
 
 		this.__setElement(rootElement);
@@ -444,6 +445,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: caseElements,
+			label: this.__getRootLabel(caseElements[0]?.label ?? null),
 		};
 
 		this.__elementMap.clear();
@@ -657,5 +659,18 @@ export class IntuitaProvider implements WebviewViewProvider {
 			];
 		}
 		return mappedNode;
+	};
+
+	private __getRootLabel = (caseLabel: string | null) => {
+		if (!caseLabel) {
+			return 'Recipe';
+		}
+
+		const [framework, version] = caseLabel.split('/');
+		if (framework && version) {
+			return `Upgrade ${capitalize(framework)} to v${version}`;
+		}
+
+		return 'Recipe';
 	};
 }
