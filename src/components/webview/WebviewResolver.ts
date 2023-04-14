@@ -12,6 +12,7 @@ export class WebviewResolver {
 				Uri.joinPath(this.__extensionPath, 'intuita-webview/build'),
 				Uri.joinPath(this.__extensionPath, 'resources'),
 			],
+			retainContextWhenHidden: true,
 		};
 	}
 

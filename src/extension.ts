@@ -170,7 +170,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (!jobHash || !rootPath) return;
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
-						context,
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
 						messageBus,
 						jobManager,
 						rootPath,
@@ -241,15 +248,28 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = SourceControlWebviewPanel.getInstance(
-				context,
-				messageBus,
-				repositoryService,
-				globalStateAccountStorage,
-			);
-			await panelInstance.render();
+
+			const initialData = {
+				repositoryPath: repositoryService.getRepositoryPath(),
+				userId: globalStateAccountStorage.getUserAccount(),
+			};
+
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
+
+			const panelInstance = SourceControlWebviewPanel.getInstance(
+				{
+					type: 'intuitaPanel',
+					title,
+					extensionUri: context.extensionUri,
+					initialData,
+					viewColumn: vscode.ViewColumn.One,
+					webviewName: 'sourceControl',
+				},
+				messageBus,
+			);
+
+			await panelInstance.render();
 
 			panelInstance.setView({
 				viewId: 'createIssue',
@@ -297,11 +317,21 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobTitle =
 					typeof label === 'object' ? label.label : label ?? '';
 
+				const initialData = {
+					repositoryPath: repositoryService.getRepositoryPath(),
+					userId: globalStateAccountStorage.getUserAccount(),
+				};
+
 				const panelInstance = SourceControlWebviewPanel.getInstance(
-					context,
+					{
+						type: 'intuitaPanel',
+						title: jobTitle,
+						extensionUri: context.extensionUri,
+						initialData,
+						viewColumn: vscode.ViewColumn.One,
+						webviewName: 'sourceControl',
+					},
 					messageBus,
-					repositoryService,
-					globalStateAccountStorage,
 				);
 
 				// @TODO figure out more informative title and description
