@@ -7,16 +7,16 @@ import {
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as TS2Icon } from '../../assets/ts2.svg';
-import { ReactComponent as FolderIcon } from '../../assets/folder.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
+import cn from 'classnames';
 
 type Props = {
 	node: TreeNode;
 };
 
-const getIcon = (iconName: string | null): ReactNode => {
+const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
 		return <BlueLightBulbIcon />;
 	}
@@ -33,7 +33,14 @@ const getIcon = (iconName: string | null): ReactNode => {
 			icon = <TS2Icon />;
 			break;
 		case 'folder.svg':
-			icon = <FolderIcon />;
+			icon = (
+				<span
+					className={cn(
+						'codicon',
+						!open ? 'codicon-folder' : 'codicon-folder-opened',
+					)}
+				/>
+			);
 			break;
 	}
 	return icon;
@@ -72,7 +79,7 @@ const TreeView = ({ node }: Props) => {
 		focusedNodeId: string;
 		setFocusedNodeId: (value: string) => void;
 	}) => {
-		const icon = getIcon(node.iconName ?? null);
+		const icon = getIcon(node.iconName ?? null, open);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
