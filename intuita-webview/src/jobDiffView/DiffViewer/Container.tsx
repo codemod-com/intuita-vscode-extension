@@ -39,7 +39,6 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 				<div className='mb-10' >
 					<VSCodeDropdown
 						value={viewType}
-						selectedIndex={viewType === 'inline' ? 0 : 1}
 						onChange={handleChange}
 					>
 						<VSCodeOption value="inline"> Inline </VSCodeOption>

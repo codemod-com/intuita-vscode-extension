@@ -25,7 +25,27 @@ function App() {
 		if (message.kind === 'webview.global.setView') {
 			setView(message.value);
 		}
-	}, []);
+		if(message.kind === 'webview.diffView.updateDiffViewProps' && view?.viewId === 'jobDiffView') {
+			const jobHash = message?.data?.jobHash;
+ 			if(!jobHash) {
+				return
+			}
+			const viewData = [...view?.viewProps?.data];
+			const index = viewData.findIndex((el) => el.jobHash === jobHash);
+			if(index === -1) {
+				return;
+			}
+			viewData[index] = message.data;
+			setView({
+				...view,
+				viewProps: {
+ 					data: viewData
+				}
+			})
+
+
+		}
+	}, [view]);
 
 	useEffect(() => {
 		window.addEventListener('message', eventHandler);
