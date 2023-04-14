@@ -1,95 +1,24 @@
-import {
-	ExtensionContext,
-	WebviewPanel,
-	window,
-	ViewColumn,
-	Disposable,
-	commands,
-} from 'vscode';
-import { Message, MessageBus, MessageKind } from '../messageBus';
-import { WebviewResolver } from './WebviewResolver';
-import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
-import { RepositoryService } from './repository';
-import { UserAccountStorage } from '../user/userService';
+import { commands } from 'vscode';
+import { MessageBus, MessageKind } from '../messageBus';
+import { View, WebviewResponse } from './webviewEvents';
+import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
-export class SourceControlWebviewPanel {
-	private __panel: WebviewPanel | null = null;
-	private __disposables: Disposable[] = [];
-	private __webviewMounted = false;
+export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 	static instance: SourceControlWebviewPanel | null = null;
 
-	static getInstance(
-		context: ExtensionContext,
-		messageBus: MessageBus,
-		repositoryService: RepositoryService,
-		userAccountStorage: UserAccountStorage,
-	) {
+	static getInstance(options: Options, messageBus: MessageBus) {
 		if (!SourceControlWebviewPanel.instance) {
 			SourceControlWebviewPanel.instance = new SourceControlWebviewPanel(
-				context,
+				options,
 				messageBus,
-				repositoryService,
-				userAccountStorage,
 			);
 		}
-
 		return SourceControlWebviewPanel.instance;
 	}
 
-	private constructor(
-		context: ExtensionContext,
-		private readonly __messageBus: MessageBus,
-		private readonly __repositoryService: RepositoryService,
-		private readonly __userAccountStorage: UserAccountStorage,
-	) {
-		const webviewResolver = new WebviewResolver(context.extensionUri);
-		this.__panel = window.createWebviewPanel(
-			'intuitaPanel',
-			'Intuita Panel',
-			ViewColumn.One,
-			{
-				...webviewResolver.getWebviewOptions(),
-				// this setting is needed to be able to communicate to webview panel when its not active (when we are on different tab)
-				retainContextWhenHidden: true,
-			},
-		);
-
-		this.__panel.onDidDispose(
-			() => this.dispose(),
-			null,
-			this.__disposables,
-		);
-
-		webviewResolver.resolveWebview(
-			this.__panel.webview,
-			'sourceControl',
-			JSON.stringify(this.__prepareWebviewInitialData()),
-		);
-
-		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners();
-	}
-
-	public render() {
-		const initWebviewPromise = new Promise((resolve) => {
-			this.__panel?.reveal();
-
-			if (this.__webviewMounted) {
-				resolve(null);
-			}
-
-			const disposable = this.__panel?.webview.onDidReceiveMessage(
-				(message) => {
-					if (message.kind === 'webview.global.afterWebviewMounted') {
-						disposable?.dispose();
-						this.__webviewMounted = true;
-						resolve(null);
-					}
-				},
-			);
-		});
-
-		return initWebviewPromise;
+	public dispose() {
+		super.dispose();
+		SourceControlWebviewPanel.instance = null;
 	}
 
 	public setView(data: View) {
@@ -99,50 +28,7 @@ export class SourceControlWebviewPanel {
 		});
 	}
 
-	public dispose() {
-		SourceControlWebviewPanel.instance = null;
-		if (!this.__panel) {
-			return;
-		}
-		this.__panel.dispose();
-
-		this.__disposables.forEach((disposable) => {
-			disposable.dispose();
-		});
-
-		this.__disposables = [];
-	}
-
-	private __prepareWebviewInitialData = (): Readonly<{
-		repositoryPath: string | null;
-		userId: string | null;
-	}> => {
-		const repositoryPath = this.__repositoryService.getRepositoryPath();
-		const userId = this.__userAccountStorage.getUserAccount();
-
-		return {
-			repositoryPath,
-			userId,
-		};
-	};
-
-	private __postMessage(message: WebviewMessage) {
-		if (!this.__panel) {
-			return;
-		}
-
-		this.__panel.webview.postMessage(message);
-	}
-
-	private __addHook<T extends MessageKind>(
-		kind: T,
-		handler: (message: Message & { kind: T }) => void,
-	) {
-		const disposable = this.__messageBus.subscribe<T>(kind, handler);
-		this.__disposables.push(disposable);
-	}
-
-	private __attachExtensionEventListeners() {
+	__attachExtensionEventListeners() {
 		[MessageKind.accountUnlinked, MessageKind.accountLinked].forEach(
 			(kind) => {
 				this.__addHook(kind, (message) => {
@@ -210,7 +96,7 @@ export class SourceControlWebviewPanel {
 		}
 	}
 
-	private __attachWebviewEventListeners() {
+	__attachWebviewEventListeners() {
 		this.__panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
