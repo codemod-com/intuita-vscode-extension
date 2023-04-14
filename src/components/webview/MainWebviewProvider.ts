@@ -227,13 +227,13 @@ export class IntuitaProvider implements WebviewViewProvider {
 					actions: [
 						{
 							title: '✓ Apply',
-							command: 'intuita.acceptCase',
-							arguments: jobHashes,
+							command: 'intuita.acceptCaseByFolder',
+							arguments: [{ jobHashes }],
 						},
 						{
 							title: '✗ Dismiss',
-							command: 'intuita.rejectCase',
-							arguments: jobHashes,
+							command: 'intuita.rejectCaseByFolder',
+							arguments: [{ jobHashes }],
 						},
 					],
 					label: `${codemodName} (${jobHashes.length})`,

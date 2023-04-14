@@ -1084,6 +1084,42 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.acceptCaseByFolder',
+			async ({ jobHashes }) => {
+				if (!jobHashes) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+
+				messageBus.publish({
+					kind: MessageKind.acceptJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectCaseByFolder',
+			async ({ jobHashes }) => {
+				if (!jobHashes) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+
+				messageBus.publish({
+					kind: MessageKind.rejectJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.openTopLevelNodeKindOrderSetting',
 			() => {
 				return vscode.commands.executeCommand(
