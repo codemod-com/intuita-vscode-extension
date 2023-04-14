@@ -23,7 +23,11 @@ import {
 	RootElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { capitalize, debounce, getElementIconBaseName } from '../../utilities';
+import {
+	buildTreeRootLabel,
+	debounce,
+	getElementIconBaseName,
+} from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
@@ -445,7 +449,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: caseElements,
-			label: this.__getRootLabel(caseElements[0]?.label ?? null),
+			label: buildTreeRootLabel(caseElements[0]?.label ?? null),
 		};
 
 		this.__elementMap.clear();
@@ -659,18 +663,5 @@ export class IntuitaProvider implements WebviewViewProvider {
 			];
 		}
 		return mappedNode;
-	};
-
-	private __getRootLabel = (caseLabel: string | null) => {
-		if (!caseLabel) {
-			return 'Recipe';
-		}
-
-		const [framework, version] = caseLabel.split('/');
-		if (!framework || !version) {
-			return 'Recipe';
-		}
-
-		return `Upgrade ${capitalize(framework)} to v${version}`;
 	};
 }

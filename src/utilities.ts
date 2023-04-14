@@ -81,9 +81,21 @@ export const getElementIconBaseName = (kind: Element['kind']): string => {
 };
 
 export const capitalize = (str: string): string => {
-	if (typeof str !== 'string') {
-		return str;
-	}
+	if (!str) return '';
 
 	return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const buildTreeRootLabel = (caseLabel: string | null) => {
+	if (!caseLabel) {
+		return 'Recipe';
+	}
+
+	// this is based on the current phrase system in the Codemod Registry repo: https://github.com/intuita-inc/codemod-registry
+	const [framework, version] = caseLabel.split('/');
+	if (!framework || !version) {
+		return 'Recipe';
+	}
+
+	return `Upgrade ${capitalize(framework)} to v${version}`;
 };
