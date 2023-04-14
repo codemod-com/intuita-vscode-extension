@@ -37,7 +37,11 @@ import {
 } from '../elements/buildCaseElement';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import type { CaseManager } from '../cases/caseManager';
-import { debounce, getElementIconBaseName } from '../utilities';
+import {
+	buildTreeRootLabel,
+	debounce,
+	getElementIconBaseName,
+} from '../utilities';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 
@@ -244,6 +248,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: caseElements,
+			label: buildTreeRootLabel(caseElements[0]?.label ?? null),
 		};
 
 		// update collections
@@ -297,6 +302,7 @@ export class IntuitaTreeDataProvider implements TreeDataProvider<ElementHash> {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: [],
+			label: '',
 		});
 
 		this.eventEmitter.fire();

@@ -37,6 +37,7 @@ export type RootElement = Readonly<{
 	hash: ElementHash;
 	kind: ElementKind.ROOT;
 	children: ReadonlyArray<CaseElement>;
+	label: string;
 }>;
 
 export type Element = RootElement | CaseElement | FileElement | JobElement;

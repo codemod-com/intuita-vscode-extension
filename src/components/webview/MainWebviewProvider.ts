@@ -23,7 +23,11 @@ import {
 	RootElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import {
+	buildTreeRootLabel,
+	debounce,
+	getElementIconBaseName,
+} from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
@@ -169,7 +173,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			return {
 				...mappedNode,
-				label: 'Recipe',
+				label: element.label,
 				children: treeNode !== null ? [treeNode] : [],
 			};
 		}
@@ -397,6 +401,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: [],
+			label: '',
 		} as RootElement;
 
 		this.__setElement(rootElement);
@@ -444,6 +449,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			hash: ROOT_ELEMENT_HASH,
 			kind: ElementKind.ROOT,
 			children: caseElements,
+			label: buildTreeRootLabel(caseElements[0]?.label ?? null),
 		};
 
 		this.__elementMap.clear();
