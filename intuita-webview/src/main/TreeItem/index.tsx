@@ -32,7 +32,14 @@ const TreeItem = ({
 			onClick={onClick}
 		>
 			<div
-				style={{ minWidth: `${depth === 0 ? 0 : depth * 16 + 5}px` }}
+				style={{
+					...(depth > 0 && {
+						// extra margin for job
+						minWidth: `${
+							5 + depth * 16 + (hasChildren ? 0 : 16)
+						}px`,
+					}),
+				}}
 			/>
 			{hasChildren ? (
 				<div className={styles.codicon}>
