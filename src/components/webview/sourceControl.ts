@@ -22,7 +22,7 @@ type PullRequest = Readonly<{
 	};
 }>;
 
-type Assignee = Readonly<{
+export type Assignee = Readonly<{
 	login: string;
 	id: number;
 	node_id: string;

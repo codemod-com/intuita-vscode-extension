@@ -1,5 +1,6 @@
 import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
+import { Assignee } from './sourceControl';
 export type { Command } from 'vscode';
 
 export type JobDiffViewProps = Readonly<{
@@ -103,6 +104,7 @@ export type View =
 					title: string;
 					body: string;
 				}>;
+				assignees: Assignee[]
 			};
 	  }>
 	| Readonly<{
@@ -119,6 +121,7 @@ export type View =
 					targetBranch: string;
 				}>;
 				pullRequestAlreadyExists: boolean;
+				assignees: Assignee[];
 			};
 	  }>
 	| Readonly<{

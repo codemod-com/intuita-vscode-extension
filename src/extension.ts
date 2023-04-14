@@ -271,12 +271,26 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			await panelInstance.render();
 
+			const viewProps =  {
+				initialFormData: { title },
+				loading: true,
+				error: '',
+				assignees: []
+			};
+
+			panelInstance.setView({
+				viewId: 'createIssue',
+				viewProps,
+			});
+
+			const assignees = await sourceControl.getAssignees();
+
 			panelInstance.setView({
 				viewId: 'createIssue',
 				viewProps: {
-					initialFormData: { title },
-					loading: false,
-					error: '',
+				...viewProps, 
+				loading: false, 
+				assignees
 				},
 			});
 		}),
@@ -354,23 +368,37 @@ export async function activate(context: vscode.ExtensionContext) {
 				const baseBranchName = pullRequestAlreadyExists
 					? pullRequest.base.ref
 					: currentBranchName;
+
+				const viewProps = {
+					baseBranchOptions: [baseBranchName],
+					targetBranchOptions: [targetBranch],
+					initialFormData: {
+						title,
+						body,
+						baseBranch: baseBranchName,
+						targetBranch,
+					},
+					loading: false,
+					error: '',
+					pullRequestAlreadyExists,
+					assignees: []
+				}
+
+				panelInstance.setView({
+					viewId: 'upsertPullRequest',
+					viewProps
+				});
+
+				const assignees = await sourceControl.getAssignees();
+
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
-						// branching from current branch
-						baseBranchOptions: [baseBranchName],
-						targetBranchOptions: [targetBranch],
-						initialFormData: {
-							title,
-							body,
-							baseBranch: baseBranchName,
-							targetBranch,
-						},
-						loading: false,
-						error: '',
-						pullRequestAlreadyExists,
-					},
+						...viewProps, 
+						assignees
+					}
 				});
+
 			} catch (e) {
 				vscode.window.showErrorMessage((e as Error).message);
 			}
