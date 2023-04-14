@@ -83,7 +83,7 @@ const TreeView = ({ node }: Props) => {
 				id={node.id}
 				label={node.label ?? ''}
 				icon={icon}
-				indent={depth * 30}
+				indent={depth * 12}
 				open={open}
 				onClick={() => {
 					handleClick(node);
