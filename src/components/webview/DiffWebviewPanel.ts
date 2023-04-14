@@ -60,7 +60,7 @@ export class DiffWebviewPanel {
 		const webviewResolver = new WebviewResolver(context.extensionUri);
 		this.__panel = window.createWebviewPanel(
 			'intuitaPanel',
-			'Intuita Panel',
+			'Diff View',
 			ViewColumn.One,
 			{
 				...webviewResolver.getWebviewOptions(),
