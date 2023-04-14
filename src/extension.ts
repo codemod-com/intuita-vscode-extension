@@ -198,7 +198,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.openCaseDiff',
 			async (caseHash?: ElementHash) => {
-				if (!caseHash || !rootPath) return;
+				if (!caseHash || !rootPath) {
+					return;
+				}
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						context,
@@ -209,7 +211,47 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					await panelInstance.render();
 					const viewProps =
-						await panelInstance.getViewDataForJobsArray(caseHash);
+						await panelInstance.getViewDataForJobsArray(
+							caseHash,
+							true,
+						);
+
+					if (!viewProps) return;
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: viewProps,
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openCaseDiffByFolder',
+			async ({ jobHashes }) => {
+				if (!jobHashes.length || !rootPath) {
+					return;
+				}
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						context,
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps =
+						await panelInstance.getViewDataForJobsArray(
+							jobHashes,
+							false,
+						);
+
 					if (!viewProps) return;
 					panelInstance.setView({
 						viewId: 'jobDiffView',

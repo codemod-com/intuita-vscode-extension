@@ -221,8 +221,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 					kind: 'caseElement',
 					command: {
 						title: 'Diff View',
-						command: 'intuita.openCaseDiff',
-						arguments: element.children.map((job) => job.hash),
+						command: 'intuita.openCaseDiffByFolder',
+						arguments: [{ jobHashes }],
 					},
 					actions: [
 						{

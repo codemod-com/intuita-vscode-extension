@@ -203,18 +203,21 @@ export class DiffWebviewPanel {
 	}
 
 	public async getViewDataForJobsArray(
-		elementHash: ElementHash,
+		elementHash: ElementHash | JobHash[],
+		isCase: boolean,
 	): Promise<JobDiffViewProps[]> {
-		const caseHash = elementHash as unknown as CaseHash;
+		const caseHash = isCase ? (elementHash as unknown as CaseHash) : null;
 
-		const jobHashes = this.__caseManager.getJobHashes([caseHash]);
-		if (!jobHashes.size) {
+		const jobHashes =
+			caseHash !== null
+				? Array.from(this.__caseManager.getJobHashes([caseHash]))
+				: (elementHash as JobHash[]);
+
+		if (!jobHashes.length) {
 			return [];
 		}
 		const viewDataArray = await Promise.all(
-			Array.from(jobHashes).map((jobHash) =>
-				this.getViewDataForJob(jobHash),
-			),
+			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
 		return viewDataArray.filter(isNeitherNullNorUndefined);
 	}
