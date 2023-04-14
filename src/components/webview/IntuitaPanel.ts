@@ -182,7 +182,7 @@ export class IntuitaPanel {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
 						clearTimeout(timeout);
-						resolve('Resolved');
+						resolve(null);
 					}
 				},
 			);

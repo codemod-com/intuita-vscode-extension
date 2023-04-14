@@ -78,7 +78,7 @@ export class DiffWebviewPanel {
 			this.__panel?.reveal();
 
 			if (this.__webviewMounted) {
-				resolve('Resolved');
+				resolve(null);
 			}
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
@@ -86,7 +86,7 @@ export class DiffWebviewPanel {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
 						this.__webviewMounted = true;
-						resolve('Resolved');
+						resolve(null);
 					}
 				},
 			);

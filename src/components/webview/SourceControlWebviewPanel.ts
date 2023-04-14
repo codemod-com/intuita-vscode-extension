@@ -75,7 +75,7 @@ export class SourceControlWebviewPanel {
 			this.__panel?.reveal();
 
 			if (this.__webviewMounted) {
-				resolve('Resolved');
+				resolve(null);
 			}
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
@@ -83,7 +83,7 @@ export class SourceControlWebviewPanel {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
 						this.__webviewMounted = true;
-						resolve('Resolved');
+						resolve(null);
 					}
 				},
 			);
