@@ -26,7 +26,6 @@ const TreeItem = ({
 	return (
 		<div id={id} className={styles.root} onClick={onClick}>
 			<div
-				className={styles.indent}
 				style={{ minWidth: `${indent}px` }}
 			/>
 			{hasChildren ? (
