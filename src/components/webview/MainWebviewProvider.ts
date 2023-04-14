@@ -180,6 +180,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
+			const fileName = directories.slice(-1);
 			// e.g., ['/', 'packages', 'app', 'src']
 			directories = ['/', ...directories.slice(0, -1)];
 			let path = '';
@@ -217,7 +218,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				const codemodName = element.children[0]?.job.codemodName;
 				const jobHashes = element.children.map((job) => job.jobHash);
 				const caseNode: TreeNode = {
-					id: `${path}${codemodName}`,
+					id: `${path}/${fileName}/${codemodName}`,
 					kind: 'caseElement',
 					command: {
 						title: 'Diff View',
