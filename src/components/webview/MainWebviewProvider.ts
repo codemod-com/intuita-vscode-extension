@@ -592,7 +592,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			mappedNode.actions = [
 				{
 					title: '✗ Dismiss',
-					command: 'intuita.rejectCase',
+					command: 'intuita.rejectJob',
 					arguments: [element.hash],
 				},
 				{

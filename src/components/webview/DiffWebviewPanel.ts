@@ -17,7 +17,8 @@ export class DiffWebviewPanel {
 	private __view: Webview | null = null;
 	private __panel: WebviewPanel | null = null;
 	private __disposables: Disposable[] = [];
-	static __instance: DiffWebviewPanel | null = null;
+	private __webviewMounted = false;
+	static instance: DiffWebviewPanel | null = null;
 
 	static getInstance(
 		context: ExtensionContext,
@@ -25,11 +26,16 @@ export class DiffWebviewPanel {
 		jobManager: JobManager,
 		rootPath: string,
 	) {
-		if (this.__instance) {
-			return this.__instance;
+		if (!DiffWebviewPanel.instance) {
+			DiffWebviewPanel.instance = new DiffWebviewPanel(
+				context,
+				messageBus,
+				jobManager,
+				rootPath,
+			);
 		}
 
-		return new DiffWebviewPanel(context, messageBus, jobManager, rootPath);
+		return DiffWebviewPanel.instance;
 	}
 
 	private constructor(
@@ -66,21 +72,21 @@ export class DiffWebviewPanel {
 		this.__attachExtensionEventListeners();
 	}
 
+	// @TODO move this logic to the base class
 	public render() {
-		const initWebviewPromise = new Promise((resolve, reject) => {
+		const initWebviewPromise = new Promise((resolve) => {
 			this.__panel?.reveal();
 
-			const timeout = setTimeout(() => {
-				this.__panel?.dispose();
-				reject('Timeout');
-			}, 5000);
+			if (this.__webviewMounted) {
+				resolve(null);
+			}
 
 			const disposable = this.__panel?.webview.onDidReceiveMessage(
 				(message) => {
 					if (message.kind === 'webview.global.afterWebviewMounted') {
 						disposable?.dispose();
-						clearTimeout(timeout);
-						resolve('Resolved');
+						this.__webviewMounted = true;
+						resolve(null);
 					}
 				},
 			);
@@ -179,10 +185,14 @@ export class DiffWebviewPanel {
 		});
 	}
 
+	// @TODO move this to the base class
 	public dispose() {
+		DiffWebviewPanel.instance = null;
+
 		if (!this.__panel) {
 			return;
 		}
+
 		this.__panel.dispose();
 
 		this.__disposables.forEach((disposable) => {
@@ -211,6 +221,7 @@ export class DiffWebviewPanel {
 		this.__view.postMessage(message);
 	}
 
+	// @TODO move this to the base class
 	private __addHook<T extends MessageKind>(
 		kind: T,
 		handler: (message: Message & { kind: T }) => void,
