@@ -29,7 +29,7 @@ export type TreeNode = {
 		  })
 		| (Command & {
 				command: 'intuita.openCaseDiffByFolder';
-				arguments?: { jobHashes: JobHash[] }[];
+				arguments?: JobHash[];
 		  });
 	actions?: Command[];
 	children?: TreeNode[];

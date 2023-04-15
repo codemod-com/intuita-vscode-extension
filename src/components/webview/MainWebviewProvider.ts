@@ -215,60 +215,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 					// parent node must exist because all parent directories prior to this file must have been traversed
 					return;
 				}
-				const codemodName = element.children[0]?.job.codemodName;
-				const jobHashes = element.children.map((job) => job.jobHash);
-				const caseNode: TreeNode = {
-					id: `${path}/${fileName}/${codemodName}`,
-					kind: 'caseElement',
-					command: {
-						title: 'Diff View',
-						command: 'intuita.openCaseDiffByFolder',
-						arguments: [{ jobHashes }],
-					},
-					actions: [
-						{
-							title: '✓ Apply',
-							command: 'intuita.acceptCaseByFolder',
-							arguments: [{ jobHashes }],
-						},
-						{
-							title: '✗ Dismiss',
-							command: 'intuita.rejectCaseByFolder',
-							arguments: [{ jobHashes }],
-						},
-					],
-					label: `${codemodName} (${jobHashes.length})`,
-					iconName: getElementIconBaseName(ElementKind.CASE),
-				};
 
-				const caseAccepted = jobHashes.every((jobHash) =>
-					this.__jobManager.isJobAccepted(jobHash),
-				);
-
-				if (caseAccepted) {
-					caseNode.kind = 'acceptedCaseElement';
-
-					caseNode.actions = [
-						{
-							title: '✗ Dismiss',
-							command: 'intuita.rejectCaseByFolder',
-							arguments: [{ jobHashes }],
-						},
-						// {
-						// 	title: 'Issue',
-						// 	command: 'intuita.createIssue',
-						// 	// TODO support creating issue by folder
-						// 	arguments: [{ jobHashes }],
-						// },
-						// {
-						// 	title: 'PR',
-						// 	command: 'intuita.createPR',
-						// 	// TODO support creating PR by folder
-						// 	arguments: [{ jobHashes }],
-						// },
-					];
-				}
-				parentNode.children?.push(caseNode);
+				const caseByFolderNode = this.__buildCaseByFolderTree(element);
+				parentNode.children?.push(caseByFolderNode);
 			}
 		}
 
@@ -702,5 +651,63 @@ export class IntuitaProvider implements WebviewViewProvider {
 			];
 		}
 		return mappedNode;
+	};
+
+	private __buildCaseByFolderTree = (element: FileElement): TreeNode => {
+		const jobHashes = element.children.map((job) => job.jobHash);
+		const filePath = element.label.split(' ')[0];
+		const codemodName = element.children[0]?.job.codemodName;
+		const node: TreeNode = {
+			id: `${filePath}/${codemodName}`,
+			kind: 'caseByFolderElement',
+			command: {
+				title: 'Diff View',
+				command: 'intuita.openCaseDiffByFolder',
+				arguments: jobHashes,
+			},
+			actions: [
+				{
+					title: '✓ Apply',
+					command: 'intuita.acceptCaseByFolder',
+					arguments: jobHashes,
+				},
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectCaseByFolder',
+					arguments: jobHashes,
+				},
+			],
+			label: `${codemodName} (${jobHashes.length})`,
+			iconName: getElementIconBaseName(ElementKind.CASE),
+		};
+
+		const caseByFolderAccepted = jobHashes.every((jobHash) =>
+			this.__jobManager.isJobAccepted(jobHash),
+		);
+
+		if (caseByFolderAccepted) {
+			node.kind = 'acceptedCaseByFolderElement';
+
+			node.actions = [
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectCaseByFolder',
+					arguments: jobHashes,
+				},
+				{
+					title: 'Issue',
+					command: 'intuita.createIssue',
+					// TODO support creating issue by folder
+					arguments: jobHashes,
+				},
+				{
+					title: 'PR',
+					command: 'intuita.createPR',
+					// TODO support creating PR by folder
+					arguments: jobHashes,
+				},
+			];
+		}
+		return node;
 	};
 }
