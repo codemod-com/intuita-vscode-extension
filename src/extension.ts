@@ -346,15 +346,16 @@ export async function activate(context: vscode.ExtensionContext) {
 				const currentBranchName = currentBranch.name ?? '';
 
 				const remotes = repositoryService.getRemotes();
-				const defaultRemoteUrl = remotes?.[0]?.pushUrl;
+				const remoteOptions = (remotes ?? [])
+					.map((remote) => remote.pushUrl)
+					.filter(isNeitherNullNorUndefined);
+
+				// @TODO persist default remoteUrl
+				const defaultRemoteUrl = remoteOptions[0];
 
 				if (!defaultRemoteUrl) {
 					throw new Error('Remote not found');
 				}
-
-				const remoteOptions = (remotes ?? [])
-					.map((remote) => remote.pushUrl)
-					.filter(isNeitherNullNorUndefined);
 
 				const pullRequest = await sourceControl.getPRForBranch(
 					targetBranch,
