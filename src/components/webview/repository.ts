@@ -91,7 +91,7 @@ export class RepositoryService {
 		return branch !== null;
 	}
 
-	public async submitChanges(branchName: string): Promise<void> {
+	public async submitChanges(branchName: string, remoteName: string): Promise<void> {
 		if (this.__repo === null) {
 			return;
 		}
@@ -106,7 +106,7 @@ export class RepositoryService {
 
 		await this.__repo.add([]);
 		await this.__repo.commit('Test commit', { all: true });
-		await this.__repo.push('origin', branchName, true);
+		await this.__repo.push(remoteName, branchName, true);
 	}
 
 	public getRepositoryPath(): string | null {

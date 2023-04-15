@@ -118,6 +118,7 @@ export type View =
 					body: string;
 					baseBranch: string;
 					targetBranch: string;
+					remoteUrl: string | null;
 				}>;
 				pullRequestAlreadyExists: boolean;
 			};
