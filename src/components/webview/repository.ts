@@ -45,7 +45,7 @@ export class RepositoryService {
 		if (state === 'initialized') {
 			this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
-			const repositoryPath = this.getRepositoryPath();
+			const repositoryPath = this.getDefaultRemoteUrl();
 
 			this.__messageBus.publish({
 				kind: MessageKind.repositoryPathChanged,
@@ -119,9 +119,9 @@ export class RepositoryService {
 		await this.__repo.push(remoteName, branchName, true);
 	}
 
-	public getRepositoryPath(): string | null {
+	public getDefaultRemoteUrl(): string | null {
+		// @TODO persist default remote (save user choice)
 		return (
-			// @TODO this assumes that we have 1 remote
 			this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null
 		);
 	}

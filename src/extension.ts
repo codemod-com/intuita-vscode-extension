@@ -248,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 
 			const initialData = {
-				repositoryPath: repositoryService.getRepositoryPath(),
+				repositoryPath: repositoryService.getDefaultRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
@@ -316,7 +316,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					typeof label === 'object' ? label.label : label ?? '';
 
 				const initialData = {
-					repositoryPath: repositoryService.getRepositoryPath(),
+					repositoryPath: repositoryService.getDefaultRemoteUrl(),
 					userId: globalStateAccountStorage.getUserAccount(),
 				};
 
@@ -350,8 +350,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					.map((remote) => remote.pushUrl)
 					.filter(isNeitherNullNorUndefined);
 
-				// @TODO persist default remoteUrl
-				const defaultRemoteUrl = remoteOptions[0];
+				const defaultRemoteUrl =
+					repositoryService.getDefaultRemoteUrl();
 
 				if (!defaultRemoteUrl) {
 					throw new Error('Remote not found');
@@ -495,10 +495,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						const remotes = repositoryService.getRemotes();
-
 						// @TODO add ability to select remote for issues
-						const defaultRemoteUrl = remotes?.[0]?.pushUrl;
+						const defaultRemoteUrl =
+							repositoryService.getDefaultRemoteUrl();
 
 						if (!defaultRemoteUrl) {
 							throw new Error('Remote not found');

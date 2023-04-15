@@ -32,7 +32,7 @@ const initialFormState: FormData = {
 	targetBranch: '',
 	title: '',
 	body: '',
-	remoteUrl: '',
+	remoteUrl: null,
 };
 
 const CreatePR = ({
