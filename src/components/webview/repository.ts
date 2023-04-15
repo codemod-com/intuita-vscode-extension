@@ -1,4 +1,11 @@
-import { APIState, API, Repository, Branch, Change, Remote } from '../../types/git';
+import {
+	APIState,
+	API,
+	Repository,
+	Branch,
+	Change,
+	Remote,
+} from '../../types/git';
 import { MessageBus, MessageKind } from '../messageBus';
 
 const branchNameFromStr = (str: string): string => {
@@ -91,7 +98,10 @@ export class RepositoryService {
 		return branch !== null;
 	}
 
-	public async submitChanges(branchName: string, remoteName: string): Promise<void> {
+	public async submitChanges(
+		branchName: string,
+		remoteName: string,
+	): Promise<void> {
 		if (this.__repo === null) {
 			return;
 		}

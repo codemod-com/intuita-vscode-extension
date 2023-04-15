@@ -345,18 +345,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
-				const remotes = repositoryService.getRemotes();	
+				const remotes = repositoryService.getRemotes();
 				const defaultRemoteUrl = remotes?.[0]?.pushUrl;
 
-				if(!defaultRemoteUrl) {
+				if (!defaultRemoteUrl) {
 					throw new Error('Remote not found');
-				}  
-				
-				const remoteOptions = (remotes ?? []).map(remote => remote.pushUrl).filter(isNeitherNullNorUndefined);
+				}
+
+				const remoteOptions = (remotes ?? [])
+					.map((remote) => remote.pushUrl)
+					.filter(isNeitherNullNorUndefined);
 
 				const pullRequest = await sourceControl.getPRForBranch(
 					targetBranch,
-					defaultRemoteUrl
+					defaultRemoteUrl,
 				);
 
 				// @TODO need to check this each time use switches remote
@@ -364,14 +366,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				const baseBranchName = pullRequestAlreadyExists
 					? pullRequest.base.ref
 					: currentBranchName;
-				
+
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [baseBranchName],
 						targetBranchOptions: [targetBranch],
-						remoteOptions, 
+						remoteOptions,
 						initialFormData: {
 							title,
 							body,
@@ -424,22 +426,25 @@ export async function activate(context: vscode.ExtensionContext) {
 						body: t.string,
 						baseBranch: t.string,
 						targetBranch: t.string,
-						remoteUrl: t.string, 
+						remoteUrl: t.string,
 					});
 
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-							const remotes = repositoryService.getRemotes();
-							const remote = (remotes ?? []).find(remote => remote.pushUrl === decoded.right.remoteUrl);
+						const remotes = repositoryService.getRemotes();
+						const remote = (remotes ?? []).find(
+							(remote) =>
+								remote.pushUrl === decoded.right.remoteUrl,
+						);
 
-							if(!remote) {
-								throw new Error('Remote not found');
-							}
+						if (!remote) {
+							throw new Error('Remote not found');
+						}
 
 						await repositoryService.submitChanges(
 							decoded.right.targetBranch,
-							remote.name
+							remote.name,
 						);
 
 						const existingPullRequest =
@@ -489,17 +494,18 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						const remotes = repositoryService.getRemotes();	
+						const remotes = repositoryService.getRemotes();
 
-				// @TODO add ability to select remote for issues
-				const defaultRemoteUrl = remotes?.[0]?.pushUrl;
+						// @TODO add ability to select remote for issues
+						const defaultRemoteUrl = remotes?.[0]?.pushUrl;
 
-				if(!defaultRemoteUrl) {
-					throw new Error('Remote not found');
-				}
-						const { html_url } = await sourceControl.createIssue(
-							{ ...decoded.right, remoteUrl: defaultRemoteUrl},
-						);
+						if (!defaultRemoteUrl) {
+							throw new Error('Remote not found');
+						}
+						const { html_url } = await sourceControl.createIssue({
+							...decoded.right,
+							remoteUrl: defaultRemoteUrl,
+						});
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Successfully created issue: ${html_url}`,

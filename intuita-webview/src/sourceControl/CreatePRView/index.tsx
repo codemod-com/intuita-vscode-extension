@@ -32,7 +32,7 @@ const initialFormState: FormData = {
 	targetBranch: '',
 	title: '',
 	body: '',
-	remoteUrl: ''
+	remoteUrl: '',
 };
 
 const CreatePR = ({
@@ -74,19 +74,26 @@ const CreatePR = ({
 			});
 		};
 
-	if(!remoteUrl) {
-		return <WarningMessage message="Unable to detect remote" actionButtons={[]}/>
-	}	
+	if (!remoteUrl) {
+		return (
+			<WarningMessage
+				message="Unable to detect remote"
+				actionButtons={[]}
+			/>
+		);
+	}
 
-	const hasMultipleRemotes = remoteOptions.length > 1 ;
+	const hasMultipleRemotes = remoteOptions.length > 1;
 
 	return (
 		<div className={styles.root}>
-			<h1 className={styles.header}>Create Pull Request for {remoteUrl}</h1>
+			<h1 className={styles.header}>
+				Create Pull Request for {remoteUrl}
+			</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
-			{
-				hasMultipleRemotes ? <div className={styles.formField}>
-				<label htmlFor="remoteUrl">Remote:</label>
+				{hasMultipleRemotes ? (
+					<div className={styles.formField}>
+						<label htmlFor="remoteUrl">Remote:</label>
 						<VSCodeDropdown
 							id="remoteUrl"
 							value={remoteUrl}
@@ -98,9 +105,9 @@ const CreatePR = ({
 								</VSCodeOption>
 							))}
 						</VSCodeDropdown>
-				</div> : null
-			}
-			<div className={styles.formField}>
+					</div>
+				) : null}
+				<div className={styles.formField}>
 					<label htmlFor="targetBranch">Target branch:</label>
 					<VSCodeDropdown
 						id="targetBranch"

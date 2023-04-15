@@ -59,7 +59,11 @@ export class SourceControlService {
 		return result.data;
 	}
 
-	async createIssue(params: { title: string; body: string, remoteUrl: string }) {
+	async createIssue(params: {
+		title: string;
+		body: string;
+		remoteUrl: string;
+	}) {
 		const userId = this.__userAccountStorage.getUserAccount();
 
 		if (!userId) {
@@ -85,7 +89,6 @@ export class SourceControlService {
 	}
 
 	async listPR(remoteUrl: string) {
-
 		const userId = this.__userAccountStorage.getUserAccount();
 
 		if (!userId) {
@@ -101,7 +104,10 @@ export class SourceControlService {
 		return result.data;
 	}
 
-	async getPRForBranch(branchName: string, remoteUrl: string): Promise<PullRequest | null> {
+	async getPRForBranch(
+		branchName: string,
+		remoteUrl: string,
+	): Promise<PullRequest | null> {
 		const PRList = await this.listPR(remoteUrl);
 		return PRList.find((pr) => pr.head.ref === branchName) ?? null;
 	}
