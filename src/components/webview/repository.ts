@@ -1,4 +1,4 @@
-import { APIState, API, Repository, Branch, Change } from '../../types/git';
+import { APIState, API, Repository, Branch, Change, Remote } from '../../types/git';
 import { MessageBus, MessageKind } from '../messageBus';
 
 const branchNameFromStr = (str: string): string => {
@@ -111,7 +111,14 @@ export class RepositoryService {
 
 	public getRepositoryPath(): string | null {
 		return (
+			// @TODO this assumes that we have 1 remote
 			this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null
 		);
+	}
+
+	public getRemotes(): Remote[] | null {
+		const remotes = this.__repo?.state.remotes;
+
+		return remotes ?? null;
 	}
 }

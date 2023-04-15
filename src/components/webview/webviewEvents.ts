@@ -112,6 +112,7 @@ export type View =
 				error: string;
 				baseBranchOptions: string[];
 				targetBranchOptions: string[];
+				remoteOptions: string[];
 				initialFormData: Partial<{
 					title: string;
 					body: string;

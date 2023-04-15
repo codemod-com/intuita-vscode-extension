@@ -354,12 +354,16 @@ export async function activate(context: vscode.ExtensionContext) {
 				const baseBranchName = pullRequestAlreadyExists
 					? pullRequest.base.ref
 					: currentBranchName;
+				
+				const remotes = repositoryService.getRemotes() ?? [];	
+
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [baseBranchName],
 						targetBranchOptions: [targetBranch],
+						remoteOptions: remotes.map(remote => remote.name), 
 						initialFormData: {
 							title,
 							body,
