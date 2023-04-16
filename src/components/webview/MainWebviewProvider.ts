@@ -239,10 +239,10 @@ export class IntuitaProvider implements WebviewViewProvider {
 				const folderAccepted = existingJobHashes.every((jobHash) =>
 					this.__jobManager.isJobAccepted(jobHash),
 				);
-		
+
 				if (folderAccepted) {
 					currentNode.kind = 'acceptedFolderElement';
-		
+
 					currentNode.actions = [
 						{
 							title: '✗ Dismiss',
