@@ -204,9 +204,11 @@ export class DiffWebviewPanel {
 
 	public async getViewDataForJobsArray(
 		elementHash: ElementHash | JobHash[],
-		isCase: boolean,
 	): Promise<JobDiffViewProps[]> {
-		const caseHash = isCase ? (elementHash as unknown as CaseHash) : null;
+		const caseHash =
+			typeof elementHash === 'string'
+				? (elementHash as unknown as CaseHash)
+				: null;
 
 		const jobHashes =
 			caseHash !== null

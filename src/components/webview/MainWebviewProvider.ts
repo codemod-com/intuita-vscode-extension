@@ -180,44 +180,97 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
-			const fileName = directories.slice(-1);
 			// e.g., ['/', 'packages', 'app', 'src']
 			directories = ['/', ...directories.slice(0, -1)];
 			let path = '';
+			const newJobHashes = element.children.map((job) => job.jobHash);
 			for (const dir of directories) {
-				const parentNode = this.__folderMap.get(path);
+				const parentNode = this.__folderMap.get(path) ?? null;
 
 				path +=
 					dir.endsWith('/') || path.endsWith('/') ? dir : `/${dir}`;
+				if (!this.__folderMap.has(path)) {
+					const jobHashesArg: JobHash[] = [];
+					const newFolderNode: TreeNode = {
+						id: path,
+						kind: 'folderElement',
+						iconName: 'folder.svg',
+						children: [],
+						command: {
+							title: 'Diff View',
+							command: 'intuita.openFolderDiff',
+							arguments: jobHashesArg,
+						},
+						actions: [
+							{
+								title: '✓ Apply',
+								command: 'intuita.acceptFolder',
+								arguments: jobHashesArg,
+							},
+							{
+								title: '✗ Dismiss',
+								command: 'intuita.rejectFolder',
+								arguments: jobHashesArg,
+							},
+						],
+					};
 
-				if (this.__folderMap.has(path)) {
+					this.__folderMap.set(path, newFolderNode);
+
+					if (parentNode !== null) {
+						parentNode.children?.push(newFolderNode);
+					}
+				}
+				const currentNode = this.__folderMap.get(path) ?? null;
+
+				if (currentNode === null || !currentNode.command?.arguments) {
+					// node must exist because we create it above if it doesn't
 					continue;
 				}
-				const newNode = {
-					id: path,
-					label: dir,
-					kind: 'folderElement',
-					iconName: 'folder.svg',
-					children: [],
-				};
 
-				this.__folderMap.set(path, newNode);
+				const existingJobHashes = currentNode.command.arguments;
+				newJobHashes.forEach((jobHash) => {
+					if (!existingJobHashes.includes(jobHash)) {
+						existingJobHashes.push(jobHash);
+					}
+				});
+				currentNode.label = `${dir} (${existingJobHashes.length})`;
 
-				if (parentNode?.children) {
-					parentNode.children.push(newNode);
+				const folderAccepted = existingJobHashes.every((jobHash) =>
+					this.__jobManager.isJobAccepted(jobHash),
+				);
+		
+				if (folderAccepted) {
+					currentNode.kind = 'acceptedFolderElement';
+		
+					currentNode.actions = [
+						{
+							title: '✗ Dismiss',
+							command: 'intuita.rejectFolder',
+							arguments: existingJobHashes,
+						},
+						{
+							title: 'Issue',
+							command: 'intuita.createIssue',
+							// TODO support creating issue by folder
+							arguments: existingJobHashes,
+						},
+						{
+							title: 'PR',
+							command: 'intuita.createPR',
+							// TODO support creating PR by folder
+							arguments: existingJobHashes,
+						},
+					];
 				}
-			}
 
-			if (element.children?.length > 0) {
-				const parentNode = this.__folderMap.get(path) ?? null;
-
-				if (parentNode === null) {
-					// parent node must exist because all parent directories prior to this file must have been traversed
-					return;
+				const caseByFolderNode = this.__buildCaseByFolderTree(
+					element,
+					path,
+				);
+				if (caseByFolderNode !== null) {
+					currentNode.children?.push(caseByFolderNode);
 				}
-
-				const caseByFolderNode = this.__buildCaseByFolderTree(element);
-				parentNode.children?.push(caseByFolderNode);
 			}
 		}
 
@@ -653,35 +706,63 @@ export class IntuitaProvider implements WebviewViewProvider {
 		return mappedNode;
 	};
 
-	private __buildCaseByFolderTree = (element: FileElement): TreeNode => {
-		const jobHashes = element.children.map((job) => job.jobHash);
-		const filePath = element.label.split(' ')[0];
-		const codemodName = element.children[0]?.job.codemodName;
-		const node: TreeNode = {
-			id: `${filePath}/${codemodName}`,
-			kind: 'caseByFolderElement',
-			command: {
-				title: 'Diff View',
-				command: 'intuita.openCaseDiffByFolder',
-				arguments: jobHashes,
-			},
-			actions: [
-				{
-					title: '✓ Apply',
-					command: 'intuita.acceptCaseByFolder',
-					arguments: jobHashes,
-				},
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCaseByFolder',
-					arguments: jobHashes,
-				},
-			],
-			label: `${codemodName} (${jobHashes.length})`,
-			iconName: getElementIconBaseName(ElementKind.CASE),
-		};
+	private __buildCaseByFolderTree = (
+		element: FileElement,
+		parentFolderPath: string,
+	): TreeNode | null => {
+		if (!element.children || element.children.length === 0) {
+			return null;
+		}
 
-		const caseByFolderAccepted = jobHashes.every((jobHash) =>
+		const jobHashes = element.children.map((job) => job.jobHash);
+		const codemodName = element.children[0]?.job.codemodName;
+		const key = `${parentFolderPath}/${codemodName}`;
+		const existingNode = this.__folderMap.get(key) ?? null;
+
+		if (existingNode !== null && existingNode.command?.arguments) {
+			const existingJobHashes = existingNode.command.arguments;
+			jobHashes.forEach((jobHash) => {
+				if (!existingJobHashes.includes(jobHash)) {
+					existingJobHashes.push(jobHash);
+				}
+			});
+			existingNode.label = `${codemodName} (${existingJobHashes.length})`;
+		} else {
+			const newNode: TreeNode = {
+				id: key,
+				kind: 'caseByFolderElement',
+				command: {
+					title: 'Diff View',
+					command: 'intuita.openCaseByFolderDiff',
+					arguments: jobHashes,
+				},
+				actions: [
+					{
+						title: '✓ Apply',
+						command: 'intuita.acceptCaseByFolder',
+						arguments: jobHashes,
+					},
+					{
+						title: '✗ Dismiss',
+						command: 'intuita.rejectCaseByFolder',
+						arguments: jobHashes,
+					},
+				],
+				label: `${codemodName} (${jobHashes.length})`,
+				iconName: getElementIconBaseName(ElementKind.CASE),
+			};
+			this.__folderMap.set(key, newNode);
+		}
+
+		const node = this.__folderMap.get(key) ?? null;
+
+		if (node === null || !node.command?.arguments) {
+			// should not be reached
+			return null;
+		}
+
+		const updatedJobHashes = node.command.arguments;
+		const caseByFolderAccepted = updatedJobHashes.every((jobHash) =>
 			this.__jobManager.isJobAccepted(jobHash),
 		);
 
@@ -692,22 +773,23 @@ export class IntuitaProvider implements WebviewViewProvider {
 				{
 					title: '✗ Dismiss',
 					command: 'intuita.rejectCaseByFolder',
-					arguments: jobHashes,
+					arguments: updatedJobHashes,
 				},
 				{
 					title: 'Issue',
 					command: 'intuita.createIssue',
 					// TODO support creating issue by folder
-					arguments: jobHashes,
+					arguments: updatedJobHashes,
 				},
 				{
 					title: 'PR',
 					command: 'intuita.createPR',
 					// TODO support creating PR by folder
-					arguments: jobHashes,
+					arguments: updatedJobHashes,
 				},
 			];
 		}
-		return node;
+
+		return existingNode === null ? node : null;
 	};
 }

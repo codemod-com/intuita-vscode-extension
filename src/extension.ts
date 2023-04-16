@@ -211,10 +211,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					await panelInstance.render();
 					const viewProps =
-						await panelInstance.getViewDataForJobsArray(
-							caseHash,
-							true,
-						);
+						await panelInstance.getViewDataForJobsArray(caseHash);
 
 					if (!viewProps) return;
 					panelInstance.setView({
@@ -232,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.openCaseDiffByFolder',
+			'intuita.openCaseByFolderDiff',
 			async (arg0, ...otherArgs) => {
 				const firstJobHash: string | null =
 					typeof arg0 === 'string' ? arg0 : null;
@@ -251,10 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					await panelInstance.render();
 					const viewProps =
-						await panelInstance.getViewDataForJobsArray(
-							jobHashes,
-							false,
-						);
+						await panelInstance.getViewDataForJobsArray(jobHashes);
 
 					if (!viewProps) return;
 					panelInstance.setView({
@@ -270,6 +264,42 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openFolderDiff',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null || !rootPath) {
+					return;
+				}
+
+				const jobHashes = [arg0, ...otherArgs];
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						context,
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps =
+						await panelInstance.getViewDataForJobsArray(jobHashes);
+
+					if (!viewProps) return;
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: viewProps,
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
 	// @TODO split this large file to modules
 
 	/**
@@ -1110,6 +1140,48 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.rejectCaseByFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0, ...otherArgs];
+
+				messageBus.publish({
+					kind: MessageKind.rejectJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.acceptFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0, ...otherArgs];
+
+				messageBus.publish({
+					kind: MessageKind.acceptJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectFolder',
 			async (arg0, ...otherArgs) => {
 				const firstJobHash: string | null =
 					typeof arg0 === 'string' ? arg0 : null;

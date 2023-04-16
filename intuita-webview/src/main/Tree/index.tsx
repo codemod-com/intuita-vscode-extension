@@ -27,17 +27,48 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 		return <>{treeItem}</>;
 	}
 
+	let children = node.children;
+
+	if (
+		node.kind &&
+		['folderElement', 'acceptedFolderElement'].includes(node.kind)
+	) {
+		const folderElements: TreeNode[] = [];
+		const caseByFolderElements: TreeNode[] = [];
+		node.children.forEach((element) => {
+			if (!element.kind) {
+				return;
+			}
+			if (
+				['folderElement', 'acceptedFolderElement'].includes(
+					element.kind,
+				)
+			) {
+				folderElements.push(element);
+			} else if (
+				['caseByFolderElement', 'acceptedCaseByFolderElement'].includes(
+					element.kind,
+				)
+			) {
+				caseByFolderElements.push(element);
+			}
+		});
+		children = [...caseByFolderElements, ...folderElements];
+	}
+
 	return (
 		<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
 			{open
-				? node.children.map((child) => (
-						<Tree
-							key={child.id}
-							node={child}
-							renderItem={renderItem}
-							depth={depth + 1}
-						/>
-				  ))
+				? children.map((child) => {
+						return (
+							<Tree
+								key={child.id}
+								node={child}
+								renderItem={renderItem}
+								depth={depth + 1}
+							/>
+						);
+				  })
 				: null}
 		</ReactTreeView>
 	);
