@@ -12,7 +12,9 @@ const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
 			const { data } = view.viewProps;
-			return data.map((el) => <JobDiffView key={el.jobHash} {...el} />);
+			return data.map((props) => (
+				<JobDiffView key={props.jobHash} {...props} />
+			));
 		default:
 			return null;
 	}
@@ -22,26 +24,34 @@ function App() {
 	const [view, setView] = useState<View | null>(null);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
+			if (view === null) {
+				return;
+			}
+
 			const { data: message } = event;
+
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
 			}
+
 			if (
 				message.kind === 'webview.diffView.updateDiffViewProps' &&
-				view?.viewId === 'jobDiffView'
+				view.viewId === 'jobDiffView'
 			) {
-				const jobHash = message?.data?.jobHash;
-				if (!jobHash) {
+				const jobHash = message.data.jobHash ?? null;
+				if (jobHash === null) {
 					return;
 				}
-				const viewData = [...view?.viewProps?.data];
-				const index = viewData.findIndex(
-					(el) => el.jobHash === jobHash,
+
+				const index = (view.viewProps.data.slice() ?? []).findIndex(
+					(element) => element.jobHash === jobHash,
 				);
 				if (index === -1) {
 					return;
 				}
-				viewData[index] = message.data;
+				const viewData = view.viewProps.data
+					.slice()
+					.splice(index, 1, message.data);
 				setView({
 					...view,
 					viewProps: {
