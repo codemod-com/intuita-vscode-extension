@@ -36,7 +36,7 @@ export type TreeNode = {
 				arguments?: JobHash[];
 		  });
 	actions?: Command[];
-	children?: TreeNode[];
+	children: TreeNode[];
 };
 export type WebviewMessage =
 	| Readonly<{

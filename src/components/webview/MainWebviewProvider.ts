@@ -118,6 +118,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		let mappedNode: TreeNode = {
 			id: element.hash,
 			kind: '',
+			children: [],
 		};
 
 		mappedNode.label = 'label' in element ? element.label : 'Recipe';
@@ -156,6 +157,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			id: element.hash,
 			iconName: getElementIconBaseName(element.kind),
 			kind: '',
+			children: [],
 		};
 
 		if (element.kind === ElementKind.ROOT) {
@@ -220,7 +222,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 					this.__folderMap.set(path, newFolderNode);
 
 					if (parentNode !== null) {
-						parentNode.children?.push(newFolderNode);
+						parentNode.children.push(newFolderNode);
 					}
 				}
 				const currentNode = this.__folderMap.get(path) ?? null;
@@ -580,6 +582,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 					arguments: [element.job.hash],
 				},
 			],
+			children: [],
 		};
 
 		if (element.job.kind === JobKind.rewriteFile) {
@@ -675,6 +678,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 					arguments: [element.hash],
 				},
 			],
+			children: [],
 		};
 
 		const caseJobHashes = this.__caseManager.getJobHashes([
@@ -752,6 +756,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				],
 				label: `${codemodName} (${jobHashes.length})`,
 				iconName: getElementIconBaseName(ElementKind.CASE),
+				children: [],
 			};
 			this.__folderMap.set(key, newNode);
 		}
