@@ -211,7 +211,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
-						context,
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
 						messageBus,
 						jobManager,
 						caseManager,
@@ -251,7 +258,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobHashes = [arg0].concat(otherArgs.slice());
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
-						context,
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
 						messageBus,
 						jobManager,
 						caseManager,

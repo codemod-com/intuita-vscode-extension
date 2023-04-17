@@ -1,13 +1,6 @@
-import {
-	workspace,
-	commands,
-} from 'vscode';
+import { workspace, commands } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
-import {
-	JobDiffViewProps,
-	View,
-	WebviewResponse,
-} from './webviewEvents';
+import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
 import { isNeitherNullNorUndefined } from '../../utilities';
@@ -46,13 +39,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		private readonly __caseManager: CaseManager,
 		public readonly __rootPath: string,
 	) {
-		super(options, messageBus)
+		super(options, messageBus);
 	}
 
 	_attachWebviewEventListeners() {
 		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
-	
+
 	private __onDidReceiveMessage(message: WebviewResponse) {
 		if (message.kind === 'webview.command') {
 			commands.executeCommand(
