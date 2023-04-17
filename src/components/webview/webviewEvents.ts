@@ -59,7 +59,7 @@ export type WebviewResponse =
 			value: {
 				title: string;
 				body: string;
-				remoteUrl: string | null;
+				remoteUrl: string;
 			};
 	  }>
 	| Readonly<{
