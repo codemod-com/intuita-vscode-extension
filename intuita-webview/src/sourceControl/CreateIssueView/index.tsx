@@ -40,7 +40,8 @@ const CreateIssue = ({ loading, initialFormData, remoteOptions }: Props) => {
 	}, [initialFormData]);
 
 	const onChangeFormField =
-		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
+		(fieldName: keyof FormData) =>
+		(e: Event | React.FormEvent<HTMLElement>) => {
 			const value = (e as React.ChangeEvent<HTMLInputElement>).target
 				.value;
 

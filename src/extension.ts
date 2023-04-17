@@ -271,7 +271,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const remoteUrl = repositoryService.getDefaultRemoteUrl();
 
-			if (!remoteUrl) {
+			if (remoteUrl === null) {
 				throw new Error('Unable to detect the git remote URI');
 			}
 
