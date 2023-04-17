@@ -269,12 +269,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			await panelInstance.render();
 
+			const remoteUrl = repositoryService.getDefaultRemoteUrl();
+
+			if (!remoteUrl) {
+				throw new Error('Unable to detect the git remote URI');
+			}
+
+			const remotes = repositoryService.getRemotes();
+			const remoteOptions = remotes
+				.map(({ pushUrl }) => pushUrl)
+				.filter(isNeitherNullNorUndefined);
+
 			panelInstance.setView({
 				viewId: 'createIssue',
 				viewProps: {
-					initialFormData: { title },
+					initialFormData: { title, body: '', remoteUrl },
 					loading: false,
 					error: '',
+					remoteOptions,
 				},
 			});
 		}),
@@ -490,22 +502,18 @@ export async function activate(context: vscode.ExtensionContext) {
 					const codec = buildTypeCodec({
 						title: t.string,
 						body: t.string,
+						remoteUrl: t.string,
 					});
 
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
 						// @TODO add ability to select remote for issues
-						const defaultRemoteUrl =
-							repositoryService.getDefaultRemoteUrl();
 
-						if (!defaultRemoteUrl) {
-							throw new Error('Remote not found');
-						}
 						const { html_url } = await sourceControl.createIssue({
 							...decoded.right,
-							remoteUrl: defaultRemoteUrl,
 						});
+
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Successfully created issue: ${html_url}`,
