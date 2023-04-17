@@ -20,12 +20,11 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-// import { DependencyService } from './dependencies/dependencyService';
 import {
 	dependencyNameToRecipeName,
 	InformationMessageService,
 } from './components/informationMessageService';
-import { buildTypeCodec } from './utilities';
+import { buildTypeCodec, isNeitherNullNorUndefined } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
@@ -222,7 +221,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const sourceControl = new SourceControlService(
 		globalStateAccountStorage,
 		messageBus,
-		repositoryService,
 	);
 
 	const intuitaWebviewProvider = new IntuitaProvider(
@@ -250,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 
 			const initialData = {
-				repositoryPath: repositoryService.getRepositoryPath(),
+				repositoryPath: repositoryService.getDefaultRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
@@ -318,7 +316,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					typeof label === 'object' ? label.label : label ?? '';
 
 				const initialData = {
-					repositoryPath: repositoryService.getRepositoryPath(),
+					repositoryPath: repositoryService.getDefaultRemoteUrl(),
 					userId: globalStateAccountStorage.getUserAccount(),
 				};
 
@@ -347,24 +345,42 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
+				const remotes = repositoryService.getRemotes();
+				const remoteOptions = (remotes ?? [])
+					.map((remote) => remote.pushUrl)
+					.filter(isNeitherNullNorUndefined);
+
+				const defaultRemoteUrl =
+					repositoryService.getDefaultRemoteUrl();
+
+				if (!defaultRemoteUrl) {
+					throw new Error('Remote not found');
+				}
+
 				const pullRequest = await sourceControl.getPRForBranch(
 					targetBranch,
+					defaultRemoteUrl,
 				);
+
+				// @TODO need to check this each time use switches remote
 				const pullRequestAlreadyExists = pullRequest !== null;
 				const baseBranchName = pullRequestAlreadyExists
 					? pullRequest.base.ref
 					: currentBranchName;
+
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [baseBranchName],
 						targetBranchOptions: [targetBranch],
+						remoteOptions,
 						initialFormData: {
 							title,
 							body,
 							baseBranch: baseBranchName,
 							targetBranch,
+							remoteUrl: defaultRemoteUrl,
 						},
 						loading: false,
 						error: '',
@@ -411,18 +427,31 @@ export async function activate(context: vscode.ExtensionContext) {
 						body: t.string,
 						baseBranch: t.string,
 						targetBranch: t.string,
+						remoteUrl: t.string,
 					});
 
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
+						const remotes = repositoryService.getRemotes();
+						const remote = (remotes ?? []).find(
+							(remote) =>
+								remote.pushUrl === decoded.right.remoteUrl,
+						);
+
+						if (!remote) {
+							throw new Error('Remote not found');
+						}
+
 						await repositoryService.submitChanges(
 							decoded.right.targetBranch,
+							remote.name,
 						);
 
 						const existingPullRequest =
 							await sourceControl.getPRForBranch(
 								decoded.right.targetBranch,
+								decoded.right.remoteUrl,
 							);
 
 						const { html_url } =
@@ -466,9 +495,17 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						const { html_url } = await sourceControl.createIssue(
-							decoded.right,
-						);
+						// @TODO add ability to select remote for issues
+						const defaultRemoteUrl =
+							repositoryService.getDefaultRemoteUrl();
+
+						if (!defaultRemoteUrl) {
+							throw new Error('Remote not found');
+						}
+						const { html_url } = await sourceControl.createIssue({
+							...decoded.right,
+							remoteUrl: defaultRemoteUrl,
+						});
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Successfully created issue: ${html_url}`,

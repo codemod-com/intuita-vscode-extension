@@ -1,4 +1,11 @@
-import { APIState, API, Repository, Branch, Change } from '../../types/git';
+import {
+	APIState,
+	API,
+	Repository,
+	Branch,
+	Change,
+	Remote,
+} from '../../types/git';
 import { MessageBus, MessageKind } from '../messageBus';
 
 const branchNameFromStr = (str: string): string => {
@@ -38,7 +45,7 @@ export class RepositoryService {
 		if (state === 'initialized') {
 			this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
-			const repositoryPath = this.getRepositoryPath();
+			const repositoryPath = this.getDefaultRemoteUrl();
 
 			this.__messageBus.publish({
 				kind: MessageKind.repositoryPathChanged,
@@ -55,8 +62,8 @@ export class RepositoryService {
 		return this.__repo?.state.HEAD ?? null;
 	}
 
-	public getWorkingTreeChanges(): ReadonlyArray<Change> | null {
-		return this.__repo?.state.workingTreeChanges ?? null;
+	public getWorkingTreeChanges(): ReadonlyArray<Change> {
+		return this.__repo?.state.workingTreeChanges ?? [];
 	}
 
 	public hasChangesToCommit(): boolean {
@@ -91,7 +98,10 @@ export class RepositoryService {
 		return branch !== null;
 	}
 
-	public async submitChanges(branchName: string): Promise<void> {
+	public async submitChanges(
+		branchName: string,
+		remoteName: string,
+	): Promise<void> {
 		if (this.__repo === null) {
 			return;
 		}
@@ -106,12 +116,17 @@ export class RepositoryService {
 
 		await this.__repo.add([]);
 		await this.__repo.commit('Test commit', { all: true });
-		await this.__repo.push('origin', branchName, true);
+		await this.__repo.push(remoteName, branchName, true);
 	}
 
-	public getRepositoryPath(): string | null {
+	public getDefaultRemoteUrl(): string | null {
+		// @TODO persist default remote (save user choice)
 		return (
 			this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null
 		);
+	}
+
+	public getRemotes(): ReadonlyArray<Remote> {
+		return this.__repo?.state.remotes ?? [];
 	}
 }
