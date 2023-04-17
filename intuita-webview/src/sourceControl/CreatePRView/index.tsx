@@ -77,7 +77,7 @@ const CreatePR = ({
 	if (!remoteUrl) {
 		return (
 			<WarningMessage
-				message="Unable to detect remote"
+				message="Unable to detect the git remote URI"
 				actionButtons={[]}
 			/>
 		);

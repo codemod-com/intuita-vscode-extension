@@ -126,9 +126,7 @@ export class RepositoryService {
 		);
 	}
 
-	public getRemotes(): Remote[] | null {
-		const remotes = this.__repo?.state.remotes;
-
-		return remotes ?? null;
+	public getRemotes(): ReadonlyArray<Remote> | null {
+		return this.__repo?.state.remotes ?? null;
 	}
 }
