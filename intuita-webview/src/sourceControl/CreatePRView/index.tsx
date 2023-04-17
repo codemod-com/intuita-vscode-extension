@@ -8,7 +8,6 @@ import {
 import { useEffect, useState } from 'react';
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
-import WarningMessage from '../../shared/WarningMessage';
 
 type Props = {
 	loading: boolean;
@@ -24,15 +23,15 @@ type FormData = {
 	targetBranch: string;
 	title: string;
 	body: string;
-	remoteUrl: string | null;
+	remoteUrl: string;
 };
 
 const initialFormState: FormData = {
-	baseBranch: 'main',
+	baseBranch: '',
 	targetBranch: '',
 	title: '',
 	body: '',
-	remoteUrl: null,
+	remoteUrl: '',
 };
 
 const CreatePR = ({
@@ -73,15 +72,6 @@ const CreatePR = ({
 				[fieldName]: value,
 			});
 		};
-
-	if (!remoteUrl) {
-		return (
-			<WarningMessage
-				message="Unable to detect the git remote URI"
-				actionButtons={[]}
-			/>
-		);
-	}
 
 	const hasMultipleRemotes = remoteOptions.length > 1;
 

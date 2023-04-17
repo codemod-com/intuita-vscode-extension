@@ -73,6 +73,7 @@ export type WebviewResponse =
 			value: {
 				title: string;
 				body: string;
+				remoteUrl: string;
 			};
 	  }>
 	| Readonly<{
@@ -116,7 +117,9 @@ export type View =
 				initialFormData: Partial<{
 					title: string;
 					body: string;
+					remoteUrl: string;
 				}>;
+				remoteOptions: string[];
 			};
 	  }>
 	| Readonly<{
@@ -132,7 +135,7 @@ export type View =
 					body: string;
 					baseBranch: string;
 					targetBranch: string;
-					remoteUrl: string | null;
+					remoteUrl: string;
 				}>;
 				pullRequestAlreadyExists: boolean;
 			};
