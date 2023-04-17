@@ -66,14 +66,14 @@ export class PersistedStateService {
 			this.jobManager.getAcceptedJobsHashes(),
 		);
 
-		const defaultRemoteUrl = this.__repositoryService.getRemoteUrl();
+		const remoteUrl = this.__repositoryService.getRemoteUrl();
 
 		return {
 			cases,
 			caseHashJobHashes,
 			jobs,
 			acceptedJobsHashes,
-			defaultRemoteUrl,
+			remoteUrl,
 		};
 	}
 
@@ -96,7 +96,7 @@ export class PersistedStateService {
 			caseHashJobHashes: [],
 			jobs: [],
 			acceptedJobsHashes: [],
-			defaultRemoteUrl: this.__repositoryService.getRemoteUrl(),
+			remoteUrl: this.__repositoryService.getRemoteUrl(),
 		};
 
 		const buffer = Buffer.from(JSON.stringify(persistedState));

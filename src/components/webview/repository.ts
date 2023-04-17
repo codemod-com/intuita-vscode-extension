@@ -21,7 +21,7 @@ const branchNameFromStr = (str: string): string => {
 };
 
 type PersistedState = {
-	defaultRemoteUrl: string | null;
+	remoteUrl: string | null;
 } | null;
 
 export class RepositoryService {
@@ -50,7 +50,7 @@ export class RepositoryService {
 	private __init(persistedState: PersistedState): void {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 		this.__remoteUrl =
-			persistedState?.defaultRemoteUrl ??
+			persistedState?.remoteUrl ??
 			this.__repo?.state.remotes[0]?.pushUrl ??
 			null;
 		this.__messageBus.publish({
