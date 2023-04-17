@@ -1,11 +1,4 @@
-import {
-	APIState,
-	API,
-	Repository,
-	Branch,
-	Change,
-	Remote,
-} from '../../types/git';
+import { API, Repository, Branch, Change, Remote } from '../../types/git';
 import { MessageBus, MessageKind } from '../messageBus';
 
 const branchNameFromStr = (str: string): string => {
@@ -27,31 +20,43 @@ const branchNameFromStr = (str: string): string => {
 	return branchName;
 };
 
+type PersistedState = {
+	defaultRemoteUrl: string | null;
+} | null;
+
 export class RepositoryService {
 	__repo: Repository | null = null;
+	__remoteUrl: string | null = null;
 
 	constructor(
 		private readonly __gitAPI: API | null,
 		private readonly __messageBus: MessageBus,
+		persistedState: PersistedState,
 	) {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
-		this.__gitAPI?.onDidChangeState((state) =>
-			this.__onDidChangeState(state),
-		);
+		if (this.__gitAPI?.state === 'initialized') {
+			this.__init(persistedState);
+		}
+
+		this.__gitAPI?.onDidChangeState((state) => {
+			if (state !== 'initialized') {
+				return;
+			}
+			this.__init(persistedState);
+		});
 	}
 
-	private __onDidChangeState(state: APIState): void {
-		if (state === 'initialized') {
-			this.__repo = this.__gitAPI?.repositories[0] ?? null;
-
-			const repositoryPath = this.getDefaultRemoteUrl();
-
-			this.__messageBus.publish({
-				kind: MessageKind.repositoryPathChanged,
-				repositoryPath,
-			});
-		}
+	private __init(persistedState: PersistedState): void {
+		this.__repo = this.__gitAPI?.repositories[0] ?? null;
+		this.__remoteUrl =
+			persistedState?.defaultRemoteUrl ??
+			this.__repo?.state.remotes[0]?.pushUrl ??
+			null;
+		this.__messageBus.publish({
+			kind: MessageKind.repositoryPathChanged,
+			repositoryPath: this.__remoteUrl,
+		});
 	}
 
 	public async getAllBranches() {
@@ -119,11 +124,13 @@ export class RepositoryService {
 		await this.__repo.push(remoteName, branchName, true);
 	}
 
-	public getDefaultRemoteUrl(): string | null {
-		// @TODO persist default remote (save user choice)
-		return (
-			this.__gitAPI?.repositories[0]?.state.remotes[0]?.pushUrl ?? null
-		);
+	// can we use get/set?
+	public setRemoteUrl(remoteUrl: string) {
+		this.__remoteUrl = remoteUrl;
+	}
+
+	public getRemoteUrl(): string | null {
+		return this.__remoteUrl;
 	}
 
 	public getRemotes(): ReadonlyArray<Remote> {

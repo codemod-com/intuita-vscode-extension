@@ -67,9 +67,16 @@ const CreatePR = ({
 			const value = (e as React.ChangeEvent<HTMLInputElement>).target
 				.value;
 
-			setFormData({
+			const nextFormData = {
 				...formData,
 				[fieldName]: value,
+			};
+
+			setFormData(nextFormData);
+
+			vscode.postMessage({
+				kind: 'webview.createPR.afterFormDataChanged',
+				value: nextFormData,
 			});
 		};
 
