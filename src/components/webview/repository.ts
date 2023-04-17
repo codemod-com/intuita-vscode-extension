@@ -62,8 +62,8 @@ export class RepositoryService {
 		return this.__repo?.state.HEAD ?? null;
 	}
 
-	public getWorkingTreeChanges(): ReadonlyArray<Change> | null {
-		return this.__repo?.state.workingTreeChanges ?? null;
+	public getWorkingTreeChanges(): ReadonlyArray<Change> {
+		return this.__repo?.state.workingTreeChanges ?? [];
 	}
 
 	public hasChangesToCommit(): boolean {
@@ -126,7 +126,7 @@ export class RepositoryService {
 		);
 	}
 
-	public getRemotes(): ReadonlyArray<Remote> | null {
-		return this.__repo?.state.remotes ?? null;
+	public getRemotes(): ReadonlyArray<Remote> {
+		return this.__repo?.state.remotes ?? [];
 	}
 }
