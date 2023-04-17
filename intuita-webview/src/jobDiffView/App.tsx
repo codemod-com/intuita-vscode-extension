@@ -43,9 +43,9 @@ function App() {
 					return;
 				}
 
-				const index = (view.viewProps.data.slice() ?? []).findIndex(
-					(element) => element.jobHash === jobHash,
-				);
+				const index = view.viewProps.data
+					.slice()
+					.findIndex((element) => element.jobHash === jobHash);
 				if (index === -1) {
 					return;
 				}

@@ -39,7 +39,7 @@ export const Collapsable = forwardRef<CollapsableRefMethods, CollapsableProps>(
 		}));
 
 		return (
-			<div className={`collapsable ${className ?? ''} `}>
+			<div className={cn('collapsable', className)}>
 				<div
 					className={cn('collapsable__header', headerClassName)}
 					onClick={() => setExpanded(!expanded)}
@@ -54,9 +54,7 @@ export const Collapsable = forwardRef<CollapsableRefMethods, CollapsableProps>(
 				</div>
 				{expanded && (
 					<div
-						className={` collapsable_content ${
-							contentClassName ?? ''
-						}`}
+						className={cn('collapsable_content', contentClassName)}
 					>
 						{children}
 					</div>
