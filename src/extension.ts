@@ -20,12 +20,11 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-// import { DependencyService } from './dependencies/dependencyService';
 import {
 	dependencyNameToRecipeName,
 	InformationMessageService,
 } from './components/informationMessageService';
-import { buildTypeCodec } from './utilities';
+import { buildTypeCodec, isNeitherNullNorUndefined } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
@@ -170,7 +169,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (!jobHash || !jobHash[0] || !rootPath) return;
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
-						context,
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
 						messageBus,
 						jobManager,
 						caseManager,
@@ -332,7 +338,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const sourceControl = new SourceControlService(
 		globalStateAccountStorage,
 		messageBus,
-		repositoryService,
 	);
 
 	const intuitaWebviewProvider = new IntuitaProvider(
@@ -358,15 +363,28 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
-			const panelInstance = SourceControlWebviewPanel.getInstance(
-				context,
-				messageBus,
-				repositoryService,
-				globalStateAccountStorage,
-			);
-			await panelInstance.render();
+
+			const initialData = {
+				repositoryPath: repositoryService.getDefaultRemoteUrl(),
+				userId: globalStateAccountStorage.getUserAccount(),
+			};
+
 			const { label } = treeItem;
 			const title = typeof label === 'object' ? label.label : label ?? '';
+
+			const panelInstance = SourceControlWebviewPanel.getInstance(
+				{
+					type: 'intuitaPanel',
+					title,
+					extensionUri: context.extensionUri,
+					initialData,
+					viewColumn: vscode.ViewColumn.One,
+					webviewName: 'sourceControl',
+				},
+				messageBus,
+			);
+
+			await panelInstance.render();
 
 			panelInstance.setView({
 				viewId: 'createIssue',
@@ -414,11 +432,21 @@ export async function activate(context: vscode.ExtensionContext) {
 				const jobTitle =
 					typeof label === 'object' ? label.label : label ?? '';
 
+				const initialData = {
+					repositoryPath: repositoryService.getDefaultRemoteUrl(),
+					userId: globalStateAccountStorage.getUserAccount(),
+				};
+
 				const panelInstance = SourceControlWebviewPanel.getInstance(
-					context,
+					{
+						type: 'intuitaPanel',
+						title: jobTitle,
+						extensionUri: context.extensionUri,
+						initialData,
+						viewColumn: vscode.ViewColumn.One,
+						webviewName: 'sourceControl',
+					},
 					messageBus,
-					repositoryService,
-					globalStateAccountStorage,
 				);
 
 				// @TODO figure out more informative title and description
@@ -434,24 +462,42 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranchName = currentBranch.name ?? '';
 
+				const remotes = repositoryService.getRemotes();
+				const remoteOptions = (remotes ?? [])
+					.map((remote) => remote.pushUrl)
+					.filter(isNeitherNullNorUndefined);
+
+				const defaultRemoteUrl =
+					repositoryService.getDefaultRemoteUrl();
+
+				if (!defaultRemoteUrl) {
+					throw new Error('Remote not found');
+				}
+
 				const pullRequest = await sourceControl.getPRForBranch(
 					targetBranch,
+					defaultRemoteUrl,
 				);
+
+				// @TODO need to check this each time use switches remote
 				const pullRequestAlreadyExists = pullRequest !== null;
 				const baseBranchName = pullRequestAlreadyExists
 					? pullRequest.base.ref
 					: currentBranchName;
+
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
 					viewProps: {
 						// branching from current branch
 						baseBranchOptions: [baseBranchName],
 						targetBranchOptions: [targetBranch],
+						remoteOptions,
 						initialFormData: {
 							title,
 							body,
 							baseBranch: baseBranchName,
 							targetBranch,
+							remoteUrl: defaultRemoteUrl,
 						},
 						loading: false,
 						error: '',
@@ -498,18 +544,31 @@ export async function activate(context: vscode.ExtensionContext) {
 						body: t.string,
 						baseBranch: t.string,
 						targetBranch: t.string,
+						remoteUrl: t.string,
 					});
 
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
+						const remotes = repositoryService.getRemotes();
+						const remote = (remotes ?? []).find(
+							(remote) =>
+								remote.pushUrl === decoded.right.remoteUrl,
+						);
+
+						if (!remote) {
+							throw new Error('Remote not found');
+						}
+
 						await repositoryService.submitChanges(
 							decoded.right.targetBranch,
+							remote.name,
 						);
 
 						const existingPullRequest =
 							await sourceControl.getPRForBranch(
 								decoded.right.targetBranch,
+								decoded.right.remoteUrl,
 							);
 
 						const { html_url } =
@@ -553,9 +612,17 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = codec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						const { html_url } = await sourceControl.createIssue(
-							decoded.right,
-						);
+						// @TODO add ability to select remote for issues
+						const defaultRemoteUrl =
+							repositoryService.getDefaultRemoteUrl();
+
+						if (!defaultRemoteUrl) {
+							throw new Error('Remote not found');
+						}
+						const { html_url } = await sourceControl.createIssue({
+							...decoded.right,
+							remoteUrl: defaultRemoteUrl,
+						});
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Successfully created issue: ${html_url}`,
