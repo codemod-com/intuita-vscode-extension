@@ -15,9 +15,9 @@ export type JobDiffViewProps = Readonly<{
 
 export type TreeNode = {
 	id: string;
+	kind: string;
 	label?: string;
 	iconName?: string;
-	kind?: string;
 	command?:
 		| (Command & {
 				command: 'intuita.openJobDiff';

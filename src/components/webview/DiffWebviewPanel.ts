@@ -202,20 +202,28 @@ export class DiffWebviewPanel {
 		};
 	}
 
+	public async getViewDataForCase(
+		caseHash: ElementHash,
+	): Promise<Readonly<JobDiffViewProps>[]> {
+		const jobHashes = Array.from(
+			this.__caseManager.getJobHashes([
+				caseHash,
+			] as unknown as CaseHash[]),
+		);
+
+		if (jobHashes.length === 0) {
+			return [];
+		}
+		const viewDataArray = await Promise.all(
+			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
+		);
+		return viewDataArray.filter(isNeitherNullNorUndefined);
+	}
+
 	public async getViewDataForJobsArray(
-		elementHash: ElementHash | JobHash[],
-	): Promise<JobDiffViewProps[]> {
-		const caseHash =
-			typeof elementHash === 'string'
-				? (elementHash as unknown as CaseHash)
-				: null;
-
-		const jobHashes =
-			caseHash !== null
-				? Array.from(this.__caseManager.getJobHashes([caseHash]))
-				: (elementHash as JobHash[]);
-
-		if (!jobHashes.length) {
+		jobHashes: JobHash[],
+	): Promise<Readonly<JobDiffViewProps>[]> {
+		if (jobHashes.length === 0) {
 			return [];
 		}
 		const viewDataArray = await Promise.all(

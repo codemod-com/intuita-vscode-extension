@@ -213,7 +213,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					await panelInstance.render();
 					const viewProps =
-						await panelInstance.getViewDataForJobsArray(caseHash);
+						await panelInstance.getViewDataForCase(caseHash);
 
 					if (!viewProps) {
 						return;

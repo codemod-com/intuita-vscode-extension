@@ -27,14 +27,15 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 		return <>{treeItem}</>;
 	}
 
-	let children = node.children;
+	const folderElements: TreeNode[] = [];
+	const caseByFolderElements: TreeNode[] = [];
 
+	// separate folder elements and caseByFolder elements
+	// since we want to display all caseByFolder elements above folder elements
 	if (
 		node.kind &&
 		['folderElement', 'acceptedFolderElement'].includes(node.kind)
 	) {
-		const folderElements: TreeNode[] = [];
-		const caseByFolderElements: TreeNode[] = [];
 		node.children.forEach((element) => {
 			if (!element.kind) {
 				return;
@@ -53,13 +54,15 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 				caseByFolderElements.push(element);
 			}
 		});
-		children = [...caseByFolderElements, ...folderElements];
 	}
 
 	return (
 		<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
 			{open
-				? children.map((child) => {
+				? (folderElements.length > 0 || caseByFolderElements.length > 0
+						? caseByFolderElements.concat(folderElements)
+						: node.children
+				  ).map((child) => {
 						return (
 							<Tree
 								key={child.id}
