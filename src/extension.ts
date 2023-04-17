@@ -248,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const jobHashes = [arg0, otherArgs.slice()];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						context,
