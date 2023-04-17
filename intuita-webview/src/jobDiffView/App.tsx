@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import {
 	View,
@@ -12,7 +12,9 @@ const getViewComponent = (view: View) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
 			const { data } = view.viewProps;
-			return <JobDiffView {...data} />;
+			return data.map((props) => (
+				<JobDiffView key={props.jobHash} {...props} />
+			));
 		default:
 			return null;
 	}
@@ -20,37 +22,54 @@ const getViewComponent = (view: View) => {
 
 function App() {
 	const [view, setView] = useState<View | null>(null);
+	const eventHandler = useCallback(
+		(event: MessageEvent<WebviewMessage>) => {
+			if (view === null) {
+				return;
+			}
 
-	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const { data: message } = e;
+			const { data: message } = event;
+
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
 			}
-			if (message.kind === 'webview.diffView.updateDiffViewProps') {
-				const { data } = message;
-				if (
-					view?.viewId === 'jobDiffView' &&
-					view.viewProps.data.jobHash === data.jobHash
-				) {
-					setView({
-						...view,
-						viewProps: {
-							data: {
-								...data,
-							},
-						},
-					});
-				}
-			}
-		};
 
-		window.addEventListener('message', handler);
+			if (
+				message.kind === 'webview.diffView.updateDiffViewProps' &&
+				view.viewId === 'jobDiffView'
+			) {
+				const jobHash = message.data.jobHash ?? null;
+				if (jobHash === null) {
+					return;
+				}
+
+				const index = view.viewProps.data
+					.slice()
+					.findIndex((element) => element.jobHash === jobHash);
+				if (index === -1) {
+					return;
+				}
+				const viewData = view.viewProps.data
+					.slice()
+					.splice(index, 1, message.data);
+				setView({
+					...view,
+					viewProps: {
+						data: viewData,
+					},
+				});
+			}
+		},
+		[view],
+	);
+
+	useEffect(() => {
+		window.addEventListener('message', eventHandler);
 
 		return () => {
-			window.removeEventListener('message', handler);
+			window.removeEventListener('message', eventHandler);
 		};
-	}, [view]);
+	}, [eventHandler, view]);
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });

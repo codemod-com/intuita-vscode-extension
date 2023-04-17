@@ -1,8 +1,12 @@
-import { workspace } from 'vscode';
+import { workspace, commands } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
-import { JobDiffViewProps, View } from './webviewEvents';
+import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
+import { isNeitherNullNorUndefined } from '../../utilities';
+import { ElementHash } from '../../elements/types';
+import { CaseManager } from '../../cases/caseManager';
+import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
@@ -12,6 +16,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		options: Options,
 		messageBus: MessageBus,
 		jobManager: JobManager,
+		caseManager: CaseManager,
 		rootPath: string,
 	) {
 		if (!DiffWebviewPanel.instance) {
@@ -19,6 +24,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				options,
 				messageBus,
 				jobManager,
+				caseManager,
 				rootPath,
 			);
 		}
@@ -30,9 +36,23 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		options: Options,
 		messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
+		private readonly __caseManager: CaseManager,
 		public readonly __rootPath: string,
 	) {
 		super(options, messageBus);
+	}
+
+	_attachWebviewEventListeners() {
+		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+	}
+
+	private __onDidReceiveMessage(message: WebviewResponse) {
+		if (message.kind === 'webview.command') {
+			commands.executeCommand(
+				message.value.command,
+				message.value.arguments,
+			);
+		}
 	}
 
 	public override dispose() {
@@ -40,7 +60,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		DiffWebviewPanel.instance = null;
 	}
 
-	public async getViewData(
+	public async getViewDataForJob(
 		jobHash: JobHash,
 	): Promise<JobDiffViewProps | null> {
 		if (!this.__rootPath) {
@@ -85,9 +105,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 				case JobKind.moveAndRewriteFile:
 					return `${
-						jobAccepted
-							? 'Moved and re-written'
-							: 'Move and rewrite'
+						jobAccepted ? 'Moved and rewritten' : 'Move and rewrite'
 					} file ${oldFileTitle} to ${newFileTitle}`;
 
 				case JobKind.copyFile:
@@ -97,7 +115,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 				case JobKind.rewriteFile:
 					return `${
-						jobAccepted ? 'Re-written' : 'Rewrite'
+						jobAccepted ? 'Rewritten' : 'Rewrite'
 					} file ${oldFileTitle}`;
 
 				default:
@@ -123,6 +141,36 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		};
 	}
 
+	public async getViewDataForCase(
+		caseHash: ElementHash,
+	): Promise<Readonly<JobDiffViewProps>[]> {
+		const jobHashes = Array.from(
+			this.__caseManager.getJobHashes([
+				caseHash,
+			] as unknown as CaseHash[]),
+		);
+
+		if (jobHashes.length === 0) {
+			return [];
+		}
+		const viewDataArray = await Promise.all(
+			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
+		);
+		return viewDataArray.filter(isNeitherNullNorUndefined);
+	}
+
+	public async getViewDataForJobsArray(
+		jobHashes: JobHash[],
+	): Promise<Readonly<JobDiffViewProps>[]> {
+		if (jobHashes.length === 0) {
+			return [];
+		}
+		const viewDataArray = await Promise.all(
+			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
+		);
+		return viewDataArray.filter(isNeitherNullNorUndefined);
+	}
+
 	public setView(data: View) {
 		this._panel?.webview.postMessage({
 			kind: 'webview.global.setView',
@@ -132,7 +180,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	private __onUpdateJobMessage = async (jobHashes: ReadonlySet<JobHash>) => {
 		for (const jobHash of Array.from(jobHashes)) {
-			const props = await this.getViewData(jobHash);
+			const props = await this.getViewDataForJob(jobHash);
 			if (!props) continue;
 			this._postMessage({
 				kind: 'webview.diffView.updateDiffViewProps',

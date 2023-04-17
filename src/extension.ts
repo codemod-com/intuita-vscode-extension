@@ -166,7 +166,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.openJobDiff',
 			async (jobHash?: JobHash) => {
-				if (!jobHash || !rootPath) return;
+				if (!jobHash || !jobHash[0] || !rootPath) return;
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						{
@@ -179,11 +179,59 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						messageBus,
 						jobManager,
+						caseManager,
 						rootPath,
 					);
 					await panelInstance.render();
-					const viewProps = await panelInstance.getViewData(jobHash);
-					if (!viewProps) return;
+					const viewProps = await panelInstance.getViewDataForJob(
+						jobHash,
+					);
+					if (!viewProps) {
+						return;
+					}
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: [viewProps],
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openCaseDiff',
+			async (caseHash?: ElementHash) => {
+				if (!caseHash || !rootPath) {
+					return;
+				}
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps = await panelInstance.getViewDataForCase(
+						caseHash,
+					);
+
+					if (!viewProps) {
+						return;
+					}
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
@@ -197,6 +245,97 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openCaseByFolderDiff',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null || !rootPath) {
+					return;
+				}
+
+				const jobHashes = [arg0].concat(otherArgs.slice());
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps =
+						await panelInstance.getViewDataForJobsArray(jobHashes);
+
+					if (!viewProps) {
+						return;
+					}
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: viewProps,
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openFolderDiff',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null || !rootPath) {
+					return;
+				}
+
+				const jobHashes = [arg0].concat(otherArgs.slice());
+				try {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					await panelInstance.render();
+					const viewProps =
+						await panelInstance.getViewDataForJobsArray(jobHashes);
+
+					if (!viewProps) {
+						return;
+					}
+					panelInstance.setView({
+						viewId: 'jobDiffView',
+						viewProps: {
+							data: viewProps,
+						},
+					});
+				} catch (err) {
+					console.error(err);
+				}
+			},
+		),
+	);
 	// @TODO split this large file to modules
 
 	/**
@@ -1072,6 +1211,90 @@ export async function activate(context: vscode.ExtensionContext) {
 				caseHash: caseHash as CaseHash,
 			});
 		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.acceptCaseByFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0].concat(otherArgs.slice());
+
+				messageBus.publish({
+					kind: MessageKind.acceptJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectCaseByFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0].concat(otherArgs.slice());
+
+				messageBus.publish({
+					kind: MessageKind.rejectJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.acceptFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0].concat(otherArgs.slice());
+
+				messageBus.publish({
+					kind: MessageKind.acceptJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.rejectFolder',
+			async (arg0, ...otherArgs) => {
+				const firstJobHash: string | null =
+					typeof arg0 === 'string' ? arg0 : null;
+				if (firstJobHash === null) {
+					throw new Error(
+						'Did not pass the jobHashes into the command.',
+					);
+				}
+				const jobHashes = [arg0].concat(otherArgs.slice());
+
+				messageBus.publish({
+					kind: MessageKind.rejectJobs,
+					jobHashes: new Set(jobHashes),
+				});
+			},
+		),
 	);
 
 	context.subscriptions.push(

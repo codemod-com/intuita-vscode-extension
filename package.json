@@ -131,11 +131,27 @@
 				"title": "✓ Apply"
 			},
 			{
+				"command": "intuita.acceptCaseByFolder",
+				"title": "✓ Apply"
+			},
+			{
+				"command": "intuita.acceptFolder",
+				"title": "✓ Apply"
+			},
+			{
 				"command": "intuita.rejectJob",
 				"title": "✗ Dismiss"
 			},
 			{
 				"command": "intuita.rejectCase",
+				"title": "✗ Dismiss"
+			},
+			{
+				"command": "intuita.rejectCaseByFolder",
+				"title": "✗ Dismiss"
+			},
+			{
+				"command": "intuita.rejectFolder",
 				"title": "✗ Dismiss"
 			},
 			{
@@ -285,11 +301,27 @@
 					"when": "false"
 				},
 				{
+					"command": "intuita.acceptCaseByFolder",
+					"when": "false"
+				},
+				{
+					"command": "intuita.acceptFolder",
+					"when": "false"
+				},
+				{
 					"command": "intuita.rejectJob",
 					"when": "false"
 				},
 				{
 					"command": "intuita.rejectCase",
+					"when": "false"
+				},
+				{
+					"command": "intuita.rejectCaseByFolder",
+					"when": "false"
+				},
+				{
+					"command": "intuita.rejectFolder",
 					"when": "false"
 				},
 				{
@@ -414,6 +446,16 @@
 					"group": "inline"
 				},
 				{
+					"command": "intuita.acceptCaseByFolder",
+					"when": "viewItem == caseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.acceptFolder",
+					"when": "viewItem == folderElement",
+					"group": "inline"
+				},
+				{
 					"command": "intuita.rejectJob",
 					"when": "viewItem == jobElement",
 					"group": "inline"
@@ -434,6 +476,26 @@
 					"group": "inline"
 				},
 				{
+					"command": "intuita.rejectCaseByFolder",
+					"when": "viewItem == caseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectCaseByFolder",
+					"when": "viewItem == acceptedCaseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectFolder",
+					"when": "viewItem == folderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.rejectFolder",
+					"when": "viewItem == acceptedFolderElement",
+					"group": "inline"
+				},
+				{
 					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
@@ -444,6 +506,16 @@
 					"group": "inline"
 				},
 				{
+					"command": "intuita.createIssue",
+					"when": "viewItem == acceptedCaseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createIssue",
+					"when": "viewItem == acceptedFolderElement",
+					"group": "inline"
+				},
+				{
 					"command": "intuita.createPR",
 					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
@@ -451,6 +523,16 @@
 				{
 					"command": "intuita.createPR",
 					"when": "viewItem == acceptedCaseElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createPR",
+					"when": "viewItem == acceptedCaseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.createPR",
+					"when": "viewItem == acceptedFolderElement",
 					"group": "inline"
 				}
 			]

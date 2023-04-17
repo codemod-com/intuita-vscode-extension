@@ -10,6 +10,7 @@ type Props = {
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
+	kind: string;
 	onClick(): void;
 	depth: number;
 };
@@ -22,6 +23,7 @@ const TreeItem = ({
 	focused,
 	actionButtons,
 	hasChildren,
+	kind,
 	onClick,
 	depth,
 }: Props) => {
@@ -36,7 +38,15 @@ const TreeItem = ({
 					...(depth > 0 && {
 						// extra margin for job
 						minWidth: `${
-							5 + depth * 16 + (hasChildren ? 0 : 16)
+							5 +
+							depth * 16 +
+							(hasChildren ||
+							[
+								'caseByFolderElement',
+								'acceptedCaseByFolderElement',
+							].includes(kind)
+								? 0
+								: 16)
 						}px`,
 					}),
 				}}
