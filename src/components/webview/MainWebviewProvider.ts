@@ -117,6 +117,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 	private __getTreeByCase = (element: Element): TreeNode => {
 		let mappedNode: TreeNode = {
 			id: element.hash,
+			kind: '',
 		};
 
 		mappedNode.label = 'label' in element ? element.label : 'Recipe';
@@ -154,6 +155,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		const mappedNode: TreeNode = {
 			id: element.hash,
 			iconName: getElementIconBaseName(element.kind),
+			kind: '',
 		};
 
 		if (element.kind === ElementKind.ROOT) {
