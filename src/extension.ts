@@ -218,8 +218,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						rootPath,
 					);
 					await panelInstance.render();
-					const viewProps =
-						await panelInstance.getViewDataForCase(caseHash);
+					const viewProps = await panelInstance.getViewDataForCase(
+						caseHash,
+					);
 
 					if (!viewProps) {
 						return;
@@ -247,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0, otherArgs.slice()];
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						context,
@@ -286,7 +287,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						context,
@@ -1202,7 +1203,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'Did not pass the jobHashes into the command.',
 					);
 				}
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
@@ -1223,7 +1224,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'Did not pass the jobHashes into the command.',
 					);
 				}
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 
 				messageBus.publish({
 					kind: MessageKind.rejectJobs,
@@ -1244,7 +1245,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'Did not pass the jobHashes into the command.',
 					);
 				}
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 
 				messageBus.publish({
 					kind: MessageKind.acceptJobs,
@@ -1265,7 +1266,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'Did not pass the jobHashes into the command.',
 					);
 				}
-				const jobHashes = [arg0, ...otherArgs];
+				const jobHashes = [arg0].concat(otherArgs.slice());
 
 				messageBus.publish({
 					kind: MessageKind.rejectJobs,
