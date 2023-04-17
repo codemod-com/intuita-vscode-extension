@@ -124,7 +124,6 @@ export class RepositoryService {
 		await this.__repo.push(remoteName, branchName, true);
 	}
 
-	// can we use get/set?
 	public setRemoteUrl(remoteUrl: string) {
 		this.__remoteUrl = remoteUrl;
 	}
