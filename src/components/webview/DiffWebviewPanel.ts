@@ -8,6 +8,7 @@ import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
+import { IntuitaProvider } from './MainWebviewProvider';
 
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;
@@ -52,6 +53,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				message.value.command,
 				message.value.arguments,
 			);
+		}
+		if (
+			message.kind === 'intuita.rejectJob' ||
+			message.kind === 'intuita.createIssue' ||
+			message.kind === 'intuita.createPR' ||
+			message.kind === 'intuita.acceptJob'
+		) {
+			commands.executeCommand(message.kind, message.value[0]);
 		}
 	}
 
@@ -138,6 +147,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			oldFileContent,
 			newFileContent,
 			title: getTitle(),
+			actions: IntuitaProvider.getJobActions(
+				jobHash,
+				this.__jobManager,
+			),
 		};
 	}
 
@@ -189,9 +202,22 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	};
 
+	private __onRejectJob = async (jobHashes: ReadonlySet<JobHash>) => {
+		for (const jobHash of jobHashes) {
+			this._postMessage({
+				kind: 'webview.diffview.rejectedJob',
+				data: [jobHash],
+			});
+		}
+	};
+
 	_attachExtensionEventListeners() {
 		this._addHook(MessageKind.jobsAccepted, (message) => {
 			this.__onUpdateJobMessage(message.deletedJobHashes);
+		});
+
+		this._addHook(MessageKind.jobsRejected, (message) => {
+			this.__onRejectJob(message.deletedJobHashes);
 		});
 	}
 }

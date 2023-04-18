@@ -4,17 +4,23 @@ import {
 	View,
 	WebviewMessage,
 	JobDiffViewProps,
-} from '../../../src/components/webview/webviewEvents';
-import { JobDiffView } from './DiffViewer/index';
+	JobAction,
+} from '../shared/types';
+import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 
-const getViewComponent = (view: View) => {
+const getViewComponent = (
+	view: View,
+	postMessage: (arg: JobAction) => void,
+) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
 			const { data } = view.viewProps;
-			return data.map((props) => (
-				<JobDiffView key={props.jobHash} {...props} />
-			));
+
+			return (
+				<JobDiffViewContainer jobs={data} postMessage={postMessage} />
+			);
+
 		default:
 			return null;
 	}
@@ -25,7 +31,6 @@ function App() {
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
-
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
 			}
@@ -42,15 +47,38 @@ function App() {
 				if (jobHash === null) {
 					return;
 				}
+				const dataCopy = [...view.viewProps.data];
 
-				const index = view.viewProps.data
+				const index = dataCopy
 					.slice()
 					.findIndex((element) => element.jobHash === jobHash);
 				if (index === -1) {
 					return;
 				}
-				const viewData = view.viewProps.data.slice();
-				viewData.splice(index, 1, message.data);
+				dataCopy.splice(index, 1, message.data);
+				setView({
+					...view,
+					viewProps: {
+						data: dataCopy,
+					},
+				});
+			}
+			if (
+				message.kind === 'webview.diffview.rejectedJob' &&
+				view?.viewId === 'jobDiffView'
+			) {
+				const jobHash = message.data[0];
+				if (!jobHash) {
+					return;
+				}
+				const viewData = [...view?.viewProps?.data];
+				const index = viewData.findIndex(
+					(el) => el.jobHash === jobHash,
+				);
+				if (index === -1) {
+					return;
+				}
+				viewData.splice(index, 1);
 				setView({
 					...view,
 					viewProps: {
@@ -74,11 +102,18 @@ function App() {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
+	const postMessage = (event: JobAction) => {
+		vscode.postMessage({
+			kind: event.command,
+			value: event.arguments,
+		});
+	};
+
 	if (!view) {
 		return null;
 	}
 
-	return <main className="App">{getViewComponent(view)}</main>;
+	return <main className="App">{getViewComponent(view, postMessage)}</main>;
 }
 export type { JobDiffViewProps };
 export default App;

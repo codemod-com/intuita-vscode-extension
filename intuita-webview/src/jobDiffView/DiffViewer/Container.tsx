@@ -1,10 +1,12 @@
 import React, { forwardRef } from 'react';
 import {
+	VSCodeButton,
 	VSCodeCheckbox,
 	VSCodeDropdown,
 	VSCodeOption,
 } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
+import { JobAction, JobDiffViewProps } from '../../shared/types';
 
 type ContainerProps = Readonly<{
 	oldFileName: string | null;
@@ -69,6 +71,8 @@ type HeaderProps = Readonly<{
 	viewed?: boolean;
 	onViewedChange: () => void;
 	children?: React.ReactNode;
+	actions: JobDiffViewProps['actions'];
+	onAction: (arg: JobAction) => void;
 }>;
 
 export const Header = ({
@@ -76,20 +80,40 @@ export const Header = ({
 	children,
 	viewed,
 	onViewedChange,
+	actions,
+	onAction,
 }: HeaderProps) => {
 	return (
 		<div className="f p-10 flex  w-full items-center container-header">
 			<div className="flex flex-row flex-1  justify-between flex-wrap">
 				<h3 className="my-0 ml-3 align-self-center"> {title} </h3>
+
 				<div
-					className="flex ml-10 justify-between checkbox-container items-center"
+					className="flex gap-4"
 					onClick={(e) => {
 						e.stopPropagation();
-						onViewedChange();
 					}}
 				>
-					<VSCodeCheckbox checked={viewed} />
-					<p className="my-0 ml-10">Viewed</p>
+					{actions &&
+						actions?.map((el) => (
+							<VSCodeButton
+								onClick={() => onAction(el)}
+								appearance="secondary"
+								key={el.command}
+							>
+								{el.title}
+							</VSCodeButton>
+						))}
+					<div
+						className="flex ml-10 justify-between checkbox-container items-center"
+						onClick={(e) => {
+							e.stopPropagation();
+							onViewedChange();
+						}}
+					>
+						<VSCodeCheckbox checked={viewed} />
+						<p className="my-0 ml-10">Viewed</p>
+					</div>
 				</div>
 			</div>
 			{children}
