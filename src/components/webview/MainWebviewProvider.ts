@@ -253,18 +253,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 							command: 'intuita.rejectFolder',
 							arguments: existingJobHashes,
 						},
-						{
-							title: 'Issue',
-							command: 'intuita.createIssue',
-							// TODO support creating issue by folder
-							arguments: existingJobHashes,
-						},
-						{
-							title: 'PR',
-							command: 'intuita.createPR',
-							// TODO support creating PR by folder
-							arguments: existingJobHashes,
-						},
 					];
 				}
 
@@ -780,18 +768,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 				{
 					title: '✗ Dismiss',
 					command: 'intuita.rejectCaseByFolder',
-					arguments: updatedJobHashes,
-				},
-				{
-					title: 'Issue',
-					command: 'intuita.createIssue',
-					// TODO support creating issue by folder
-					arguments: updatedJobHashes,
-				},
-				{
-					title: 'PR',
-					command: 'intuita.createPR',
-					// TODO support creating PR by folder
 					arguments: updatedJobHashes,
 				},
 			];
