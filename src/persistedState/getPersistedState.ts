@@ -2,10 +2,6 @@ import prettyReporter from 'io-ts-reporters';
 import { FileSystem, Uri } from 'vscode';
 import { PersistedState, persistedStateCodec } from './codecs';
 
-const defaultState = {
-	remoteUrl: null,
-};
-
 export const getPersistedState = async (
 	fileSystem: FileSystem,
 	getStorageUri: () => Uri | null,
@@ -32,10 +28,7 @@ export const getPersistedState = async (
 		const str = buffer.toString();
 		const json = JSON.parse(str);
 
-		const persistedStateEither = persistedStateCodec.decode({
-			...defaultState,
-			...json,
-		});
+		const persistedStateEither = persistedStateCodec.decode(json);
 
 		if (persistedStateEither._tag === 'Left') {
 			const report = prettyReporter.report(persistedStateEither);
