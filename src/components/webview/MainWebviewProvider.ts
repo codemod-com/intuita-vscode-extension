@@ -8,6 +8,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
+	JobActionCommands,
 	TreeNode,
 	View,
 	WebviewMessage,
@@ -554,18 +555,56 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 
+	public static getActionsForJob = (
+		jobHash: JobHash,
+		jobManager: JobManager,
+	): {
+		title: string;
+		command: JobActionCommands;
+		arguments: JobHash[];
+	}[] => {
+		if (jobManager.isJobAccepted(jobHash)) {
+			return [
+				{
+					title: '✗ Dismiss',
+					command: 'intuita.rejectJob',
+					arguments: [jobHash],
+				},
+				{
+					title: 'Issue',
+					command: 'intuita.createIssue',
+					arguments: [jobHash],
+				},
+				{
+					title: 'PR',
+					command: 'intuita.createPR',
+					arguments: [jobHash],
+				},
+			];
+		}
+		return [
+			{
+				title: '✓ Apply',
+				command: 'intuita.acceptJob',
+				arguments: [jobHash],
+			},
+			{
+				title: '✗ Dismiss',
+				command: 'intuita.rejectJob',
+				arguments: [jobHash],
+			},
+		];
+	};
+
 	private __buildJobTree = (element: JobElement): TreeNode => {
 		const mappedNode: TreeNode = {
 			id: element.hash,
 			kind: 'jobElement',
-			actions: [
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectJob',
-					arguments: [element.job.hash],
-				},
-			],
 			children: [],
+			actions: IntuitaProvider.getActionsForJob(
+				element.job.hash,
+				this.__jobManager,
+			),
 		};
 
 		if (element.job.kind === JobKind.rewriteFile) {
@@ -618,14 +657,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		if (this.__jobManager.isJobAccepted(element.jobHash)) {
 			mappedNode.kind = 'acceptedJobElement';
-
-			mappedNode.actions = [
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectJob',
-					arguments: [element.hash],
-				},
-			];
 		}
 		return mappedNode;
 	};

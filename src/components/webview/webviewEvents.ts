@@ -3,6 +3,16 @@ import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 
+export type JobActionCommands =
+	| 'intuita.rejectJob'
+	| 'intuita.createIssue'
+	| 'intuita.createPR'
+	| 'intuita.acceptJob';
+export type JobAction = {
+	title: string;
+	command: JobActionCommands;
+	arguments: JobHash[];
+};
 export type JobDiffViewProps = Readonly<{
 	jobHash: JobHash;
 	jobKind: JobKind;
@@ -11,6 +21,7 @@ export type JobDiffViewProps = Readonly<{
 	oldFileTitle: string | null;
 	newFileTitle: string | null;
 	title: string | null;
+	actions?: JobAction[];
 }>;
 
 export type TreeNode = {
@@ -65,6 +76,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.diffView.updateDiffViewProps';
 			data: JobDiffViewProps;
+	  }>
+	| Readonly<{
+			kind: 'webview.diffview.rejectedJob';
+			data: [JobHash];
 	  }>;
 
 export type WebviewResponse =
@@ -116,6 +131,10 @@ export type WebviewResponse =
 				body: string;
 				remoteUrl: string;
 			};
+	  }>
+	| Readonly<{
+			kind: JobActionCommands;
+			value: JobHash[];
 	  }>;
 
 export type View =
