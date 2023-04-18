@@ -108,7 +108,7 @@ export type WebviewResponse =
 			value: Command;
 	  }>
 	| Readonly<{
-			kind: 'webview.createPR.afterFormDataChanged';
+			kind: 'webview.createPR.formDataChanged';
 			value: {
 				baseBranch: string;
 				targetBranch: string;

@@ -75,7 +75,7 @@ const CreatePR = ({
 			setFormData(nextFormData);
 
 			vscode.postMessage({
-				kind: 'webview.createPR.afterFormDataChanged',
+				kind: 'webview.createPR.formDataChanged',
 				value: nextFormData,
 			});
 		};

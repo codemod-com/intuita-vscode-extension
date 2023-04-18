@@ -20,10 +20,6 @@ const branchNameFromStr = (str: string): string => {
 	return branchName;
 };
 
-type PersistedState = {
-	remoteUrl: string | null;
-} | null;
-
 export class RepositoryService {
 	__repo: Repository | null = null;
 	__remoteUrl: string | null = null;
@@ -31,28 +27,26 @@ export class RepositoryService {
 	constructor(
 		private readonly __gitAPI: API | null,
 		private readonly __messageBus: MessageBus,
-		persistedState: PersistedState,
+		remoteUrl: string | null,
 	) {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 
 		if (this.__gitAPI?.state === 'initialized') {
-			this.__init(persistedState);
+			this.__init(remoteUrl);
 		}
 
 		this.__gitAPI?.onDidChangeState((state) => {
 			if (state !== 'initialized') {
 				return;
 			}
-			this.__init(persistedState);
+			this.__init(remoteUrl);
 		});
 	}
 
-	private __init(persistedState: PersistedState): void {
+	private __init(remoteUrl: string | null): void {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 		this.__remoteUrl =
-			persistedState?.remoteUrl ??
-			this.__repo?.state.remotes[0]?.pushUrl ??
-			null;
+			remoteUrl ?? this.__repo?.state.remotes[0]?.pushUrl ?? null;
 		this.__messageBus.publish({
 			kind: MessageKind.repositoryPathChanged,
 			repositoryPath: this.__remoteUrl,
