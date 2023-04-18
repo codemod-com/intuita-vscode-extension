@@ -15,7 +15,6 @@ export const JobDiffView = ({
 	title,
 }: JobDiffViewProps) => {
 	const collapsableRef = useRef<CollapsableRefMethods>(null);
-	const mountedRef = useRef(false);
 	const [viewType, setViewType] = useState<'inline' | 'side-by-side'>(() => {
 		return [
 			JobKind.copyFile,
@@ -33,19 +32,12 @@ export const JobDiffView = ({
 	}, [setVisible]);
 
 	useEffect(() => {
-		if (!mountedRef.current) {
-			return;
-		}
 		if (isVisible) {
 			collapsableRef.current?.expand();
 		} else {
 			collapsableRef.current?.collapse();
 		}
 	}, [isVisible]);
-
-	useEffect(() => {
-		mountedRef.current = true;
-	}, []);
 
 	return (
 		<Collapsable
