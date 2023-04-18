@@ -1,7 +1,4 @@
-import { useRef } from 'react';
-import ReactDiffViewer from 'react-diff-viewer-continued';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { useElementSize } from '../hooks/useElementSize';
+import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { JobDiffViewProps } from '../App';
 
 export const DiffViewer = ({
@@ -9,73 +6,21 @@ export const DiffViewer = ({
 	newFileContent,
 	viewType,
 }: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const { width: containerWidth } =
-		useElementSize<HTMLDivElement>(containerRef);
-
-	const renderContent = (value: string) => {
-		return (
-			<SyntaxHighlighter
-				customStyle={{
-					backgroundColor: 'transparent',
-					padding: '0px',
-					margin: '0px',
-					fontSize: 'var(--vscode-editor-font-size)',
-					fontFamily: 'var(--vscode-editor-font-family)',
-					overflowX: 'hidden',
-				}}
-				useInlineStyles={true}
-				wrapLongLines={true}
-				wrapLines={true}
-				language="javascript"
-			>
-				{value}
-			</SyntaxHighlighter>
-		);
-	};
-
 	return (
-		<div className="w-full" ref={containerRef}>
-			<ReactDiffViewer
-				styles={{
-					diffContainer: {
-						overflowX: 'auto',
-						display: 'block',
-						width: containerWidth ?? 0,
-					},
-					line: {
-						whiteSpace: 'normal',
-						wordBreak: 'break-word',
-					},
-					gutter: {
-						width: 50,
-						minWidth: 50,
-						padding: 0,
-					},
-					lineNumber: {
-						width: 40,
-						padding: 0,
-					},
-					content: {
-						width:
-							viewType === 'side-by-side'
-								? (containerWidth ?? 0) / 2 - 90
-								: containerWidth ?? 0 - 180,
-						overflowX: 'auto',
-						display: 'block',
-						'& pre': { whiteSpace: 'pre' },
-					},
+		<div className="w-full">
+			<MonacoDiffEditor
+				options={{
+					readOnly: true,
+					renderSideBySide: viewType === 'side-by-side',
+					wrappingStrategy: 'advanced',
+					scrollBeyondLastLine: false,
+					diffAlgorithm: 'smart',
 				}}
-				showDiffOnly={true}
-				renderContent={renderContent}
-				oldValue={oldFileContent ?? ''}
-				codeFoldMessageRenderer={(total) => (
-					<p className="text-center">
-						{`Expand to show ${total} lines `}
-					</p>
-				)}
-				newValue={newFileContent ?? ''}
-				splitView={viewType === 'side-by-side'}
+				height="90vh"
+				loading={<div>Loading content ...</div>}
+				modified={newFileContent ?? undefined}
+				original={oldFileContent ?? undefined}
+				language="typescript"
 			/>
 		</div>
 	);
