@@ -411,7 +411,7 @@ export class JobManager {
 	}
 
 	public async refreshStaleJobs(storageUri: Uri): Promise<void> {
-		const staleJobs = await this.getStaleJobs();
+		const staleJobs = await this.__getStaleJobs();
 		const codemodsWithFilePaths: Record<string, Uri[]> = {};
 
 		staleJobs.forEach((staleJob) => {
@@ -443,14 +443,12 @@ export class JobManager {
 			}),
 		);
 
-		console.log(messages);
-
-		// for (const message of messages) {
-		// 	this.#messageBus.publish(message);
-		// }
+		for (const message of messages) {
+			this.#messageBus.publish(message);
+		}
 	}
 
-	public async getStaleJobs(): Promise<Job[]> {
+	private async __getStaleJobs(): Promise<Job[]> {
 		const allJobs = this.getJobs();
 		const modifiedFilesMap = new Map<Uri, number>();
 		const staleJobs: Job[] = [];

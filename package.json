@@ -50,7 +50,7 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.refreshStaleJobs",
+				"command": "intuita.refreshJobs",
 				"title": "Intuita: Refresh stale jobs"
 			},
 			{

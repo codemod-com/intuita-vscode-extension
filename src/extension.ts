@@ -388,19 +388,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(view);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.refreshStaleJobs',
-			async () => {
-				const { storageUri } = context;
+		vscode.commands.registerCommand('intuita.refreshJobs', async () => {
+			const { storageUri } = context;
 
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
+			if (!storageUri) {
+				console.error('No storage URI, aborting the command.');
+				return;
+			}
 
-				jobManager.refreshStaleJobs(storageUri);
-			},
-		),
+			jobManager.refreshStaleJobs(storageUri);
+		}),
 	);
 
 	context.subscriptions.push(
