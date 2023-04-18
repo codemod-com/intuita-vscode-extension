@@ -636,7 +636,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 					title: '✗ Dismiss',
 					command: 'intuita.rejectJob',
 					arguments: [element.hash],
-				}
+				},
 			];
 		}
 		return mappedNode;
