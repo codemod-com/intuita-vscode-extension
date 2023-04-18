@@ -572,11 +572,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 			kind: 'jobElement',
 			actions: [
 				{
-					title: '✓ Apply',
-					command: 'intuita.acceptJob',
-					arguments: [element.job.hash],
-				},
-				{
 					title: '✗ Dismiss',
 					command: 'intuita.rejectJob',
 					arguments: [element.job.hash],
@@ -641,17 +636,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 					title: '✗ Dismiss',
 					command: 'intuita.rejectJob',
 					arguments: [element.hash],
-				},
-				{
-					title: 'Issue',
-					command: 'intuita.createIssue',
-					arguments: [element.job.hash],
-				},
-				{
-					title: 'PR',
-					command: 'intuita.createPR',
-					arguments: [element.job.hash],
-				},
+				}
 			];
 		}
 		return mappedNode;
