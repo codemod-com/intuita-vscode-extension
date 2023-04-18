@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { JobKind } from '../../shared/constants';
@@ -15,6 +15,7 @@ export const JobDiffView = ({
 	title,
 }: JobDiffViewProps) => {
 	const collapsableRef = useRef<CollapsableRefMethods>(null);
+	const mountedRef = useRef(false);
 	const [viewType, setViewType] = useState<'inline' | 'side-by-side'>(() => {
 		return [
 			JobKind.copyFile,
@@ -28,15 +29,23 @@ export const JobDiffView = ({
 	const [isVisible, setVisible] = useState(true);
 
 	const toggleViewed = useCallback(() => {
-		setVisible((v) => {
-			if (v) {
-				collapsableRef.current?.collapse();
-			} else {
-				collapsableRef.current?.expand();
-			}
-			return !v;
-		});
+		setVisible((v) => !v);
 	}, [setVisible]);
+
+	useEffect(() => {
+		if (!mountedRef.current) {
+			return;
+		}
+		if (isVisible) {
+			collapsableRef.current?.expand();
+		} else {
+			collapsableRef.current?.collapse();
+		}
+	}, [isVisible]);
+
+	useEffect(() => {
+		mountedRef.current = true;
+	}, []);
 
 	return (
 		<Collapsable
