@@ -55,7 +55,7 @@ import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-import { getCaseUniqueName } from './cases/getCaseUniqueName';
+import { buildCaseName } from './cases/buildCaseName';
 
 const messageBus = new MessageBus();
 
@@ -464,13 +464,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Nothing to commit');
 				}
 
-				const theCase = caseManager.getCase(caseHash as CaseHash);
+				const kase = caseManager.getCase(caseHash as CaseHash);
 
-				if (!theCase) {
+				if (!kase) {
 					throw new Error('Case not found');
 				}
 
-				const caseUniqueName = getCaseUniqueName(theCase);
+				const caseUniqueName = buildCaseName(kase);
 				const targetBranchName =
 					repositoryService.getBranchName(caseUniqueName);
 
@@ -481,7 +481,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to get the base branch');
 				}
 
-				const title = `${theCase.codemodSetName}: ${theCase.codemodName}`;
+				const title = `${kase.codemodSetName}: ${kase.codemodName}`;
 				const body = 'Add description';
 
 				const initialData = {
@@ -1216,7 +1216,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			const stackedBranchesEmpty =
-				repositoryService.isStackedBranchesEmpty();
+				repositoryService.areStackedBranchesEmpty();
 			const currentBranch = repositoryService.getCurrentBranch();
 
 			if (!currentBranch?.name) {
@@ -1230,13 +1230,13 @@ export async function activate(context: vscode.ExtensionContext) {
 			/**
 			 * checkout the branch before applying changes to the file system
 			 */
-			const theCase = caseManager.getCase(caseHash as CaseHash);
+			const kase = caseManager.getCase(caseHash as CaseHash);
 
-			if (!theCase) {
+			if (!kase) {
 				throw new Error('Case not found');
 			}
 
-			const caseUniqueName = getCaseUniqueName(theCase);
+			const caseUniqueName = buildCaseName(kase);
 			const branchName = repositoryService.getBranchName(caseUniqueName);
 			await repositoryService.createOrCheckoutBranch(branchName);
 			repositoryService.addStackedBranch(branchName);

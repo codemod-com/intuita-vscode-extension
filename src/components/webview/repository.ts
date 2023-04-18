@@ -44,7 +44,7 @@ export class RepositoryService {
 		});
 	}
 
-	public isStackedBranchesEmpty() {
+	public areStackedBranchesEmpty() {
 		return this.__stackedBranches.length === 0;
 	}
 
@@ -95,9 +95,7 @@ export class RepositoryService {
 		);
 	}
 
-	public getBranchName(str: string): string {
-		return branchNameFromStr(str);
-	}
+	public getBranchName = (str: string): string => branchNameFromStr(str);
 
 	public async getBranch(branchName: string): Promise<Branch | null> {
 		if (this.__repo === null) {
@@ -111,7 +109,7 @@ export class RepositoryService {
 		}
 	}
 
-	public async isBranchExists(branchName: string): Promise<boolean> {
+	public async doesBranchExist(branchName: string): Promise<boolean> {
 		const branch = await this.getBranch(branchName);
 		return branch !== null;
 	}
@@ -121,7 +119,7 @@ export class RepositoryService {
 			return;
 		}
 
-		const branchAlreadyExists = await this.isBranchExists(branchName);
+		const branchAlreadyExists = await this.doesBranchExist(branchName);
 
 		if (branchAlreadyExists) {
 			await this.__repo.checkout(branchName);
@@ -139,9 +137,9 @@ export class RepositoryService {
 			return;
 		}
 
-		const branchAlreadyExists = await this.isBranchExists(branchName);
+		const branchExists = await this.doesBranchExist(branchName);
 
-		if (branchAlreadyExists) {
+		if (branchExists) {
 			await this.__repo.checkout(branchName);
 		} else {
 			await this.__repo.createBranch(branchName, true);
