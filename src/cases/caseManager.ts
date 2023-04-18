@@ -48,6 +48,10 @@ export class CaseManager {
 		return this.#cases.get(caseHash);
 	}
 
+	public getCaseCount(): number {
+		return this.#cases.size;
+	}
+
 	public getCaseHashJobHashSetValues(): IterableIterator<string> {
 		return this.#caseHashJobHashSetManager.getSetValues();
 	}

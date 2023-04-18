@@ -23,6 +23,7 @@ const branchNameFromStr = (str: string): string => {
 export class RepositoryService {
 	__repo: Repository | null = null;
 	__remoteUrl: string | null = null;
+	__stackedBranches: string[] = [];
 
 	constructor(
 		private readonly __gitAPI: API | null,
@@ -41,6 +42,24 @@ export class RepositoryService {
 			}
 			this.__init(remoteUrl);
 		});
+	}
+
+	public isStackedBranchesEmpty() {
+		return this.__stackedBranches.length === 0;
+	}
+
+	public addStackedBranch(branchName: string): string[] {
+		this.__stackedBranches.push(branchName);
+
+		return this.__stackedBranches;
+	}
+
+	public getStackedBranchBase(branchName: string): string | null {
+		const branchIndex = this.__stackedBranches.findIndex(
+			(name) => name === branchName,
+		);
+
+		return this.__stackedBranches[branchIndex - 1] ?? null;
 	}
 
 	private __init(remoteUrl: string | null): void {

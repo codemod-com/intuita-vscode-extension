@@ -466,14 +466,22 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const theCase = caseManager.getCase(caseHash as CaseHash);
 
-				if(!theCase) {
+				if (!theCase) {
 					throw new Error('Case not found');
 				}
 
 				const caseUniqueName = getCaseUniqueName(theCase);
-				const targetBranchName = repositoryService.getBranchName(caseUniqueName);
+				const targetBranchName =
+					repositoryService.getBranchName(caseUniqueName);
 
-				const title = caseUniqueName;
+				const baseBranchName =
+					repositoryService.getStackedBranchBase(targetBranchName);
+
+				if (!baseBranchName) {
+					throw new Error('Unable to get the base branch');
+				}
+
+				const title = `${theCase.codemodSetName}: ${theCase.codemodName}`;
 				const body = 'Add description';
 
 				const initialData = {
@@ -493,11 +501,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					messageBus,
 				);
 
-
-
 				await panelInstance.render();
-
-				const currentBranchName = currentBranch.name ?? '';
 
 				const remotes = repositoryService.getRemotes();
 				const remoteOptions = (remotes ?? [])
@@ -517,9 +521,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				// @TODO need to check this each time use switches remote
 				const pullRequestAlreadyExists = pullRequest !== null;
-				const baseBranchName = pullRequestAlreadyExists
-					? pullRequest.base.ref
-					: currentBranchName;
 
 				panelInstance.setView({
 					viewId: 'upsertPullRequest',
@@ -1214,19 +1215,31 @@ export async function activate(context: vscode.ExtensionContext) {
 				throw new Error('Did not pass the caseHash into the command.');
 			}
 
+			const stackedBranchesEmpty =
+				repositoryService.isStackedBranchesEmpty();
+			const currentBranch = repositoryService.getCurrentBranch();
+
+			if (!currentBranch?.name) {
+				throw new Error('Unable to detect current branch');
+			}
+
+			if (stackedBranchesEmpty) {
+				repositoryService.addStackedBranch(currentBranch.name);
+			}
 
 			/**
 			 * checkout the branch before applying changes to the file system
 			 */
-			const theCase  = caseManager.getCase(caseHash as CaseHash);
+			const theCase = caseManager.getCase(caseHash as CaseHash);
 
-			if(!theCase) {
+			if (!theCase) {
 				throw new Error('Case not found');
 			}
 
 			const caseUniqueName = getCaseUniqueName(theCase);
-			const branch = repositoryService.getBranchName(caseUniqueName);
-			await repositoryService.createOrCheckoutBranch(branch);
+			const branchName = repositoryService.getBranchName(caseUniqueName);
+			await repositoryService.createOrCheckoutBranch(branchName);
+			repositoryService.addStackedBranch(branchName);
 
 			messageBus.publish({
 				kind: MessageKind.acceptCase,

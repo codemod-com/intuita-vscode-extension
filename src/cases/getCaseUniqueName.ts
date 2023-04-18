@@ -1,5 +1,5 @@
-import { Case } from "./types"
+import { Case } from './types';
 
 export const getCaseUniqueName = (kase: Case): string => {
-    return `${kase.hash}_${kase.codemodName}`;
-}
+	return `${kase.hash}_${kase.codemodName}`;
+};
