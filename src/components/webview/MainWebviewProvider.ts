@@ -555,7 +555,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 
-	public static getActionsForJob = (
+	public static getJobActions = (
 		jobHash: JobHash,
 		jobManager: JobManager,
 	): {
@@ -601,7 +601,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			id: element.hash,
 			kind: 'jobElement',
 			children: [],
-			actions: IntuitaProvider.getActionsForJob(
+			actions: IntuitaProvider.getJobActions(
 				element.job.hash,
 				this.__jobManager,
 			),
