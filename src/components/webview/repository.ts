@@ -76,8 +76,8 @@ export class RepositoryService {
 		);
 	}
 
-	public getBranchName(jobHash: string, jobTitle: string): string {
-		return branchNameFromStr(`${jobTitle}-${jobHash}`);
+	public getBranchName(str: string): string {
+		return branchNameFromStr(str);
 	}
 
 	public async getBranch(branchName: string): Promise<Branch | null> {
@@ -97,10 +97,25 @@ export class RepositoryService {
 		return branch !== null;
 	}
 
+	public async createOrCheckoutBranch(branchName: string): Promise<void> {
+		if (this.__repo === null) {
+			return;
+		}
+
+		const branchAlreadyExists = await this.isBranchExists(branchName);
+
+		if (branchAlreadyExists) {
+			await this.__repo.checkout(branchName);
+		} else {
+			await this.__repo.createBranch(branchName, true);
+		}
+	}
+
 	public async submitChanges(
 		branchName: string,
 		remoteName: string,
 	): Promise<void> {
+		// this should throw instead returning undefined
 		if (this.__repo === null) {
 			return;
 		}
