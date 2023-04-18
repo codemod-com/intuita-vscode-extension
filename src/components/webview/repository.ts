@@ -1,25 +1,6 @@
 import { API, Repository, Branch, Change, Remote } from '../../types/git';
 import { MessageBus, MessageKind } from '../messageBus';
 
-const branchNameFromStr = (str: string): string => {
-	let branchName = str
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9-]/g, '-')
-		.replace(/--+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	if (branchName.length > 63) {
-		branchName = branchName.substr(0, 63);
-	}
-
-	if (!/^[a-z0-9]/.test(branchName)) {
-		branchName = 'x-' + branchName;
-	}
-
-	return branchName;
-};
-
 export class RepositoryService {
 	__repo: Repository | null = null;
 	__remoteUrl: string | null = null;
