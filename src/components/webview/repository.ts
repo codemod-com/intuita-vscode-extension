@@ -48,10 +48,8 @@ export class RepositoryService {
 		return this.__stackedBranches.length === 0;
 	}
 
-	public addStackedBranch(branchName: string): string[] {
+	public addStackedBranch(branchName: string): void {
 		this.__stackedBranches.push(branchName);
-
-		return this.__stackedBranches;
 	}
 
 	public getStackedBranchBase(branchName: string): string | null {
@@ -94,8 +92,6 @@ export class RepositoryService {
 			this.__repo.state.workingTreeChanges.length !== 0
 		);
 	}
-
-	public getBranchName = (str: string): string => branchNameFromStr(str);
 
 	public async getBranch(branchName: string): Promise<Branch | null> {
 		if (this.__repo === null) {

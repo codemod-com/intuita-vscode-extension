@@ -24,7 +24,11 @@ import {
 	dependencyNameToRecipeName,
 	InformationMessageService,
 } from './components/informationMessageService';
-import { buildTypeCodec, isNeitherNullNorUndefined } from './utilities';
+import {
+	branchNameFromStr,
+	buildTypeCodec,
+	isNeitherNullNorUndefined,
+} from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
@@ -471,8 +475,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const caseUniqueName = buildCaseName(kase);
-				const targetBranchName =
-					repositoryService.getBranchName(caseUniqueName);
+				const targetBranchName = branchNameFromStr(caseUniqueName);
 
 				const baseBranchName =
 					repositoryService.getStackedBranchBase(targetBranchName);
@@ -1237,7 +1240,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 
 			const caseUniqueName = buildCaseName(kase);
-			const branchName = repositoryService.getBranchName(caseUniqueName);
+			const branchName = branchNameFromStr(caseUniqueName);
 			await repositoryService.createOrCheckoutBranch(branchName);
 			repositoryService.addStackedBranch(branchName);
 
