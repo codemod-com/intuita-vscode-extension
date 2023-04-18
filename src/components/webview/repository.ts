@@ -119,9 +119,9 @@ export class RepositoryService {
 			return;
 		}
 
-		const branchAlreadyExists = await this.doesBranchExist(branchName);
+		const branchExists = await this.doesBranchExist(branchName);
 
-		if (branchAlreadyExists) {
+		if (branchExists) {
 			await this.__repo.checkout(branchName);
 		} else {
 			await this.__repo.createBranch(branchName, true);
@@ -137,13 +137,7 @@ export class RepositoryService {
 			return;
 		}
 
-		const branchExists = await this.doesBranchExist(branchName);
-
-		if (branchExists) {
-			await this.__repo.checkout(branchName);
-		} else {
-			await this.__repo.createBranch(branchName, true);
-		}
+		this.createOrCheckoutBranch(branchName);
 
 		await this.__repo.add([]);
 		await this.__repo.commit('Test commit', { all: true });
