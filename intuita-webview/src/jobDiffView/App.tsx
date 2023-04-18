@@ -24,14 +24,14 @@ function App() {
 	const [view, setView] = useState<View | null>(null);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
-			if (view === null) {
-				return;
-			}
-
 			const { data: message } = event;
 
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
+			}
+
+			if (view === null) {
+				return;
 			}
 
 			if (
@@ -49,9 +49,8 @@ function App() {
 				if (index === -1) {
 					return;
 				}
-				const viewData = view.viewProps.data
-					.slice()
-					.splice(index, 1, message.data);
+				const viewData = view.viewProps.data.slice();
+				viewData.splice(index, 1, message.data);
 				setView({
 					...view,
 					viewProps: {
