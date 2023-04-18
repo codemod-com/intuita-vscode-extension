@@ -66,9 +66,16 @@ export class WebviewResolver {
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
+					<style>
+					 .placeholder {
+						text-align: center;
+					 }
+					</style>
 				</head>
 				<body>
-					<div id="root"></div>
+					<div id="root">
+						<h1 class="placeholder">Loading...</h1>
+					</div>
 					<script nonce="${nonce}">
 					window.INITIAL_STATE=${initialData}
 					</script>
