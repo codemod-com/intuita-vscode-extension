@@ -38,7 +38,12 @@ export class RepositoryService {
 			(name) => name === branchName,
 		);
 
+		console.log(this.__stackedBranches, 'test');
 		return this.__stackedBranches[branchIndex - 1] ?? null;
+	}
+
+	public getStackedBranches(): string[] {
+		return this.__stackedBranches.slice(1);
 	}
 
 	private __init(remoteUrl: string | null): void {

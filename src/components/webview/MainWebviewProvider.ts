@@ -45,6 +45,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { JobElement } from '../../elements/types';
+import { SourceControlService } from './sourceControl';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 const ROOT_FOLDER_KEY = '/';
@@ -58,12 +59,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
+	__hasUnsavedChanges = false;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __sourceControl: SourceControlService
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -440,6 +443,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				? this.__getTreeByCase(rootElement)
 				: this.__getTreeByDirectory(rootElement);
 
+		console.log(tree, 'tree');
 		if (tree) {
 			this.setView({
 				viewId: 'treeView',
@@ -490,6 +494,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				? this.__getTreeByCase(rootElement)
 				: this.__getTreeByDirectory(rootElement);
 
+		console.log(tree,this.__viewBreakdown, 'tree');
 		if (tree) {
 			this.setView({
 				viewId: 'treeView',
@@ -500,13 +505,22 @@ export class IntuitaProvider implements WebviewViewProvider {
 		}
 	}
 
+
+	private async __onElementsUpdated() {
+		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
+		this.__hasUnsavedChanges = unsavedBranches.length !== 0;
+		this.__onUpdateElementsMessage();
+	}
+
 	private __attachExtensionEventListeners() {
 		const debouncedOnUpdateElementsMessage = debounce(() => {
 			this.__onUpdateElementsMessage();
+			this.__onElementsUpdated();
 		}, 100);
 
-		this.__addHook(MessageKind.updateElements, (message) =>
-			debouncedOnUpdateElementsMessage(message),
+		this.__addHook(MessageKind.updateElements, (message) => {
+			debouncedOnUpdateElementsMessage(message);
+			}
 		);
 
 		this.__addHook(MessageKind.clearState, () =>
@@ -523,6 +537,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
+		console.log(message, 'test');
+
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'intuita.openJobDiff') {
 				const args = message.value.arguments;
@@ -662,6 +678,23 @@ export class IntuitaProvider implements WebviewViewProvider {
 	};
 
 	private __buildCaseTree = (element: CaseElement): TreeNode => {
+
+		const actions = [
+			{
+				title: '✗ Dismiss',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
+		]
+
+		if(!this.__hasUnsavedChanges) {
+			actions.push({
+				title: '✓ Apply',
+				command: 'intuita.acceptCase',
+				arguments: [element.hash],
+			})
+		}
+
 		const mappedNode: TreeNode = {
 			id: element.hash,
 			kind: 'caseElement',
@@ -670,20 +703,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 				command: 'intuita.openCaseDiff',
 				arguments: [element.hash],
 			},
-			actions: [
-				{
-					title: '✓ Apply',
-					command: 'intuita.acceptCase',
-					arguments: [element.hash],
-				},
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCase',
-					arguments: [element.hash],
-				},
-			],
+			actions,
 			children: [],
 		};
+
+		
 
 		const caseJobHashes = this.__caseManager.getJobHashes([
 			String(element.hash) as CaseHash,
@@ -713,6 +737,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			];
 		}
+
 		return mappedNode;
 	};
 

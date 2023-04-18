@@ -370,6 +370,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const sourceControl = new SourceControlService(
 		globalStateAccountStorage,
 		messageBus,
+		repositoryService,
 	);
 
 	const intuitaWebviewProvider = new IntuitaProvider(
@@ -377,6 +378,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
+		sourceControl
 	);
 
 	const viewExplorer = vscode.window.registerWebviewViewProvider(
@@ -1211,11 +1213,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
-			const caseHash: string | null =
+			try {
+				const caseHash: string | null =
 				typeof arg0 === 'string' ? arg0 : null;
 
 			if (caseHash === null) {
 				throw new Error('Did not pass the caseHash into the command.');
+			}
+
+			const unsavedBranches = await sourceControl.getUnsavedBranches();
+			
+			if(unsavedBranches.length !== 0) {
+				throw new Error('Submit the changes before applying this case');
 			}
 
 			const stackedBranchesEmpty =
@@ -1248,6 +1257,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.acceptCase,
 				caseHash: caseHash as CaseHash,
 			});
+			} catch (e) {
+				vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
+			}
 		}),
 	);
 
