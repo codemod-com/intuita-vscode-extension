@@ -73,11 +73,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
 	);
+	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		persistedState?.acceptedJobsHashes as JobHash[],
 		messageBus,
+		fileSystemUtilities,
 	);
 
 	const caseManager = new CaseManager(
@@ -114,8 +116,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			new CodemodExecutionProgressWebviewViewProvider(messageBus),
 		),
 	);
-
-	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,
@@ -386,6 +386,22 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(view);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.refreshStaleJobs',
+			async () => {
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
+
+				jobManager.refreshStaleJobs(storageUri);
+			},
+		),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {

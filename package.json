@@ -50,6 +50,10 @@
 		],
 		"commands": [
 			{
+				"command": "intuita.refreshStaleJobs",
+				"title": "Intuita: Refresh stale jobs"
+			},
+			{
 				"command": "intuita.createPR",
 				"title": "Intuita: Create a Pull Request"
 			},

@@ -5,3 +5,4 @@ resources
 pnpm-lock.yaml
 yarn.lock
 intuita-webview/build
+.trunk

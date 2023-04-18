@@ -196,13 +196,40 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if ('kind' in message.command) {
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'repomod'
+			) {
 				args.push('repomod');
 				args.push('-f', singleQuotify(message.command.repomodFilePath));
 				args.push(
 					'-i',
 					singleQuotify(message.command.inputPath.fsPath),
 				);
+				args.push(
+					'-o',
+					singleQuotify(message.command.storageUri.fsPath),
+				);
+
+				return args;
+			}
+
+			// execute single codemod
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'executeCodemod'
+			) {
+				// @TODO engine should support such calls
+				args.push('-c', singleQuotify(message.command.codemodName));
+				args.push(
+					'-p',
+					singleQuotify(
+						message.command.uris
+							.map(({ fsPath }) => fsPath)
+							.join(' '),
+					),
+				);
+
 				args.push(
 					'-o',
 					singleQuotify(message.command.storageUri.fsPath),

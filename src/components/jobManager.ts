@@ -4,6 +4,8 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+import { FileSystemUtilities } from './fileSystemUtilities';
+import { buildExecutionId } from '../telemetry/hashes';
 
 type Codemod = Readonly<{
 	setName: string;
@@ -27,6 +29,7 @@ export class JobManager {
 		jobs: ReadonlyArray<Job>,
 		acceptedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
+		private readonly __fileSystemUtilities: FileSystemUtilities,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
@@ -405,5 +408,82 @@ export class JobManager {
 			kind: MessageKind.deleteFiles,
 			uris,
 		});
+	}
+
+	public async refreshStaleJobs(storageUri: Uri): Promise<void> {
+		const staleJobs = await this.getStaleJobs();
+		const codemodsWithFilePaths: Record<string, Uri[]> = {};
+
+		staleJobs.forEach((staleJob) => {
+			if (!staleJob.oldUri) {
+				return;
+			}
+			if (!codemodsWithFilePaths[staleJob.codemodName]) {
+				codemodsWithFilePaths[staleJob.codemodName] = [];
+			}
+
+			codemodsWithFilePaths[staleJob.codemodName]?.push(staleJob.oldUri);
+		});
+
+		const executionId = buildExecutionId();
+		const happenedAt = String(Date.now());
+
+		const messages: Message[] = Object.entries(codemodsWithFilePaths).map(
+			([codemodName, filePaths]) => ({
+				kind: MessageKind.executeCodemodSet,
+				command: {
+					kind: 'executeCodemod',
+					codemodName,
+					engine: 'node',
+					storageUri,
+					uris: filePaths,
+				},
+				executionId,
+				happenedAt,
+			}),
+		);
+
+		console.log(messages);
+
+		// for (const message of messages) {
+		// 	this.#messageBus.publish(message);
+		// }
+	}
+
+	public async getStaleJobs(): Promise<Job[]> {
+		const allJobs = this.getJobs();
+		const modifiedFilesMap = new Map<Uri, number>();
+		const staleJobs: Job[] = [];
+
+		for (const job of allJobs) {
+			if (job.kind !== JobKind.rewriteFile) {
+				continue;
+			}
+
+			if (this.isJobAccepted(job.hash)) {
+				continue;
+			}
+
+			if (!job.oldUri) {
+				continue;
+			}
+
+			if (!modifiedFilesMap.has(job.oldUri)) {
+				const modificationTime =
+					await this.__fileSystemUtilities.getModificationTime(
+						job.oldUri,
+					);
+				modifiedFilesMap.set(job.oldUri, modificationTime);
+			}
+
+			const isStale =
+				modifiedFilesMap.get(job.oldUri) ?? 0 >= job.createdAt;
+
+			if (isStale) {
+				staleJobs.push(job);
+			}
+		}
+
+		return staleJobs;
 	}
 }
