@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { JobKind } from '../../shared/constants';
@@ -25,17 +25,18 @@ export const JobDiffView = ({
 			? 'inline'
 			: 'side-by-side';
 	});
-	const [isVisible, setVisible] = useState(false);
+	const [isVisible, setVisible] = useState(true);
 
-	const toggleViewed = useCallback(() => setVisible((v) => !v), [setVisible]);
-
-	useEffect(() => {
-		if (isVisible) {
-			collapsableRef.current?.expand();
-		} else {
-			collapsableRef.current?.collapse();
-		}
-	}, [isVisible]);
+	const toggleViewed = useCallback(() => {
+		setVisible((v) => {
+			if (v) {
+				collapsableRef.current?.collapse();
+			} else {
+				collapsableRef.current?.expand();
+			}
+			return !v;
+		});
+	}, [setVisible]);
 
 	return (
 		<Collapsable
@@ -44,7 +45,7 @@ export const JobDiffView = ({
 			className="m-10 px-10 rounded "
 			headerComponent={
 				<Header
-					viewed={isVisible}
+					viewed={!isVisible}
 					onViewedChange={toggleViewed}
 					title={title ?? ''}
 					viewType={viewType}
