@@ -151,12 +151,27 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	new NoraCompareServiceEngine(messageBus);
 
-	new PersistedStateService(
+	const gitExtension =
+		vscode.extensions.getExtension<GitExtension>('vscode.git');
+	const activeGitExtension = gitExtension?.isActive
+		? gitExtension.exports
+		: await gitExtension?.activate();
+
+	const git = activeGitExtension?.getAPI(1) ?? null;
+
+	const repositoryService = new RepositoryService(
+		git,
+		messageBus,
+		persistedState?.remoteUrl ?? null,
+	);
+
+	const persistedStateService = new PersistedStateService(
 		caseManager,
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
 		jobManager,
 		messageBus,
+		repositoryService,
 	);
 
 	const intuitaTextDocumentContentProvider =
@@ -347,16 +362,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
 
-	const gitExtension =
-		vscode.extensions.getExtension<GitExtension>('vscode.git');
-	const activeGitExtension = gitExtension?.isActive
-		? gitExtension.exports
-		: await gitExtension?.activate();
-
-	const git = activeGitExtension?.getAPI(1) ?? null;
-
-	const repositoryService = new RepositoryService(git, messageBus);
-
 	const sourceControl = new SourceControlService(
 		globalStateAccountStorage,
 		messageBus,
@@ -387,7 +392,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const treeItem = await treeDataProvider.getTreeItem(arg0);
 
 			const initialData = {
-				repositoryPath: repositoryService.getDefaultRemoteUrl(),
+				repositoryPath: repositoryService.getRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
@@ -408,7 +413,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			await panelInstance.render();
 
-			const remoteUrl = repositoryService.getDefaultRemoteUrl();
+			const remoteUrl = repositoryService.getRemoteUrl();
 
 			if (remoteUrl === null) {
 				throw new Error('Unable to detect the git remote URI');
@@ -467,7 +472,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					typeof label === 'object' ? label.label : label ?? '';
 
 				const initialData = {
-					repositoryPath: repositoryService.getDefaultRemoteUrl(),
+					repositoryPath: repositoryService.getRemoteUrl(),
 					userId: globalStateAccountStorage.getUserAccount(),
 				};
 
@@ -501,8 +506,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					.map((remote) => remote.pushUrl)
 					.filter(isNeitherNullNorUndefined);
 
-				const defaultRemoteUrl =
-					repositoryService.getDefaultRemoteUrl();
+				const defaultRemoteUrl = repositoryService.getRemoteUrl();
 
 				if (!defaultRemoteUrl) {
 					throw new Error('Remote not found');
@@ -609,6 +613,12 @@ export async function activate(context: vscode.ExtensionContext) {
 							existingPullRequest ??
 							(await sourceControl.createPR(decoded.right));
 
+						// save remote on success
+						if (remote.pushUrl) {
+							repositoryService.setRemoteUrl(remote.pushUrl);
+							persistedStateService.saveExtensionState();
+						}
+
 						const messageSelection =
 							await vscode.window.showInformationMessage(
 								`Changes successfully submitted: ${html_url}`,
@@ -652,6 +662,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						const { html_url } = await sourceControl.createIssue({
 							...decoded.right,
 						});
+
+						// save remote on success
+						if (decoded.right.remoteUrl) {
+							repositoryService.setRemoteUrl(
+								decoded.right.remoteUrl,
+							);
+							persistedStateService.saveExtensionState();
+						}
 
 						const messageSelection =
 							await vscode.window.showInformationMessage(

@@ -106,6 +106,16 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
+	  }>
+	| Readonly<{
+			kind: 'webview.createPR.formDataChanged';
+			value: {
+				baseBranch: string;
+				targetBranch: string;
+				title: string;
+				body: string;
+				remoteUrl: string;
+			};
 	  }>;
 
 export type View =
