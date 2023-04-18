@@ -44,6 +44,14 @@ export class CaseManager {
 		return this.#cases.values();
 	}
 
+	public getCase(caseHash: CaseHash): Case | undefined {
+		return this.#cases.get(caseHash);
+	}
+
+	public getCaseCount(): number {
+		return this.#cases.size;
+	}
+
 	public getCaseHashJobHashSetValues(): IterableIterator<string> {
 		return this.#caseHashJobHashSetManager.getSetValues();
 	}
