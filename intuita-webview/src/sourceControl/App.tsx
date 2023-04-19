@@ -50,7 +50,6 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
 			if (message.kind === 'webview.global.setUserAccount') {
 				setLinkedAccount(message.value);
 			}
@@ -62,6 +61,34 @@ function App() {
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
 			}
+
+			if (
+				message.kind === 'webview.createIssue.setIssueSubmitting' &&
+				view?.viewId === 'createIssue'
+			) {
+				setView({
+					...view,
+					viewProps: {
+						...view.viewProps,
+						initialFormData: {},
+						loading: message.value,
+					},
+				});
+			}
+
+			if (
+				message.kind === 'webview.createPR.setPullRequestSubmitting' &&
+				view?.viewId === 'upsertPullRequest'
+			) {
+				setView({
+					...view,
+					viewProps: {
+						...view.viewProps,
+						initialFormData: {},
+						loading: message.value,
+					},
+				});
+			}
 		};
 
 		window.addEventListener('message', handler);
@@ -69,7 +96,7 @@ function App() {
 		return () => {
 			window.removeEventListener('message', handler);
 		};
-	}, []);
+	}, [view]);
 
 	const handleLinkAccount = () => {
 		vscode.postMessage({

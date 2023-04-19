@@ -5,13 +5,18 @@
 	padding: 4px;
 }
 
-.submitButton {
-	height: 20px;
+.actionButton {
+	height: 24px;
 	width: 160px;
-	align-self: end;
 }
 
 .formField {
 	display: flex;
 	flex-direction: column;
+}
+
+.actions {
+	display: flex;
+	column-gap: 8px;
+	justify-content: end;
 }

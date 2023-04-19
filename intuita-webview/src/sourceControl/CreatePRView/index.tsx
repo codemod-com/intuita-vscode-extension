@@ -80,6 +80,12 @@ const CreatePR = ({
 			});
 		};
 
+	const handleCancel = () => {
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
+	};
+
 	const hasMultipleRemotes = remoteOptions.length > 1;
 
 	return (
@@ -150,13 +156,26 @@ const CreatePR = ({
 						</VSCodeTextArea>
 					</>
 				) : null}
-				<VSCodeButton type="submit" className={styles.submitButton}>
-					{loading
-						? 'Submitting...'
-						: pullRequestAlreadyExists
-						? 'Update Pull Request'
-						: 'Create Pull Request'}
-				</VSCodeButton>
+				<div className={styles.actions}>
+					<VSCodeButton
+						onClick={handleCancel}
+						type="button"
+						className={styles.actionButton}
+					>
+						Cancel
+					</VSCodeButton>
+					<VSCodeButton
+						disabled={loading}
+						type="submit"
+						className={styles.actionButton}
+					>
+						{loading
+							? 'Submitting...'
+							: pullRequestAlreadyExists
+							? 'Update Pull Request'
+							: 'Create Pull Request'}
+					</VSCodeButton>
+				</div>
 			</form>
 		</div>
 	);
