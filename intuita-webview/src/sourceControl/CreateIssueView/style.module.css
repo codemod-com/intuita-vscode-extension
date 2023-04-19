@@ -18,5 +18,5 @@
 .actions {
 	display: flex;
 	column-gap: 8px;
-	justify-content: end;
+	justify-content: flex-end;
 }
