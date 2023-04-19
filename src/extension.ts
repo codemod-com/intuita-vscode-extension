@@ -378,7 +378,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		sourceControl
+		sourceControl,
 	);
 
 	const viewExplorer = vscode.window.registerWebviewViewProvider(
@@ -616,6 +616,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						const { html_url } =
 							existingPullRequest ??
 							(await sourceControl.createPR(decoded.right));
+
+						messageBus.publish({
+							kind: MessageKind.updateElements,
+						});
 
 						// save remote on success
 						if (remote.pushUrl) {
@@ -1215,50 +1219,57 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
 			try {
 				const caseHash: string | null =
-				typeof arg0 === 'string' ? arg0 : null;
+					typeof arg0 === 'string' ? arg0 : null;
 
-			if (caseHash === null) {
-				throw new Error('Did not pass the caseHash into the command.');
-			}
+				if (caseHash === null) {
+					throw new Error(
+						'Did not pass the caseHash into the command.',
+					);
+				}
 
-			const unsavedBranches = await sourceControl.getUnsavedBranches();
-			
-			if(unsavedBranches.length !== 0) {
-				throw new Error('Submit the changes before applying this case');
-			}
+				const unsavedBranches =
+					await sourceControl.getUnsavedBranches();
 
-			const stackedBranchesEmpty =
-				repositoryService.areStackedBranchesEmpty();
-			const currentBranch = repositoryService.getCurrentBranch();
+				if (unsavedBranches.length !== 0) {
+					throw new Error(
+						'Submit the changes before applying this case',
+					);
+				}
 
-			if (!currentBranch?.name) {
-				throw new Error('Unable to detect current branch');
-			}
+				const stackedBranchesEmpty =
+					repositoryService.areStackedBranchesEmpty();
+				const currentBranch = repositoryService.getCurrentBranch();
 
-			if (stackedBranchesEmpty) {
-				repositoryService.addStackedBranch(currentBranch.name);
-			}
+				if (!currentBranch?.name) {
+					throw new Error('Unable to detect current branch');
+				}
 
-			/**
-			 * checkout the branch before applying changes to the file system
-			 */
-			const kase = caseManager.getCase(caseHash as CaseHash);
+				if (stackedBranchesEmpty) {
+					repositoryService.addStackedBranch(currentBranch.name);
+				}
 
-			if (!kase) {
-				throw new Error('Case not found');
-			}
+				/**
+				 * checkout the branch before applying changes to the file system
+				 */
+				const kase = caseManager.getCase(caseHash as CaseHash);
 
-			const caseUniqueName = buildCaseName(kase);
-			const branchName = branchNameFromStr(caseUniqueName);
-			await repositoryService.createOrCheckoutBranch(branchName);
-			repositoryService.addStackedBranch(branchName);
+				if (!kase) {
+					throw new Error('Case not found');
+				}
 
-			messageBus.publish({
-				kind: MessageKind.acceptCase,
-				caseHash: caseHash as CaseHash,
-			});
+				const caseUniqueName = buildCaseName(kase);
+				const branchName = branchNameFromStr(caseUniqueName);
+				await repositoryService.createOrCheckoutBranch(branchName);
+				repositoryService.addStackedBranch(branchName);
+
+				messageBus.publish({
+					kind: MessageKind.acceptCase,
+					caseHash: caseHash as CaseHash,
+				});
 			} catch (e) {
-				vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e));
+				vscode.window.showErrorMessage(
+					e instanceof Error ? e.message : String(e),
+				);
 			}
 		}),
 	);

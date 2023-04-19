@@ -117,14 +117,17 @@ export class SourceControlService {
 	async getUnsavedBranches() {
 		const remoteUrl = this.__repositoryService.getRemoteUrl();
 
-		if(!remoteUrl) {
+		if (!remoteUrl) {
 			throw new Error('Unable to get remote url');
 		}
 
 		const stackedBranches = this.__repositoryService.getStackedBranches();
 		const pullRequests = await this.listPR(remoteUrl);
-		const savedBranches = pullRequests.map(pullRequest => pullRequest.head.ref);
-		console.log(savedBranches, stackedBranches)
-		return stackedBranches.filter(branchName => !savedBranches.includes(branchName));
+		const savedBranches = pullRequests.map(
+			(pullRequest) => pullRequest.head.ref,
+		);
+		return stackedBranches.filter(
+			(branchName) => !savedBranches.includes(branchName),
+		);
 	}
 }

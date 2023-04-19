@@ -38,7 +38,6 @@ export class RepositoryService {
 			(name) => name === branchName,
 		);
 
-		console.log(this.__stackedBranches, 'test');
 		return this.__stackedBranches[branchIndex - 1] ?? null;
 	}
 
