@@ -118,15 +118,19 @@ export class SourceControlService {
 		const remoteUrl = this.__repositoryService.getRemoteUrl();
 
 		if (!remoteUrl) {
-			throw new Error('Unable to get remote url');
+			throw new Error('Unable to detect the git remote URI');
 		}
 
 		const stackedBranches = this.__repositoryService.getStackedBranches();
+		const stackedBranchesWithoutBase = stackedBranches.slice(1);
+
 		const pullRequests = await this.listPR(remoteUrl);
+
 		const savedBranches = pullRequests.map(
 			(pullRequest) => pullRequest.head.ref,
 		);
-		return stackedBranches.filter(
+
+		return stackedBranchesWithoutBase.filter(
 			(branchName) => !savedBranches.includes(branchName),
 		);
 	}

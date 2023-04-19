@@ -42,7 +42,7 @@ export class RepositoryService {
 	}
 
 	public getStackedBranches(): string[] {
-		return this.__stackedBranches.slice(1);
+		return this.__stackedBranches;
 	}
 
 	private __init(remoteUrl: string | null): void {
