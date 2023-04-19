@@ -503,16 +503,16 @@ export class IntuitaProvider implements WebviewViewProvider {
 		}
 	}
 
-	private async __onElementsUpdated() {
+	private async __getUnsavedChanges() {
 		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
 		this.__hasUnsavedChanges = unsavedBranches.length !== 0;
-		this.__onUpdateElementsMessage();
 	}
 
 	private __attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(() => {
+		const debouncedOnUpdateElementsMessage = debounce(async () => {
 			this.__onUpdateElementsMessage();
-			this.__onElementsUpdated();
+			await this.__getUnsavedChanges();
+			this.__onUpdateElementsMessage();
 		}, 100);
 
 		this.__addHook(MessageKind.updateElements, (message) => {
