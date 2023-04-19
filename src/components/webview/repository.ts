@@ -23,6 +23,10 @@ export class RepositoryService {
 			}
 			this.__init(remoteUrl);
 		});
+
+		this.__messageBus.subscribe(MessageKind.clearState, () => {
+			this.__stackedBranches = [];
+		});
 	}
 
 	public areStackedBranchesEmpty() {

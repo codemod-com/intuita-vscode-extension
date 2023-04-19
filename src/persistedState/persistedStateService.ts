@@ -67,6 +67,7 @@ export class PersistedStateService {
 		);
 
 		const remoteUrl = this.__repositoryService.getRemoteUrl();
+		const stackedBranches = this.__repositoryService.getStackedBranches();
 
 		return {
 			cases,
@@ -74,6 +75,7 @@ export class PersistedStateService {
 			jobs,
 			acceptedJobsHashes,
 			remoteUrl,
+			stackedBranches,
 		};
 	}
 
@@ -97,6 +99,7 @@ export class PersistedStateService {
 			jobs: [],
 			acceptedJobsHashes: [],
 			remoteUrl: this.__repositoryService.getRemoteUrl(),
+			stackedBranches: [],
 		};
 
 		const buffer = Buffer.from(JSON.stringify(persistedState));
