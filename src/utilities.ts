@@ -120,15 +120,14 @@ export const buildTreeRootLabel = (caseLabel: string | null) => {
 };
 
 export const buildStackedBranchPRMessage = (
-	stackedBranches: string[],
+	stackedBranches: readonly string[],
 ): string => {
 	let message = `Current dependencies on/for this PR: \n`;
 
-	message += stackedBranches.reduce((acc, branchName, i) => {
+	stackedBranches.forEach((branchName, i) => {
 		const ident = '   '.repeat(i);
-		acc += ` \n ${ident} ${i !== 0 ? '\u{231E}' : ''} ${branchName}`;
-		return acc;
-	}, '');
+		message += ` \n ${ident} ${i !== 0 ? '\u{231E}' : ''} ${branchName}`;
+	});
 
 	return message;
 };
