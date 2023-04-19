@@ -26,6 +26,7 @@ import {
 } from './components/informationMessageService';
 import {
 	branchNameFromStr,
+	buildStackedBranchPRMessage,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
 } from './utilities';
@@ -60,6 +61,7 @@ import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageA
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
+import { buildTreeRootLabel } from './utilities';
 
 const messageBus = new MessageBus();
 
@@ -486,8 +488,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Unable to get the base branch');
 				}
 
-				const title = `${kase.codemodSetName}: ${kase.codemodName}`;
-				const body = 'Add description';
+				const migrationName = buildTreeRootLabel(kase.codemodSetName);
+				const title = `${migrationName}: ${kase.subKind}`;
+				const body = buildStackedBranchPRMessage(
+					repositoryService.getStackedBranches(),
+				);
 
 				const initialData = {
 					repositoryPath: repositoryService.getRemoteUrl(),

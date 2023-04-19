@@ -118,3 +118,16 @@ export const buildTreeRootLabel = (caseLabel: string | null) => {
 
 	return `Upgrade ${capitalize(framework)} to v${version}`;
 };
+
+export const buildStackedBranchPRMessage = (
+	stackedBranches: readonly string[],
+): string => {
+	let message = `Current dependencies on/for this PR: \n`;
+
+	stackedBranches.forEach((branchName, i) => {
+		const ident = '   '.repeat(i);
+		message += ` \n ${ident} ${i !== 0 ? '\u{231E}' : ''} ${branchName}`;
+	});
+
+	return message;
+};
