@@ -41,6 +41,10 @@ export class RepositoryService {
 		return this.__stackedBranches[branchIndex - 1] ?? null;
 	}
 
+	public getStackedBranches(): string[] {
+		return this.__stackedBranches;
+	}
+
 	private __init(remoteUrl: string | null): void {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 		this.__remoteUrl =

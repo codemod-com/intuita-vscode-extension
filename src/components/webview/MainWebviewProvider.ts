@@ -45,6 +45,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { JobElement } from '../../elements/types';
+import { SourceControlService } from './sourceControl';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 const ROOT_FOLDER_KEY = '/';
@@ -58,12 +59,14 @@ export class IntuitaProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
+	__unsavedChanges = false;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __sourceControl: SourceControlService,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -500,14 +503,21 @@ export class IntuitaProvider implements WebviewViewProvider {
 		}
 	}
 
+	private async __getUnsavedChanges() {
+		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
+		this.__unsavedChanges = unsavedBranches.length !== 0;
+	}
+
 	private __attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(() => {
+		const debouncedOnUpdateElementsMessage = debounce(async () => {
+			this.__onUpdateElementsMessage();
+			await this.__getUnsavedChanges();
 			this.__onUpdateElementsMessage();
 		}, 100);
 
-		this.__addHook(MessageKind.updateElements, (message) =>
-			debouncedOnUpdateElementsMessage(message),
-		);
+		this.__addHook(MessageKind.updateElements, (message) => {
+			debouncedOnUpdateElementsMessage(message);
+		});
 
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
@@ -662,6 +672,22 @@ export class IntuitaProvider implements WebviewViewProvider {
 	};
 
 	private __buildCaseTree = (element: CaseElement): TreeNode => {
+		const actions = [
+			{
+				title: '✗ Dismiss',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
+		];
+
+		if (!this.__unsavedChanges) {
+			actions.push({
+				title: '✓ Apply',
+				command: 'intuita.acceptCase',
+				arguments: [element.hash],
+			});
+		}
+
 		const mappedNode: TreeNode = {
 			id: element.hash,
 			kind: 'caseElement',
@@ -670,18 +696,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				command: 'intuita.openCaseDiff',
 				arguments: [element.hash],
 			},
-			actions: [
-				{
-					title: '✓ Apply',
-					command: 'intuita.acceptCase',
-					arguments: [element.hash],
-				},
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCase',
-					arguments: [element.hash],
-				},
-			],
+			actions,
 			children: [],
 		};
 
@@ -713,6 +728,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 			];
 		}
+
 		return mappedNode;
 	};
 

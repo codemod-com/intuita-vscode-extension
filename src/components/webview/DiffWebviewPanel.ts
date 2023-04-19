@@ -147,10 +147,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			oldFileContent,
 			newFileContent,
 			title: getTitle(),
-			actions: IntuitaProvider.getJobActions(
-				jobHash,
-				this.__jobManager,
-			),
+			actions: IntuitaProvider.getJobActions(jobHash, this.__jobManager),
 		};
 	}
 

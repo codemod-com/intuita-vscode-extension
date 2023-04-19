@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { MessageBus, MessageKind } from '../messageBus';
+import { RepositoryService } from './repository';
 export class NotFoundRepositoryPath extends Error {}
 export class NotFoundIntuitaAccount extends Error {}
 
@@ -25,6 +26,7 @@ export class SourceControlService {
 	constructor(
 		private readonly __userAccountStorage: UserAccountStorage,
 		private readonly __messageBus: MessageBus,
+		private readonly __repositoryService: RepositoryService,
 	) {}
 
 	async createPR(params: {
@@ -110,5 +112,26 @@ export class SourceControlService {
 	): Promise<PullRequest | null> {
 		const PRList = await this.listPR(remoteUrl);
 		return PRList.find((pr) => pr.head.ref === branchName) ?? null;
+	}
+
+	async getUnsavedBranches() {
+		const remoteUrl = this.__repositoryService.getRemoteUrl();
+
+		if (!remoteUrl) {
+			throw new Error('Unable to detect the git remote URI');
+		}
+
+		const stackedBranches = this.__repositoryService.getStackedBranches();
+		const stackedBranchesWithoutBase = stackedBranches.slice(1);
+
+		const pullRequests = await this.listPR(remoteUrl);
+
+		const savedBranches = pullRequests.map(
+			(pullRequest) => pullRequest.head.ref,
+		);
+
+		return stackedBranchesWithoutBase.filter(
+			(branchName) => !savedBranches.includes(branchName),
+		);
 	}
 }
