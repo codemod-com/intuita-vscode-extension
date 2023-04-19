@@ -23,7 +23,6 @@ export const handleActiveTextEditor = () => {
 	const selection = editor.selection;
 
 	const uri = vscode.Uri.joinPath(document.uri, '..');
-	const path = encodeURIComponent(uri.fsPath);
 	const ranges: [vscode.Range, readonly PackageUpgradeItem[]][] = [];
 	const packagesWithNoCodemod: [
 		vscode.Range,
@@ -116,9 +115,7 @@ export const handleActiveTextEditor = () => {
 	const rangesOrOptions: vscode.DecorationOptions[] = ranges
 		.map(([range, dependencyList]) => {
 			return dependencyList.map((el) => {
-				const args = {
-					path,
-				};
+				const args = uri;
 
 				const commandUri = vscode.Uri.parse(
 					`command:${commandList[el.id]}?${encodeURIComponent(
