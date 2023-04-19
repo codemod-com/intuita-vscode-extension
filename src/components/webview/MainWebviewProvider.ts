@@ -59,7 +59,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
-	__hasUnsavedChanges = false;
+	__unsavedChanges = false;
 
 	constructor(
 		context: ExtensionContext,
@@ -505,7 +505,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 	private async __getUnsavedChanges() {
 		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
-		this.__hasUnsavedChanges = unsavedBranches.length !== 0;
+		this.__unsavedChanges = unsavedBranches.length !== 0;
 	}
 
 	private __attachExtensionEventListeners() {
@@ -680,7 +680,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 			},
 		];
 
-		if (!this.__hasUnsavedChanges) {
+		if (!this.__unsavedChanges) {
 			actions.push({
 				title: '✓ Apply',
 				command: 'intuita.acceptCase',
