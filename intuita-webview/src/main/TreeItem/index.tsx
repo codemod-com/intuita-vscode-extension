@@ -73,7 +73,7 @@ const TreeItem = ({
 							className={styles.verticalLine}
 							style={{
 								borderColor: color,
-								left: 13 + (depth - 1) * 2 * 15,
+								left: 12.9 + (depth - 1) * 2 * 15,
 								...(isLastChild && {
 									height: 16,
 									marginTop: -7,
@@ -84,7 +84,7 @@ const TreeItem = ({
 					{isFirstSubfolder && (
 						<div
 							style={{
-								left: 13 + (depth - 2) * 2 * 15,
+								left: 12.9 + (depth - 2) * 2 * 15,
 								borderLeft: '1px solid',
 								borderBottom: '1px solid',
 								borderColor: color,
