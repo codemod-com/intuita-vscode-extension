@@ -67,6 +67,7 @@ import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
 } from './components/sourceControl/codecs';
+import { buildJobElementLabel } from './elements/buildJobElement';
 
 const messageBus = new MessageBus();
 
@@ -1179,7 +1180,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					stagedJobs.push({
 						hash: job.hash.toString(),
-						label: job.oldUri?.fsPath ?? '@TODO parse labels',
+						label: buildJobElementLabel(
+							job,
+							vscode.workspace.workspaceFolders?.[0]?.uri.path ??
+								'',
+						),
 					});
 				}
 
