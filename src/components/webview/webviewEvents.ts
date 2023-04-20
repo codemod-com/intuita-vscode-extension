@@ -103,10 +103,16 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.createPR.submitPR';
 			value: {
-				title: string;
-				body: string;
 				baseBranch: string;
 				targetBranch: string;
+				title: string;
+				body: string;
+				remoteUrl: string;
+				commitMessage: string;
+				createNewBranch: boolean;
+				createPullRequest: boolean;
+				stagedJobs: { hash: string, label: string}[];
+				branchName: string;
 			};
 	  }>
 	| Readonly<{

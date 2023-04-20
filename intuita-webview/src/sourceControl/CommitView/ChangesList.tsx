@@ -6,16 +6,18 @@ import cn from 'classnames';
 
 type Props = {
 	formData: FormData;
-	onChangeFormField: (
-		fieldName: keyof FormData,
-	) => (e: Event | React.FormEvent<HTMLElement>) => unknown;
+	setFormData(data: FormData): void;
 };
 
-const ChangesList = ({ formData, onChangeFormField }: Props) => {
+const ChangesList = ({ formData, setFormData }: Props) => {
   const { stagedJobs } = formData;
 
-  const handleUnapplyJob = () => {
-    console.log('unapply', onChangeFormField);
+  const handleUnapplyJob = (id: string) => {
+    setFormData({
+      ...formData, 
+      stagedJobs: formData.stagedJobs.filter((stagedJob) => stagedJob.hash !== id)
+    })
+    
   }
 
   return (
@@ -40,7 +42,7 @@ const ChangesList = ({ formData, onChangeFormField }: Props) => {
       <span className={styles.listItemLabel}>
        { node.label }
       </span>
-          { depth !== 0 ? <a role='button' className={styles.linkButton} onClick={handleUnapplyJob}>Unapply</a>  : null}
+          { depth !== 0 ? <a role='button' className={styles.linkButton} onClick={() => handleUnapplyJob(node.id)}>Unapply</a>  : null}
        </li>
     }}
     depth={0}

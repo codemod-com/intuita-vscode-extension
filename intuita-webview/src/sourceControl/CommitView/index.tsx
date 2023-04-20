@@ -69,7 +69,7 @@ const CreatePR = ({
 		});
 	};
 
-	const { remoteUrl, createPullRequest, createNewBranch } = formData;
+	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } = formData;
 
 	useEffect(() => {
 		setFormData((prevFormData) => ({
@@ -96,7 +96,7 @@ const CreatePR = ({
 		};
 
 	const hasMultipleRemotes = remoteOptions.length > 1;
-
+	const hasStatedChanges = stagedJobs.length !== 0;
 	return (
 		<div className={styles.root}>
 			<form onSubmit={handleSubmit} className={styles.form}>
@@ -121,7 +121,8 @@ const CreatePR = ({
 					formData={formData}
 					onChangeFormField={onChangeFormField}
 				/>
-				<ChangesList formData={formData} onChangeFormField={onChangeFormField} />
+				{/* @TODO should we even allow to unapply all jobs? */}
+				{ hasStatedChanges? <ChangesList formData={formData} setFormData={setFormData} /> : 'No changes to commit' }
 				<VSCodeCheckbox
 					checked={formData.createNewBranch}
 					onChange={onChangeFormField('createNewBranch')}
@@ -145,7 +146,7 @@ const CreatePR = ({
 						targetBranchOptions={targetBranchOptions}
 					/>
 				) : null}
-				<VSCodeButton type="submit" className={styles.submitButton}>
+				<VSCodeButton disabled={!hasStatedChanges} type="submit" className={styles.submitButton}>
 					{loading ? 'Committing...' : 'Commit'}
 				</VSCodeButton>
 			</form>
