@@ -62,7 +62,6 @@ import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageA
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
-import { buildTreeRootLabel } from './utilities';
 import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
@@ -1191,8 +1190,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const caseUniqueName = buildCaseName(kase);
 				const targetBranchName = branchNameFromStr(caseUniqueName);
 
-				const migrationName = buildTreeRootLabel(kase.codemodSetName);
-				const title = `${migrationName}: ${kase.subKind}`;
+				const title = kase.subKind;
 				const body = buildStackedBranchPRMessage(
 					repositoryService.getStackedBranches(),
 				);

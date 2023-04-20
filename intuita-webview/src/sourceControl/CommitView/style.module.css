@@ -49,3 +49,9 @@
 	column-gap: 8px;
 	justify-content: flex-end;
 }
+
+.checkboxContainer {
+	display: flex;
+	flex-direction: column;
+	justify-items: flex-end;
+}

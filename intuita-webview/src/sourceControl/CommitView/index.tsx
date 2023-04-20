@@ -136,16 +136,18 @@ const CreatePR = ({
 				) : (
 					'No changes to commit'
 				)}
-				<VSCodeCheckbox
-					checked={formData.createNewBranch}
-					onChange={onChangeFormField('createNewBranch')}
-				>
-					Create new branch
-				</VSCodeCheckbox>
-				<p>When selected, new branch will be created</p>
+				<div className={styles.checkboxContainer}>
+					<VSCodeCheckbox
+						checked={formData.createNewBranch}
+						onChange={onChangeFormField('createNewBranch')}
+					>
+						Create new branch
+					</VSCodeCheckbox>
+					<p>When selected, new branch will be created</p>
+				</div>
 				{createNewBranch ? <BranchForm formData={formData} /> : null}
 				{createNewBranch ? (
-					<>
+					<div className={styles.checkboxContainer}>
 						<VSCodeCheckbox
 							checked={formData.createPullRequest}
 							onChange={onChangeFormField('createPullRequest')}
@@ -156,7 +158,7 @@ const CreatePR = ({
 							When selected, pull request will be automatically
 							created
 						</p>
-					</>
+					</div>
 				) : null}
 				{createNewBranch && createPullRequest ? (
 					<PullRequestForm
