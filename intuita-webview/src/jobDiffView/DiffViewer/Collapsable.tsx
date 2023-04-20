@@ -7,6 +7,7 @@ type CollapsableProps = Readonly<{
 	defaultExpanded: boolean;
 	headerComponent: React.ReactNode;
 	headerClassName?: string;
+	headerSticky?: boolean;
 	children: React.ReactNode;
 	contentClassName?: string;
 	className?: string;
@@ -22,6 +23,7 @@ export const Collapsable = forwardRef<CollapsableRefMethods, CollapsableProps>(
 	(
 		{
 			defaultExpanded: defaultCollapsed,
+			headerSticky,
 			headerComponent,
 			headerClassName,
 			contentClassName,
@@ -41,7 +43,11 @@ export const Collapsable = forwardRef<CollapsableRefMethods, CollapsableProps>(
 		return (
 			<div className={cn('collapsable', className)}>
 				<div
-					className={cn('collapsable__header', headerClassName)}
+					className={cn({
+						collapsable__header: true,
+						headerClassName: headerClassName,
+						'collapsable__header--sticky': headerSticky,
+					})}
 					onClick={() => setExpanded(!expanded)}
 				>
 					<ArrowDownIcon

@@ -99,33 +99,22 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const getTitle = function () {
 			switch (kind) {
 				case JobKind.createFile:
-					return `${
-						jobAccepted ? 'Created' : 'Create'
-					} file ${newFileTitle}`;
+					return `${jobAccepted ? 'Created' : 'Create'}`;
 				case JobKind.deleteFile:
-					return `${
-						jobAccepted ? 'Deleted' : 'Delete'
-					} file ${oldFileTitle}`;
+					return `${jobAccepted ? 'Deleted' : 'Delete'}`;
 
 				case JobKind.moveFile:
-					return `${
-						jobAccepted ? 'Moved' : 'Move'
-					} file ${oldFileTitle} to ${newFileTitle}`;
+					return `${jobAccepted ? 'Moved' : 'Move'}`;
 
 				case JobKind.moveAndRewriteFile:
 					return `${
 						jobAccepted ? 'Moved and rewritten' : 'Move and rewrite'
-					} file ${oldFileTitle} to ${newFileTitle}`;
-
+					}`;
 				case JobKind.copyFile:
-					return `${
-						jobAccepted ? 'Copied' : 'Copy'
-					} file ${oldFileTitle} to ${newFileTitle}`;
+					return `${jobAccepted ? 'Copied' : 'Copy'}`;
 
 				case JobKind.rewriteFile:
-					return `${
-						jobAccepted ? 'Rewritten' : 'Rewrite'
-					} file ${oldFileTitle}`;
+					return `${jobAccepted ? 'Rewritten' : 'Rewrite'}`;
 
 				default:
 					throw new Error('unknown jobkind');

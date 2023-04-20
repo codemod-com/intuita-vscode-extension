@@ -22,7 +22,11 @@ export const JobDiffViewContainer = ({
 	return (
 		<div className="m-10">
 			<div className="flex  justify-end">
-				<VSCodeDropdown value={viewType} onChange={onViewChange}>
+				<VSCodeDropdown
+					value={viewType}
+					onChange={onViewChange}
+					style={{ zIndex: 10001 }}
+				>
 					<option value="inline">Inline</option>
 					<option value="side-by-side">Side by side</option>
 				</VSCodeDropdown>

@@ -1,14 +1,39 @@
-import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
+import { useRef, useState } from 'react';
+import MonacoDiffEditor, { monaco } from '../../shared/Snippet/DiffEditor';
 import { JobDiffViewProps } from '../App';
+import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 
-export const DiffViewer = ({
+export type { Diff };
+
+export const useDiffViewer = ({
 	oldFileContent,
 	newFileContent,
 	viewType,
 }: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
-	return (
+	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
+	const [diff, setDiff] = useState<Diff | null>(null);
+
+	const getDiffChanges = (): Diff | undefined => {
+		if (!editorRef.current) {
+			return;
+		}
+		const lineChanges = editorRef.current.getLineChanges();
+		if (!lineChanges) {
+			return;
+		}
+		return getDiff(lineChanges);
+	};
+
+	const handleRefSet = () => {
+		const diffChanges = getDiffChanges();
+		setDiff(diffChanges ?? null);
+	};
+
+	const getDiffViewer = (
 		<div className="w-full">
 			<MonacoDiffEditor
+				onRefSet={handleRefSet}
+				ref={editorRef}
 				options={{
 					readOnly: true,
 					renderSideBySide: viewType === 'side-by-side',
@@ -24,4 +49,6 @@ export const DiffViewer = ({
 			/>
 		</div>
 	);
+
+	return { diffViewer: getDiffViewer, diff };
 };
