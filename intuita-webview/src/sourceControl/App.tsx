@@ -33,11 +33,6 @@ const getViewComponent = (view: View) => {
 	}
 };
 
-window.INITIAL_STATE = {
-	repositoryPath: 'https://github.com/DmytroHryshyn/test_repo',
-	userId: '43534dfgfdfg',
-};
-
 function App() {
 	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
 		window.INITIAL_STATE.repositoryPath,
@@ -46,24 +41,7 @@ function App() {
 		window.INITIAL_STATE.userId,
 	);
 
-	const [view, setView] = useState<View | null>({
-		viewId: 'commitView',
-		viewProps: {
-			loading: false,
-			error: '',
-			baseBranchOptions: ['baseBranch'],
-			targetBranchOptions: ['targetBranch'],
-			remoteOptions: ['remote1', 'remote2'],
-			initialFormData: {
-				title: 'title',
-				body: 'body',
-				baseBranch: 'baseBranch',
-				targetBranch: 'targetBranch',
-				remoteUrl: 'remote1',
-				stagedJobs: [{ hash: 'df3nc9324', label: 'Job 1'}, {hash: 'df3nc932sdfsdf4', label: 'Job 2'}],
-			},
-		},
-	});
+	const [view, setView] = useState<View | null>(null);
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });

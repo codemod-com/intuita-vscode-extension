@@ -39,7 +39,6 @@
 	width: 160px;
 }
 
-
 .formField {
 	display: flex;
 	flex-direction: column;
@@ -50,4 +49,3 @@
 	column-gap: 8px;
 	justify-content: flex-end;
 }
-

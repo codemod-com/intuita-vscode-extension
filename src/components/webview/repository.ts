@@ -112,7 +112,7 @@ export class RepositoryService {
 	public async submitChanges(
 		branchName: string,
 		remoteName: string,
-		commitMessage: string, 
+		commitMessage: string,
 	): Promise<void> {
 		// this should throw instead returning undefined
 		if (this.__repo === null) {

@@ -33,8 +33,8 @@ type CommitChangesFormData = {
 	commitMessage: string;
 	createNewBranch: boolean;
 	createPullRequest: boolean;
-	stagedJobs: { hash: string, label: string}[];
-}
+	stagedJobs: { hash: string; label: string }[];
+};
 
 export type TreeNode = {
 	id: string;
@@ -118,7 +118,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.createPR.submitPR';
-			value: CommitChangesFormData
+			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
 			kind: 'webview.tree.clearOutputFiles';

@@ -450,7 +450,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.user.unlinkIntuitaAccount',
@@ -478,17 +477,21 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = createPullRequestParamsCodec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-
 						const {
 							createNewBranch,
 							createPullRequest,
-							targetBranch, 
-							stagedJobs, 
-							commitMessage
+							targetBranch,
+							stagedJobs,
+							commitMessage,
 						} = decoded.right;
 
-						const stagedJobHashes = new Set(stagedJobs.map(({ hash}) => hash as JobHash));
-						messageBus.publish({ kind: MessageKind.acceptJobs, jobHashes: stagedJobHashes});
+						const stagedJobHashes = new Set(
+							stagedJobs.map(({ hash }) => hash as JobHash),
+						);
+						messageBus.publish({
+							kind: MessageKind.acceptJobs,
+							jobHashes: stagedJobHashes,
+						});
 
 						// @TODO!!! temp workaround, currently no way to "await" for jobs to be applied to the file system
 						await wait(500);
@@ -503,13 +506,16 @@ export async function activate(context: vscode.ExtensionContext) {
 							throw new Error('Remote not found');
 						}
 
-						const currentBranch = repositoryService.getCurrentBranch();
+						const currentBranch =
+							repositoryService.getCurrentBranch();
 
-						if(currentBranch === null || !currentBranch.name) {
+						if (currentBranch === null || !currentBranch.name) {
 							throw new Error('Unable to get current branch');
 						}
 
-						const targetBranchName = createNewBranch ? targetBranch : currentBranch.name; 
+						const targetBranchName = createNewBranch
+							? targetBranch
+							: currentBranch.name;
 
 						await repositoryService.submitChanges(
 							targetBranchName,
@@ -517,18 +523,20 @@ export async function activate(context: vscode.ExtensionContext) {
 							commitMessage,
 						);
 
-						const branchUrl = `${remote.pushUrl}/tree/${targetBranchName}`;
+						if (!createPullRequest) {
+							const branchUrl = `${remote.pushUrl}/tree/${targetBranchName}`;
+							const messageSelection =
+								await vscode.window.showInformationMessage(
+									`Changes successfully pushed to the ${targetBranchName} branch: ${branchUrl}`,
+									'View on GitHub',
+								);
 
-						const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Changes successfully pushed to the ${targetBranchName} branch: ${branchUrl}`,
-								'View on GitHub',
-							);
-
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(vscode.Uri.parse(branchUrl));
+							if (messageSelection === 'View on GitHub') {
+								vscode.env.openExternal(
+									vscode.Uri.parse(branchUrl),
+								);
+							}
 						}
-
 
 						messageBus.publish({
 							kind: MessageKind.updateElements,
@@ -540,25 +548,23 @@ export async function activate(context: vscode.ExtensionContext) {
 							persistedStateService.saveExtensionState();
 						}
 
-						if(createPullRequest) {
-							const { html_url } = await sourceControl.createPR(decoded.right);
-
-							const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Pull request successfully created: ${html_url}`,
-								'View on GitHub',
+						if (createPullRequest) {
+							const { html_url } = await sourceControl.createPR(
+								decoded.right,
 							);
 
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(vscode.Uri.parse(html_url));
+							const messageSelection =
+								await vscode.window.showInformationMessage(
+									`Pull request successfully created: ${html_url}`,
+									'View on GitHub',
+								);
+
+							if (messageSelection === 'View on GitHub') {
+								vscode.env.openExternal(
+									vscode.Uri.parse(html_url),
+								);
+							}
 						}
-						}
-
-			
-
-						
-
-						
 					}
 				} catch (e) {
 					const message =
@@ -1146,7 +1152,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				const currentBranch = repositoryService.getCurrentBranch();
 
-				if (currentBranch === null || currentBranch.name === undefined) {
+				if (
+					currentBranch === null ||
+					currentBranch.name === undefined
+				) {
 					throw new Error('Unable to get current branch');
 				}
 
@@ -1155,21 +1164,23 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Case not found');
 				}
 
-				const caseJobsHashes = caseManager.getJobHashes([kase.hash as CaseHash]);
+				const caseJobsHashes = caseManager.getJobHashes([
+					kase.hash as CaseHash,
+				]);
 				// @TODO for now stagedJobs = all case jobs
 				const stagedJobs = [];
 
-				for(const jobHash of caseJobsHashes) {
+				for (const jobHash of caseJobsHashes) {
 					const job = jobManager.getJob(jobHash);
-					
-					if(job === null) {
+
+					if (job === null) {
 						continue;
 					}
 
 					stagedJobs.push({
-						hash: job.hash.toString(), 
-						label: job.oldUri?.fsPath ?? '@TODO parse labels'
-					})
+						hash: job.hash.toString(),
+						label: job.oldUri?.fsPath ?? '@TODO parse labels',
+					});
 				}
 
 				const caseUniqueName = buildCaseName(kase);
@@ -1210,7 +1221,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (!defaultRemoteUrl) {
 					throw new Error('Remote not found');
 				}
-			
+
 				panelInstance.setView({
 					viewId: 'commitView',
 					viewProps: {
@@ -1225,8 +1236,8 @@ export async function activate(context: vscode.ExtensionContext) {
 							remoteUrl: defaultRemoteUrl,
 							commitMessage: '',
 							stagedJobs,
-							createPullRequest: false, 
-							createNewBranch: false, 
+							createPullRequest: false,
+							createNewBranch: false,
 						},
 						loading: false,
 						error: '',

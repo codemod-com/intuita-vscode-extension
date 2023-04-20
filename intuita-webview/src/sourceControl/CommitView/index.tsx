@@ -67,7 +67,8 @@ const CreatePR = ({
 		});
 	};
 
-	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } = formData;
+	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } =
+		formData;
 
 	useEffect(() => {
 		setFormData((prevFormData) => ({
@@ -127,7 +128,14 @@ const CreatePR = ({
 					onChangeFormField={onChangeFormField}
 				/>
 				{/* @TODO should we even allow to unapply all jobs? */}
-				{ hasStatedChanges? <ChangesList formData={formData} setFormData={setFormData} /> : 'No changes to commit' }
+				{hasStatedChanges ? (
+					<ChangesList
+						formData={formData}
+						setFormData={setFormData}
+					/>
+				) : (
+					'No changes to commit'
+				)}
 				<VSCodeCheckbox
 					checked={formData.createNewBranch}
 					onChange={onChangeFormField('createNewBranch')}
@@ -135,16 +143,22 @@ const CreatePR = ({
 					Create new branch
 				</VSCodeCheckbox>
 				<p>When selected, new branch will be created</p>
-			{	createNewBranch ? <BranchForm formData={formData} /> : null}
-			{ createNewBranch ?	<><VSCodeCheckbox
-					checked={formData.createPullRequest}
-					onChange={onChangeFormField('createPullRequest')}
-				>
-					Create Pull request
-				</VSCodeCheckbox> 
-				<p>When selected, pull request will be automatically created</p></> : null
-			}
-				{createPullRequest ? (
+				{createNewBranch ? <BranchForm formData={formData} /> : null}
+				{createNewBranch ? (
+					<>
+						<VSCodeCheckbox
+							checked={formData.createPullRequest}
+							onChange={onChangeFormField('createPullRequest')}
+						>
+							Create Pull request
+						</VSCodeCheckbox>
+						<p>
+							When selected, pull request will be automatically
+							created
+						</p>
+					</>
+				) : null}
+				{createNewBranch && createPullRequest ? (
 					<PullRequestForm
 						formData={formData}
 						onChangeFormField={onChangeFormField}
@@ -165,9 +179,7 @@ const CreatePR = ({
 						type="submit"
 						className={styles.actionButton}
 					>
-						{loading
-							? 'Committing...'
-							: 'Commit'}
+						{loading ? 'Committing...' : 'Commit'}
 					</VSCodeButton>
 				</div>
 			</form>
