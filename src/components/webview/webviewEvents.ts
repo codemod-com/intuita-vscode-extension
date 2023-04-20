@@ -193,9 +193,10 @@ export type View =
 					title: string;
 					body: string;
 					baseBranch: string;
-					targetBranch: string;
+					targetBranch: string; 
 					remoteUrl: string;
+					stagedJobs: { hash: string, label: string}[];  
+					branchName: string;
 				}>;
-				stagedJobHashes: string[];
 			};
 	  }>;

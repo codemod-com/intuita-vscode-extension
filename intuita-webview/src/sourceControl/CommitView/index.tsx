@@ -9,16 +9,23 @@ import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import CommitForm from './CommitForm';
 import PullRequestForm from './PullRequestForm';
+import ChangesList from './ChangesList';
+import BranchForm from './BranchForm';
 
-type Props = {
+type Props = Readonly<{
 	loading: boolean;
 	initialFormData: Partial<FormData>;
 	baseBranchOptions: string[];
 	targetBranchOptions: string[];
 	remoteOptions: string[];
-};
+}>;
 
-export type FormData = {
+type StagedJob = Readonly<{
+	hash: string;
+	label: string;
+}>;
+
+export type FormData = Readonly<{
 	baseBranch: string;
 	targetBranch: string;
 	title: string;
@@ -27,7 +34,9 @@ export type FormData = {
 	commitMessage: string;
 	createNewBranch: boolean;
 	createPullRequest: boolean;
-};
+	stagedJobs: StagedJob[];
+	branchName: string;
+}>;
 
 const initialFormState: FormData = {
 	baseBranch: '',
@@ -38,6 +47,8 @@ const initialFormState: FormData = {
 	commitMessage: '',
 	createNewBranch: false,
 	createPullRequest: false,
+	stagedJobs: [],
+	branchName: ''
 };
 
 const CreatePR = ({
@@ -58,7 +69,7 @@ const CreatePR = ({
 		});
 	};
 
-	const { remoteUrl, createPullRequest } = formData;
+	const { remoteUrl, createPullRequest, createNewBranch } = formData;
 
 	useEffect(() => {
 		setFormData((prevFormData) => ({
@@ -110,6 +121,7 @@ const CreatePR = ({
 					formData={formData}
 					onChangeFormField={onChangeFormField}
 				/>
+				<ChangesList formData={formData} onChangeFormField={onChangeFormField} />
 				<VSCodeCheckbox
 					checked={formData.createNewBranch}
 					onChange={onChangeFormField('createNewBranch')}
@@ -117,11 +129,11 @@ const CreatePR = ({
 					Create new branch
 				</VSCodeCheckbox>
 				<p>When selected, new branch will be created</p>
+			{	createNewBranch ? <BranchForm 	formData={formData}/> : null}
 				<VSCodeCheckbox
 					checked={formData.createPullRequest}
 					onChange={onChangeFormField('createPullRequest')}
 				>
-					{' '}
 					Create Pull request
 				</VSCodeCheckbox>
 				<p>When selected, pull request will be automatically created</p>

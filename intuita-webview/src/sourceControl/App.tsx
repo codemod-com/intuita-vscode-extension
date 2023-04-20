@@ -60,8 +60,9 @@ function App() {
 				baseBranch: 'baseBranch',
 				targetBranch: 'targetBranch',
 				remoteUrl: 'remote1',
+				stagedJobs: [{ hash: 'df3nc9324', label: 'Job 1'}, {hash: 'df3nc932sdfsdf4', label: 'Job 2'}],
+				branchName: 'dfgdgdfg-use-router'
 			},
-			stagedJobHashes: ['df3nc9324'],
 		},
 	});
 

@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useState } from 'react';
-import Tree from '../Tree';
+import Tree from '../../shared/Tree';
 import TreeItem from '../TreeItem';
 import {
 	Command,
