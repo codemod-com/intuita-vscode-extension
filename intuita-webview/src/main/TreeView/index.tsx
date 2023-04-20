@@ -69,12 +69,15 @@ const TreeView = ({ node }: Props) => {
 	};
 
 	const renderItem = ({
+		color,
 		node,
 		depth,
 		open,
 		setIsOpen,
 		focusedNodeId,
 		setFocusedNodeId,
+		index,
+		isLastChild,
 	}: {
 		node: TreeNode;
 		depth: number;
@@ -82,6 +85,9 @@ const TreeView = ({ node }: Props) => {
 		setIsOpen: (value: boolean) => void;
 		focusedNodeId: string;
 		setFocusedNodeId: (value: string) => void;
+		color: string;
+		index: number;
+		isLastChild: boolean;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
 
@@ -116,6 +122,9 @@ const TreeView = ({ node }: Props) => {
 					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
+				color={color}
+				index={index}
+				isLastChild={isLastChild}
 			/>
 		);
 	};
@@ -136,6 +145,9 @@ const TreeView = ({ node }: Props) => {
 				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
 			}
 			depth={0}
+			color="white"
+			index={0}
+			isLastChild={false}
 		/>
 	);
 };

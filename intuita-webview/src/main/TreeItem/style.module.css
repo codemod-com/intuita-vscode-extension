@@ -27,6 +27,38 @@
 	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
+.verticalLine {
+	border-left: 1px solid;
+	position: absolute;
+	height: 25px;
+}
+
+.circleContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 15px;
+}
+
+.bigCircle {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	border: 6px solid;
+	border-color: lightgreen;
+	background: transparent;
+}
+
+.smallCircle {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	border: 3px solid;
+	border-color: lightgreen;
+	background: transparent;
+	margin-left: 4px;
+}
+
 .icon {
 	min-width: 22px;
 	max-width: 22px;
