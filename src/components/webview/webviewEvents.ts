@@ -24,6 +24,18 @@ export type JobDiffViewProps = Readonly<{
 	actions?: JobAction[];
 }>;
 
+type CommitChangesFormData = {
+	baseBranch: string;
+	targetBranch: string;
+	title: string;
+	body: string;
+	remoteUrl: string;
+	commitMessage: string;
+	createNewBranch: boolean;
+	createPullRequest: boolean;
+	stagedJobs: { hash: string, label: string}[];
+}
+
 export type TreeNode = {
 	id: string;
 	kind: string;
@@ -106,18 +118,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.createPR.submitPR';
-			value: {
-				baseBranch: string;
-				targetBranch: string;
-				title: string;
-				body: string;
-				remoteUrl: string;
-				commitMessage: string;
-				createNewBranch: boolean;
-				createPullRequest: boolean;
-				stagedJobs: { hash: string, label: string}[];
-				branchName: string;
-			};
+			value: CommitChangesFormData
 	  }>
 	| Readonly<{
 			kind: 'webview.tree.clearOutputFiles';
@@ -202,14 +203,6 @@ export type View =
 				baseBranchOptions: string[];
 				targetBranchOptions: string[];
 				remoteOptions: string[];
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					baseBranch: string;
-					targetBranch: string; 
-					remoteUrl: string;
-					stagedJobs: { hash: string, label: string}[];  
-					branchName: string;
-				}>;
+				initialFormData: Partial<CommitChangesFormData>;
 			};
 	  }>;

@@ -142,6 +142,7 @@ export class JobManager {
 		}
 	}
 
+
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {

@@ -35,7 +35,6 @@ export type FormData = Readonly<{
 	createNewBranch: boolean;
 	createPullRequest: boolean;
 	stagedJobs: StagedJob[];
-	branchName: string;
 }>;
 
 const initialFormState: FormData = {
@@ -48,7 +47,6 @@ const initialFormState: FormData = {
 	createNewBranch: false,
 	createPullRequest: false,
 	stagedJobs: [],
-	branchName: ''
 };
 
 const CreatePR = ({
@@ -103,6 +101,7 @@ const CreatePR = ({
 
 	const hasMultipleRemotes = remoteOptions.length > 1;
 	const hasStatedChanges = stagedJobs.length !== 0;
+
 	return (
 		<div className={styles.root}>
 			<form onSubmit={handleSubmit} className={styles.form}>
@@ -136,14 +135,15 @@ const CreatePR = ({
 					Create new branch
 				</VSCodeCheckbox>
 				<p>When selected, new branch will be created</p>
-			{	createNewBranch ? <BranchForm 	formData={formData}/> : null}
-				<VSCodeCheckbox
+			{	createNewBranch ? <BranchForm formData={formData} /> : null}
+			{ createNewBranch ?	<><VSCodeCheckbox
 					checked={formData.createPullRequest}
 					onChange={onChangeFormField('createPullRequest')}
 				>
 					Create Pull request
-				</VSCodeCheckbox>
-				<p>When selected, pull request will be automatically created</p>
+				</VSCodeCheckbox> 
+				<p>When selected, pull request will be automatically created</p></> : null
+			}
 				{createPullRequest ? (
 					<PullRequestForm
 						formData={formData}
