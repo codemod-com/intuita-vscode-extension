@@ -46,7 +46,7 @@ import {
 	NotFoundIntuitaAccount,
 	NotFoundRepositoryPath,
 	SourceControlService,
-} from './components/webview/sourceControl';
+} from './components/sourceControl';
 import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
@@ -62,6 +62,10 @@ import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
 import { buildTreeRootLabel } from './utilities';
+import {
+	createIssueParamsCodec,
+	createPullRequestParamsCodec,
+} from './components/sourceControl/codecs';
 
 const messageBus = new MessageBus();
 
@@ -581,20 +585,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.createPR',
 			async (arg0) => {
 				try {
-					if (!repositoryService) {
-						throw new Error(
-							'Unable to initialize repositoryService',
-						);
-					}
-					const codec = buildTypeCodec({
-						title: t.string,
-						body: t.string,
-						baseBranch: t.string,
-						targetBranch: t.string,
-						remoteUrl: t.string,
-					});
-
-					const decoded = codec.decode(arg0);
+					const decoded = createPullRequestParamsCodec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
 						const remotes = repositoryService.getRemotes();
@@ -661,28 +652,19 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.submitIssue',
 			async (arg0) => {
 				try {
-					const codec = buildTypeCodec({
-						title: t.string,
-						body: t.string,
-						remoteUrl: t.string,
-					});
-
-					const decoded = codec.decode(arg0);
+					const decoded = createIssueParamsCodec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
-						// @TODO add ability to select remote for issues
+						const params = decoded.right;
 
-						const { html_url } = await sourceControl.createIssue({
-							...decoded.right,
-						});
+						const { html_url } = await sourceControl.createIssue(
+							params,
+						);
+						const { remoteUrl } = params;
 
-						// save remote on success
-						if (decoded.right.remoteUrl) {
-							repositoryService.setRemoteUrl(
-								decoded.right.remoteUrl,
-							);
-							persistedStateService.saveExtensionState();
-						}
+						repositoryService.setRemoteUrl(remoteUrl);
+
+						persistedStateService.saveExtensionState();
 
 						const messageSelection =
 							await vscode.window.showInformationMessage(

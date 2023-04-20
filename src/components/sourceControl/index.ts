@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { MessageBus, MessageKind } from '../messageBus';
-import { RepositoryService } from './repository';
+import { RepositoryService } from '../webview/repository';
 export class NotFoundRepositoryPath extends Error {}
 export class NotFoundIntuitaAccount extends Error {}
 
