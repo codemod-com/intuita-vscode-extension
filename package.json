@@ -155,6 +155,10 @@
 				"title": "✗ Dismiss"
 			},
 			{
+				"command": "intuita.unacceptJob",
+				"title": "⎌ Unapply"
+			},
+			{
 				"command": "intuita.executeAsCodemod",
 				"title": "Intuita: Run as a codemod"
 			},
@@ -294,6 +298,10 @@
 				},
 				{
 					"command": "intuita.acceptJob",
+					"when": "false"
+				},
+				{
+					"command": "intuita.unacceptJob",
 					"when": "false"
 				},
 				{
@@ -461,11 +469,6 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.rejectJob",
-					"when": "viewItem == acceptedJobElement",
-					"group": "inline"
-				},
-				{
 					"command": "intuita.rejectCase",
 					"when": "viewItem == caseElement",
 					"group": "inline"
@@ -496,7 +499,7 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.createIssue",
+					"command": "intuita.unacceptJob",
 					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
 				},
@@ -513,11 +516,6 @@
 				{
 					"command": "intuita.createIssue",
 					"when": "viewItem == acceptedFolderElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.createPR",
-					"when": "viewItem == acceptedJobElement",
 					"group": "inline"
 				},
 				{

@@ -56,8 +56,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 		if (
 			message.kind === 'intuita.rejectJob' ||
-			message.kind === 'intuita.createIssue' ||
-			message.kind === 'intuita.createPR' ||
+			message.kind === 'intuita.unacceptJob' ||
 			message.kind === 'intuita.acceptJob'
 		) {
 			commands.executeCommand(message.kind, message.value[0]);

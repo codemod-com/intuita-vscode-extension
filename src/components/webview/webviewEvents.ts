@@ -5,9 +5,8 @@ export type { Command } from 'vscode';
 
 export type JobActionCommands =
 	| 'intuita.rejectJob'
-	| 'intuita.createIssue'
-	| 'intuita.createPR'
-	| 'intuita.acceptJob';
+	| 'intuita.acceptJob'
+	| 'intuita.unacceptJob';
 export type JobAction = {
 	title: string;
 	command: JobActionCommands;

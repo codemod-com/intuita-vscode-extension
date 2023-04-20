@@ -576,18 +576,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (jobManager.isJobAccepted(jobHash)) {
 			return [
 				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectJob',
-					arguments: [jobHash],
-				},
-				{
-					title: 'Issue',
-					command: 'intuita.createIssue',
-					arguments: [jobHash],
-				},
-				{
-					title: 'PR',
-					command: 'intuita.createPR',
+					title: '⎌ Unapply',
+					command: 'intuita.unacceptJob',
 					arguments: [jobHash],
 				},
 			];
