@@ -2,7 +2,10 @@ import { FormEvent, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
-import { VSCodeDropdown } from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodeRadio,
+	VSCodeRadioGroup,
+} from '@vscode/webview-ui-toolkit/react';
 import { DiffViewType } from '../../shared/types';
 
 type JobDiffViewContainerProps = {
@@ -22,14 +25,14 @@ export const JobDiffViewContainer = ({
 	return (
 		<div className="m-10">
 			<div className="flex  justify-end">
-				<VSCodeDropdown
+				<VSCodeRadioGroup
 					value={viewType}
 					onChange={onViewChange}
 					style={{ zIndex: 10001 }}
 				>
-					<option value="inline">Inline</option>
-					<option value="side-by-side">Side by side</option>
-				</VSCodeDropdown>
+					<VSCodeRadio value="inline"> Inline </VSCodeRadio>
+					<VSCodeRadio value="side-by-side">Side By Side</VSCodeRadio>
+				</VSCodeRadioGroup>
 			</div>
 			{jobs.map((el) => (
 				<JobDiffView
