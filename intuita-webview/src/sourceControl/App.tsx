@@ -6,7 +6,7 @@ import { vscode } from '../shared/utilities/vscode';
 import WarningMessage from '../shared/WarningMessage';
 
 import CreateIssue from './CreateIssueView';
-import CreatePR from './CreatePRView';
+import CommitView from './CommitView';
 
 import type {
 	View,
@@ -28,9 +28,14 @@ const getViewComponent = (view: View) => {
 		case 'createIssue': {
 			return <CreateIssue {...view.viewProps} />;
 		}
-		case 'upsertPullRequest':
-			return <CreatePR {...view.viewProps} />;
+		case 'commitView':
+			return <CommitView {...view.viewProps} />;
 	}
+};
+
+window.INITIAL_STATE = {
+	repositoryPath: 'https://github.com/DmytroHryshyn/test_repo',
+	userId: '43534dfgfdfg',
 };
 
 function App() {
@@ -41,7 +46,24 @@ function App() {
 		window.INITIAL_STATE.userId,
 	);
 
-	const [view, setView] = useState<View | null>(null);
+	const [view, setView] = useState<View | null>({
+		viewId: 'commitView',
+		viewProps: {
+			loading: false,
+			error: '',
+			baseBranchOptions: ['baseBranch'],
+			targetBranchOptions: ['targetBranch'],
+			remoteOptions: ['remote1', 'remote2'],
+			initialFormData: {
+				title: 'title',
+				body: 'body',
+				baseBranch: 'baseBranch',
+				targetBranch: 'targetBranch',
+				remoteUrl: 'remote1',
+			},
+			stagedJobHashes: ['df3nc9324'],
+		},
+	});
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });

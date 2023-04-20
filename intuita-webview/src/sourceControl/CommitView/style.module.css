@@ -5,6 +5,10 @@
 	padding: 4px;
 }
 
+.form p {
+	margin: 0;
+}
+
 .submitButton {
 	height: 20px;
 	width: 160px;

@@ -180,4 +180,22 @@ export type View =
 			viewProps: {
 				data: JobDiffViewProps[];
 			};
+	  }>
+	| Readonly<{
+			viewId: 'commitView';
+			viewProps: {
+				loading: boolean;
+				error: string;
+				baseBranchOptions: string[];
+				targetBranchOptions: string[];
+				remoteOptions: string[];
+				initialFormData: Partial<{
+					title: string;
+					body: string;
+					baseBranch: string;
+					targetBranch: string;
+					remoteUrl: string;
+				}>;
+				stagedJobHashes: string[];
+			};
 	  }>;
