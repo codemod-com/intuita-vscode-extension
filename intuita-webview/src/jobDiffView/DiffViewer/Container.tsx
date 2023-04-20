@@ -120,21 +120,23 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<div className="ml-10 flex items-center">
-						{diff && diff.added > 0 && (
-							<span className="diff-changes diff-added">
-								+{diff.added}
-							</span>
-						)}
-						{diff && diff.added > 0 && diff.removed > 0 && (
-							<span> / </span>
-						)}
-						{diff && diff.removed > 0 && (
-							<span className="diff-changes diff-removed">
-								-{diff.removed}
-							</span>
-						)}
-					</div>
+					{diff && (
+						<div className="ml-10 flex items-center">
+							{diff && diff.added > 0 && (
+								<span className="diff-changes diff-added">
+									+{diff.added}
+								</span>
+							)}
+							{diff && diff.added > 0 && diff.removed > 0 && (
+								<span> / </span>
+							)}
+							{diff && diff.removed > 0 && (
+								<span className="diff-changes diff-removed">
+									-{diff.removed}
+								</span>
+							)}
+						</div>
+					)}
 					{actions &&
 						actions?.map((el) => (
 							<VSCodeButton
