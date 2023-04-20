@@ -58,10 +58,6 @@ export type WebviewMessage =
 			}>;
 	  }>
 	| Readonly<{
-			kind: 'webview.createIssue.setLoading';
-			value: boolean;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setUserAccount';
 			value: string | null;
 	  }>
@@ -80,6 +76,14 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.diffview.rejectedJob';
 			data: [JobHash];
+	  }>
+	| Readonly<{
+			kind: 'webview.createIssue.submittingIssue';
+			value: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.createPR.setPullRequestSubmitting';
+			value: boolean;
 	  }>;
 
 export type WebviewResponse =
@@ -135,6 +139,9 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: JobActionCommands;
 			value: JobHash[];
+	  }>
+	| Readonly<{
+			kind: 'webview.global.closeView';
 	  }>;
 
 export type View =
