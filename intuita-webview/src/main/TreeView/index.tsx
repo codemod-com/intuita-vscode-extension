@@ -101,6 +101,7 @@ const TreeView = ({ node }: Props) => {
 
 		return (
 			<TreeItem
+				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				label={node.label ?? ''}

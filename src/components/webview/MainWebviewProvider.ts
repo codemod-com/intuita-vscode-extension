@@ -45,7 +45,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { JobElement } from '../../elements/types';
-import { SourceControlService } from './sourceControl';
+import { SourceControlService } from '../sourceControl';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
 const ROOT_FOLDER_KEY = '/';

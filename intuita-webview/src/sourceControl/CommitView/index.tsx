@@ -95,6 +95,12 @@ const CreatePR = ({
 			});
 		};
 
+	const handleCancel = () => {
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
+	};
+
 	const hasMultipleRemotes = remoteOptions.length > 1;
 	const hasStatedChanges = stagedJobs.length !== 0;
 	return (
@@ -146,9 +152,24 @@ const CreatePR = ({
 						targetBranchOptions={targetBranchOptions}
 					/>
 				) : null}
-				<VSCodeButton disabled={!hasStatedChanges} type="submit" className={styles.submitButton}>
-					{loading ? 'Committing...' : 'Commit'}
-				</VSCodeButton>
+				<div className={styles.actions}>
+					<VSCodeButton
+						onClick={handleCancel}
+						type="button"
+						className={styles.actionButton}
+					>
+						Cancel
+					</VSCodeButton>
+					<VSCodeButton
+						disabled={loading}
+						type="submit"
+						className={styles.actionButton}
+					>
+						{loading
+							? 'Committing...'
+							: 'Commit'}
+					</VSCodeButton>
+				</div>
 			</form>
 		</div>
 	);

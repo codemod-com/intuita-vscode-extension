@@ -60,6 +60,12 @@ const CreateIssue = ({ loading, initialFormData, remoteOptions }: Props) => {
 		});
 	};
 
+	const handleCancel = () => {
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
+	};
+
 	const hasMultipleRemotes = remoteOptions.length > 1;
 
 	return (
@@ -96,9 +102,22 @@ const CreateIssue = ({ loading, initialFormData, remoteOptions }: Props) => {
 				>
 					Description
 				</VSCodeTextArea>
-				<VSCodeButton type="submit" className={styles.submitButton}>
-					{loading ? 'Submitting...' : 'Create Issue'}
-				</VSCodeButton>
+				<div className={styles.actions}>
+					<VSCodeButton
+						onClick={handleCancel}
+						type="button"
+						className={styles.actionButton}
+					>
+						Cancel
+					</VSCodeButton>
+					<VSCodeButton
+						disabled={loading}
+						type="submit"
+						className={styles.actionButton}
+					>
+						{loading ? 'Submitting...' : 'Create Issue'}
+					</VSCodeButton>
+				</div>
 			</form>
 		</div>
 	);

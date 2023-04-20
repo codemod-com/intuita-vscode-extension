@@ -13,6 +13,7 @@ type Props = {
 	kind: string;
 	onClick(): void;
 	depth: number;
+	disabled: boolean;
 };
 
 const TreeItem = ({
