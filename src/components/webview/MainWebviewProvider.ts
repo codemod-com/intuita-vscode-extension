@@ -671,9 +671,9 @@ export class IntuitaProvider implements WebviewViewProvider {
 		];
 
 		if (!this.__unsavedChanges) {
-			actions.push({
-				title: '✓ Apply',
-				command: 'intuita.acceptCase',
+			actions.unshift({
+				title: '✓ Commit',
+				command: 'intuita.commitCase',
 				arguments: [element.hash],
 			});
 		}

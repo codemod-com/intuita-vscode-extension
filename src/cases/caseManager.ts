@@ -26,8 +26,8 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.upsertCases, (message) =>
 			this.#onUpsertCasesMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
-			this.#onAcceptCaseMessage(message),
+		this.#messageBus.subscribe(MessageKind.commitCase, (message) =>
+			this.#onCommitCaseMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
@@ -112,7 +112,7 @@ export class CaseManager {
 		});
 	}
 
-	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
+	#onCommitCaseMessage(message: Message & { kind: MessageKind.commitCase }) {
 		if (!this.#cases.has(message.caseHash)) {
 			throw new Error('You tried to accept a case that does not exist.');
 		}

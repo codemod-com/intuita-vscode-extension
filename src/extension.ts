@@ -1203,7 +1203,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
+		vscode.commands.registerCommand('intuita.commitCase', async (arg0) => {
+			// TODO: the business logic below is for `intuita.acceptCase` which is expected to be
+			// replaced by `intuita.commitCase`. The business logic below must be changed.
 			try {
 				const caseHash: string | null =
 					typeof arg0 === 'string' ? arg0 : null;
@@ -1250,7 +1252,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				repositoryService.addStackedBranch(branchName);
 
 				messageBus.publish({
-					kind: MessageKind.acceptCase,
+					kind: MessageKind.commitCase,
 					caseHash: caseHash as CaseHash,
 				});
 			} catch (e) {

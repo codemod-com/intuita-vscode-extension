@@ -127,10 +127,6 @@
 				"title": "✓ Apply"
 			},
 			{
-				"command": "intuita.acceptCase",
-				"title": "✓ Apply"
-			},
-			{
 				"command": "intuita.acceptCaseByFolder",
 				"title": "✓ Apply"
 			},
@@ -157,6 +153,10 @@
 			{
 				"command": "intuita.unacceptJob",
 				"title": "⎌ Unapply"
+			},
+			{
+				"command": "intuita.commitCase",
+				"title": "✓ Commit"
 			},
 			{
 				"command": "intuita.executeAsCodemod",
@@ -305,10 +305,6 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
-					"when": "false"
-				},
-				{
 					"command": "intuita.acceptCaseByFolder",
 					"when": "false"
 				},
@@ -330,6 +326,10 @@
 				},
 				{
 					"command": "intuita.rejectFolder",
+					"when": "false"
+				},
+				{
+					"command": "intuita.commitCase",
 					"when": "false"
 				},
 				{
@@ -449,11 +449,6 @@
 					"group": "inline"
 				},
 				{
-					"command": "intuita.acceptCase",
-					"when": "viewItem == caseElement",
-					"group": "inline"
-				},
-				{
 					"command": "intuita.acceptCaseByFolder",
 					"when": "viewItem == caseByFolderElement",
 					"group": "inline"
@@ -486,6 +481,11 @@
 				{
 					"command": "intuita.rejectCaseByFolder",
 					"when": "viewItem == acceptedCaseByFolderElement",
+					"group": "inline"
+				},
+				{
+					"command": "intuita.commitCase",
+					"when": "viewItem == caseElement",
 					"group": "inline"
 				},
 				{
