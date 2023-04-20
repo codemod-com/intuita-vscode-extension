@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { Collapsable, CollapsableRefMethods } from './Collapsable';
-import { DiffViewer } from './Diff';
+import { useDiffViewer } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { DiffViewType } from '../../shared/types';
 
@@ -46,15 +46,31 @@ export const JobDiffView = ({
 	const onAction = (action: JobAction) => {
 		postMessage(action);
 	};
+	const { diff, diffViewer } = useDiffViewer({
+		viewType,
+		oldFileTitle,
+		newFileTitle,
+		jobKind,
+		oldFileContent,
+		newFileContent,
+		jobHash,
+		title,
+	});
 
 	return (
 		<Collapsable
 			ref={collapsableRef}
 			defaultExpanded={true}
-			className="my-10 px-10 rounded "
-			contentClassName="pb-10"
+			className="overflow-hidden my-10 rounded "
+			headerClassName="p-10"
+			contentClassName="p-10"
+			headerSticky
 			headerComponent={
 				<Header
+					diff={diff}
+					oldFileTitle={oldFileTitle ?? ''}
+					newFileTitle={newFileTitle ?? ''}
+					jobKind={jobKind}
 					onViewedChange={toggleViewed}
 					viewed={!isVisible}
 					onAction={onAction}
@@ -71,16 +87,7 @@ export const JobDiffView = ({
 				newFileName={newFileTitle}
 				onViewTypeChange={setViewType}
 			>
-				<DiffViewer
-					viewType={viewType}
-					newFileTitle={newFileTitle}
-					oldFileTitle={oldFileTitle}
-					jobKind={jobKind}
-					newFileContent={newFileContent}
-					oldFileContent={oldFileContent}
-					jobHash={jobHash}
-					title={title}
-				/>
+				{diffViewer}
 			</Container>
 		</Collapsable>
 	);

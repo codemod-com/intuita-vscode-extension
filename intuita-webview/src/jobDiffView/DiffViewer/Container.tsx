@@ -7,6 +7,8 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
+import { JobKind } from '../../shared/constants';
+import { Diff } from './Diff';
 
 type ContainerProps = Readonly<{
 	oldFileName: string | null;
@@ -39,7 +41,11 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 				ref={ref}
 			>
 				<div className="mb-10">
-					<VSCodeDropdown value={viewType} onChange={handleChange}>
+					<VSCodeDropdown
+						style={{ zIndex: 10001 }}
+						value={viewType}
+						onChange={handleChange}
+					>
 						<VSCodeOption value="inline"> Inline </VSCodeOption>
 						<VSCodeOption value="side-by-side">
 							Side By Side
@@ -65,7 +71,11 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 );
 
 type HeaderProps = Readonly<{
+	diff: Diff | null;
 	title: string;
+	newFileTitle: string;
+	oldFileTitle: string;
+	jobKind: JobDiffViewProps['jobKind'];
 	viewType: 'inline' | 'side-by-side';
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	viewed?: boolean;
@@ -76,7 +86,11 @@ type HeaderProps = Readonly<{
 }>;
 
 export const Header = ({
+	diff,
 	title,
+	jobKind,
+	newFileTitle,
+	oldFileTitle,
 	children,
 	viewed,
 	onViewedChange,
@@ -86,7 +100,19 @@ export const Header = ({
 	return (
 		<div className="f p-10 flex  w-full items-center container-header">
 			<div className="flex flex-row flex-1  justify-between flex-wrap">
-				<h3 className="my-0 ml-3 align-self-center"> {title} </h3>
+				<div className="flex items-center ">
+					<h3
+						className="my-0 ml-3 diff-title align-self-center"
+						title={getJobTitle(
+							jobKind as unknown as JobKind,
+							newFileTitle,
+							oldFileTitle,
+						)}
+					>
+						{title}
+					</h3>
+					<h3 className="ml-3 my-0"> {newFileTitle} </h3>
+				</div>
 
 				<div
 					className="flex gap-4"
@@ -94,6 +120,21 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
+					<div className="ml-10 flex items-center">
+						{diff && diff.added > 0 && (
+							<span className="diff-changes diff-added">
+								+{diff.added}
+							</span>
+						)}
+						{diff && diff.added > 0 && diff.removed > 0 && (
+							<span> / </span>
+						)}
+						{diff && diff.removed > 0 && (
+							<span className="diff-changes diff-removed">
+								-{diff.removed}
+							</span>
+						)}
+					</div>
 					{actions &&
 						actions?.map((el) => (
 							<VSCodeButton
@@ -119,4 +160,27 @@ export const Header = ({
 			{children}
 		</div>
 	);
+};
+
+const getJobTitle = (
+	jobKind: JobKind,
+	oldFileTitle: string,
+	newFileContent: string,
+): string => {
+	switch (jobKind) {
+		case JobKind.copyFile:
+			return `Copy ${oldFileTitle} to ${newFileContent}`;
+		case JobKind.createFile:
+			return `Create ${newFileContent}`;
+		case JobKind.deleteFile:
+			return `Delete ${oldFileTitle} `;
+		case JobKind.moveAndRewriteFile:
+			return `Move and Rewrite ${oldFileTitle} to ${newFileContent}`;
+		case JobKind.moveFile:
+			return `Move ${oldFileTitle} to ${newFileContent}`;
+		case JobKind.rewriteFile:
+			return `Rewrite ${oldFileTitle} `;
+		default:
+			throw new Error('Unknown job kind');
+	}
 };
