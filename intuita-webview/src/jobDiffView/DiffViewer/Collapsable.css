@@ -1,7 +1,7 @@
 .collapsable {
 	display: flex;
 	flex-direction: column;
-	background-color: var(--vscode-textCodeBlock-background);
+	background-color: var(--vscode-dropdown-background);
 }
 
 .collapsable__header {
@@ -10,6 +10,13 @@
 	align-items: center;
 	padding: 0 0 0 0.5rem;
 	cursor: pointer;
+}
+
+.collapsable__header--sticky {
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+	background-color: var(--vscode-dropdown-background);
 }
 
 .collapsable__arrow {
