@@ -66,7 +66,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 					const value =
 						message.kind === MessageKind.beforeIssueCreated;
 					this._postMessage({
-						kind: 'webview.createIssue.setIssueSubmitting',
+						kind: 'webview.createIssue.submittingIssue',
 						value,
 					});
 				});

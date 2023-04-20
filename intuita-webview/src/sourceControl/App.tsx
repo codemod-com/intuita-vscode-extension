@@ -63,7 +63,7 @@ function App() {
 			}
 
 			if (
-				message.kind === 'webview.createIssue.setIssueSubmitting' &&
+				message.kind === 'webview.createIssue.submittingIssue' &&
 				view?.viewId === 'createIssue'
 			) {
 				setView({

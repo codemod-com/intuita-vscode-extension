@@ -78,7 +78,7 @@ export type WebviewMessage =
 			data: [JobHash];
 	  }>
 	| Readonly<{
-			kind: 'webview.createIssue.setIssueSubmitting';
+			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
 	| Readonly<{
