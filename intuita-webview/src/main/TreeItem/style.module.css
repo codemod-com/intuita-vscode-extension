@@ -30,7 +30,7 @@
 .verticalLine {
 	border-left: 1px solid;
 	position: absolute;
-	height: 25px;
+	height: 26px;
 }
 
 .circleContainer {
@@ -41,11 +41,10 @@
 }
 
 .bigCircle {
-	width: 9px;
-	height: 9px;
+	width: 7px;
+	height: 7px;
 	border-radius: 50%;
-	border: 6px solid;
-	border-color: lightgreen;
+	border: 5px solid;
 	background: transparent;
 }
 
@@ -53,10 +52,7 @@
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;
-	border: 3px solid;
-	border-color: lightgreen;
-	background: transparent;
-	margin-left: 4px;
+	margin-left: 5px;
 }
 
 .icon {
