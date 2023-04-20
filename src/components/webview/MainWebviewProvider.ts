@@ -674,12 +674,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 	private __buildCaseTree = (element: CaseElement): TreeNode => {
 		const actions = [
 			{
-				title: 'Discard',
+				title: '✗ Discard',
 				command: 'intuita.rejectCase',
 				arguments: [element.hash],
 			},
 			{
-				title: 'Commit',
+				title: '✓ Commit',
 				command: 'intuita.acceptCase',
 				arguments: [element.hash],
 			},
