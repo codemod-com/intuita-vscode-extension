@@ -105,7 +105,9 @@ const Tree = ({
 			<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
 				{open ? (
 					<>
-						{isFolderBreakdown && caseByFolderComponents}
+						{isFolderBreakdown &&
+							folderElements.length === 0 &&
+							caseByFolderComponents}
 						{(isFolderBreakdown
 							? folderElements
 							: node.children
