@@ -56,7 +56,7 @@ const TreeItem = ({
 					className={styles.circleContainer}
 					style={{
 						...(depth > 1 && {
-							marginLeft: (depth - 1) * 2 * 15,
+							marginLeft: (depth - 1) * 2 * 16,
 						}),
 					}}
 				>
@@ -66,17 +66,24 @@ const TreeItem = ({
 								? styles.smallCircle
 								: styles.bigCircle,
 						)}
-						style={{ borderColor: color }}
+						style={{
+							...(isFolderElement && {
+								borderColor: color,
+							}),
+							...(isCaseByFolderElement && {
+								backgroundColor: color,
+							}),
+						}}
 					/>
 					{isCaseByFolderElement && (
 						<div
 							className={styles.verticalLine}
 							style={{
 								borderColor: color,
-								left: 12.9 + (depth - 1) * 2 * 15,
+								left: 11 + (depth - 1) * 2 * 16,
 								...(isLastChild && {
 									height: 16,
-									marginTop: -7,
+									marginTop: -10,
 								}),
 							}}
 						/>
@@ -84,13 +91,13 @@ const TreeItem = ({
 					{isFirstSubfolder && (
 						<div
 							style={{
-								left: 12.9 + (depth - 2) * 2 * 15,
-								borderLeft: '1px solid',
-								borderBottom: '1px solid',
+								left: 11 + (depth - 2) * 2 * 16,
+								borderLeft: '2px solid',
+								borderBottom: '2px solid',
 								borderColor: color,
 								borderBottomLeftRadius: '5px',
-								height: 20,
-								width: 22,
+								height: 14,
+								width: 23,
 								position: 'absolute',
 								marginTop: -10,
 							}}
