@@ -1,7 +1,7 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
-import { generateRandomColor } from '../../utilities';
+import { buildHash, generateColor } from '../../utilities';
 
 type Props = {
 	index: number;
@@ -30,7 +30,7 @@ type Props = {
 
 const Tree = ({
 	node,
-	depth = 0,
+	depth,
 	renderItem,
 	color: colorProp,
 	index,
@@ -42,7 +42,9 @@ const Tree = ({
 		'acceptedFolderElement',
 	].includes(node.kind);
 	const [open, setIsOpen] = useState(depth === 0);
-	const [color] = useState(hasNoChildren ? colorProp : generateRandomColor());
+	const [color] = useState(
+		hasNoChildren ? colorProp : generateColor(buildHash(node.id)),
+	);
 	const treeItem = renderItem({
 		index,
 		isLastChild,
@@ -63,7 +65,7 @@ const Tree = ({
 	// separate folder children and caseByFolder children
 	// since we want to display all caseByFolder children at the current depth
 	// while we want to display all folder children at 1 level deeper depth
-	if (node.kind && isFolderBreakdown) {
+	if (isFolderBreakdown) {
 		node.children.forEach((element) => {
 			if (!element.kind) {
 				return;
