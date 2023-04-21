@@ -65,6 +65,10 @@ const CreatePR = ({
 			kind: 'webview.createPR.submitPR',
 			value: formData,
 		});
+
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
 	};
 
 	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } =
@@ -181,7 +185,7 @@ const CreatePR = ({
 						type="submit"
 						className={styles.actionButton}
 					>
-						{loading ? 'Committing...' : 'Commit'}
+						{loading ? 'Committing...' : 'Commit & Push'}
 					</VSCodeButton>
 				</div>
 			</form>
