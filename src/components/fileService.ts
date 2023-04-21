@@ -26,11 +26,11 @@ export class FileService {
 	}
 
 	async #onCreateFile(message: Message & { kind: MessageKind.createFile }) {
-		this.createFile(message);
+		await this.createFile(message);
 	}
 
 	async #onUpdateFile(message: Message & { kind: MessageKind.updateFile }) {
-		this.updateFile(message);
+		await this.updateFile(message);
 	}
 
 	async #onMoveFile(message: Message & { kind: MessageKind.moveFile }) {
