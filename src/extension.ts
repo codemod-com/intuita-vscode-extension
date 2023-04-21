@@ -50,7 +50,6 @@ import {
 import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
-import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
@@ -89,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
-		persistedState?.acceptedJobsHashes as JobHash[],
+		(persistedState?.appliedJobsHashes ?? []) as JobHash[],
 		messageBus,
 		fileService,
 	);
@@ -105,11 +104,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const codemodTreeProvider = new CodemodTreeProvider(
 		rootPath ?? null,
 		messageBus,
-	);
-	const treeDataProvider = new IntuitaTreeDataProvider(
-		caseManager,
-		messageBus,
-		jobManager,
 	);
 
 	const codemodTreeView = vscode.window.createTreeView(
@@ -403,16 +397,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(view);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
-			const treeItem = await treeDataProvider.getTreeItem(arg0);
-
+		vscode.commands.registerCommand('intuita.createIssue', async () => {
 			const initialData = {
 				repositoryPath: repositoryService.getRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
-			const { label } = treeItem;
-			const title = typeof label === 'object' ? label.label : label ?? '';
+			// @TODO
+			const title = 'Label';
 
 			const panelInstance = SourceControlWebviewPanel.getInstance(
 				{
@@ -472,6 +464,44 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.applyJob',
+			async (arg0: unknown) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				jobManager.applyJob(jobHash as JobHash);
+
+				messageBus.publish({ kind: MessageKind.updateElements });
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.unapplyJob',
+			async (arg0: unknown) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				jobManager.unapplyJob(jobHash as JobHash);
+
+				messageBus.publish({ kind: MessageKind.updateElements });
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.sourceControl.createPR',
 			async (arg0) => {
 				try {
@@ -490,6 +520,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							stagedJobs.map(({ hash }) => hash as JobHash),
 						);
 
+						// @should rename this to commitJobs?
 						await jobManager.acceptJobs(stagedJobHashes);
 
 						const remotes = repositoryService.getRemotes();
@@ -1229,7 +1260,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							baseBranch: currentBranch.name,
 							targetBranch: targetBranchName,
 							remoteUrl: defaultRemoteUrl,
-							commitMessage: '',
+							commitMessage: `Migrated ${kase.subKind}`,
 							stagedJobs,
 							createPullRequest: false,
 							createNewBranch: false,

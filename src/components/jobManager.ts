@@ -20,18 +20,18 @@ export class JobManager {
 	readonly #messageBus: MessageBus;
 
 	#jobMap: Map<JobHash, Job>;
-	#acceptedJobsHashes: Set<JobHash>;
+	#appliedJobsHashes: Set<JobHash>;
 
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
 	public constructor(
 		jobs: ReadonlyArray<Job>,
-		acceptedJobsHashes: ReadonlyArray<JobHash>,
+		appliedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
 		private readonly __fileService: FileService,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
-		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
+		this.#appliedJobsHashes = new Set(appliedJobsHashes);
 
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
@@ -92,14 +92,6 @@ export class JobManager {
 		return jobs;
 	}
 
-	public getAcceptedJobsHashes() {
-		return this.#acceptedJobsHashes;
-	}
-
-	public isJobAccepted(jobHash: JobHash) {
-		return this.#acceptedJobsHashes.has(jobHash);
-	}
-
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
 		message.inactiveJobHashes.forEach((jobHash) => {
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
@@ -157,10 +149,6 @@ export class JobManager {
 			this.#buildCodemodObjects(jobHashes);
 
 		const messages: Message[] = [];
-
-		for (const jobHash of jobHashes) {
-			this.#acceptedJobsHashes.add(jobHash);
-		}
 
 		messages.push({ kind: MessageKind.updateElements });
 
@@ -287,9 +275,30 @@ export class JobManager {
 			});
 		}
 
+		for (const jobHash of jobHashes) {
+			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
+			this.#jobMap.delete(jobHash);
+		}
+
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}
+	}
+
+	public applyJob(jobHash: JobHash): void {
+		this.#appliedJobsHashes.add(jobHash);
+	}
+
+	public unapplyJob(jobHash: JobHash): void {
+		this.#appliedJobsHashes.delete(jobHash);
+	}
+
+	public isJobApplied(jobHash: JobHash): boolean {
+		return this.#appliedJobsHashes.has(jobHash);
+	}
+
+	public getAppliedJobsHashes() {
+		return this.#appliedJobsHashes;
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
@@ -396,7 +405,7 @@ export class JobManager {
 
 		this.#jobMap.clear();
 		this.#uriHashJobHashSetManager.clear();
-		this.#acceptedJobsHashes.clear();
+		this.#appliedJobsHashes.clear();
 
 		this.#messageBus.publish({
 			kind: MessageKind.deleteFiles,
