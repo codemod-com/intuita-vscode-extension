@@ -14,6 +14,7 @@ export const buildFileElement = (
 		label: `${label} (${count})`,
 		children,
 		hash: buildHash(`${caseHash}${label}`) as ElementHash,
+		caseHash,
 	};
 };
 
