@@ -25,6 +25,7 @@ import {
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
 import {
+	buildHash,
 	buildTreeRootLabel,
 	debounce,
 	getElementIconBaseName,
@@ -202,8 +203,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 								command: 'intuita.acceptFolder',
 								arguments: [
 									{
-										id: path,
-										caseHash: element.caseHash,
+										path,
+										hash: buildHash(path),
 										jobHashes: jobHashesArg,
 									},
 								],

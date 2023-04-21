@@ -1312,8 +1312,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			async (arg0) => {
 				try {
 					const codec = buildTypeCodec({
-						id: t.string,
-						caseHash: t.string,
+						path: t.string,
+						hash: t.string,
 						jobHashes: t.readonlyArray(t.string),
 					});
 
@@ -1328,8 +1328,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const {
-						id,
-						caseHash,
+						path,
+						hash,
 						jobHashes: _jobHashes,
 					} = validation.right;
 
@@ -1370,8 +1370,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						});
 					}
 
-					const targetBranchName = `${id}-${caseHash.toLowerCase()}`;
-					const title = id;
+					const targetBranchName = `${path}-${hash.toLowerCase()}`;
+					const title = path;
 					const body = buildStackedBranchPRMessage(
 						repositoryService.getStackedBranches(),
 					);
