@@ -610,8 +610,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
-		console.log(message, 'test');
-
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'intuita.openJobDiff') {
 				const args = message.value.arguments;

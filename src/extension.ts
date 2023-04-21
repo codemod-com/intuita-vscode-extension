@@ -88,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
-		persistedState?.appliedJobsHashes as JobHash[],
+		(persistedState?.appliedJobsHashes ?? []) as JobHash[],
 		messageBus,
 		fileService,
 	);
