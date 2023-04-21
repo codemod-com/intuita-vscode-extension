@@ -14,7 +14,7 @@ type Props = {
 		open,
 		setIsOpen,
 		color,
-		isLastChild,
+		lastChild,
 	}: {
 		index: number;
 		node: TreeNode;
@@ -22,10 +22,10 @@ type Props = {
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
 		color: string;
-		isLastChild: boolean;
+		lastChild: boolean;
 	}): ReactNode;
 	color: string;
-	isLastChild: boolean;
+	lastChild: boolean;
 };
 
 const Tree = ({
@@ -34,7 +34,7 @@ const Tree = ({
 	renderItem,
 	color: colorProp,
 	index,
-	isLastChild,
+	lastChild,
 }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
 	const isFolderBreakdown = [
@@ -47,7 +47,7 @@ const Tree = ({
 	);
 	const treeItem = renderItem({
 		index,
-		isLastChild,
+		lastChild,
 		color,
 		node,
 		depth,
@@ -95,7 +95,7 @@ const Tree = ({
 				depth={depth}
 				color={color}
 				index={index}
-				isLastChild={arr.length - 1 === index}
+				lastChild={arr.length - 1 === index}
 			/>
 		),
 	);
@@ -119,7 +119,7 @@ const Tree = ({
 								depth={depth + 1}
 								color={color}
 								index={index}
-								isLastChild={arr.length - 1 === index}
+								lastChild={arr.length - 1 === index}
 							/>
 						))}
 					</>

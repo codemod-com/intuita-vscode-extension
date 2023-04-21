@@ -16,7 +16,7 @@ type Props = {
 	disabled: boolean;
 	color: string;
 	index: number;
-	isLastChild: boolean;
+	lastChild: boolean;
 };
 
 const TreeItem = ({
@@ -32,7 +32,7 @@ const TreeItem = ({
 	depth,
 	color,
 	index,
-	isLastChild,
+	lastChild,
 }: Props) => {
 	const isFolderElement = ['folderElement', 'acceptedFolderElement'].includes(
 		kind,
@@ -81,7 +81,7 @@ const TreeItem = ({
 							style={{
 								borderColor: color,
 								left: 11 + (depth - 1) * 2 * 16,
-								...(isLastChild && {
+								...(lastChild && {
 									height: 16,
 									marginTop: -10,
 								}),

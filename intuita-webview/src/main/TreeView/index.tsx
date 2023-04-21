@@ -77,7 +77,7 @@ const TreeView = ({ node }: Props) => {
 		focusedNodeId,
 		setFocusedNodeId,
 		index,
-		isLastChild,
+		lastChild,
 	}: {
 		node: TreeNode;
 		depth: number;
@@ -87,7 +87,7 @@ const TreeView = ({ node }: Props) => {
 		setFocusedNodeId: (value: string) => void;
 		color: string;
 		index: number;
-		isLastChild: boolean;
+		lastChild: boolean;
 	}) => {
 		// @TODO remove code related to "accepted" state
 		if (
@@ -132,7 +132,7 @@ const TreeView = ({ node }: Props) => {
 				actionButtons={actionButtons}
 				color={color}
 				index={index}
-				isLastChild={isLastChild}
+				lastChild={lastChild}
 			/>
 		);
 	};
@@ -155,7 +155,7 @@ const TreeView = ({ node }: Props) => {
 			depth={0}
 			color="white"
 			index={0}
-			isLastChild={false}
+			lastChild={false}
 		/>
 	);
 };
