@@ -24,6 +24,18 @@ export type JobDiffViewProps = Readonly<{
 	actions?: JobAction[];
 }>;
 
+type CommitChangesFormData = {
+	baseBranch: string;
+	targetBranch: string;
+	title: string;
+	body: string;
+	remoteUrl: string;
+	commitMessage: string;
+	createNewBranch: boolean;
+	createPullRequest: boolean;
+	stagedJobs: { hash: string; label: string }[];
+};
+
 export type TreeNode = {
 	id: string;
 	kind: string;
@@ -106,12 +118,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.createPR.submitPR';
-			value: {
-				title: string;
-				body: string;
-				baseBranch: string;
-				targetBranch: string;
-			};
+			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
 			kind: 'webview.tree.clearOutputFiles';
@@ -186,5 +193,16 @@ export type View =
 			viewId: 'jobDiffView';
 			viewProps: {
 				data: JobDiffViewProps[];
+			};
+	  }>
+	| Readonly<{
+			viewId: 'commitView';
+			viewProps: {
+				loading: boolean;
+				error: string;
+				baseBranchOptions: string[];
+				targetBranchOptions: string[];
+				remoteOptions: string[];
+				initialFormData: Partial<CommitChangesFormData>;
 			};
 	  }>;

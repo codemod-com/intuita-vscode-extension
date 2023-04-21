@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useState } from 'react';
-import Tree from '../Tree';
+import Tree from '../../shared/Tree';
 import TreeItem from '../TreeItem';
 import {
 	Command,
@@ -83,6 +83,14 @@ const TreeView = ({ node }: Props) => {
 		focusedNodeId: string;
 		setFocusedNodeId: (value: string) => void;
 	}) => {
+		// @TODO remove code related to "accepted" state
+		if (
+			node.kind === 'acceptedJobElement' ||
+			node.kind === 'acceptedCaseElement'
+		) {
+			return null;
+		}
+
 		const icon = getIcon(node.iconName ?? null, open);
 
 		const actionButtons = (node.actions ?? []).map((action) => (

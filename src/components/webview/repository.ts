@@ -112,6 +112,7 @@ export class RepositoryService {
 	public async submitChanges(
 		branchName: string,
 		remoteName: string,
+		commitMessage: string,
 	): Promise<void> {
 		// this should throw instead returning undefined
 		if (this.__repo === null) {
@@ -121,7 +122,7 @@ export class RepositoryService {
 		this.createOrCheckoutBranch(branchName);
 
 		await this.__repo.add([]);
-		await this.__repo.commit('Test commit', { all: true });
+		await this.__repo.commit(commitMessage, { all: true });
 		await this.__repo.push(remoteName, branchName, true);
 	}
 

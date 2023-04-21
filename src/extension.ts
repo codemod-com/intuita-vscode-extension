@@ -29,6 +29,7 @@ import {
 	buildStackedBranchPRMessage,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
+	wait,
 } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
@@ -61,11 +62,11 @@ import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageA
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
-import { buildTreeRootLabel } from './utilities';
 import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
 } from './components/sourceControl/codecs';
+import { buildJobElementLabel } from './elements/buildJobElement';
 
 const messageBus = new MessageBus();
 
@@ -450,118 +451,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createPR', async (arg0) => {
-			try {
-				const caseHash = typeof arg0 === 'string' ? arg0 : null;
-
-				if (caseHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
-				}
-
-				if (!repositoryService) {
-					throw new Error('Unable to initialize repositoryService');
-				}
-
-				const currentBranch = repositoryService.getCurrentBranch();
-
-				if (!currentBranch) {
-					throw new Error('Unable to get HEAD');
-				}
-
-				const hasChanges = repositoryService.hasChangesToCommit();
-
-				if (!hasChanges) {
-					throw new Error('Nothing to commit');
-				}
-
-				const kase = caseManager.getCase(caseHash as CaseHash);
-
-				if (!kase) {
-					throw new Error('Case not found');
-				}
-
-				const caseUniqueName = buildCaseName(kase);
-				const targetBranchName = branchNameFromStr(caseUniqueName);
-
-				const baseBranchName =
-					repositoryService.getStackedBranchBase(targetBranchName);
-
-				if (!baseBranchName) {
-					throw new Error('Unable to get the base branch');
-				}
-
-				const migrationName = buildTreeRootLabel(kase.codemodSetName);
-				const title = `${migrationName}: ${kase.subKind}`;
-				const body = buildStackedBranchPRMessage(
-					repositoryService.getStackedBranches(),
-				);
-
-				const initialData = {
-					repositoryPath: repositoryService.getRemoteUrl(),
-					userId: globalStateAccountStorage.getUserAccount(),
-				};
-
-				const panelInstance = SourceControlWebviewPanel.getInstance(
-					{
-						type: 'intuitaPanel',
-						title,
-						extensionUri: context.extensionUri,
-						initialData,
-						viewColumn: vscode.ViewColumn.One,
-						webviewName: 'sourceControl',
-					},
-					messageBus,
-				);
-
-				await panelInstance.render();
-
-				const remotes = repositoryService.getRemotes();
-				const remoteOptions = (remotes ?? [])
-					.map((remote) => remote.pushUrl)
-					.filter(isNeitherNullNorUndefined);
-
-				const defaultRemoteUrl = repositoryService.getRemoteUrl();
-
-				if (!defaultRemoteUrl) {
-					throw new Error('Remote not found');
-				}
-
-				const pullRequest = await sourceControl.getPRForBranch(
-					targetBranchName,
-					defaultRemoteUrl,
-				);
-
-				// @TODO need to check this each time use switches remote
-				const pullRequestAlreadyExists = pullRequest !== null;
-
-				panelInstance.setView({
-					viewId: 'upsertPullRequest',
-					viewProps: {
-						// branching from current branch
-						baseBranchOptions: [baseBranchName],
-						targetBranchOptions: [targetBranchName],
-						remoteOptions,
-						initialFormData: {
-							title,
-							body,
-							baseBranch: baseBranchName,
-							targetBranch: targetBranchName,
-							remoteUrl: defaultRemoteUrl,
-						},
-						loading: false,
-						error: '',
-						pullRequestAlreadyExists,
-					},
-				});
-			} catch (e) {
-				vscode.window.showErrorMessage((e as Error).message);
-			}
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.user.unlinkIntuitaAccount',
 			() => {
@@ -588,6 +477,25 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = createPullRequestParamsCodec.decode(arg0);
 
 					if (decoded._tag === 'Right') {
+						const {
+							createNewBranch,
+							createPullRequest,
+							targetBranch,
+							stagedJobs,
+							commitMessage,
+						} = decoded.right;
+
+						const stagedJobHashes = new Set(
+							stagedJobs.map(({ hash }) => hash as JobHash),
+						);
+						messageBus.publish({
+							kind: MessageKind.acceptJobs,
+							jobHashes: stagedJobHashes,
+						});
+
+						// @TODO!!! temp workaround, currently no way to "await" for jobs to be applied to the file system
+						await wait(500);
+
 						const remotes = repositoryService.getRemotes();
 						const remote = (remotes ?? []).find(
 							(remote) =>
@@ -598,20 +506,37 @@ export async function activate(context: vscode.ExtensionContext) {
 							throw new Error('Remote not found');
 						}
 
+						const currentBranch =
+							repositoryService.getCurrentBranch();
+
+						if (currentBranch === null || !currentBranch.name) {
+							throw new Error('Unable to get current branch');
+						}
+
+						const targetBranchName = createNewBranch
+							? targetBranch
+							: currentBranch.name;
+
 						await repositoryService.submitChanges(
-							decoded.right.targetBranch,
+							targetBranchName,
 							remote.name,
+							commitMessage,
 						);
 
-						const existingPullRequest =
-							await sourceControl.getPRForBranch(
-								decoded.right.targetBranch,
-								decoded.right.remoteUrl,
-							);
+						if (!createPullRequest) {
+							const branchUrl = `${remote.pushUrl}/tree/${targetBranchName}`;
+							const messageSelection =
+								await vscode.window.showInformationMessage(
+									`Changes successfully pushed to the ${targetBranchName} branch: ${branchUrl}`,
+									'View on GitHub',
+								);
 
-						const { html_url } =
-							existingPullRequest ??
-							(await sourceControl.createPR(decoded.right));
+							if (messageSelection === 'View on GitHub') {
+								vscode.env.openExternal(
+									vscode.Uri.parse(branchUrl),
+								);
+							}
+						}
 
 						messageBus.publish({
 							kind: MessageKind.updateElements,
@@ -623,14 +548,22 @@ export async function activate(context: vscode.ExtensionContext) {
 							persistedStateService.saveExtensionState();
 						}
 
-						const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Changes successfully submitted: ${html_url}`,
-								'View on GitHub',
+						if (createPullRequest) {
+							const { html_url } = await sourceControl.createPR(
+								decoded.right,
 							);
 
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(vscode.Uri.parse(html_url));
+							const messageSelection =
+								await vscode.window.showInformationMessage(
+									`Pull request successfully created: ${html_url}`,
+									'View on GitHub',
+								);
+
+							if (messageSelection === 'View on GitHub') {
+								vscode.env.openExternal(
+									vscode.Uri.parse(html_url),
+								);
+							}
 						}
 					}
 				} catch (e) {
@@ -1205,58 +1138,116 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
 			try {
-				const caseHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
+				const caseHash = typeof arg0 === 'string' ? arg0 : null;
 
 				if (caseHash === null) {
 					throw new Error(
-						'Did not pass the caseHash into the command.',
+						`Could not decode the first positional arguments: it should have been a string`,
 					);
 				}
 
-				const unsavedBranches =
-					await sourceControl.getUnsavedBranches();
-
-				if (unsavedBranches.length !== 0) {
-					throw new Error(
-						'Submit the changes before applying this case',
-					);
+				if (!repositoryService) {
+					throw new Error('Unable to initialize repositoryService');
 				}
 
-				const stackedBranchesEmpty =
-					repositoryService.areStackedBranchesEmpty();
 				const currentBranch = repositoryService.getCurrentBranch();
 
-				if (!currentBranch?.name) {
-					throw new Error('Unable to detect current branch');
+				if (
+					currentBranch === null ||
+					currentBranch.name === undefined
+				) {
+					throw new Error('Unable to get current branch');
 				}
 
-				if (stackedBranchesEmpty) {
-					repositoryService.addStackedBranch(currentBranch.name);
-				}
-
-				/**
-				 * checkout the branch before applying changes to the file system
-				 */
 				const kase = caseManager.getCase(caseHash as CaseHash);
-
 				if (!kase) {
 					throw new Error('Case not found');
 				}
 
-				const caseUniqueName = buildCaseName(kase);
-				const branchName = branchNameFromStr(caseUniqueName);
-				await repositoryService.createOrCheckoutBranch(branchName);
-				repositoryService.addStackedBranch(branchName);
+				const caseJobsHashes = caseManager.getJobHashes([
+					kase.hash as CaseHash,
+				]);
+				// @TODO for now stagedJobs = all case jobs
+				const stagedJobs = [];
 
-				messageBus.publish({
-					kind: MessageKind.acceptCase,
-					caseHash: caseHash as CaseHash,
+				for (const jobHash of caseJobsHashes) {
+					const job = jobManager.getJob(jobHash);
+
+					if (job === null) {
+						continue;
+					}
+
+					stagedJobs.push({
+						hash: job.hash.toString(),
+						label: buildJobElementLabel(
+							job,
+							vscode.workspace.workspaceFolders?.[0]?.uri.path ??
+								'',
+						),
+					});
+				}
+
+				const caseUniqueName = buildCaseName(kase);
+				const targetBranchName = branchNameFromStr(caseUniqueName);
+
+				const title = kase.subKind;
+				const body = buildStackedBranchPRMessage(
+					repositoryService.getStackedBranches(),
+				);
+
+				const initialData = {
+					repositoryPath: repositoryService.getRemoteUrl(),
+					userId: globalStateAccountStorage.getUserAccount(),
+				};
+
+				const panelInstance = SourceControlWebviewPanel.getInstance(
+					{
+						type: 'intuitaPanel',
+						title,
+						extensionUri: context.extensionUri,
+						initialData,
+						viewColumn: vscode.ViewColumn.One,
+						webviewName: 'sourceControl',
+					},
+					messageBus,
+				);
+
+				await panelInstance.render();
+
+				const remotes = repositoryService.getRemotes();
+				const remoteOptions = (remotes ?? [])
+					.map((remote) => remote.pushUrl)
+					.filter(isNeitherNullNorUndefined);
+
+				const defaultRemoteUrl = repositoryService.getRemoteUrl();
+
+				if (!defaultRemoteUrl) {
+					throw new Error('Remote not found');
+				}
+
+				panelInstance.setView({
+					viewId: 'commitView',
+					viewProps: {
+						baseBranchOptions: [currentBranch.name],
+						targetBranchOptions: [targetBranchName],
+						remoteOptions,
+						initialFormData: {
+							title,
+							body,
+							baseBranch: currentBranch.name,
+							targetBranch: targetBranchName,
+							remoteUrl: defaultRemoteUrl,
+							commitMessage: '',
+							stagedJobs,
+							createPullRequest: false,
+							createNewBranch: false,
+						},
+						loading: false,
+						error: '',
+					},
 				});
 			} catch (e) {
-				vscode.window.showErrorMessage(
-					e instanceof Error ? e.message : String(e),
-				);
+				vscode.window.showErrorMessage((e as Error).message);
 			}
 		}),
 	);

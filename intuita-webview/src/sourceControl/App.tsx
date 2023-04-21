@@ -6,7 +6,7 @@ import { vscode } from '../shared/utilities/vscode';
 import WarningMessage from '../shared/WarningMessage';
 
 import CreateIssue from './CreateIssueView';
-import CreatePR from './CreatePRView';
+import CommitView from './CommitView';
 
 import type {
 	View,
@@ -28,8 +28,8 @@ const getViewComponent = (view: View) => {
 		case 'createIssue': {
 			return <CreateIssue {...view.viewProps} />;
 		}
-		case 'upsertPullRequest':
-			return <CreatePR {...view.viewProps} />;
+		case 'commitView':
+			return <CommitView {...view.viewProps} />;
 	}
 };
 

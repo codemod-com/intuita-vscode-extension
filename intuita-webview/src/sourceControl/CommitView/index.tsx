@@ -1,30 +1,41 @@
 import {
 	VSCodeButton,
-	VSCodeTextArea,
-	VSCodeTextField,
 	VSCodeDropdown,
 	VSCodeOption,
+	VSCodeCheckbox,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
+import CommitForm from './CommitForm';
+import PullRequestForm from './PullRequestForm';
+import ChangesList from './ChangesList';
+import BranchForm from './BranchForm';
 
-type Props = {
+type Props = Readonly<{
 	loading: boolean;
 	initialFormData: Partial<FormData>;
 	baseBranchOptions: string[];
 	targetBranchOptions: string[];
 	remoteOptions: string[];
-	pullRequestAlreadyExists: boolean;
-};
+}>;
 
-type FormData = {
+type StagedJob = Readonly<{
+	hash: string;
+	label: string;
+}>;
+
+export type FormData = Readonly<{
 	baseBranch: string;
 	targetBranch: string;
 	title: string;
 	body: string;
 	remoteUrl: string;
-};
+	commitMessage: string;
+	createNewBranch: boolean;
+	createPullRequest: boolean;
+	stagedJobs: StagedJob[];
+}>;
 
 const initialFormState: FormData = {
 	baseBranch: '',
@@ -32,6 +43,10 @@ const initialFormState: FormData = {
 	title: '',
 	body: '',
 	remoteUrl: '',
+	commitMessage: '',
+	createNewBranch: false,
+	createPullRequest: false,
+	stagedJobs: [],
 };
 
 const CreatePR = ({
@@ -40,7 +55,6 @@ const CreatePR = ({
 	baseBranchOptions,
 	targetBranchOptions,
 	remoteOptions,
-	pullRequestAlreadyExists,
 }: Props) => {
 	const [formData, setFormData] = useState<FormData>(initialFormState);
 
@@ -53,7 +67,8 @@ const CreatePR = ({
 		});
 	};
 
-	const { title, body, baseBranch, targetBranch, remoteUrl } = formData;
+	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } =
+		formData;
 
 	useEffect(() => {
 		setFormData((prevFormData) => ({
@@ -64,12 +79,11 @@ const CreatePR = ({
 
 	const onChangeFormField =
 		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
-			const value = (e as React.ChangeEvent<HTMLInputElement>).target
-				.value;
+			const { checked, value } = e.target as HTMLInputElement;
 
 			const nextFormData = {
 				...formData,
-				[fieldName]: value,
+				[fieldName]: checked !== undefined ? checked : value,
 			};
 
 			setFormData(nextFormData);
@@ -87,13 +101,12 @@ const CreatePR = ({
 	};
 
 	const hasMultipleRemotes = remoteOptions.length > 1;
+	const hasStatedChanges = stagedJobs.length !== 0;
 
 	return (
 		<div className={styles.root}>
-			<h1 className={styles.header}>
-				Create Pull Request for {remoteUrl}
-			</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
+				<h1 className={styles.header}>Commit changes</h1>
 				{hasMultipleRemotes ? (
 					<div className={styles.formField}>
 						<label htmlFor="remoteUrl">Remote:</label>
@@ -110,51 +123,50 @@ const CreatePR = ({
 						</VSCodeDropdown>
 					</div>
 				) : null}
-				<div className={styles.formField}>
-					<label htmlFor="targetBranch">Target branch:</label>
-					<VSCodeDropdown
-						id="targetBranch"
-						value={targetBranch}
-						onChange={onChangeFormField('targetBranch')}
+				<CommitForm
+					formData={formData}
+					onChangeFormField={onChangeFormField}
+				/>
+				{/* @TODO should we even allow to unapply all jobs? */}
+				{hasStatedChanges ? (
+					<ChangesList
+						formData={formData}
+						setFormData={setFormData}
+					/>
+				) : (
+					'No changes to commit'
+				)}
+				<div className={styles.checkboxContainer}>
+					<VSCodeCheckbox
+						checked={formData.createNewBranch}
+						onChange={onChangeFormField('createNewBranch')}
 					>
-						{targetBranchOptions.map((opt, index) => (
-							<VSCodeOption value={opt} key={index}>
-								{opt}
-							</VSCodeOption>
-						))}
-					</VSCodeDropdown>
+						Create new branch
+					</VSCodeCheckbox>
+					<p>When selected, new branch will be created</p>
 				</div>
-				<div className={styles.formField}>
-					<label htmlFor="baseBranch">Base branch:</label>
-					<VSCodeDropdown
-						id="baseBranch"
-						value={baseBranch}
-						onChange={onChangeFormField('baseBranch')}
-					>
-						{baseBranchOptions.map((opt, index) => (
-							<VSCodeOption value={opt} key={index}>
-								{opt}
-							</VSCodeOption>
-						))}
-					</VSCodeDropdown>
-				</div>
-				{!pullRequestAlreadyExists ? (
-					<>
-						<VSCodeTextField
-							placeholder="title"
-							value={title}
-							onInput={onChangeFormField('title')}
+				{createNewBranch ? <BranchForm formData={formData} /> : null}
+				{createNewBranch ? (
+					<div className={styles.checkboxContainer}>
+						<VSCodeCheckbox
+							checked={formData.createPullRequest}
+							onChange={onChangeFormField('createPullRequest')}
 						>
-							Title
-						</VSCodeTextField>
-						<VSCodeTextArea
-							placeholder="Description"
-							value={body}
-							onInput={onChangeFormField('body')}
-						>
-							Body
-						</VSCodeTextArea>
-					</>
+							Create Pull request
+						</VSCodeCheckbox>
+						<p>
+							When selected, pull request will be automatically
+							created
+						</p>
+					</div>
+				) : null}
+				{createNewBranch && createPullRequest ? (
+					<PullRequestForm
+						formData={formData}
+						onChangeFormField={onChangeFormField}
+						baseBranchOptions={baseBranchOptions}
+						targetBranchOptions={targetBranchOptions}
+					/>
 				) : null}
 				<div className={styles.actions}>
 					<VSCodeButton
@@ -169,11 +181,7 @@ const CreatePR = ({
 						type="submit"
 						className={styles.actionButton}
 					>
-						{loading
-							? 'Submitting...'
-							: pullRequestAlreadyExists
-							? 'Update Pull Request'
-							: 'Create Pull Request'}
+						{loading ? 'Committing...' : 'Commit'}
 					</VSCodeButton>
 				</div>
 			</form>
