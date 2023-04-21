@@ -1309,20 +1309,133 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptFolder',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null) {
-					throw new Error(
-						'Did not pass the jobHashes into the command.',
-					);
-				}
-				const jobHashes = [arg0].concat(otherArgs.slice());
+			async (_arg0) => {
+				try {
+					const arg0: {
+						id: string;
+						caseHash: string;
+						jobHashes: JobHash[];
+					} | null = typeof _arg0 === 'object' ? _arg0 : null;
+					if (arg0 === null) {
+						throw new Error(
+							'Did not pass an object into the command.',
+						);
+					}
+					if (!arg0.id) {
+						throw new Error(
+							'Did not include id in the passed object.',
+						);
+					}
+					if (!arg0.caseHash) {
+						throw new Error(
+							'Did not include caseHash in the passed object.',
+						);
+					}
+					if (!arg0.jobHashes || arg0.jobHashes.length === 0) {
+						throw new Error(
+							'Did not include jobHashes in the passed object.',
+						);
+					}
 
-				messageBus.publish({
-					kind: MessageKind.acceptJobs,
-					jobHashes: new Set(jobHashes),
-				});
+					const jobHashes = arg0.jobHashes.slice();
+
+					if (!repositoryService) {
+						throw new Error(
+							'Unable to initialize repositoryService',
+						);
+					}
+
+					const currentBranch = repositoryService.getCurrentBranch();
+
+					if (
+						currentBranch === null ||
+						currentBranch.name === undefined
+					) {
+						throw new Error('Unable to get current branch');
+					}
+
+					// @TODO for now stagedJobs = all case jobs
+					const stagedJobs = [];
+
+					for (const jobHash of jobHashes) {
+						const job = jobManager.getJob(jobHash);
+
+						if (job === null) {
+							continue;
+						}
+
+						stagedJobs.push({
+							hash: job.hash.toString(),
+							label: buildJobElementLabel(
+								job,
+								vscode.workspace.workspaceFolders?.[0]?.uri
+									.path ?? '',
+							),
+						});
+					}
+
+					const targetBranchName = `${
+						arg0.id
+					}-${arg0.caseHash.toLowerCase()}`;
+					const title = arg0.id;
+					const body = buildStackedBranchPRMessage(
+						repositoryService.getStackedBranches(),
+					);
+
+					const initialData = {
+						repositoryPath: repositoryService.getRemoteUrl(),
+						userId: globalStateAccountStorage.getUserAccount(),
+					};
+
+					const panelInstance = SourceControlWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title,
+							extensionUri: context.extensionUri,
+							initialData,
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'sourceControl',
+						},
+						messageBus,
+					);
+
+					await panelInstance.render();
+
+					const remotes = repositoryService.getRemotes();
+					const remoteOptions = (remotes ?? [])
+						.map((remote) => remote.pushUrl)
+						.filter(isNeitherNullNorUndefined);
+
+					const defaultRemoteUrl = repositoryService.getRemoteUrl();
+
+					if (!defaultRemoteUrl) {
+						throw new Error('Remote not found');
+					}
+
+					panelInstance.setView({
+						viewId: 'commitView',
+						viewProps: {
+							baseBranchOptions: [currentBranch.name],
+							targetBranchOptions: [targetBranchName],
+							remoteOptions,
+							initialFormData: {
+								title,
+								body,
+								baseBranch: currentBranch.name,
+								targetBranch: targetBranchName,
+								remoteUrl: defaultRemoteUrl,
+								commitMessage: '',
+								stagedJobs,
+								createPullRequest: false,
+								createNewBranch: false,
+							},
+							loading: false,
+							error: '',
+						},
+					});
+				} catch (e) {
+					vscode.window.showErrorMessage((e as Error).message);
+				}
 			},
 		),
 	);
