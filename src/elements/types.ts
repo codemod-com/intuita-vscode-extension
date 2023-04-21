@@ -31,6 +31,7 @@ export type CaseElement = Readonly<{
 	kind: ElementKind.CASE;
 	label: string;
 	children: ReadonlyArray<FileElement>;
+	codemodName: string;
 }>;
 
 export type RootElement = Readonly<{
