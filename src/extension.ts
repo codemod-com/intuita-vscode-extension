@@ -1309,35 +1309,31 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptFolder',
-			async (_arg0) => {
+			async (arg0) => {
 				try {
-					const arg0: {
-						id: string;
-						caseHash: string;
-						jobHashes: JobHash[];
-					} | null = typeof _arg0 === 'object' ? _arg0 : null;
-					if (arg0 === null) {
-						throw new Error(
-							'Did not pass an object into the command.',
-						);
-					}
-					if (!arg0.id) {
-						throw new Error(
-							'Did not include id in the passed object.',
-						);
-					}
-					if (!arg0.caseHash) {
-						throw new Error(
-							'Did not include caseHash in the passed object.',
-						);
-					}
-					if (!arg0.jobHashes || arg0.jobHashes.length === 0) {
-						throw new Error(
-							'Did not include jobHashes in the passed object.',
-						);
+					const codec = buildTypeCodec({
+						id: t.string,
+						caseHash: t.string,
+						jobHashes: t.readonlyArray(t.string),
+					});
+
+					const validation = codec.decode(arg0);
+
+					if (validation._tag === 'Left') {
+						const report = prettyReporter.report(validation);
+
+						console.error(report);
+
+						return;
 					}
 
-					const jobHashes = arg0.jobHashes.slice();
+					const {
+						id,
+						caseHash,
+						jobHashes: _jobHashes,
+					} = validation.right;
+
+					const jobHashes = _jobHashes.slice() as JobHash[];
 
 					if (!repositoryService) {
 						throw new Error(
@@ -1374,10 +1370,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						});
 					}
 
-					const targetBranchName = `${
-						arg0.id
-					}-${arg0.caseHash.toLowerCase()}`;
-					const title = arg0.id;
+					const targetBranchName = `${id}-${caseHash.toLowerCase()}`;
+					const title = id;
 					const body = buildStackedBranchPRMessage(
 						repositoryService.getStackedBranches(),
 					);

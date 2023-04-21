@@ -147,6 +147,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		if (element.kind === ElementKind.CASE) {
 			if (this.__codemodMap.has(element.codemodName)) {
+				// This conditional never should be true.
+				// If it is true, it means there are `CASE` elements with the same codemod name.
 				return;
 			}
 			this.__codemodMap.set(
