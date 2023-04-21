@@ -405,12 +405,12 @@
 			"view/title": [
 				{
 					"command": "intuita.caseBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "false",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.folderBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "false",
 					"group": "navigation"
 				},
 				{

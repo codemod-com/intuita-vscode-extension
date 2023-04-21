@@ -24,6 +24,7 @@ export type FileElement = Readonly<{
 	kind: ElementKind.FILE;
 	label: string;
 	children: ReadonlyArray<JobElement>;
+	caseHash: string;
 }>;
 
 export type CaseElement = Readonly<{
@@ -31,6 +32,7 @@ export type CaseElement = Readonly<{
 	kind: ElementKind.CASE;
 	label: string;
 	children: ReadonlyArray<FileElement>;
+	codemodName: string;
 }>;
 
 export type RootElement = Readonly<{
