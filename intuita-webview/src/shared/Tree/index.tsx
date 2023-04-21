@@ -1,41 +1,71 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
+import { buildHash, generateColor } from '../../utilities';
 
 type Props = {
+	index: number;
 	depth: number;
 	node: TreeNode;
 	renderItem({
+		index,
 		node,
 		depth,
 		open,
 		setIsOpen,
+		color,
+		lastChild,
 	}: {
+		index: number;
 		node: TreeNode;
 		depth: number;
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
+		color: string;
+		lastChild: boolean;
 	}): ReactNode;
+	color: string;
+	lastChild: boolean;
 };
 
-const Tree = ({ node, depth = 0, renderItem }: Props) => {
+const Tree = ({
+	node,
+	depth,
+	renderItem,
+	color: colorProp,
+	index,
+	lastChild,
+}: Props) => {
+	const hasNoChildren = !node.children || node.children.length === 0;
+	const isFolderBreakdown = [
+		'folderElement',
+		'acceptedFolderElement',
+	].includes(node.kind);
 	const [open, setIsOpen] = useState(depth === 0);
+	const [color] = useState(
+		hasNoChildren ? colorProp : generateColor(buildHash(node.id)),
+	);
+	const treeItem = renderItem({
+		index,
+		lastChild,
+		color,
+		node,
+		depth,
+		open,
+		setIsOpen,
+	});
 
-	const treeItem = renderItem({ node, depth, open, setIsOpen });
-
-	if (!node.children || node.children.length === 0) {
+	if (hasNoChildren) {
 		return <>{treeItem}</>;
 	}
 
 	const folderElements: TreeNode[] = [];
 	const caseByFolderElements: TreeNode[] = [];
 
-	// separate folder elements and caseByFolder elements
-	// since we want to display all caseByFolder elements above folder elements
-	if (
-		node.kind &&
-		['folderElement', 'acceptedFolderElement'].includes(node.kind)
-	) {
+	// separate folder children and caseByFolder children
+	// since we want to display all caseByFolder children at the current depth
+	// while we want to display all folder children at 1 level deeper depth
+	if (isFolderBreakdown) {
 		node.children.forEach((element) => {
 			if (!element.kind) {
 				return;
@@ -56,24 +86,47 @@ const Tree = ({ node, depth = 0, renderItem }: Props) => {
 		});
 	}
 
+	const caseByFolderComponents = caseByFolderElements.map(
+		(child, index, arr) => (
+			<Tree
+				key={child.id}
+				node={child}
+				renderItem={renderItem}
+				depth={depth}
+				color={color}
+				index={index}
+				lastChild={arr.length - 1 === index}
+			/>
+		),
+	);
+
 	return (
-		<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
-			{open
-				? (folderElements.length > 0 || caseByFolderElements.length > 0
-						? caseByFolderElements.concat(folderElements)
-						: node.children
-				  ).map((child) => {
-						return (
+		<>
+			<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
+				{open ? (
+					<>
+						{isFolderBreakdown &&
+							folderElements.length === 0 &&
+							caseByFolderComponents}
+						{(isFolderBreakdown
+							? folderElements
+							: node.children
+						).map((child, index, arr) => (
 							<Tree
 								key={child.id}
 								node={child}
 								renderItem={renderItem}
 								depth={depth + 1}
+								color={color}
+								index={index}
+								lastChild={arr.length - 1 === index}
 							/>
-						);
-				  })
-				: null}
-		</ReactTreeView>
+						))}
+					</>
+				) : null}
+			</ReactTreeView>
+			{!open && isFolderBreakdown && caseByFolderComponents}
+		</>
 	);
 };
 

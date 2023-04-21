@@ -1142,10 +1142,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 				}
 
-				if (!repositoryService) {
-					throw new Error('Unable to initialize repositoryService');
-				}
-
 				const currentBranch = repositoryService.getCurrentBranch();
 
 				if (
@@ -1243,7 +1239,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 				});
 			} catch (e) {
-				vscode.window.showErrorMessage((e as Error).message);
+				vscode.window.showErrorMessage(
+					e instanceof Error ? e.message : String(e),
+				);
 			}
 		}),
 	);
@@ -1267,20 +1265,122 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptCaseByFolder',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null) {
-					throw new Error(
-						'Did not pass the jobHashes into the command.',
+			async (arg0) => {
+				try {
+					const codec = buildTypeCodec({
+						path: t.string,
+						hash: t.string,
+						jobHashes: t.readonlyArray(t.string),
+					});
+
+					const validation = codec.decode(arg0);
+
+					if (validation._tag === 'Left') {
+						const report = prettyReporter.report(validation);
+
+						console.error(report);
+
+						return;
+					}
+
+					const {
+						path,
+						hash,
+						jobHashes: _jobHashes,
+					} = validation.right;
+
+					const jobHashes = _jobHashes.slice() as JobHash[];
+
+					const currentBranch = repositoryService.getCurrentBranch();
+
+					if (
+						currentBranch === null ||
+						currentBranch.name === undefined
+					) {
+						throw new Error('Unable to get current branch');
+					}
+
+					// @TODO for now stagedJobs = all case jobs
+					const stagedJobs = [];
+
+					for (const jobHash of jobHashes) {
+						const job = jobManager.getJob(jobHash);
+
+						if (job === null) {
+							continue;
+						}
+
+						stagedJobs.push({
+							hash: job.hash.toString(),
+							label: buildJobElementLabel(
+								job,
+								vscode.workspace.workspaceFolders?.[0]?.uri
+									.path ?? '',
+							),
+						});
+					}
+
+					const targetBranchName = `${path}-${hash.toLowerCase()}`;
+					const title = path;
+					const body = buildStackedBranchPRMessage(
+						repositoryService.getStackedBranches(),
+					);
+					const initialData = {
+						repositoryPath: repositoryService.getRemoteUrl(),
+						userId: globalStateAccountStorage.getUserAccount(),
+					};
+
+					const panelInstance = SourceControlWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title,
+							extensionUri: context.extensionUri,
+							initialData,
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'sourceControl',
+						},
+						messageBus,
+					);
+
+					await panelInstance.render();
+
+					const remotes = repositoryService.getRemotes();
+					const remoteOptions = (remotes ?? [])
+						.map((remote) => remote.pushUrl)
+						.filter(isNeitherNullNorUndefined);
+
+					const defaultRemoteUrl = repositoryService.getRemoteUrl();
+
+					if (!defaultRemoteUrl) {
+						throw new Error('Remote not found');
+					}
+
+					panelInstance.setView({
+						viewId: 'commitView',
+						viewProps: {
+							baseBranchOptions: [currentBranch.name],
+							targetBranchOptions: [targetBranchName],
+							remoteOptions,
+							initialFormData: {
+								title,
+								body,
+								baseBranch: currentBranch.name,
+								targetBranch: targetBranchName,
+								remoteUrl: defaultRemoteUrl,
+								commitMessage: '',
+								stagedJobs,
+								createPullRequest: false,
+								createNewBranch: false,
+							},
+							loading: false,
+							error: '',
+						},
+					});
+				} catch (e) {
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
 					);
 				}
-				const jobHashes = [arg0].concat(otherArgs.slice());
-
-				messageBus.publish({
-					kind: MessageKind.acceptJobs,
-					jobHashes: new Set(jobHashes),
-				});
 			},
 		),
 	);
@@ -1334,12 +1434,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					} = validation.right;
 
 					const jobHashes = _jobHashes.slice() as JobHash[];
-
-					if (!repositoryService) {
-						throw new Error(
-							'Unable to initialize repositoryService',
-						);
-					}
 
 					const currentBranch = repositoryService.getCurrentBranch();
 
@@ -1428,7 +1522,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (e) {
-					vscode.window.showErrorMessage((e as Error).message);
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
 				}
 			},
 		),

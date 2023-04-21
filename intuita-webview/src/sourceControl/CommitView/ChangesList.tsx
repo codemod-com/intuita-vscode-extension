@@ -23,6 +23,9 @@ const ChangesList = ({ formData, setFormData }: Props) => {
 
 	return (
 		<Tree
+			index={0}
+			lastChild={false}
+			color="white"
 			renderItem={({ node, open, setIsOpen, depth }) => {
 				return (
 					<li

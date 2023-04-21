@@ -69,12 +69,15 @@ const TreeView = ({ node }: Props) => {
 	};
 
 	const renderItem = ({
+		color,
 		node,
 		depth,
 		open,
 		setIsOpen,
 		focusedNodeId,
 		setFocusedNodeId,
+		index,
+		lastChild,
 	}: {
 		node: TreeNode;
 		depth: number;
@@ -82,6 +85,9 @@ const TreeView = ({ node }: Props) => {
 		setIsOpen: (value: boolean) => void;
 		focusedNodeId: string;
 		setFocusedNodeId: (value: string) => void;
+		color: string;
+		index: number;
+		lastChild: boolean;
 	}) => {
 		// @TODO remove code related to "accepted" state
 		if (
@@ -124,6 +130,9 @@ const TreeView = ({ node }: Props) => {
 					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
+				color={color}
+				index={index}
+				lastChild={lastChild}
 			/>
 		);
 	};
@@ -144,6 +153,9 @@ const TreeView = ({ node }: Props) => {
 				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
 			}
 			depth={0}
+			color="white"
+			index={0}
+			lastChild={false}
 		/>
 	);
 };
