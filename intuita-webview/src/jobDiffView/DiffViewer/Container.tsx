@@ -1,10 +1,5 @@
 import React, { forwardRef } from 'react';
-import {
-	VSCodeButton,
-	VSCodeCheckbox,
-	VSCodeDropdown,
-	VSCodeOption,
-} from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
@@ -14,51 +9,19 @@ type ContainerProps = Readonly<{
 	oldFileName: string | null;
 	newFileName: string | null;
 	viewType: 'inline' | 'side-by-side';
-	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	children?: React.ReactNode;
 }>;
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	(
-		{
-			oldFileName,
-			newFileName,
-			children,
-			viewType,
-			onViewTypeChange,
-		}: ContainerProps,
-		ref,
-	) => {
-		const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
-			const value = (e.target as HTMLSelectElement).value as
-				| 'inline'
-				| 'side-by-side';
-			onViewTypeChange(value);
-		};
+	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
 		return (
-			<div
-				className="flex  flex-wrap w-full container flex-col"
-				ref={ref}
-			>
-				<div className="mb-10">
-					<VSCodeDropdown
-						style={{ zIndex: 10001 }}
-						value={viewType}
-						onChange={handleChange}
-					>
-						<VSCodeOption value="inline"> Inline </VSCodeOption>
-						<VSCodeOption value="side-by-side">
-							Side By Side
-						</VSCodeOption>
-					</VSCodeDropdown>
-				</div>
-
+			<div className="flex flex-wrap w-full container flex-col" ref={ref}>
 				{viewType === 'side-by-side' && newFileName && oldFileName && (
 					<div className="flex flex-row w-full">
 						<div className="w-half ml-50">
 							<h3>{oldFileName}</h3>
 						</div>
-						<div className="w-half ml-50">
+						<div className="w-half ml-30">
 							<h3>{newFileName}</h3>
 						</div>
 					</div>

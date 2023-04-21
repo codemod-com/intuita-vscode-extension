@@ -85,7 +85,6 @@ export const JobDiffView = ({
 				viewType={viewType}
 				oldFileName={oldFileTitle}
 				newFileName={newFileTitle}
-				onViewTypeChange={setViewType}
 			>
 				{diffViewer}
 			</Container>
