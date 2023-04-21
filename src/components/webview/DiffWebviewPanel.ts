@@ -78,6 +78,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		const job = this.__jobManager.getJob(jobHash);
 		const jobAccepted = this.__jobManager.isJobAccepted(jobHash);
+		const jobApplied = this.__jobManager.isJobApplied(jobHash);
+
 		if (!job) {
 			return null;
 		}
@@ -136,7 +138,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			oldFileContent,
 			newFileContent,
 			title: getTitle(),
-			actions: IntuitaProvider.getJobActions(jobHash, this.__jobManager),
+			actions: IntuitaProvider.getJobActions(jobHash, jobApplied),
 		};
 	}
 

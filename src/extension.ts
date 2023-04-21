@@ -90,6 +90,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		persistedState?.acceptedJobsHashes as JobHash[],
+		persistedState?.appliedJobsHashes as JobHash[],
 		messageBus,
 		fileService,
 	);
@@ -472,6 +473,44 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.applyJob',
+			async (arg0: unknown) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				jobManager.applyJob(jobHash as JobHash);
+
+				messageBus.publish({ kind: MessageKind.updateElements });
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.unapplyJob',
+			async (arg0: unknown) => {
+				const jobHash = typeof arg0 === 'string' ? arg0 : null;
+
+				if (jobHash === null) {
+					throw new Error(
+						`Could not decode the first positional arguments: it should have been a string`,
+					);
+				}
+
+				jobManager.unapplyJob(jobHash as JobHash);
+
+				messageBus.publish({ kind: MessageKind.updateElements });
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.sourceControl.createPR',
 			async (arg0) => {
 				try {
@@ -490,6 +529,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							stagedJobs.map(({ hash }) => hash as JobHash),
 						);
 
+						// @should rename this to commitJobs?
 						await jobManager.acceptJobs(stagedJobHashes);
 
 						const remotes = repositoryService.getRemotes();
@@ -1156,20 +1196,17 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Case not found');
 				}
 
-				const caseJobsHashes = caseManager.getJobHashes([
-					kase.hash as CaseHash,
-				]);
-				// @TODO for now stagedJobs = all case jobs
-				const stagedJobs = [];
+				const appliedJobsHashes = jobManager.getAppliedJobsHashes();
+				const appliedJobs = [];
 
-				for (const jobHash of caseJobsHashes) {
+				for (const jobHash of appliedJobsHashes) {
 					const job = jobManager.getJob(jobHash);
 
 					if (job === null) {
 						continue;
 					}
 
-					stagedJobs.push({
+					appliedJobs.push({
 						hash: job.hash.toString(),
 						label: buildJobElementLabel(
 							job,
@@ -1230,7 +1267,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							targetBranch: targetBranchName,
 							remoteUrl: defaultRemoteUrl,
 							commitMessage: '',
-							stagedJobs,
+							stagedJobs: appliedJobs,
 							createPullRequest: false,
 							createNewBranch: false,
 						},

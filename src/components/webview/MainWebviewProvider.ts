@@ -610,6 +610,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
+		console.log(message, 'test');
+
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'intuita.openJobDiff') {
 				const args = message.value.arguments;
@@ -644,39 +646,30 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 	public static getJobActions = (
 		jobHash: JobHash,
-		jobManager: JobManager,
+		jobApplied: boolean,
 	): {
 		title: string;
 		command: JobActionCommands;
 		arguments: JobHash[];
 	}[] => {
-		if (jobManager.isJobAccepted(jobHash)) {
+		if (jobApplied) {
 			return [
 				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectJob',
-					arguments: [jobHash],
-				},
-				{
-					title: 'Issue',
-					command: 'intuita.createIssue',
-					arguments: [jobHash],
-				},
-				{
-					title: 'PR',
-					command: 'intuita.createPR',
+					title: '✗ Unapply',
+					command: 'intuita.unapplyJob',
 					arguments: [jobHash],
 				},
 			];
 		}
+
 		return [
 			{
 				title: '✓ Apply',
-				command: 'intuita.acceptJob',
+				command: 'intuita.applyJob',
 				arguments: [jobHash],
 			},
 			{
-				title: '✗ Dismiss',
+				title: '✗ Discard',
 				command: 'intuita.rejectJob',
 				arguments: [jobHash],
 			},

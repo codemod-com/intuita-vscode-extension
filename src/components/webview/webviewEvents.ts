@@ -7,7 +7,10 @@ export type JobActionCommands =
 	| 'intuita.rejectJob'
 	| 'intuita.createIssue'
 	| 'intuita.createPR'
-	| 'intuita.acceptJob';
+	| 'intuita.acceptJob'
+	| 'intuita.unapplyJob'
+	| 'intuita.applyJob';
+
 export type JobAction = {
 	title: string;
 	command: JobActionCommands;

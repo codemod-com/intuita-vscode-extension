@@ -21,17 +21,21 @@ export class JobManager {
 
 	#jobMap: Map<JobHash, Job>;
 	#acceptedJobsHashes: Set<JobHash>;
+	#appliedJobsHashes: Set<JobHash>;
 
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
 	public constructor(
 		jobs: ReadonlyArray<Job>,
+		// @TODO rename? accepted means committed now
 		acceptedJobsHashes: ReadonlyArray<JobHash>,
+		appliedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
 		private readonly __fileService: FileService,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
+		this.#appliedJobsHashes = new Set(appliedJobsHashes);
 
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
 			new Set(
@@ -290,6 +294,22 @@ export class JobManager {
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}
+	}
+
+	public applyJob(jobHash: JobHash): void {
+		this.#appliedJobsHashes.add(jobHash);
+	}
+
+	public unapplyJob(jobHash: JobHash): void {
+		this.#appliedJobsHashes.delete(jobHash);
+	}
+
+	public isJobApplied(jobHash: JobHash): boolean {
+		return this.#appliedJobsHashes.has(jobHash);
+	}
+
+	public getAppliedJobsHashes() {
+		return this.#appliedJobsHashes;
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
