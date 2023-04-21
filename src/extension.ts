@@ -50,7 +50,6 @@ import {
 import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
 import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
-import { IntuitaTreeDataProvider } from './components/intuitaTreeDataProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
@@ -89,7 +88,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
-		persistedState?.acceptedJobsHashes as JobHash[],
 		persistedState?.appliedJobsHashes as JobHash[],
 		messageBus,
 		fileService,
@@ -106,11 +104,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const codemodTreeProvider = new CodemodTreeProvider(
 		rootPath ?? null,
 		messageBus,
-	);
-	const treeDataProvider = new IntuitaTreeDataProvider(
-		caseManager,
-		messageBus,
-		jobManager,
 	);
 
 	const codemodTreeView = vscode.window.createTreeView(
@@ -404,16 +397,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(view);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createIssue', async (arg0) => {
-			const treeItem = await treeDataProvider.getTreeItem(arg0);
-
+		vscode.commands.registerCommand('intuita.createIssue', async () => {
 			const initialData = {
 				repositoryPath: repositoryService.getRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
-			const { label } = treeItem;
-			const title = typeof label === 'object' ? label.label : label ?? '';
+			// @TODO
+			const title = 'Label';
 
 			const panelInstance = SourceControlWebviewPanel.getInstance(
 				{

@@ -89,14 +89,6 @@ const TreeView = ({ node }: Props) => {
 		index: number;
 		lastChild: boolean;
 	}) => {
-		// @TODO remove code related to "accepted" state
-		if (
-			node.kind === 'acceptedJobElement' ||
-			node.kind === 'acceptedCaseElement'
-		) {
-			return null;
-		}
-
 		const icon = getIcon(node.iconName ?? null, open);
 
 		const actionButtons = (node.actions ?? []).map((action) => (

@@ -20,21 +20,17 @@ export class JobManager {
 	readonly #messageBus: MessageBus;
 
 	#jobMap: Map<JobHash, Job>;
-	#acceptedJobsHashes: Set<JobHash>;
 	#appliedJobsHashes: Set<JobHash>;
 
 	#uriHashJobHashSetManager: LeftRightHashSetManager<string, JobHash>;
 
 	public constructor(
 		jobs: ReadonlyArray<Job>,
-		// @TODO rename? accepted means committed now
-		acceptedJobsHashes: ReadonlyArray<JobHash>,
 		appliedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
 		private readonly __fileService: FileService,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
-		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
 		this.#appliedJobsHashes = new Set(appliedJobsHashes);
 
 		this.#uriHashJobHashSetManager = new LeftRightHashSetManager(
@@ -96,14 +92,6 @@ export class JobManager {
 		return jobs;
 	}
 
-	public getAcceptedJobsHashes() {
-		return this.#acceptedJobsHashes;
-	}
-
-	public isJobAccepted(jobHash: JobHash) {
-		return this.#acceptedJobsHashes.has(jobHash);
-	}
-
 	#onUpsertJobsMessage(message: Message & { kind: MessageKind.upsertJobs }) {
 		message.inactiveJobHashes.forEach((jobHash) => {
 			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
@@ -161,10 +149,6 @@ export class JobManager {
 			this.#buildCodemodObjects(jobHashes);
 
 		const messages: Message[] = [];
-
-		for (const jobHash of jobHashes) {
-			this.#acceptedJobsHashes.add(jobHash);
-		}
 
 		messages.push({ kind: MessageKind.updateElements });
 
@@ -289,6 +273,11 @@ export class JobManager {
 			await this.__fileService.deleteFiles({
 				uris: deleteJobOutputs.slice(),
 			});
+		}
+
+		for (const jobHash of jobHashes) {
+			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
+			this.#jobMap.delete(jobHash);
 		}
 
 		for (const message of messages) {
@@ -416,7 +405,7 @@ export class JobManager {
 
 		this.#jobMap.clear();
 		this.#uriHashJobHashSetManager.clear();
-		this.#acceptedJobsHashes.clear();
+		this.#appliedJobsHashes.clear();
 
 		this.#messageBus.publish({
 			kind: MessageKind.deleteFiles,

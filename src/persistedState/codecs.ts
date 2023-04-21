@@ -42,7 +42,6 @@ export const persistedStateCodec = buildTypeCodec({
 	cases: t.readonlyArray(persistedCaseCodec),
 	jobs: t.readonlyArray(persistedJobCodec),
 	caseHashJobHashes: t.readonlyArray(t.string),
-	acceptedJobsHashes: t.readonlyArray(t.string),
 	appliedJobsHashes: withFallback(t.readonlyArray(t.string), []),
 	remoteUrl: withFallback(t.union([t.string, t.null]), null),
 });

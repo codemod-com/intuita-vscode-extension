@@ -62,10 +62,6 @@ export class PersistedStateService {
 			mapJobToPersistedJob(job),
 		);
 
-		const acceptedJobsHashes = Array.from(
-			this.jobManager.getAcceptedJobsHashes(),
-		);
-
 		const appliedJobsHashes = Array.from(
 			this.jobManager.getAppliedJobsHashes(),
 		);
@@ -76,7 +72,6 @@ export class PersistedStateService {
 			cases,
 			caseHashJobHashes,
 			jobs,
-			acceptedJobsHashes,
 			appliedJobsHashes,
 			remoteUrl,
 		};
@@ -100,7 +95,6 @@ export class PersistedStateService {
 			cases: [],
 			caseHashJobHashes: [],
 			jobs: [],
-			acceptedJobsHashes: [],
 			appliedJobsHashes: [],
 			remoteUrl: this.__repositoryService.getRemoteUrl(),
 		};

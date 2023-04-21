@@ -77,7 +77,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		const job = this.__jobManager.getJob(jobHash);
-		const jobAccepted = this.__jobManager.isJobAccepted(jobHash);
+		// @TODO
+		const jobAccepted = false;
 		const jobApplied = this.__jobManager.isJobApplied(jobHash);
 
 		if (!job) {

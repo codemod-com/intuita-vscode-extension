@@ -31,7 +31,7 @@ import {
 	getElementIconBaseName,
 } from '../../utilities';
 import { JobManager } from '../jobManager';
-import { CaseHash, CaseWithJobHashes } from '../../cases/types';
+import { CaseWithJobHashes } from '../../cases/types';
 import {
 	buildJobElement,
 	compareJobElements,
@@ -704,35 +704,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 			children: [],
 		};
 
-		const caseJobHashes = this.__caseManager.getJobHashes([
-			String(element.hash) as CaseHash,
-		]);
-		const caseAccepted = Array.from(caseJobHashes).every((jobHash) =>
-			this.__jobManager.isJobAccepted(jobHash),
-		);
-
-		if (caseAccepted) {
-			mappedNode.kind = 'acceptedCaseElement';
-
-			mappedNode.actions = [
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCase',
-					arguments: [element.hash],
-				},
-				{
-					title: 'Issue',
-					command: 'intuita.createIssue',
-					arguments: [element.hash],
-				},
-				{
-					title: 'PR',
-					command: 'intuita.createPR',
-					arguments: [element.hash],
-				},
-			];
-		}
-
 		return mappedNode;
 	};
 
@@ -797,23 +768,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 		if (node === null || !node.command?.arguments) {
 			// should not be reached
 			return null;
-		}
-
-		const updatedJobHashes = node.command.arguments;
-		const caseByFolderAccepted = updatedJobHashes.every((jobHash) =>
-			this.__jobManager.isJobAccepted(jobHash),
-		);
-
-		if (caseByFolderAccepted) {
-			node.kind = 'acceptedCaseByFolderElement';
-
-			node.actions = [
-				{
-					title: '✗ Dismiss',
-					command: 'intuita.rejectCaseByFolder',
-					arguments: updatedJobHashes,
-				},
-			];
 		}
 
 		return existingNode === null ? node : null;
