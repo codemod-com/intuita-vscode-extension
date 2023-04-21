@@ -4,6 +4,7 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
+import { FileService } from './fileService';
 
 type Codemod = Readonly<{
 	setName: string;
@@ -27,6 +28,7 @@ export class JobManager {
 		jobs: ReadonlyArray<Job>,
 		acceptedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
+		private readonly __fileService: FileService,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#acceptedJobsHashes = new Set(acceptedJobsHashes);
@@ -145,14 +147,18 @@ export class JobManager {
 	async #onAcceptJobsMessage(
 		message: Message & { kind: MessageKind.acceptJobs },
 	) {
+		this.acceptJobs(message.jobHashes);
+	}
+
+	async acceptJobs(jobHashes: ReadonlySet<JobHash>) {
 		// HERE
 
 		const { codemodHashJobHashSetManager, codemods } =
-			this.#buildCodemodObjects(message.jobHashes);
+			this.#buildCodemodObjects(jobHashes);
 
 		const messages: Message[] = [];
 
-		for (const jobHash of message.jobHashes) {
+		for (const jobHash of jobHashes) {
 			this.#acceptedJobsHashes.add(jobHash);
 		}
 
@@ -187,11 +193,10 @@ export class JobManager {
 			const deleteJobOutputs: Uri[] = [];
 			const moveJobOutputs: [Uri, Uri, Uri][] = [];
 
-			for (const {
-				// uriHash,
+			for (const { jobHashes: hashes } of this.#getUriHashesWithJobHashes(
 				jobHashes,
-			} of this.#getUriHashesWithJobHashes(message.jobHashes)) {
-				const jobs = Array.from(jobHashes)
+			)) {
+				const jobs = Array.from(hashes)
 					.map((jobHash) => this.#jobMap.get(jobHash))
 					.filter(isNeitherNullNorUndefined);
 
@@ -252,42 +257,34 @@ export class JobManager {
 				}
 			}
 
-			// TODO here
-
-			createJobOutputs.forEach(
-				([newUri, newContentUri, deleteNewContentUri]) => {
-					messages.push({
-						kind: MessageKind.createFile,
-						newUri,
-						newContentUri,
-						deleteNewContentUri,
-					});
-				},
-			);
-
-			updateJobOutputs.forEach(([uri, jobOutputUri]) => {
-				messages.push({
-					kind: MessageKind.updateFile,
-					uri,
-					contentUri: jobOutputUri,
+			for (const createJobOutput of createJobOutputs) {
+				const [newUri, newContentUri] = createJobOutput;
+				await this.__fileService.createFile({
+					newUri,
+					newContentUri,
 				});
-			});
+			}
 
-			moveJobOutputs.forEach(([oldUri, newUri, newContentUri]) => {
-				messages.push({
-					kind: MessageKind.moveFile,
+			for (const updateJobOutput of updateJobOutputs) {
+				const [uri, contentUri] = updateJobOutput;
+				await this.__fileService.updateFile({
+					uri,
+					contentUri,
+				});
+			}
+
+			for (const moveJobOutput of moveJobOutputs) {
+				const [oldUri, newUri, newContentUri] = moveJobOutput;
+				await this.__fileService.moveFile({
 					oldUri,
 					newUri,
 					newContentUri,
 				});
-			});
-
-			if (deleteJobOutputs.length !== 0) {
-				messages.push({
-					kind: MessageKind.deleteFiles,
-					uris: deleteJobOutputs.slice(),
-				});
 			}
+
+			await this.__fileService.deleteFiles({
+				uris: deleteJobOutputs.slice(),
+			});
 		}
 
 		for (const message of messages) {

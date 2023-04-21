@@ -26,38 +26,50 @@ export class FileService {
 	}
 
 	async #onCreateFile(message: Message & { kind: MessageKind.createFile }) {
-		const content = await workspace.fs.readFile(message.newContentUri);
-
-		const directory = dirname(message.newUri.fsPath);
-
-		await workspace.fs.createDirectory(Uri.file(directory));
-
-		await workspace.fs.writeFile(message.newUri, content);
+		this.createFile(message);
 	}
 
 	async #onUpdateFile(message: Message & { kind: MessageKind.updateFile }) {
-		const content = await workspace.fs.readFile(message.contentUri);
-
-		await workspace.fs.writeFile(message.uri, content);
+		this.updateFile(message);
 	}
 
 	async #onMoveFile(message: Message & { kind: MessageKind.moveFile }) {
-		const content = await workspace.fs.readFile(message.newContentUri);
-
-		const directory = dirname(message.newUri.fsPath);
-
-		await workspace.fs.createDirectory(Uri.file(directory));
-
-		await workspace.fs.writeFile(message.newUri, content);
-
-		this.#messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris: [message.oldUri],
-		});
+		await this.moveFile(message);
 	}
 
 	async #onDeleteFile(message: Message & { kind: MessageKind.deleteFiles }) {
-		for (const uri of message.uris) {
+		await this.deleteFiles(message);
+	}
+
+	async createFile(params: { newUri: Uri; newContentUri: Uri }) {
+		const content = await workspace.fs.readFile(params.newContentUri);
+
+		const directory = dirname(params.newUri.fsPath);
+
+		await workspace.fs.createDirectory(Uri.file(directory));
+
+		await workspace.fs.writeFile(params.newUri, content);
+	}
+
+	async updateFile(params: { uri: Uri; contentUri: Uri }) {
+		const content = await workspace.fs.readFile(params.contentUri);
+		await workspace.fs.writeFile(params.uri, content);
+	}
+
+	async moveFile(params: { newUri: Uri; oldUri: Uri; newContentUri: Uri }) {
+		const content = await workspace.fs.readFile(params.newContentUri);
+
+		const directory = dirname(params.newUri.fsPath);
+
+		await workspace.fs.createDirectory(Uri.file(directory));
+
+		await workspace.fs.writeFile(params.newUri, content);
+
+		await this.deleteFiles({ uris: [params.oldUri] });
+	}
+
+	async deleteFiles(params: { uris: ReadonlyArray<Uri> }) {
+		for (const uri of params.uris) {
 			await workspace.fs.delete(uri, {
 				recursive: false,
 				useTrash: false,
