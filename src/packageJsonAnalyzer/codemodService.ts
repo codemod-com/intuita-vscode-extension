@@ -1,18 +1,6 @@
-import {
-	TreeItemCollapsibleState,
-	commands,
-	window,
-	Event,
-	EventEmitter,
-	TreeItem,
-	ThemeIcon,
-	Uri,
-	TreeDataProvider,
-} from 'vscode';
+import { commands, window, Event, EventEmitter, Uri } from 'vscode';
 import { readFileSync } from 'fs';
-import { debounce, isNeitherNullNorUndefined } from '../utilities';
-import { MessageBus, MessageKind } from '../components/messageBus';
-import { watchFileWithPattern } from '../fileWatcher';
+import { isNeitherNullNorUndefined } from '../utilities';
 import {
 	CodemodHash,
 	CodemodItem,
@@ -26,47 +14,29 @@ import {
 	getPackageJsonUris,
 	buildCodemodElementHash,
 } from './utils';
-import path from 'path';
 
-export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
+export class CodemodService {
 	#rootPath: string | null;
-	#messageBus: MessageBus;
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	readonly #eventEmitter = new EventEmitter<void>();
 	public readonly onDidChangeTreeData: Event<void>;
 
-	constructor(rootPath: string | null, messageBus: MessageBus) {
+	constructor(rootPath: string | null) {
 		this.#rootPath = rootPath;
-		this.#messageBus = messageBus;
 		this.onDidChangeTreeData = this.#eventEmitter.event;
-		this.getPackageJsonListAndWatch();
-
-		this.#messageBus.subscribe(MessageKind.runCodemod, (message) => {
-			const codemodElement = this.#codemodItemsMap.get(
-				message.codemodHash,
-			);
-
-			if (!codemodElement || codemodElement.kind !== 'codemodItem') {
-				return;
-			}
-
-			this.runCodemod(
-				codemodElement.commandToExecute,
-				codemodElement.pathToExecute,
-			);
-		});
+		this.getPackageJsonList();
 	}
 
-	async getPackageJsonListAndWatch() {
+	public getCodemodElement = (codemodHash: CodemodHash) => {
+		return this.#codemodItemsMap.get(codemodHash);
+	};
+
+	async getPackageJsonList() {
 		const packageJsonList = await getPackageJsonUris();
 		if (!packageJsonList.length) {
 			this.showRootPathUndefinedMessage();
 			return;
 		}
-		const watcher = this.watchPackageJson();
-		this.#messageBus.subscribe(MessageKind.extensionDeactivated, () => {
-			watcher?.dispose();
-		});
 
 		this.getCodemods();
 	}
@@ -173,14 +143,6 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		}
 
 		this.#codemodItemsMap = codemods;
-		this.#eventEmitter.fire();
-	}
-
-	watchPackageJson() {
-		return watchFileWithPattern(
-			'**/package.json',
-			debounce(this.getCodemods.bind(this), 50),
-		);
 	}
 
 	showRootPathUndefinedMessage() {
@@ -188,7 +150,9 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 			'Unable to find package.json to list avaliable codemods. Please open a project folder.',
 		);
 	}
-
+	public getListOfCodemodCommands() {
+		return Object.values(commandList);
+	}
 	getUnsortedChildren(el: CodemodHash | null): CodemodHash[] {
 		if (!this.#rootPath) return [];
 		if (el) {
@@ -208,7 +172,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 		if (!rootCodemodPath || rootCodemodPath.kind !== 'path') {
 			return [];
 		}
-		return rootCodemodPath.children;
+		return [rootCodemodPath.hash];
 	}
 
 	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
@@ -234,38 +198,6 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 
 	public runCodemod(command: string, path: string) {
 		commands.executeCommand(command, Uri.parse(path));
-	}
-
-	getTreeItem(element: CodemodHash): TreeItem {
-		const foundElement = this.#codemodItemsMap.get(element);
-		if (!foundElement) {
-			throw new Error('Element not found');
-		}
-		const isCodemod =
-			'kind' in foundElement && foundElement.kind === 'codemodItem';
-
-		const treeItem = new TreeItem(
-			foundElement.label,
-			isCodemod
-				? TreeItemCollapsibleState.None
-				: TreeItemCollapsibleState.Collapsed,
-		);
-		treeItem.iconPath = isCodemod
-			? path.join(
-					__filename,
-					'..',
-					'..',
-					'resources',
-					'bluelightbulb.svg',
-			  )
-			: new ThemeIcon('folder');
-		treeItem.contextValue = isCodemod ? 'codemodItem' : 'path';
-
-		if (isCodemod) {
-			treeItem.description = foundElement.description;
-		}
-
-		return treeItem;
 	}
 
 	private async getDepsInPackageJson(
@@ -304,7 +236,7 @@ export class CodemodTreeProvider implements TreeDataProvider<CodemodHash> {
 					pathToExecute: executionPath,
 					label: codemod.name,
 					kind: 'codemodItem',
-					description: `${codemod.kind} ${codemod.packageName} ${codemod.leastVersionSupported} - ${codemod.latestVersionSupported}`,
+					description: `${codemod.kind} ${codemod.packageName} to ${codemod.latestVersionSupported}`,
 				};
 
 				const hash = buildCodemodElementHash(hashlessCodemodItem);

@@ -55,9 +55,7 @@ import { ElementHash } from './elements/types';
 
 import type { GitExtension } from './types/git';
 import { IntuitaProvider } from './components/webview/MainWebviewProvider';
-import { CodemodTreeProvider } from './packageJsonAnalyzer/codemodList';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
-import { CodemodHash } from './packageJsonAnalyzer/types';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
 import {
@@ -65,6 +63,8 @@ import {
 	createPullRequestParamsCodec,
 } from './components/sourceControl/codecs';
 import { buildJobElementLabel } from './elements/buildJobElement';
+import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
+import { CodemodService } from './packageJsonAnalyzer/codemodService';
 
 const messageBus = new MessageBus();
 
@@ -101,19 +101,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
-	const codemodTreeProvider = new CodemodTreeProvider(
-		rootPath ?? null,
+	const codemodService = new CodemodService(rootPath ?? null);
+	const codemodListWebviewProvider = new CodemodListPanelProvider(
+		context,
 		messageBus,
+		rootPath,
+		codemodService,
 	);
 
-	const codemodTreeView = vscode.window.createTreeView(
-		'intuita-available-codemod-tree-view',
-		{
-			treeDataProvider: codemodTreeProvider,
-		},
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'intuita-available-codemod-tree-view',
+			codemodListWebviewProvider,
+		),
 	);
-
-	context.subscriptions.push(codemodTreeView);
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
@@ -1003,15 +1004,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				},
 				executionId,
 				happenedAt,
-			});
-		},
-	);
-	vscode.commands.registerCommand(
-		'intuita.runCodemod',
-		async (item: CodemodHash) => {
-			messageBus.publish({
-				kind: MessageKind.runCodemod,
-				codemodHash: item,
 			});
 		},
 	);

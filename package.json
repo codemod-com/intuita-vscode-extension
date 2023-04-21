@@ -42,10 +42,6 @@
 			{
 				"view": "intuitaViewId",
 				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
-			},
-			{
-				"view": "intuita-available-codemod-tree-view",
-				"contents": "No available codemods right now based on package.json file. You can create a codemod on [Codemod Studio](https://codemod.studio) and import it here.\n[Open Codemod Studio](https://codemod.studio)"
 			}
 		],
 		"commands": [
@@ -117,10 +113,6 @@
 				"command": "intuita.caseBreakdown",
 				"title": "View by codemod",
 				"icon": "$(list-unordered)"
-			},
-			{
-				"command": "intuita.runCodemod",
-				"title": "✓ Run"
 			},
 			{
 				"command": "intuita.acceptJob",
@@ -264,9 +256,10 @@
 					"contextualTitle": "Intuita"
 				},
 				{
+					"type": "webview",
 					"id": "intuita-available-codemod-tree-view",
-					"name": "Available Codemods",
-					"contextualTitle": "Available Codemods"
+					"name": "Recommended Codemods (For This Workspace)",
+					"contextualTitle": "Recommended Codemods (For This Workspace)"
 				}
 			]
 		},
@@ -427,13 +420,6 @@
 					"command": "intuita.openYouTubeChannel",
 					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
 					"group": "navigation"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "intuita.runCodemod",
-					"when": "viewItem == codemodItem",
-					"group": "inline"
 				}
 			]
 		}

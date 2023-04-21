@@ -3,7 +3,6 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
-import type { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -71,9 +70,6 @@ export const enum MessageKind {
 	 * show progress
 	 */
 	showProgress = 31,
-	/** run codemod */
-	runCodemod = 32,
-
 	/**
 	 * create PR
 	 */
@@ -264,10 +260,6 @@ export type Message =
 			kind: MessageKind.showProgress;
 			processedFiles: number;
 			totalFiles: number;
-	  }>
-	| Readonly<{
-			kind: MessageKind.runCodemod;
-			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.beforePRCreated;
