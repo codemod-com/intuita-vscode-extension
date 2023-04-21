@@ -296,9 +296,15 @@ export class IntuitaProvider implements WebviewViewProvider {
 						},
 						actions: [
 							{
-								title: '✓ Apply',
+								title: '✓ Commit',
 								command: 'intuita.acceptFolder',
-								arguments: jobHashesArg,
+								arguments: [
+									{
+										path,
+										hash: buildHash(path),
+										jobHashes: jobHashesArg,
+									},
+								],
 							},
 							{
 								title: '✗ Dismiss',
@@ -328,22 +334,6 @@ export class IntuitaProvider implements WebviewViewProvider {
 					}
 				});
 				currentNode.label = `${dir} (${existingJobHashes.length})`;
-
-				const folderAccepted = existingJobHashes.every((jobHash) =>
-					this.__jobManager.isJobAccepted(jobHash),
-				);
-
-				if (folderAccepted) {
-					currentNode.kind = 'acceptedFolderElement';
-
-					currentNode.actions = [
-						{
-							title: '✗ Dismiss',
-							command: 'intuita.rejectFolder',
-							arguments: existingJobHashes,
-						},
-					];
-				}
 
 				const caseByFolderNode = this.__buildCaseByFolderTree(
 					element,
@@ -763,6 +753,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		const jobHashes = element.children.map((job) => job.jobHash);
 		const codemodName = element.children[0]?.job.codemodName;
+		console.log(codemodName);
 		const key = `${parentFolderPath}/${codemodName}`;
 		const existingNode = this.__folderMap.get(key) ?? null;
 
@@ -785,9 +776,15 @@ export class IntuitaProvider implements WebviewViewProvider {
 				},
 				actions: [
 					{
-						title: '✓ Apply',
+						title: '✓ Commit',
 						command: 'intuita.acceptCaseByFolder',
-						arguments: jobHashes,
+						arguments: [
+							{
+								path: key,
+								hash: element.caseHash,
+								jobHashes,
+							},
+						],
 					},
 					{
 						title: '✗ Dismiss',
