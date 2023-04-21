@@ -1260,7 +1260,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							baseBranch: currentBranch.name,
 							targetBranch: targetBranchName,
 							remoteUrl: defaultRemoteUrl,
-							commitMessage: '',
+							commitMessage: `Migrated ${kase.subKind}`,
 							stagedJobs,
 							createPullRequest: false,
 							createNewBranch: false,
