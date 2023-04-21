@@ -41,7 +41,10 @@ export class FileService {
 		await this.deleteFiles(message);
 	}
 
-	async createFile(params: { newUri: Uri; newContentUri: Uri }) {
+	public async createFile(params: {
+		newUri: Uri;
+		newContentUri: Uri;
+	}): Promise<void> {
 		const content = await workspace.fs.readFile(params.newContentUri);
 
 		const directory = dirname(params.newUri.fsPath);
@@ -51,12 +54,19 @@ export class FileService {
 		await workspace.fs.writeFile(params.newUri, content);
 	}
 
-	async updateFile(params: { uri: Uri; contentUri: Uri }) {
+	public async updateFile(params: {
+		uri: Uri;
+		contentUri: Uri;
+	}): Promise<void> {
 		const content = await workspace.fs.readFile(params.contentUri);
 		await workspace.fs.writeFile(params.uri, content);
 	}
 
-	async moveFile(params: { newUri: Uri; oldUri: Uri; newContentUri: Uri }) {
+	public async moveFile(params: {
+		newUri: Uri;
+		oldUri: Uri;
+		newContentUri: Uri;
+	}): Promise<void> {
 		const content = await workspace.fs.readFile(params.newContentUri);
 
 		const directory = dirname(params.newUri.fsPath);
@@ -68,7 +78,9 @@ export class FileService {
 		await this.deleteFiles({ uris: [params.oldUri] });
 	}
 
-	async deleteFiles(params: { uris: ReadonlyArray<Uri> }) {
+	public async deleteFiles(params: {
+		uris: ReadonlyArray<Uri>;
+	}): Promise<void> {
 		for (const uri of params.uris) {
 			await workspace.fs.delete(uri, {
 				recursive: false,

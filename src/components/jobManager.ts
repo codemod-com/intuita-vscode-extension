@@ -150,7 +150,7 @@ export class JobManager {
 		this.acceptJobs(message.jobHashes);
 	}
 
-	async acceptJobs(jobHashes: ReadonlySet<JobHash>) {
+	public async acceptJobs(jobHashes: ReadonlySet<JobHash>): Promise<void> {
 		// HERE
 
 		const { codemodHashJobHashSetManager, codemods } =
