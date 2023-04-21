@@ -17,7 +17,12 @@ export type CodemodItem = Readonly<{
 	description: string;
 }>;
 
+export type CodemodPathWithChildren = Omit<CodemodPath, 'children'> & {
+	children: CodemodElementWithChildren[];
+};
+
 export type CodemodElement = CodemodItem | CodemodPath;
+export type CodemodElementWithChildren = CodemodItem | CodemodPathWithChildren;
 
 export type PackageUpgradeItem = Readonly<{
 	id: string;

@@ -39,6 +39,33 @@ type CommitChangesFormData = {
 	stagedJobs: { hash: string; label: string }[];
 };
 
+export type CodemodTreeNode<T = undefined> = {
+	id: string;
+	kind: string;
+	label: string;
+	description?: string;
+	iconName?: string;
+	command?:
+		| (Command & {
+				command: 'intuita.openJobDiff';
+				arguments?: JobHash[];
+		  })
+		| (Command & {
+				command: 'intuita.openCaseDiff';
+				arguments?: ElementHash[];
+		  })
+		| (Command & {
+				command: 'intuita.openCaseByFolderDiff';
+				arguments?: JobHash[];
+		  })
+		| (Command & {
+				command: 'intuita.openFolderDiff';
+				arguments?: JobHash[];
+		  });
+	actions?: Command[];
+	children: CodemodTreeNode<T>[];
+	extraData?: T;
+};
 export type TreeNode = {
 	id: string;
 	kind: string;
@@ -207,5 +234,11 @@ export type View =
 				targetBranchOptions: string[];
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
+			};
+	  }>
+	| Readonly<{
+			viewId: 'codemodList';
+			viewProps: {
+				data?: CodemodTreeNode<string>;
 			};
 	  }>;
