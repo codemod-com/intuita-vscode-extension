@@ -45,7 +45,7 @@ export const Collapsable = forwardRef<CollapsableRefMethods, CollapsableProps>(
 				<div
 					className={cn({
 						collapsable__header: true,
-						headerClassName: headerClassName,
+						[headerClassName ?? '']: headerClassName,
 						'collapsable__header--sticky': headerSticky,
 					})}
 					onClick={() => setExpanded(!expanded)}

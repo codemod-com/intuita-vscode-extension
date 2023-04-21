@@ -24,12 +24,6 @@ const DiffViewer = forwardRef<
 				}}
 				theme={theme}
 				{...props}
-				options={{
-					...props.options,
-					scrollbar: {
-						alwaysConsumeMouseWheel: false,
-					},
-				}}
 			/>
 		</div>
 	);

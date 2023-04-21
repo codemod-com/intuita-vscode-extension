@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import Popup from 'reactjs-popup';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
@@ -15,14 +16,17 @@ type ContainerProps = Readonly<{
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
 		return (
-			<div className="flex flex-wrap w-full container flex-col" ref={ref}>
+			<div
+				className="flex  flex-wrap w-full container flex-col"
+				ref={ref}
+			>
 				{viewType === 'side-by-side' && newFileName && oldFileName && (
 					<div className="flex flex-row w-full">
 						<div className="w-half ml-50">
-							<h3>{oldFileName}</h3>
+							<p>{oldFileName}</p>
 						</div>
 						<div className="w-half ml-30">
-							<h3>{newFileName}</h3>
+							<p>{newFileName}</p>
 						</div>
 					</div>
 				)}
@@ -60,21 +64,31 @@ export const Header = ({
 	actions,
 	onAction,
 }: HeaderProps) => {
+	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	return (
-		<div className="f p-10 flex  w-full items-center container-header">
+		<div className=" flex  w-full items-center container-header">
 			<div className="flex flex-row flex-1  justify-between flex-wrap">
 				<div className="flex items-center ">
-					<h3
-						className="my-0 ml-3 diff-title align-self-center"
-						title={getJobTitle(
-							jobKind as unknown as JobKind,
-							newFileTitle,
-							oldFileTitle,
-						)}
+					<Popup
+						trigger={
+							<h4 className="my-0 ml-3 diff-title align-self-center">
+								{title}
+							</h4>
+						}
+						position={['top left', 'right center']}
+						lockScroll
+						on={['hover', 'focus']}
 					>
-						{title}
-					</h3>
-					<h3 className="ml-3 my-0"> {newFileTitle} </h3>
+						<div>
+							{getJobTitle(
+								jobKind as unknown as JobKind,
+								newFileTitle,
+								oldFileTitle,
+							)}
+						</div>
+					</Popup>
+
+					<h4 className="ml-3 my-0"> {newFileTitle} </h4>
 				</div>
 
 				<div
@@ -83,21 +97,17 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					{diff && (
+					{shouldShowDiff && (
 						<div className="ml-10 flex items-center">
-							{diff && diff.added > 0 && (
-								<span className="diff-changes diff-added">
-									+{diff.added}
-								</span>
-							)}
-							{diff && diff.added > 0 && diff.removed > 0 && (
-								<span> / </span>
-							)}
-							{diff && diff.removed > 0 && (
-								<span className="diff-changes diff-removed">
-									-{diff.removed}
-								</span>
-							)}
+							<span className="diff-changes diff-added">
+								+{diff.added}
+							</span>
+
+							<span> / </span>
+
+							<span className="diff-changes diff-removed">
+								-{diff.removed}
+							</span>
 						</div>
 					)}
 					{actions &&
@@ -127,6 +137,17 @@ export const Header = ({
 	);
 };
 
+const showDiff = (jobKind: JobKind): boolean => {
+	switch (jobKind) {
+		case JobKind.copyFile:
+		case JobKind.moveFile:
+		case JobKind.deleteFile:
+			return false;
+		default:
+			return true;
+	}
+};
+
 const getJobTitle = (
 	jobKind: JobKind,
 	oldFileTitle: string,
@@ -136,15 +157,15 @@ const getJobTitle = (
 		case JobKind.copyFile:
 			return `Copy ${oldFileTitle} to ${newFileContent}`;
 		case JobKind.createFile:
-			return `Create ${newFileContent}`;
+			return `Create new File ${newFileContent}`;
 		case JobKind.deleteFile:
-			return `Delete ${oldFileTitle} `;
+			return `Delete File`;
 		case JobKind.moveAndRewriteFile:
 			return `Move and Rewrite ${oldFileTitle} to ${newFileContent}`;
 		case JobKind.moveFile:
 			return `Move ${oldFileTitle} to ${newFileContent}`;
 		case JobKind.rewriteFile:
-			return `Rewrite ${oldFileTitle} `;
+			return `Modified Contet of ${oldFileTitle} `;
 		default:
 			throw new Error('Unknown job kind');
 	}

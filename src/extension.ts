@@ -255,10 +255,12 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+					const { title, data } = viewProps;
+					panelInstance.setTitle(`Diff - ${title}`);
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							data: viewProps,
+							data: data,
 						},
 					});
 				} catch (err) {
