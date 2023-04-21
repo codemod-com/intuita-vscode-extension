@@ -18,10 +18,11 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-			if (message.kind === 'webview.global.setView') {
-				if (message.value.viewId === 'codemodList') {
-					setView(message.value);
-				}
+			if (
+				message.kind === 'webview.global.setView' &&
+				message.value.viewId === 'codemodList'
+			) {
+				setView(message.value);
 			}
 		};
 

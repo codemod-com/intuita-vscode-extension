@@ -18,7 +18,7 @@ type Props = {
 	}): ReactNode;
 };
 
-const Tree = ({ node, depth = 0, renderItem }: Props) => {
+const Tree = ({ node, depth, renderItem }: Props) => {
 	const [open, setIsOpen] = useState(depth === 0);
 
 	const treeItem = renderItem({ node, depth, open, setIsOpen });

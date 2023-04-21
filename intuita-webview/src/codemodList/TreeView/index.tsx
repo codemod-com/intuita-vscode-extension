@@ -44,9 +44,9 @@ const TreeView = ({ node }: Props) => {
 		});
 	}, []);
 
-	const handleActionButtonClick = (action: Command) => {
+	const handleActionButtonClick = useCallback((action: Command) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
-	};
+	}, []);
 
 	const renderItem = ({
 		node,
