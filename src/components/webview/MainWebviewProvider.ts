@@ -753,7 +753,7 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 		const jobHashes = element.children.map((job) => job.jobHash);
 		const codemodName = element.children[0]?.job.codemodName;
-		console.log(codemodName);
+
 		const key = `${parentFolderPath}/${codemodName}`;
 		const existingNode = this.__folderMap.get(key) ?? null;
 
