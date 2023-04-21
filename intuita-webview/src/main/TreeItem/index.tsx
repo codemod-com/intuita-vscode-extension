@@ -34,14 +34,9 @@ const TreeItem = ({
 	index,
 	lastChild,
 }: Props) => {
-	const isFolderElement = ['folderElement', 'acceptedFolderElement'].includes(
-		kind,
-	);
-	const isCaseByFolderElement = [
-		'caseByFolderElement',
-		'acceptedCaseByFolderElement',
-	].includes(kind);
-	const isElementInFolderBreakdown = isFolderElement || isCaseByFolderElement;
+	const isCaseElement = kind === 'caseElement';
+	const isFolderElement = kind === 'folderElement';
+	const isCaseByFolderElement = kind === 'caseByFolderElement';
 	const isFirstSubfolder = index === 0 && depth > 1 && isFolderElement;
 
 	return (
@@ -50,8 +45,7 @@ const TreeItem = ({
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
 		>
-			{isElementInFolderBreakdown ? (
-				// Folder Breakdown View
+			{kind !== 'rootElement' && (
 				<div
 					className={styles.circleContainer}
 					style={{
@@ -62,12 +56,12 @@ const TreeItem = ({
 				>
 					<div
 						className={cn(
-							isCaseByFolderElement
-								? styles.smallCircle
-								: styles.bigCircle,
+							isCaseByFolderElement && styles.smallCircle,
+							(isCaseElement || isFolderElement) &&
+								styles.bigCircle,
 						)}
 						style={{
-							...(isFolderElement && {
+							...((isCaseElement || isFolderElement) && {
 								borderColor: color,
 							}),
 							...(isCaseByFolderElement && {
@@ -104,18 +98,6 @@ const TreeItem = ({
 						/>
 					)}
 				</div>
-			) : (
-				// Case Breakdown View
-				<div
-					style={{
-						...(depth > 0 && {
-							// extra margin for job
-							minWidth: `${
-								5 + depth * 16 + (hasChildren ? 0 : 16)
-							}px`,
-						}),
-					}}
-				/>
 			)}
 			{hasChildren ? (
 				<div className={styles.codicon}>

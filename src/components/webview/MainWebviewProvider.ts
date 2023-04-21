@@ -243,20 +243,15 @@ export class IntuitaProvider implements WebviewViewProvider {
 	};
 
 	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
-		const mappedNode: TreeNode = {
-			id: element.hash,
-			iconName: getElementIconBaseName(element.kind),
-			kind: '',
-			children: [],
-		};
-
 		if (element.kind === ElementKind.ROOT) {
 			element.children.forEach(this.__getTreeByDirectory);
 			const treeNode = this.__folderMap.get(ROOT_FOLDER_KEY) ?? null;
 
 			return {
-				...mappedNode,
+				id: element.hash,
+				iconName: getElementIconBaseName(element.kind),
 				label: element.label,
+				kind: 'rootElement',
 				children: treeNode !== null ? [treeNode] : [],
 			};
 		}

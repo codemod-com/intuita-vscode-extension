@@ -37,10 +37,7 @@ const Tree = ({
 	lastChild,
 }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
-	const isFolderBreakdown = [
-		'folderElement',
-		'acceptedFolderElement',
-	].includes(node.kind);
+	const isFolderBreakdown = node.kind === 'folderElement';
 	const [open, setIsOpen] = useState(depth === 0);
 	const [color] = useState(
 		hasNoChildren ? colorProp : generateColor(buildHash(node.id)),
@@ -70,17 +67,9 @@ const Tree = ({
 			if (!element.kind) {
 				return;
 			}
-			if (
-				['folderElement', 'acceptedFolderElement'].includes(
-					element.kind,
-				)
-			) {
+			if (element.kind === 'folderElement') {
 				folderElements.push(element);
-			} else if (
-				['caseByFolderElement', 'acceptedCaseByFolderElement'].includes(
-					element.kind,
-				)
-			) {
+			} else if (element.kind === 'caseByFolderElement') {
 				caseByFolderElements.push(element);
 			}
 		});
