@@ -29,7 +29,6 @@ import {
 	buildStackedBranchPRMessage,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
-	wait,
 } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
@@ -86,10 +85,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		() => context.storageUri ?? null,
 	);
 
+	const fileService = new FileService(messageBus);
+
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		persistedState?.acceptedJobsHashes as JobHash[],
 		messageBus,
+		fileService,
 	);
 
 	const caseManager = new CaseManager(
@@ -98,7 +100,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	new FileService(messageBus);
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
 	const codemodTreeProvider = new CodemodTreeProvider(
@@ -488,13 +489,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						const stagedJobHashes = new Set(
 							stagedJobs.map(({ hash }) => hash as JobHash),
 						);
-						messageBus.publish({
-							kind: MessageKind.acceptJobs,
-							jobHashes: stagedJobHashes,
-						});
 
-						// @TODO!!! temp workaround, currently no way to "await" for jobs to be applied to the file system
-						await wait(500);
+						await jobManager.acceptJobs(stagedJobHashes);
 
 						const remotes = repositoryService.getRemotes();
 						const remote = (remotes ?? []).find(
