@@ -1142,10 +1142,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 				}
 
-				if (!repositoryService) {
-					throw new Error('Unable to initialize repositoryService');
-				}
-
 				const currentBranch = repositoryService.getCurrentBranch();
 
 				if (
@@ -1243,7 +1239,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 				});
 			} catch (e) {
-				vscode.window.showErrorMessage((e as Error).message);
+				vscode.window.showErrorMessage(
+					e instanceof Error ? e.message : String(e),
+				);
 			}
 		}),
 	);
@@ -1292,12 +1290,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					} = validation.right;
 
 					const jobHashes = _jobHashes.slice() as JobHash[];
-
-					if (!repositoryService) {
-						throw new Error(
-							'Unable to initialize repositoryService',
-						);
-					}
 
 					const currentBranch = repositoryService.getCurrentBranch();
 
@@ -1385,7 +1377,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (e) {
-					vscode.window.showErrorMessage((e as Error).message);
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
 				}
 			},
 		),
@@ -1441,12 +1435,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const jobHashes = _jobHashes.slice() as JobHash[];
 
-					if (!repositoryService) {
-						throw new Error(
-							'Unable to initialize repositoryService',
-						);
-					}
-
 					const currentBranch = repositoryService.getCurrentBranch();
 
 					if (
@@ -1534,7 +1522,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (e) {
-					vscode.window.showErrorMessage((e as Error).message);
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
 				}
 			},
 		),
