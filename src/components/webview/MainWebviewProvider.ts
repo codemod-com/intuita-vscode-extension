@@ -48,7 +48,6 @@ import { CaseManager } from '../../cases/caseManager';
 import { SourceControlService } from '../sourceControl';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-const ROOT_FOLDER_KEY = '/';
 
 // @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
@@ -173,8 +172,12 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
-			// e.g., ['/', 'packages', 'app', 'src']
-			directories = ['/', ...directories.slice(0, -1)];
+			// e.g., ['root', 'packages', 'app', 'src']
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			directories = [repoName, ...directories.slice(0, -1)];
 			let path = codemodName;
 			const newJobHashes = element.children.map((job) => job.jobHash);
 			for (const dir of directories) {
@@ -183,8 +186,8 @@ export class IntuitaProvider implements WebviewViewProvider {
 					continue;
 				}
 
-				path +=
-					dir.endsWith('/') || path.endsWith('/') ? dir : `/${dir}`;
+				path += path === '' ? dir : `/${dir}`;
+
 				if (!this.__codemodMap.has(path)) {
 					const jobHashesArg: JobHash[] = [];
 					const newFolderNode: TreeNode = {
@@ -242,20 +245,19 @@ export class IntuitaProvider implements WebviewViewProvider {
 	};
 
 	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
-		const mappedNode: TreeNode = {
-			id: element.hash,
-			iconName: getElementIconBaseName(element.kind),
-			kind: '',
-			children: [],
-		};
-
 		if (element.kind === ElementKind.ROOT) {
 			element.children.forEach(this.__getTreeByDirectory);
-			const treeNode = this.__folderMap.get(ROOT_FOLDER_KEY) ?? null;
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			const treeNode = this.__folderMap.get(repoName) ?? null;
 
 			return {
-				...mappedNode,
+				id: element.hash,
+				iconName: getElementIconBaseName(element.kind),
 				label: element.label,
+				kind: 'rootElement',
 				children: treeNode !== null ? [treeNode] : [],
 			};
 		}
@@ -273,15 +275,18 @@ export class IntuitaProvider implements WebviewViewProvider {
 
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
-			// e.g., ['/', 'packages', 'app', 'src']
-			directories = ['/', ...directories.slice(0, -1)];
+			// e.g., ['root', 'packages', 'app', 'src']
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			directories = [repoName, ...directories.slice(0, -1)];
 			let path = '';
 			const newJobHashes = element.children.map((job) => job.jobHash);
 			for (const dir of directories) {
 				const parentNode = this.__folderMap.get(path) ?? null;
 
-				path +=
-					dir.endsWith('/') || path.endsWith('/') ? dir : `/${dir}`;
+				path += path === '' ? dir : `/${dir}`;
 				if (!this.__folderMap.has(path)) {
 					const jobHashesArg: JobHash[] = [];
 					const newFolderNode: TreeNode = {
