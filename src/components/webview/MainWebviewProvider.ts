@@ -48,8 +48,6 @@ import { CaseManager } from '../../cases/caseManager';
 import { SourceControlService } from '../sourceControl';
 
 export const ROOT_ELEMENT_HASH: ElementHash = '' as ElementHash;
-const ROOT_FOLDER_KEY =
-	workspace.workspaceFolders?.[0]?.uri.fsPath.split('/').slice(-1)[0] ?? '/';
 
 // @TODO clean up this provider
 export class IntuitaProvider implements WebviewViewProvider {
@@ -175,7 +173,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
 			// e.g., ['root', 'packages', 'app', 'src']
-			directories = [ROOT_FOLDER_KEY, ...directories.slice(0, -1)];
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			directories = [repoName, ...directories.slice(0, -1)];
 			let path = codemodName;
 			const newJobHashes = element.children.map((job) => job.jobHash);
 			for (const dir of directories) {
@@ -245,7 +247,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
 		if (element.kind === ElementKind.ROOT) {
 			element.children.forEach(this.__getTreeByDirectory);
-			const treeNode = this.__folderMap.get(ROOT_FOLDER_KEY) ?? null;
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			const treeNode = this.__folderMap.get(repoName) ?? null;
 
 			return {
 				id: element.hash,
@@ -270,7 +276,11 @@ export class IntuitaProvider implements WebviewViewProvider {
 			// e.g., ['packages', 'app', 'src', 'index.tsx']
 			let directories = filePath.split('/').filter((item) => item !== '');
 			// e.g., ['root', 'packages', 'app', 'src']
-			directories = [ROOT_FOLDER_KEY, ...directories.slice(0, -1)];
+			const repoName =
+				workspace.workspaceFolders?.[0]?.uri.fsPath
+					.split('/')
+					.slice(-1)[0] ?? '/';
+			directories = [repoName, ...directories.slice(0, -1)];
 			let path = '';
 			const newJobHashes = element.children.map((job) => job.jobHash);
 			for (const dir of directories) {
