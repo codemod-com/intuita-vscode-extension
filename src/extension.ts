@@ -1187,17 +1187,20 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('Case not found');
 				}
 
-				const appliedJobsHashes = jobManager.getAppliedJobsHashes();
-				const appliedJobs = [];
+				const caseJobsHashes = caseManager.getJobHashes([
+					kase.hash as CaseHash,
+				]);
+				// @TODO for now stagedJobs = all case jobs
+				const stagedJobs = [];
 
-				for (const jobHash of appliedJobsHashes) {
+				for (const jobHash of caseJobsHashes) {
 					const job = jobManager.getJob(jobHash);
 
 					if (job === null) {
 						continue;
 					}
 
-					appliedJobs.push({
+					stagedJobs.push({
 						hash: job.hash.toString(),
 						label: buildJobElementLabel(
 							job,
@@ -1258,7 +1261,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							targetBranch: targetBranchName,
 							remoteUrl: defaultRemoteUrl,
 							commitMessage: '',
-							stagedJobs: appliedJobs,
+							stagedJobs,
 							createPullRequest: false,
 							createNewBranch: false,
 						},
