@@ -38,38 +38,54 @@ export class WebviewResolver {
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
-			'static',
-			'css',
 			`${webviewName}.css`,
 		]);
 		const scriptUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
-			'static',
-			'js',
+			'assets',
 			`${webviewName}.js`,
 		]);
 
 		// TODO: enable importing chunks on demand
 		// find files that end with .chunk.js
-		const chunkFiles = fs
+		const chunkFiles = webviewName === 'jobDiffView' ? fs
 			.readdirSync(
 				Uri.joinPath(
 					this.__extensionPath,
-					'intuita-webview/build/static/js',
+					'intuita-webview/build/assets',
+				).fsPath,
+			) 
+			// @TODO what chunks do we need for monaco-editor?
+			.filter((file) => ['javascript.js', 'typescript.js'].includes(file)) : [];
+      
+			// @TODO setup vite to pack all css in single chunk 
+			const styleModulesCssFiles = fs
+			.readdirSync(
+				Uri.joinPath(
+					this.__extensionPath,
+					'intuita-webview/build/assets',
 				).fsPath,
 			)
-			.filter((file) => file.endsWith('.chunk.js'));
+			.filter((file) => file.endsWith('.css'));
 
 		const chunkUris = chunkFiles.map((file) =>
 			getUri(webview, this.__extensionPath, [
 				'intuita-webview',
 				'build',
-				'static',
-				'js',
+				'assets',
 				file,
 			]),
 		);
+
+		const cssChunkUris = styleModulesCssFiles.map((file) =>
+		getUri(webview, this.__extensionPath, [
+			'intuita-webview',
+			'build',
+			'assets',
+			file,
+		]),
+	)
 
 		const nonce = randomBytes(16).toString('hex');
 		const codiconsUri = getUri(webview, this.__extensionPath, [
@@ -89,6 +105,12 @@ export class WebviewResolver {
 		}; style-src ${webview.cspSource} 'unsafe-inline'">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
+					${cssChunkUris
+						.map(
+							(uri) =>
+								`	<link rel="stylesheet" type="text/css" href="${uri}">`,
+						)
+						.join('')}
 					<title>Intuita Panel</title>
 					<style>
 					 .placeholder {
@@ -103,7 +125,7 @@ export class WebviewResolver {
 					<script nonce="${nonce}">
 					window.INITIAL_STATE=${initialData}
 					</script>
-					<script nonce="${nonce}" src="${scriptUri}"></script>
+					<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 					${chunkUris
 						.map(
 							(uri) =>
