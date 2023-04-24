@@ -40,6 +40,10 @@ export const useDiffViewer = ({
 					wrappingStrategy: 'advanced',
 					scrollBeyondLastLine: false,
 					diffAlgorithm: 'smart',
+					scrollbar: {
+						horizontal: 'hidden',
+						alwaysConsumeMouseWheel: false,
+					},
 				}}
 				height="90vh"
 				loading={<div>Loading content ...</div>}

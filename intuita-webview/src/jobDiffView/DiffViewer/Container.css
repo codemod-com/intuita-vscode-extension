@@ -28,3 +28,22 @@
 .diff-added {
 	color: #3ac06b;
 }
+
+.icon-container {
+	background-color: var(--vscode-editor-background);
+	border-radius: 5px;
+	margin-left: 4px;
+	overflow: hidden;
+}
+.icon {
+	width: 32px;
+	height: 32px;
+	margin-left: 22px;
+	stroke: var(--vscode-editor-foreground);
+}
+
+/** monaco fix **/
+.monaco-diff-editor .diffViewport {
+	/** Override the monaco css **/
+	background-color: transparent !important;
+}

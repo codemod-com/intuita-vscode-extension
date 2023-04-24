@@ -8,7 +8,6 @@ import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
-import { IntuitaProvider } from './MainWebviewProvider';
 
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;
@@ -78,8 +77,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		const job = this.__jobManager.getJob(jobHash);
 		// @TODO
-		const jobAccepted = false;
-		const jobApplied = this.__jobManager.isJobApplied(jobHash);
+		const jobAccepted = this.__jobManager.isJobApplied(jobHash);
 
 		if (!job) {
 			return null;
@@ -136,29 +134,43 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				? { oldFileTitle }
 				: { oldFileTitle: null }),
 			newFileTitle,
-			oldFileContent,
+			...(oldFileContent &&
+			[
+				JobKind.rewriteFile,
+				JobKind.deleteFile,
+				JobKind.moveAndRewriteFile,
+				JobKind.moveFile,
+			].includes(kind)
+				? { oldFileContent }
+				: { oldFileContent: null }),
 			newFileContent,
 			title: getTitle(),
-			actions: IntuitaProvider.getJobActions(jobHash, jobApplied),
+			actions: [],
 		};
 	}
 
 	public async getViewDataForCase(
 		caseHash: ElementHash,
-	): Promise<Readonly<JobDiffViewProps>[]> {
+	): Promise<null | Readonly<{ title: string; data: JobDiffViewProps[] }>> {
+		const hash = caseHash as unknown as CaseHash;
+		const kase = this.__caseManager.getCase(hash);
+		if (!kase) {
+			return null;
+		}
 		const jobHashes = Array.from(
-			this.__caseManager.getJobHashes([
-				caseHash,
-			] as unknown as CaseHash[]),
+			this.__caseManager.getJobHashes([hash] as unknown as CaseHash[]),
 		);
 
 		if (jobHashes.length === 0) {
-			return [];
+			return null;
 		}
 		const viewDataArray = await Promise.all(
 			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
-		return viewDataArray.filter(isNeitherNullNorUndefined);
+		return {
+			title: kase.codemodName,
+			data: viewDataArray.filter(isNeitherNullNorUndefined),
+		};
 	}
 
 	public async getViewDataForJobsArray(

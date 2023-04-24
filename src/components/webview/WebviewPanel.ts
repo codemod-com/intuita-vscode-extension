@@ -60,6 +60,14 @@ export abstract class IntuitaWebviewPanel {
 		this._attachWebviewEventListeners?.();
 	}
 
+	setTitle = (title: string) => {
+		if (!this._panel) {
+			return;
+		}
+
+		this._panel.title = title;
+	};
+
 	protected abstract _attachExtensionEventListeners(): void;
 	protected _attachWebviewEventListeners?(): void;
 
