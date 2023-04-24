@@ -260,7 +260,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							data: data,
+							data,
 						},
 					});
 				} catch (err) {
