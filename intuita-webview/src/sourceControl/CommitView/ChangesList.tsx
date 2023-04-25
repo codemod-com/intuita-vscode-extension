@@ -1,12 +1,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { FormData } from '.';
+import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
 import Tree from '../../shared/Tree';
 import styles from './style.module.css';
 import cn from 'classnames';
 
 type Props = {
-	formData: FormData;
-	setFormData(data: FormData): void;
+	formData: CommitChangesFormData;
+	setFormData(data: CommitChangesFormData): void;
 };
 
 const ChangesList = ({ formData, setFormData }: Props) => {

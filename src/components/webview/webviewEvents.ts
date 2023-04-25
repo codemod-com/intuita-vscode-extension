@@ -27,17 +27,20 @@ export type JobDiffViewProps = Readonly<{
 	actions?: JobAction[];
 }>;
 
-type CommitChangesFormData = {
-	baseBranch: string;
-	targetBranch: string;
-	title: string;
-	body: string;
+export type CommitChangesFormData = Readonly<{
 	remoteUrl: string;
+	issueTitle: string;
+	issueBody: string;
+	pullRequestTitle: string;
+	pullRequestBody: string;
+	currentBranchName: string;
+	targetBranchName: string;
 	commitMessage: string;
 	createNewBranch: boolean;
 	createPullRequest: boolean;
+	createIssue: boolean;
 	stagedJobs: { hash: string; label: string }[];
-};
+}>;
 
 export type CodemodTreeNode<T = undefined> = {
 	id: string;
@@ -165,13 +168,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.createPR.formDataChanged';
-			value: {
-				baseBranch: string;
-				targetBranch: string;
-				title: string;
-				body: string;
-				remoteUrl: string;
-			};
+			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
 			kind: JobActionCommands;
@@ -199,24 +196,6 @@ export type View =
 					remoteUrl: string;
 				}>;
 				remoteOptions: string[];
-			};
-	  }>
-	| Readonly<{
-			viewId: 'upsertPullRequest';
-			viewProps: {
-				loading: boolean;
-				error: string;
-				baseBranchOptions: string[];
-				targetBranchOptions: string[];
-				remoteOptions: string[];
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					baseBranch: string;
-					targetBranch: string;
-					remoteUrl: string;
-				}>;
-				pullRequestAlreadyExists: boolean;
 			};
 	  }>
 	| Readonly<{

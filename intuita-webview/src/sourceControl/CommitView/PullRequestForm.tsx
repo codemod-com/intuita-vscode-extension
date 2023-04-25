@@ -5,12 +5,12 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
-import { FormData } from '.';
+import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
 
 type Props = {
-	formData: FormData;
+	formData: CommitChangesFormData;
 	onChangeFormField: (
-		fieldName: keyof FormData,
+		fieldName: keyof CommitChangesFormData,
 	) => (e: Event | React.FormEvent<HTMLElement>) => unknown;
 	targetBranchOptions: string[];
 	baseBranchOptions: string[];
@@ -28,8 +28,8 @@ const PullRequestForm = ({
 				<label htmlFor="targetBranch">Target branch:</label>
 				<VSCodeDropdown
 					id="targetBranch"
-					value={formData.targetBranch}
-					onChange={onChangeFormField('targetBranch')}
+					value={formData.targetBranchName}
+					onChange={onChangeFormField('targetBranchName')}
 				>
 					{targetBranchOptions.map((opt, index) => (
 						<VSCodeOption value={opt} key={index}>
@@ -42,8 +42,8 @@ const PullRequestForm = ({
 				<label htmlFor="baseBranch">Base branch:</label>
 				<VSCodeDropdown
 					id="baseBranch"
-					value={formData.baseBranch}
-					onChange={onChangeFormField('baseBranch')}
+					value={formData.currentBranchName}
+					onChange={onChangeFormField('currentBranchName')}
 				>
 					{baseBranchOptions.map((opt, index) => (
 						<VSCodeOption value={opt} key={index}>
@@ -55,15 +55,15 @@ const PullRequestForm = ({
 			<>
 				<VSCodeTextField
 					placeholder="title"
-					value={formData.title}
-					onInput={onChangeFormField('title')}
+					value={formData.pullRequestTitle}
+					onInput={onChangeFormField('pullRequestTitle')}
 				>
 					Title
 				</VSCodeTextField>
 				<VSCodeTextArea
 					placeholder="Description"
-					value={formData.body}
-					onInput={onChangeFormField('body')}
+					value={formData.pullRequestBody}
+					onInput={onChangeFormField('pullRequestBody')}
 				>
 					Body
 				</VSCodeTextArea>

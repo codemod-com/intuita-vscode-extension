@@ -11,41 +11,29 @@ import CommitForm from './CommitForm';
 import PullRequestForm from './PullRequestForm';
 import ChangesList from './ChangesList';
 import BranchForm from './BranchForm';
+import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
+import IssueForm from './IssueForm';
 
 type Props = Readonly<{
 	loading: boolean;
-	initialFormData: Partial<FormData>;
+	initialFormData: Partial<CommitChangesFormData>;
 	baseBranchOptions: string[];
 	targetBranchOptions: string[];
 	remoteOptions: string[];
 }>;
 
-type StagedJob = Readonly<{
-	hash: string;
-	label: string;
-}>;
-
-export type FormData = Readonly<{
-	baseBranch: string;
-	targetBranch: string;
-	title: string;
-	body: string;
-	remoteUrl: string;
-	commitMessage: string;
-	createNewBranch: boolean;
-	createPullRequest: boolean;
-	stagedJobs: StagedJob[];
-}>;
-
-const initialFormState: FormData = {
-	baseBranch: '',
-	targetBranch: '',
-	title: '',
-	body: '',
+const initialFormState: CommitChangesFormData = {
+	currentBranchName: '',
+	targetBranchName: '',
+	issueTitle: '',
+	issueBody: '',
+	pullRequestTitle: '', 
+	pullRequestBody: '',
 	remoteUrl: '',
 	commitMessage: '',
 	createNewBranch: false,
 	createPullRequest: false,
+	createIssue: false, 
 	stagedJobs: [],
 };
 
@@ -56,7 +44,7 @@ const CreatePR = ({
 	targetBranchOptions,
 	remoteOptions,
 }: Props) => {
-	const [formData, setFormData] = useState<FormData>(initialFormState);
+	const [formData, setFormData] = useState<CommitChangesFormData>(initialFormState);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -82,7 +70,7 @@ const CreatePR = ({
 	}, [initialFormData]);
 
 	const onChangeFormField =
-		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
+		(fieldName: keyof CommitChangesFormData) => (e: Event | React.FormEvent<HTMLElement>) => {
 			const { checked, value } = e.target as HTMLInputElement;
 
 			const nextFormData = {
@@ -172,6 +160,9 @@ const CreatePR = ({
 						targetBranchOptions={targetBranchOptions}
 					/>
 				) : null}
+				{
+					createPullRequest ? <IssueForm formData={formData} 				onChangeFormField={onChangeFormField}/> : null
+				}
 				<div className={styles.actions}>
 					<VSCodeButton
 						onClick={handleCancel}

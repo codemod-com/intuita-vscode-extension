@@ -75,20 +75,6 @@ function App() {
 					},
 				});
 			}
-
-			if (
-				message.kind === 'webview.createPR.setPullRequestSubmitting' &&
-				view?.viewId === 'upsertPullRequest'
-			) {
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						initialFormData: {},
-						loading: message.value,
-					},
-				});
-			}
 		};
 
 		window.addEventListener('message', handler);
