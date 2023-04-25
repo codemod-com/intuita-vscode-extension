@@ -12,6 +12,9 @@ import { buildTypeCodec, singleQuotify } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
+export class EngineNotFoundError extends Error {}
+export class UnableToParseEngineResponseError extends Error {}
+
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
 	noImportedMod: 'No imported codemod was found',
@@ -98,6 +101,17 @@ type Execution = {
 	affectedAnyFile: boolean;
 };
 
+const codemodEntryCodec = buildTypeCodec({
+	kind: t.literal('codemod'),
+	hashDigest: t.string,
+	name: t.string,
+	description: t.string,
+});
+
+type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
+
+const codemodListCodec = t.readonlyArray(codemodEntryCodec);
+
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
@@ -137,6 +151,47 @@ export class EngineService {
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
+	}
+
+	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+		const executableUri = this.#noraNodeEngineExecutableUri;
+
+		if (!executableUri) {
+			throw new EngineNotFoundError('Node engine not found');
+		}
+
+		const childProcess = spawn(
+			singleQuotify(executableUri.fsPath),
+			['list'],
+			{
+				stdio: 'pipe',
+				shell: true,
+			},
+		);
+
+		const interfase = readline.createInterface(childProcess.stdout);
+
+		return new Promise<Readonly<CodemodEntry[]>>((resolve, reject) => {
+			childProcess.stderr.on('data', function (error: unknown) {
+				reject(new Error(String(error)));
+			});
+
+			interfase.on('line', async (line) => {
+				const codemodListOrError = codemodListCodec.decode(
+					JSON.parse(line),
+				);
+
+				if (codemodListOrError._tag === 'Left') {
+					const report = prettyReporter.report(codemodListOrError);
+					reject(
+						new UnableToParseEngineResponseError(report.join(`\n`)),
+					);
+					return;
+				}
+
+				resolve(codemodListOrError.right);
+			});
+		});
 	}
 
 	shutdownEngines() {
