@@ -78,13 +78,6 @@ export const enum MessageKind {
 	afterPRCreated = 34,
 
 	repositoryPathChanged = 35,
-
-	/**
-	 * view breakdown
-	 */
-
-	caseBreakdown = 36,
-	folderBreakdown = 37,
 }
 
 export type Engine = 'node' | 'rust';
@@ -192,12 +185,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.clearState;
-	  }>
-	| Readonly<{
-			kind: MessageKind.caseBreakdown;
-	  }>
-	| Readonly<{
-			kind: MessageKind.folderBreakdown;
 	  }>
 	| Readonly<{
 			kind: MessageKind.showInformationMessage;

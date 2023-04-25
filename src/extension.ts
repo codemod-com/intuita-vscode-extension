@@ -59,7 +59,7 @@ import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
 import type { GitExtension } from './types/git';
-import { IntuitaProvider } from './components/webview/MainWebviewProvider';
+import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
@@ -277,52 +277,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.openCaseByFolderDiff',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null || !rootPath) {
-					return;
-				}
-
-				const jobHashes = [arg0].concat(otherArgs.slice());
-				try {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					await panelInstance.render();
-					const viewProps =
-						await panelInstance.getViewDataForJobsArray(jobHashes);
-
-					if (!viewProps) {
-						return;
-					}
-					panelInstance.setView({
-						viewId: 'jobDiffView',
-						viewProps: {
-							data: viewProps,
-						},
-					});
-				} catch (err) {
-					console.error(err);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.openFolderDiff',
 			async (arg0, ...otherArgs) => {
 				const firstJobHash: string | null =
@@ -383,7 +337,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		repositoryService,
 	);
 
-	const intuitaWebviewProvider = new IntuitaProvider(
+	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
 		jobManager,
@@ -391,12 +345,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		sourceControl,
 	);
 
-	const view = vscode.window.registerWebviewViewProvider(
-		'intuitaMainWebview',
-		intuitaWebviewProvider,
+	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
+		'intuitaFileExplorer',
+		fileExplorerProvider,
 	);
 
-	context.subscriptions.push(view);
+	context.subscriptions.push(intuitaFileExplorer);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
@@ -952,150 +906,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.acceptCaseByFolder',
-			async (arg0) => {
-				try {
-					const codec = buildTypeCodec({
-						path: t.string,
-						hash: t.string,
-						jobHashes: t.readonlyArray(t.string),
-					});
-
-					const validation = codec.decode(arg0);
-
-					if (validation._tag === 'Left') {
-						const report = prettyReporter.report(validation);
-
-						console.error(report);
-
-						return;
-					}
-
-					const {
-						path,
-						hash,
-						jobHashes: _jobHashes,
-					} = validation.right;
-
-					const jobHashes = _jobHashes.slice() as JobHash[];
-
-					const currentBranch = repositoryService.getCurrentBranch();
-
-					if (
-						currentBranch === null ||
-						currentBranch.name === undefined
-					) {
-						throw new Error('Unable to get current branch');
-					}
-
-					// @TODO for now stagedJobs = all case jobs
-					const stagedJobs = [];
-
-					for (const jobHash of jobHashes) {
-						const job = jobManager.getJob(jobHash);
-
-						if (job === null) {
-							continue;
-						}
-
-						stagedJobs.push({
-							hash: job.hash.toString(),
-							label: buildJobElementLabel(
-								job,
-								vscode.workspace.workspaceFolders?.[0]?.uri
-									.path ?? '',
-							),
-						});
-					}
-
-					const targetBranchName = `${path}-${hash.toLowerCase()}`;
-					const title = path;
-					const body = buildStackedBranchPRMessage(
-						repositoryService.getStackedBranches(),
-					);
-					const initialData = {
-						repositoryPath: repositoryService.getRemoteUrl(),
-						userId: globalStateAccountStorage.getUserAccount(),
-					};
-
-					const panelInstance = SourceControlWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title,
-							extensionUri: context.extensionUri,
-							initialData,
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'sourceControl',
-						},
-						messageBus,
-					);
-
-					await panelInstance.render();
-
-					const remotes = repositoryService.getRemotes();
-					const remoteOptions = (remotes ?? [])
-						.map((remote) => remote.pushUrl)
-						.filter(isNeitherNullNorUndefined);
-
-					const defaultRemoteUrl = repositoryService.getRemoteUrl();
-
-					if (!defaultRemoteUrl) {
-						throw new Error('Remote not found');
-					}
-
-					panelInstance.setView({
-						viewId: 'commitView',
-						viewProps: {
-							baseBranchOptions: [currentBranch.name],
-							targetBranchOptions: [targetBranchName],
-							remoteOptions,
-							initialFormData: {
-								title,
-								body,
-								baseBranch: currentBranch.name,
-								targetBranch: targetBranchName,
-								remoteUrl: defaultRemoteUrl,
-								commitMessage: '',
-								stagedJobs,
-								createPullRequest: false,
-								createNewBranch: false,
-							},
-							loading: false,
-							error: '',
-						},
-					});
-				} catch (e) {
-					vscode.window.showErrorMessage(
-						e instanceof Error ? e.message : String(e),
-					);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.rejectCaseByFolder',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null) {
-					throw new Error(
-						'Did not pass the jobHashes into the command.',
-					);
-				}
-				const jobHashes = [arg0].concat(otherArgs.slice());
-
-				messageBus.publish({
-					kind: MessageKind.rejectJobs,
-					jobHashes: new Set(jobHashes),
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.acceptFolder',
 			async (arg0) => {
 				try {
@@ -1498,22 +1308,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('intuita.clearState', () => {
 			messageBus.publish({
 				kind: MessageKind.clearState,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.caseBreakdown', () => {
-			messageBus.publish({
-				kind: MessageKind.caseBreakdown,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.folderBreakdown', () => {
-			messageBus.publish({
-				kind: MessageKind.folderBreakdown,
 			});
 		}),
 	);
