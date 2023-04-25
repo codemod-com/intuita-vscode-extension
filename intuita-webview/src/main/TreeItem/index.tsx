@@ -5,6 +5,7 @@ import cn from 'classnames';
 type Props = {
 	id: string;
 	label: string;
+	subLabel: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
@@ -14,14 +15,13 @@ type Props = {
 	onClick(): void;
 	depth: number;
 	disabled: boolean;
-	color: string;
 	index: number;
-	lastChild: boolean;
 };
 
 const TreeItem = ({
 	id,
 	label,
+	subLabel,
 	icon,
 	open,
 	focused,
@@ -53,6 +53,9 @@ const TreeItem = ({
 			) : null}
 			<div className={styles.icon}>{icon}</div>
 			<span className={styles.label}>{label}</span>
+			{subLabel.length > 0 ? (
+				<span className={styles.subLabel}>{subLabel}</span>
+			) : null}
 			<div className={styles.actions}>{actionButtons}</div>
 		</div>
 	);
