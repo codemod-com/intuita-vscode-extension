@@ -227,6 +227,7 @@ export class EngineService {
 			return;
 		}
 
+		const { mode } = message;
 		const { storageUri } = message.command;
 
 		const storageDirectory =
@@ -526,6 +527,7 @@ export class EngineService {
 				executionId,
 				codemodSetName,
 				codemodName,
+				mode,
 			});
 		});
 
