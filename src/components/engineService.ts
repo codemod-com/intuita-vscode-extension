@@ -157,7 +157,9 @@ export class EngineService {
 		const executableUri = this.#noraNodeEngineExecutableUri;
 
 		if (!executableUri) {
-			throw new EngineNotFoundError('Node engine not found');
+			throw new EngineNotFoundError(
+				'The codemod engine node has not been downloaded yet',
+			);
 		}
 
 		const childProcess = spawn(
