@@ -176,7 +176,7 @@ export class JobManager {
 		}
 
 		{
-			const createJobOutputs: [Uri, Uri, boolean][] = [];
+			const createJobOutputs: [Uri, Uri][] = [];
 			const updateJobOutputs: [Uri, Uri][] = [];
 			const deleteJobOutputs: Uri[] = [];
 			const moveJobOutputs: [Uri, Uri, Uri][] = [];
@@ -200,7 +200,6 @@ export class JobManager {
 					createJobOutputs.push([
 						job.newUri,
 						job.newContentUri,
-						true,
 					]);
 				}
 
@@ -238,7 +237,6 @@ export class JobManager {
 					createJobOutputs.push([
 						job.newUri,
 						job.newContentUri,
-						false,
 					]);
 				}
 			}
