@@ -98,7 +98,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 			commands.executeCommand(
 				'intuita.redirect',
-				`https://github.com/intuita-inc/intuita-vscode-extension/issues/new?${query}`,
+				`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
 			);
 		}
 	}
