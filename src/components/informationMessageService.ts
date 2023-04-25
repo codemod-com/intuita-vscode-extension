@@ -65,6 +65,7 @@ export class InformationMessageService {
 			},
 			executionId,
 			happenedAt,
+			mode: 'dryRun',
 		});
 	}
 }
