@@ -1301,17 +1301,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const codemodList = await engineService.getCodemodList();
 
-					const codemodCodemodName =
-						await vscode.window.showQuickPick(
-							codemodList.map(({ name }) => name),
-							{
-								placeHolder:
-									'Pick a codemod to execute over the selected path',
-							},
-						);
+					const codemodName = await vscode.window.showQuickPick(
+						codemodList.map(({ name }) => name),
+						{
+							placeHolder:
+								'Pick a codemod to execute over the selected path',
+						},
+					);
 
 					const selectedCodemod = codemodList.find(
-						({ name }) => name === codemodCodemodName,
+						({ name }) => name === codemodName,
 					);
 
 					if (!selectedCodemod) {
