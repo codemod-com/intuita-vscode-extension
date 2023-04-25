@@ -143,7 +143,12 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					.split('/')
 					.slice(-1)[0] ?? '/';
 			let path = repoName;
-			const newJobHashes = element.children.map((job) => job.jobHash);
+
+			if (element.children.length !== 1) {
+				// every file element must have only 1 job child
+				return;
+			}
+			const jobHash = element.children[0]?.jobHash;
 			for (const dir of directories) {
 				const parentNode = this.__folderMap.get(path) ?? null;
 
@@ -159,6 +164,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 							? {
 									id: path,
 									kind: 'fileElement',
+									label: dir,
 									iconName: getElementIconBaseName(
 										ElementKind.FILE,
 									),
@@ -218,12 +224,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				}
 
 				const existingJobHashes = currentNode.command.arguments;
-				newJobHashes.forEach((jobHash) => {
-					if (!existingJobHashes.includes(jobHash)) {
-						existingJobHashes.push(jobHash);
-					}
-				});
-				currentNode.label = `${dir} (${existingJobHashes.length})`;
+
+				if (!existingJobHashes.includes(jobHash)) {
+					existingJobHashes.push(jobHash);
+				}
+
+				if (currentNode.kind !== 'fileElement') {
+					currentNode.label = `${dir} (${existingJobHashes.length})`;
+				}
 			}
 		}
 
