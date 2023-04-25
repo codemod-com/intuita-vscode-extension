@@ -89,7 +89,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			}
 
 			const queryParams = {
-				title: `Invalid codemod output ${job.codemodName}`,
+				title: `${job.codemodName} codemod produces invalid output`,
 				body: buildIssueTemplate(job.codemodName),
 				template: 'report-faulty-codemod.md',
 			};
