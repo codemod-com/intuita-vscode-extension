@@ -67,25 +67,11 @@
 				"icon": "$(clear-all)"
 			},
 			{
-				"command": "intuita.folderBreakdown",
-				"title": "View by folder",
-				"icon": "$(list-tree)"
-			},
-			{
-				"command": "intuita.caseBreakdown",
-				"title": "View by codemod",
-				"icon": "$(list-unordered)"
-			},
-			{
 				"command": "intuita.acceptJob",
 				"title": "✓ Apply"
 			},
 			{
 				"command": "intuita.acceptCase",
-				"title": "✓ Apply"
-			},
-			{
-				"command": "intuita.acceptCaseByFolder",
 				"title": "✓ Apply"
 			},
 			{
@@ -98,10 +84,6 @@
 			},
 			{
 				"command": "intuita.rejectCase",
-				"title": "✗ Dismiss"
-			},
-			{
-				"command": "intuita.rejectCaseByFolder",
 				"title": "✗ Dismiss"
 			},
 			{
@@ -203,10 +185,9 @@
 				},
 				{
 					"type": "webview",
-					"id": "intuitaMainWebview",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
+					"id": "intuitaFileExplorer",
+					"name": "File Explorer",
+					"contextualTitle": "File Explorer"
 				},
 				{
 					"type": "webview",
@@ -227,14 +208,6 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.caseBreakdown",
-					"when": "false"
-				},
-				{
-					"command": "intuita.folderBreakdown",
-					"when": "false"
-				},
-				{
 					"command": "intuita.clearState",
 					"when": "false"
 				},
@@ -247,10 +220,6 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCaseByFolder",
-					"when": "false"
-				},
-				{
 					"command": "intuita.acceptFolder",
 					"when": "false"
 				},
@@ -260,10 +229,6 @@
 				},
 				{
 					"command": "intuita.rejectCase",
-					"when": "false"
-				},
-				{
-					"command": "intuita.rejectCaseByFolder",
 					"when": "false"
 				},
 				{
@@ -311,33 +276,13 @@
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				}
-			],
-			"view/title": [
-				{
-					"command": "intuita.caseBreakdown",
-					"when": "view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.folderBreakdown",
-					"when": "view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.clearState",
-					"when": "view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.requestFeature",
-					"when": "view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaMainWebview",
-					"group": "navigation"
-				}
+				],
+				"view/title": [
+					{
+						"command": "intuita.clearState",
+						"when": "view == intuitaFileExplorer",
+						"group": "navigation"
+					}
 			]
 		}
 	},
