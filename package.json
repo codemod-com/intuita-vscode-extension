@@ -39,7 +39,7 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Codemod On Path\" and select a codemod you want to execute."
 			}
 		],
 		"commands": [
@@ -113,8 +113,8 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
-				"command": "intuita.executeRecipeWithinPath",
-				"title": "Intuita: Execute Recipe On Path"
+				"command": "intuita.executeCodemodWithinPath",
+				"title": "Intuita: Execute Codemod On Path"
 			},
 			{
 				"command": "intuita.executeImportedModOnPath",
@@ -275,7 +275,7 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.executeRecipeWithinPath",
+					"command": "intuita.executeCodemodWithinPath",
 					"when": "false"
 				},
 				{
@@ -302,7 +302,7 @@
 					"when": "resourceExtname == .js || resourceExtname == .ts"
 				},
 				{
-					"command": "intuita.executeRecipeWithinPath",
+					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				},
