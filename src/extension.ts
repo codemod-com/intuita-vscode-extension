@@ -2,7 +2,12 @@ import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { Command, MessageBus, MessageKind } from './components/messageBus';
+import {
+	CodemodExecutionMode,
+	Command,
+	MessageBus,
+	MessageKind,
+} from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
@@ -386,12 +391,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		sourceControl,
 	);
 
-	const viewExplorer = vscode.window.registerWebviewViewProvider(
-		'intuitaMainWebviewExplorer',
-		intuitaWebviewProvider,
-	);
-	context.subscriptions.push(viewExplorer);
-
 	const view = vscode.window.registerWebviewViewProvider(
 		'intuitaMainWebview',
 		intuitaWebviewProvider,
@@ -696,60 +695,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			const { storageUri } = context;
-
-			if (!storageUri) {
-				console.error('No storage URI, aborting the command.');
-				return;
-			}
-
-			const codec = buildTypeCodec({
-				path: t.string,
-				dependencyName: t.string,
-			});
-
-			const validation = codec.decode(arg0);
-
-			if (validation._tag === 'Left') {
-				const report = prettyReporter.report(validation);
-
-				console.error(report);
-
-				return;
-			}
-
-			const { path, dependencyName } = validation.right;
-
-			const uri = vscode.Uri.file(path);
-
-			const recipeName = dependencyNameToRecipeName[dependencyName];
-
-			if (!recipeName) {
-				return;
-			}
-
-			const executionId = buildExecutionId();
-			const happenedAt = String(Date.now());
-
-			messageBus.publish({
-				kind: MessageKind.executeCodemodSet,
-				command: {
-					engine: 'node',
-					storageUri,
-					uri,
-					recipeName: recipeName,
-				},
-				executionId,
-				happenedAt,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeNextJsCodemods',
-			async (path?: vscode.Uri) => {
+			'intuita.executeCodemods',
+			(arg0, mode: CodemodExecutionMode) => {
 				const { storageUri } = context;
 
 				if (!storageUri) {
@@ -757,12 +705,28 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
+				const codec = buildTypeCodec({
+					path: t.string,
+					dependencyName: t.string,
+				});
 
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
+				const validation = codec.decode(arg0);
+
+				if (validation._tag === 'Left') {
+					const report = prettyReporter.report(validation);
+
+					console.error(report);
+
+					return;
+				}
+
+				const { path, dependencyName } = validation.right;
+
+				const uri = vscode.Uri.file(path);
+
+				const recipeName = dependencyNameToRecipeName[dependencyName];
+
+				if (!recipeName) {
 					return;
 				}
 
@@ -774,313 +738,12 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: {
 						engine: 'node',
 						storageUri,
-						recipeName: 'nextJs',
 						uri,
+						recipeName: recipeName,
 					},
 					executionId,
 					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeNextJsExperimentalCodemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'next_13_composite',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executePagesToAppsCodemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'rust',
-						storageUri,
-						recipeName: 'nextJs',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeMuiCodemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'mui',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeReactRouterv4Codemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'reactrouterv4',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeReactRouterv6Codemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'reactrouterv6',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	vscode.commands.registerCommand(
-		'intuita.executeImmutableJSv0Codemods',
-		async (path?: vscode.Uri) => {
-			const { storageUri } = context;
-
-			if (!storageUri) {
-				console.error('No storage URI, aborting the command.');
-				return;
-			}
-
-			const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-			if (!uri) {
-				console.warn(
-					'No workspace folder is opened, aborting the operation.',
-				);
-				return;
-			}
-
-			const executionId = buildExecutionId();
-			const happenedAt = String(Date.now());
-
-			messageBus.publish({
-				kind: MessageKind.executeCodemodSet,
-				command: {
-					engine: 'node',
-					storageUri,
-					recipeName: 'immutablejsv0',
-					uri,
-				},
-				executionId,
-				happenedAt,
-			});
-		},
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeImmutableJSv4Codemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'immutablejsv4',
-						uri,
-					},
-					executionId,
-					happenedAt,
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeRedwoodJsCore4Codemods',
-			async (path?: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
-
-				const uri = path ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-
-				if (!uri) {
-					console.warn(
-						'No workspace folder is opened, aborting the operation.',
-					);
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						recipeName: 'redwoodjs_core_4',
-						uri,
-					},
-					executionId,
-					happenedAt,
+					mode,
 				});
 			},
 		),
@@ -1591,7 +1254,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
-			(uri: vscode.Uri) => {
+			(uri: vscode.Uri, mode: CodemodExecutionMode) => {
 				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!rootUri) {
@@ -1617,6 +1280,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+					mode,
 				});
 			},
 		),
@@ -1757,6 +1421,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command,
 					executionId,
 					happenedAt,
+					mode: 'dryRun',
 				});
 			},
 		),
@@ -1806,6 +1471,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+					mode: 'dryRun',
 				});
 			},
 		),

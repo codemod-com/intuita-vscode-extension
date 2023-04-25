@@ -8,12 +8,16 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify } from '../utilities';
+import { buildTypeCodec, singleQuotify, streamToString } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
+<<<<<<< HEAD
+=======
+export class InvalidEngineResponseFormatError extends Error {}
+>>>>>>> origin/main
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -157,7 +161,13 @@ export class EngineService {
 		const executableUri = this.#noraNodeEngineExecutableUri;
 
 		if (!executableUri) {
+<<<<<<< HEAD
 			throw new EngineNotFoundError('Node engine not found');
+=======
+			throw new EngineNotFoundError(
+				'The codemod engine node has not been downloaded yet',
+			);
+>>>>>>> origin/main
 		}
 
 		const childProcess = spawn(
@@ -169,6 +179,7 @@ export class EngineService {
 			},
 		);
 
+<<<<<<< HEAD
 		const interfase = readline.createInterface(childProcess.stdout);
 
 		return new Promise<Readonly<CodemodEntry[]>>((resolve, reject) => {
@@ -192,6 +203,30 @@ export class EngineService {
 				resolve(codemodListOrError.right);
 			});
 		});
+=======
+		const codemodListJSON = await streamToString(childProcess.stdout);
+
+		try {
+			const codemodListOrError = codemodListCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
+
+			if (codemodListOrError._tag === 'Left') {
+				const report = prettyReporter.report(codemodListOrError);
+				throw new InvalidEngineResponseFormatError(report.join(`\n`));
+			}
+
+			return codemodListOrError.right;
+		} catch (e) {
+			if (e instanceof InvalidEngineResponseFormatError) {
+				throw e;
+			}
+
+			throw new UnableToParseEngineResponseError(
+				'Unable to parse engine output',
+			);
+		}
+>>>>>>> origin/main
 	}
 
 	shutdownEngines() {
