@@ -14,10 +14,7 @@ import { StatusBarItemManager } from './statusBarItemManager';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
-<<<<<<< HEAD
-=======
 export class InvalidEngineResponseFormatError extends Error {}
->>>>>>> origin/main
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -161,13 +158,9 @@ export class EngineService {
 		const executableUri = this.#noraNodeEngineExecutableUri;
 
 		if (!executableUri) {
-<<<<<<< HEAD
-			throw new EngineNotFoundError('Node engine not found');
-=======
 			throw new EngineNotFoundError(
 				'The codemod engine node has not been downloaded yet',
 			);
->>>>>>> origin/main
 		}
 
 		const childProcess = spawn(
@@ -179,31 +172,6 @@ export class EngineService {
 			},
 		);
 
-<<<<<<< HEAD
-		const interfase = readline.createInterface(childProcess.stdout);
-
-		return new Promise<Readonly<CodemodEntry[]>>((resolve, reject) => {
-			childProcess.stderr.on('data', function (error: unknown) {
-				reject(new Error(String(error)));
-			});
-
-			interfase.on('line', async (line) => {
-				const codemodListOrError = codemodListCodec.decode(
-					JSON.parse(line),
-				);
-
-				if (codemodListOrError._tag === 'Left') {
-					const report = prettyReporter.report(codemodListOrError);
-					reject(
-						new UnableToParseEngineResponseError(report.join(`\n`)),
-					);
-					return;
-				}
-
-				resolve(codemodListOrError.right);
-			});
-		});
-=======
 		const codemodListJSON = await streamToString(childProcess.stdout);
 
 		try {
@@ -226,7 +194,6 @@ export class EngineService {
 				'Unable to parse engine output',
 			);
 		}
->>>>>>> origin/main
 	}
 
 	shutdownEngines() {

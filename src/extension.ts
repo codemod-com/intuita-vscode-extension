@@ -1332,6 +1332,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						executionId,
 						happenedAt,
+						mode: 'dryRun',
 					});
 				} catch (e) {
 					vscode.window.showErrorMessage(
