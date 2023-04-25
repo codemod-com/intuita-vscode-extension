@@ -73,7 +73,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
-		if (!webviewView.webview) return;
+		if (!webviewView.webview) {
+			return;
+		}
 
 		this.__webviewResolver?.resolveWebview(
 			webviewView.webview,
