@@ -1,7 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
-import { Collapsable, CollapsableRefMethods } from './Collapsable';
+import {
+	Collapsable,
+	CollapsableRefMethods,
+} from '../../shared/Collapsable/Collapsable';
 import { useDiffViewer } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { DiffViewType } from '../../shared/types';

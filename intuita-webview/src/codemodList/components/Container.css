@@ -1,0 +1,68 @@
+.header {
+	padding: 10px 0;
+	margin: 0;
+	position: sticky;
+	top: 0;
+	background: var(--vscode-sideBar-background);
+}
+
+.header p {
+	margin: 0;
+}
+
+.App {
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+.container {
+	height: 50%;
+	overflow: auto;
+	flex-grow: 1;
+	transition: 0.1s ease-in-out all;
+}
+
+.containerCollapsed {
+	height: auto;
+	overflow: auto;
+	flex-grow: unset;
+}
+
+.codemodListCollapsible {
+	background: var(--vscode-sideBar-background);
+}
+
+.codemodlistCollapsableArrow {
+	margin-right: 0.5rem;
+	width: 12px;
+	height: 12px;
+	transition: transform 0.2s ease-in-out;
+}
+
+.collapsableHeader {
+	background: var(--vscode-sideBar-background);
+	position: sticky;
+	top: 0;
+}
+
+.collpasableContent {
+	padding: 0;
+}
+
+.loadingContainer {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	height: 100%;
+	margin-left: 10px;
+}
+
+.loadingContainer span {
+	margin-left: 5px;
+}
+
+.progressBar {
+	width: 15px;
+	height: 15px;
+}
