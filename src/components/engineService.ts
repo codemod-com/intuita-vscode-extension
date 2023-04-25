@@ -251,13 +251,57 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if ('kind' in message.command) {
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'repomod'
+			) {
 				args.push('repomod');
 				args.push('-f', singleQuotify(message.command.repomodFilePath));
 				args.push(
 					'-i',
 					singleQuotify(message.command.inputPath.fsPath),
 				);
+				args.push(
+					'-o',
+					singleQuotify(message.command.storageUri.fsPath),
+				);
+
+				return args;
+			}
+
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'executeCodemod'
+			) {
+				args.push('-c', singleQuotify(message.command.codemodHash));
+
+				const commandUri = message.command.uri;
+
+				includePatterns.forEach((includePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, includePattern);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', path);
+				});
+
+				excludePatterns.forEach((excludePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', `!${path}`);
+				});
+
+				args.push(
+					'-w',
+					String(
+						this.#configurationContainer.get().workerThreadCount,
+					),
+				);
+
+				args.push('-l', String(fileLimit));
+
 				args.push(
 					'-o',
 					singleQuotify(message.command.storageUri.fsPath),

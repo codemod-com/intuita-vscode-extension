@@ -1624,6 +1624,62 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeCodemodWithinPath',
+			async (uri: vscode.Uri) => {
+				try {
+					const { storageUri } = context;
+
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
+
+					const codemodList = await engineService.getCodemodList();
+
+					const codemodCodemodName =
+						await vscode.window.showQuickPick(
+							codemodList.map(({ name }) => name),
+							{
+								placeHolder:
+									'Pick a codemod to execute over the selected path',
+							},
+						);
+
+					const selectedCodemod = codemodList.find(
+						({ name }) => name === codemodCodemodName,
+					);
+
+					if (!selectedCodemod) {
+						throw new Error('Codemod is not selected');
+					}
+
+					const executionId = buildExecutionId();
+					const happenedAt = String(Date.now());
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command: {
+							kind: 'executeCodemod',
+							engine: 'node',
+							storageUri,
+							codemodHash: selectedCodemod.hashDigest,
+							uri,
+						},
+						executionId,
+						happenedAt,
+					});
+				} catch (e) {
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.executeRecipeWithinPath',
 			async (uri: vscode.Uri) => {
 				const { storageUri } = context;

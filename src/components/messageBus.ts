@@ -108,6 +108,13 @@ export type Command =
 			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
+	  }>
+	| Readonly<{
+			kind: 'executeCodemod';
+			codemodHash: string;
+			engine: Engine;
+			storageUri: Uri;
+			uri: Uri;
 	  }>;
 
 export type Message =
