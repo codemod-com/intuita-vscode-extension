@@ -30,9 +30,7 @@
 	"activationEvents": [
 		"onUri",
 		"workspaceContains:**/*.ts*",
-		"workspaceContains:**/*.js*",
-		"onView:intuitaMainWebview",
-		"onView:intuita-progress-webview"
+		"workspaceContains:**/*.js*"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -48,42 +46,6 @@
 			{
 				"command": "intuita.createPR",
 				"title": "Intuita: Create a Pull Request"
-			},
-			{
-				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js v13 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeNextJsExperimentalCodemods",
-				"title": "Intuita: execute Next.js v13 Experimental codemods over the workspace"
-			},
-			{
-				"command": "intuita.executePagesToAppsCodemods",
-				"title": "Intuita: execute Next.js v13 Pages-to-Apps codemods over the workspace (experimental)"
-			},
-			{
-				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute Material UI v5 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv4Codemods",
-				"title": "Intuita: execute React Router v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv6Codemods",
-				"title": "Intuita: execute React Router v6 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv0Codemods",
-				"title": "Intuita: execute ImmutableJS removal codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv4Codemods",
-				"title": "Intuita: execute ImmutableJS v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeRedwoodJsCore4Codemods",
-				"title": "Intuita: execute RedwoodJS v4 codemods over the workspace"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
@@ -306,42 +268,6 @@
 				},
 				{
 					"command": "intuita.rejectFolder",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeNextJsCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeNextJsExperimentalCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executePagesToAppsCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeMuiCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeReactRouterv4Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeReactRouterv6Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeImmutableJSv0Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeImmutableJSv4Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeRedwoodJsCore4Codemods",
 					"when": "false"
 				},
 				{
