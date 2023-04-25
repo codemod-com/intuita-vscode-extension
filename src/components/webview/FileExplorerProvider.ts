@@ -169,7 +169,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									label: dir,
 									iconName: getElementIconBaseName(
 										ElementKind.FILE,
-										jobKind,
+										jobKind ?? null,
 									),
 									children: [],
 									command: {

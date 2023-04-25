@@ -68,13 +68,13 @@ export function getUri(
 
 export const getElementIconBaseName = (
 	kind: Element['kind'],
-	jobKind?: JobKind,
+	jobKind: JobKind | null,
 ): string => {
 	switch (kind) {
 		case ElementKind.CASE:
 			return 'case.svg';
 		case ElementKind.FILE:
-			return jobKind &&
+			return jobKind !== null &&
 				[
 					JobKind.copyFile,
 					JobKind.createFile,
