@@ -232,22 +232,13 @@
 			]
 		},
 		"views": {
-			"explorer": [
-				{
-					"type": "webview",
-					"id": "intuitaMainWebviewExplorer",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
-				},
-				{
-					"type": "webview",
-					"id": "intuita-progress-webview",
-					"name": "Intuita: Execution Progress",
-					"contextualTitle": "Intuita: Execution Progress"
-				}
-			],
 			"intuitaViewId": [
+				{
+					"type": "webview",
+					"id": "intuita-available-codemod-tree-view",
+					"name": "Recommended Codemods (For This Workspace)",
+					"contextualTitle": "Recommended Codemods (For This Workspace)"
+				},
 				{
 					"type": "webview",
 					"id": "intuitaMainWebview",
@@ -257,9 +248,9 @@
 				},
 				{
 					"type": "webview",
-					"id": "intuita-available-codemod-tree-view",
-					"name": "Recommended Codemods (For This Workspace)",
-					"contextualTitle": "Recommended Codemods (For This Workspace)"
+					"id": "intuita-progress-webview",
+					"name": "Intuita: Execution Progress",
+					"contextualTitle": "Intuita: Execution Progress"
 				}
 			]
 		},
@@ -398,27 +389,27 @@
 			"view/title": [
 				{
 					"command": "intuita.caseBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.folderBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.requestFeature",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebview",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaMainWebview",
 					"group": "navigation"
 				}
 			]

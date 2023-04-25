@@ -386,12 +386,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		sourceControl,
 	);
 
-	const viewExplorer = vscode.window.registerWebviewViewProvider(
-		'intuitaMainWebviewExplorer',
-		intuitaWebviewProvider,
-	);
-	context.subscriptions.push(viewExplorer);
-
 	const view = vscode.window.registerWebviewViewProvider(
 		'intuitaMainWebview',
 		intuitaWebviewProvider,
