@@ -37,7 +37,7 @@ const Tree = ({
 	lastChild,
 }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
-	const [open, setIsOpen] = useState(depth === 0);
+	const [open, setIsOpen] = useState(true);
 	const [color] = useState(
 		hasNoChildren ? colorProp : generateColor(buildHash(node.id)),
 	);
