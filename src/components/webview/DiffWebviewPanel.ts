@@ -9,6 +9,23 @@ import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
+const buildIssueTemplate = (codemodName: string): string => {
+	return `
+	**Codemod name**
+	${codemodName}
+	
+	**Codemod input**
+	Please provide a code example on which the codemod was executed
+	
+	**Expected codemod output**
+	Provide expected codemod output
+	
+	**Actual codemod output**
+	Provide actual codemod output
+	
+	**Additional context**
+	Add any other context about the problem here.`;
+};
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;
 
@@ -43,7 +60,9 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachWebviewEventListeners() {
-		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this._panel?.webview.onDidReceiveMessage(
+			this.__onDidReceiveMessage.bind(this),
+		);
 	}
 
 	private __onDidReceiveMessage(message: WebviewResponse) {
@@ -60,6 +79,27 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			message.kind === 'intuita.acceptJob'
 		) {
 			commands.executeCommand(message.kind, message.value[0]);
+		}
+
+		if (message.kind === 'webview.global.reportIssue') {
+			const job = this.__jobManager.getJob(message.faultyJobHash);
+
+			if (!job) {
+				throw new Error('Unable to get the job');
+			}
+
+			const queryParams = {
+				title: `Invalid codemod output ${job.codemodName}`,
+				body: buildIssueTemplate(job.codemodName),
+				template: 'report-faulty-codemod.md',
+			};
+
+			const query = new URLSearchParams(queryParams).toString();
+
+			commands.executeCommand(
+				'intuita.redirect',
+				`https://github.com/DmytroHryshyn/test_repo/issues/new?${query}`,
+			);
 		}
 	}
 
