@@ -146,11 +146,13 @@ export class EngineService {
 		});
 	}
 
-	#onEnginesBootstrappedMessage(
+	async #onEnginesBootstrappedMessage(
 		message: Message & { kind: MessageKind.enginesBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
+		const res = await this.getCodemodList();
+		console.log(res);
 	}
 
 	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
@@ -171,27 +173,39 @@ export class EngineService {
 			},
 		);
 
-		const interfase = readline.createInterface(childProcess.stdout);
-
 		return new Promise<Readonly<CodemodEntry[]>>((resolve, reject) => {
+			let codemodListJSON = '';
+
 			childProcess.stderr.on('data', function (error: unknown) {
 				reject(new Error(String(error)));
 			});
 
-			interfase.on('line', async (line) => {
-				const codemodListOrError = codemodListCodec.decode(
-					JSON.parse(line),
-				);
-
-				if (codemodListOrError._tag === 'Left') {
-					const report = prettyReporter.report(codemodListOrError);
-					reject(
-						new UnableToParseEngineResponseError(report.join(`\n`)),
-					);
+			childProcess.stdout.on('data', async (data: unknown) => {
+				if (!(data instanceof Buffer)) {
 					return;
 				}
 
-				resolve(codemodListOrError.right);
+				codemodListJSON += data.toString();
+			});
+
+			childProcess.stdout.on('end', async () => {
+				try {
+					const codemodListOrError = codemodListCodec.decode(
+						JSON.parse(codemodListJSON),
+					);
+
+					if (codemodListOrError._tag === 'Left') {
+						const report =
+							prettyReporter.report(codemodListOrError);
+						throw new UnableToParseEngineResponseError(
+							report.join(`\n`),
+						);
+					}
+
+					resolve(codemodListOrError.right);
+				} catch (e) {
+					reject(e);
+				}
 			});
 		});
 	}
