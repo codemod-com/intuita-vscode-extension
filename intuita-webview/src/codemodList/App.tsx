@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import type {
-	View,
-	WebviewMessage,
-} from '../../../src/components/webview/webviewEvents';
+import type { View, WebviewMessage, CodemodTreeNode } from '../shared/types';
 import TreeView from './TreeView';
+import { Container, LoadingContainer } from './components/Container';
+import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
+	const [publicCodemods, setPublicCodemods] =
+		useState<CodemodTreeNode<string> | null>(null);
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
@@ -23,6 +25,10 @@ function App() {
 				message.value.viewId === 'codemodList'
 			) {
 				setView(message.value);
+			}
+			if (message.kind === 'webview.codemodlist.setPublicCodemodList') {
+				setPublicCodemods(message.value ?? null);
+				setError(message.error ?? null);
 			}
 		};
 
@@ -39,7 +45,21 @@ function App() {
 
 	return (
 		<main className="App">
-			<TreeView node={view.viewProps.data} />
+			<Container headerTitle="Recommended Codemods (For This Workspace)">
+				<TreeView node={view.viewProps.data} />
+			</Container>
+			<Container headerTitle="Public Codemods">
+				<div>
+					{publicCodemods && <TreeView node={publicCodemods} />}
+					{!publicCodemods && (
+						<LoadingContainer>
+							<VSCodeProgressRing className="progressBar" />
+							<span> loading ...</span>
+						</LoadingContainer>
+					)}
+					{error && <p>{error}</p>}
+				</div>
+			</Container>
 		</main>
 	);
 }

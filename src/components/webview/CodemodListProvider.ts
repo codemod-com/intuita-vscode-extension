@@ -41,6 +41,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__messageBus.subscribe(MessageKind.extensionDeactivated, () => {
 			watcher?.dispose();
 		});
+		this.__messageBus.subscribe(MessageKind.enginesBootstrapped, () => {
+			this.getCodemodTree('public');
+		});
 	}
 
 	refresh(): void {
@@ -89,7 +92,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__view = webviewView;
 
 		this.__view.onDidChangeVisibility(() => {
-			this.getCodemodTree();
+			this.getCodemodTree('recommended');
+			this.getCodemodTree('public');
 		});
 
 		this.__attachWebviewEventListeners();
@@ -135,23 +139,45 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.getCodemodTree();
+			this.getCodemodTree('recommended');
 		}
 	};
 
-	public async getCodemodTree() {
-		await this.__codemodService.getCodemods();
-		const codemodList = this.__getCodemod();
-		const treeNodes = codemodList.map((codemod) =>
-			this.__getTreeNode(codemod),
-		);
+	public async getCodemodTree(type: 'recommended' | 'public') {
+		const recommended = type === 'recommended';
+		try {
+			if (recommended) {
+				await this.__codemodService.getCodemods();
+			} else {
+				await this.__codemodService.getDiscoverdCodemods();
+			}
+			const codemodList = this.__getCodemod(recommended);
+			const treeNodes = codemodList.map((codemod) =>
+				this.__getTreeNode(codemod),
+			);
 
-		this.setView({
-			viewId: 'codemodList',
-			viewProps: {
-				data: treeNodes?.[0],
-			},
-		});
+			if (recommended) {
+				return this.setView({
+					viewId: 'codemodList',
+					viewProps: {
+						data: treeNodes?.[0],
+					},
+				});
+			}
+			this.__postMessage({
+				kind: 'webview.codemodlist.setPublicCodemodList',
+				value: treeNodes?.[0],
+			});
+		} catch (e) {
+			console.error(e);
+			if (recommended) {
+				this.__postMessage({
+					kind: 'webview.codemodlist.setPublicCodemodList',
+					value: undefined,
+					error: 'Failed to load public codemods',
+				});
+			}
+		}
 	}
 
 	private __getTreeNode(
@@ -196,12 +222,19 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 
 	private __getCodemod(
+		recommended: boolean,
 		codemodHash?: CodemodHash,
 	): CodemodElementWithChildren[] {
-		const childrenHashes = this.__codemodService.getChildren(codemodHash);
+		const childrenHashes = this.__codemodService.getChildren(
+			recommended,
+			codemodHash,
+		);
 		const children: CodemodElementWithChildren[] = [];
 		childrenHashes.forEach((child) => {
-			const codemod = this.__codemodService.getCodemodElement(child);
+			const codemod = this.__codemodService.getCodemodElement(
+				recommended,
+				child,
+			);
 			if (!codemod) {
 				return;
 			}
@@ -210,7 +243,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
-			const childDescendents = this.__getCodemod(child);
+			const childDescendents = this.__getCodemod(recommended, child);
 
 			children.push({ ...codemod, children: childDescendents });
 		});

@@ -180,8 +180,8 @@
 				{
 					"type": "webview",
 					"id": "intuita-available-codemod-tree-view",
-					"name": "Recommended Codemods (For This Workspace)",
-					"contextualTitle": "Recommended Codemods (For This Workspace)"
+					"name": "Available Codemods",
+					"contextualTitle": "Available Codemods"
 				},
 				{
 					"type": "webview",

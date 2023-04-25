@@ -126,6 +126,11 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createPR.setPullRequestSubmitting';
 			value: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodlist.setPublicCodemodList';
+			value?: CodemodTreeNode<string>;
+			error?: string;
 	  }>;
 
 export type WebviewResponse =

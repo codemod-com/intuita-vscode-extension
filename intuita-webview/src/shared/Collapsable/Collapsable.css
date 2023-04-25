@@ -27,8 +27,8 @@
 	transition: transform 0.2s ease-in-out;
 }
 
-.collapsable__arrow--open {
-	transform: rotate(180deg);
+.collapsable__arrow--collapsed {
+	transform: rotate(-90deg);
 }
 
 .collapsable_content {
