@@ -158,7 +158,7 @@ export class NoraCompareServiceEngine {
 		}
 
 		if (message.mode === 'dirtyRun') {
-			// TODO apply the job!
+			// TODO add this job to the list of dirty run jobs
 
 			return;
 		}
