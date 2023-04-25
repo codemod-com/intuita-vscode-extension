@@ -146,13 +146,11 @@ export class EngineService {
 		});
 	}
 
-	async #onEnginesBootstrappedMessage(
+	#onEnginesBootstrappedMessage(
 		message: Message & { kind: MessageKind.enginesBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
-		const res = await this.getCodemodList();
-		console.log(res);
 	}
 
 	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
