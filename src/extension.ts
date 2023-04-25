@@ -2,7 +2,12 @@ import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { Command, MessageBus, MessageKind } from './components/messageBus';
+import {
+	CodemodExecutionMode,
+	Command,
+	MessageBus,
+	MessageKind,
+} from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
@@ -690,54 +695,58 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			const { storageUri } = context;
+		vscode.commands.registerCommand(
+			'intuita.executeCodemods',
+			(arg0, mode: CodemodExecutionMode) => {
+				const { storageUri } = context;
 
-			if (!storageUri) {
-				console.error('No storage URI, aborting the command.');
-				return;
-			}
+				if (!storageUri) {
+					console.error('No storage URI, aborting the command.');
+					return;
+				}
 
-			const codec = buildTypeCodec({
-				path: t.string,
-				dependencyName: t.string,
-			});
+				const codec = buildTypeCodec({
+					path: t.string,
+					dependencyName: t.string,
+				});
 
-			const validation = codec.decode(arg0);
+				const validation = codec.decode(arg0);
 
-			if (validation._tag === 'Left') {
-				const report = prettyReporter.report(validation);
+				if (validation._tag === 'Left') {
+					const report = prettyReporter.report(validation);
 
-				console.error(report);
+					console.error(report);
 
-				return;
-			}
+					return;
+				}
 
-			const { path, dependencyName } = validation.right;
+				const { path, dependencyName } = validation.right;
 
-			const uri = vscode.Uri.file(path);
+				const uri = vscode.Uri.file(path);
 
-			const recipeName = dependencyNameToRecipeName[dependencyName];
+				const recipeName = dependencyNameToRecipeName[dependencyName];
 
-			if (!recipeName) {
-				return;
-			}
+				if (!recipeName) {
+					return;
+				}
 
-			const executionId = buildExecutionId();
-			const happenedAt = String(Date.now());
+				const executionId = buildExecutionId();
+				const happenedAt = String(Date.now());
 
-			messageBus.publish({
-				kind: MessageKind.executeCodemodSet,
-				command: {
-					engine: 'node',
-					storageUri,
-					uri,
-					recipeName: recipeName,
-				},
-				executionId,
-				happenedAt,
-			});
-		}),
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						engine: 'node',
+						storageUri,
+						uri,
+						recipeName: recipeName,
+					},
+					executionId,
+					happenedAt,
+					mode,
+				});
+			},
+		),
 	);
 
 	context.subscriptions.push(
@@ -1245,7 +1254,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
-			(uri: vscode.Uri) => {
+			(uri: vscode.Uri, mode: CodemodExecutionMode) => {
 				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!rootUri) {
@@ -1271,6 +1280,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+					mode,
 				});
 			},
 		),
@@ -1355,6 +1365,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command,
 					executionId,
 					happenedAt,
+					mode: 'dryRun',
 				});
 			},
 		),
@@ -1404,6 +1415,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
+					mode: 'dryRun',
 				});
 			},
 		),
