@@ -179,6 +179,12 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.closeView';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.reportIssue';
+			faultyJobHash: JobHash;
+			oldFileContent: string;
+			newFileContent: string;
 	  }>;
 
 export type View =

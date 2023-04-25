@@ -44,12 +44,13 @@ type HeaderProps = Readonly<{
 	oldFileTitle: string;
 	jobKind: JobDiffViewProps['jobKind'];
 	viewType: 'inline' | 'side-by-side';
-	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	viewed?: boolean;
-	onViewedChange: () => void;
 	children?: React.ReactNode;
 	actions: JobDiffViewProps['actions'];
 	onAction: (arg: JobAction) => void;
+	onViewedChange: () => void;
+	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
+	onReportIssue(): void;
 }>;
 
 export const Header = ({
@@ -60,9 +61,10 @@ export const Header = ({
 	oldFileTitle,
 	children,
 	viewed,
-	onViewedChange,
 	actions,
+	onViewedChange,
 	onAction,
+	onReportIssue,
 }: HeaderProps) => {
 	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	return (
@@ -97,6 +99,12 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
+					<VSCodeButton
+						appearance="secondary"
+						onClick={onReportIssue}
+					>
+						Report Issue
+					</VSCodeButton>
 					{shouldShowDiff && (
 						<div className="ml-10 flex items-center">
 							<span className="diff-changes diff-added">

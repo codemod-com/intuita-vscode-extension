@@ -5,6 +5,7 @@ import { Collapsable, CollapsableRefMethods } from './Collapsable';
 import { useDiffViewer } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { DiffViewType } from '../../shared/types';
+import { vscode } from '../../shared/utilities/vscode';
 
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
@@ -20,6 +21,7 @@ export const JobDiffView = ({
 	oldFileTitle,
 	newFileTitle,
 	title,
+	// @TODO why passing postMessage as prop?
 	postMessage,
 }: Props) => {
 	const collapsableRef = useRef<CollapsableRefMethods>(null);
@@ -57,6 +59,15 @@ export const JobDiffView = ({
 		title,
 	});
 
+	const reportIssue = () => {
+		vscode.postMessage({
+			kind: 'webview.global.reportIssue',
+			faultyJobHash: jobHash,
+			oldFileContent: oldFileContent ?? '',
+			newFileContent: newFileContent ?? '',
+		});
+	};
+
 	return (
 		<Collapsable
 			ref={collapsableRef}
@@ -78,6 +89,7 @@ export const JobDiffView = ({
 					title={title ?? ''}
 					viewType={viewType}
 					onViewTypeChange={setViewType}
+					onReportIssue={reportIssue}
 				/>
 			}
 		>
