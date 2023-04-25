@@ -137,12 +137,12 @@ export const streamToString = async (stream: NodeJS.ReadableStream) => {
 	const chunks = [];
 
 	for await (const chunk of stream) {
-		if(chunk instanceof Buffer) {
+		if (chunk instanceof Buffer) {
 			chunks.push(chunk);
 			continue;
 		}
 
-		chunks.push(Buffer.from(chunk))
+		chunks.push(Buffer.from(chunk));
 	}
 
 	return Buffer.concat(chunks).toString('utf-8');
