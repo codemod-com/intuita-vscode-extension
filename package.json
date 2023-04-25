@@ -276,13 +276,13 @@
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				}
-				],
-				"view/title": [
-					{
-						"command": "intuita.clearState",
-						"when": "view == intuitaFileExplorer",
-						"group": "navigation"
-					}
+			],
+			"view/title": [
+				{
+					"command": "intuita.clearState",
+					"when": "view == intuitaFileExplorer",
+					"group": "navigation"
+				}
 			]
 		}
 	},
