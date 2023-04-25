@@ -46,7 +46,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
-	__fileNodesSet = new Set();
+	__fileNodes = new Set<TreeNode>();
 	__unsavedChanges = false;
 
 	constructor(
@@ -218,7 +218,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 							  };
 
 					if (dir === fileName) {
-						this.__fileNodesSet.add(newTreeNode);
+						this.__fileNodes.add(newTreeNode);
 					}
 					this.__folderMap.set(path, newTreeNode);
 
@@ -373,7 +373,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	private __onClearStateMessage() {
 		this.__folderMap.clear();
-		this.__fileNodesSet.clear();
+		this.__fileNodes.clear();
 
 		const rootElement = {
 			hash: '' as ElementHash,
@@ -419,7 +419,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		this.__folderMap.clear();
-		this.__fileNodesSet.clear();
+		this.__fileNodes.clear();
 
 		const tree = this.__getTreeByDirectory(caseElement);
 
@@ -428,7 +428,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
-					fileNodes: Array.from(this.__fileNodesSet) as TreeNode[],
+					fileNodes: Array.from(this.__fileNodes),
 				},
 			});
 		}

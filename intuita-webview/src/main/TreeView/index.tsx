@@ -57,7 +57,7 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 };
 
 const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
-	const isUserSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 
 	const handleClick = useCallback((node: TreeNode) => {
@@ -140,48 +140,51 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 		);
 	}
 
-	return isUserSearchingFile ? (
-		<ReactTreeView nodeLabel="">
-			{fileNodes.map((node, index) => {
-				if (node.kind !== 'fileElement') {
-					return null;
-				}
-				const isSearchingFileFound =
-					isUserSearchingFile &&
-					node.kind === 'fileElement' &&
-					(node.label ?? '').toLowerCase().includes(searchQuery);
-				if (!isSearchingFileFound) {
-					return null;
-				}
+	if (userSearchingFile) {
+		return (
+			<ReactTreeView nodeLabel="">
+				{fileNodes.map((node, index) => {
+					if (node.kind !== 'fileElement') {
+						return null;
+					}
+					const isSearchingFileFound =
+						userSearchingFile &&
+						node.kind === 'fileElement' &&
+						(node.label ?? '').toLowerCase().includes(searchQuery);
+					if (!isSearchingFileFound) {
+						return null;
+					}
 
-				const icon = getIcon(node.iconName ?? null, false);
+					const icon = getIcon(node.iconName ?? null, false);
 
-				return (
-					<TreeItem
-						disabled={false}
-						hasChildren={false}
-						id={node.id}
-						label={node.label ?? ''}
-						subLabel={
-							// take out the repo name
-							node.id.split('/').slice(1).join('/')
-						}
-						icon={icon}
-						depth={0}
-						kind={node.kind}
-						open={false}
-						focused={node.id === focusedNodeId}
-						onClick={() => {
-							handleClick(node);
-							setFocusedNodeId(node.id);
-						}}
-						actionButtons={[]}
-						index={index}
-					/>
-				);
-			})}
-		</ReactTreeView>
-	) : (
+					return (
+						<TreeItem
+							disabled={false}
+							hasChildren={false}
+							id={node.id}
+							label={node.label ?? ''}
+							subLabel={
+								// take out the repo name
+								node.id.split('/').slice(1).join('/')
+							}
+							icon={icon}
+							depth={0}
+							kind={node.kind}
+							open={false}
+							focused={node.id === focusedNodeId}
+							onClick={() => {
+								handleClick(node);
+								setFocusedNodeId(node.id);
+							}}
+							actionButtons={[]}
+							index={index}
+						/>
+					);
+				})}
+			</ReactTreeView>
+		);
+	}
+	return (
 		<Tree
 			node={node}
 			renderItem={(props) =>

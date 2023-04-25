@@ -17,7 +17,7 @@ const SearchBar = ({ searchQuery, setSearchQuery }: Props) => {
 			value={searchQuery}
 			placeholder=""
 			onInput={(event: any) => {
-				setSearchQuery((prev) => event.target?.value || prev);
+				setSearchQuery((prev) => event.target?.value ?? prev);
 			}}
 			className={styles.container}
 		>
