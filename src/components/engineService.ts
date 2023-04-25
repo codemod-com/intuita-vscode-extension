@@ -8,12 +8,13 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify } from '../utilities';
+import { buildTypeCodec, singleQuotify, streamToString } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
+export class InvalidEngineResponseFormatError extends Error {}
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -171,41 +172,28 @@ export class EngineService {
 			},
 		);
 
-		return new Promise<Readonly<CodemodEntry[]>>((resolve, reject) => {
-			let codemodListJSON = '';
+		const codemodListJSON = await streamToString(childProcess.stdout);
 
-			childProcess.stderr.on('data', function (error: unknown) {
-				reject(new Error(String(error)));
-			});
+		try {
+			const codemodListOrError = codemodListCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
 
-			childProcess.stdout.on('data', async (data: unknown) => {
-				if (!(data instanceof Buffer)) {
-					return;
-				}
+			if (codemodListOrError._tag === 'Left') {
+				const report = prettyReporter.report(codemodListOrError);
+				throw new InvalidEngineResponseFormatError(report.join(`\n`));
+			}
 
-				codemodListJSON += data.toString();
-			});
+			return codemodListOrError.right;
+		} catch (e) {
+			if (e instanceof InvalidEngineResponseFormatError) {
+				throw e;
+			}
 
-			childProcess.stdout.on('end', async () => {
-				try {
-					const codemodListOrError = codemodListCodec.decode(
-						JSON.parse(codemodListJSON),
-					);
-
-					if (codemodListOrError._tag === 'Left') {
-						const report =
-							prettyReporter.report(codemodListOrError);
-						throw new UnableToParseEngineResponseError(
-							report.join(`\n`),
-						);
-					}
-
-					resolve(codemodListOrError.right);
-				} catch (e) {
-					reject(e);
-				}
-			});
-		});
+			throw new UnableToParseEngineResponseError(
+				'Unable to parse engine output',
+			);
+		}
 	}
 
 	shutdownEngines() {
