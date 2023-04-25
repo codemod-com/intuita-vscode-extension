@@ -5,6 +5,7 @@ import { Job, JobHash, JobKind } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildUriHash } from '../uris/buildUriHash';
 import { FileService } from './fileService';
+import { acceptJobs } from '../jobs/acceptJobs';
 
 type Codemod = Readonly<{
 	setName: string;
@@ -190,83 +191,7 @@ export class JobManager {
 				}
 			}
 
-			const createJobOutputs: [Uri, Uri][] = [];
-			const updateJobOutputs: [Uri, Uri][] = [];
-			const deleteJobOutputs: Uri[] = [];
-			const moveJobOutputs: [Uri, Uri, Uri][] = [];
-
-			for (const job of jobs) {
-				if (
-					job.kind === JobKind.createFile &&
-					job.newUri &&
-					job.newContentUri
-				) {
-					createJobOutputs.push([job.newUri, job.newContentUri]);
-				}
-
-				if (job.kind === JobKind.deleteFile && job.oldUri) {
-					deleteJobOutputs.push(job.oldUri);
-				}
-
-				if (
-					(job.kind === JobKind.moveAndRewriteFile ||
-						job.kind === JobKind.moveFile) &&
-					job.oldUri &&
-					job.newUri &&
-					job.newContentUri
-				) {
-					moveJobOutputs.push([
-						job.oldUri,
-						job.newUri,
-						job.newContentUri,
-					]);
-				}
-
-				if (
-					job.kind === JobKind.rewriteFile &&
-					job.oldUri &&
-					job.newContentUri
-				) {
-					updateJobOutputs.push([job.oldUri, job.newContentUri]);
-				}
-
-				if (
-					job.kind === JobKind.copyFile &&
-					job.newUri &&
-					job.newContentUri
-				) {
-					createJobOutputs.push([job.newUri, job.newContentUri]);
-				}
-			}
-
-			for (const createJobOutput of createJobOutputs) {
-				const [newUri, newContentUri] = createJobOutput;
-				await this.__fileService.createFile({
-					newUri,
-					newContentUri,
-				});
-			}
-
-			for (const updateJobOutput of updateJobOutputs) {
-				const [uri, contentUri] = updateJobOutput;
-				await this.__fileService.updateFile({
-					uri,
-					contentUri,
-				});
-			}
-
-			for (const moveJobOutput of moveJobOutputs) {
-				const [oldUri, newUri, newContentUri] = moveJobOutput;
-				await this.__fileService.moveFile({
-					oldUri,
-					newUri,
-					newContentUri,
-				});
-			}
-
-			await this.__fileService.deleteFiles({
-				uris: deleteJobOutputs.slice(),
-			});
+			await acceptJobs(this.__fileService, jobs);
 		}
 
 		for (const jobHash of jobHashes) {
