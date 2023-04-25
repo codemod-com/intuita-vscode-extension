@@ -8,9 +8,13 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify } from '../utilities';
+import { buildTypeCodec, singleQuotify, streamToString } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+
+export class EngineNotFoundError extends Error {}
+export class UnableToParseEngineResponseError extends Error {}
+export class InvalidEngineResponseFormatError extends Error {}
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -98,6 +102,17 @@ type Execution = {
 	affectedAnyFile: boolean;
 };
 
+const codemodEntryCodec = buildTypeCodec({
+	kind: t.literal('codemod'),
+	hashDigest: t.string,
+	name: t.string,
+	description: t.string,
+});
+
+type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
+
+const codemodListCodec = t.readonlyArray(codemodEntryCodec);
+
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
@@ -137,6 +152,48 @@ export class EngineService {
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
+	}
+
+	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+		const executableUri = this.#noraNodeEngineExecutableUri;
+
+		if (!executableUri) {
+			throw new EngineNotFoundError(
+				'The codemod engine node has not been downloaded yet',
+			);
+		}
+
+		const childProcess = spawn(
+			singleQuotify(executableUri.fsPath),
+			['list'],
+			{
+				stdio: 'pipe',
+				shell: true,
+			},
+		);
+
+		const codemodListJSON = await streamToString(childProcess.stdout);
+
+		try {
+			const codemodListOrError = codemodListCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
+
+			if (codemodListOrError._tag === 'Left') {
+				const report = prettyReporter.report(codemodListOrError);
+				throw new InvalidEngineResponseFormatError(report.join(`\n`));
+			}
+
+			return codemodListOrError.right;
+		} catch (e) {
+			if (e instanceof InvalidEngineResponseFormatError) {
+				throw e;
+			}
+
+			throw new UnableToParseEngineResponseError(
+				'Unable to parse engine output',
+			);
+		}
 	}
 
 	shutdownEngines() {

@@ -131,3 +131,19 @@ export const buildStackedBranchPRMessage = (
 
 	return message;
 };
+
+// taken from https://stackoverflow.com/a/63361543
+export const streamToString = async (stream: NodeJS.ReadableStream) => {
+	const chunks = [];
+
+	for await (const chunk of stream) {
+		if (chunk instanceof Buffer) {
+			chunks.push(chunk);
+			continue;
+		}
+
+		chunks.push(Buffer.from(chunk));
+	}
+
+	return Buffer.concat(chunks).toString('utf-8');
+};
