@@ -184,14 +184,15 @@ export class JobManager {
 			for (const { jobHashes: hashes } of this.#getUriHashesWithJobHashes(
 				jobHashes,
 			)) {
-				const jobs = Array.from(hashes)
+				const job = Array.from(hashes)
 					.map((jobHash) => this.#jobMap.get(jobHash))
-					.filter(isNeitherNullNorUndefined);
+					.filter(isNeitherNullNorUndefined)?.[0];
 
-				const job = jobs[0];
+				if (!job) {
+					continue;
+				}
 
 				if (
-					job &&
 					job.kind === JobKind.createFile &&
 					job.newUri &&
 					job.newContentUri
@@ -203,12 +204,11 @@ export class JobManager {
 					]);
 				}
 
-				if (job && job.kind === JobKind.deleteFile && job.oldUri) {
+				if (job.kind === JobKind.deleteFile && job.oldUri) {
 					deleteJobOutputs.push(job.oldUri);
 				}
 
 				if (
-					job &&
 					(job.kind === JobKind.moveAndRewriteFile ||
 						job.kind === JobKind.moveFile) &&
 					job.oldUri &&
@@ -223,7 +223,6 @@ export class JobManager {
 				}
 
 				if (
-					job &&
 					job.kind === JobKind.rewriteFile &&
 					job.oldUri &&
 					job.newContentUri
@@ -232,7 +231,6 @@ export class JobManager {
 				}
 
 				if (
-					job &&
 					job.kind === JobKind.copyFile &&
 					job.newUri &&
 					job.newContentUri

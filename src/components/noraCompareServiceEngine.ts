@@ -157,6 +157,12 @@ export class NoraCompareServiceEngine {
 			return;
 		}
 
+		if (message.mode === 'dirtyRun') {
+			// TODO apply the job!
+
+			return;
+		}
+
 		const { jobHash } = message;
 
 		const tuple = this.#jobMap.get(jobHash);
