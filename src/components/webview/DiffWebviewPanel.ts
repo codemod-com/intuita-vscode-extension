@@ -11,6 +11,13 @@ import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
 const buildIssueTemplate = (codemodName: string): string => {
 	return `
+	<!--
+  ⚠️⚠️
+	Please do not include any proprietary code in the issue. 
+	Provide a minimum meaningful sample so we can reproduce the issue. 
+	⚠️⚠️
+	-->
+	
 	**Codemod name**
 	${codemodName}
 	
