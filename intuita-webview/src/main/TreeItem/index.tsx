@@ -38,7 +38,7 @@ const TreeItem = ({
 		>
 			<div
 				style={{
-					minWidth: depth * 16,
+					minWidth: `${depth * 18}px`,
 				}}
 			/>
 			{hasChildren ? (

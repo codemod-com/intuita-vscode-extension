@@ -149,6 +149,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				return;
 			}
 			const jobHash = element.children[0]?.jobHash;
+			const jobKind = element.children[0]?.job.kind;
+
 			for (const dir of directories) {
 				const parentNode = this.__folderMap.get(path) ?? null;
 
@@ -167,6 +169,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									label: dir,
 									iconName: getElementIconBaseName(
 										ElementKind.FILE,
+										jobKind,
 									),
 									children: [],
 									command: {

@@ -6,7 +6,6 @@ import {
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
-import { ReactComponent as TS2Icon } from '../../assets/ts2.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
@@ -30,8 +29,11 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 		case 'bluelightbulb.svg':
 			icon = <BlueLightBulbIcon />;
 			break;
-		case 'ts2.svg':
-			icon = <TS2Icon />;
+		case 'file.svg':
+			icon = <span className={cn('codicon', 'codicon-file')} />;
+			break;
+		case 'newFile.svg':
+			icon = <span className={cn('codicon', 'codicon-file-add')} />;
 			break;
 		case 'wrench.svg':
 			icon = <WrenchIcon />;
