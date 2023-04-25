@@ -164,6 +164,7 @@ export type Message =
 			executionId: string;
 			codemodSetName: string;
 			codemodName: string;
+			mode: CodemodExecutionMode;
 	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
@@ -172,6 +173,7 @@ export type Message =
 			executionId: string;
 			codemodSetName: string;
 			codemodName: string;
+			mode: CodemodExecutionMode;
 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngines;
