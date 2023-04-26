@@ -158,7 +158,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				if (!this.__engineBootstrapped) {
 					return;
 				}
-				await this.__codemodService.getDiscoverdCodemods();
+				await this.__codemodService.getDiscoveredCodemods();
 			}
 			const codemodList = this.__getCodemod(recommended);
 			const treeNodes = codemodList.map((codemod) =>

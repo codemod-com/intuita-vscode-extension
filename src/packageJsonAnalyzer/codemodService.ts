@@ -50,7 +50,7 @@ export class CodemodService {
 			.map((word) => capitalize(word))
 			.join(' ');
 	}
-	getDiscoverdCodemods = async () => {
+	getDiscoveredCodemods = async () => {
 		const path = this.#rootPath;
 		if (!path) {
 			return;
