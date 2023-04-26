@@ -22,7 +22,7 @@ import {
 	FileElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { buildHash, debounce, getElementIconBaseName } from '../../utilities';
+import { debounce, getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseWithJobHashes } from '../../cases/types';
 import {
