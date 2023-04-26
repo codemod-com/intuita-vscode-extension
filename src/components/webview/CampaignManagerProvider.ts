@@ -18,11 +18,10 @@ import {
 	CaseElement,
 	Element,
 	ElementHash,
-	ElementKind,
 	FileElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { buildHash, debounce, getElementIconBaseName } from '../../utilities';
+import { debounce, getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseWithJobHashes } from '../../cases/types';
 import {
@@ -45,8 +44,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
-	__folderMap = new Map<string, TreeNode>();
-	__fileNodes = new Set<TreeNode>();
 	__unsavedChanges = false;
 
 	constructor(
@@ -107,140 +104,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 		this.__view.webview.postMessage(message);
 	}
-
-	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
-		if (element.kind === ElementKind.CASE) {
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
-			this.__folderMap.set(repoName, {
-				id: repoName,
-				label: repoName,
-				kind: 'folderElement',
-				iconName: 'folder.svg',
-				children: [],
-			});
-			element.children.forEach(this.__getTreeByDirectory);
-			const treeNode = this.__folderMap.get(repoName) ?? undefined;
-
-			return treeNode;
-		}
-
-		if (element.kind === ElementKind.FILE) {
-			// e.g., extract the path from '/packages/app/src/index.tsx (1)'
-			const filePath = element.label.split(' ')[0];
-			if (!filePath) {
-				return;
-			}
-
-			// e.g., ['packages', 'app', 'src', 'index.tsx']
-			const directories = filePath
-				.split('/')
-				.filter((item) => item !== '');
-			const fileName = directories[directories.length - 1];
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
-			let path = repoName;
-
-			if (element.children.length !== 1) {
-				// every file element must have only 1 job child
-				return;
-			}
-			const jobHash = element.children[0]?.jobHash;
-			const jobKind = element.children[0]?.job.kind;
-
-			for (const dir of directories) {
-				const parentNode = this.__folderMap.get(path) ?? null;
-
-				if (parentNode === null) {
-					return;
-				}
-
-				path += `/${dir}`;
-				if (!this.__folderMap.has(path)) {
-					const jobHashesArg: JobHash[] = [];
-					const newTreeNode: TreeNode =
-						dir === fileName
-							? {
-									id: path,
-									kind: 'fileElement',
-									label: dir,
-									iconName: getElementIconBaseName(
-										ElementKind.FILE,
-										jobKind ?? null,
-									),
-									children: [],
-									command: {
-										title: 'Diff View',
-										command: 'intuita.openJobDiff',
-										arguments: jobHashesArg,
-									},
-									actions: [
-										{
-											title: '✗ Dismiss',
-											command: 'intuita.rejectJob',
-											arguments: jobHashesArg,
-										},
-									],
-							  }
-							: {
-									id: path,
-									kind: 'folderElement',
-									label: dir,
-									iconName: 'folder.svg',
-									children: [],
-									command: {
-										title: 'Diff View',
-										command: 'intuita.openFolderDiff',
-										arguments: jobHashesArg,
-									},
-									actions: [
-										{
-											title: '✓ Commit',
-											command: 'intuita.acceptFolder',
-											arguments: [
-												{
-													path,
-													hash: buildHash(path),
-													jobHashes: jobHashesArg,
-												},
-											],
-										},
-										{
-											title: '✗ Dismiss',
-											command: 'intuita.rejectFolder',
-											arguments: jobHashesArg,
-										},
-									],
-							  };
-
-					if (dir === fileName) {
-						this.__fileNodes.add(newTreeNode);
-					}
-					this.__folderMap.set(path, newTreeNode);
-
-					parentNode.children.push(newTreeNode);
-				}
-				const currentNode = this.__folderMap.get(path) ?? null;
-
-				if (currentNode === null || !currentNode.command?.arguments) {
-					// node must exist because we create it above if it doesn't
-					continue;
-				}
-
-				const existingJobHashes = currentNode.command.arguments;
-
-				if (!existingJobHashes.includes(jobHash)) {
-					existingJobHashes.push(jobHash);
-				}
-			}
-		}
-
-		return;
-	};
 
 	private __addHook<T extends MessageKind>(
 		kind: T,
@@ -372,28 +235,12 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __onClearStateMessage() {
-		this.__folderMap.clear();
-		this.__fileNodes.clear();
-
-		const rootElement = {
-			hash: '' as ElementHash,
-			kind: ElementKind.CASE,
-			children: [],
-			label: '',
-			codemodName: '',
-		} as CaseElement;
-
-		const tree = this.__getTreeByDirectory(rootElement);
-
-		if (tree !== undefined) {
-			this.setView({
-				viewId: 'treeView',
-				viewProps: {
-					node: tree,
-					fileNodes: [],
-				},
-			});
-		}
+		this.setView({
+			viewId: 'campaignManagerView',
+			viewProps: {
+				node: null,
+			},
+		});
 	}
 
 	private __onUpdateElementsMessage() {
@@ -408,7 +255,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			casesWithJobHashes,
 			jobMap,
 		);
-
+		console.log(caseElements);
 		if (caseElements.length === 0) {
 			return;
 		}
@@ -418,21 +265,41 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__folderMap.clear();
-		this.__fileNodes.clear();
+		const node = this.__buildCaseTree(caseElement);
 
-		const tree = this.__getTreeByDirectory(caseElement);
-
-		if (tree) {
-			this.setView({
-				viewId: 'treeView',
-				viewProps: {
-					node: tree,
-					fileNodes: Array.from(this.__fileNodes),
-				},
-			});
-		}
+		this.setView({
+			viewId: 'campaignManagerView',
+			viewProps: {
+				node,
+			},
+		});
 	}
+
+	private __buildCaseTree = (element: CaseElement): TreeNode => {
+		const actions = [
+			{
+				title: '✓ Commit',
+				command: 'intuita.acceptCase',
+				arguments: [element.hash],
+			},
+			{
+				title: '✗ Discard',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
+		];
+
+		const mappedNode: TreeNode = {
+			id: element.hash,
+			iconName: getElementIconBaseName(element.kind, null),
+			label: element.label,
+			kind: 'caseElement',
+			actions,
+			children: [],
+		};
+
+		return mappedNode;
+	};
 
 	private async __getUnsavedChanges() {
 		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();

@@ -346,31 +346,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		return [sortedCaseElements, latestJob];
 	}
 
-	private __onClearStateMessage() {
-		this.__folderMap.clear();
-		this.__fileNodes.clear();
-
-		const rootElement = {
-			hash: '' as ElementHash,
-			kind: ElementKind.CASE,
-			children: [],
-			label: '',
-			codemodName: '',
-		} as CaseElement;
-
-		const tree = this.__getTreeByDirectory(rootElement);
-
-		if (tree !== undefined) {
-			this.setView({
-				viewId: 'treeView',
-				viewProps: {
-					node: tree,
-					fileNodes: [],
-				},
-			});
-		}
-	}
-
 	private __onUpdateElementsMessage() {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
@@ -424,10 +399,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.updateElements, (message) => {
 			debouncedOnUpdateElementsMessage(message);
 		});
-
-		this.__addHook(MessageKind.clearState, () =>
-			this.__onClearStateMessage(),
-		);
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
