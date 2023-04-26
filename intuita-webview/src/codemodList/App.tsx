@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import cn from 'classnames';
 import { vscode } from '../shared/utilities/vscode';
 import type { View, WebviewMessage, CodemodTreeNode } from '../shared/types';
 import TreeView from './TreeView';
@@ -13,6 +14,9 @@ function App() {
 		useState<CodemodTreeNode<string> | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
+	const [publicCodemodsExpanded, setPublicCodemodsExpanded] = useState(true);
+	const [recommendedCodemodsExpanded, seRecommendedCodemodsExpanded] =
+		useState(true);
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
@@ -45,16 +49,28 @@ function App() {
 
 	return (
 		<main className="App">
-			<Container headerTitle="Recommended Codemods (For This Workspace)">
+			<Container
+				className={cn('flex-none ', {
+					'max-h-full h-full-40':
+						!publicCodemodsExpanded && recommendedCodemodsExpanded,
+					'max-h-half h-auto': publicCodemodsExpanded,
+				})}
+				onToggle={(toggled) => seRecommendedCodemodsExpanded(toggled)}
+				headerTitle="Recommended Codemods (For This Workspace)"
+			>
 				<TreeView node={view.viewProps.data} />
 			</Container>
-			<Container headerTitle="Public Codemods">
+			<Container
+				onToggle={(toggled) => setPublicCodemodsExpanded(toggled)}
+				headerTitle="Public Codemods"
+				className=" content-border-top  h-full"
+			>
 				<div>
 					{publicCodemods && <TreeView node={publicCodemods} />}
 					{!publicCodemods && (
 						<LoadingContainer>
 							<VSCodeProgressRing className="progressBar" />
-							<span> loading ...</span>
+							<span aria-label="loading"> loading ...</span>
 						</LoadingContainer>
 					)}
 					{error && <p>{error}</p>}

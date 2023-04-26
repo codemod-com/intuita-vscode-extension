@@ -26,7 +26,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
-
+	__engineBootstrapped = false;
 	readonly __eventEmitter = new EventEmitter<void>();
 
 	constructor(
@@ -42,8 +42,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			watcher?.dispose();
 		});
 		this.__messageBus.subscribe(MessageKind.enginesBootstrapped, () => {
+			this.__engineBootstrapped = true;
 			this.getCodemodTree('public');
 		});
+	}
+
+	isEngineBootstrapped() {
+		return this.__engineBootstrapped;
 	}
 
 	refresh(): void {
@@ -140,6 +145,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.getCodemodTree('recommended');
+			this.getCodemodTree('public');
 		}
 	};
 
@@ -149,6 +155,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			if (recommended) {
 				await this.__codemodService.getCodemods();
 			} else {
+				if (!this.__engineBootstrapped) {
+					return;
+				}
 				await this.__codemodService.getDiscoverdCodemods();
 			}
 			const codemodList = this.__getCodemod(recommended);

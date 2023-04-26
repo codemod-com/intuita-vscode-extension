@@ -8,6 +8,7 @@
 
 .header p {
 	margin: 0;
+	font-weight: bold;
 }
 
 .App {
@@ -19,7 +20,6 @@
 .container {
 	height: 50%;
 	overflow: auto;
-	flex-grow: 1;
 	transition: 0.1s ease-in-out all;
 }
 
@@ -65,4 +65,32 @@
 .progressBar {
 	width: 15px;
 	height: 15px;
+}
+
+.flex-grow-1 {
+	flex-grow: 1;
+}
+.flex-none {
+	flex: none;
+}
+
+.content-border-top {
+	border-top: 1px solid var(--vscode-sideBarSectionHeader-border);
+}
+
+.max-h-half {
+	max-height: 50%;
+}
+.max-h-full {
+	max-height: 100%;
+}
+
+.h-auto {
+	height: auto;
+}
+.h-full-40 {
+	height: calc(100% - 40px);
+}
+.h-full {
+	height: 100%;
 }
