@@ -1,4 +1,4 @@
-import { commands, window, Event, EventEmitter, Uri } from 'vscode';
+import { commands, Event, EventEmitter, Uri } from 'vscode';
 import { readFileSync } from 'fs';
 import { isNeitherNullNorUndefined } from '../utilities';
 import {
@@ -34,7 +34,9 @@ export class CodemodService {
 	async getPackageJsonList() {
 		const packageJsonList = await getPackageJsonUris();
 		if (!packageJsonList.length) {
-			this.showRootPathUndefinedMessage();
+			/**
+			 * return silently if no package.json is found
+			 */
 			return;
 		}
 
@@ -145,11 +147,6 @@ export class CodemodService {
 		this.#codemodItemsMap = codemods;
 	}
 
-	showRootPathUndefinedMessage() {
-		window.showInformationMessage(
-			'Unable to find package.json to list avaliable codemods. Please open a project folder.',
-		);
-	}
 	public getListOfCodemodCommands() {
 		return Object.values(commandList);
 	}
