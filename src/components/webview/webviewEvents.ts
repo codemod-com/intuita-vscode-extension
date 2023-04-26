@@ -232,6 +232,12 @@ export type View =
 			};
 	  }>
 	| Readonly<{
+			viewId: 'campaignManagerView';
+			viewProps: {
+				node: TreeNode;
+			};
+	  }>
+	| Readonly<{
 			viewId: 'jobDiffView';
 			viewProps: {
 				data: JobDiffViewProps[];

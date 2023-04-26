@@ -185,6 +185,12 @@
 				},
 				{
 					"type": "webview",
+					"id": "intuitaCampaignManager",
+					"name": "Branch Manager",
+					"contextualTitle": "Branch Manager"
+				},
+				{
+					"type": "webview",
 					"id": "intuitaFileExplorer",
 					"name": "File Explorer",
 					"contextualTitle": "File Explorer"
