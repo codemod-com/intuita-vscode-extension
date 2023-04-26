@@ -15,7 +15,7 @@
 
 .collapsable__header--sticky {
 	position: sticky;
-	top: 0;
+	top: 35px;
 	z-index: 1000;
 	background-color: var(--vscode-editor-background);
 }

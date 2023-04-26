@@ -1,0 +1,39 @@
+.root {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	z-index: 1001;
+	position: sticky;
+	height: 35px;
+	top: 0;
+	padding: 0 8px;
+	background-color: var(--vscode-editor-background);
+	margin-left: -10px;
+	margin-right: -10px;
+}
+
+.title {
+	height: 100%;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-grow: 1;
+	text-align: center;
+	cursor: pointer;
+	color: var(--foreground);
+}
+
+.title .copyButton {
+	display: none;
+}
+
+.title:hover .copyButton {
+	display: block;
+}
+
+.icon {
+	stroke: var(--vscode-editor-foreground);
+	height: 16px;
+	margin-left: 22px;
+	width: 16px;
+}

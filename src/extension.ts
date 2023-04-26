@@ -218,9 +218,17 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(jobHash);
+
+					if (!job) {
+						throw new Error('Unable to get job');
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: job?.codemodName ?? '',
 							data: [viewProps],
 						},
 					});
@@ -266,6 +274,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title,
 							data,
 						},
 					});
@@ -309,9 +318,17 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(jobHashes[0]);
+
+					if (!job) {
+						throw new Error('Unable to get job');
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: job.codemodName,
 							data: viewProps,
 						},
 					});
