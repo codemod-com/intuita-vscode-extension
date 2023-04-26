@@ -84,7 +84,7 @@ export class CodemodService {
 					index + 1 < parts.length
 						? `${parts.slice(0, index + 2).join('/')}`
 						: null;
-				const currentpathItem = this.__makePathItem(currentWD, part);
+				const currentPathItem = this.__makePathItem(currentWD, part);
 				const nextPathItem =
 					index + 1 < parts.length && nextWD
 						? this.__makePathItem(
@@ -93,10 +93,14 @@ export class CodemodService {
 						  )
 						: null;
 				const children = new Set<CodemodHash>();
-				nextPathItem && children.add(nextPathItem.hash);
-				if (discoveredCodemods.has(currentpathItem.hash)) {
+
+				if (nextPathItem !== null) {
+					children.add(nextPathItem.hash);
+				}
+
+				if (discoveredCodemods.has(currentPathItem.hash)) {
 					const existingPathItem = discoveredCodemods.get(
-						currentpathItem.hash,
+						currentPathItem.hash,
 					);
 
 					if (existingPathItem?.kind === 'path') {
@@ -107,17 +111,17 @@ export class CodemodService {
 				}
 
 				if (index === 0) {
-					keys.add(currentpathItem.hash);
+					keys.add(currentPathItem.hash);
 				}
 				if (nextPathItem) {
-					currentpathItem.children.push(nextPathItem.hash);
+					currentPathItem.children.push(nextPathItem.hash);
 				}
 				if (index === parts.length - 1) {
 					children.add(codemod.hash);
 				}
 
-				discoveredCodemods.set(currentpathItem.hash, {
-					...currentpathItem,
+				discoveredCodemods.set(currentPathItem.hash, {
+					...currentPathItem,
 					children: Array.from(children),
 				});
 			});
