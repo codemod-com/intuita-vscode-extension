@@ -21,6 +21,7 @@ import {
 } from '../../packageJsonAnalyzer/types';
 import { watchFileWithPattern } from '../../fileWatcher';
 import { debounce } from '../../utilities';
+import * as E from 'fp-ts/Either';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -175,15 +176,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 			this.__postMessage({
 				kind: 'webview.codemods.setPublicCodemods',
-				value: treeNodes?.[0],
+				data: E.right(treeNodes[0] ?? null),
 			});
-		} catch (e) {
-			console.error(e);
-			if (recommended) {
+		} catch (error) {
+			console.error(error);
+
+			if (error instanceof Error && recommended) {
 				this.__postMessage({
 					kind: 'webview.codemods.setPublicCodemods',
-					value: undefined,
-					error: 'Failed to load public codemods',
+					data: E.left(error),
 				});
 			}
 		}

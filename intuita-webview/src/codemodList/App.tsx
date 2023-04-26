@@ -5,14 +5,16 @@ import type { View, WebviewMessage, CodemodTreeNode } from '../shared/types';
 import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
+import * as E from 'fp-ts/Either';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-	const [publicCodemods, setPublicCodemods] =
-		useState<CodemodTreeNode<string> | null>(null);
-	const [error, setError] = useState<string | null>(null);
+
+	const [publicCodemods, setPublicCodemods] = useState<
+		E.Either<Error, CodemodTreeNode<string> | null>
+	>(E.right(null));
 
 	const [publicCodemodsExpanded, setPublicCodemodsExpanded] = useState(true);
 	const [recommendedCodemodsExpanded, seRecommendedCodemodsExpanded] =
@@ -31,8 +33,7 @@ function App() {
 				setView(message.value);
 			}
 			if (message.kind === 'webview.codemods.setPublicCodemods') {
-				setPublicCodemods(message.value ?? null);
-				setError(message.error ?? null);
+				setPublicCodemods(message.data);
 			}
 		};
 
@@ -66,14 +67,19 @@ function App() {
 				className=" content-border-top  h-full"
 			>
 				<div>
-					{publicCodemods && <TreeView node={publicCodemods} />}
-					{!publicCodemods && (
+					{E.isRight(publicCodemods) &&
+						publicCodemods.right !== null && (
+							<TreeView node={publicCodemods.right} />
+						)}
+					{E.isRight(publicCodemods) && (
 						<LoadingContainer>
 							<VSCodeProgressRing className="progressBar" />
-							<span aria-label="loading"> loading ...</span>
+							<span aria-label="loading">Loading ...</span>
 						</LoadingContainer>
 					)}
-					{error && <p>{error}</p>}
+					{E.isLeft(publicCodemods) && (
+						<p>{publicCodemods.left.message}</p>
+					)}
 				</div>
 			</Container>
 		</main>

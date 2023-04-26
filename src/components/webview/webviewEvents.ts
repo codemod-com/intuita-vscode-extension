@@ -2,6 +2,7 @@ import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
+import * as E from 'fp-ts/Either';
 
 export type JobActionCommands =
 	| 'intuita.rejectJob'
@@ -129,8 +130,7 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.codemods.setPublicCodemods';
-			value?: CodemodTreeNode<string>;
-			error?: string;
+			data: E.Either<Error, CodemodTreeNode<string> | null>;
 	  }>;
 
 export type WebviewResponse =
