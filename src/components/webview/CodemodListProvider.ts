@@ -174,14 +174,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				});
 			}
 			this.__postMessage({
-				kind: 'webview.codemodlist.setPublicCodemodList',
+				kind: 'webview.codemods.setPublicCodemods',
 				value: treeNodes?.[0],
 			});
 		} catch (e) {
 			console.error(e);
 			if (recommended) {
 				this.__postMessage({
-					kind: 'webview.codemodlist.setPublicCodemodList',
+					kind: 'webview.codemods.setPublicCodemods',
 					value: undefined,
 					error: 'Failed to load public codemods',
 				});

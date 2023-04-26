@@ -128,7 +128,7 @@ export type WebviewMessage =
 			value: boolean;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodlist.setPublicCodemodList';
+			kind: 'webview.codemods.setPublicCodemods';
 			value?: CodemodTreeNode<string>;
 			error?: string;
 	  }>;
