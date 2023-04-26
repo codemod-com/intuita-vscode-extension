@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 
 import TreeView from './TreeView';
+import styles from './style.module.css';
 
 import type {
 	View,
@@ -29,6 +30,12 @@ function App() {
 				if (message.value.viewId === 'treeView') {
 					setView(message.value);
 				}
+				if (
+					message.value.viewId === 'campaignManagerView' &&
+					message.value.viewProps.node === null
+				) {
+					setView(null);
+				}
 			}
 		};
 
@@ -38,9 +45,14 @@ function App() {
 			window.removeEventListener('message', handler);
 		};
 	}, []);
-
+	console.log(view);
 	if (!view) {
-		return null;
+		return (
+			<p className={styles.welcomeMessage}>
+				No change to review! Run some codemods via VS Code Command &
+				check back later!
+			</p>
+		);
 	}
 
 	return (

@@ -234,7 +234,7 @@ export type View =
 	| Readonly<{
 			viewId: 'campaignManagerView';
 			viewProps: {
-				node: TreeNode;
+				node: TreeNode | null;
 			};
 	  }>
 	| Readonly<{

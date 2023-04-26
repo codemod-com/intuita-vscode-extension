@@ -1,7 +1,6 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, useCallback, useState } from 'react';
 import Tree from '../../shared/Tree';
-import TreeItem from '../TreeItem';
 import {
 	Command,
 	TreeNode,
@@ -10,9 +9,9 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
-import styles from './style.module.css';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
+import TreeItem from '../../shared/TreeItem';
 
 type Props = {
 	node: TreeNode;
@@ -129,15 +128,6 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 			/>
 		);
 	};
-
-	if ((node.children?.length ?? 0) === 0) {
-		return (
-			<p className={styles.welcomeMessage}>
-				No change to review! Run some codemods via VS Code Command &
-				check back later!
-			</p>
-		);
-	}
 
 	if (userSearchingFile) {
 		return (
