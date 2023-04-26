@@ -1,6 +1,6 @@
 import { commands, Uri } from 'vscode';
 import { readFileSync } from 'fs';
-import { isNeitherNullNorUndefined } from '../utilities';
+import { capitalize, isNeitherNullNorUndefined } from '../utilities';
 import {
 	CodemodHash,
 	CodemodItem,
@@ -45,15 +45,10 @@ export class CodemodService {
 		return pathItem;
 	}
 	__makeTitleReadable(name: string) {
-		const words = name.split('-');
-
-		const capitalizedWords = words.map((word) => {
-			return word.charAt(0).toUpperCase() + word.slice(1);
-		});
-
-		const transformedString = capitalizedWords.join(' ');
-
-		return transformedString;
+		return name
+			.split('-')
+			.map((word) => capitalize(word))
+			.join(' ');
 	}
 	getDiscoverdCodemods = async () => {
 		const path = this.#rootPath;
