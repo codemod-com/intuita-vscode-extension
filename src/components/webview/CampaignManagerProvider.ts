@@ -237,9 +237,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	private __onClearStateMessage() {
 		this.setView({
 			viewId: 'campaignManagerView',
-			viewProps: {
-				node: null,
-			},
+			viewProps: null,
 		});
 	}
 
