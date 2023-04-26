@@ -24,7 +24,7 @@ Codemod: ${codemodName}
 **3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
 
 ---	
-**Additional context**`
+**Additional context**`;
 };
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;
