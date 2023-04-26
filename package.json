@@ -286,7 +286,7 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaFileExplorer",
+					"when": "view == intuitaCampaignManager",
 					"group": "navigation"
 				}
 			]
