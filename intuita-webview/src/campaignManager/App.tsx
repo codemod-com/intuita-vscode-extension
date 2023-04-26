@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-
 import { vscode } from '../shared/utilities/vscode';
-
-import TreeView from './TreeView';
+import ListView from './ListView';
+import styles from './style.module.css';
 
 import type {
 	View,
@@ -37,13 +36,18 @@ function App() {
 		};
 	}, []);
 
-	if (!view) {
-		return null;
+	if (!view || view.viewProps.node === null) {
+		return (
+			<p className={styles.welcomeMessage}>
+				No change to review! Run some codemods via VS Code Command &
+				check back later!
+			</p>
+		);
 	}
 
 	return (
 		<main className="App">
-			<TreeView {...view.viewProps} />
+			<ListView node={view.viewProps.node} />
 		</main>
 	);
 }
