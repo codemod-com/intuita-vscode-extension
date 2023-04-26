@@ -30,7 +30,7 @@ function App() {
 			) {
 				setView(message.value);
 			}
-			if (message.kind === 'webview.codemodlist.setPublicCodemodList') {
+			if (message.kind === 'webview.codemods.setPublicCodemods') {
 				setPublicCodemods(message.value ?? null);
 				setError(message.error ?? null);
 			}
