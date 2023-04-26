@@ -61,7 +61,6 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 
 	const handleClick = useCallback((node: TreeNode) => {
-		console.log(node, node.command);
 		if (!node.command) {
 			return;
 		}
