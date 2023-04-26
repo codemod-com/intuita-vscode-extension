@@ -45,7 +45,7 @@ function App() {
 			window.removeEventListener('message', handler);
 		};
 	}, []);
-	console.log(view);
+
 	if (!view) {
 		return (
 			<p className={styles.welcomeMessage}>

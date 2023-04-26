@@ -255,7 +255,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			casesWithJobHashes,
 			jobMap,
 		);
-		console.log(caseElements);
+
 		if (caseElements.length === 0) {
 			return;
 		}
