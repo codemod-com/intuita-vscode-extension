@@ -6,12 +6,23 @@ import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
+import { useCallback } from 'react';
 
 type Props = {
 	node: TreeNode;
 };
 
 const TreeView = ({ node }: Props) => {
+	const handleClick = useCallback((node: TreeNode) => {
+		if (!node.command) {
+			return;
+		}
+		vscode.postMessage({
+			kind: 'webview.command',
+			value: node.command,
+		});
+	}, []);
+
 	const handleActionButtonClick = (action: Command) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
 	};
@@ -45,7 +56,9 @@ const TreeView = ({ node }: Props) => {
 				focused={false}
 				actionButtons={actionButtons}
 				index={0}
-				onClick={() => {}}
+				onClick={() => {
+					handleClick(node);
+				}}
 			/>
 		</div>
 	);
