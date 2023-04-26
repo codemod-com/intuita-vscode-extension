@@ -36,7 +36,7 @@ function App() {
 		};
 	}, []);
 
-	if (!view || view.viewProps.node === null) {
+	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via VS Code Command &

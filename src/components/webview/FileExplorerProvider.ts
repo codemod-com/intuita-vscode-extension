@@ -346,6 +346,13 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		return [sortedCaseElements, latestJob];
 	}
 
+	private __onClearStateMessage() {
+		this.setView({
+			viewId: 'treeView',
+			viewProps: null,
+		});
+	}
+
 	private __onUpdateElementsMessage() {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
@@ -399,6 +406,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.updateElements, (message) => {
 			debouncedOnUpdateElementsMessage(message);
 		});
+
+		this.__addHook(MessageKind.clearState, () =>
+			this.__onClearStateMessage(),
+		);
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
