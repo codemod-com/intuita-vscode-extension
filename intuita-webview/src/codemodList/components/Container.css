@@ -29,7 +29,7 @@
 	flex-grow: unset;
 }
 
-.codemodListCollapsible {
+.codemodListcollapsable {
 	background: var(--vscode-sideBar-background);
 }
 
