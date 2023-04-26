@@ -1,3 +1,4 @@
+import ReactTreeView from 'react-treeview';
 import { ReactNode, useCallback, useState } from 'react';
 import Tree from '../../shared/Tree';
 import TreeItem from '../TreeItem';
@@ -11,9 +12,12 @@ import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import cn from 'classnames';
+import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
 
 type Props = {
 	node: TreeNode;
+	fileNodes: TreeNode[];
+	searchQuery: string;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -52,7 +56,8 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
-const TreeView = ({ node }: Props) => {
+const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
+	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 
 	const handleClick = useCallback((node: TreeNode) => {
@@ -71,7 +76,6 @@ const TreeView = ({ node }: Props) => {
 	};
 
 	const renderItem = ({
-		color,
 		node,
 		depth,
 		open,
@@ -79,7 +83,6 @@ const TreeView = ({ node }: Props) => {
 		focusedNodeId,
 		setFocusedNodeId,
 		index,
-		lastChild,
 	}: {
 		node: TreeNode;
 		depth: number;
@@ -87,9 +90,7 @@ const TreeView = ({ node }: Props) => {
 		setIsOpen: (value: boolean) => void;
 		focusedNodeId: string;
 		setFocusedNodeId: (value: string) => void;
-		color: string;
 		index: number;
-		lastChild: boolean;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
 
@@ -113,6 +114,7 @@ const TreeView = ({ node }: Props) => {
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				label={node.label ?? ''}
+				subLabel=""
 				icon={icon}
 				depth={depth}
 				kind={node.kind}
@@ -124,9 +126,7 @@ const TreeView = ({ node }: Props) => {
 					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
-				color={color}
 				index={index}
-				lastChild={lastChild}
 			/>
 		);
 	};
@@ -140,16 +140,62 @@ const TreeView = ({ node }: Props) => {
 		);
 	}
 
+	if (userSearchingFile) {
+		return (
+			<ReactTreeView nodeLabel="">
+				{fileNodes.map((node, index) => {
+					if (node.kind !== 'fileElement') {
+						return null;
+					}
+					const searchingFileFound =
+						userSearchingFile &&
+						node.kind === 'fileElement' &&
+						(node.label ?? '').toLowerCase().includes(searchQuery);
+					if (!searchingFileFound) {
+						return null;
+					}
+
+					const icon = getIcon(node.iconName ?? null, false);
+
+					return (
+						<TreeItem
+							disabled={false}
+							hasChildren={false}
+							id={node.id}
+							label={node.label ?? ''}
+							subLabel={
+								// take out the repo name
+								node.id.split('/').slice(1).join('/')
+							}
+							icon={icon}
+							depth={0}
+							kind={node.kind}
+							open={false}
+							focused={node.id === focusedNodeId}
+							onClick={() => {
+								handleClick(node);
+								setFocusedNodeId(node.id);
+							}}
+							actionButtons={[]}
+							index={index}
+						/>
+					);
+				})}
+			</ReactTreeView>
+		);
+	}
 	return (
 		<Tree
 			node={node}
 			renderItem={(props) =>
-				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
+				renderItem({
+					...props,
+					setFocusedNodeId,
+					focusedNodeId,
+				})
 			}
-			depth={0}
-			color="white"
 			index={0}
-			lastChild={false}
+			depth={0}
 		/>
 	);
 };

@@ -223,6 +223,7 @@ export type View =
 			viewId: 'treeView';
 			viewProps: {
 				node: TreeNode;
+				fileNodes: TreeNode[];
 			};
 	  }>
 	| Readonly<{

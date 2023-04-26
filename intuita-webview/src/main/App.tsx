@@ -8,11 +8,13 @@ import type {
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
+import SearchBar from './SearchBar';
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
+	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
@@ -43,7 +45,11 @@ function App() {
 
 	return (
 		<main className="App">
-			<TreeView {...view.viewProps} />
+			<SearchBar
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+			/>
+			<TreeView {...view.viewProps} searchQuery={searchQuery} />
 		</main>
 	);
 }
