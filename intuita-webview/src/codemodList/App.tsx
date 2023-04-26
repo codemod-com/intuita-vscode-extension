@@ -71,12 +71,13 @@ function App() {
 						publicCodemods.right !== null && (
 							<TreeView node={publicCodemods.right} />
 						)}
-					{E.isRight(publicCodemods) && (
-						<LoadingContainer>
-							<VSCodeProgressRing className="progressBar" />
-							<span aria-label="loading">Loading ...</span>
-						</LoadingContainer>
-					)}
+					{E.isRight(publicCodemods) &&
+						publicCodemods.right === null && (
+							<LoadingContainer>
+								<VSCodeProgressRing className="progressBar" />
+								<span aria-label="loading">Loading ...</span>
+							</LoadingContainer>
+						)}
 					{E.isLeft(publicCodemods) && (
 						<p>{publicCodemods.left.message}</p>
 					)}
