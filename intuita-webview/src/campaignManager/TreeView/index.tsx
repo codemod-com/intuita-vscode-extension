@@ -56,7 +56,6 @@ const TreeView = ({ node }: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 
 	const handleClick = useCallback((node: TreeNode) => {
-		console.log(node, node.command);
 		if (!node.command) {
 			return;
 		}
