@@ -178,13 +178,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										command: 'intuita.openJobDiff',
 										arguments: jobHashesArg,
 									},
-									actions: [
-										{
-											title: '✗ Dismiss',
-											command: 'intuita.rejectJob',
-											arguments: jobHashesArg,
-										},
-									],
 							  }
 							: {
 									id: path,
@@ -197,24 +190,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										command: 'intuita.openFolderDiff',
 										arguments: jobHashesArg,
 									},
-									actions: [
-										{
-											title: '✓ Commit',
-											command: 'intuita.acceptFolder',
-											arguments: [
-												{
-													path,
-													hash: buildHash(path),
-													jobHashes: jobHashesArg,
-												},
-											],
-										},
-										{
-											title: '✗ Dismiss',
-											command: 'intuita.rejectFolder',
-											arguments: jobHashesArg,
-										},
-									],
 							  };
 
 					if (dir === fileName) {
