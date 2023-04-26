@@ -152,6 +152,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		vscode.workspace.fs,
 		statusBarItemManager,
+		fileService,
 	);
 
 	new BootstrapExecutablesService(
