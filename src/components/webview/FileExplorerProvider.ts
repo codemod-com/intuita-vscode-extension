@@ -68,7 +68,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		this.__webviewResolver?.resolveWebview(
 			this.__view.webview,
-			'main',
+			'fileExplorer',
 			'{}',
 		);
 	}
@@ -80,7 +80,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		this.__webviewResolver?.resolveWebview(
 			webviewView.webview,
-			'main',
+			'fileExplorer',
 			'{}',
 		);
 		this.__view = webviewView;
