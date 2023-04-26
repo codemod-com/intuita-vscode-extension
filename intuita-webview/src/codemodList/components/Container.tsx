@@ -34,7 +34,7 @@ export const Container = ({
 			})}
 		>
 			<Collapsable
-				className="codemodListCollapsible"
+				className="codemodListcollapsable"
 				headerChevronClassName="codemodlistCollapsableArrow"
 				headerClassName="collapsableHeader"
 				contentClassName="collpasableContent"
