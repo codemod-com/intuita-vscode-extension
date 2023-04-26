@@ -294,6 +294,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			kind: 'caseElement',
 			actions,
 			children: [],
+			command: {
+				title: 'Diff View',
+				command: 'intuita.openCaseDiff',
+				arguments: [element.hash],
+			},
 		};
 
 		return mappedNode;

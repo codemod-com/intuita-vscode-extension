@@ -120,6 +120,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				kind: 'folderElement',
 				iconName: 'folder.svg',
 				children: [],
+				command: {
+					title: 'Diff View',
+					command: 'intuita.openCaseDiff',
+					arguments: [element.hash],
+				},
 			});
 			element.children.forEach(this.__getTreeByDirectory);
 			const treeNode = this.__folderMap.get(repoName) ?? undefined;
@@ -128,6 +133,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		if (element.kind === ElementKind.FILE) {
+			if (element.children.length !== 1) {
+				// every file element must have only 1 job child
+				return;
+			}
+
 			// e.g., extract the path from '/packages/app/src/index.tsx (1)'
 			const filePath = element.label.split(' ')[0];
 			if (!filePath) {
@@ -143,15 +153,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				workspace.workspaceFolders?.[0]?.uri.fsPath
 					.split('/')
 					.slice(-1)[0] ?? '/';
-			let path = repoName;
 
-			if (element.children.length !== 1) {
-				// every file element must have only 1 job child
-				return;
-			}
-			const jobHash = element.children[0]?.jobHash;
 			const jobKind = element.children[0]?.job.kind;
 
+			let path = repoName;
 			for (const dir of directories) {
 				const parentNode = this.__folderMap.get(path) ?? null;
 
@@ -161,7 +166,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 				path += `/${dir}`;
 				if (!this.__folderMap.has(path)) {
-					const jobHashesArg: JobHash[] = [];
 					const newTreeNode: TreeNode =
 						dir === fileName
 							? {
@@ -173,11 +177,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										jobKind ?? null,
 									),
 									children: [],
-									command: {
-										title: 'Diff View',
-										command: 'intuita.openJobDiff',
-										arguments: jobHashesArg,
-									},
 							  }
 							: {
 									id: path,
@@ -185,11 +184,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									label: dir,
 									iconName: 'folder.svg',
 									children: [],
-									command: {
-										title: 'Diff View',
-										command: 'intuita.openFolderDiff',
-										arguments: jobHashesArg,
-									},
 							  };
 
 					if (dir === fileName) {
@@ -198,18 +192,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					this.__folderMap.set(path, newTreeNode);
 
 					parentNode.children.push(newTreeNode);
-				}
-				const currentNode = this.__folderMap.get(path) ?? null;
-
-				if (currentNode === null || !currentNode.command?.arguments) {
-					// node must exist because we create it above if it doesn't
-					continue;
-				}
-
-				const existingJobHashes = currentNode.command.arguments;
-
-				if (!existingJobHashes.includes(jobHash)) {
-					existingJobHashes.push(jobHash);
 				}
 			}
 		}
