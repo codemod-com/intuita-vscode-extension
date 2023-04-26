@@ -147,11 +147,11 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 					if (node.kind !== 'fileElement') {
 						return null;
 					}
-					const isSearchingFileFound =
+					const searchingFileFound =
 						userSearchingFile &&
 						node.kind === 'fileElement' &&
 						(node.label ?? '').toLowerCase().includes(searchQuery);
-					if (!isSearchingFileFound) {
+					if (!searchingFileFound) {
 						return null;
 					}
 
