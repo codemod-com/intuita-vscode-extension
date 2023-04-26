@@ -85,17 +85,10 @@ const CreatePR = ({
 		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
 			const { checked, value } = e.target as HTMLInputElement;
 
-			const nextFormData = {
-				...formData,
+			setFormData((prevFormData) => ({
+				...prevFormData,
 				[fieldName]: checked !== undefined ? checked : value,
-			};
-
-			setFormData(nextFormData);
-
-			vscode.postMessage({
-				kind: 'webview.createPR.formDataChanged',
-				value: nextFormData,
-			});
+			}));
 		};
 
 	const handleCancel = () => {

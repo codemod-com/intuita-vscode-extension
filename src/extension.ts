@@ -1112,13 +1112,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const codemodList = await engineService.getCodemodList();
 
-					const codemodName = await vscode.window.showQuickPick(
-						codemodList.map(({ name }) => name),
-						{
-							placeHolder:
-								'Pick a codemod to execute over the selected path',
-						},
-					);
+					const codemodName =
+						(await vscode.window.showQuickPick(
+							codemodList.map(({ name }) => name),
+							{
+								placeHolder:
+									'Pick a codemod to execute over the selected path',
+							},
+						)) ?? null;
+
+					if (codemodName === null) {
+						return;
+					}
 
 					const selectedCodemod = codemodList.find(
 						({ name }) => name === codemodName,
@@ -1144,6 +1149,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						happenedAt,
 						mode: 'dryRun',
 					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				} catch (e) {
 					vscode.window.showErrorMessage(
 						e instanceof Error ? e.message : String(e),
