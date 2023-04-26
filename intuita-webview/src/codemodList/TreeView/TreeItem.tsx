@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
+import Popup from 'reactjs-popup';
+import { CodemodTreeNode } from '../../shared/types';
 
 type Props = {
 	id: string;
@@ -11,7 +13,7 @@ type Props = {
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
-	kind: string;
+	kind: CodemodTreeNode['kind'];
 	onClick(): void;
 	depth: number;
 	disabled: boolean;
@@ -21,6 +23,7 @@ const TreeItem = ({
 	id,
 	label,
 	description,
+	kind,
 	icon,
 	open,
 	focused,
@@ -52,7 +55,18 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
-			<div className={styles.icon}>{icon}</div>
+			{kind === 'codemodItem' && (
+				<Popup
+					trigger={<div className={styles.icon}>{icon}</div>}
+					position={['bottom left', 'top left']}
+					on={['hover', 'focus']}
+					closeOnDocumentClick
+					mouseEnterDelay={300}
+				>
+					{description}
+				</Popup>
+			)}
+			{kind === 'path' && <div className={styles.icon}>{icon}</div>}
 			<span className={styles.label}>
 				{label}
 				<span className={styles.description}> {description}</span>

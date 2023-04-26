@@ -42,7 +42,7 @@ type CommitChangesFormData = {
 
 export type CodemodTreeNode<T = undefined> = {
 	id: string;
-	kind: string;
+	kind: 'codemodItem' | 'path';
 	label: string;
 	description?: string;
 	iconName?: string;

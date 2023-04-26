@@ -6,6 +6,7 @@ import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
+import './index.css';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
