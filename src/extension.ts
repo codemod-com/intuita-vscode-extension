@@ -1144,6 +1144,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						happenedAt,
 						mode: 'dryRun',
 					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				} catch (e) {
 					vscode.window.showErrorMessage(
 						e instanceof Error ? e.message : String(e),
