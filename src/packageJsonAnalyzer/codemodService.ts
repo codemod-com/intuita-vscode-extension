@@ -76,7 +76,7 @@ export class CodemodService {
 				commandToExecute: name,
 				description,
 			};
-			discoveredCodemods.set(codemod.hashDigest as CodemodHash, codemod);
+			discoveredCodemods.set(codemod.hash, codemod);
 
 			nameParts.slice(0, -1).forEach((part, index, parts) => {
 				const currentWD = `${parts.slice(0, index + 1).join('/')}`;
