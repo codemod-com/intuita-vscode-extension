@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import Tree from '../../shared/Tree';
 import {
 	Command,
