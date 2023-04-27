@@ -12,7 +12,7 @@ type Props = {
 	nodes: TreeNode[];
 };
 
-const TreeView = ({ nodes }: Props) => {
+const ListView = ({ nodes }: Props) => {
 	const handleClick = useCallback((node: TreeNode) => {
 		if (!node.command) {
 			return;
@@ -68,4 +68,4 @@ const TreeView = ({ nodes }: Props) => {
 	);
 };
 
-export default TreeView;
+export default ListView;
