@@ -9,7 +9,12 @@ import { Container } from '../container';
 import { acceptJobs } from '../jobs/acceptJobs';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify, streamToString } from '../utilities';
+import {
+	buildTypeCodec,
+	doubleQuotify,
+	singleQuotify,
+	streamToString,
+} from '../utilities';
 import { FileService } from './fileService';
 import {
 	CodemodExecutionMode,
@@ -286,7 +291,10 @@ export class EngineService {
 				'kind' in message.command &&
 				message.command.kind === 'executeCodemod'
 			) {
-				args.push('-c', singleQuotify(message.command.codemodHash));
+				args.push(
+					'-c',
+					singleQuotify(doubleQuotify(message.command.codemodHash)),
+				);
 
 				const commandUri = message.command.uri;
 

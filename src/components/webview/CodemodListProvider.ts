@@ -144,6 +144,28 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			);
 		}
 
+		if (
+			message.kind === 'webview.codemodList.runCodemod' ||
+			message.kind === 'webview.codemodList.dryRunCodemod'
+		) {
+			const isDryRun =
+				message.kind === 'webview.codemodList.dryRunCodemod';
+			const codemod = this.__codemodService.getCodemodItem(message.value);
+			if (!codemod || codemod.kind === 'path') {
+				return;
+			}
+			const { pathToExecute, hash } = codemod;
+
+			const uri = Uri.file(pathToExecute);
+
+			commands.executeCommand(
+				'intuita.executeCodemod',
+				uri,
+				hash,
+				isDryRun ? 'dryRun' : 'dirtyRun',
+			);
+		}
+
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.getCodemodTree('recommended');
 			this.getCodemodTree('public');
@@ -155,12 +177,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		try {
 			if (recommended) {
 				await this.__codemodService.getCodemods();
-			} else {
-				if (!this.__engineBootstrapped) {
-					return;
-				}
+			}
+
+			if (!recommended && !this.__engineBootstrapped) {
+				return;
+			}
+
+			if (!recommended) {
 				await this.__codemodService.getDiscoveredCodemods();
 			}
+
 			const codemodList = this.__getCodemod(recommended);
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod),
@@ -194,14 +220,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		codemodElement: CodemodElementWithChildren,
 	): CodemodTreeNode<string> {
 		if (codemodElement.kind === 'codemodItem') {
-			const {
-				label,
-				kind,
-				pathToExecute,
-				description,
-				hash,
-				commandToExecute,
-			} = codemodElement;
+			const { label, kind, pathToExecute, description, hash } =
+				codemodElement;
 			return {
 				kind,
 				label,
@@ -211,9 +231,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				id: hash,
 				actions: [
 					{
+						title: '✓ Run',
+						kind: 'webview.codemodList.runCodemod',
+						value: hash,
+					},
+					{
 						title: '✓ Dry Run',
-						command: commandToExecute,
-						arguments: [pathToExecute],
+						kind: 'webview.codemodList.dryRunCodemod',
+						value: hash,
 					},
 				],
 				children: [],

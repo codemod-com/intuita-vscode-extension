@@ -95,6 +95,10 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
+				"command": "intuita.executeCodemod",
+				"title": "Intuita: Execute Codemod"
+			},
+			{
 				"command": "intuita.executeCodemodWithinPath",
 				"title": "Intuita: Execute Codemod On Path"
 			},
@@ -185,9 +189,15 @@
 				},
 				{
 					"type": "webview",
+					"id": "intuitaCampaignManager",
+					"name": "Code Change Projects",
+					"contextualTitle": "Code Change Projects"
+				},
+				{
+					"type": "webview",
 					"id": "intuitaFileExplorer",
-					"name": "File Explorer",
-					"contextualTitle": "File Explorer"
+					"name": "Change Explorer",
+					"contextualTitle": "Change Explorer"
 				},
 				{
 					"type": "webview",
@@ -240,6 +250,10 @@
 					"when": "false"
 				},
 				{
+					"command": "intuita.executeCodemod",
+					"when": "false"
+				},
+				{
 					"command": "intuita.executeCodemodWithinPath",
 					"when": "false"
 				},
@@ -280,7 +294,7 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaFileExplorer",
+					"when": "view == intuitaCampaignManager",
 					"group": "navigation"
 				}
 			]

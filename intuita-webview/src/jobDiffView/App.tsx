@@ -15,10 +15,14 @@ const getViewComponent = (
 ) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
-			const { data } = view.viewProps;
+			const { data, title } = view.viewProps;
 
 			return (
-				<JobDiffViewContainer jobs={data} postMessage={postMessage} />
+				<JobDiffViewContainer
+					title={title}
+					jobs={data}
+					postMessage={postMessage}
+				/>
 			);
 
 		default:
@@ -28,6 +32,7 @@ const getViewComponent = (
 
 function App() {
 	const [view, setView] = useState<View | null>(null);
+
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
@@ -43,46 +48,33 @@ function App() {
 				message.kind === 'webview.diffView.updateDiffViewProps' &&
 				view.viewId === 'jobDiffView'
 			) {
-				const jobHash = message.data.jobHash ?? null;
-				if (jobHash === null) {
-					return;
-				}
-				const dataCopy = [...view.viewProps.data];
+				const jobHash = message.data.jobHash;
+				const nextData = view.viewProps.data.map((element) =>
+					element.jobHash === jobHash ? message.data : element,
+				);
 
-				const index = dataCopy
-					.slice()
-					.findIndex((element) => element.jobHash === jobHash);
-				if (index === -1) {
-					return;
-				}
-				dataCopy.splice(index, 1, message.data);
 				setView({
 					...view,
 					viewProps: {
-						data: dataCopy,
+						...view.viewProps,
+						data: nextData,
 					},
 				});
 			}
 			if (
 				message.kind === 'webview.diffview.rejectedJob' &&
-				view?.viewId === 'jobDiffView'
+				view.viewId === 'jobDiffView'
 			) {
 				const jobHash = message.data[0];
-				if (!jobHash) {
-					return;
-				}
-				const viewData = [...view?.viewProps?.data];
-				const index = viewData.findIndex(
-					(el) => el.jobHash === jobHash,
+				const nextData = view.viewProps.data.filter(
+					(element) => element.jobHash !== jobHash,
 				);
-				if (index === -1) {
-					return;
-				}
-				viewData.splice(index, 1);
+
 				setView({
 					...view,
 					viewProps: {
-						data: viewData,
+						...view.viewProps,
+						data: nextData,
 					},
 				});
 			}

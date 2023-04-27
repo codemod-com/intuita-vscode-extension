@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
-type Props = {
+type Props = Readonly<{
 	id: string;
 	label: string;
 	subLabel: string;
@@ -16,7 +16,7 @@ type Props = {
 	depth: number;
 	disabled: boolean;
 	index: number;
-};
+}>;
 
 const TreeItem = ({
 	id,

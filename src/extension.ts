@@ -59,6 +59,7 @@ import { ElementHash } from './elements/types';
 
 import type { GitExtension } from './types/git';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
+import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
@@ -69,6 +70,7 @@ import {
 import { buildJobElementLabel } from './elements/buildJobElement';
 import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
+import { CodemodHash } from './packageJsonAnalyzer/types';
 
 const messageBus = new MessageBus();
 
@@ -216,9 +218,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(jobHash);
+
+					if (!job) {
+						throw new Error(
+							`Unable to find a job with the job hash ${jobHash}`,
+						);
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: [viewProps],
 						},
 					});
@@ -264,6 +276,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title,
 							data,
 						},
 					});
@@ -285,6 +298,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const jobHashes = [arg0].concat(otherArgs.slice());
+
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						{
@@ -307,9 +321,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(firstJobHash as JobHash);
+
+					if (!job) {
+						throw new Error(
+							`Unable to find a job with the job hash ${firstJobHash}`,
+						);
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: viewProps,
 						},
 					});
@@ -335,6 +359,21 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		repositoryService,
 	);
+
+	const campaignManagerProvider = new CampaignManagerProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+		sourceControl,
+	);
+
+	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
+		'intuitaCampaignManager',
+		campaignManagerProvider,
+	);
+
+	context.subscriptions.push(intuitaCampaignManager);
 
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
@@ -1081,6 +1120,52 @@ export async function activate(context: vscode.ExtensionContext) {
 					executionId,
 					mode,
 				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.executeCodemod',
+			async (
+				uri: vscode.Uri,
+				hashDigest: CodemodHash,
+				mode: 'dirtyRun' | 'dryRun',
+			) => {
+				try {
+					const { storageUri } = context;
+
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
+
+					const executionId = buildExecutionId();
+					const happenedAt = String(Date.now());
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command: {
+							kind: 'executeCodemod',
+							engine: 'node',
+							storageUri,
+							codemodHash: hashDigest,
+							uri,
+						},
+						executionId,
+						happenedAt,
+						mode,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+				} catch (e) {
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
+				}
 			},
 		),
 	);

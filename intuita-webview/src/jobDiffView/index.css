@@ -24,7 +24,6 @@
 **/
 
 .App {
-	padding-top: 10px;
 	padding-bottom: 10px;
 	position: relative;
 	background-color: var(--vscode-textCodeBlock-background);
@@ -137,4 +136,8 @@ html {
 
 .rounded {
 	border-radius: 5px;
+}
+
+.mt-0 {
+	margin-top: 0;
 }
