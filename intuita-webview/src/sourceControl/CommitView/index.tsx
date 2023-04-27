@@ -14,6 +14,11 @@ import { CommitChangesFormData } from '../../../../src/components/webview/webvie
 
 import cn from 'classnames';
 
+const commitOptions = {
+	NEW_BRANCH: 'newBranch',
+	CURRENT_BRANCH: 'currentBranch',
+};
+
 type Props = Readonly<{
 	loading: boolean;
 	initialFormData: Partial<CommitChangesFormData>;
@@ -66,6 +71,15 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 			}));
 		};
 
+	const onChangeCommitOption = (e: Event | React.FormEvent<HTMLElement>) => {
+		setFormData((prevData) => ({
+			...prevData,
+			createNewBranch:
+				(e.target as HTMLInputElement).value ===
+				commitOptions.NEW_BRANCH,
+		}));
+	};
+
 	const hasMultipleRemotes = remoteOptions.length > 1;
 
 	return (
@@ -94,34 +108,24 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 				/>
 				<VSCodeRadioGroup
 					orientation="vertical"
-					value={createNewBranch ? 'newBranch' : 'currentBranch'}
+					value={
+						createNewBranch
+							? commitOptions.NEW_BRANCH
+							: commitOptions.CURRENT_BRANCH
+					}
 				>
 					<VSCodeRadio
-						value="currentBranch"
+						value={commitOptions.CURRENT_BRANCH}
 						checked={!createNewBranch}
-						onChange={(e) => {
-							setFormData((prevData) => ({
-								...prevData,
-								createNewBranch:
-									(e.target as HTMLInputElement).value ===
-									'newBranch',
-							}));
-						}}
+						onChange={onChangeCommitOption}
 					>
-						<span className={cn('codicon', 'codicon-git-commit')} />{' '}
+						<span className={cn('codicon', 'codicon-git-commit')} />
 						{`Commit directly to the "${currentBranchName}" branch.`}
 					</VSCodeRadio>
 					<VSCodeRadio
-						value="newBranch"
+						value={commitOptions.NEW_BRANCH}
 						checked={createNewBranch}
-						onChange={(e) => {
-							setFormData((prevData) => ({
-								...prevData,
-								createNewBranch:
-									(e.target as HTMLInputElement).value ===
-									'newBranch',
-							}));
-						}}
+						onChange={onChangeCommitOption}
 					>
 						<span
 							className={cn(
