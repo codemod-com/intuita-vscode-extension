@@ -1,4 +1,3 @@
-import { commands, Uri } from 'vscode';
 import { readFileSync } from 'fs';
 import { capitalize, isNeitherNullNorUndefined } from '../utilities';
 import {
@@ -53,6 +52,9 @@ export class CodemodService {
 	getDiscoveredCodemods = async () => {
 		const path = this.#rootPath;
 		if (!path) {
+			return;
+		}
+		if (this.#publicCodemods.size) {
 			return;
 		}
 		const publicCodemods = await this.__engineService.getCodemodList();
@@ -140,6 +142,13 @@ export class CodemodService {
 			hash,
 		});
 		this.#publicCodemods = discoveredCodemods;
+	};
+
+	public getCodemodItem = (codemodHash: CodemodHash) => {
+		if (this.#codemodItemsMap.has(codemodHash)) {
+			return this.#codemodItemsMap.get(codemodHash);
+		}
+		return this.#publicCodemods.get(codemodHash);
 	};
 
 	public getCodemodElement = (
@@ -305,10 +314,6 @@ export class CodemodService {
 				return 0;
 			});
 		return sortedChildren.map(({ hash }) => hash);
-	}
-
-	public runCodemod(command: string, path: string) {
-		commands.executeCommand(command, Uri.parse(path));
 	}
 
 	private async getDepsInPackageJson(

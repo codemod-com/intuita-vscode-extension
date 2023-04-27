@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
-import { Command, CodemodTreeNode } from '../../shared/types';
+import { RunCodemodsCommand, CodemodTreeNode } from '../../shared/types';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -44,9 +44,12 @@ const TreeView = ({ node }: Props) => {
 		});
 	}, []);
 
-	const handleActionButtonClick = useCallback((action: Command) => {
-		vscode.postMessage({ kind: 'webview.command', value: action });
-	}, []);
+	const handleActionButtonClick = useCallback(
+		(action: RunCodemodsCommand) => {
+			vscode.postMessage(action);
+		},
+		[],
+	);
 
 	const renderItem = ({
 		node,
@@ -68,7 +71,7 @@ const TreeView = ({ node }: Props) => {
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
 			<a
-				title={action.title}
+				className={styles.action}
 				role="button"
 				onClick={(e) => {
 					e.stopPropagation();
