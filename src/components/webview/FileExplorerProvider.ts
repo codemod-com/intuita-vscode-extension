@@ -363,6 +363,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
+					nodeIds: Array.from(this.__folderMap.keys()),
 					fileNodes: Array.from(this.__fileNodes),
 				},
 			});

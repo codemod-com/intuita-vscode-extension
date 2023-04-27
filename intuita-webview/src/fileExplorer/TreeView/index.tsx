@@ -12,9 +12,11 @@ import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
 import TreeItem from '../../shared/TreeItem';
+import { useKey } from '../../jobDiffView/hooks/useKey';
 
 type Props = {
 	node: TreeNode;
+	nodeIds: string[];
 	fileNodes: TreeNode[];
 	searchQuery: string;
 };
@@ -55,9 +57,22 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
-const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
+const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [focusedNodeId, setFocusedNodeId] = useState('');
+	const [focusedNodeId, setFocusedNodeId] = useState(nodeIds[0] ?? '');
+	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
+		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
+		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
+		setFocusedNodeId((prev) => nodeIds[newIndex] ?? prev);
+	};
+
+	useKey('ArrowUp', () => {
+		handleArrowKeyDown('ArrowUp');
+	});
+
+	useKey('ArrowDown', () => {
+		handleArrowKeyDown('ArrowDown');
+	});
 
 	useEffect(() => {
 		// Display diff view of all files on component mount
@@ -177,8 +192,8 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 			renderItem={(props) =>
 				renderItem({
 					...props,
-					setFocusedNodeId,
 					focusedNodeId,
+					setFocusedNodeId,
 				})
 			}
 			index={0}
