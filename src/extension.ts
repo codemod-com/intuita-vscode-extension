@@ -1004,6 +1004,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.rejectCase,
 				caseHash: caseHash as CaseHash,
 			});
+
+			messageBus.publish({
+				kind: MessageKind.updateElements,
+			});
+
+			fileExplorerProvider.setView({
+				viewId: 'treeView',
+				viewProps: null,
+			});
 		}),
 	);
 

@@ -361,6 +361,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	private __onClearStateMessage() {
+		this.__folderMap.clear();
+		this.__fileNodes.clear();
 		this.setView({
 			viewId: 'treeView',
 			viewProps: null,
