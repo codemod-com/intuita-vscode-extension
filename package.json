@@ -198,12 +198,6 @@
 					"id": "intuitaFileExplorer",
 					"name": "Change Explorer",
 					"contextualTitle": "Change Explorer"
-				},
-				{
-					"type": "webview",
-					"id": "intuita-progress-webview",
-					"name": "Intuita: Execution Progress",
-					"contextualTitle": "Intuita: Execution Progress"
 				}
 			]
 		},
