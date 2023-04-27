@@ -3,6 +3,7 @@ import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
+import { CodemodHash } from '../../packageJsonAnalyzer/types';
 
 export type JobActionCommands =
 	| 'intuita.rejectJob'
@@ -40,6 +41,18 @@ type CommitChangesFormData = {
 	stagedJobs: { hash: string; label: string }[];
 };
 
+export type RunCodemodsCommand =
+	| Readonly<{
+			title: string;
+			kind: 'webview.codemodList.runCodemod';
+			value: CodemodHash;
+	  }>
+	| Readonly<{
+			title: string;
+			kind: 'webview.codemodList.dryRunCodemod';
+			value: CodemodHash;
+	  }>;
+
 export type CodemodTreeNode<T = undefined> = {
 	id: string;
 	kind: 'codemodItem' | 'path';
@@ -63,7 +76,7 @@ export type CodemodTreeNode<T = undefined> = {
 				command: 'intuita.openFolderDiff';
 				arguments?: JobHash[];
 		  });
-	actions?: Command[];
+	actions?: RunCodemodsCommand[];
 	children: CodemodTreeNode<T>[];
 	extraData?: T;
 };
@@ -190,7 +203,8 @@ export type WebviewResponse =
 			faultyJobHash: JobHash;
 			oldFileContent: string;
 			newFileContent: string;
-	  }>;
+	  }>
+	| RunCodemodsCommand;
 
 export type View =
 	| Readonly<{

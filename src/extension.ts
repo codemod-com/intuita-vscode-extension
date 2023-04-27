@@ -1098,8 +1098,56 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeCodemod',
+			async (
+				uri: vscode.Uri,
+				hashDigest,
+				mode: 'dirtyRun' | 'dryRun',
+			) => {
+				try {
+					const { storageUri } = context;
+
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
+
+					const executionId = buildExecutionId();
+					const happenedAt = String(Date.now());
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command: {
+							kind: 'executeCodemod',
+							engine: 'node',
+							storageUri,
+							codemodHash: hashDigest,
+							uri,
+						},
+						executionId,
+						happenedAt,
+						mode,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+				} catch (e) {
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
 			async (uri: vscode.Uri) => {
+				console.log('executeRecipeWithinPath', uri);
+
 				try {
 					const { storageUri } = context;
 

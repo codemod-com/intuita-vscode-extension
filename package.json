@@ -95,6 +95,10 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
+				"command": "intuita.executeCodemod",
+				"title": "Intuita: Execute Codemod"
+			},
+			{
 				"command": "intuita.executeCodemodWithinPath",
 				"title": "Intuita: Execute Codemod On Path"
 			},
@@ -237,6 +241,10 @@
 				},
 				{
 					"command": "intuita.executeAsCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeCodemod",
 					"when": "false"
 				},
 				{
