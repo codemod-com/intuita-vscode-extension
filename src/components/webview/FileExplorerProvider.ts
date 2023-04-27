@@ -85,10 +85,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		);
 		this.__view = webviewView;
 
-		this.__view.onDidChangeVisibility(() => {
-			this.__onUpdateElementsMessage();
-		});
-
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
@@ -98,6 +94,48 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			kind: 'webview.global.setView',
 			value: data,
 		});
+	}
+
+	public updateExplorerView(caseHash: string | null) {
+		if (caseHash === null) {
+			return;
+		}
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
+
+		const jobMap = this.__buildJobMap(casesWithJobHashes);
+
+		const [caseElements] = this.__buildCaseElementsAndLatestJob(
+			rootPath,
+			casesWithJobHashes,
+			jobMap,
+		);
+
+		if (caseElements.length === 0) {
+			return;
+		}
+
+		const caseElement = caseElements.find((kase) => kase.hash === caseHash);
+		if (!caseElement) {
+			return;
+		}
+
+		this.__folderMap.clear();
+		this.__fileNodes.clear();
+
+		const tree = this.__getTreeByDirectory(caseElement);
+
+		if (tree) {
+			this.setView({
+				viewId: 'treeView',
+				viewProps: {
+					node: tree,
+					nodeIds: Array.from(this.__folderMap.keys()),
+					fileNodes: Array.from(this.__fileNodes),
+				},
+			});
+		}
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -331,61 +369,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __onUpdateElementsMessage() {
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
-
-		const jobMap = this.__buildJobMap(casesWithJobHashes);
-
-		const [caseElements] = this.__buildCaseElementsAndLatestJob(
-			rootPath,
-			casesWithJobHashes,
-			jobMap,
-		);
-
-		if (caseElements.length === 0) {
-			return;
-		}
-
-		const caseElement = caseElements[0] ?? null;
-		if (caseElement === null) {
-			return;
-		}
-
-		this.__folderMap.clear();
-		this.__fileNodes.clear();
-
-		const tree = this.__getTreeByDirectory(caseElement);
-
-		if (tree) {
-			this.setView({
-				viewId: 'treeView',
-				viewProps: {
-					node: tree,
-					nodeIds: Array.from(this.__folderMap.keys()),
-					fileNodes: Array.from(this.__fileNodes),
-				},
-			});
-		}
-	}
-
-	private async __getUnsavedChanges() {
-		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
-		this.__unsavedChanges = unsavedBranches.length !== 0;
-	}
-
 	private __attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.__onUpdateElementsMessage();
-			await this.__getUnsavedChanges();
-			this.__onUpdateElementsMessage();
-		}, 100);
-
-		this.__addHook(MessageKind.updateElements, (message) => {
-			debouncedOnUpdateElementsMessage(message);
-		});
-
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
@@ -409,10 +393,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
-		}
-
-		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.__onUpdateElementsMessage();
 		}
 	};
 

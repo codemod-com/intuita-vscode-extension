@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { vscode } from '../shared/utilities/vscode';
-
 import TreeView from './TreeView';
 import styles from './style.module.css';
 
@@ -30,7 +28,6 @@ function App() {
 		};
 
 		window.addEventListener('message', handler);
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
@@ -40,8 +37,8 @@ function App() {
 	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
-				No change to review! Run some codemods via VS Code Command &
-				check back later!
+				Choose a Codemod from Code Change Projects to explore its
+				changes!
 			</p>
 		);
 	}

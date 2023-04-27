@@ -63,6 +63,10 @@ const ListView = ({ nodes }: Props) => {
 						onClick={() => {
 							handleClick(node);
 							setFocusedNodeId(node.id);
+							vscode.postMessage({
+								kind: 'webview.campaignManager.selectCase',
+								hash: node.id,
+							});
 						}}
 					/>
 				);
