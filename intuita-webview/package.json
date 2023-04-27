@@ -15,7 +15,8 @@
 		"typescript": "^4.9.5"
 	},
 	"scripts": {
-		"start:main": "TARGET_APP=main craco start",
+		"start:campaignManager": "TARGET_APP=campaignManager craco start",
+		"start:fileExplorer": "TARGET_APP=fileExplorer craco start",
 		"start:sourceControl": "TARGET_APP=sourceControl craco start",
 		"start:diffView": "TARGET_APP=jobDiffView craco start",
 		"start:codemodList": "TARGET_APP=codemodList craco start",
