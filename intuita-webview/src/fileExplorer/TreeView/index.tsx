@@ -59,7 +59,9 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 
 const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(nodeIds[0] ?? null);
+	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(
+		nodeIds[0] ?? null,
+	);
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
 		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
 		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
