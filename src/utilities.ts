@@ -57,6 +57,7 @@ export const timeout = (ms: number) =>
 	);
 
 export const singleQuotify = (str: string) => `'${str}'`;
+export const doubleQuotify = (str: string) => `"${str}"`;
 
 export function getUri(
 	webview: Webview,
