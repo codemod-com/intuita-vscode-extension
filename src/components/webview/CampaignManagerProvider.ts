@@ -98,11 +98,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __postMessage(message: WebviewMessage) {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__view.webview.postMessage(message);
+		this.__view?.webview.postMessage(message);
 	}
 
 	private __addHook<T extends MessageKind>(
@@ -117,17 +113,17 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	): ReadonlyMap<JobHash, Job> {
 		const map = new Map<JobHash, Job>();
 
-		for (const kase of casesWithJobHashes) {
-			for (const jobHash of kase.jobHashes) {
-				const job = this.__jobManager.getJob(jobHash);
+		const jobHashes = Array.from(casesWithJobHashes).flatMap((kase) =>
+			Array.from(kase.jobHashes),
+		);
+		jobHashes.forEach((jobHash) => {
+			const job = this.__jobManager.getJob(jobHash);
 
-				if (!job) {
-					continue;
-				}
-
-				map.set(job.hash, job);
+			if (!job) {
+				return;
 			}
-		}
+			map.set(job.hash, job);
+		});
 
 		return map;
 	}
@@ -351,10 +347,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	};
 
 	private __attachWebviewEventListeners() {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 }
