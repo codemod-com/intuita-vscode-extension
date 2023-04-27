@@ -218,9 +218,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(jobHash);
+
+					if (!job) {
+						throw new Error(
+							`Unable to find a job with the job hash ${jobHash}`,
+						);
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: [viewProps],
 						},
 					});
@@ -266,6 +276,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title,
 							data,
 						},
 					});
@@ -287,6 +298,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const jobHashes = [arg0].concat(otherArgs.slice());
+
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						{
@@ -309,9 +321,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
+
+					const job = jobManager.getJob(firstJobHash as JobHash);
+
+					if (!job) {
+						throw new Error(
+							`Unable to find a job with the job hash ${firstJobHash}`,
+						);
+					}
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: viewProps,
 						},
 					});

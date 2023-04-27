@@ -248,6 +248,7 @@ export type View =
 	| Readonly<{
 			viewId: 'jobDiffView';
 			viewProps: {
+				title: string;
 				data: JobDiffViewProps[];
 			};
 	  }>
