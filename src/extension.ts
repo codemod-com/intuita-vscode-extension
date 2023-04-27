@@ -352,21 +352,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		repositoryService,
 	);
 
-	const campaignManagerProvider = new CampaignManagerProvider(
-		context,
-		messageBus,
-		jobManager,
-		caseManager,
-		sourceControl,
-	);
-
-	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
-		'intuitaCampaignManager',
-		campaignManagerProvider,
-	);
-
-	context.subscriptions.push(intuitaCampaignManager);
-
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
@@ -381,6 +366,22 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaFileExplorer);
+
+	const campaignManagerProvider = new CampaignManagerProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+		sourceControl,
+		fileExplorerProvider,
+	);
+
+	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
+		'intuitaCampaignManager',
+		campaignManagerProvider,
+	);
+
+	context.subscriptions.push(intuitaCampaignManager);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {

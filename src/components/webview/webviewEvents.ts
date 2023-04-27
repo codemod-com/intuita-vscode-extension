@@ -199,6 +199,10 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
+	| Readonly<{
+			kind: 'webview.campaignManager.selectCase';
+			hash: string | null;
+	  }>
 	| RunCodemodsCommand;
 
 export type View =

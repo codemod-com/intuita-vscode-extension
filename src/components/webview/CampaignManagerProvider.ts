@@ -38,6 +38,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { SourceControlService } from '../sourceControl';
+import { FileExplorerProvider } from './FileExplorerProvider';
 
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -52,6 +53,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __sourceControl: SourceControlService,
+		private readonly __fileExplorerProvider: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -271,6 +273,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				command: 'intuita.acceptCase',
 				arguments: [element.hash],
 			},
+			{
+				title: '✗ Discard',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
 		];
 
 		const mappedNode: TreeNode = {
@@ -329,6 +336,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
+		}
+
+		if (message.kind === 'webview.campaignManager.selectCase') {
+			this.__fileExplorerProvider.updateExplorerView(message.hash);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
