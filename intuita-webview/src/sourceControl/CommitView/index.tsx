@@ -80,11 +80,22 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 		}));
 	};
 
+	const handleCommitChanges = () => {
+		vscode.postMessage({
+			kind: 'webview.createPR.commitChanges',
+			value: formData,
+		});
+
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
+	};
+
 	const hasMultipleRemotes = remoteOptions.length > 1;
 
 	return (
 		<div className={styles.root}>
-			<form onSubmit={handleSubmit} className={styles.form}>
+			<form className={styles.form}>
 				<h1 className={styles.header}>Commit changes</h1>
 				{hasMultipleRemotes ? (
 					<div className={styles.formField}>
@@ -142,10 +153,18 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 					<VSCodeButton
 						appearance="primary"
 						disabled={loading}
-						type="submit"
 						className={styles.actionButton}
+						onClick={handleCommitChanges}
 					>
-						Commit changes
+						Commit
+					</VSCodeButton>
+					<VSCodeButton
+						appearance="primary"
+						disabled={loading}
+						className={styles.actionButton}
+						onClick={handleSubmit}
+					>
+						Commit & Pull Request
 					</VSCodeButton>
 				</div>
 			</form>

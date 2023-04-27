@@ -494,6 +494,82 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	// @TODO reuse this in createPR
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.sourceControl.commitChanges',
+			async (arg0) => {
+				try {
+					const decoded = createPullRequestParamsCodec.decode(arg0);
+
+					if (decoded._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(decoded).join('\n'),
+						);
+					}
+
+					const {
+						newBranchName,
+						createNewBranch,
+						commitMessage,
+						stagedJobs,
+					} = decoded.right;
+
+					const stagedJobHashes = new Set(
+						stagedJobs.map(({ hash }) => hash as JobHash),
+					);
+
+					await jobManager.acceptJobs(stagedJobHashes);
+
+					const remotes = repositoryService.getRemotes();
+					const remote = (remotes ?? []).find(
+						(remote) => remote.pushUrl === decoded.right.remoteUrl,
+					);
+
+					if (!remote || !remote.pushUrl) {
+						throw new Error('Remote not found');
+					}
+
+					const currentBranch = repositoryService.getCurrentBranch();
+
+					const currentBranchName = currentBranch?.name ?? null;
+
+					if (currentBranchName === null) {
+						throw new Error('Unable to get current branch');
+					}
+
+					await repositoryService.commitChanges(
+						createNewBranch ? newBranchName : currentBranchName,
+						commitMessage,
+					);
+
+					vscode.window.showInformationMessage(
+						`Committed on branch ${currentBranchName}`,
+						'View on GitHub',
+					);
+
+					messageBus.publish({
+						kind: MessageKind.updateElements,
+					});
+
+					if (remote.pushUrl) {
+						repositoryService.setRemoteUrl(remote.pushUrl);
+						persistedStateService.saveExtensionState();
+					}
+				} catch (e) {
+					const message =
+						isAxiosError<{ message?: string }>(e) &&
+						e.response?.data.message
+							? e.response.data.message
+							: e instanceof Error
+							? e.message
+							: String(e);
+					vscode.window.showErrorMessage(message);
+				}
+			},
+		),
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.createPR',

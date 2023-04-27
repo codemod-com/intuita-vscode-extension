@@ -115,6 +115,13 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 			);
 		}
 
+		if (message.kind === 'webview.createPR.commitChanges') {
+			commands.executeCommand(
+				'intuita.sourceControl.commitChanges',
+				message.value,
+			);
+		}
+
 		if (message.kind === 'webview.global.closeView') {
 			this.dispose();
 		}

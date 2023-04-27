@@ -166,6 +166,10 @@ export type WebviewResponse =
 			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
+			kind: 'webview.createPR.commitChanges';
+			value: CommitChangesFormData;
+	  }>
+	| Readonly<{
 			kind: 'webview.tree.clearOutputFiles';
 	  }>
 	| Readonly<{

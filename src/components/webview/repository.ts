@@ -109,6 +109,17 @@ export class RepositoryService {
 		}
 	}
 
+	public async commitChanges(branchName: string, commitMessage: string) {
+		if (this.__repo === null) {
+			return;
+		}
+
+		await this.createOrCheckoutBranch(branchName);
+
+		await this.__repo.add([]);
+		await this.__repo.commit(commitMessage, { all: true });
+	}
+
 	public async submitChanges(
 		branchName: string,
 		remoteName: string,
@@ -119,10 +130,7 @@ export class RepositoryService {
 			return;
 		}
 
-		this.createOrCheckoutBranch(branchName);
-
-		await this.__repo.add([]);
-		await this.__repo.commit(commitMessage, { all: true });
+		await this.commitChanges(branchName, commitMessage);
 		await this.__repo.push(remoteName, branchName, true);
 	}
 
