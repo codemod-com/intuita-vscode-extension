@@ -106,21 +106,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
-	const codemodService = new CodemodService(rootPath ?? null);
-	const codemodListWebviewProvider = new CodemodListPanelProvider(
-		context,
-		messageBus,
-		rootPath,
-		codemodService,
-	);
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			'intuita-available-codemod-tree-view',
-			codemodListWebviewProvider,
-		),
-	);
-
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuita-progress-webview',
@@ -191,6 +176,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
+	const codemodService = new CodemodService(rootPath ?? null, engineService);
+	const codemodListWebviewProvider = new CodemodListPanelProvider(
+		context,
+		messageBus,
+		rootPath,
+		codemodService,
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'intuita-available-codemod-tree-view',
+			codemodListWebviewProvider,
+		),
+	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openJobDiff',
