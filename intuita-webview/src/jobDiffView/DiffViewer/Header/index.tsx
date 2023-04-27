@@ -39,7 +39,7 @@ const Header = ({ title, viewType, onViewChange }: Props) => {
 				</VSCodeButton>
 			) : (
 				<VSCodeButton
-					title="Split"
+					title="Side by Side"
 					appearance="icon"
 					onClick={() => onViewChange('side-by-side')}
 				>
