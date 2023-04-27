@@ -190,14 +190,14 @@
 				{
 					"type": "webview",
 					"id": "intuitaCampaignManager",
-					"name": "Branch Manager",
-					"contextualTitle": "Branch Manager"
+					"name": "Code Change Projects",
+					"contextualTitle": "Code Change Projects"
 				},
 				{
 					"type": "webview",
 					"id": "intuitaFileExplorer",
-					"name": "File Explorer",
-					"contextualTitle": "File Explorer"
+					"name": "Change Explorer",
+					"contextualTitle": "Change Explorer"
 				},
 				{
 					"type": "webview",
