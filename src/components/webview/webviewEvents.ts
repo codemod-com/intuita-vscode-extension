@@ -29,17 +29,14 @@ export type JobDiffViewProps = Readonly<{
 	actions?: JobAction[];
 }>;
 
-type CommitChangesFormData = {
-	baseBranch: string;
-	targetBranch: string;
-	title: string;
-	body: string;
+export type CommitChangesFormData = Readonly<{
 	remoteUrl: string;
+	currentBranchName: string;
+	newBranchName: string;
 	commitMessage: string;
 	createNewBranch: boolean;
-	createPullRequest: boolean;
 	stagedJobs: { hash: string; label: string }[];
-};
+}>;
 
 export type RunCodemodsCommand =
 	| Readonly<{
@@ -183,13 +180,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.createPR.formDataChanged';
-			value: {
-				baseBranch: string;
-				targetBranch: string;
-				title: string;
-				body: string;
-				remoteUrl: string;
-			};
+			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
 			kind: JobActionCommands;
@@ -221,24 +212,6 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'upsertPullRequest';
-			viewProps: {
-				loading: boolean;
-				error: string;
-				baseBranchOptions: string[];
-				targetBranchOptions: string[];
-				remoteOptions: string[];
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					baseBranch: string;
-					targetBranch: string;
-					remoteUrl: string;
-				}>;
-				pullRequestAlreadyExists: boolean;
-			};
-	  }>
-	| Readonly<{
 			viewId: 'treeView';
 			viewProps: {
 				node: TreeNode;
@@ -263,8 +236,6 @@ export type View =
 			viewProps: {
 				loading: boolean;
 				error: string;
-				baseBranchOptions: string[];
-				targetBranchOptions: string[];
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
 			};

@@ -31,7 +31,6 @@ import {
 } from './components/informationMessageService';
 import {
 	branchNameFromStr,
-	buildStackedBranchPRMessage,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
 } from './utilities';
@@ -502,91 +501,97 @@ export async function activate(context: vscode.ExtensionContext) {
 				try {
 					const decoded = createPullRequestParamsCodec.decode(arg0);
 
-					if (decoded._tag === 'Right') {
-						const {
-							createNewBranch,
-							createPullRequest,
-							targetBranch,
-							stagedJobs,
-							commitMessage,
-						} = decoded.right;
-
-						const stagedJobHashes = new Set(
-							stagedJobs.map(({ hash }) => hash as JobHash),
+					// @TODO can we add something like ```value = decoded.getOrThrow()```
+					// so we dont have to write this checks each time?
+					if (decoded._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(decoded).join('\n'),
 						);
+					}
 
-						// @should rename this to commitJobs?
-						await jobManager.acceptJobs(stagedJobHashes);
+					const {
+						newBranchName,
+						createNewBranch,
+						commitMessage,
+						stagedJobs,
+					} = decoded.right;
 
-						const remotes = repositoryService.getRemotes();
-						const remote = (remotes ?? []).find(
-							(remote) =>
-								remote.pushUrl === decoded.right.remoteUrl,
-						);
+					const stagedJobHashes = new Set(
+						stagedJobs.map(({ hash }) => hash as JobHash),
+					);
 
-						if (!remote) {
-							throw new Error('Remote not found');
-						}
+					await jobManager.acceptJobs(stagedJobHashes);
 
-						const currentBranch =
-							repositoryService.getCurrentBranch();
+					const remotes = repositoryService.getRemotes();
+					const remote = (remotes ?? []).find(
+						(remote) => remote.pushUrl === decoded.right.remoteUrl,
+					);
 
-						if (currentBranch === null || !currentBranch.name) {
-							throw new Error('Unable to get current branch');
-						}
+					if (!remote || !remote.pushUrl) {
+						throw new Error('Remote not found');
+					}
 
-						const targetBranchName = createNewBranch
-							? targetBranch
-							: currentBranch.name;
+					const currentBranch = repositoryService.getCurrentBranch();
 
+					const currentBranchName = currentBranch?.name ?? null;
+
+					if (currentBranchName === null) {
+						throw new Error('Unable to get current branch');
+					}
+
+					if (!createNewBranch) {
 						await repositoryService.submitChanges(
-							targetBranchName,
+							currentBranchName,
 							remote.name,
 							commitMessage,
 						);
 
-						if (!createPullRequest) {
-							const branchUrl = `${remote.pushUrl}/tree/${targetBranchName}`;
-							const messageSelection =
-								await vscode.window.showInformationMessage(
-									`Changes successfully pushed to the ${targetBranchName} branch: ${branchUrl}`,
-									'View on GitHub',
-								);
-
-							if (messageSelection === 'View on GitHub') {
-								vscode.env.openExternal(
-									vscode.Uri.parse(branchUrl),
-								);
-							}
-						}
-
-						messageBus.publish({
-							kind: MessageKind.updateElements,
-						});
-
-						// save remote on success
-						if (remote.pushUrl) {
-							repositoryService.setRemoteUrl(remote.pushUrl);
-							persistedStateService.saveExtensionState();
-						}
-
-						if (createPullRequest) {
-							const { html_url } = await sourceControl.createPR(
-								decoded.right,
+						const branchUrl = `${remote.pushUrl}/tree/${currentBranchName}`;
+						const messageSelection =
+							await vscode.window.showInformationMessage(
+								`Changes successfully pushed to the ${currentBranchName} branch: ${branchUrl}`,
+								'View on GitHub',
 							);
 
-							const messageSelection =
-								await vscode.window.showInformationMessage(
-									`Pull request successfully created: ${html_url}`,
-									'View on GitHub',
-								);
-
-							if (messageSelection === 'View on GitHub') {
-								vscode.env.openExternal(
-									vscode.Uri.parse(html_url),
-								);
-							}
+						if (messageSelection === 'View on GitHub') {
+							vscode.env.openExternal(
+								vscode.Uri.parse(branchUrl),
+							);
 						}
+					} else {
+						await repositoryService.submitChanges(
+							newBranchName,
+							remote.name,
+							commitMessage,
+						);
+
+						const { html_url } = await sourceControl.createPR({
+							// @TODO create meaningful title for PR
+							title: '[Codemod: ...]...',
+							body: commitMessage,
+							baseBranch: currentBranchName,
+							targetBranch: newBranchName,
+							remoteUrl: remote.pushUrl,
+						});
+
+						const messageSelection =
+							await vscode.window.showInformationMessage(
+								`Pull request successfully created: ${html_url}`,
+								'View on GitHub',
+							);
+
+						if (messageSelection === 'View on GitHub') {
+							vscode.env.openExternal(vscode.Uri.parse(html_url));
+						}
+					}
+
+					messageBus.publish({
+						kind: MessageKind.updateElements,
+					});
+
+					if (remote.pushUrl) {
+						repositoryService.setRemoteUrl(remote.pushUrl);
+						persistedStateService.saveExtensionState();
 					}
 				} catch (e) {
 					const message =
@@ -861,12 +866,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const caseUniqueName = buildCaseName(kase);
-				const targetBranchName = branchNameFromStr(caseUniqueName);
+				const newBranchName = branchNameFromStr(caseUniqueName);
 
 				const title = kase.subKind;
-				const body = buildStackedBranchPRMessage(
-					repositoryService.getStackedBranches(),
-				);
 
 				const initialData = {
 					repositoryPath: repositoryService.getRemoteUrl(),
@@ -901,19 +903,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				panelInstance.setView({
 					viewId: 'commitView',
 					viewProps: {
-						baseBranchOptions: [currentBranch.name],
-						targetBranchOptions: [targetBranchName],
 						remoteOptions,
 						initialFormData: {
-							title,
-							body,
-							baseBranch: currentBranch.name,
-							targetBranch: targetBranchName,
+							currentBranchName: currentBranch.name,
+							newBranchName,
 							remoteUrl: defaultRemoteUrl,
 							commitMessage: `Migrated ${kase.subKind}`,
-							stagedJobs,
-							createPullRequest: false,
 							createNewBranch: true,
+							stagedJobs,
 						},
 						loading: false,
 						error: '',
@@ -1001,11 +998,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						});
 					}
 
-					const targetBranchName = `${path}-${hash.toLowerCase()}`;
+					const newBranchName = `${path}-${hash.toLowerCase()}`;
 					const title = path;
-					const body = buildStackedBranchPRMessage(
-						repositoryService.getStackedBranches(),
-					);
 
 					const initialData = {
 						repositoryPath: repositoryService.getRemoteUrl(),
@@ -1040,19 +1034,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'commitView',
 						viewProps: {
-							baseBranchOptions: [currentBranch.name],
-							targetBranchOptions: [targetBranchName],
 							remoteOptions,
 							initialFormData: {
-								title,
-								body,
-								baseBranch: currentBranch.name,
-								targetBranch: targetBranchName,
+								currentBranchName: currentBranch.name,
+								newBranchName,
 								remoteUrl: defaultRemoteUrl,
 								commitMessage: '',
-								stagedJobs,
-								createPullRequest: false,
 								createNewBranch: true,
+								stagedJobs,
 							},
 							loading: false,
 							error: '',
