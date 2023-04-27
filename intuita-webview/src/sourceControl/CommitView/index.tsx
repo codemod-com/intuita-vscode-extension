@@ -158,14 +158,16 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 					>
 						Commit
 					</VSCodeButton>
-					<VSCodeButton
-						appearance="primary"
-						disabled={loading}
-						className={styles.actionButton}
-						onClick={handleSubmit}
-					>
-						Commit & Pull Request
-					</VSCodeButton>
+					{createNewBranch ? (
+						<VSCodeButton
+							appearance="primary"
+							disabled={loading}
+							className={styles.actionButton}
+							onClick={handleSubmit}
+						>
+							Commit & Pull Request
+						</VSCodeButton>
+					) : null}
 				</div>
 			</form>
 		</div>

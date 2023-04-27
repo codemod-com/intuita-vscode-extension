@@ -101,6 +101,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
 			);
 		}
+
+		if (message.kind === 'webview.global.closeView') {
+			this.dispose();
+		}
 	}
 
 	public override dispose() {
@@ -116,8 +120,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		const job = this.__jobManager.getJob(jobHash);
-		// @TODO
-		const jobAccepted = this.__jobManager.isJobApplied(jobHash);
 
 		if (!job) {
 			return null;
@@ -140,22 +142,20 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const getTitle = function () {
 			switch (kind) {
 				case JobKind.createFile:
-					return `${jobAccepted ? 'Created' : 'Create'}`;
+					return 'Create';
 				case JobKind.deleteFile:
-					return `${jobAccepted ? 'Deleted' : 'Delete'}`;
+					return 'Delete';
 
 				case JobKind.moveFile:
-					return `${jobAccepted ? 'Moved' : 'Move'}`;
+					return 'Move';
 
 				case JobKind.moveAndRewriteFile:
-					return `${
-						jobAccepted ? 'Moved and rewritten' : 'Move and rewrite'
-					}`;
+					return 'Move and rewrite';
 				case JobKind.copyFile:
-					return `${jobAccepted ? 'Copied' : 'Copy'}`;
+					return 'Copy';
 
 				case JobKind.rewriteFile:
-					return `${jobAccepted ? 'Rewritten' : 'Rewrite'}`;
+					return 'Rewrite';
 
 				default:
 					throw new Error('unknown jobkind');
@@ -232,17 +232,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
-	private __onUpdateJobMessage = async (jobHashes: ReadonlySet<JobHash>) => {
-		for (const jobHash of Array.from(jobHashes)) {
-			const props = await this.getViewDataForJob(jobHash);
-			if (!props) continue;
-			this._postMessage({
-				kind: 'webview.diffView.updateDiffViewProps',
-				data: props,
-			});
-		}
-	};
-
 	private __onRejectJob = async (jobHashes: ReadonlySet<JobHash>) => {
 		for (const jobHash of jobHashes) {
 			this._postMessage({
@@ -254,7 +243,9 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	_attachExtensionEventListeners() {
 		this._addHook(MessageKind.jobsAccepted, (message) => {
-			this.__onUpdateJobMessage(message.deletedJobHashes);
+			// when job is accepted we want to remove it from diff view
+			// because we no longer have accepted state
+			this.__onRejectJob(message.deletedJobHashes);
 		});
 
 		this._addHook(MessageKind.jobsRejected, (message) => {

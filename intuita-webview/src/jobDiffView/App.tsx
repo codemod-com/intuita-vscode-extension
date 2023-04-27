@@ -65,17 +65,32 @@ function App() {
 				message.kind === 'webview.diffview.rejectedJob' &&
 				view.viewId === 'jobDiffView'
 			) {
-				const jobHash = message.data[0];
-				const nextData = view.viewProps.data.filter(
-					(element) => element.jobHash !== jobHash,
-				);
+				setView((prevView) => {
+					if (prevView?.viewId !== 'jobDiffView') {
+						return null;
+					}
 
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						data: nextData,
-					},
+					const jobHash = message.data[0];
+					const nextData = prevView.viewProps.data.filter(
+						(element) => element.jobHash !== jobHash,
+					);
+
+					if (nextData.length === 0) {
+						// no jobs to present
+						vscode.postMessage({
+							kind: 'webview.global.closeView',
+						});
+
+						return null;
+					}
+
+					return {
+						...prevView,
+						viewProps: {
+							...prevView.viewProps,
+							data: nextData,
+						},
+					};
 				});
 			}
 		},
