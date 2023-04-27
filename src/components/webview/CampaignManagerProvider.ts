@@ -276,11 +276,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				command: 'intuita.acceptCase',
 				arguments: [element.hash],
 			},
-			{
-				title: '✗ Discard',
-				command: 'intuita.rejectCase',
-				arguments: [element.hash],
-			},
 		];
 
 		const mappedNode: TreeNode = {
