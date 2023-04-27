@@ -243,7 +243,13 @@ export type View =
 			viewProps: {
 				node: TreeNode;
 				fileNodes: TreeNode[];
-			};
+			} | null;
+	  }>
+	| Readonly<{
+			viewId: 'campaignManagerView';
+			viewProps: {
+				node: TreeNode;
+			} | null;
 	  }>
 	| Readonly<{
 			viewId: 'jobDiffView';

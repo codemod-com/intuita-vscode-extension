@@ -60,6 +60,7 @@ import { ElementHash } from './elements/types';
 
 import type { GitExtension } from './types/git';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
+import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { buildCaseName } from './cases/buildCaseName';
@@ -359,6 +360,21 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		repositoryService,
 	);
+
+	const campaignManagerProvider = new CampaignManagerProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+		sourceControl,
+	);
+
+	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
+		'intuitaCampaignManager',
+		campaignManagerProvider,
+	);
+
+	context.subscriptions.push(intuitaCampaignManager);
 
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,

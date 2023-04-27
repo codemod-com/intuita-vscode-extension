@@ -1,7 +1,6 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useCallback, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Tree from '../../shared/Tree';
-import TreeItem from '../TreeItem';
 import {
 	Command,
 	TreeNode,
@@ -10,9 +9,9 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
-import styles from './style.module.css';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
+import TreeItem from '../../shared/TreeItem';
 
 type Props = {
 	node: TreeNode;
@@ -60,16 +59,15 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 
-	const handleClick = useCallback((node: TreeNode) => {
-		if (!node.command) {
-			return;
+	useEffect(() => {
+		// Display diff view of all files on component mount
+		if (node.command && (node.command.arguments ?? []).length > 0) {
+			vscode.postMessage({
+				kind: 'webview.command',
+				value: node.command,
+			});
 		}
-
-		vscode.postMessage({
-			kind: 'webview.command',
-			value: node.command,
-		});
-	}, []);
+	}, [node.command]);
 
 	const handleActionButtonClick = (action: Command) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
@@ -121,7 +119,6 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 				open={open}
 				focused={node.id === focusedNodeId}
 				onClick={() => {
-					handleClick(node);
 					setIsOpen(!open);
 					setFocusedNodeId(node.id);
 				}}
@@ -130,15 +127,6 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 			/>
 		);
 	};
-
-	if ((node.children?.length ?? 0) === 0) {
-		return (
-			<p className={styles.welcomeMessage}>
-				No change to review! Run some codemods via VS Code Command &
-				check back later!
-			</p>
-		);
-	}
 
 	if (userSearchingFile) {
 		return (
@@ -173,7 +161,6 @@ const TreeView = ({ node, fileNodes, searchQuery }: Props) => {
 							open={false}
 							focused={node.id === focusedNodeId}
 							onClick={() => {
-								handleClick(node);
 								setFocusedNodeId(node.id);
 							}}
 							actionButtons={[]}

@@ -189,9 +189,15 @@
 				},
 				{
 					"type": "webview",
+					"id": "intuitaCampaignManager",
+					"name": "Code Change Projects",
+					"contextualTitle": "Code Change Projects"
+				},
+				{
+					"type": "webview",
 					"id": "intuitaFileExplorer",
-					"name": "File Explorer",
-					"contextualTitle": "File Explorer"
+					"name": "Change Explorer",
+					"contextualTitle": "Change Explorer"
 				},
 				{
 					"type": "webview",
@@ -288,7 +294,7 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaFileExplorer",
+					"when": "view == intuitaCampaignManager",
 					"group": "navigation"
 				}
 			]
