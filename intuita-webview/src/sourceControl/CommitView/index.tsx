@@ -136,6 +136,7 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 				{createNewBranch ? <BranchForm formData={formData} /> : null}
 				<div className={styles.actions}>
 					<VSCodeButton
+						appearance="primary"
 						disabled={loading}
 						type="submit"
 						className={styles.actionButton}
