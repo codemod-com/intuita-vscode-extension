@@ -20,7 +20,7 @@ type Props = {
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
 	}): ReactNode;
-	focusedNodeId: string;
+	focusedNodeId: string | null;
 };
 
 const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
