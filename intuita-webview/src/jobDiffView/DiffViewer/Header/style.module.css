@@ -7,7 +7,7 @@
 	height: 35px;
 	top: 0;
 	padding: 0 8px;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-tab-inactiveBackground);
 	margin-left: -10px;
 	margin-right: -10px;
 }
@@ -32,8 +32,7 @@
 }
 
 .icon {
-	stroke: var(--vscode-editor-foreground);
+	stroke: var(--vscode-icon-foreground);
 	height: 16px;
-	margin-left: 22px;
 	width: 16px;
 }
