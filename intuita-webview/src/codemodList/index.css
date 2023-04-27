@@ -21,3 +21,6 @@
 .App {
 	height: 100vh;
 }
+.d-none {
+	display: none;
+}

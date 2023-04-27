@@ -52,7 +52,7 @@ function App() {
 	return (
 		<main className="App">
 			<Container
-				className={cn('flex-none ', {
+				className={cn('flex-none d-none', {
 					'max-h-full h-full-40':
 						!publicCodemodsExpanded && recommendedCodemodsExpanded,
 					'max-h-half h-auto': publicCodemodsExpanded,
