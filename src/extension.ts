@@ -502,7 +502,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const decoded = createPullRequestParamsCodec.decode(arg0);
 
 					// @TODO can we add something like ```value = decoded.getOrThrow()```
-					// so we dont have to write this checks each time? 
+					// so we dont have to write this checks each time?
 					if (decoded._tag === 'Left') {
 						throw new Error(
 							prettyReporter.report(decoded).join('\n'),
