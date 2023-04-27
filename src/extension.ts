@@ -229,7 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							title: job?.codemodName ?? '',
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: [viewProps],
 						},
 					});
@@ -332,7 +332,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							title: job.codemodName,
+							title: `Executed the codemod: ${job.codemodName}`,
 							data: viewProps,
 						},
 					});
