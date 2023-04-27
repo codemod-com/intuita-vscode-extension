@@ -53,7 +53,6 @@ import {
 } from './components/sourceControl';
 import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
 import { isAxiosError } from 'axios';
-import { CodemodExecutionProgressWebviewViewProvider } from './components/progressProvider';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
@@ -106,13 +105,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			'intuita-progress-webview',
-			new CodemodExecutionProgressWebviewViewProvider(messageBus),
-		),
-	);
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
