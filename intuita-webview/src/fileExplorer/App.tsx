@@ -18,8 +18,6 @@ function App() {
 	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	useEffect(() => {
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
-
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
@@ -32,6 +30,7 @@ function App() {
 		};
 
 		window.addEventListener('message', handler);
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
