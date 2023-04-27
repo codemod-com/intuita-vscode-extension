@@ -76,16 +76,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		handleArrowKeyDown('ArrowDown');
 	});
 
-	useEffect(() => {
-		// Display diff view of all files on component mount
-		if (node.command && (node.command.arguments ?? []).length > 0) {
-			vscode.postMessage({
-				kind: 'webview.command',
-				value: node.command,
-			});
-		}
-	}, [node.command]);
-
 	const handleActionButtonClick = (action: Command) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
 	};
