@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Tree from '../../shared/Tree';
 import {
 	Command,
@@ -134,6 +134,18 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 			/>
 		);
 	};
+
+	useEffect(() => {
+		const handler = () => {
+			setFocusedNodeId(null)
+		};
+
+		window.addEventListener('blur', handler);
+
+		return () => {
+			window.removeEventListener('blur', handler);
+		};
+	}, [])
 
 	if (userSearchingFile) {
 		return (
