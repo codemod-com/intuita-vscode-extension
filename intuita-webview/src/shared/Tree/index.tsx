@@ -1,6 +1,7 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
+import { useKey } from '../../jobDiffView/hooks/useKey';
 
 type Props = {
 	index: number;
@@ -19,11 +20,26 @@ type Props = {
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
 	}): ReactNode;
+	focusedNodeId: string;
 };
 
-const Tree = ({ node, depth, renderItem, index }: Props) => {
+const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
 	const [open, setIsOpen] = useState(true);
+	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
+		if (node.id !== focusedNodeId) {
+			return;
+		}
+
+		setIsOpen(key === 'ArrowLeft' ? false : true);
+	};
+	useKey('ArrowLeft', () => {
+		handleArrowKeyDown('ArrowLeft');
+	});
+
+	useKey('ArrowRight', () => {
+		handleArrowKeyDown('ArrowRight');
+	});
 
 	const treeItem = renderItem({
 		index,
@@ -48,6 +64,7 @@ const Tree = ({ node, depth, renderItem, index }: Props) => {
 								renderItem={renderItem}
 								depth={depth + 1}
 								index={index}
+								focusedNodeId={focusedNodeId}
 							/>
 					  ))
 					: null}

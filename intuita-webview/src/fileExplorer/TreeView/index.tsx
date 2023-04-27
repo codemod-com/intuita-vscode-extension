@@ -198,6 +198,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 			}
 			index={0}
 			depth={0}
+			focusedNodeId={focusedNodeId}
 		/>
 	);
 };
