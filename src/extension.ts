@@ -31,7 +31,6 @@ import {
 } from './components/informationMessageService';
 import {
 	branchNameFromStr,
-	buildStackedBranchPRMessage,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
 } from './utilities';
