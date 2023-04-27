@@ -123,6 +123,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		if (message.kind === 'webview.global.closeView') {
+			commands.executeCommand('intuita.clearState');
 			this.dispose();
 		}
 	}
