@@ -70,6 +70,7 @@ import {
 import { buildJobElementLabel } from './elements/buildJobElement';
 import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
+import { CodemodHash } from './packageJsonAnalyzer/types';
 
 const messageBus = new MessageBus();
 
@@ -1101,7 +1102,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.executeCodemod',
 			async (
 				uri: vscode.Uri,
-				hashDigest,
+				hashDigest: CodemodHash,
 				mode: 'dirtyRun' | 'dryRun',
 			) => {
 				try {
@@ -1146,8 +1147,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
 			async (uri: vscode.Uri) => {
-				console.log('executeRecipeWithinPath', uri);
-
 				try {
 					const { storageUri } = context;
 
