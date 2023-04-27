@@ -221,7 +221,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const job = jobManager.getJob(jobHash);
 
 					if (!job) {
-						throw new Error('Unable to get job');
+						throw new Error(
+							`Unable to find a job with the job hash ${jobHash}`,
+						);
 					}
 
 					panelInstance.setView({
@@ -295,6 +297,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const jobHashes = [arg0].concat(otherArgs.slice());
+
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						{
@@ -318,10 +321,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					const job = jobManager.getJob(jobHashes[0]);
+					const job = jobManager.getJob(firstJobHash as JobHash);
 
 					if (!job) {
-						throw new Error('Unable to get job');
+						throw new Error(
+							`Unable to find a job with the job hash ${firstJobHash}`,
+						);
 					}
 
 					panelInstance.setView({

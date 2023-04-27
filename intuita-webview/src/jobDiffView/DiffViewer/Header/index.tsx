@@ -6,11 +6,11 @@ import { DiffViewType } from '../../../shared/types';
 
 import styles from './style.module.css';
 
-type Props = {
+type Props = Readonly<{
 	title: string;
 	viewType: DiffViewType;
 	onViewChange(value: DiffViewType): void;
-};
+}>;
 
 const Header = ({ title, viewType, onViewChange }: Props) => {
 	const handleTitleClick = () => {
