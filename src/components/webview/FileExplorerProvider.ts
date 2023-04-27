@@ -38,7 +38,6 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
-import { SourceControlService } from '../sourceControl';
 
 export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -54,7 +53,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
-		private readonly __sourceControl: SourceControlService,
 	) {
 		this.__extensionPath = context.extensionUri;
 
