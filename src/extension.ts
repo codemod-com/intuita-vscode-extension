@@ -545,7 +545,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					vscode.window.showInformationMessage(
 						`Committed on branch ${currentBranchName}`,
-						'View on GitHub',
 					);
 
 					messageBus.publish({
