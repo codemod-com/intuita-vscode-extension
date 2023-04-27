@@ -8,6 +8,7 @@
 	flex-wrap: nowrap;
 	padding-left: 3px;
 	padding-right: 12px;
+	outline: none;
 }
 
 .root:hover {
