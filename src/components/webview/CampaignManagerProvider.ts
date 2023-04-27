@@ -252,17 +252,16 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			jobMap,
 		);
 
-		if (caseElements.length === 0) {
-			return;
-		}
-
 		const caseNodes = caseElements.map(this.__buildCaseTree);
 
 		this.setView({
 			viewId: 'campaignManagerView',
-			viewProps: {
-				nodes: caseNodes,
-			},
+			viewProps:
+				caseNodes.length > 0
+					? {
+							nodes: caseNodes,
+					  }
+					: null,
 		});
 	}
 
