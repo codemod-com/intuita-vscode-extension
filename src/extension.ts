@@ -106,21 +106,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
-	const codemodService = new CodemodService(rootPath ?? null);
-	const codemodListWebviewProvider = new CodemodListPanelProvider(
-		context,
-		messageBus,
-		rootPath,
-		codemodService,
-	);
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			'intuita-available-codemod-tree-view',
-			codemodListWebviewProvider,
-		),
-	);
-
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuita-progress-webview',
@@ -152,6 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		vscode.workspace.fs,
 		statusBarItemManager,
+		fileService,
 	);
 
 	new BootstrapExecutablesService(
@@ -190,6 +176,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
+	const codemodService = new CodemodService(rootPath ?? null, engineService);
+	const codemodListWebviewProvider = new CodemodListPanelProvider(
+		context,
+		messageBus,
+		rootPath,
+		codemodService,
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'intuita-available-codemod-tree-view',
+			codemodListWebviewProvider,
+		),
+	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openJobDiff',
@@ -1117,13 +1117,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const codemodList = await engineService.getCodemodList();
 
-					const codemodName = await vscode.window.showQuickPick(
-						codemodList.map(({ name }) => name),
-						{
-							placeHolder:
-								'Pick a codemod to execute over the selected path',
-						},
-					);
+					const codemodName =
+						(await vscode.window.showQuickPick(
+							codemodList.map(({ name }) => name),
+							{
+								placeHolder:
+									'Pick a codemod to execute over the selected path',
+							},
+						)) ?? null;
+
+					if (codemodName === null) {
+						return;
+					}
 
 					const selectedCodemod = codemodList.find(
 						({ name }) => name === codemodName,
@@ -1149,6 +1154,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						happenedAt,
 						mode: 'dryRun',
 					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				} catch (e) {
 					vscode.window.showErrorMessage(
 						e instanceof Error ? e.message : String(e),

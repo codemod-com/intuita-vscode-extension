@@ -2,6 +2,7 @@ import * as t from 'io-ts';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
 import { Element, ElementKind } from './elements/types';
+import { JobKind } from './jobs/types';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
@@ -65,12 +66,23 @@ export function getUri(
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-export const getElementIconBaseName = (kind: Element['kind']): string => {
+export const getElementIconBaseName = (
+	kind: Element['kind'],
+	jobKind: JobKind | null,
+): string => {
 	switch (kind) {
 		case ElementKind.CASE:
 			return 'case.svg';
 		case ElementKind.FILE:
-			return 'ts2.svg';
+			return jobKind !== null &&
+				[
+					JobKind.copyFile,
+					JobKind.createFile,
+					JobKind.moveAndRewriteFile,
+					JobKind.moveFile,
+				].includes(jobKind)
+				? 'newFile.svg'
+				: 'file.svg';
 		case ElementKind.JOB:
 			return 'bluelightbulb.svg';
 		case ElementKind.ROOT:
@@ -100,7 +112,9 @@ export const branchNameFromStr = (str: string): string => {
 };
 
 export const capitalize = (str: string): string => {
-	if (!str) return '';
+	if (!str) {
+		return '';
+	}
 
 	return str.charAt(0).toUpperCase() + str.slice(1);
 };

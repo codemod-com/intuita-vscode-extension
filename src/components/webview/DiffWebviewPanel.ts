@@ -11,27 +11,20 @@ import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
 const buildIssueTemplate = (codemodName: string): string => {
 	return `
-	<!--
-  ⚠️⚠️
-	Please do not include any proprietary code in the issue. 
-	Provide a minimum meaningful sample so we can reproduce the issue. 
-	⚠️⚠️
-	-->
+---
+:warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
+
+---
+Codemod: ${codemodName}
+
+**1. Code before transformation (Input for codemod)**
 	
-	**Codemod name**
-	${codemodName}
-	
-	**Codemod input**
-	Please provide a code example on which the codemod was executed
-	
-	**Expected codemod output**
-	Provide expected codemod output
-	
-	**Actual codemod output**
-	Provide actual codemod output
-	
-	**Additional context**
-	Add any other context about the problem here.`;
+**2. Expected code after transformation (Desired output of codemod)**
+
+**3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
+
+---	
+**Additional context**`;
 };
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;

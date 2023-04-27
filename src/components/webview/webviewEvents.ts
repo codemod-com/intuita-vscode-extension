@@ -2,6 +2,7 @@ import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
+import * as E from 'fp-ts/Either';
 
 export type JobActionCommands =
 	| 'intuita.rejectJob'
@@ -44,7 +45,7 @@ export type CommitChangesFormData = Readonly<{
 
 export type CodemodTreeNode<T = undefined> = {
 	id: string;
-	kind: string;
+	kind: 'codemodItem' | 'path';
 	label: string;
 	description?: string;
 	iconName?: string;
@@ -129,6 +130,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createPR.setPullRequestSubmitting';
 			value: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemods.setPublicCodemods';
+			data: E.Either<Error, CodemodTreeNode<string> | null>;
 	  }>;
 
 export type WebviewResponse =
@@ -202,6 +207,7 @@ export type View =
 			viewId: 'treeView';
 			viewProps: {
 				node: TreeNode;
+				fileNodes: TreeNode[];
 			};
 	  }>
 	| Readonly<{

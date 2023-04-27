@@ -46,6 +46,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
+	__fileNodes = new Set<TreeNode>();
 	__unsavedChanges = false;
 
 	constructor(
@@ -149,6 +150,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				return;
 			}
 			const jobHash = element.children[0]?.jobHash;
+			const jobKind = element.children[0]?.job.kind;
+
 			for (const dir of directories) {
 				const parentNode = this.__folderMap.get(path) ?? null;
 
@@ -167,6 +170,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									label: dir,
 									iconName: getElementIconBaseName(
 										ElementKind.FILE,
+										jobKind ?? null,
 									),
 									children: [],
 									command: {
@@ -185,6 +189,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 							: {
 									id: path,
 									kind: 'folderElement',
+									label: dir,
 									iconName: 'folder.svg',
 									children: [],
 									command: {
@@ -212,6 +217,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									],
 							  };
 
+					if (dir === fileName) {
+						this.__fileNodes.add(newTreeNode);
+					}
 					this.__folderMap.set(path, newTreeNode);
 
 					parentNode.children.push(newTreeNode);
@@ -227,10 +235,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 				if (!existingJobHashes.includes(jobHash)) {
 					existingJobHashes.push(jobHash);
-				}
-
-				if (currentNode.kind !== 'fileElement') {
-					currentNode.label = `${dir} (${existingJobHashes.length})`;
 				}
 			}
 		}
@@ -369,6 +373,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	private __onClearStateMessage() {
 		this.__folderMap.clear();
+		this.__fileNodes.clear();
 
 		const rootElement = {
 			hash: '' as ElementHash,
@@ -385,6 +390,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
+					fileNodes: [],
 				},
 			});
 		}
@@ -413,6 +419,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		this.__folderMap.clear();
+		this.__fileNodes.clear();
 
 		const tree = this.__getTreeByDirectory(caseElement);
 
@@ -421,6 +428,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
+					fileNodes: Array.from(this.__fileNodes),
 				},
 			});
 		}

@@ -54,6 +54,19 @@
 	user-select: none;
 }
 
+.subLabel {
+	line-height: 20px;
+	font-size: 11px;
+	cursor: pointer;
+	flex-grow: 1;
+	color: var(--vscode-foreground);
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	user-select: none;
+	text-align: right;
+}
+
 .actions {
 	display: flex;
 	margin: 0 auto;

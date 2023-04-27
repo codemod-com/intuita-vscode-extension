@@ -144,8 +144,6 @@ export class JobManager {
 	}
 
 	public async acceptJobs(jobHashes: ReadonlySet<JobHash>): Promise<void> {
-		// HERE
-
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(jobHashes);
 

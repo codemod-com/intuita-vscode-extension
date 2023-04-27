@@ -1,6 +1,6 @@
-import { commands, window, Event, EventEmitter, Uri } from 'vscode';
+import { commands, Uri } from 'vscode';
 import { readFileSync } from 'fs';
-import { isNeitherNullNorUndefined } from '../utilities';
+import { capitalize, isNeitherNullNorUndefined } from '../utilities';
 import {
 	CodemodHash,
 	CodemodItem,
@@ -14,27 +14,149 @@ import {
 	getPackageJsonUris,
 	buildCodemodElementHash,
 } from './utils';
+import { EngineService } from '../components/engineService';
 
 export class CodemodService {
 	#rootPath: string | null;
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
-	readonly #eventEmitter = new EventEmitter<void>();
-	public readonly onDidChangeTreeData: Event<void>;
+	#publicCodemods: Map<CodemodHash, CodemodElement> = new Map();
 
-	constructor(rootPath: string | null) {
+	constructor(
+		rootPath: string | null,
+		private __engineService: EngineService,
+	) {
 		this.#rootPath = rootPath;
-		this.onDidChangeTreeData = this.#eventEmitter.event;
-		this.getPackageJsonList();
 	}
 
-	public getCodemodElement = (codemodHash: CodemodHash) => {
-		return this.#codemodItemsMap.get(codemodHash);
+	__makePathItem(path: string, label: string) {
+		const hashlessPathItem = {
+			kind: 'path' as const,
+			label,
+			path: `${this.#rootPath}${path}`,
+			children: [] as CodemodHash[],
+		};
+
+		const hash = buildCodemodElementHash(hashlessPathItem);
+		const pathItem = {
+			...hashlessPathItem,
+			hash,
+		};
+
+		return pathItem;
+	}
+	__makeTitleReadable(name: string) {
+		return name
+			.split('-')
+			.map((word) => capitalize(word))
+			.join(' ');
+	}
+	getDiscoveredCodemods = async () => {
+		const path = this.#rootPath;
+		if (!path) {
+			return;
+		}
+		const publicCodemods = await this.__engineService.getCodemodList();
+		const discoveredCodemods = new Map<CodemodHash, CodemodElement>();
+		const keys = new Set<CodemodHash>();
+		publicCodemods.forEach((el) => {
+			const { name, hashDigest, description } = el;
+			const nameParts = name.includes('/')
+				? name.split('/')
+				: name.split(':');
+
+			const codemod = {
+				...el,
+				kind: 'codemodItem' as const,
+				hash: hashDigest as CodemodHash,
+				label: this.__makeTitleReadable(
+					nameParts[nameParts.length - 1] as string,
+				),
+				pathToExecute: path,
+				// TODO: remove codemod to execute (once cleaned up the codemod tree)
+				commandToExecute: name,
+				description,
+			};
+			discoveredCodemods.set(codemod.hash, codemod);
+
+			nameParts.slice(0, -1).forEach((part, index, parts) => {
+				const currentWD = `${parts.slice(0, index + 1).join('/')}`;
+				const nextWD =
+					index + 1 < parts.length
+						? `${parts.slice(0, index + 2).join('/')}`
+						: null;
+				const currentPathItem = this.__makePathItem(currentWD, part);
+				const nextPathItem =
+					index + 1 < parts.length && nextWD
+						? this.__makePathItem(
+								nextWD,
+								parts[index + 1] as string,
+						  )
+						: null;
+				const children = new Set<CodemodHash>();
+
+				if (nextPathItem !== null) {
+					children.add(nextPathItem.hash);
+				}
+
+				if (discoveredCodemods.has(currentPathItem.hash)) {
+					const existingPathItem = discoveredCodemods.get(
+						currentPathItem.hash,
+					);
+
+					if (existingPathItem?.kind === 'path') {
+						existingPathItem.children.forEach((item) => {
+							children.add(item);
+						});
+					}
+				}
+
+				if (index === 0) {
+					keys.add(currentPathItem.hash);
+				}
+				if (nextPathItem) {
+					currentPathItem.children.push(nextPathItem.hash);
+				}
+				if (index === parts.length - 1) {
+					children.add(codemod.hash);
+				}
+
+				discoveredCodemods.set(currentPathItem.hash, {
+					...currentPathItem,
+					children: Array.from(children),
+				});
+			});
+		});
+
+		const rootPath = {
+			label: path,
+			kind: 'path' as const,
+			path,
+			children: Array.from(keys),
+		};
+		const hash = buildCodemodElementHash(rootPath);
+
+		discoveredCodemods.set(hash, {
+			...rootPath,
+			hash,
+		});
+		this.#publicCodemods = discoveredCodemods;
+	};
+
+	public getCodemodElement = (
+		recommended: boolean,
+		codemodHash: CodemodHash,
+	) => {
+		return recommended
+			? this.#codemodItemsMap.get(codemodHash)
+			: this.#publicCodemods.get(codemodHash);
 	};
 
 	async getPackageJsonList() {
 		const packageJsonList = await getPackageJsonUris();
 		if (!packageJsonList.length) {
-			this.showRootPathUndefinedMessage();
+			/**
+			 * return silently if no package.json is found
+			 */
 			return;
 		}
 
@@ -76,29 +198,18 @@ export class CodemodService {
 			});
 
 			splitParts.forEach((part, index) => {
-				const currentWD = `${rootPath}${splitParts
-					.slice(0, index + 1)
-					.join('/')}`;
+				const currentWD = `${splitParts.slice(0, index + 1).join('/')}`;
 
 				const nextWD =
 					index + 1 < splitParts.length
-						? `${rootPath}${splitParts
-								.slice(0, index + 2)
-								.join('/')}`
+						? `${splitParts.slice(0, index + 2).join('/')}`
 						: null;
 				const nextLabel =
 					index + 1 < splitParts.length
 						? splitParts[index + 1]
 						: null;
-				const currentWDHashlessCodemodPath = {
-					label: part,
-					kind: 'path' as const,
-					path: currentWD,
-					children: [],
-				};
-				const codemodPathHash = buildCodemodElementHash(
-					currentWDHashlessCodemodPath,
-				);
+
+				const codemodPath = this.__makePathItem(currentWD, part);
 				const children = new Set<CodemodHash>();
 
 				if (!nextWD || !nextLabel) {
@@ -106,26 +217,19 @@ export class CodemodService {
 						children.add(codemodHash);
 					}
 				} else {
-					const nextHashlessCodemodPath = {
-						label: nextLabel,
-						kind: 'path' as const,
-						path: nextWD,
-						children: [],
-					};
-					children.add(
-						buildCodemodElementHash(nextHashlessCodemodPath),
-					);
+					const nextPath = this.__makePathItem(nextWD, nextLabel);
+					children.add(nextPath.hash);
 				}
 
 				{
-					const current = codemods.get(codemodPathHash);
+					const current = codemods.get(codemodPath.hash);
 
 					if (current && current.kind === 'path') {
 						current.children.forEach((child) => {
 							children.add(child);
 						});
 
-						codemods.set(codemodPathHash, {
+						codemods.set(codemodPath.hash, {
 							...current,
 							children: Array.from(children),
 						});
@@ -134,9 +238,8 @@ export class CodemodService {
 					}
 				}
 
-				codemods.set(codemodPathHash, {
-					...currentWDHashlessCodemodPath,
-					hash: codemodPathHash,
+				codemods.set(codemodPath.hash, {
+					...codemodPath,
 					children: Array.from(children),
 				});
 			});
@@ -145,18 +248,18 @@ export class CodemodService {
 		this.#codemodItemsMap = codemods;
 	}
 
-	showRootPathUndefinedMessage() {
-		window.showInformationMessage(
-			'Unable to find package.json to list avaliable codemods. Please open a project folder.',
-		);
-	}
 	public getListOfCodemodCommands() {
 		return Object.values(commandList);
 	}
-	getUnsortedChildren(el: CodemodHash | null): CodemodHash[] {
+	getUnsortedChildren(
+		recommended: boolean,
+		el: CodemodHash | null,
+	): CodemodHash[] {
 		if (!this.#rootPath) return [];
 		if (el) {
-			const parent = this.#codemodItemsMap.get(el);
+			const parent = recommended
+				? this.#codemodItemsMap.get(el)
+				: this.#publicCodemods.get(el);
 			if (!parent) {
 				return [];
 			}
@@ -166,20 +269,28 @@ export class CodemodService {
 			return [el];
 		}
 		// List codemods starting from the root
-		const rootCodemodPath = Array.from(this.#codemodItemsMap.values()).find(
-			(el) => el.kind === 'path' && el.path === this.#rootPath,
-		);
+		const rootCodemodPath = Array.from(
+			recommended
+				? this.#codemodItemsMap.values()
+				: this.#publicCodemods.values(),
+		).find((el) => el.kind === 'path' && el.path === this.#rootPath);
 		if (!rootCodemodPath || rootCodemodPath.kind !== 'path') {
 			return [];
 		}
 		return [rootCodemodPath.hash];
 	}
 
-	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
-		const children = this.getUnsortedChildren(el ?? null);
-
+	getChildren(
+		recommended: boolean,
+		el?: CodemodHash | undefined,
+	): CodemodHash[] {
+		const children = this.getUnsortedChildren(recommended, el ?? null);
 		const sortedChildren = children
-			.map((el) => this.#codemodItemsMap.get(el))
+			.map((el) =>
+				recommended
+					? this.#codemodItemsMap.get(el)
+					: this.#publicCodemods.get(el),
+			)
 			.filter(isNeitherNullNorUndefined)
 			.sort((a, b) => {
 				if (a.kind === 'path' && b.kind === 'path') {
