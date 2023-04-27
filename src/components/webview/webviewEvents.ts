@@ -30,16 +30,10 @@ export type JobDiffViewProps = Readonly<{
 
 export type CommitChangesFormData = Readonly<{
 	remoteUrl: string;
-	issueTitle: string;
-	issueBody: string;
-	pullRequestTitle: string;
-	pullRequestBody: string;
 	currentBranchName: string;
-	targetBranchName: string;
+	newBranchName: string;
 	commitMessage: string;
 	createNewBranch: boolean;
-	createPullRequest: boolean;
-	createIssue: boolean;
 	stagedJobs: { hash: string; label: string }[];
 }>;
 
@@ -221,8 +215,6 @@ export type View =
 			viewProps: {
 				loading: boolean;
 				error: string;
-				baseBranchOptions: string[];
-				targetBranchOptions: string[];
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
 			};

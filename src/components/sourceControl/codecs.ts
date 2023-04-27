@@ -7,14 +7,11 @@ const stagedJobCodec = buildTypeCodec({
 });
 
 export const createPullRequestParamsCodec = buildTypeCodec({
-	title: t.string,
-	body: t.string,
-	baseBranch: t.string,
-	targetBranch: t.string,
+	currentBranchName: t.string,
+	newBranchName: t.string,
 	remoteUrl: t.string,
 	stagedJobs: t.readonlyArray(stagedJobCodec),
 	commitMessage: t.string,
-	createPullRequest: t.boolean,
 	createNewBranch: t.boolean,
 });
 

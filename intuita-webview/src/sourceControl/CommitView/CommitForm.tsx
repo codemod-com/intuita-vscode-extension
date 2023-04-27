@@ -15,7 +15,7 @@ const CommitForm = ({ formData, onChangeFormField }: Props) => {
 			value={formData.commitMessage}
 			onInput={onChangeFormField('commitMessage')}
 		>
-			Message
+			Commit message
 		</VSCodeTextField>
 	);
 };

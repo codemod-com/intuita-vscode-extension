@@ -2,49 +2,36 @@ import {
 	VSCodeButton,
 	VSCodeDropdown,
 	VSCodeOption,
-	VSCodeCheckbox,
+	VSCodeRadioGroup,
+	VSCodeRadio,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import CommitForm from './CommitForm';
-import PullRequestForm from './PullRequestForm';
-import ChangesList from './ChangesList';
 import BranchForm from './BranchForm';
 import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
-import IssueForm from './IssueForm';
+
+import cn from 'classnames';
 
 type Props = Readonly<{
 	loading: boolean;
 	initialFormData: Partial<CommitChangesFormData>;
-	baseBranchOptions: string[];
-	targetBranchOptions: string[];
 	remoteOptions: string[];
 }>;
 
 const initialFormState: CommitChangesFormData = {
 	currentBranchName: '',
-	targetBranchName: '',
-	issueTitle: '',
-	issueBody: '',
-	pullRequestTitle: '', 
-	pullRequestBody: '',
+	newBranchName: '',
 	remoteUrl: '',
 	commitMessage: '',
 	createNewBranch: false,
-	createPullRequest: false,
-	createIssue: false, 
 	stagedJobs: [],
 };
 
-const CreatePR = ({
-	loading,
-	initialFormData,
-	baseBranchOptions,
-	targetBranchOptions,
-	remoteOptions,
-}: Props) => {
-	const [formData, setFormData] = useState<CommitChangesFormData>(initialFormState);
+const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
+	const [formData, setFormData] =
+		useState<CommitChangesFormData>(initialFormState);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -59,8 +46,7 @@ const CreatePR = ({
 		});
 	};
 
-	const { remoteUrl, stagedJobs, createPullRequest, createNewBranch } =
-		formData;
+	const { remoteUrl, createNewBranch, currentBranchName } = formData;
 
 	useEffect(() => {
 		setFormData((prevFormData) => ({
@@ -70,7 +56,8 @@ const CreatePR = ({
 	}, [initialFormData]);
 
 	const onChangeFormField =
-		(fieldName: keyof CommitChangesFormData) => (e: Event | React.FormEvent<HTMLElement>) => {
+		(fieldName: keyof CommitChangesFormData) =>
+		(e: Event | React.FormEvent<HTMLElement>) => {
 			const { checked, value } = e.target as HTMLInputElement;
 
 			setFormData((prevFormData) => ({
@@ -79,14 +66,7 @@ const CreatePR = ({
 			}));
 		};
 
-	const handleCancel = () => {
-		vscode.postMessage({
-			kind: 'webview.global.closeView',
-		});
-	};
-
 	const hasMultipleRemotes = remoteOptions.length > 1;
-	const hasStatedChanges = stagedJobs.length !== 0;
 
 	return (
 		<div className={styles.root}>
@@ -112,64 +92,55 @@ const CreatePR = ({
 					formData={formData}
 					onChangeFormField={onChangeFormField}
 				/>
-				{/* @TODO should we even allow to unapply all jobs? */}
-				{hasStatedChanges ? (
-					<ChangesList
-						formData={formData}
-						setFormData={setFormData}
-					/>
-				) : (
-					'No changes to commit'
-				)}
-				<div className={styles.checkboxContainer}>
-					<VSCodeCheckbox
-						checked={formData.createNewBranch}
-						onChange={onChangeFormField('createNewBranch')}
+				<VSCodeRadioGroup
+					orientation="vertical"
+					value={createNewBranch ? 'newBranch' : 'currentBranch'}
+				>
+					<VSCodeRadio
+						value="currentBranch"
+						checked={!createNewBranch}
+						onChange={(e) => {
+							setFormData((prevData) => ({
+								...prevData,
+								createNewBranch:
+									(e.target as HTMLInputElement).value ===
+									'newBranch',
+							}));
+						}}
 					>
-						Create new branch
-					</VSCodeCheckbox>
-					<p>When selected, new branch will be created</p>
-				</div>
+						<span className={cn('codicon', 'codicon-git-commit')} />{' '}
+						{`Commit directly to the "${currentBranchName}" branch.`}
+					</VSCodeRadio>
+					<VSCodeRadio
+						value="newBranch"
+						checked={createNewBranch}
+						onChange={(e) => {
+							setFormData((prevData) => ({
+								...prevData,
+								createNewBranch:
+									(e.target as HTMLInputElement).value ===
+									'newBranch',
+							}));
+						}}
+					>
+						<span
+							className={cn(
+								'codicon',
+								'codicon-git-pull-request',
+							)}
+						/>
+						Create a <b>new branch</b> for this commit and start a
+						pull request.
+					</VSCodeRadio>
+				</VSCodeRadioGroup>
 				{createNewBranch ? <BranchForm formData={formData} /> : null}
-				{createNewBranch ? (
-					<div className={styles.checkboxContainer}>
-						<VSCodeCheckbox
-							checked={formData.createPullRequest}
-							onChange={onChangeFormField('createPullRequest')}
-						>
-							Create Pull request
-						</VSCodeCheckbox>
-						<p>
-							When selected, pull request will be automatically
-							created
-						</p>
-					</div>
-				) : null}
-				{createNewBranch && createPullRequest ? (
-					<PullRequestForm
-						formData={formData}
-						onChangeFormField={onChangeFormField}
-						baseBranchOptions={baseBranchOptions}
-						targetBranchOptions={targetBranchOptions}
-					/>
-				) : null}
-				{
-					createPullRequest ? <IssueForm formData={formData} 				onChangeFormField={onChangeFormField}/> : null
-				}
 				<div className={styles.actions}>
-					<VSCodeButton
-						onClick={handleCancel}
-						type="button"
-						className={styles.actionButton}
-					>
-						Cancel
-					</VSCodeButton>
 					<VSCodeButton
 						disabled={loading}
 						type="submit"
 						className={styles.actionButton}
 					>
-						{loading ? 'Committing...' : 'Commit & Push'}
+						Commit changes
 					</VSCodeButton>
 				</div>
 			</form>

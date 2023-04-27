@@ -7,7 +7,7 @@ type Props = {
 
 const BranchForm = ({ formData }: Props) => {
 	return (
-		<VSCodeTextField readOnly value={formData.targetBranchName}>
+		<VSCodeTextField readOnly value={formData.newBranchName}>
 			Branch
 		</VSCodeTextField>
 	);
