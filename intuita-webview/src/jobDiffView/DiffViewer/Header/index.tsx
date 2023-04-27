@@ -35,7 +35,7 @@ const Header = ({ title, viewType, onViewChange }: Props) => {
 					appearance="icon"
 					onClick={() => onViewChange('inline')}
 				>
-					<UnifiedIcon className={styles.icon} />
+					Inline <UnifiedIcon className={styles.icon} />
 				</VSCodeButton>
 			) : (
 				<VSCodeButton
@@ -43,7 +43,7 @@ const Header = ({ title, viewType, onViewChange }: Props) => {
 					appearance="icon"
 					onClick={() => onViewChange('side-by-side')}
 				>
-					<SplitIcon className={styles.icon} />
+					Side by Side <SplitIcon className={styles.icon} />
 				</VSCodeButton>
 			)}
 		</div>
