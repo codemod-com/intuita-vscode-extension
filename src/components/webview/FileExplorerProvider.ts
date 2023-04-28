@@ -47,6 +47,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
+	// map between URIs to the File Tree Node and the job hash
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 
@@ -406,7 +407,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.fileExplorer.selectFile' && message.id) {
+		if (message.kind === 'webview.fileExplorer.fileSelected') {
 			const fileNodeObj = this.__fileNodes.get(message.id) ?? null;
 			if (fileNodeObj === null) {
 				return;

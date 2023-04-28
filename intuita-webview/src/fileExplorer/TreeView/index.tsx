@@ -155,7 +155,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		}
 
 		vscode.postMessage({
-			kind: 'webview.fileExplorer.selectFile',
+			kind: 'webview.fileExplorer.fileSelected',
 			id: focusedNodeId,
 		});
 	}, [focusedNodeId, fileNodeIds]);

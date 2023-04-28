@@ -208,8 +208,8 @@ export type WebviewResponse =
 			hash: string | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.selectFile';
-			id: string | null;
+			kind: 'webview.fileExplorer.fileSelected';
+			id: string;
 	  }>
 	| RunCodemodsCommand;
 
