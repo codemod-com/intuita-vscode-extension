@@ -154,7 +154,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 			const { pathToExecute, hash } = codemod;
 
-			const uri = Uri.file(`${this.__rootPath}${pathToExecute}`);
+			const uri = Uri.file(pathToExecute);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}

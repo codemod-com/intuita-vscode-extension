@@ -57,7 +57,7 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
-			{kind === 'codemodItem' && (
+			{kind === 'codemodItem' && description && (
 				<Popup
 					trigger={<div className={styles.icon}>{icon}</div>}
 					position={['bottom left', 'top left']}
@@ -68,7 +68,9 @@ const TreeItem = ({
 					{description}
 				</Popup>
 			)}
-			{kind === 'path' && <div className={styles.icon}>{icon}</div>}
+			{(kind === 'path' || !description) && (
+				<div className={styles.icon}>{icon}</div>
+			)}
 			<span className={styles.label}>
 				{label}
 				{kind === 'codemodItem' && (
