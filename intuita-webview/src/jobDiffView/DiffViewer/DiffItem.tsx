@@ -97,6 +97,7 @@ export const JobDiffView = ({
 			}
 		>
 			<Container
+				id={`diffViewContainer-${jobHash}`}
 				viewType={viewType}
 				oldFileName={oldFileTitle}
 				newFileName={newFileTitle}

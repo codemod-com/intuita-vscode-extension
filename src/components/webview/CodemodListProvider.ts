@@ -20,8 +20,9 @@ import {
 	CodemodHash,
 } from '../../packageJsonAnalyzer/types';
 import { watchFileWithPattern } from '../../fileWatcher';
-import { debounce } from '../../utilities';
+import { debounce, getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
+import { ElementKind } from '../../elements/types';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -217,7 +218,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				label,
 				extraData: pathToExecute,
 				description: description,
-				iconName: 'bluelightbulb.svg',
+				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,
 				actions: [
 					{

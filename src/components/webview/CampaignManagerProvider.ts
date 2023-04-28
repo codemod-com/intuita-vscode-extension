@@ -8,7 +8,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
-	TreeNode,
+	CaseTreeNode,
 	View,
 	WebviewMessage,
 	WebviewResponse,
@@ -21,9 +21,9 @@ import {
 	FileElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import { debounce } from '../../utilities';
 import { JobManager } from '../jobManager';
-import { CaseWithJobHashes } from '../../cases/types';
+import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
 	buildJobElement,
 	compareJobElements,
@@ -38,6 +38,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { SourceControlService } from '../sourceControl';
+import { FileExplorerProvider } from './FileExplorerProvider';
 
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -52,6 +53,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __sourceControl: SourceControlService,
+		private readonly __fileExplorerProvider: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -250,37 +252,36 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			jobMap,
 		);
 
-		if (caseElements.length === 0) {
-			return;
-		}
-
-		const caseElement = caseElements[0] ?? null;
-		if (caseElement === null) {
-			return;
-		}
-
-		const node = this.__buildCaseTree(caseElement);
+		const caseNodes = caseElements.map(this.__buildCaseTree);
 
 		this.setView({
 			viewId: 'campaignManagerView',
-			viewProps: {
-				node,
-			},
+			viewProps:
+				caseNodes.length > 0
+					? {
+							nodes: caseNodes,
+					  }
+					: null,
 		});
 	}
 
-	private __buildCaseTree = (element: CaseElement): TreeNode => {
+	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
 		const actions = [
 			{
 				title: '✓ Commit',
 				command: 'intuita.acceptCase',
 				arguments: [element.hash],
 			},
+			{
+				title: '✗ Discard',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
 		];
 
-		const mappedNode: TreeNode = {
-			id: element.hash,
-			iconName: getElementIconBaseName(element.kind, null),
+		const mappedNode: CaseTreeNode = {
+			id: element.hash as unknown as CaseHash,
+			iconName: 'case.svg',
 			label: element.label,
 			kind: 'caseElement',
 			actions,
@@ -334,6 +335,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
+		}
+
+		if (message.kind === 'webview.campaignManager.selectCase') {
+			this.__fileExplorerProvider.updateExplorerView(message.hash);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {

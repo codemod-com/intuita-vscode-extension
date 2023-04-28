@@ -346,27 +346,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		repositoryService,
 	);
 
-	const campaignManagerProvider = new CampaignManagerProvider(
-		context,
-		messageBus,
-		jobManager,
-		caseManager,
-		sourceControl,
-	);
-
-	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
-		'intuitaCampaignManager',
-		campaignManagerProvider,
-	);
-
-	context.subscriptions.push(intuitaCampaignManager);
-
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
 		jobManager,
 		caseManager,
-		sourceControl,
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
@@ -375,6 +359,22 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaFileExplorer);
+
+	const campaignManagerProvider = new CampaignManagerProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+		sourceControl,
+		fileExplorerProvider,
+	);
+
+	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
+		'intuitaCampaignManager',
+		campaignManagerProvider,
+	);
+
+	context.subscriptions.push(intuitaCampaignManager);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
@@ -993,6 +993,15 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus.publish({
 				kind: MessageKind.rejectCase,
 				caseHash: caseHash as CaseHash,
+			});
+
+			messageBus.publish({
+				kind: MessageKind.updateElements,
+			});
+
+			fileExplorerProvider.setView({
+				viewId: 'treeView',
+				viewProps: null,
 			});
 		}),
 	);

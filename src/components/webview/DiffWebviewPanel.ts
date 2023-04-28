@@ -243,6 +243,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	};
 
+	public focusFile(jobHash: JobHash) {
+		this._panel?.webview.postMessage({
+			kind: 'webview.diffView.focusFile',
+			jobHash,
+		});
+	}
+
 	private __onRejectJob = async (jobHashes: ReadonlySet<JobHash>) => {
 		for (const jobHash of jobHashes) {
 			this._postMessage({

@@ -44,7 +44,7 @@ function App() {
 
 	return (
 		<main className="App">
-			<ListView node={view.viewProps.node} />
+			<ListView nodes={view.viewProps.nodes} />
 		</main>
 	);
 }
