@@ -9,9 +9,6 @@
 	padding-left: 3px;
 	padding-right: 12px;
 }
-.w-full {
-	width: 100%;
-}
 
 .root:hover {
 	background-color: var(--vscode-list-hoverBackground);
@@ -23,6 +20,10 @@
 
 .root:hover .actions {
 	display: flex;
+}
+
+.root:hover .description {
+	display: inline;
 }
 
 .focused,
@@ -60,6 +61,7 @@
 .description {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	display: none;
 }
 
 .actions {
@@ -97,8 +99,4 @@
 }
 .action {
 	margin-left: 3px;
-}
-.welcomeMessage {
-	padding: 0 20px 1em;
-	margin-top: 13px;
 }

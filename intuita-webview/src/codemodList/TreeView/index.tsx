@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
 import { RunCodemodsCommand, CodemodTreeNode } from '../../shared/types';
@@ -7,10 +7,13 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import cn from 'classnames';
-import { VSCodeButton, VSCodeLink } from '@vscode/webview-ui-toolkit/react';
+import { DirectorySelector } from '../components/DirectorySelector';
+import Popup from 'reactjs-popup';
+import E from 'fp-ts/Either';
 
 type Props = {
 	node?: CodemodTreeNode<string>;
+	response: E.Either<Error, string | null>;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -32,10 +35,18 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
-const TreeView = ({ node }: Props) => {
+const TreeView = ({ node, response }: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState('');
+	const [isEditingExecutionPath, setIsEditingExecutionPath] =
+		useState<CodemodTreeNode<string> | null>(null);
 
-	const handleClick = useCallback((node: CodemodTreeNode<String>) => {
+	useEffect(() => {
+		if (response._tag === 'Right') {
+			setIsEditingExecutionPath(null);
+		}
+	}, [response._tag]);
+
+	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
 		if (!node.command) {
 			return;
 		}
@@ -53,6 +64,13 @@ const TreeView = ({ node }: Props) => {
 		[],
 	);
 
+	const handleEditExecutionPath = useCallback(
+		(node: CodemodTreeNode<string>) => {
+			setIsEditingExecutionPath(node);
+		},
+		[],
+	);
+
 	const renderItem = ({
 		node,
 		depth,
@@ -61,7 +79,7 @@ const TreeView = ({ node }: Props) => {
 		focusedNodeId,
 		setFocusedNodeId,
 	}: {
-		node: CodemodTreeNode<String>;
+		node: CodemodTreeNode<string>;
 		depth: number;
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
@@ -73,6 +91,7 @@ const TreeView = ({ node }: Props) => {
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
 			<a
+				key={action.kind}
 				className={styles.action}
 				role="button"
 				onClick={(e) => {
@@ -84,12 +103,28 @@ const TreeView = ({ node }: Props) => {
 			</a>
 		));
 
+		const editExecutionPathAction = (
+			// eslint-disable-next-line jsx-a11y/anchor-is-valid
+			<a
+				key="executionOnPath"
+				className={styles.action}
+				role="button"
+				onClick={(e) => {
+					e.stopPropagation();
+					handleEditExecutionPath(node);
+				}}
+			>
+				<i className="codicon codicon-pencil"></i> Edit Path
+			</a>
+		);
+
 		return (
 			<TreeItem
 				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				description={node.description ?? ''}
+				hoverDescription={`Target: ${node.extraData}`}
 				label={node.label ?? ''}
 				icon={icon}
 				depth={depth}
@@ -101,50 +136,76 @@ const TreeView = ({ node }: Props) => {
 					setIsOpen(!open);
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={actionButtons}
+				actionButtons={[
+					...actionButtons,
+					...(node.kind === 'codemodItem'
+						? [editExecutionPathAction]
+						: []),
+				]}
 			/>
 		);
 	};
 
 	if (!node || (node.children?.length ?? 0) === 0) {
-		return (
-			<div className={styles.welcomeMessage}>
-				<p>
-					No available codemods right now based on package.json file.
-					You can create a codemod on
-					<VSCodeLink href="https://codemod.studio">
-						Codemod Studio
-					</VSCodeLink>
-					and import it here.
-				</p>
-				<VSCodeButton
-					className={styles['w-full']}
-					onClick={(e) => {
-						e.stopPropagation();
-						vscode.postMessage({
-							kind: 'webview.command',
-							value: {
-								command: 'openLink',
-								arguments: ['https://codemod.studio'],
-								title: 'Open Codemod Studio',
-							},
-						});
-					}}
-				>
-					Open Codemod Studio
-				</VSCodeButton>
-			</div>
-		);
+		return null;
 	}
 
+	const onEditDone = (value: string) => {
+		if (!isEditingExecutionPath) {
+			return;
+		}
+		vscode.postMessage({
+			title: 'Update Path',
+			kind: 'webview.codemodList.updatePathToExecute',
+			value: {
+				newPath: value,
+				codemodHash: isEditingExecutionPath.id,
+			},
+		});
+	};
+
 	return (
-		<Tree
-			node={node}
-			renderItem={(props) =>
-				renderItem({ ...props, setFocusedNodeId, focusedNodeId })
-			}
-			depth={0}
-		/>
+		<div>
+			{isEditingExecutionPath && (
+				<Popup
+					modal
+					open={!!isEditingExecutionPath}
+					onClose={() => {
+						setIsEditingExecutionPath(null);
+					}}
+					closeOnEscape
+				>
+					<span
+						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
+						onClick={() => setIsEditingExecutionPath(null)}
+					></span>
+					<p className="bold">
+						Codemod: {isEditingExecutionPath.label}
+					</p>
+
+					<p> current Path: {isEditingExecutionPath.extraData}</p>
+					<DirectorySelector
+						defaultValue={isEditingExecutionPath.extraData ?? ''}
+						onEditDone={onEditDone}
+						error={{
+							value:
+								response._tag === 'Left'
+									? response.left.name
+									: null,
+							timestamp: Date.now(),
+						}}
+					/>
+				</Popup>
+			)}
+
+			<Tree
+				node={node}
+				renderItem={(props) =>
+					renderItem({ ...props, setFocusedNodeId, focusedNodeId })
+				}
+				depth={0}
+			/>
+		</div>
 	);
 };
 

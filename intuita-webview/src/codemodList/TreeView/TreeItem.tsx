@@ -8,10 +8,11 @@ type Props = {
 	id: string;
 	label: string;
 	description: string;
+	hoverDescription?: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: ReactNode;
+	actionButtons: ReactNode[];
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
@@ -23,6 +24,7 @@ const TreeItem = ({
 	id,
 	label,
 	description,
+	hoverDescription,
 	kind,
 	icon,
 	open,
@@ -69,9 +71,15 @@ const TreeItem = ({
 			{kind === 'path' && <div className={styles.icon}>{icon}</div>}
 			<span className={styles.label}>
 				{label}
-				<span className={styles.description}> {description}</span>
+				{kind === 'codemodItem' && (
+					<span className={styles.description}>
+						{hoverDescription}
+					</span>
+				)}
 			</span>
-			<div className={styles.actions}>{actionButtons}</div>
+			<div className={styles.actions}>
+				{actionButtons.map((el) => el)}
+			</div>
 		</div>
 	);
 };

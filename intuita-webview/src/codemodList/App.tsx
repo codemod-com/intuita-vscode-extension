@@ -7,6 +7,7 @@ import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import './index.css';
+import { BuildItYourSelf } from './BuildItYourSelf';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
@@ -15,6 +16,10 @@ function App() {
 
 	const [publicCodemods, setPublicCodemods] = useState<
 		E.Either<Error, CodemodTreeNode<string> | null>
+	>(E.right(null));
+
+	const [pathEditResponse, setPathEditResponse] = useState<
+		E.Either<Error, string | null>
 	>(E.right(null));
 
 	const [publicCodemodsExpanded, setPublicCodemodsExpanded] = useState(true);
@@ -36,6 +41,9 @@ function App() {
 			if (message.kind === 'webview.codemods.setPublicCodemods') {
 				setPublicCodemods(message.data);
 			}
+			if (message.kind === 'webview.codemodList.updatePathResponse') {
+				setPathEditResponse(message.data);
+			}
 		};
 
 		window.addEventListener('message', handler);
@@ -52,17 +60,22 @@ function App() {
 	return (
 		<main className="App">
 			<Container
+				defaultExpanded={false}
 				className={cn('flex-none d-none', {
 					'max-h-full h-full-40':
 						!publicCodemodsExpanded && recommendedCodemodsExpanded,
 					'max-h-half h-auto': publicCodemodsExpanded,
 				})}
 				onToggle={(toggled) => seRecommendedCodemodsExpanded(toggled)}
-				headerTitle="Recommended Codemods (For This Workspace)"
+				headerTitle="Recommended Codemods"
 			>
-				<TreeView node={view.viewProps.data} />
+				<TreeView
+					response={pathEditResponse}
+					node={view.viewProps.data}
+				/>
 			</Container>
 			<Container
+				defaultExpanded
 				onToggle={(toggled) => setPublicCodemodsExpanded(toggled)}
 				headerTitle="Public Codemods"
 				className=" content-border-top  h-full"
@@ -70,7 +83,10 @@ function App() {
 				<div>
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right !== null && (
-							<TreeView node={publicCodemods.right} />
+							<TreeView
+								response={pathEditResponse}
+								node={publicCodemods.right}
+							/>
 						)}
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right === null && (
@@ -83,6 +99,13 @@ function App() {
 						<p>{publicCodemods.left.message}</p>
 					)}
 				</div>
+			</Container>
+			<Container
+				defaultExpanded={false}
+				headerTitle="Build It Yourself"
+				className=" content-border-top  h-full"
+			>
+				<BuildItYourSelf />
 			</Container>
 		</main>
 	);

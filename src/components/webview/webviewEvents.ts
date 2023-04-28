@@ -52,7 +52,7 @@ export type RunCodemodsCommand =
 	  }>;
 
 export type CodemodTreeNode<T = undefined> = {
-	id: string;
+	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
 	label: string;
 	description?: string;
@@ -161,6 +161,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemods.setPublicCodemods';
 			data: E.Either<Error, CodemodTreeNode<string> | null>;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.updatePathResponse';
+			data: E.Either<Error, string | null>;
 	  }>;
 
 export type WebviewResponse =
@@ -234,6 +238,14 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: string;
+			title: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.updatePathToExecute';
+			value: {
+				codemodHash: CodemodHash;
+				newPath: string;
+			};
 	  }>;
 
 export type View =
