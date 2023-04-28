@@ -160,7 +160,6 @@ const TreeView = ({
 			return;
 		}
 		vscode.postMessage({
-			title: 'Update Path',
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
 				newPath: value,
