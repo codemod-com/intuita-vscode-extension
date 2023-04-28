@@ -3,12 +3,7 @@ import { Uri } from 'vscode';
 import * as readline from 'node:readline';
 import { EngineMessageKind, messageCodec } from './engineService';
 import prettyReporter from 'io-ts-reporters';
-import {
-	CodemodExecutionMode,
-	Message,
-	MessageBus,
-	MessageKind,
-} from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { Job, JobHash, JobKind } from '../jobs/types';
@@ -24,7 +19,6 @@ class CompareProcessWrapper {
 		executableUri: Uri,
 		executionId: string,
 		messageBus: MessageBus,
-		private readonly __mode: CodemodExecutionMode,
 	) {
 		this.#process = spawn(singleQuotify(executableUri.fsPath), [], {
 			stdio: 'pipe',
@@ -63,7 +57,6 @@ class CompareProcessWrapper {
 					executionId,
 					codemodSetName: this.codemodSetName,
 					codemodName: this.codemodName,
-					mode: this.__mode,
 				});
 			}
 		});
@@ -127,7 +120,6 @@ export class NoraCompareServiceEngine {
 				message.noraRustEngineExecutableUri,
 				message.executionId,
 				this.#messageBus,
-				message.mode,
 			);
 		}
 
@@ -145,7 +137,6 @@ export class NoraCompareServiceEngine {
 				executionId: message.executionId,
 				codemodSetName: message.codemodSetName,
 				codemodName: message.codemodName,
-				mode: message.mode,
 			});
 		}
 	}
@@ -154,12 +145,6 @@ export class NoraCompareServiceEngine {
 		message: Message & { kind: MessageKind.filesCompared },
 	) {
 		if (message.equal) {
-			return;
-		}
-
-		if (message.mode === 'dirtyRun') {
-			// TODO add this job to the list of dirty run jobs
-
 			return;
 		}
 

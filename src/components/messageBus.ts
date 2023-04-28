@@ -81,8 +81,7 @@ export const enum MessageKind {
 }
 
 export type Engine = 'node' | 'rust';
-export type CodemodExecutionMode = 'dryRun' | 'dirtyRun';
-
+ 
 export type Command =
 	| Readonly<{
 			kind: 'repomod';
@@ -164,8 +163,7 @@ export type Message =
 			executionId: string;
 			codemodSetName: string;
 			codemodName: string;
-			mode: CodemodExecutionMode;
-	  }>
+ 	  }>
 	| Readonly<{
 			kind: MessageKind.filesCompared;
 			jobHash: JobHash;
@@ -173,8 +171,7 @@ export type Message =
 			executionId: string;
 			codemodSetName: string;
 			codemodName: string;
-			mode: CodemodExecutionMode;
-	  }>
+ 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngines;
 	  }>
@@ -198,8 +195,7 @@ export type Message =
 			command: Command;
 			happenedAt: string;
 			executionId: string;
-			mode: CodemodExecutionMode;
-	  }>
+ 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
 			executionId: string;
