@@ -242,7 +242,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			});
 		}
 	};
-	
+
 	public focusFile(jobHash: JobHash) {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFile',
