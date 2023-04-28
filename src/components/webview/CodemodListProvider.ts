@@ -5,6 +5,8 @@ import {
 	EventEmitter,
 	ExtensionContext,
 	commands,
+	workspace,
+	window,
 } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
 import {
@@ -112,7 +114,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
-	private __onDidReceiveMessage = (message: WebviewResponse) => {
+	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
 			if (
 				this.__codemodService
@@ -152,9 +154,49 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 			const { pathToExecute, hash } = codemod;
 
-			const uri = Uri.file(pathToExecute);
+			const uri = Uri.file(`${this.__rootPath}${pathToExecute}`);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
+		}
+
+		if (message.kind === 'webview.codemodList.updatePathToExecute') {
+			const { codemodHash, newPath } = message.value;
+			const codemodItem =
+				this.__codemodService.getCodemodItem(codemodHash);
+			const isRecommended =
+				this.__codemodService.isRecommended(codemodHash);
+			if (!codemodItem) {
+				return;
+			}
+			const path = `${this.__rootPath}${newPath}`;
+			try {
+				await workspace.fs.stat(Uri.file(path));
+				this.__codemodService.updateCodemodItemPath(
+					isRecommended ? 'recommended' : 'public',
+					codemodHash,
+					path,
+				);
+				this.__postMessage({
+					kind: 'webview.codemodList.updatePathResponse',
+					data: E.right('Updated path'),
+				});
+				window.showInformationMessage(
+					`Updated path for codemod ${codemodItem.label} `,
+				);
+				this.getCodemodTree(isRecommended ? 'recommended' : 'public');
+			} catch (err) {
+				// for better error message , we reconstruct the error
+				const reConstructedError = new Error(
+					'Path specified does not exist',
+				);
+				const stringified = JSON.stringify(reConstructedError, [
+					'message',
+				]);
+				this.__postMessage({
+					kind: 'webview.codemodList.updatePathResponse',
+					data: E.left(JSON.parse(stringified)),
+				});
+			}
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -210,13 +252,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
 	): CodemodTreeNode<string> {
+		if (!this.__rootPath) {
+			throw new Error('Expected rootPath to be defined');
+		}
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, pathToExecute, description, hash } =
 				codemodElement;
 			return {
 				kind,
 				label,
-				extraData: pathToExecute,
+				extraData: pathToExecute.replace(this.__rootPath, '') || '/',
 				description: description,
 				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,

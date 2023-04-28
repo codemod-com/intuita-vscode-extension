@@ -19,10 +19,12 @@ export const Container = ({
 	children,
 	headerTitle,
 	onToggle,
+	defaultExpanded,
 }: {
 	className?: string;
 	children: React.ReactNode;
 	headerTitle: string;
+	defaultExpanded: boolean;
 	onToggle?: (toggle: boolean) => void;
 }) => {
 	const [expanded, setExpanded] = useState(true);
@@ -42,7 +44,7 @@ export const Container = ({
 					setExpanded(expanded);
 					onToggle?.(expanded);
 				}}
-				defaultExpanded={true}
+				defaultExpanded={defaultExpanded}
 				headerComponent={
 					<>{headerTitle && <Header title={headerTitle} />}</>
 				}

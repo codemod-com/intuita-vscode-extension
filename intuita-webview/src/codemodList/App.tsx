@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import cn from 'classnames';
 import { vscode } from '../shared/utilities/vscode';
 import type { View, WebviewMessage, CodemodTreeNode } from '../shared/types';
 import TreeView from './TreeView';
@@ -7,6 +6,7 @@ import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import './index.css';
+import { CodemodStudioCTA } from './BuildItYourSelf';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
@@ -17,9 +17,10 @@ function App() {
 		E.Either<Error, CodemodTreeNode<string> | null>
 	>(E.right(null));
 
-	const [publicCodemodsExpanded, setPublicCodemodsExpanded] = useState(true);
-	const [recommendedCodemodsExpanded, seRecommendedCodemodsExpanded] =
-		useState(true);
+	const [pathEditResponse, setPathEditResponse] = useState<
+		E.Either<Error, string | null>
+	>(E.right(null));
+
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
@@ -35,6 +36,9 @@ function App() {
 			}
 			if (message.kind === 'webview.codemods.setPublicCodemods') {
 				setPublicCodemods(message.data);
+			}
+			if (message.kind === 'webview.codemodList.updatePathResponse') {
+				setPathEditResponse(message.data);
 			}
 		};
 
@@ -52,25 +56,29 @@ function App() {
 	return (
 		<main className="App">
 			<Container
-				className={cn('flex-none d-none', {
-					'max-h-full h-full-40':
-						!publicCodemodsExpanded && recommendedCodemodsExpanded,
-					'max-h-half h-auto': publicCodemodsExpanded,
-				})}
-				onToggle={(toggled) => seRecommendedCodemodsExpanded(toggled)}
-				headerTitle="Recommended Codemods (For This Workspace)"
+				defaultExpanded
+				className="flex-none max-h-half h-auto d-none"
+				headerTitle="Recommended Codemods"
 			>
-				<TreeView node={view.viewProps.data} />
+				<TreeView
+					emptyTreeMessage="No available codemods could have been found based on your package.json file."
+					response={pathEditResponse}
+					node={view.viewProps.data}
+				/>
 			</Container>
 			<Container
-				onToggle={(toggled) => setPublicCodemodsExpanded(toggled)}
+				defaultExpanded
 				headerTitle="Public Codemods"
 				className=" content-border-top  h-full"
 			>
 				<div>
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right !== null && (
-							<TreeView node={publicCodemods.right} />
+							<TreeView
+								emptyTreeMessage={null}
+								response={pathEditResponse}
+								node={publicCodemods.right}
+							/>
 						)}
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right === null && (
@@ -83,6 +91,13 @@ function App() {
 						<p>{publicCodemods.left.message}</p>
 					)}
 				</div>
+			</Container>
+			<Container
+				defaultExpanded={false}
+				headerTitle="Build It Yourself"
+				className=" content-border-top  h-full"
+			>
+				<CodemodStudioCTA />
 			</Container>
 		</main>
 	);
