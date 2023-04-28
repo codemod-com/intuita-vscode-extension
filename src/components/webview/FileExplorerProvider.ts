@@ -50,7 +50,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	// map between URIs to the File Tree Node and the job hash
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
-	__lastlySelectedCaseHash: CaseHash | null = null;
+	__lastSelectedCaseHash: CaseHash | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -88,11 +88,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__view = webviewView;
 
 		this.__view.onDidChangeVisibility(() => {
-			if (this.__lastlySelectedCaseHash === null) {
+			if (this.__lastSelectedCaseHash === null) {
 				return;
 			}
 			// display folders/files for the lastly selected case when panel is collapsed and re-opened
-			this.updateExplorerView(this.__lastlySelectedCaseHash);
+			this.updateExplorerView(this.__lastSelectedCaseHash);
 		});
 
 		this.__attachExtensionEventListeners();
@@ -114,7 +114,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		if (caseHash === null) {
 			return;
 		}
-		this.__lastlySelectedCaseHash = caseHash;
+		this.__lastSelectedCaseHash = caseHash;
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
