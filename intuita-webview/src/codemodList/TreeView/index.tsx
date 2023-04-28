@@ -190,7 +190,7 @@ const TreeView = ({ node, response }: Props) => {
 						error={{
 							value:
 								response._tag === 'Left'
-									? response.left.name
+									? response.left.message
 									: null,
 							timestamp: Date.now(),
 						}}

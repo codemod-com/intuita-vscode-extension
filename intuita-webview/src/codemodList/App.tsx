@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import cn from 'classnames';
 import { vscode } from '../shared/utilities/vscode';
 import type { View, WebviewMessage, CodemodTreeNode } from '../shared/types';
 import TreeView from './TreeView';
@@ -22,9 +21,6 @@ function App() {
 		E.Either<Error, string | null>
 	>(E.right(null));
 
-	const [publicCodemodsExpanded, setPublicCodemodsExpanded] = useState(true);
-	const [recommendedCodemodsExpanded, seRecommendedCodemodsExpanded] =
-		useState(true);
 	useEffect(() => {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
@@ -60,13 +56,8 @@ function App() {
 	return (
 		<main className="App">
 			<Container
-				defaultExpanded={false}
-				className={cn('flex-none d-none', {
-					'max-h-full h-full-40':
-						!publicCodemodsExpanded && recommendedCodemodsExpanded,
-					'max-h-half h-auto': publicCodemodsExpanded,
-				})}
-				onToggle={(toggled) => seRecommendedCodemodsExpanded(toggled)}
+				defaultExpanded
+				className="flex-none max-h-half h-auto d-none"
 				headerTitle="Recommended Codemods"
 			>
 				<TreeView
@@ -76,7 +67,6 @@ function App() {
 			</Container>
 			<Container
 				defaultExpanded
-				onToggle={(toggled) => setPublicCodemodsExpanded(toggled)}
 				headerTitle="Public Codemods"
 				className=" content-border-top  h-full"
 			>

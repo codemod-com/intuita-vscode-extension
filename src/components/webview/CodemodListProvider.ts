@@ -185,17 +185,18 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				);
 				this.getCodemodTree(isRecommended ? 'recommended' : 'public');
 			} catch (err) {
-				if (err instanceof Error) {
-					// for better error message
-					const reConstructedError = new Error(
-						'Path specified does not exist',
-					);
-					console.error(err, err.constructor.name);
-					this.__postMessage({
-						kind: 'webview.codemodList.updatePathResponse',
-						data: E.left(reConstructedError),
-					});
-				}
+				// for better error message , we reconstruct the error
+				const reConstructedError = new Error(
+					'Path specified does not exist',
+				);
+				const stringified = JSON.stringify(
+					reConstructedError,
+					Object.getOwnPropertyNames(reConstructedError),
+				);
+				this.__postMessage({
+					kind: 'webview.codemodList.updatePathResponse',
+					data: E.left(JSON.parse(stringified)),
+				});
 			}
 		}
 

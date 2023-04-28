@@ -61,6 +61,7 @@
 .description {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	margin-left: 5px;
 	display: none;
 }
 
