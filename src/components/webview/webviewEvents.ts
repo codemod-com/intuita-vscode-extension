@@ -238,7 +238,6 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: string;
-			title: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
