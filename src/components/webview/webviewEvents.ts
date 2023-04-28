@@ -81,9 +81,9 @@ export type CodemodTreeNode<T = undefined> = {
 
 export type CaseTreeNode = {
 	id: CaseHash;
-	kind: string;
+	kind: 'caseElement';
 	label?: string;
-	iconName?: string;
+	iconName: 'case.svg';
 	command?: Command & {
 		command: 'intuita.openCaseDiff';
 		arguments?: ElementHash[];
