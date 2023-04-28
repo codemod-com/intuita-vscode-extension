@@ -6,7 +6,6 @@ import { FileSystem, Uri, window } from 'vscode';
 import { CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
-import { acceptJobs } from '../jobs/acceptJobs';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
 import {
@@ -15,13 +14,7 @@ import {
 	singleQuotify,
 	streamToString,
 } from '../utilities';
-import { FileService } from './fileService';
-import {
-	CodemodExecutionMode,
-	Message,
-	MessageBus,
-	MessageKind,
-} from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
 
 export class EngineNotFoundError extends Error {}
@@ -113,7 +106,6 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
-	readonly mode: CodemodExecutionMode;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -142,7 +134,6 @@ export class EngineService {
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 		statusBarItemManager: StatusBarItemManager,
-		private readonly __fileService: FileService,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
@@ -242,7 +233,6 @@ export class EngineService {
 			return;
 		}
 
-		const { mode } = message;
 		const { storageUri } = message.command;
 
 		const storageDirectory =
@@ -433,7 +423,6 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
-			mode: message.mode,
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -593,7 +582,6 @@ export class EngineService {
 				executionId,
 				codemodSetName,
 				codemodName,
-				mode,
 			});
 		});
 
@@ -601,10 +589,6 @@ export class EngineService {
 			this.#statusBarItemManager.moveToStandby();
 
 			if (this.#execution) {
-				if (this.#execution.mode === 'dirtyRun') {
-					await acceptJobs(this.__fileService, this.#execution.jobs);
-				}
-
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					executionId: this.#execution.executionId,
