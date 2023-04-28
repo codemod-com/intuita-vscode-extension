@@ -92,7 +92,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 				'intuita.sourceControl.submitIssue',
 				message.value,
 			);
-			commands.executeCommand('intuita.clearState');
+			// commands.executeCommand('intuita.clearState');
 		}
 
 		if (message.kind === 'webview.global.redirectToSignIn') {
@@ -114,7 +114,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 				'intuita.sourceControl.createPR',
 				message.value,
 			);
-			commands.executeCommand('intuita.clearState');
+			// commands.executeCommand('intuita.clearState');
 		}
 
 		if (message.kind === 'webview.createPR.commitChanges') {
@@ -122,7 +122,7 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 				'intuita.sourceControl.commitChanges',
 				message.value,
 			);
-			commands.executeCommand('intuita.clearState');
+			// commands.executeCommand('intuita.clearState');
 		}
 
 		if (message.kind === 'webview.global.closeView') {

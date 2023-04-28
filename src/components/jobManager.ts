@@ -113,6 +113,9 @@ export class JobManager {
 
 				this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
 			}
+
+			// jobs are applied by default
+			this.applyJob(job.hash);
 		}
 
 		this.#messageBus.publish({

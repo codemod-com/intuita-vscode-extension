@@ -101,6 +101,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
 			);
 		}
+
+		if (message.kind === 'webview.global.navigateToCommitView') {
+			commands.executeCommand('intuita.sourceControl.commitStagedJobs');
+		}
 	}
 
 	public override dispose() {

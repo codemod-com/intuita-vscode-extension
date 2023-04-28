@@ -273,7 +273,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const actions = [
 			{
 				title: '✓ Commit',
-				command: 'intuita.acceptCase',
+				command: 'intuita.sourceControl.commitStagedJobs',
 				arguments: [element.hash],
 			},
 		];

@@ -61,7 +61,6 @@ import { FileExplorerProvider } from './components/webview/FileExplorerProvider'
 import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
 import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-import { buildCaseName } from './cases/buildCaseName';
 import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
@@ -885,110 +884,99 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.acceptCase', async (arg0) => {
-			try {
-				const caseHash = typeof arg0 === 'string' ? arg0 : null;
+		vscode.commands.registerCommand(
+			'intuita.sourceControl.commitStagedJobs',
+			async () => {
+				try {
+					const currentBranch = repositoryService.getCurrentBranch();
 
-				if (caseHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
-				}
-
-				const currentBranch = repositoryService.getCurrentBranch();
-
-				if (
-					currentBranch === null ||
-					currentBranch.name === undefined
-				) {
-					throw new Error('Unable to get current branch');
-				}
-
-				const kase = caseManager.getCase(caseHash as CaseHash);
-				if (!kase) {
-					throw new Error('Case not found');
-				}
-
-				const caseJobsHashes = caseManager.getJobHashes([
-					kase.hash as CaseHash,
-				]);
-				// @TODO for now stagedJobs = all case jobs
-				const stagedJobs = [];
-
-				for (const jobHash of caseJobsHashes) {
-					const job = jobManager.getJob(jobHash);
-
-					if (job === null) {
-						continue;
+					if (
+						currentBranch === null ||
+						currentBranch.name === undefined
+					) {
+						throw new Error('Unable to get current branch');
 					}
 
-					stagedJobs.push({
-						hash: job.hash.toString(),
-						label: buildJobElementLabel(
-							job,
-							vscode.workspace.workspaceFolders?.[0]?.uri.path ??
-								'',
-						),
-					});
-				}
+					const appliedJobsHashes = jobManager.getAppliedJobsHashes();
+					// @TODO for now stagedJobs = all case jobs
+					const stagedJobs = [];
 
-				const caseUniqueName = buildCaseName(kase);
-				const newBranchName = branchNameFromStr(caseUniqueName);
+					for (const jobHash of appliedJobsHashes) {
+						const job = jobManager.getJob(jobHash);
 
-				const title = kase.subKind;
+						if (job === null) {
+							continue;
+						}
 
-				const initialData = {
-					repositoryPath: repositoryService.getRemoteUrl(),
-					userId: globalStateAccountStorage.getUserAccount(),
-				};
+						stagedJobs.push({
+							hash: job.hash.toString(),
+							label: buildJobElementLabel(
+								job,
+								vscode.workspace.workspaceFolders?.[0]?.uri
+									.path ?? '',
+							),
+							codemodName: job.codemodName,
+						});
+					}
 
-				const panelInstance = SourceControlWebviewPanel.getInstance(
-					{
-						type: 'intuitaPanel',
-						title,
-						extensionUri: context.extensionUri,
-						initialData,
-						viewColumn: vscode.ViewColumn.One,
-						webviewName: 'sourceControl',
-					},
-					messageBus,
-				);
+					const stagedJobsUniqueName = [
+						...new Set(stagedJobs.map((job) => job.codemodName)),
+					].join(',');
+					const newBranchName =
+						branchNameFromStr(stagedJobsUniqueName);
+					const initialData = {
+						repositoryPath: repositoryService.getRemoteUrl(),
+						userId: globalStateAccountStorage.getUserAccount(),
+					};
 
-				await panelInstance.render();
-
-				const remotes = repositoryService.getRemotes();
-				const remoteOptions = (remotes ?? [])
-					.map((remote) => remote.pushUrl)
-					.filter(isNeitherNullNorUndefined);
-
-				const defaultRemoteUrl = repositoryService.getRemoteUrl();
-
-				if (!defaultRemoteUrl) {
-					throw new Error('Remote not found');
-				}
-
-				panelInstance.setView({
-					viewId: 'commitView',
-					viewProps: {
-						remoteOptions,
-						initialFormData: {
-							currentBranchName: currentBranch.name,
-							newBranchName,
-							remoteUrl: defaultRemoteUrl,
-							commitMessage: `Migrated ${kase.subKind}`,
-							createNewBranch: true,
-							stagedJobs,
+					const panelInstance = SourceControlWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: stagedJobsUniqueName,
+							extensionUri: context.extensionUri,
+							initialData,
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'sourceControl',
 						},
-						loading: false,
-						error: '',
-					},
-				});
-			} catch (e) {
-				vscode.window.showErrorMessage(
-					e instanceof Error ? e.message : String(e),
-				);
-			}
-		}),
+						messageBus,
+					);
+
+					await panelInstance.render();
+
+					const remotes = repositoryService.getRemotes();
+					const remoteOptions = (remotes ?? [])
+						.map((remote) => remote.pushUrl)
+						.filter(isNeitherNullNorUndefined);
+
+					const defaultRemoteUrl = repositoryService.getRemoteUrl();
+
+					if (!defaultRemoteUrl) {
+						throw new Error('Remote not found');
+					}
+
+					panelInstance.setView({
+						viewId: 'commitView',
+						viewProps: {
+							remoteOptions,
+							initialFormData: {
+								currentBranchName: currentBranch.name,
+								newBranchName,
+								remoteUrl: defaultRemoteUrl,
+								commitMessage: `Migrations: stagedJobsUniqueName`,
+								createNewBranch: true,
+								stagedJobs,
+							},
+							loading: false,
+							error: '',
+						},
+					});
+				} catch (e) {
+					vscode.window.showErrorMessage(
+						e instanceof Error ? e.message : String(e),
+					);
+				}
+			},
+		),
 	);
 
 	context.subscriptions.push(

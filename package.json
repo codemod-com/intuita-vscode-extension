@@ -71,7 +71,7 @@
 				"title": "✓ Apply"
 			},
 			{
-				"command": "intuita.acceptCase",
+				"command": "intuita.sourceControl.commitStagedJobs",
 				"title": "✓ Apply"
 			},
 			{
@@ -220,7 +220,7 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
+					"command": "intuita.sourceControl.commitStagedJobs",
 					"when": "false"
 				},
 				{
