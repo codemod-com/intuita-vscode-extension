@@ -65,7 +65,7 @@ const ListView = ({ nodes }: Props) => {
 							handleClick(node);
 							setFocusedNodeId(node.id);
 							vscode.postMessage({
-								kind: 'webview.campaignManager.selectCase',
+								kind: 'webview.campaignManager.caseSelected',
 								hash: node.id,
 							});
 						}}

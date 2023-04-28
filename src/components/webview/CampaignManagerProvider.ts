@@ -337,7 +337,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.campaignManager.selectCase') {
+		if (message.kind === 'webview.campaignManager.caseSelected') {
 			this.__fileExplorerProvider.updateExplorerView(message.hash);
 		}
 
