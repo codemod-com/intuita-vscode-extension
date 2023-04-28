@@ -7,6 +7,7 @@ import { JobKind } from '../../shared/constants';
 import { Diff } from './Diff';
 
 type ContainerProps = Readonly<{
+	id: string;
 	oldFileName: string | null;
 	newFileName: string | null;
 	viewType: 'inline' | 'side-by-side';
@@ -14,9 +15,13 @@ type ContainerProps = Readonly<{
 }>;
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
+	(
+		{ id, oldFileName, newFileName, children, viewType }: ContainerProps,
+		ref,
+	) => {
 		return (
 			<div
+				id={id}
 				className="flex  flex-wrap w-full container flex-col"
 				ref={ref}
 			>
@@ -68,9 +73,9 @@ export const Header = ({
 }: HeaderProps) => {
 	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	return (
-		<div className=" flex  w-full items-center container-header">
-			<div className="flex flex-row flex-1  justify-between flex-wrap">
-				<div className="flex items-center ">
+		<div className="flex w-full items-center container-header">
+			<div className="flex flex-row flex-1 justify-between flex-wrap">
+				<div className="flex items-center">
 					<Popup
 						trigger={
 							<h4 className="my-0 ml-3 diff-title align-self-center">
