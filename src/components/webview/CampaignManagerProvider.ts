@@ -340,9 +340,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				...(message.value.arguments ?? []),
 			);
 		}
-		console.log(message.kind);
+
 		if (message.kind === 'webview.campaignManager.caseSelected') {
-			console.log('hello');
 			this.__fileExplorerProvider.updateExplorerView(message.hash);
 			this.__fileExplorerProvider.showView();
 		}
