@@ -219,6 +219,14 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
+	| RunCodemodsCommand
+	| Readonly<{
+			kind: 'webview.global.navigateToCommitView';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.saveToFileSystem';
+			jobHashes: JobHash[];
+	  }>
 	| Readonly<{
 			kind: 'webview.campaignManager.selectCase';
 			hash: CaseHash;
@@ -226,8 +234,7 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: string;
-	  }>
-	| RunCodemodsCommand;
+	  }>;
 
 export type View =
 	| Readonly<{

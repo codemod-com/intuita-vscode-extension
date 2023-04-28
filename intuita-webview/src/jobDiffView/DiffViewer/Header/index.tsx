@@ -2,19 +2,34 @@ import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { DiffViewType } from '../../../shared/types';
+import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
+import { vscode } from '../../../shared/utilities/vscode';
 
 type Props = Readonly<{
 	title: string;
 	viewType: DiffViewType;
+	jobs: JobDiffViewProps[];
 	onViewChange(value: DiffViewType): void;
 }>;
 
-const Header = ({ title, viewType, onViewChange }: Props) => {
+const Header = ({ title, viewType, jobs, onViewChange }: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
+	};
+
+	const handleCommit = () => {
+		vscode.postMessage({
+			kind: 'webview.global.navigateToCommitView',
+		});
+	};
+
+	const handleSaveToFileSystem = () => {
+		vscode.postMessage({
+			kind: 'webview.global.saveToFileSystem',
+			jobHashes: jobs.map(({ jobHash }) => jobHash),
+		});
 	};
 
 	return (
@@ -27,6 +42,21 @@ const Header = ({ title, viewType, onViewChange }: Props) => {
 					appearance="secondary"
 				>
 					Copy
+				</VSCodeButton>
+			</div>
+			<div className={styles.actionsContainer}>
+				<VSCodeButton
+					appearance="primary"
+					onClick={handleSaveToFileSystem}
+				>
+					Save to File System
+				</VSCodeButton>
+				<VSCodeButton
+					appearance="primary"
+					title="Show commit options"
+					onClick={handleCommit}
+				>
+					Commit...
 				</VSCodeButton>
 			</div>
 			{viewType === 'side-by-side' ? (

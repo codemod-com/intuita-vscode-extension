@@ -113,6 +113,9 @@ export class JobManager {
 
 				this.#uriHashJobHashSetManager.upsert(uriHash, job.hash);
 			}
+
+			// jobs are applied by default
+			this.applyJob(job.hash);
 		}
 
 		this.#messageBus.publish({
@@ -190,11 +193,6 @@ export class JobManager {
 			}
 
 			await acceptJobs(this.__fileService, jobs);
-		}
-
-		for (const jobHash of jobHashes) {
-			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);
 		}
 
 		for (const message of messages) {
