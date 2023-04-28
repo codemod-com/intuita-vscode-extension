@@ -8,7 +8,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
-	TreeNode,
+	CaseTreeNode,
 	View,
 	WebviewMessage,
 	WebviewResponse,
@@ -23,7 +23,7 @@ import {
 import { Job, JobHash, JobKind } from '../../jobs/types';
 import { debounce, getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
-import { CaseWithJobHashes } from '../../cases/types';
+import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
 	buildJobElement,
 	compareJobElements,
@@ -265,7 +265,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __buildCaseTree = (element: CaseElement): TreeNode => {
+	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
 		const actions = [
 			{
 				title: '✓ Commit',
@@ -279,8 +279,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			},
 		];
 
-		const mappedNode: TreeNode = {
-			id: element.hash,
+		const mappedNode: CaseTreeNode = {
+			id: element.hash as unknown as CaseHash,
 			iconName: getElementIconBaseName(element.kind, null),
 			label: element.label,
 			kind: 'caseElement',

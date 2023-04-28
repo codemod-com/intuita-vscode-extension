@@ -4,6 +4,7 @@ import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
+import { CaseHash } from '../../cases/types';
 
 export type JobActionCommands =
 	| 'intuita.rejectJob'
@@ -77,6 +78,20 @@ export type CodemodTreeNode<T = undefined> = {
 	children: CodemodTreeNode<T>[];
 	extraData?: T;
 };
+
+export type CaseTreeNode = {
+	id: CaseHash;
+	kind: string;
+	label?: string;
+	iconName?: string;
+	command?: Command & {
+		command: 'intuita.openCaseDiff';
+		arguments?: ElementHash[];
+	};
+	actions?: Command[];
+	children: TreeNode[];
+};
+
 export type TreeNode = {
 	id: string;
 	kind: string;
@@ -102,6 +117,7 @@ export type TreeNode = {
 	actions?: Command[];
 	children: TreeNode[];
 };
+
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createIssue.setFormData';
@@ -201,7 +217,7 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.campaignManager.selectCase';
-			hash: string | null;
+			hash: CaseHash;
 	  }>
 	| RunCodemodsCommand;
 
@@ -230,7 +246,7 @@ export type View =
 	| Readonly<{
 			viewId: 'campaignManagerView';
 			viewProps: {
-				nodes: TreeNode[];
+				nodes: CaseTreeNode[];
 			} | null;
 	  }>
 	| Readonly<{

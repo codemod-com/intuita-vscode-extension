@@ -1,4 +1,5 @@
 import {
+	CaseTreeNode,
 	Command,
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
@@ -9,7 +10,7 @@ import TreeItem from '../../shared/TreeItem';
 import { useCallback, useState } from 'react';
 
 type Props = {
-	nodes: TreeNode[];
+	nodes: CaseTreeNode[];
 };
 
 const ListView = ({ nodes }: Props) => {

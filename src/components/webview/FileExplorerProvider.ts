@@ -24,7 +24,7 @@ import {
 import { Job, JobHash, JobKind } from '../../jobs/types';
 import { getElementIconBaseName } from '../../utilities';
 import { JobManager } from '../jobManager';
-import { CaseWithJobHashes } from '../../cases/types';
+import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
 	buildJobElement,
 	compareJobElements,
@@ -94,7 +94,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		});
 	}
 
-	public updateExplorerView(caseHash: string | null) {
+	public updateExplorerView(caseHash: CaseHash) {
 		if (caseHash === null) {
 			return;
 		}
@@ -114,7 +114,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		const caseElement = caseElements.find((kase) => kase.hash === caseHash);
+		const caseElement = caseElements.find(
+			(kase) => kase.hash === (caseHash as unknown as ElementHash),
+		);
 		if (!caseElement) {
 			return;
 		}
