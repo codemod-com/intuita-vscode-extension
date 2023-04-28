@@ -1,6 +1,5 @@
 .root {
 	display: flex;
-	height: 22px;
 	line-height: 22px;
 	flex: 1;
 	text-overflow: ellipsis;
@@ -61,6 +60,7 @@
 .description {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	line-height: normal;
 	margin-left: 5px;
 	display: none;
 }
@@ -75,10 +75,10 @@
 }
 
 .actions a {
-	padding: 2px;
 	display: flex;
 	font-size: 11px;
-	padding: 3px;
+	padding-left: 3px;
+	padding-right: 3px;
 	border-radius: 5px;
 	text-decoration: none;
 	cursor: pointer;

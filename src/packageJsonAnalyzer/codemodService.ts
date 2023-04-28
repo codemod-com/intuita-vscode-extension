@@ -64,6 +64,11 @@ export class CodemodService {
 
 		return pathItem;
 	}
+
+	haltCurrentCodemodExecution = () => {
+		this.__engineService.shutdownEngines();
+	};
+
 	__makeTitleReadable(name: string) {
 		return name
 			.split('-')

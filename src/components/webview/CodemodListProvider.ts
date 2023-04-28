@@ -49,7 +49,40 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.__engineBootstrapped = true;
 			this.getCodemodTree('public');
 		});
+		this.__messageBus.subscribe(
+			MessageKind.showProgress,
+			this.handleCodemodExecutionProgress.bind(this),
+		);
+
+		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
+			this.__postMessage({
+				kind: 'webview.global.codemodExecutionHalted',
+			});
+		});
 	}
+
+	handleCodemodExecutionProgress = ({
+		processedFiles,
+		totalFiles,
+		codemodHash,
+	}: {
+		processedFiles: number;
+		totalFiles: number;
+		codemodHash?: CodemodHash;
+	}) => {
+		if (!codemodHash || totalFiles === 0) {
+			return;
+		}
+		const progress =
+			totalFiles > 0
+				? Math.round((processedFiles / totalFiles) * 100)
+				: 0;
+		this.__postMessage({
+			kind: 'webview.global.setCodemodExecutionProgress',
+			value: progress,
+			codemodHash,
+		});
+	};
 
 	isEngineBootstrapped() {
 		return this.__engineBootstrapped;
@@ -145,6 +178,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
+		}
+
+		if (message.kind === 'webview.codemodeList.haltCodemodExecution') {
+			this.__codemodService.haltCurrentCodemodExecution();
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
@@ -267,7 +304,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				id: hash,
 				actions: [
 					{
-						title: '✓ Run',
+						title: '✓ Dry Run',
+						description:
+							'Run this codemod without making change to file system',
 						kind: 'webview.codemodList.dryRunCodemod',
 						value: hash,
 					},

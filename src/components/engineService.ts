@@ -16,6 +16,7 @@ import {
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -102,6 +103,7 @@ type Execution = {
 	readonly executionId: string;
 	readonly childProcess: ChildProcessWithoutNullStreams;
 	readonly codemodSetName: string;
+	readonly codemodHash?: CodemodHash;
 	totalFileCount: number;
 	halted: boolean;
 	affectedAnyFile: boolean;
@@ -424,6 +426,15 @@ export class EngineService {
 			affectedAnyFile: false,
 			jobs: [],
 		};
+		if (
+			'kind' in message.command &&
+			message.command.kind === 'executeCodemod'
+		) {
+			this.#execution = {
+				...this.#execution,
+				codemodHash: message.command.codemodHash,
+			};
+		}
 
 		const interfase = readline.createInterface(childProcess.stdout);
 
@@ -451,6 +462,7 @@ export class EngineService {
 					kind: MessageKind.showProgress,
 					totalFiles: message.t,
 					processedFiles: message.p,
+					codemodHash: this.#execution.codemodHash,
 				});
 				this.#execution.totalFileCount = message.t;
 				return;
