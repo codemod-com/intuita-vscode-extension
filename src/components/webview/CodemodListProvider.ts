@@ -144,12 +144,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (
-			message.kind === 'webview.codemodList.runCodemod' ||
-			message.kind === 'webview.codemodList.dryRunCodemod'
-		) {
-			const isDryRun =
-				message.kind === 'webview.codemodList.dryRunCodemod';
+		if (message.kind === 'webview.codemodList.dryRunCodemod') {
 			const codemod = this.__codemodService.getCodemodItem(message.value);
 			if (!codemod || codemod.kind === 'path') {
 				return;
@@ -158,12 +153,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			const uri = Uri.file(pathToExecute);
 
-			commands.executeCommand(
-				'intuita.executeCodemod',
-				uri,
-				hash,
-				isDryRun ? 'dryRun' : 'dirtyRun',
-			);
+			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -232,11 +222,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				actions: [
 					{
 						title: '✓ Run',
-						kind: 'webview.codemodList.runCodemod',
-						value: hash,
-					},
-					{
-						title: '✓ Dry Run',
 						kind: 'webview.codemodList.dryRunCodemod',
 						value: hash,
 					},

@@ -1194,11 +1194,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeCodemod',
-			async (
-				uri: vscode.Uri,
-				hashDigest: CodemodHash,
-				mode: 'dirtyRun' | 'dryRun',
-			) => {
+			async (uri: vscode.Uri, hashDigest: CodemodHash) => {
 				try {
 					const { storageUri } = context;
 
@@ -1222,7 +1218,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						executionId,
 						happenedAt,
-						mode,
+						mode: 'dryRun',
 					});
 
 					vscode.commands.executeCommand(
