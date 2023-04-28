@@ -6,7 +6,7 @@ import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import './index.css';
-import { BuildItYourSelf } from './BuildItYourSelf';
+import { CodemodStudioCTA } from './BuildItYourSelf';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
@@ -61,6 +61,7 @@ function App() {
 				headerTitle="Recommended Codemods"
 			>
 				<TreeView
+					emptyTreeMessage="No available codemods could have been found based on your package.json file."
 					response={pathEditResponse}
 					node={view.viewProps.data}
 				/>
@@ -74,6 +75,7 @@ function App() {
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right !== null && (
 							<TreeView
+								emptyTreeMessage={null}
 								response={pathEditResponse}
 								node={publicCodemods.right}
 							/>
@@ -95,7 +97,7 @@ function App() {
 				headerTitle="Build It Yourself"
 				className=" content-border-top  h-full"
 			>
-				<BuildItYourSelf />
+				<CodemodStudioCTA />
 			</Container>
 		</main>
 	);

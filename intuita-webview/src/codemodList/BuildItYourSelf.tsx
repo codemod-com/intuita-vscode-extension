@@ -1,7 +1,7 @@
 import { VSCodeButton, VSCodeLink } from '@vscode/webview-ui-toolkit/react';
 import { vscode } from '../shared/utilities/vscode';
 
-export const BuildItYourSelf = () => {
+export const CodemodStudioCTA = () => {
 	return (
 		<div className="welcomeMessage">
 			<p>

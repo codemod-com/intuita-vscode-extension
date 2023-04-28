@@ -6,7 +6,7 @@ import {
 
 type Props = {
 	defaultValue: string;
-	error: { value: string | null; timestamp: number };
+	error: { value: string; timestamp: number } | null;
 	onEditDone: (value: string) => void;
 };
 export const DirectorySelector = ({
@@ -22,7 +22,7 @@ export const DirectorySelector = ({
 	}, [error]);
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
-		setShowError({ ...showError, value: null });
+		setShowError(null);
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
 	};

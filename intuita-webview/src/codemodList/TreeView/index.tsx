@@ -14,6 +14,7 @@ import E from 'fp-ts/Either';
 type Props = {
 	node?: CodemodTreeNode<string>;
 	response: E.Either<Error, string | null>;
+	emptyTreeMessage: string | null;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -35,7 +36,11 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
-const TreeView = ({ node, response }: Props) => {
+const TreeView = ({
+	node,
+	response,
+	emptyTreeMessage: emptyMessage,
+}: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 	const [isEditingExecutionPath, setIsEditingExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
@@ -147,7 +152,7 @@ const TreeView = ({ node, response }: Props) => {
 	};
 
 	if (!node || (node.children?.length ?? 0) === 0) {
-		return null;
+		return <p> {emptyMessage} </p>;
 	}
 
 	const onEditDone = (value: string) => {
@@ -183,17 +188,18 @@ const TreeView = ({ node, response }: Props) => {
 						Codemod: {isEditingExecutionPath.label}
 					</p>
 
-					<p> current Path: {isEditingExecutionPath.extraData}</p>
+					<p> Current Path: {isEditingExecutionPath.extraData}</p>
 					<DirectorySelector
 						defaultValue={isEditingExecutionPath.extraData ?? ''}
 						onEditDone={onEditDone}
-						error={{
-							value:
-								response._tag === 'Left'
-									? response.left.message
-									: null,
-							timestamp: Date.now(),
-						}}
+						error={
+							response._tag === 'Left'
+								? {
+										value: response.left.message,
+										timestamp: Date.now(),
+								  }
+								: null
+						}
 					/>
 				</Popup>
 			)}
