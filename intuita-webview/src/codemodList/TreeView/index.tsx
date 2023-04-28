@@ -42,12 +42,12 @@ const TreeView = ({
 	emptyTreeMessage: emptyMessage,
 }: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState('');
-	const [isEditingExecutionPath, setIsEditingExecutionPath] =
+	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
 
 	useEffect(() => {
 		if (response._tag === 'Right') {
-			setIsEditingExecutionPath(null);
+			setEditExecutionPath(null);
 		}
 	}, [response._tag]);
 
@@ -71,7 +71,7 @@ const TreeView = ({
 
 	const handleEditExecutionPath = useCallback(
 		(node: CodemodTreeNode<string>) => {
-			setIsEditingExecutionPath(node);
+			setEditExecutionPath(node);
 		},
 		[],
 	);
@@ -156,7 +156,7 @@ const TreeView = ({
 	}
 
 	const onEditDone = (value: string) => {
-		if (!isEditingExecutionPath) {
+		if (!editExecutionPath) {
 			return;
 		}
 		vscode.postMessage({
@@ -164,33 +164,31 @@ const TreeView = ({
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
 				newPath: value,
-				codemodHash: isEditingExecutionPath.id,
+				codemodHash: editExecutionPath.id,
 			},
 		});
 	};
 
 	return (
 		<div>
-			{isEditingExecutionPath && (
+			{editExecutionPath && (
 				<Popup
 					modal
-					open={!!isEditingExecutionPath}
+					open={!!editExecutionPath}
 					onClose={() => {
-						setIsEditingExecutionPath(null);
+						setEditExecutionPath(null);
 					}}
 					closeOnEscape
 				>
 					<span
 						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
-						onClick={() => setIsEditingExecutionPath(null)}
+						onClick={() => setEditExecutionPath(null)}
 					></span>
-					<p className="bold">
-						Codemod: {isEditingExecutionPath.label}
-					</p>
+					<p className="bold">Codemod: {editExecutionPath.label}</p>
 
-					<p> Current Path: {isEditingExecutionPath.extraData}</p>
+					<p> Current Path: {editExecutionPath.extraData}</p>
 					<DirectorySelector
-						defaultValue={isEditingExecutionPath.extraData ?? ''}
+						defaultValue={editExecutionPath.extraData ?? ''}
 						onEditDone={onEditDone}
 						error={
 							response._tag === 'Left'
