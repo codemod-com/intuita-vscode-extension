@@ -111,7 +111,7 @@ export const Header = ({
 						Report Issue
 					</VSCodeButton>
 					{shouldShowDiff && (
-						<div className="ml-10 flex items-center">
+						<div className="ml-10 flex items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-added">
 								+{diff.added}
 							</span>

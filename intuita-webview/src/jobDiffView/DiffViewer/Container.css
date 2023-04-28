@@ -47,3 +47,7 @@
 	/** Override the monaco css **/
 	background-color: transparent !important;
 }
+
+.diff-changes-container {
+	min-width: 80px;
+}
