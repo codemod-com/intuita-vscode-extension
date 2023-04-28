@@ -199,7 +199,14 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
-	| RunCodemodsCommand;
+	| RunCodemodsCommand
+	| Readonly<{
+			kind: 'webview.global.navigateToCommitView';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.saveToFileSystem';
+			jobHashes: JobHash[];
+	  }>;
 
 export type View =
 	| Readonly<{

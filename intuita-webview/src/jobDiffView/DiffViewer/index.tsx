@@ -30,6 +30,7 @@ export const JobDiffViewContainer = ({
 				onViewChange={setViewType}
 				viewType={viewType}
 				title={title}
+				jobs={jobs}
 			/>
 
 			{jobs.map((el) => (

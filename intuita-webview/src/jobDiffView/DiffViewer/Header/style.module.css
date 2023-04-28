@@ -10,6 +10,7 @@
 	background-color: var(--vscode-tab-inactiveBackground);
 	margin-left: -10px;
 	margin-right: -10px;
+	gap: 8px;
 }
 
 .title {
@@ -35,4 +36,9 @@
 	stroke: var(--vscode-icon-foreground);
 	height: 16px;
 	width: 16px;
+}
+
+.actionsContainer {
+	display: flex;
+	gap: 8px;
 }
