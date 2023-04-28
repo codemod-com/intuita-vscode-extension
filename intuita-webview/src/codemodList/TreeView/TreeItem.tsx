@@ -68,7 +68,9 @@ const TreeItem = ({
 					{description}
 				</Popup>
 			)}
-			{kind === 'path' && <div className={styles.icon}>{icon}</div>}
+			{(kind === 'path' || !description) && (
+				<div className={styles.icon}>{icon}</div>
+			)}
 			<span className={styles.label}>
 				{label}
 				{kind === 'codemodItem' && (

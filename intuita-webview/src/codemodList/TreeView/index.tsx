@@ -44,12 +44,11 @@ const TreeView = ({
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
-
 	useEffect(() => {
 		if (response._tag === 'Right') {
 			setEditExecutionPath(null);
 		}
-	}, [response._tag]);
+	}, [response]);
 
 	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
 		if (!node.command) {
