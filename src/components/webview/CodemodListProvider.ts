@@ -189,10 +189,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				const reConstructedError = new Error(
 					'Path specified does not exist',
 				);
-				const stringified = JSON.stringify(
-					reConstructedError,
-					Object.getOwnPropertyNames(reConstructedError),
-				);
+				const stringified = JSON.stringify(reConstructedError, [
+					'message',
+				]);
 				this.__postMessage({
 					kind: 'webview.codemodList.updatePathResponse',
 					data: E.left(JSON.parse(stringified)),
