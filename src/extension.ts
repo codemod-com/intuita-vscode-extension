@@ -885,6 +885,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+			async () => {
+				const appliedJobsHashes = jobManager.getAppliedJobsHashes();
+				await jobManager.acceptJobs(appliedJobsHashes);
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.sourceControl.commitStagedJobs',
 			async () => {
 				try {

@@ -105,6 +105,12 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.navigateToCommitView') {
 			commands.executeCommand('intuita.sourceControl.commitStagedJobs');
 		}
+
+		if (message.kind === 'webview.global.saveToFileSystem') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+			);
+		}
 	}
 
 	public override dispose() {
