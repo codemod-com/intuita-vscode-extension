@@ -281,7 +281,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 		const mappedNode: CaseTreeNode = {
 			id: element.hash as unknown as CaseHash,
-			iconName: getElementIconBaseName(element.kind, null),
+			iconName: 'case.svg',
 			label: element.label,
 			kind: 'caseElement',
 			actions,
