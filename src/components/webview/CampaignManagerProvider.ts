@@ -21,7 +21,7 @@ import {
 	FileElement,
 } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import { debounce } from '../../utilities';
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
