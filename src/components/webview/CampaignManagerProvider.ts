@@ -99,6 +99,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		});
 	}
 
+	public showView() {
+		this.__view?.show();
+	}
+
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
@@ -337,8 +341,9 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.campaignManager.selectCase') {
+		if (message.kind === 'webview.campaignManager.caseSelected') {
 			this.__fileExplorerProvider.updateExplorerView(message.hash);
+			this.__fileExplorerProvider.showView();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
