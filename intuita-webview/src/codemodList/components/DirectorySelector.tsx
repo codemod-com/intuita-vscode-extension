@@ -28,7 +28,7 @@ export const DirectorySelector = ({
 	};
 
 	return (
-		<div className="flex flex-row justify-between">
+		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full">
 				<VSCodeTextField
 					className="flex-1"

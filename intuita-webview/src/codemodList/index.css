@@ -51,4 +51,5 @@ i.codicon {
 }
 .text-error {
 	color: var(--vscode-errorForeground);
+	font-size: .75rem;
 }
