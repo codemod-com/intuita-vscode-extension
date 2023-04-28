@@ -908,7 +908,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const appliedJobsHashes = jobManager.getAppliedJobsHashes();
-					// @TODO for now stagedJobs = all case jobs
 					const stagedJobs = [];
 
 					for (const jobHash of appliedJobsHashes) {
@@ -929,11 +928,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						});
 					}
 
-					const stagedJobsUniqueName = [
-						...new Set(stagedJobs.map((job) => job.codemodName)),
-					].join(',');
+					const stagedJobsUniqueName = Array.from(
+						new Set(stagedJobs.map((job) => job.codemodName)),
+					).join();
+
 					const newBranchName =
 						branchNameFromStr(stagedJobsUniqueName);
+
 					const initialData = {
 						repositoryPath: repositoryService.getRemoteUrl(),
 						userId: globalStateAccountStorage.getUserAccount(),
