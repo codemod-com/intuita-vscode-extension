@@ -5,6 +5,7 @@ import {
 	ExtensionContext,
 	workspace,
 	commands,
+	ViewColumn,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
@@ -38,6 +39,7 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
+import { DiffWebviewPanel } from './DiffWebviewPanel';
 
 export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -45,7 +47,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
-	__fileNodes = new Set<TreeNode>();
+	// map between URIs to the File Tree Node and the job hash
+	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 
 	constructor(
@@ -132,7 +135,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewProps: {
 					node: tree,
 					nodeIds: Array.from(this.__folderMap.keys()),
-					fileNodes: Array.from(this.__fileNodes),
+					fileNodes: Array.from(this.__fileNodes.values()).map(
+						(obj) => obj.node,
+					),
 				},
 			});
 		}
@@ -171,6 +176,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				// every file element must have only 1 job child
 				return;
 			}
+			const jobHash = element.children[0]?.jobHash;
+
+			if (!jobHash) {
+				return;
+			}
 
 			// e.g., extract the path from '/packages/app/src/index.tsx (1)'
 			const filePath = element.label.split(' ')[0];
@@ -187,7 +197,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				workspace.workspaceFolders?.[0]?.uri.fsPath
 					.split('/')
 					.slice(-1)[0] ?? '/';
-
 			const jobKind = element.children[0]?.job.kind;
 
 			let path = repoName;
@@ -221,7 +230,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 							  };
 
 					if (dir === fileName) {
-						this.__fileNodes.add(newTreeNode);
+						this.__fileNodes.set(path, {
+							jobHash,
+							node: newTreeNode,
+						});
 					}
 					this.__folderMap.set(path, newTreeNode);
 
@@ -395,6 +407,35 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
+		}
+
+		if (message.kind === 'webview.fileExplorer.fileSelected') {
+			const fileNodeObj = this.__fileNodes.get(message.id) ?? null;
+			if (fileNodeObj === null) {
+				return;
+			}
+			const { jobHash } = fileNodeObj;
+			const rootPath =
+				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
+			if (rootPath === null) {
+				return;
+			}
+			const panelInstance = DiffWebviewPanel.getInstance(
+				{
+					type: 'intuitaPanel',
+					title: 'Diff',
+					extensionUri: this.__extensionPath,
+					initialData: {},
+					viewColumn: ViewColumn.One,
+					webviewName: 'jobDiffView',
+				},
+				this.__messageBus,
+				this.__jobManager,
+				this.__caseManager,
+				rootPath,
+			);
+
+			panelInstance.focusFile(jobHash);
 		}
 	};
 

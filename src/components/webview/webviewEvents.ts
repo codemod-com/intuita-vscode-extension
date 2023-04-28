@@ -147,6 +147,10 @@ export type WebviewMessage =
 			data: [JobHash];
 	  }>
 	| Readonly<{
+			kind: 'webview.diffView.focusFile';
+			jobHash: JobHash;
+	  }>
+	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
@@ -218,6 +222,10 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.campaignManager.selectCase';
 			hash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.fileSelected';
+			id: string;
 	  }>
 	| RunCodemodsCommand;
 

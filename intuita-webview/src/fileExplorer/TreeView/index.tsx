@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import Tree from '../../shared/Tree';
 import {
 	Command,
@@ -60,6 +60,10 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+	const fileNodeIds = useMemo(
+		() => new Set(fileNodes.map((node) => node.id)),
+		[fileNodes],
+	);
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
 		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
 		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
@@ -144,6 +148,17 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 			window.removeEventListener('blur', handler);
 		};
 	}, []);
+
+	useEffect(() => {
+		if (focusedNodeId === null || !fileNodeIds.has(focusedNodeId)) {
+			return;
+		}
+
+		vscode.postMessage({
+			kind: 'webview.fileExplorer.fileSelected',
+			id: focusedNodeId,
+		});
+	}, [focusedNodeId, fileNodeIds]);
 
 	if (userSearchingFile) {
 		return (

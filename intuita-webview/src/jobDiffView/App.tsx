@@ -78,6 +78,12 @@ function App() {
 					},
 				});
 			}
+
+			if (message.kind === 'webview.diffView.focusFile') {
+				const elementId = `diffViewContainer-${message.jobHash}`;
+				const element = document.getElementById(elementId);
+				element?.scrollIntoView();
+			}
 		},
 		[view],
 	);
