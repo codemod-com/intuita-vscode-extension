@@ -2,6 +2,7 @@ import { ReactNode, useCallback, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
 import { RunCodemodsCommand, CodemodTreeNode } from '../../shared/types';
+import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -13,9 +14,10 @@ type Props = {
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
-	if (iconName === 'bluelightbulb.svg') {
-		return <BlueLightBulbIcon />;
+	if (iconName === 'case.svg') {
+		return <CaseIcon />;
 	}
+
 	if (iconName === 'folder.svg') {
 		return (
 			<span

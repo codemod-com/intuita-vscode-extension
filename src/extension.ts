@@ -2,12 +2,7 @@ import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import {
-	CodemodExecutionMode,
-	Command,
-	MessageBus,
-	MessageKind,
-} from './components/messageBus';
+import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
@@ -129,7 +124,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		vscode.workspace.fs,
 		statusBarItemManager,
-		fileService,
 	);
 
 	new BootstrapExecutablesService(
@@ -351,27 +345,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		repositoryService,
 	);
 
-	const campaignManagerProvider = new CampaignManagerProvider(
-		context,
-		messageBus,
-		jobManager,
-		caseManager,
-		sourceControl,
-	);
-
-	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
-		'intuitaCampaignManager',
-		campaignManagerProvider,
-	);
-
-	context.subscriptions.push(intuitaCampaignManager);
-
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
 		jobManager,
 		caseManager,
-		sourceControl,
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
@@ -380,6 +358,22 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaFileExplorer);
+
+	const campaignManagerProvider = new CampaignManagerProvider(
+		context,
+		messageBus,
+		jobManager,
+		caseManager,
+		sourceControl,
+		fileExplorerProvider,
+	);
+
+	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
+		'intuitaCampaignManager',
+		campaignManagerProvider,
+	);
+
+	context.subscriptions.push(intuitaCampaignManager);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
@@ -759,58 +753,54 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeCodemods',
-			(arg0, mode: CodemodExecutionMode) => {
-				const { storageUri } = context;
+		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
+			const { storageUri } = context;
 
-				if (!storageUri) {
-					console.error('No storage URI, aborting the command.');
-					return;
-				}
+			if (!storageUri) {
+				console.error('No storage URI, aborting the command.');
+				return;
+			}
 
-				const codec = buildTypeCodec({
-					path: t.string,
-					dependencyName: t.string,
-				});
+			const codec = buildTypeCodec({
+				path: t.string,
+				dependencyName: t.string,
+			});
 
-				const validation = codec.decode(arg0);
+			const validation = codec.decode(arg0);
 
-				if (validation._tag === 'Left') {
-					const report = prettyReporter.report(validation);
+			if (validation._tag === 'Left') {
+				const report = prettyReporter.report(validation);
 
-					console.error(report);
+				console.error(report);
 
-					return;
-				}
+				return;
+			}
 
-				const { path, dependencyName } = validation.right;
+			const { path, dependencyName } = validation.right;
 
-				const uri = vscode.Uri.file(path);
+			const uri = vscode.Uri.file(path);
 
-				const recipeName = dependencyNameToRecipeName[dependencyName];
+			const recipeName = dependencyNameToRecipeName[dependencyName];
 
-				if (!recipeName) {
-					return;
-				}
+			if (!recipeName) {
+				return;
+			}
 
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
+			const executionId = buildExecutionId();
+			const happenedAt = String(Date.now());
 
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						engine: 'node',
-						storageUri,
-						uri,
-						recipeName: recipeName,
-					},
-					executionId,
-					happenedAt,
-					mode,
-				});
-			},
-		),
+			messageBus.publish({
+				kind: MessageKind.executeCodemodSet,
+				command: {
+					engine: 'node',
+					storageUri,
+					uri,
+					recipeName: recipeName,
+				},
+				executionId,
+				happenedAt,
+			});
+		}),
 	);
 
 	context.subscriptions.push(
@@ -1003,6 +993,15 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.rejectCase,
 				caseHash: caseHash as CaseHash,
 			});
+
+			messageBus.publish({
+				kind: MessageKind.updateElements,
+			});
+
+			fileExplorerProvider.setView({
+				viewId: 'treeView',
+				viewProps: null,
+			});
 		}),
 	);
 
@@ -1158,7 +1157,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
-			(uri: vscode.Uri, mode: CodemodExecutionMode) => {
+			(uri: vscode.Uri) => {
 				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
 
 				if (!rootUri) {
@@ -1184,7 +1183,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
-					mode,
 				});
 			},
 		),
@@ -1193,11 +1191,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeCodemod',
-			async (
-				uri: vscode.Uri,
-				hashDigest: CodemodHash,
-				mode: 'dirtyRun' | 'dryRun',
-			) => {
+			async (uri: vscode.Uri, hashDigest: CodemodHash) => {
 				try {
 					const { storageUri } = context;
 
@@ -1221,7 +1215,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						executionId,
 						happenedAt,
-						mode,
 					});
 
 					vscode.commands.executeCommand(
@@ -1286,7 +1279,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 						executionId,
 						happenedAt,
-						mode: 'dryRun',
 					});
 
 					vscode.commands.executeCommand(
@@ -1380,7 +1372,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					command,
 					executionId,
 					happenedAt,
-					mode: 'dryRun',
 				});
 			},
 		),
@@ -1430,7 +1421,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 					happenedAt,
 					executionId,
-					mode: 'dryRun',
 				});
 			},
 		),

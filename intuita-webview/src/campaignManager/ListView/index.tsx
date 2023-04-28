@@ -1,4 +1,5 @@
 import {
+	CaseTreeNode,
 	Command,
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
@@ -6,13 +7,15 @@ import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 type Props = {
-	node: TreeNode;
+	nodes: CaseTreeNode[];
 };
 
-const TreeView = ({ node }: Props) => {
+const ListView = ({ nodes }: Props) => {
+	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+
 	const handleClick = useCallback((node: TreeNode) => {
 		if (!node.command) {
 			return;
@@ -27,41 +30,50 @@ const TreeView = ({ node }: Props) => {
 		vscode.postMessage({ kind: 'webview.command', value: action });
 	};
 
-	const actionButtons = (node.actions ?? []).map((action) => (
-		// eslint-disable-next-line jsx-a11y/anchor-is-valid
-		<a
-			title={action.title}
-			role="button"
-			onClick={(e) => {
-				e.stopPropagation();
-				handleActionButtonClick(action);
-			}}
-		>
-			{action.title}
-		</a>
-	));
-
 	return (
 		<div className={styles.container}>
-			<TreeItem
-				disabled={false}
-				hasChildren={(node.children?.length ?? 0) !== 0}
-				id={node.id}
-				label={node.label ?? ''}
-				subLabel=""
-				icon={<CaseIcon />}
-				depth={0}
-				kind={node.kind}
-				open={false}
-				focused={false}
-				actionButtons={actionButtons}
-				index={0}
-				onClick={() => {
-					handleClick(node);
-				}}
-			/>
+			{nodes.map((node, index) => {
+				const actionButtons = (node.actions ?? []).map((action) => (
+					// eslint-disable-next-line jsx-a11y/anchor-is-valid
+					<a
+						title={action.title}
+						role="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							handleActionButtonClick(action);
+						}}
+					>
+						{action.title}
+					</a>
+				));
+				return (
+					<TreeItem
+						key={node.id}
+						disabled={false}
+						hasChildren={(node.children?.length ?? 0) !== 0}
+						id={node.id}
+						label={node.label ?? ''}
+						subLabel=""
+						icon={<CaseIcon />}
+						depth={0}
+						kind={node.kind}
+						open={false}
+						focused={node.id === focusedNodeId}
+						actionButtons={actionButtons}
+						index={index}
+						onClick={() => {
+							handleClick(node);
+							setFocusedNodeId(node.id);
+							vscode.postMessage({
+								kind: 'webview.campaignManager.selectCase',
+								hash: node.id,
+							});
+						}}
+					/>
+				);
+			})}
 		</div>
 	);
 };
 
-export default TreeView;
+export default ListView;
