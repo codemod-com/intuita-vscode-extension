@@ -228,7 +228,7 @@ export type WebviewResponse =
 			jobHashes: JobHash[];
 	  }>
 	| Readonly<{
-			kind: 'webview.campaignManager.selectCase';
+			kind: 'webview.campaignManager.caseSelected';
 			hash: CaseHash;
 	  }>
 	| Readonly<{
