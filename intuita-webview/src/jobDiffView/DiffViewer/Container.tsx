@@ -52,10 +52,12 @@ type HeaderProps = Readonly<{
 	viewed?: boolean;
 	children?: React.ReactNode;
 	actions: JobDiffViewProps['actions'];
+	jobStaged: boolean;
 	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	onReportIssue(): void;
+	onToggleJob(): void;
 }>;
 
 export const Header = ({
@@ -67,6 +69,8 @@ export const Header = ({
 	children,
 	viewed,
 	actions,
+	jobStaged, 
+	onToggleJob, 
 	onViewedChange,
 	onAction,
 	onReportIssue,
@@ -75,6 +79,7 @@ export const Header = ({
 	return (
 		<div className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
+				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob}/>
 				<div className="flex items-center">
 					<Popup
 						trigger={

@@ -6,6 +6,7 @@ import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
 import Header from './Header';
+import { JobHash } from '../../../../src/jobs/types';
 
 type JobDiffViewContainerProps = {
 	postMessage: (arg: JobAction) => void;
@@ -19,10 +20,12 @@ export const JobDiffViewContainer = ({
 	postMessage,
 }: JobDiffViewContainerProps) => {
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
+	const [stagedJobHashes, setStagedJobHashes] = useState(new Set<JobHash>());
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
+
 
 	return (
 		<div className="m-10 mt-0">
@@ -30,7 +33,7 @@ export const JobDiffViewContainer = ({
 				onViewChange={setViewType}
 				viewType={viewType}
 				title={title}
-				jobs={jobs}
+				stagedJobHashes={stagedJobHashes}
 			/>
 
 			{jobs.map((el) => (
@@ -38,6 +41,19 @@ export const JobDiffViewContainer = ({
 					ViewType={viewType}
 					key={el.jobHash}
 					postMessage={postMessage}
+					jobStaged={stagedJobHashes.has(el.jobHash)}
+					onToggleJob={() => {
+						setStagedJobHashes((prevStagedJobHashes) => {
+							const nextStagedJobHashes = new Set(prevStagedJobHashes);
+							if(nextStagedJobHashes.has(el.jobHash)) {
+								nextStagedJobHashes.delete(el.jobHash)
+							} else {
+								nextStagedJobHashes.add(el.jobHash);
+							}
+
+							return nextStagedJobHashes;
+						})
+					}}
 					{...el}
 				/>
 			))}
