@@ -53,7 +53,7 @@ const Header = ({ title, viewType,  stagedJobHashes, onViewChange }: Props) => {
 					appearance="primary"
 					onClick={handleSaveToFileSystem}
 				>
-					Save to File System
+					Apply all
 				</VSCodeButton>
 				<VSCodeButton
 					appearance="primary"
