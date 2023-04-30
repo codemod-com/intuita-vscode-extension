@@ -6,7 +6,6 @@ import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import './index.css';
-import { CodemodStudioCTA } from './BuildItYourSelf';
 
 type MainViews = Extract<View, { viewId: 'codemodList' }>;
 
@@ -91,13 +90,6 @@ function App() {
 						<p>{publicCodemods.left.message}</p>
 					)}
 				</div>
-			</Container>
-			<Container
-				defaultExpanded={false}
-				headerTitle="Build It Yourself"
-				className=" content-border-top  h-full"
-			>
-				<CodemodStudioCTA />
 			</Container>
 		</main>
 	);
