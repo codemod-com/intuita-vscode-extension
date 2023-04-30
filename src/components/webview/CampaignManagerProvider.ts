@@ -267,6 +267,16 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
+		const actions = [
+			{
+				title: '✗ Discard',
+				command: 'intuita.rejectCase',
+				arguments: [element.hash],
+			},
+		];
+		const caseApplied = this.__caseManager.isCaseAccepted(
+			element.hash as unknown as CaseHash,
+		);
 		const mappedNode: CaseTreeNode = {
 			id: element.hash as unknown as CaseHash,
 			iconName: 'case.svg',
@@ -278,6 +288,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				command: 'intuita.openCaseDiff',
 				arguments: [element.hash],
 			},
+			actions,
+			caseApplied,
 		};
 
 		return mappedNode;
