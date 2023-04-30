@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
@@ -14,8 +14,8 @@ type Props = Readonly<{
 	kind: string;
 	onClick(): void;
 	depth: number;
-	disabled: boolean;
 	index: number;
+	style?: CSSProperties;
 }>;
 
 const TreeItem = ({
@@ -29,12 +29,14 @@ const TreeItem = ({
 	hasChildren,
 	onClick,
 	depth,
+	style,
 }: Props) => {
 	return (
 		<div
 			id={id}
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
+			style={style}
 		>
 			<div
 				style={{

@@ -92,6 +92,7 @@ export type CaseTreeNode = {
 	};
 	actions?: Command[];
 	children: TreeNode[];
+	caseApplied: boolean;
 };
 
 export type TreeNode = {

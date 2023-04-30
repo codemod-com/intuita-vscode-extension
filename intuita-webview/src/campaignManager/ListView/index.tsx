@@ -48,8 +48,12 @@ const ListView = ({ nodes }: Props) => {
 				));
 				return (
 					<TreeItem
+						style={{
+							...(node.caseApplied && {
+								opacity: 0.5,
+							}),
+						}}
 						key={node.id}
-						disabled={false}
 						hasChildren={(node.children?.length ?? 0) !== 0}
 						id={node.id}
 						label={node.label ?? ''}

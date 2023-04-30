@@ -117,7 +117,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 
 		return (
 			<TreeItem
-				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				label={node.label ?? ''}
@@ -179,7 +178,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 
 					return (
 						<TreeItem
-							disabled={false}
 							hasChildren={false}
 							id={node.id}
 							label={node.label ?? ''}

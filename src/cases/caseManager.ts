@@ -150,24 +150,8 @@ export class CaseManager {
 		},
 	) {
 		for (const kase of this.#cases.values()) {
-			const caseJobHashes =
-				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-					kase.hash,
-				);
-
-			let deletedCount = 0;
-
 			for (const jobHash of message.deletedJobHashes) {
-				const deleted = this.#caseHashJobHashSetManager.delete(
-					kase.hash,
-					jobHash,
-				);
-
-				deletedCount += Number(deleted);
-			}
-
-			if (caseJobHashes.size <= deletedCount) {
-				this.#cases.delete(kase.hash);
+				this.#caseHashJobHashSetManager.delete(kase.hash, jobHash);
 			}
 		}
 
