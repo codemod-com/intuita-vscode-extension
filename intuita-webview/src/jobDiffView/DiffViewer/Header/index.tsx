@@ -2,15 +2,16 @@ import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
+import { DiffViewType } from '../../../shared/types';
 
 import styles from './style.module.css';
 import { vscode } from '../../../shared/utilities/vscode';
+import { JobHash } from '../../../../../src/jobs/types';
 
 type Props = Readonly<{
 	title: string;
 	viewType: DiffViewType;
-	jobs: JobDiffViewProps[];
+	stagedJobHashes: Set<JobHash>;
 	diffId: string;
 	changesAccepted: boolean;
 	onViewChange(value: DiffViewType): void;
@@ -19,8 +20,8 @@ type Props = Readonly<{
 const Header = ({
 	title,
 	viewType,
-	jobs,
 	diffId,
+	stagedJobHashes,
 	changesAccepted,
 	onViewChange,
 }: Props) => {
@@ -28,7 +29,7 @@ const Header = ({
 		navigator.clipboard.writeText(title);
 	};
 
-	const jobHashes = jobs.map(({ jobHash }) => jobHash);
+	const jobHashes = Array.from(stagedJobHashes);
 
 	const handleCommit = () => {
 		vscode.postMessage({

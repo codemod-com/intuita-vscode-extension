@@ -19,18 +19,23 @@ declare global {
 }
 
 // @ts-ignore
-const getViewComponent = (view: View) => {
+const getViewComponent = (view: View, hasLinkedAccount: boolean) => {
 	switch (view.viewId) {
 		case 'createIssue': {
 			return <CreateIssue {...view.viewProps} />;
 		}
 		case 'commitView':
-			return <CommitView {...view.viewProps} />;
+			return (
+				<CommitView
+					{...view.viewProps}
+					hasLinkedAccount={hasLinkedAccount}
+				/>
+			);
 	}
 };
 
 function App() {
-	const [, setLinkedAccount] = useState<string | null>(
+	const [linkedAccount, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
 
@@ -77,7 +82,11 @@ function App() {
 		return null;
 	}
 
-	return <main className="App">{getViewComponent(view)}</main>;
+	const hasLinkedAccount = linkedAccount !== null;
+
+	return (
+		<main className="App">{getViewComponent(view, hasLinkedAccount)}</main>
+	);
 }
 
 export default App;

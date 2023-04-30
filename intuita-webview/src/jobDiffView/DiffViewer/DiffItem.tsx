@@ -13,7 +13,10 @@ import { vscode } from '../../shared/utilities/vscode';
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
 	ViewType: 'inline' | 'side-by-side';
+	jobStaged: boolean;
+	onToggleJob(): void;
 };
+
 export const JobDiffView = ({
 	ViewType,
 	actions,
@@ -24,8 +27,9 @@ export const JobDiffView = ({
 	oldFileTitle,
 	newFileTitle,
 	title,
-	// @TODO why passing postMessage as prop?
+	jobStaged,
 	postMessage,
+	onToggleJob,
 }: Props) => {
 	const collapsableRef = useRef<CollapsableRefMethods>(null);
 	const [viewType, setViewType] = useState<DiffViewType>(ViewType);
@@ -91,6 +95,8 @@ export const JobDiffView = ({
 					actions={actions}
 					title={title ?? ''}
 					viewType={viewType}
+					jobStaged={jobStaged}
+					onToggleJob={onToggleJob}
 					onViewTypeChange={setViewType}
 					onReportIssue={reportIssue}
 				/>
