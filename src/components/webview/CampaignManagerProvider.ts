@@ -267,25 +267,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
-		const actions = [
-			{
-				title: '✓ Commit',
-				command: 'intuita.sourceControl.commitStagedJobs',
-				arguments: [element.hash],
-			},
-			{
-				title: '✗ Discard',
-				command: 'intuita.rejectCase',
-				arguments: [element.hash],
-			},
-		];
-
 		const mappedNode: CaseTreeNode = {
 			id: element.hash as unknown as CaseHash,
 			iconName: 'case.svg',
 			label: element.label,
 			kind: 'caseElement',
-			actions,
 			children: [],
 			command: {
 				title: 'Diff View',
