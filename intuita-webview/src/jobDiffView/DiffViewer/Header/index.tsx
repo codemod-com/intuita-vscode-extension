@@ -19,16 +19,19 @@ const Header = ({ title, viewType, jobs, onViewChange }: Props) => {
 		navigator.clipboard.writeText(title);
 	};
 
+	const jobHashes = jobs.map(({ jobHash }) => jobHash);
+
 	const handleCommit = () => {
 		vscode.postMessage({
 			kind: 'webview.global.navigateToCommitView',
+			jobHashes,
 		});
 	};
 
 	const handleSaveToFileSystem = () => {
 		vscode.postMessage({
 			kind: 'webview.global.saveToFileSystem',
-			jobHashes: jobs.map(({ jobHash }) => jobHash),
+			jobHashes,
 		});
 	};
 

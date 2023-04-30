@@ -13,6 +13,8 @@ export const createPullRequestParamsCodec = buildTypeCodec({
 	stagedJobs: t.readonlyArray(stagedJobCodec),
 	commitMessage: t.string,
 	createNewBranch: t.boolean,
+	pullRequestTitle: t.string,
+	pullRequestBody: t.string,
 });
 
 export const createIssueParamsCodec = buildTypeCodec({
@@ -20,3 +22,5 @@ export const createIssueParamsCodec = buildTypeCodec({
 	body: t.string,
 	remoteUrl: t.string,
 });
+
+export const jobHashArrayCodec = t.readonlyArray(t.string);

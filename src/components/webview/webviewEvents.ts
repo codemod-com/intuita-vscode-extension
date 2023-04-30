@@ -37,6 +37,8 @@ export type CommitChangesFormData = Readonly<{
 	commitMessage: string;
 	createNewBranch: boolean;
 	stagedJobs: { hash: string; label: string }[];
+	pullRequestTitle: string;
+	pullRequestBody: string;
 }>;
 
 export type RunCodemodsCommand =
@@ -226,6 +228,7 @@ export type WebviewResponse =
 	| RunCodemodsCommand
 	| Readonly<{
 			kind: 'webview.global.navigateToCommitView';
+			jobHashes: JobHash[];
 	  }>
 	| Readonly<{
 			kind: 'webview.global.saveToFileSystem';
