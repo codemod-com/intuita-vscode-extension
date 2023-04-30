@@ -24,7 +24,9 @@ export const JobDiffViewContainer = ({
 	postMessage,
 }: JobDiffViewContainerProps) => {
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
-	const [stagedJobHashes, setStagedJobHashes] = useState(new Set<JobHash>());
+	const [stagedJobHashes, setStagedJobHashes] = useState(
+		new Set(jobs.map(({ jobHash }) => jobHash)),
+	);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
