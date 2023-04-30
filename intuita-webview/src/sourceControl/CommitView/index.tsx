@@ -37,27 +37,9 @@ const initialFormState: CommitChangesFormData = {
 	pullRequestTitle: '',
 };
 
-const CreatePR = ({
-	loading,
-	initialFormData,
-	hasLinkedAccount,
-	remoteOptions,
-}: Props) => {
+const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 	const [formData, setFormData] =
 		useState<CommitChangesFormData>(initialFormState);
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-
-		vscode.postMessage({
-			kind: 'webview.createPR.submitPR',
-			value: formData,
-		});
-
-		vscode.postMessage({
-			kind: 'webview.global.closeView',
-		});
-	};
 
 	const { remoteUrl, createNewBranch, currentBranchName } = formData;
 
@@ -152,8 +134,7 @@ const CreatePR = ({
 								'codicon-git-pull-request',
 							)}
 						/>
-						Create a <b>new branch</b> for this commit and start a
-						pull request.
+						Create a <b>new branch</b> for this commit.
 					</VSCodeRadio>
 				</VSCodeRadioGroup>
 				{createNewBranch ? <BranchForm formData={formData} /> : null}
@@ -165,19 +146,6 @@ const CreatePR = ({
 						onClick={handleCommitChanges}
 					>
 						Commit
-					</VSCodeButton>
-					<VSCodeButton
-						appearance="primary"
-						disabled={loading || !hasLinkedAccount}
-						className={styles.actionButton}
-						onClick={handleSubmit}
-						title={
-							hasLinkedAccount
-								? 'Commit changes and create pull request'
-								: 'Connect intuita account in order to create pull requests'
-						}
-					>
-						Commit & Pull Request
 					</VSCodeButton>
 				</div>
 			</form>
