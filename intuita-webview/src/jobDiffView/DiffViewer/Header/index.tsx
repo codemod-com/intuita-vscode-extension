@@ -47,6 +47,7 @@ const Header = ({
 		});
 	};
 
+	const hasStagedJobs = stagedJobHashes.size !== 0;
 	return (
 		<div className={styles.root}>
 			<div className={styles.title} onClick={handleTitleClick}>
@@ -62,16 +63,27 @@ const Header = ({
 			<div className={styles.actionsContainer}>
 				{changesAccepted ? (
 					<VSCodeButton
+						title={
+							hasStagedJobs
+								? 'Go to commit settings'
+								: 'At least one file should be selected'
+						}
 						appearance="primary"
-						title="Show commit options"
 						onClick={handleCommit}
+						disabled={!hasStagedJobs}
 					>
 						Commit...
 					</VSCodeButton>
 				) : (
 					<VSCodeButton
+						title={
+							hasStagedJobs
+								? 'Apply all selected files'
+								: 'At least one file should be selected'
+						}
 						appearance="primary"
 						onClick={handleApplySelected}
+						disabled={!hasStagedJobs}
 					>
 						Apply selected
 					</VSCodeButton>
