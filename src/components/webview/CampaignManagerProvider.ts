@@ -37,7 +37,6 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
-import { SourceControlService } from '../sourceControl';
 import { FileExplorerProvider } from './FileExplorerProvider';
 
 export class CampaignManagerProvider implements WebviewViewProvider {
@@ -45,14 +44,12 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__elementMap = new Map<ElementHash, Element>();
-	__unsavedChanges = false;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
-		private readonly __sourceControl: SourceControlService,
 		private readonly __fileExplorerProvider: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
@@ -300,15 +297,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		return mappedNode;
 	};
 
-	private async __getUnsavedChanges() {
-		const unsavedBranches = await this.__sourceControl.getUnsavedBranches();
-		this.__unsavedChanges = unsavedBranches.length !== 0;
-	}
-
 	private __attachExtensionEventListeners() {
 		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.__onUpdateElementsMessage();
-			await this.__getUnsavedChanges();
 			this.__onUpdateElementsMessage();
 		}, 100);
 

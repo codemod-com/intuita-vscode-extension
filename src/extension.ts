@@ -43,7 +43,6 @@ import { GlobalStateAccountStorage } from './components/user/userAccountStorage'
 import { AlreadyLinkedError, UserService } from './components/user/userService';
 import {
 	NotFoundIntuitaAccount,
-	NotFoundRepositoryPath,
 	SourceControlService,
 } from './components/sourceControl';
 import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
@@ -364,7 +363,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		sourceControl,
 		fileExplorerProvider,
 	);
 
@@ -378,7 +376,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
 			const initialData = {
-				repositoryPath: repositoryService.getRemoteUrl(),
 				userId: globalStateAccountStorage.getUserAccount(),
 			};
 
@@ -624,7 +621,6 @@ export async function activate(context: vscode.ExtensionContext) {
 							remote.name,
 							commitMessage,
 						);
-
 						const { html_url } = await sourceControl.createPR({
 							// @TODO create meaningful title for PR
 							title: '[Codemod: ...]...',
@@ -697,12 +693,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} catch (e) {
-					if (e instanceof NotFoundRepositoryPath) {
-						vscode.window.showInformationMessage(
-							'Missing the repository path. Ensure your workspace is connected to a Git remote.',
-						);
-					}
-
 					if (e instanceof NotFoundIntuitaAccount) {
 						const result =
 							await vscode.window.showInformationMessage(
@@ -926,7 +916,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						branchNameFromStr(stagedJobsUniqueName);
 
 					const initialData = {
-						repositoryPath: repositoryService.getRemoteUrl(),
 						userId: globalStateAccountStorage.getUserAccount(),
 					};
 
@@ -1067,7 +1056,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					const title = path;
 
 					const initialData = {
-						repositoryPath: repositoryService.getRemoteUrl(),
 						userId: globalStateAccountStorage.getUserAccount(),
 					};
 

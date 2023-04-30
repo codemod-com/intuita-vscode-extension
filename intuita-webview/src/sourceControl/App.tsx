@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-
 import { vscode } from '../shared/utilities/vscode';
-import WarningMessage from '../shared/WarningMessage';
 
 import CreateIssue from './CreateIssueView';
 import CommitView from './CommitView';
@@ -16,7 +13,6 @@ import type {
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			repositoryPath: string | null;
 			userId: string | null;
 		};
 	}
@@ -34,10 +30,7 @@ const getViewComponent = (view: View) => {
 };
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
-		window.INITIAL_STATE.repositoryPath,
-	);
-	const [linkedAccount, setLinkedAccount] = useState<string | null>(
+	const [, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
 
@@ -52,10 +45,6 @@ function App() {
 			const message = e.data;
 			if (message.kind === 'webview.global.setUserAccount') {
 				setLinkedAccount(message.value);
-			}
-
-			if (message.kind === 'webview.global.setRepositoryPath') {
-				setConfiguredRepoPath(message.repositoryPath);
 			}
 
 			if (message.kind === 'webview.global.setView') {
@@ -83,43 +72,6 @@ function App() {
 			window.removeEventListener('message', handler);
 		};
 	}, [view]);
-
-	const handleLinkAccount = () => {
-		vscode.postMessage({
-			kind: 'webview.global.redirectToSignIn',
-		});
-	};
-
-	const handleOpenExtensionSettings = () => {
-		vscode.postMessage({
-			kind: 'webview.global.openConfiguration',
-		});
-	};
-
-	// @TODO detect remote automatically
-	if (!configuredRepoPath) {
-		return (
-			<WarningMessage
-				message="In order to create pull requests and issues, configure you repository settings"
-				actionButtons={[
-					<VSCodeButton onClick={handleOpenExtensionSettings}>
-						Open settings
-					</VSCodeButton>,
-				]}
-			/>
-		);
-	}
-
-	if (!linkedAccount) {
-		<WarningMessage
-			message="In order to create pull requests and issues, link your Intuita account"
-			actionButtons={[
-				<VSCodeButton onClick={handleLinkAccount}>
-					Link account
-				</VSCodeButton>,
-			]}
-		/>;
-	}
 
 	if (!view) {
 		return null;

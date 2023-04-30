@@ -131,10 +131,6 @@ export type WebviewMessage =
 			value: string | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setRepositoryPath';
-			repositoryPath: string | null;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
 	  }>

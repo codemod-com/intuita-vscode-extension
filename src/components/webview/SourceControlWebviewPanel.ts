@@ -52,14 +52,6 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 			},
 		);
 
-		// @TODO remove this hook, remote url will be selected by user in the view
-		this._addHook(MessageKind.repositoryPathChanged, (message) => {
-			this._postMessage({
-				kind: 'webview.global.setRepositoryPath',
-				repositoryPath: message.repositoryPath,
-			});
-		});
-
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
 				this._addHook(kind, (message) => {
