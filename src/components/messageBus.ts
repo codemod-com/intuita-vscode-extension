@@ -76,8 +76,6 @@ export const enum MessageKind {
 
 	beforePRCreated = 33,
 	afterPRCreated = 34,
-
-	repositoryPathChanged = 35,
 }
 
 export type Engine = 'node' | 'rust';
@@ -260,10 +258,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.afterPRCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.repositoryPathChanged;
-			repositoryPath: string | null;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

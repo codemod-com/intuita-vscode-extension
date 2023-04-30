@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { MessageBus, MessageKind } from '../messageBus';
 import { RepositoryService } from '../webview/repository';
-export class NotFoundRepositoryPath extends Error {}
 export class NotFoundIntuitaAccount extends Error {}
 
 interface UserAccountStorage {
@@ -37,9 +36,8 @@ export class SourceControlService {
 		remoteUrl: string;
 	}) {
 		const userId = this.__userAccountStorage.getUserAccount();
-
 		if (!userId) {
-			throw new NotFoundIntuitaAccount();
+			throw new NotFoundIntuitaAccount('Intuita account not found');
 		}
 
 		const { title, body, baseBranch, targetBranch, remoteUrl } = params;
@@ -69,7 +67,7 @@ export class SourceControlService {
 		const userId = this.__userAccountStorage.getUserAccount();
 
 		if (!userId) {
-			throw new NotFoundIntuitaAccount();
+			throw new NotFoundIntuitaAccount('Intuita account not found');
 		}
 
 		const { title, body, remoteUrl } = params;
@@ -94,7 +92,7 @@ export class SourceControlService {
 		const userId = this.__userAccountStorage.getUserAccount();
 
 		if (!userId) {
-			throw new NotFoundIntuitaAccount();
+			throw new NotFoundIntuitaAccount('Intuita account not found');
 		}
 
 		const query = new URLSearchParams({ userId, repo: remoteUrl });
