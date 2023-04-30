@@ -23,6 +23,7 @@ type Props = Readonly<{
 	loading: boolean;
 	initialFormData: Partial<CommitChangesFormData>;
 	remoteOptions: string[];
+	hasLinkedAccount: boolean;
 }>;
 
 const initialFormState: CommitChangesFormData = {
@@ -36,7 +37,12 @@ const initialFormState: CommitChangesFormData = {
 	pullRequestTitle: '',
 };
 
-const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
+const CreatePR = ({
+	loading,
+	initialFormData,
+	hasLinkedAccount,
+	remoteOptions,
+}: Props) => {
 	const [formData, setFormData] =
 		useState<CommitChangesFormData>(initialFormState);
 
@@ -162,9 +168,14 @@ const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {
 					</VSCodeButton>
 					<VSCodeButton
 						appearance="primary"
-						disabled={loading}
+						disabled={loading || !hasLinkedAccount}
 						className={styles.actionButton}
 						onClick={handleSubmit}
+						title={
+							hasLinkedAccount
+								? 'Commit changes and create pull request'
+								: 'Connect intuita account in order to create pull requests'
+						}
 					>
 						Commit & Pull Request
 					</VSCodeButton>

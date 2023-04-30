@@ -69,8 +69,8 @@ export const Header = ({
 	children,
 	viewed,
 	actions,
-	jobStaged, 
-	onToggleJob, 
+	jobStaged,
+	onToggleJob,
 	onViewedChange,
 	onAction,
 	onReportIssue,
@@ -79,7 +79,7 @@ export const Header = ({
 	return (
 		<div className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob}/>
+				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob} />
 				<div className="flex items-center">
 					<Popup
 						trigger={

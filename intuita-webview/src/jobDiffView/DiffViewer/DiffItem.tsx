@@ -27,8 +27,7 @@ export const JobDiffView = ({
 	oldFileTitle,
 	newFileTitle,
 	title,
-	jobStaged, 
-	// @TODO why passing postMessage as prop?
+	jobStaged,
 	postMessage,
 	onToggleJob,
 }: Props) => {

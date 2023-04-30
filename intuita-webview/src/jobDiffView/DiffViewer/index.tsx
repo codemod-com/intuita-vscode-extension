@@ -30,7 +30,6 @@ export const JobDiffViewContainer = ({
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
 
-
 	return (
 		<div className="m-10 mt-0">
 			<Header
@@ -50,15 +49,17 @@ export const JobDiffViewContainer = ({
 					jobStaged={stagedJobHashes.has(el.jobHash)}
 					onToggleJob={() => {
 						setStagedJobHashes((prevStagedJobHashes) => {
-							const nextStagedJobHashes = new Set(prevStagedJobHashes);
-							if(nextStagedJobHashes.has(el.jobHash)) {
-								nextStagedJobHashes.delete(el.jobHash)
+							const nextStagedJobHashes = new Set(
+								prevStagedJobHashes,
+							);
+							if (nextStagedJobHashes.has(el.jobHash)) {
+								nextStagedJobHashes.delete(el.jobHash);
 							} else {
 								nextStagedJobHashes.add(el.jobHash);
 							}
 
 							return nextStagedJobHashes;
-						})
+						});
 					}}
 					{...el}
 				/>

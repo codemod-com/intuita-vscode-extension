@@ -17,7 +17,6 @@ type Props = Readonly<{
 	onViewChange(value: DiffViewType): void;
 }>;
 
-
 const Header = ({
 	title,
 	viewType,
