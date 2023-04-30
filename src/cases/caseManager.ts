@@ -181,5 +181,6 @@ export class CaseManager {
 	#onClearStateMessage() {
 		this.#cases.clear();
 		this.#caseHashJobHashSetManager.clear();
+		this.#acceptedCaseHashes.clear();
 	}
 }
