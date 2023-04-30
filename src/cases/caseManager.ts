@@ -162,6 +162,7 @@ export class CaseManager {
 
 	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
 		const deleted = this.#cases.delete(message.caseHash);
+		this.#acceptedCaseHashes.delete(message.caseHash);
 
 		if (!deleted) {
 			throw new Error('You tried to remove a case that does not exist.');
