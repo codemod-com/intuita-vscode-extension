@@ -80,7 +80,7 @@ export const Header = ({
 		<div className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob} />
-				<div className="flex items-center">
+				<div className="flex items-center flex-1">
 					<Popup
 						trigger={
 							<h4 className="my-0 ml-3 diff-title align-self-center">

@@ -82,7 +82,7 @@ function App() {
 		return null;
 	}
 
-	const hasLinkedAccount = Boolean(linkedAccount);
+	const hasLinkedAccount = linkedAccount !== null;
 
 	return (
 		<main className="App">{getViewComponent(view, hasLinkedAccount)}</main>
