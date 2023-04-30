@@ -25,5 +25,5 @@ export const createIssueParamsCodec = buildTypeCodec({
 
 export const applyChangesCoded = buildTypeCodec({
 	jobHashes: t.readonlyArray(t.string),
-	caseHash: t.string,
-})
+	diffId: t.string,
+});

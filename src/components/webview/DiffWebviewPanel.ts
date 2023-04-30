@@ -67,9 +67,9 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	public setChangesAccepted(value: boolean): void {
 		this._postMessage({
-			kind: 'webview.diffView.setChangesAccepted', 
-			value
-		})
+			kind: 'webview.diffView.setChangesAccepted',
+			value,
+		});
 	}
 
 	private __onDidReceiveMessage(message: WebviewResponse) {

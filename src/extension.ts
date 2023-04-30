@@ -261,7 +261,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const { title, data } = viewProps;
 					panelInstance.setTitle(`Diff - ${title}`);
 
-					const caseAccepted = caseManager.isCaseAccepted(String(caseHash) as CaseHash);
+					const caseAccepted = caseManager.isCaseAccepted(
+						String(caseHash) as CaseHash,
+					);
 
 					panelInstance.setView({
 						viewId: 'jobDiffView',
@@ -498,11 +500,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const {
-						newBranchName,
-						createNewBranch,
-						commitMessage,
-					} = decoded.right;
+					const { newBranchName, createNewBranch, commitMessage } =
+						decoded.right;
 
 					const remotes = repositoryService.getRemotes();
 					const remote = (remotes ?? []).find(
@@ -860,28 +859,34 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 			async (arg0: unknown) => {
-				const decoded = applyChangesCoded.decode(arg0);
+				try {
+					const decoded = applyChangesCoded.decode(arg0);
 
-				if (decoded._tag === 'Left') {
-					throw new Error(prettyReporter.report(decoded).join('\n'));
+					if (decoded._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(decoded).join('\n'),
+						);
+					}
+
+					const { jobHashes, diffId: caseHash } = decoded.right;
+
+					await jobManager.acceptJobs(
+						new Set(jobHashes as JobHash[]),
+					);
+
+					await caseManager.acceptCase(caseHash as CaseHash);
+
+					const diffViewPanel = DiffWebviewPanel.instance;
+
+					if (diffViewPanel === null) {
+						return;
+					}
+
+					diffViewPanel.setChangesAccepted(true);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
 				}
-
-				const { jobHashes, caseHash } = decoded.right;
-
-
-				await jobManager.acceptJobs(
-					new Set(jobHashes as JobHash[]),
-				);
-
-				await caseManager.acceptCase(caseHash as CaseHash);
-
-				const diffViewPanel = DiffWebviewPanel.instance;
-
-				if(diffViewPanel === null) {
-					return;
-				}
-
-				diffViewPanel.setChangesAccepted(true);
 			},
 		),
 	);

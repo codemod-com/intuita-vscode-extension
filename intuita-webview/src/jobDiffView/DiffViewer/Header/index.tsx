@@ -16,7 +16,14 @@ type Props = Readonly<{
 	onViewChange(value: DiffViewType): void;
 }>;
 
-const Header = ({ title, viewType, jobs, diffId, changesAccepted, onViewChange }: Props) => {
+const Header = ({
+	title,
+	viewType,
+	jobs,
+	diffId,
+	changesAccepted,
+	onViewChange,
+}: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
 	};
@@ -52,20 +59,22 @@ const Header = ({ title, viewType, jobs, diffId, changesAccepted, onViewChange }
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
-				{
-					changesAccepted ? <VSCodeButton
-					appearance="primary"
-					title="Show commit options"
-					onClick={handleCommit}
-				>
-					Commit...
-				</VSCodeButton> : <VSCodeButton
-					appearance="primary"
-					onClick={handleApplySelected}
-				>
-					Apply selected
-				</VSCodeButton>
-				}
+				{changesAccepted ? (
+					<VSCodeButton
+						appearance="primary"
+						title="Show commit options"
+						onClick={handleCommit}
+					>
+						Commit...
+					</VSCodeButton>
+				) : (
+					<VSCodeButton
+						appearance="primary"
+						onClick={handleApplySelected}
+					>
+						Apply selected
+					</VSCodeButton>
+				)}
 			</div>
 			{viewType === 'side-by-side' ? (
 				<VSCodeButton

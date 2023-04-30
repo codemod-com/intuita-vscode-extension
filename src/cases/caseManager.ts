@@ -13,7 +13,7 @@ export class CaseManager {
 
 	readonly #acceptedCaseHashes: Set<CaseHash>;
 
-	public constructor( 
+	public constructor(
 		cases: ReadonlyArray<Case>,
 		caseHashJobHashes: ReadonlySet<string>,
 		messageBus: MessageBus,

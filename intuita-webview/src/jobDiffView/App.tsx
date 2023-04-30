@@ -87,12 +87,17 @@ function App() {
 				element?.scrollIntoView();
 			}
 
-			if(message.kind === 'webview.diffView.setChangesAccepted' && view.viewId ==='jobDiffView') {
-
+			if (
+				message.kind === 'webview.diffView.setChangesAccepted' &&
+				view.viewId === 'jobDiffView'
+			) {
 				setView({
-					...view, 
-					viewProps: { ...view.viewProps, changesAccepted: message.value }
-				})
+					...view,
+					viewProps: {
+						...view.viewProps,
+						changesAccepted: message.value,
+					},
+				});
 			}
 		},
 		[view],

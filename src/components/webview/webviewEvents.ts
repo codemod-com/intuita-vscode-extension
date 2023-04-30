@@ -148,7 +148,7 @@ export type WebviewMessage =
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
-	|	Readonly<{
+	| Readonly<{
 			kind: 'webview.diffView.setChangesAccepted';
 			value: boolean;
 	  }>
