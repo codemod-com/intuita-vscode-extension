@@ -12,10 +12,20 @@ type Props = Readonly<{
 	title: string;
 	viewType: DiffViewType;
 	stagedJobHashes: Set<JobHash>;
+	diffId: string;
+	changesAccepted: boolean;
 	onViewChange(value: DiffViewType): void;
 }>;
 
-const Header = ({ title, viewType,  stagedJobHashes, onViewChange }: Props) => {
+
+const Header = ({
+	title,
+	viewType,
+	diffId,
+	stagedJobHashes,
+	changesAccepted,
+	onViewChange,
+}: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
 	};
@@ -26,13 +36,15 @@ const Header = ({ title, viewType,  stagedJobHashes, onViewChange }: Props) => {
 		vscode.postMessage({
 			kind: 'webview.global.navigateToCommitView',
 			jobHashes,
+			diffId,
 		});
 	};
 
-	const handleSaveToFileSystem = () => {
+	const handleApplySelected = () => {
 		vscode.postMessage({
-			kind: 'webview.global.saveToFileSystem',
+			kind: 'webview.global.applySelected',
 			jobHashes,
+			diffId,
 		});
 	};
 
@@ -49,19 +61,22 @@ const Header = ({ title, viewType,  stagedJobHashes, onViewChange }: Props) => {
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
-				<VSCodeButton
-					appearance="primary"
-					onClick={handleSaveToFileSystem}
-				>
-					Apply all
-				</VSCodeButton>
-				<VSCodeButton
-					appearance="primary"
-					title="Show commit options"
-					onClick={handleCommit}
-				>
-					Commit...
-				</VSCodeButton>
+				{changesAccepted ? (
+					<VSCodeButton
+						appearance="primary"
+						title="Show commit options"
+						onClick={handleCommit}
+					>
+						Commit...
+					</VSCodeButton>
+				) : (
+					<VSCodeButton
+						appearance="primary"
+						onClick={handleApplySelected}
+					>
+						Apply selected
+					</VSCodeButton>
+				)}
 			</div>
 			{viewType === 'side-by-side' ? (
 				<VSCodeButton
