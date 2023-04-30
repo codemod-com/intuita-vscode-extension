@@ -177,57 +177,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	// @TODO should this be removed? we cannot open diff view for specific jobs now
-	// context.subscriptions.push(
-	// 	vscode.commands.registerCommand(
-	// 		'intuita.openJobDiff',
-	// 		async (jobHash?: JobHash) => {
-	// 			if (!jobHash || !jobHash[0] || !rootPath) return;
-	// 			try {
-	// 				const panelInstance = DiffWebviewPanel.getInstance(
-	// 					{
-	// 						type: 'intuitaPanel',
-	// 						title: 'Diff',
-	// 						extensionUri: context.extensionUri,
-	// 						initialData: {},
-	// 						viewColumn: vscode.ViewColumn.One,
-	// 						webviewName: 'jobDiffView',
-	// 					},
-	// 					messageBus,
-	// 					jobManager,
-	// 					caseManager,
-	// 					rootPath,
-	// 				);
-	// 				await panelInstance.render();
-	// 				const viewProps = await panelInstance.getViewDataForJob(
-	// 					jobHash,
-	// 				);
-	// 				if (!viewProps) {
-	// 					return;
-	// 				}
-
-	// 				const job = jobManager.getJob(jobHash);
-
-	// 				if (!job) {
-	// 					throw new Error(
-	// 						`Unable to find a job with the job hash ${jobHash}`,
-	// 					);
-	// 				}
-
-	// 				panelInstance.setView({
-	// 					viewId: 'jobDiffView',
-	// 					viewProps: {
-	// 						title: `Executed the codemod: ${job.codemodName}`,
-	// 						data: [viewProps],
-	// 					},
-	// 				});
-	// 			} catch (err) {
-	// 				console.error(err);
-	// 			}
-	// 		},
-	// 	),
-	// );
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openCaseDiff',
@@ -280,64 +229,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
-
-	// context.subscriptions.push(
-	// 	vscode.commands.registerCommand(
-	// 		'intuita.openFolderDiff',
-	// 		async (arg0, ...otherArgs) => {
-	// 			const firstJobHash: string | null =
-	// 				typeof arg0 === 'string' ? arg0 : null;
-	// 			if (firstJobHash === null || !rootPath) {
-	// 				return;
-	// 			}
-
-	// 			const jobHashes = [arg0].concat(otherArgs.slice());
-
-	// 			try {
-	// 				const panelInstance = DiffWebviewPanel.getInstance(
-	// 					{
-	// 						type: 'intuitaPanel',
-	// 						title: 'Diff',
-	// 						extensionUri: context.extensionUri,
-	// 						initialData: {},
-	// 						viewColumn: vscode.ViewColumn.One,
-	// 						webviewName: 'jobDiffView',
-	// 					},
-	// 					messageBus,
-	// 					jobManager,
-	// 					caseManager,
-	// 					rootPath,
-	// 				);
-	// 				await panelInstance.render();
-	// 				const viewProps =
-	// 					await panelInstance.getViewDataForJobsArray(jobHashes);
-
-	// 				if (!viewProps) {
-	// 					return;
-	// 				}
-
-	// 				const job = jobManager.getJob(firstJobHash as JobHash);
-
-	// 				if (!job) {
-	// 					throw new Error(
-	// 						`Unable to find a job with the job hash ${firstJobHash}`,
-	// 					);
-	// 				}
-
-	// 				panelInstance.setView({
-	// 					viewId: 'jobDiffView',
-	// 					viewProps: {
-	// 						title: `Executed the codemod: ${job.codemodName}`,
-	// 						data: viewProps,
-	// 					},
-	// 				});
-	// 			} catch (err) {
-	// 				console.error(err);
-	// 			}
-	// 		},
-	// 	),
-	// );
-	// @TODO split this large file to modules
 
 	/**
 	 * User
