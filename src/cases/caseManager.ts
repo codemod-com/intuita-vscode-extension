@@ -11,12 +11,15 @@ export class CaseManager {
 		JobHash
 	>;
 
-	public constructor(
+	readonly #acceptedCaseHashes: Set<CaseHash>;
+
+	public constructor( 
 		cases: ReadonlyArray<Case>,
 		caseHashJobHashes: ReadonlySet<string>,
 		messageBus: MessageBus,
 	) {
 		this.#messageBus = messageBus;
+		this.#acceptedCaseHashes = new Set();
 
 		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
 		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
@@ -41,6 +44,14 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
+	}
+
+	public acceptCase(caseHash: CaseHash): void {
+		this.#acceptedCaseHashes.add(caseHash);
+	}
+
+	public isCaseAccepted(caseHash: CaseHash): boolean {
+		return this.#acceptedCaseHashes.has(caseHash);
 	}
 
 	public getCases(): IterableIterator<Case> {

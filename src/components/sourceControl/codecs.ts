@@ -23,4 +23,7 @@ export const createIssueParamsCodec = buildTypeCodec({
 	remoteUrl: t.string,
 });
 
-export const jobHashArrayCodec = t.readonlyArray(t.string);
+export const applyChangesCoded = buildTypeCodec({
+	jobHashes: t.readonlyArray(t.string),
+	caseHash: t.string,
+})

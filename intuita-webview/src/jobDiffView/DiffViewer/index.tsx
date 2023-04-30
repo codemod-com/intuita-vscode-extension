@@ -11,11 +11,15 @@ type JobDiffViewContainerProps = {
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
 	title: string;
+	diffId: string;
+	changesAccepted: boolean;
 };
 
 export const JobDiffViewContainer = ({
 	title,
 	jobs,
+	diffId,
+	changesAccepted,
 	postMessage,
 }: JobDiffViewContainerProps) => {
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
@@ -31,6 +35,8 @@ export const JobDiffViewContainer = ({
 				viewType={viewType}
 				title={title}
 				jobs={jobs}
+				diffId={diffId}
+				changesAccepted={changesAccepted}
 			/>
 
 			{jobs.map((el) => (

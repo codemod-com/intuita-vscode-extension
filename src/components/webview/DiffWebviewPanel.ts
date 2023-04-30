@@ -65,6 +65,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		);
 	}
 
+	public setChangesAccepted(value: boolean): void {
+		this._postMessage({
+			kind: 'webview.diffView.setChangesAccepted', 
+			value
+		})
+	}
+
 	private __onDidReceiveMessage(message: WebviewResponse) {
 		if (message.kind === 'webview.command') {
 			commands.executeCommand(
@@ -105,14 +112,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.navigateToCommitView') {
 			commands.executeCommand(
 				'intuita.sourceControl.commitStagedJobs',
-				message.jobHashes,
+				message,
 			);
 		}
 
-		if (message.kind === 'webview.global.saveToFileSystem') {
+		if (message.kind === 'webview.global.applySelected') {
 			commands.executeCommand(
 				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
-				message.jobHashes,
+				message,
 			);
 		}
 	}

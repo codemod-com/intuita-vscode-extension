@@ -148,6 +148,10 @@ export type WebviewMessage =
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
+	|	Readonly<{
+			kind: 'webview.diffView.setChangesAccepted';
+			value: boolean;
+	  }>
 	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
@@ -225,10 +229,12 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.global.navigateToCommitView';
 			jobHashes: JobHash[];
+			diffId: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.saveToFileSystem';
+			kind: 'webview.global.applySelected';
 			jobHashes: JobHash[];
+			diffId: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.campaignManager.caseSelected';
@@ -277,6 +283,8 @@ export type View =
 	| Readonly<{
 			viewId: 'jobDiffView';
 			viewProps: {
+				diffId: string;
+				changesAccepted: boolean;
 				title: string;
 				data: JobDiffViewProps[];
 			};

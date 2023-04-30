@@ -15,12 +15,14 @@ const getViewComponent = (
 ) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
-			const { data, title } = view.viewProps;
+			const { data, title, diffId, changesAccepted } = view.viewProps;
 
 			return (
 				<JobDiffViewContainer
+					diffId={diffId}
 					title={title}
 					jobs={data}
+					changesAccepted={changesAccepted}
 					postMessage={postMessage}
 				/>
 			);
@@ -83,6 +85,14 @@ function App() {
 				const elementId = `diffViewContainer-${message.jobHash}`;
 				const element = document.getElementById(elementId);
 				element?.scrollIntoView();
+			}
+
+			if(message.kind === 'webview.diffView.setChangesAccepted' && view.viewId ==='jobDiffView') {
+
+				setView({
+					...view, 
+					viewProps: { ...view.viewProps, changesAccepted: message.value }
+				})
 			}
 		},
 		[view],
