@@ -94,8 +94,6 @@ export const Header = ({
 							)}
 						</div>
 					</Popup>
-
-					<h4 className="ml-3 my-0"> {newFileTitle} </h4>
 				</div>
 
 				<div
