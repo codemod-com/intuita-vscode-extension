@@ -84,6 +84,7 @@ export type CodemodTreeNode<T = undefined> = {
 export type CaseTreeNode = {
 	id: CaseHash;
 	kind: 'caseElement';
+	allJobsApplied: boolean;
 	label?: string;
 	iconName: 'case.svg';
 	command?: Command & {

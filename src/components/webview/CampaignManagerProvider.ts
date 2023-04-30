@@ -267,9 +267,16 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
+		const jobHashesSet = this.__caseManager.getJobHashes([
+			element.hash,
+		] as unknown as CaseHash[]);
+		const allJobsApplied = Array.from(jobHashesSet).every((jobHash) =>
+			this.__jobManager.isJobApplied(jobHash),
+		);
 		const mappedNode: CaseTreeNode = {
 			id: element.hash as unknown as CaseHash,
 			iconName: 'case.svg',
+			allJobsApplied,
 			label: element.label,
 			kind: 'caseElement',
 			children: [],
