@@ -6,7 +6,6 @@ import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
 import Header from './Header';
-import { JobHash } from '../../../../src/jobs/types';
 
 type JobDiffViewContainerProps = {
 	postMessage: (arg: JobAction) => void;
