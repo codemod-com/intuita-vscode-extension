@@ -58,7 +58,7 @@ import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
-	jobHashArrayCodec,
+	applyChangesCoded,
 } from './components/sourceControl/codecs';
 import { buildJobElementLabel } from './elements/buildJobElement';
 import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
@@ -176,55 +176,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			codemodListWebviewProvider,
 		),
 	);
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.openJobDiff',
-			async (jobHash?: JobHash) => {
-				if (!jobHash || !jobHash[0] || !rootPath) return;
-				try {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					await panelInstance.render();
-					const viewProps = await panelInstance.getViewDataForJob(
-						jobHash,
-					);
-					if (!viewProps) {
-						return;
-					}
-
-					const job = jobManager.getJob(jobHash);
-
-					if (!job) {
-						throw new Error(
-							`Unable to find a job with the job hash ${jobHash}`,
-						);
-					}
-
-					panelInstance.setView({
-						viewId: 'jobDiffView',
-						viewProps: {
-							title: `Executed the codemod: ${job.codemodName}`,
-							data: [viewProps],
-						},
-					});
-				} catch (err) {
-					console.error(err);
-				}
-			},
-		),
-	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -258,9 +209,16 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 					const { title, data } = viewProps;
 					panelInstance.setTitle(`Diff - ${title}`);
+
+					const caseAccepted = caseManager.isCaseAccepted(
+						String(caseHash) as CaseHash,
+					);
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							changesAccepted: caseAccepted,
+							diffId: String(caseHash) as CaseHash,
 							title,
 							data,
 						},
@@ -271,64 +229,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.openFolderDiff',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
-					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null || !rootPath) {
-					return;
-				}
-
-				const jobHashes = [arg0].concat(otherArgs.slice());
-
-				try {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					await panelInstance.render();
-					const viewProps =
-						await panelInstance.getViewDataForJobsArray(jobHashes);
-
-					if (!viewProps) {
-						return;
-					}
-
-					const job = jobManager.getJob(firstJobHash as JobHash);
-
-					if (!job) {
-						throw new Error(
-							`Unable to find a job with the job hash ${firstJobHash}`,
-						);
-					}
-
-					panelInstance.setView({
-						viewId: 'jobDiffView',
-						viewProps: {
-							title: `Executed the codemod: ${job.codemodName}`,
-							data: viewProps,
-						},
-					});
-				} catch (err) {
-					console.error(err);
-				}
-			},
-		),
-	);
-	// @TODO split this large file to modules
 
 	/**
 	 * User
@@ -491,18 +391,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const {
-						newBranchName,
-						createNewBranch,
-						commitMessage,
-						stagedJobs,
-					} = decoded.right;
-
-					const stagedJobHashes = new Set(
-						stagedJobs.map(({ hash }) => hash as JobHash),
-					);
-
-					await jobManager.acceptJobs(stagedJobHashes);
+					const { newBranchName, createNewBranch, commitMessage } =
+						decoded.right;
 
 					const remotes = repositoryService.getRemotes();
 					const remote = (remotes ?? []).find(
@@ -569,16 +459,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						newBranchName,
 						createNewBranch,
 						commitMessage,
-						stagedJobs,
 						pullRequestBody,
 						pullRequestTitle,
 					} = decoded.right;
-
-					const stagedJobHashes = new Set(
-						stagedJobs.map(({ hash }) => hash as JobHash),
-					);
-
-					await jobManager.acceptJobs(stagedJobHashes);
 
 					const remotes = repositoryService.getRemotes();
 					const remote = (remotes ?? []).find(
@@ -867,15 +750,34 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 			async (arg0: unknown) => {
-				const decoded = jobHashArrayCodec.decode(arg0);
+				try {
+					const decoded = applyChangesCoded.decode(arg0);
 
-				if (decoded._tag === 'Left') {
-					throw new Error(prettyReporter.report(decoded).join('\n'));
+					if (decoded._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(decoded).join('\n'),
+						);
+					}
+
+					const { jobHashes, diffId: caseHash } = decoded.right;
+
+					await jobManager.acceptJobs(
+						new Set(jobHashes as JobHash[]),
+					);
+
+					await caseManager.acceptCase(caseHash as CaseHash);
+
+					const diffViewPanel = DiffWebviewPanel.instance;
+
+					if (diffViewPanel === null) {
+						return;
+					}
+
+					diffViewPanel.setChangesAccepted(true);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
 				}
-
-				await jobManager.acceptJobs(
-					new Set(decoded.right as JobHash[]),
-				);
 			},
 		),
 	);
@@ -885,7 +787,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.commitStagedJobs',
 			async (arg0: unknown) => {
 				try {
-					const decoded = jobHashArrayCodec.decode(arg0);
+					const decoded = applyChangesCoded.decode(arg0);
 
 					if (decoded._tag === 'Left') {
 						throw new Error(
@@ -902,7 +804,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						throw new Error('Unable to get current branch');
 					}
 
-					const appliedJobsHashes = decoded.right;
+					const { jobHashes: appliedJobsHashes } = decoded.right;
 					const stagedJobs = [];
 
 					for (const jobHash of appliedJobsHashes) {
