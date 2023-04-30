@@ -145,7 +145,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const repositoryService = new RepositoryService(
 		git,
-		messageBus,
 		persistedState?.remoteUrl ?? null,
 	);
 

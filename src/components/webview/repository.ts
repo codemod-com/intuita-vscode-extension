@@ -1,5 +1,4 @@
 import { API, Repository, Branch, Change, Remote } from '../../types/git';
-import { MessageBus, MessageKind } from '../messageBus';
 
 export class RepositoryService {
 	__repo: Repository | null = null;
@@ -8,7 +7,6 @@ export class RepositoryService {
 
 	constructor(
 		private readonly __gitAPI: API | null,
-		private readonly __messageBus: MessageBus,
 		remoteUrl: string | null,
 	) {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
