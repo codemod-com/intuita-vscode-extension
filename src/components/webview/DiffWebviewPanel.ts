@@ -103,12 +103,16 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		if (message.kind === 'webview.global.navigateToCommitView') {
-			commands.executeCommand('intuita.sourceControl.commitStagedJobs');
+			commands.executeCommand(
+				'intuita.sourceControl.commitStagedJobs',
+				message.jobHashes,
+			);
 		}
 
 		if (message.kind === 'webview.global.saveToFileSystem') {
 			commands.executeCommand(
 				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message.jobHashes,
 			);
 		}
 	}

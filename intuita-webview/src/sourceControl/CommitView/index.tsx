@@ -32,6 +32,8 @@ const initialFormState: CommitChangesFormData = {
 	commitMessage: '',
 	createNewBranch: false,
 	stagedJobs: [],
+	pullRequestBody: '',
+	pullRequestTitle: '',
 };
 
 const CreatePR = ({ loading, initialFormData, remoteOptions }: Props) => {

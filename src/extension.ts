@@ -58,11 +58,13 @@ import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import {
 	createIssueParamsCodec,
 	createPullRequestParamsCodec,
+	jobHashArrayCodec,
 } from './components/sourceControl/codecs';
 import { buildJobElementLabel } from './elements/buildJobElement';
 import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
+import { randomBytes } from 'crypto';
 
 const messageBus = new MessageBus();
 
@@ -557,8 +559,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				try {
 					const decoded = createPullRequestParamsCodec.decode(arg0);
 
-					// @TODO can we add something like ```value = decoded.getOrThrow()```
-					// so we dont have to write this checks each time?
 					if (decoded._tag === 'Left') {
 						throw new Error(
 							prettyReporter.report(decoded).join('\n'),
@@ -570,6 +570,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						createNewBranch,
 						commitMessage,
 						stagedJobs,
+						pullRequestBody,
+						pullRequestTitle,
 					} = decoded.right;
 
 					const stagedJobHashes = new Set(
@@ -621,9 +623,8 @@ export async function activate(context: vscode.ExtensionContext) {
 							commitMessage,
 						);
 						const { html_url } = await sourceControl.createPR({
-							// @TODO create meaningful title for PR
-							title: '[Codemod: ...]...',
-							body: commitMessage,
+							title: pullRequestTitle,
+							body: pullRequestBody,
 							baseBranch: currentBranchName,
 							targetBranch: newBranchName,
 							remoteUrl: remote.pushUrl,
@@ -865,9 +866,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
-			async () => {
-				const appliedJobsHashes = jobManager.getAppliedJobsHashes();
-				await jobManager.acceptJobs(appliedJobsHashes);
+			async (arg0: unknown) => {
+				const decoded = jobHashArrayCodec.decode(arg0);
+
+				if (decoded._tag === 'Left') {
+					throw new Error(prettyReporter.report(decoded).join('\n'));
+				}
+
+				await jobManager.acceptJobs(
+					new Set(decoded.right as JobHash[]),
+				);
 			},
 		),
 	);
@@ -875,8 +883,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.sourceControl.commitStagedJobs',
-			async () => {
+			async (arg0: unknown) => {
 				try {
+					const decoded = jobHashArrayCodec.decode(arg0);
+
+					if (decoded._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(decoded).join('\n'),
+						);
+					}
+
 					const currentBranch = repositoryService.getCurrentBranch();
 
 					if (
@@ -886,11 +902,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						throw new Error('Unable to get current branch');
 					}
 
-					const appliedJobsHashes = jobManager.getAppliedJobsHashes();
+					const appliedJobsHashes = decoded.right;
 					const stagedJobs = [];
 
 					for (const jobHash of appliedJobsHashes) {
-						const job = jobManager.getJob(jobHash);
+						const job = jobManager.getJob(jobHash as JobHash);
 
 						if (job === null) {
 							continue;
@@ -907,12 +923,15 @@ export async function activate(context: vscode.ExtensionContext) {
 						});
 					}
 
-					const stagedJobsUniqueName = Array.from(
-						new Set(stagedJobs.map((job) => job.codemodName)),
-					).join();
+					if (stagedJobs[0] === undefined) {
+						throw new Error('Staged jobs not found');
+					}
 
-					const newBranchName =
-						branchNameFromStr(stagedJobsUniqueName);
+					const firstJobCodemodName = stagedJobs[0].codemodName;
+
+					const newBranchName = branchNameFromStr(
+						firstJobCodemodName + randomBytes(16).toString('hex'),
+					);
 
 					const initialData = {
 						userId: globalStateAccountStorage.getUserAccount(),
@@ -921,7 +940,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const panelInstance = SourceControlWebviewPanel.getInstance(
 						{
 							type: 'intuitaPanel',
-							title: stagedJobsUniqueName,
+							title: firstJobCodemodName,
 							extensionUri: context.extensionUri,
 							initialData,
 							viewColumn: vscode.ViewColumn.One,
@@ -951,9 +970,11 @@ export async function activate(context: vscode.ExtensionContext) {
 								currentBranchName: currentBranch.name,
 								newBranchName,
 								remoteUrl: defaultRemoteUrl,
-								commitMessage: `Migrations: stagedJobsUniqueName`,
+								commitMessage: `Codemod: ${firstJobCodemodName}`,
 								createNewBranch: true,
 								stagedJobs,
+								pullRequestBody: '',
+								pullRequestTitle: `[Codemod] ${firstJobCodemodName}`,
 							},
 							loading: false,
 							error: '',
