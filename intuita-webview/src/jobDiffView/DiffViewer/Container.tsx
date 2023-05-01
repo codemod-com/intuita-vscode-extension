@@ -115,14 +115,14 @@ export const Header = ({
 					</VSCodeButton>
 					{shouldShowDiff && (
 						<div className="ml-10 flex items-center justify-end diff-changes-container">
-							<span className="diff-changes diff-added">
-								+{diff.added}
+							<span className="diff-changes diff-removed">
+								-{diff.removed}
 							</span>
 
 							<span> / </span>
 
-							<span className="diff-changes diff-removed">
-								-{diff.removed}
+							<span className="diff-changes diff-added">
+								+{diff.added}
 							</span>
 						</div>
 					)}
