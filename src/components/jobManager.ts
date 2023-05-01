@@ -200,8 +200,7 @@ export class JobManager {
 		}
 
 		for (const jobHash of jobHashes) {
-			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);
+			this.deleteJob(jobHash);
 		}
 
 		for (const message of messages) {
@@ -274,8 +273,7 @@ export class JobManager {
 				});
 			}
 
-			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);
+			this.deleteJob(jobHash);
 		}
 
 		messages.push({ kind: MessageKind.updateElements });
@@ -339,6 +337,11 @@ export class JobManager {
 		});
 	}
 
+	public deleteJob(jobHash: JobHash) {
+		this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
+		this.#jobMap.delete(jobHash);
+	}
+
 	public async refreshAllJobs(): Promise<void> {
 		const oldJobs = Array.from(this.getJobs());
 
@@ -365,8 +368,7 @@ export class JobManager {
 		});
 
 		oldJobs.forEach(({ hash }) => {
-			this.#uriHashJobHashSetManager.deleteRightHash(hash);
-			this.#jobMap.delete(hash);
+			this.deleteJob(hash);
 		});
 
 		const tuples = Object.entries(codemods);
