@@ -53,7 +53,6 @@ import { ElementHash } from './elements/types';
 import type { GitExtension } from './types/git';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
 import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
-import { handleActiveTextEditor } from './packageJsonAnalyzer/inDocumentPackageAnalyzer';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import {
 	createIssueParamsCodec,
@@ -605,19 +604,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			},
 		),
 	);
-
-	vscode.window.onDidChangeActiveTextEditor(() => {
-		handleActiveTextEditor();
-	});
-	vscode.workspace.onDidChangeTextDocument(() => {
-		handleActiveTextEditor();
-	});
-
-	vscode.window.onDidChangeTextEditorSelection(() => {
-		handleActiveTextEditor();
-	});
-
-	handleActiveTextEditor();
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
