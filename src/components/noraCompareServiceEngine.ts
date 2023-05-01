@@ -17,7 +17,7 @@ class CompareProcessWrapper {
 		private readonly codemodSetName: string,
 		private readonly codemodName: string,
 		executableUri: Uri,
-		executionId: string,
+		private __executionId: string,
 		messageBus: MessageBus,
 	) {
 		this.#process = spawn(singleQuotify(executableUri.fsPath), [], {
@@ -54,12 +54,16 @@ class CompareProcessWrapper {
 					kind: MessageKind.filesCompared,
 					jobHash: message.i as JobHash,
 					equal: message.e,
-					executionId,
+					executionId: this.__executionId,
 					codemodSetName: this.codemodSetName,
 					codemodName: this.codemodName,
 				});
 			}
 		});
+	}
+
+	public setExecutionId(executionId: string) {
+		this.__executionId = executionId;
 	}
 
 	isExited(): boolean {
@@ -123,6 +127,9 @@ export class NoraCompareServiceEngine {
 			);
 		}
 
+		// provide fresh executionId to the wrapper
+		this.#compareProcessWrapper.setExecutionId(message.executionId);
+
 		const { job, caseKind, caseSubKind } = message;
 
 		this.#jobMap.set(job.hash, [job, caseKind, caseSubKind]);
@@ -148,7 +155,7 @@ export class NoraCompareServiceEngine {
 			return;
 		}
 
-		const { jobHash } = message;
+		const { jobHash, executionId } = message;
 
 		const tuple = this.#jobMap.get(jobHash);
 
@@ -164,7 +171,7 @@ export class NoraCompareServiceEngine {
 		} as const;
 
 		const caseWithJobHashes: CaseWithJobHashes = {
-			hash: buildCaseHash(kase),
+			hash: buildCaseHash(kase, executionId),
 			kind: caseKind,
 			subKind: caseSubKind,
 			jobHashes: new Set([job.hash]),
