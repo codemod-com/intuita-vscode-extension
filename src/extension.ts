@@ -68,11 +68,10 @@ import { randomBytes } from 'crypto';
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
-
-	if(!context.storageUri) {
+	if (!context.storageUri) {
 		throw new Error('Storage Uri not found');
 	}
-	
+
 	messageBus.setDisposables(context.subscriptions);
 
 	const configurationContainer = buildContainer(getConfiguration());
@@ -96,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.StatusBarAlignment.Right,
 		100,
 	);
-	
+
 	statusBarItem.command = 'intuita.shutdownEngines';
 
 	context.subscriptions.push(statusBarItem);
@@ -116,7 +115,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		fileService,
 		engineService,
-		context.storageUri
+		context.storageUri,
 	);
 
 	const caseManager = new CaseManager(
@@ -126,7 +125,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-
 
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,

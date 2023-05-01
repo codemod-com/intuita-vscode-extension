@@ -296,26 +296,32 @@ export class EngineService {
 				const commandUris = message.command.uris;
 
 				commandUris.forEach((commandUri) => {
-					if(fs.lstatSync(commandUri.fsPath).isDirectory()) {
+					if (fs.lstatSync(commandUri.fsPath).isDirectory()) {
 						includePatterns.forEach((includePattern) => {
-							const { fsPath } = Uri.joinPath(commandUri, includePattern);
-		
+							const { fsPath } = Uri.joinPath(
+								commandUri,
+								includePattern,
+							);
+
 							const path = singleQuotify(fsPath);
-		
+
 							args.push('-p', path);
 						});
-		
+
 						excludePatterns.forEach((excludePattern) => {
-							const { fsPath } = Uri.joinPath(commandUri, excludePattern);
-		
+							const { fsPath } = Uri.joinPath(
+								commandUri,
+								excludePattern,
+							);
+
 							const path = singleQuotify(fsPath);
-		
+
 							args.push('-p', `!${path}`);
 						});
 					} else {
 						args.push('-p', commandUri.fsPath);
 					}
-				})
+				});
 
 				args.push(
 					'-w',
@@ -446,7 +452,7 @@ export class EngineService {
 			if (!this.#execution) {
 				return;
 			}
-	
+
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -602,7 +608,7 @@ export class EngineService {
 			interfase.on('close', async () => {
 				try {
 					this.#statusBarItemManager.moveToStandby();
-	
+
 					if (this.#execution) {
 						this.#messageBus.publish({
 							kind: MessageKind.codemodSetExecuted,
@@ -611,18 +617,22 @@ export class EngineService {
 							halted: this.#execution.halted,
 							fileCount: this.#execution.totalFileCount,
 						});
-		
-						if (!errorMessages.size && !this.#execution.affectedAnyFile) {
+
+						if (
+							!errorMessages.size &&
+							!this.#execution.affectedAnyFile
+						) {
 							window.showWarningMessage(Messages.noAffectedFiles);
 						}
-		
+
 						errorMessages.forEach((error) => {
 							try {
 								const parsedError = JSON.parse(error);
 								window.showErrorMessage(
 									`${
 										'kind' in parsedError &&
-										parsedError.kind === 'unrecognizedCodemod'
+										parsedError.kind ===
+											'unrecognizedCodemod'
 											? Messages.codemodUnrecognized
 											: Messages.errorRunningCodemod
 									}. Error: ${error}`,
@@ -633,10 +643,10 @@ export class EngineService {
 							}
 						});
 					}
-		
+
 					this.#execution = null;
 					resolve(null);
-				} catch(e) {
+				} catch (e) {
 					reject(e);
 				}
 			});

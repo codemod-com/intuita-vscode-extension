@@ -33,7 +33,7 @@ export class JobManager {
 		messageBus: MessageBus,
 		private readonly __fileService: FileService,
 		private readonly __engineService: EngineService,
-		private readonly __storageUri: Uri, 
+		private readonly __storageUri: Uri,
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#appliedJobsHashes = new Set(appliedJobsHashes);
@@ -345,37 +345,39 @@ export class JobManager {
 		const allCodemods = await this.__engineService.getCodemodList();
 		const codemods: Record<string, Uri[]> = {};
 
- 		oldJobs.forEach((job) => {
+		oldJobs.forEach((job) => {
 			if (job.oldUri === null) {
 				return;
 			}
 
-			const jobCodemod =  allCodemods.find(c => c.name === job.codemodName) ?? null;
-			
-			if(jobCodemod === null) {
-				return;
-			} 
+			const jobCodemod =
+				allCodemods.find((c) => c.name === job.codemodName) ?? null;
 
-			if(!codemods[jobCodemod.hashDigest]) {
+			if (jobCodemod === null) {
+				return;
+			}
+
+			if (!codemods[jobCodemod.hashDigest]) {
 				codemods[jobCodemod.hashDigest] = [];
-			} 
+			}
 
 			codemods[jobCodemod.hashDigest]?.push(job.oldUri);
 		});
 
-		oldJobs.forEach(({hash}) => {
+		oldJobs.forEach(({ hash }) => {
 			this.#uriHashJobHashSetManager.deleteRightHash(hash);
 			this.#jobMap.delete(hash);
-		})
+		});
 
 		const tuples = Object.entries(codemods);
 
-		for(const tuple of tuples) {
+		for (const tuple of tuples) {
 			const [codemodHash, uris] = tuple;
 			const executionId = buildExecutionId();
 			const happenedAt = String(Date.now());
 
-			await this.__engineService.executeCodemodSet({kind: MessageKind.executeCodemodSet,
+			await this.__engineService.executeCodemodSet({
+				kind: MessageKind.executeCodemodSet,
 				command: {
 					kind: 'executeCodemod',
 					codemodHash,
@@ -384,12 +386,8 @@ export class JobManager {
 					uris,
 				},
 				executionId,
-				happenedAt
-			})
+				happenedAt,
+			});
 		}
-
-		
 	}
-
-
 }
