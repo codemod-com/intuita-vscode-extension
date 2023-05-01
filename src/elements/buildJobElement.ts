@@ -10,12 +10,11 @@ export const jobKindCopyMap = {
 	[JobKind.rewriteFile]: 'Rewrite',
 };
 
-export const buildJobElement = (job: Job, rootPath: string): JobElement => {
+export const buildJobElementLabel = (job: Job, rootPath: string): string => {
 	const oldPath = job.oldUri?.fsPath.replace(rootPath, '') ?? '';
 	const newPath = job.newUri?.fsPath.replace(rootPath, '') ?? '';
 
 	let label: string = jobKindCopyMap[job.kind];
-
 	if (job.kind === JobKind.createFile) {
 		label += ` ${newPath}`;
 	} else if (job.kind === JobKind.deleteFile) {
@@ -31,6 +30,12 @@ export const buildJobElement = (job: Job, rootPath: string): JobElement => {
 	} else {
 		throw new Error();
 	}
+
+	return label;
+};
+
+export const buildJobElement = (job: Job, rootPath: string): JobElement => {
+	const label = buildJobElementLabel(job, rootPath);
 
 	return {
 		kind: ElementKind.JOB,

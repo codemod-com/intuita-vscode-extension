@@ -11,12 +11,15 @@ export class CaseManager {
 		JobHash
 	>;
 
+	readonly #acceptedCaseHashes: Set<CaseHash>;
+
 	public constructor(
 		cases: ReadonlyArray<Case>,
 		caseHashJobHashes: ReadonlySet<string>,
 		messageBus: MessageBus,
 	) {
 		this.#messageBus = messageBus;
+		this.#acceptedCaseHashes = new Set();
 
 		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
 		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
@@ -32,6 +35,9 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);
+		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
+		);
 		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
 			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
@@ -40,8 +46,24 @@ export class CaseManager {
 		);
 	}
 
+	public acceptCase(caseHash: CaseHash): void {
+		this.#acceptedCaseHashes.add(caseHash);
+	}
+
+	public isCaseAccepted(caseHash: CaseHash): boolean {
+		return this.#acceptedCaseHashes.has(caseHash);
+	}
+
 	public getCases(): IterableIterator<Case> {
 		return this.#cases.values();
+	}
+
+	public getCase(caseHash: CaseHash): Case | undefined {
+		return this.#cases.get(caseHash);
+	}
+
+	public getCaseCount(): number {
+		return this.#cases.size;
 	}
 
 	public getCaseHashJobHashSetValues(): IterableIterator<string> {
@@ -128,24 +150,8 @@ export class CaseManager {
 		},
 	) {
 		for (const kase of this.#cases.values()) {
-			const caseJobHashes =
-				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-					kase.hash,
-				);
-
-			let deletedCount = 0;
-
 			for (const jobHash of message.deletedJobHashes) {
-				const deleted = this.#caseHashJobHashSetManager.delete(
-					kase.hash,
-					jobHash,
-				);
-
-				deletedCount += Number(deleted);
-			}
-
-			if (caseJobHashes.size <= deletedCount) {
-				this.#cases.delete(kase.hash);
+				this.#caseHashJobHashSetManager.delete(kase.hash, jobHash);
 			}
 		}
 
@@ -156,6 +162,7 @@ export class CaseManager {
 
 	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
 		const deleted = this.#cases.delete(message.caseHash);
+		this.#acceptedCaseHashes.delete(message.caseHash);
 
 		if (!deleted) {
 			throw new Error('You tried to remove a case that does not exist.');
@@ -175,5 +182,6 @@ export class CaseManager {
 	#onClearStateMessage() {
 		this.#cases.clear();
 		this.#caseHashJobHashSetManager.clear();
+		this.#acceptedCaseHashes.clear();
 	}
 }

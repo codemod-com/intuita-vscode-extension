@@ -3,7 +3,6 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
-import type { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -71,24 +70,12 @@ export const enum MessageKind {
 	 * show progress
 	 */
 	showProgress = 31,
-	/** run codemod */
-	runCodemod = 32,
-
 	/**
 	 * create PR
 	 */
 
 	beforePRCreated = 33,
 	afterPRCreated = 34,
-
-	repositoryPathChanged = 35,
-
-	/**
-	 * view breakdown
-	 */
-
-	caseBreakdown = 36,
-	folderBreakdown = 37,
 }
 
 export type Engine = 'node' | 'rust';
@@ -115,10 +102,10 @@ export type Command =
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
-			codemodName: string;
+			codemodHash: string;
 			engine: Engine;
 			storageUri: Uri;
-			uris: Uri[];
+			uri: Uri;
 	  }>;
 
 export type Message =
@@ -195,12 +182,6 @@ export type Message =
 			kind: MessageKind.clearState;
 	  }>
 	| Readonly<{
-			kind: MessageKind.caseBreakdown;
-	  }>
-	| Readonly<{
-			kind: MessageKind.folderBreakdown;
-	  }>
-	| Readonly<{
 			kind: MessageKind.showInformationMessage;
 			packageSettingsUri: Uri;
 			dependencyName: string;
@@ -273,18 +254,10 @@ export type Message =
 			totalFiles: number;
 	  }>
 	| Readonly<{
-			kind: MessageKind.runCodemod;
-			codemodHash: CodemodHash;
-	  }>
-	| Readonly<{
 			kind: MessageKind.beforePRCreated;
 	  }>
 	| Readonly<{
 			kind: MessageKind.afterPRCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.repositoryPathChanged;
-			repositoryPath: string | null;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

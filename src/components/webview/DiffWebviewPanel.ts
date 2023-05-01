@@ -9,6 +9,23 @@ import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
+const buildIssueTemplate = (codemodName: string): string => {
+	return `
+---
+:warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
+
+---
+Codemod: ${codemodName}
+
+**1. Code before transformation (Input for codemod)**
+	
+**2. Expected code after transformation (Desired output of codemod)**
+
+**3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
+
+---	
+**Additional context**`;
+};
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	static instance: DiffWebviewPanel | null = null;
 
@@ -43,7 +60,16 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachWebviewEventListeners() {
-		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this._panel?.webview.onDidReceiveMessage(
+			this.__onDidReceiveMessage.bind(this),
+		);
+	}
+
+	public setChangesAccepted(value: boolean): void {
+		this._postMessage({
+			kind: 'webview.diffView.setChangesAccepted',
+			value,
+		});
 	}
 
 	private __onDidReceiveMessage(message: WebviewResponse) {
@@ -51,6 +77,49 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			commands.executeCommand(
 				message.value.command,
 				message.value.arguments,
+			);
+		}
+		if (
+			message.kind === 'intuita.rejectJob' ||
+			message.kind === 'intuita.createIssue' ||
+			message.kind === 'intuita.createPR' ||
+			message.kind === 'intuita.acceptJob'
+		) {
+			commands.executeCommand(message.kind, message.value[0]);
+		}
+
+		if (message.kind === 'webview.global.reportIssue') {
+			const job = this.__jobManager.getJob(message.faultyJobHash);
+
+			if (!job) {
+				throw new Error('Unable to get the job');
+			}
+
+			const queryParams = {
+				title: `[Codemod][${job.codemodName}] Invalid codemod output`,
+				body: buildIssueTemplate(job.codemodName),
+				template: 'report-faulty-codemod.md',
+			};
+
+			const query = new URLSearchParams(queryParams).toString();
+
+			commands.executeCommand(
+				'intuita.redirect',
+				`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
+			);
+		}
+
+		if (message.kind === 'webview.global.navigateToCommitView') {
+			commands.executeCommand(
+				'intuita.sourceControl.commitStagedJobs',
+				message,
+			);
+		}
+
+		if (message.kind === 'webview.global.applySelected') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message,
 			);
 		}
 	}
@@ -68,7 +137,9 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		const job = this.__jobManager.getJob(jobHash);
-		const jobAccepted = this.__jobManager.isJobAccepted(jobHash);
+		// @TODO
+		const jobAccepted = this.__jobManager.isJobApplied(jobHash);
+
 		if (!job) {
 			return null;
 		}
@@ -92,31 +163,30 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				case JobKind.createFile:
 					return `${
 						jobAccepted ? 'Created' : 'Create'
-					} file ${newFileTitle}`;
+					} ${newFileTitle}`;
 				case JobKind.deleteFile:
 					return `${
 						jobAccepted ? 'Deleted' : 'Delete'
-					} file ${oldFileTitle}`;
+					} ${oldFileTitle}`;
 
 				case JobKind.moveFile:
 					return `${
 						jobAccepted ? 'Moved' : 'Move'
-					} file ${oldFileTitle} to ${newFileTitle}`;
+					} ${oldFileTitle} -> ${newFileTitle}`;
 
 				case JobKind.moveAndRewriteFile:
 					return `${
 						jobAccepted ? 'Moved and rewritten' : 'Move and rewrite'
-					} file ${oldFileTitle} to ${newFileTitle}`;
-
+					} ${oldFileTitle} -> ${newFileTitle}`;
 				case JobKind.copyFile:
 					return `${
 						jobAccepted ? 'Copied' : 'Copy'
-					} file ${oldFileTitle} to ${newFileTitle}`;
+					} ${oldFileTitle} -> ${newFileTitle}`;
 
 				case JobKind.rewriteFile:
 					return `${
 						jobAccepted ? 'Rewritten' : 'Rewrite'
-					} file ${oldFileTitle}`;
+					} ${newFileTitle}`;
 
 				default:
 					throw new Error('unknown jobkind');
@@ -135,28 +205,43 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				? { oldFileTitle }
 				: { oldFileTitle: null }),
 			newFileTitle,
-			oldFileContent,
+			...(oldFileContent &&
+			[
+				JobKind.rewriteFile,
+				JobKind.deleteFile,
+				JobKind.moveAndRewriteFile,
+				JobKind.moveFile,
+			].includes(kind)
+				? { oldFileContent }
+				: { oldFileContent: null }),
 			newFileContent,
 			title: getTitle(),
+			actions: [],
 		};
 	}
 
 	public async getViewDataForCase(
 		caseHash: ElementHash,
-	): Promise<Readonly<JobDiffViewProps>[]> {
+	): Promise<null | Readonly<{ title: string; data: JobDiffViewProps[] }>> {
+		const hash = caseHash as unknown as CaseHash;
+		const kase = this.__caseManager.getCase(hash);
+		if (!kase) {
+			return null;
+		}
 		const jobHashes = Array.from(
-			this.__caseManager.getJobHashes([
-				caseHash,
-			] as unknown as CaseHash[]),
+			this.__caseManager.getJobHashes([hash] as unknown as CaseHash[]),
 		);
 
 		if (jobHashes.length === 0) {
-			return [];
+			return null;
 		}
 		const viewDataArray = await Promise.all(
 			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
-		return viewDataArray.filter(isNeitherNullNorUndefined);
+		return {
+			title: kase.codemodName,
+			data: viewDataArray.filter(isNeitherNullNorUndefined),
+		};
 	}
 
 	public async getViewDataForJobsArray(
@@ -189,9 +274,29 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	};
 
+	public focusFile(jobHash: JobHash) {
+		this._panel?.webview.postMessage({
+			kind: 'webview.diffView.focusFile',
+			jobHash,
+		});
+	}
+
+	private __onRejectJob = async (jobHashes: ReadonlySet<JobHash>) => {
+		for (const jobHash of jobHashes) {
+			this._postMessage({
+				kind: 'webview.diffview.rejectedJob',
+				data: [jobHash],
+			});
+		}
+	};
+
 	_attachExtensionEventListeners() {
 		this._addHook(MessageKind.jobsAccepted, (message) => {
 			this.__onUpdateJobMessage(message.deletedJobHashes);
+		});
+
+		this._addHook(MessageKind.jobsRejected, (message) => {
+			this.__onRejectJob(message.deletedJobHashes);
 		});
 	}
 }

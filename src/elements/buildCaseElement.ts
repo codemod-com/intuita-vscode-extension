@@ -14,6 +14,7 @@ export const buildCaseElement = (
 		label: `${kase.subKind} (${count})`,
 		children,
 		hash: kase.hash as unknown as ElementHash,
+		codemodName: kase.codemodName,
 	};
 };
 

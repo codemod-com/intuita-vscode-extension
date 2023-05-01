@@ -5,6 +5,7 @@ import { IntuitaWebviewPanel, Options } from './WebviewPanel';
 
 export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 	static instance: SourceControlWebviewPanel | null = null;
+	private __view: View | null = null;
 
 	static getInstance(options: Options, messageBus: MessageBus) {
 		if (!SourceControlWebviewPanel.instance) {
@@ -21,7 +22,13 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 		SourceControlWebviewPanel.instance = null;
 	}
 
-	public setView(data: View) {
+	public getView(): View | null {
+		return this.__view;
+	}
+
+	public setView(data: View): void {
+		this.__view = data;
+
 		this._panel?.webview.postMessage({
 			kind: 'webview.global.setView',
 			value: data,
@@ -45,21 +52,25 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 			},
 		);
 
-		// @TODO remove this hook, remote url will be selected by user in the view
-		this._addHook(MessageKind.repositoryPathChanged, (message) => {
-			this._postMessage({
-				kind: 'webview.global.setRepositoryPath',
-				repositoryPath: message.repositoryPath,
-			});
-		});
-
 		[MessageKind.beforeIssueCreated, MessageKind.afterIssueCreated].forEach(
 			(kind) => {
 				this._addHook(kind, (message) => {
 					const value =
 						message.kind === MessageKind.beforeIssueCreated;
 					this._postMessage({
-						kind: 'webview.createIssue.setLoading',
+						kind: 'webview.createIssue.submittingIssue',
+						value,
+					});
+				});
+			},
+		);
+
+		[MessageKind.beforePRCreated, MessageKind.afterPRCreated].forEach(
+			(kind) => {
+				this._addHook(kind, (message) => {
+					const value = message.kind === MessageKind.beforePRCreated;
+					this._postMessage({
+						kind: 'webview.createPR.setPullRequestSubmitting',
 						value,
 					});
 				});
@@ -95,9 +106,22 @@ export class SourceControlWebviewPanel extends IntuitaWebviewPanel {
 				message.value,
 			);
 		}
+
+		if (message.kind === 'webview.createPR.commitChanges') {
+			commands.executeCommand(
+				'intuita.sourceControl.commitChanges',
+				message.value,
+			);
+		}
+
+		if (message.kind === 'webview.global.closeView') {
+			this.dispose();
+		}
 	}
 
 	_attachWebviewEventListeners() {
-		this._panel?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this._panel?.webview.onDidReceiveMessage(
+			this.__onDidReceiveMessage.bind(this),
+		);
 	}
 }

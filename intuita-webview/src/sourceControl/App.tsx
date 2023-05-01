@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-
 import { vscode } from '../shared/utilities/vscode';
-import WarningMessage from '../shared/WarningMessage';
 
 import CreateIssue from './CreateIssueView';
-import CreatePR from './CreatePRView';
+import CommitView from './CommitView';
 
 import type {
 	View,
@@ -16,27 +13,28 @@ import type {
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			repositoryPath: string | null;
 			userId: string | null;
 		};
 	}
 }
 
 // @ts-ignore
-const getViewComponent = (view: View) => {
+const getViewComponent = (view: View, hasLinkedAccount: boolean) => {
 	switch (view.viewId) {
 		case 'createIssue': {
 			return <CreateIssue {...view.viewProps} />;
 		}
-		case 'upsertPullRequest':
-			return <CreatePR {...view.viewProps} />;
+		case 'commitView':
+			return (
+				<CommitView
+					{...view.viewProps}
+					hasLinkedAccount={hasLinkedAccount}
+				/>
+			);
 	}
 };
 
 function App() {
-	const [configuredRepoPath, setConfiguredRepoPath] = useState<string | null>(
-		window.INITIAL_STATE.repositoryPath,
-	);
 	const [linkedAccount, setLinkedAccount] = useState<string | null>(
 		window.INITIAL_STATE.userId,
 	);
@@ -50,17 +48,26 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
 			if (message.kind === 'webview.global.setUserAccount') {
 				setLinkedAccount(message.value);
 			}
 
-			if (message.kind === 'webview.global.setRepositoryPath') {
-				setConfiguredRepoPath(message.repositoryPath);
-			}
-
 			if (message.kind === 'webview.global.setView') {
 				setView(message.value);
+			}
+
+			if (
+				message.kind === 'webview.createIssue.submittingIssue' &&
+				view?.viewId === 'createIssue'
+			) {
+				setView({
+					...view,
+					viewProps: {
+						...view.viewProps,
+						initialFormData: {},
+						loading: message.value,
+					},
+				});
 			}
 		};
 
@@ -69,50 +76,17 @@ function App() {
 		return () => {
 			window.removeEventListener('message', handler);
 		};
-	}, []);
-
-	const handleLinkAccount = () => {
-		vscode.postMessage({
-			kind: 'webview.global.redirectToSignIn',
-		});
-	};
-
-	const handleOpenExtensionSettings = () => {
-		vscode.postMessage({
-			kind: 'webview.global.openConfiguration',
-		});
-	};
-
-	// @TODO detect remote automatically
-	if (!configuredRepoPath) {
-		return (
-			<WarningMessage
-				message="In order to create pull requests and issues, configure you repository settings"
-				actionButtons={[
-					<VSCodeButton onClick={handleOpenExtensionSettings}>
-						Open settings
-					</VSCodeButton>,
-				]}
-			/>
-		);
-	}
-
-	if (!linkedAccount) {
-		<WarningMessage
-			message="In order to create pull requests and issues, link your Intuita account"
-			actionButtons={[
-				<VSCodeButton onClick={handleLinkAccount}>
-					Link account
-				</VSCodeButton>,
-			]}
-		/>;
-	}
+	}, [view]);
 
 	if (!view) {
 		return null;
 	}
 
-	return <main className="App">{getViewComponent(view)}</main>;
+	const hasLinkedAccount = linkedAccount !== null;
+
+	return (
+		<main className="App">{getViewComponent(view, hasLinkedAccount)}</main>
+	);
 }
 
 export default App;

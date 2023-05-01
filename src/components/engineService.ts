@@ -8,9 +8,18 @@ import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify } from '../utilities';
+import {
+	buildTypeCodec,
+	doubleQuotify,
+	singleQuotify,
+	streamToString,
+} from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+
+export class EngineNotFoundError extends Error {}
+export class UnableToParseEngineResponseError extends Error {}
+export class InvalidEngineResponseFormatError extends Error {}
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -96,7 +105,19 @@ type Execution = {
 	totalFileCount: number;
 	halted: boolean;
 	affectedAnyFile: boolean;
+	readonly jobs: Job[];
 };
+
+const codemodEntryCodec = buildTypeCodec({
+	kind: t.literal('codemod'),
+	hashDigest: t.string,
+	name: t.string,
+	description: t.string,
+});
+
+type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
+
+const codemodListCodec = t.readonlyArray(codemodEntryCodec);
 
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
@@ -137,6 +158,48 @@ export class EngineService {
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
+	}
+
+	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+		const executableUri = this.#noraNodeEngineExecutableUri;
+
+		if (!executableUri) {
+			throw new EngineNotFoundError(
+				'The codemod engine node has not been downloaded yet',
+			);
+		}
+
+		const childProcess = spawn(
+			singleQuotify(executableUri.fsPath),
+			['list'],
+			{
+				stdio: 'pipe',
+				shell: true,
+			},
+		);
+
+		const codemodListJSON = await streamToString(childProcess.stdout);
+
+		try {
+			const codemodListOrError = codemodListCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
+
+			if (codemodListOrError._tag === 'Left') {
+				const report = prettyReporter.report(codemodListOrError);
+				throw new InvalidEngineResponseFormatError(report.join(`\n`));
+			}
+
+			return codemodListOrError.right;
+		} catch (e) {
+			if (e instanceof InvalidEngineResponseFormatError) {
+				throw e;
+			}
+
+			throw new UnableToParseEngineResponseError(
+				'Unable to parse engine output',
+			);
+		}
 	}
 
 	shutdownEngines() {
@@ -214,21 +277,41 @@ export class EngineService {
 				return args;
 			}
 
-			// execute single codemod
 			if (
 				'kind' in message.command &&
 				message.command.kind === 'executeCodemod'
 			) {
-				// @TODO engine should support such calls
-				args.push('-c', singleQuotify(message.command.codemodName));
 				args.push(
-					'-p',
-					singleQuotify(
-						message.command.uris
-							.map(({ fsPath }) => fsPath)
-							.join(' '),
+					'-c',
+					singleQuotify(doubleQuotify(message.command.codemodHash)),
+				);
+
+				const commandUri = message.command.uri;
+
+				includePatterns.forEach((includePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, includePattern);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', path);
+				});
+
+				excludePatterns.forEach((excludePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', `!${path}`);
+				});
+
+				args.push(
+					'-w',
+					String(
+						this.#configurationContainer.get().workerThreadCount,
 					),
 				);
+
+				args.push('-l', String(fileLimit));
 
 				args.push(
 					'-o',
@@ -339,6 +422,7 @@ export class EngineService {
 			halted: false,
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
+			jobs: [],
 		};
 
 		const interfase = readline.createInterface(childProcess.stdout);
@@ -487,6 +571,8 @@ export class EngineService {
 				this.#execution.affectedAnyFile = true;
 			}
 
+			this.#execution.jobs.push(job);
+
 			this.#messageBus.publish({
 				kind: MessageKind.compareFiles,
 				noraRustEngineExecutableUri,
@@ -499,7 +585,7 @@ export class EngineService {
 			});
 		});
 
-		interfase.on('close', () => {
+		interfase.on('close', async () => {
 			this.#statusBarItemManager.moveToStandby();
 
 			if (this.#execution) {

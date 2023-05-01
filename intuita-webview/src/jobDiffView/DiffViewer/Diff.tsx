@@ -1,82 +1,58 @@
-import { useRef } from 'react';
-import ReactDiffViewer from 'react-diff-viewer-continued';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { useElementSize } from '../hooks/useElementSize';
+import { useRef, useState } from 'react';
+import MonacoDiffEditor, { monaco } from '../../shared/Snippet/DiffEditor';
 import { JobDiffViewProps } from '../App';
+import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 
-export const DiffViewer = ({
+export type { Diff };
+
+export const useDiffViewer = ({
 	oldFileContent,
 	newFileContent,
 	viewType,
 }: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const { width: containerWidth } =
-		useElementSize<HTMLDivElement>(containerRef);
+	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
+	const [diff, setDiff] = useState<Diff | null>(null);
 
-	const renderContent = (value: string) => {
-		return (
-			<SyntaxHighlighter
-				customStyle={{
-					backgroundColor: 'transparent',
-					padding: '0px',
-					margin: '0px',
-					fontSize: 'var(--vscode-editor-font-size)',
-					fontFamily: 'var(--vscode-editor-font-family)',
-					overflowX: 'hidden',
-				}}
-				useInlineStyles={true}
-				wrapLongLines={true}
-				wrapLines={true}
-				language="javascript"
-			>
-				{value}
-			</SyntaxHighlighter>
-		);
+	const getDiffChanges = (): Diff | undefined => {
+		if (!editorRef.current) {
+			return;
+		}
+		const lineChanges = editorRef.current.getLineChanges();
+		if (!lineChanges) {
+			return;
+		}
+		return getDiff(lineChanges);
 	};
 
-	return (
-		<div className="w-full" ref={containerRef}>
-			<ReactDiffViewer
-				styles={{
-					diffContainer: {
-						overflowX: 'auto',
-						display: 'block',
-						width: containerWidth ?? 0,
-					},
-					line: {
-						whiteSpace: 'normal',
-						wordBreak: 'break-word',
-					},
-					gutter: {
-						width: 50,
-						minWidth: 50,
-						padding: 0,
-					},
-					lineNumber: {
-						width: 40,
-						padding: 0,
-					},
-					content: {
-						width:
-							viewType === 'side-by-side'
-								? (containerWidth ?? 0) / 2 - 90
-								: containerWidth ?? 0 - 180,
-						overflowX: 'auto',
-						display: 'block',
-						'& pre': { whiteSpace: 'pre' },
+	const handleRefSet = () => {
+		const diffChanges = getDiffChanges();
+		setDiff(diffChanges ?? null);
+	};
+
+	const getDiffViewer = (
+		<div className="w-full">
+			<MonacoDiffEditor
+				onRefSet={handleRefSet}
+				ref={editorRef}
+				options={{
+					readOnly: true,
+					renderSideBySide: viewType === 'side-by-side',
+					wrappingStrategy: 'advanced',
+					scrollBeyondLastLine: false,
+					diffAlgorithm: 'smart',
+					scrollbar: {
+						horizontal: 'hidden',
+						alwaysConsumeMouseWheel: false,
 					},
 				}}
-				showDiffOnly={true}
-				renderContent={renderContent}
-				oldValue={oldFileContent ?? ''}
-				codeFoldMessageRenderer={(total) => (
-					<p className="text-center">
-						{`Expand to show ${total} lines `}
-					</p>
-				)}
-				newValue={newFileContent ?? ''}
-				splitView={viewType === 'side-by-side'}
+				height="90vh"
+				loading={<div>Loading content ...</div>}
+				modified={newFileContent ?? undefined}
+				original={oldFileContent ?? undefined}
+				language="typescript"
 			/>
 		</div>
 	);
+
+	return { diffViewer: getDiffViewer, diff };
 };

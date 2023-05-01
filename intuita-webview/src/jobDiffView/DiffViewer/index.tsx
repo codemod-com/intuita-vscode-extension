@@ -1,74 +1,70 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Container, Header } from './Container';
+import { useState } from 'react';
 import { JobDiffViewProps } from '../App';
-import { JobKind } from '../../shared/constants';
-import { Collapsable, CollapsableRefMethods } from './Collapsable';
-import { DiffViewer } from './Diff';
+import { JobAction } from '../../../../src/components/webview/webviewEvents';
+import { JobDiffView } from './DiffItem';
+import { DiffViewType } from '../../shared/types';
+import { useCTLKey } from '../hooks/useKey';
 
-export const JobDiffView = ({
-	jobHash,
-	jobKind,
-	oldFileContent,
-	newFileContent,
-	oldFileTitle,
-	newFileTitle,
+import Header from './Header';
+
+type JobDiffViewContainerProps = {
+	postMessage: (arg: JobAction) => void;
+	jobs: JobDiffViewProps[];
+	title: string;
+	diffId: string;
+	changesAccepted: boolean;
+};
+
+export const JobDiffViewContainer = ({
 	title,
-}: JobDiffViewProps) => {
-	const collapsableRef = useRef<CollapsableRefMethods>(null);
-	const [viewType, setViewType] = useState<'inline' | 'side-by-side'>(() => {
-		return [
-			JobKind.copyFile,
-			JobKind.moveFile,
-			JobKind.deleteFile,
-			JobKind.createFile,
-		].includes(jobKind as unknown as JobKind)
-			? 'inline'
-			: 'side-by-side';
+	jobs,
+	diffId,
+	changesAccepted,
+	postMessage,
+}: JobDiffViewContainerProps) => {
+	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
+	const [stagedJobHashes, setStagedJobHashes] = useState(
+		new Set(jobs.map(({ jobHash }) => jobHash)),
+	);
+
+	useCTLKey('d', () => {
+		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
-	const [isVisible, setVisible] = useState(false);
-
-	const toggleViewed = useCallback(() => setVisible((v) => !v), [setVisible]);
-
-	useEffect(() => {
-		if (isVisible) {
-			collapsableRef.current?.expand();
-		} else {
-			collapsableRef.current?.collapse();
-		}
-	}, [isVisible]);
 
 	return (
-		<Collapsable
-			ref={collapsableRef}
-			defaultExpanded={true}
-			className="m-10 px-10 rounded "
-			headerComponent={
-				<Header
-					viewed={isVisible}
-					onViewedChange={toggleViewed}
-					title={title ?? ''}
-					viewType={viewType}
-					onViewTypeChange={setViewType}
-				/>
-			}
-		>
-			<Container
+		<div className="m-10 mt-0">
+			<Header
+				onViewChange={setViewType}
 				viewType={viewType}
-				oldFileName={oldFileTitle}
-				newFileName={newFileTitle}
-				onViewTypeChange={setViewType}
-			>
-				<DiffViewer
-					viewType={viewType}
-					newFileTitle={newFileTitle}
-					oldFileTitle={oldFileTitle}
-					jobKind={jobKind}
-					newFileContent={newFileContent}
-					oldFileContent={oldFileContent}
-					jobHash={jobHash}
-					title={title}
+				title={title}
+				stagedJobHashes={stagedJobHashes}
+				diffId={diffId}
+				changesAccepted={changesAccepted}
+			/>
+
+			{jobs.map((el) => (
+				<JobDiffView
+					ViewType={viewType}
+					key={el.jobHash}
+					postMessage={postMessage}
+					jobStaged={stagedJobHashes.has(el.jobHash)}
+					onToggleJob={() => {
+						setStagedJobHashes((prevStagedJobHashes) => {
+							const nextStagedJobHashes = new Set(
+								prevStagedJobHashes,
+							);
+							if (nextStagedJobHashes.has(el.jobHash)) {
+								nextStagedJobHashes.delete(el.jobHash);
+							} else {
+								nextStagedJobHashes.add(el.jobHash);
+							}
+
+							return nextStagedJobHashes;
+						});
+					}}
+					{...el}
 				/>
-			</Container>
-		</Collapsable>
+			))}
+		</div>
 	);
 };

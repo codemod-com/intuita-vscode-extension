@@ -3,28 +3,23 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
-		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/react": "^13.4.0",
-		"@testing-library/user-event": "^13.5.0",
-		"@types/jest": "^27.5.2",
-		"@types/node": "^16.18.21",
-		"@types/react": "^18.0.30",
-		"@types/react-dom": "^18.0.11",
+		"@monaco-editor/react": "^4.5.0",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"classnames": "^2.3.2",
+		"fp-ts": "^2.14.0",
+		"monaco-editor": "^0.37.1",
 		"react": "^18.2.0",
-		"react-diff-viewer-continued": "^3.2.6",
 		"react-dom": "^18.2.0",
-		"react-scripts": "5.0.1",
-		"react-syntax-highlighter": "^15.5.0",
 		"react-treeview": "^0.4.7",
-		"typescript": "^4.9.5",
-		"web-vitals": "^2.1.4"
+		"reactjs-popup": "^2.0.5",
+		"typescript": "^4.9.5"
 	},
 	"scripts": {
-		"start:main": "TARGET_APP=main craco start",
+		"start:campaignManager": "TARGET_APP=campaignManager craco start",
+		"start:fileExplorer": "TARGET_APP=fileExplorer craco start",
 		"start:sourceControl": "TARGET_APP=sourceControl craco start",
 		"start:diffView": "TARGET_APP=jobDiffView craco start",
+		"start:codemodList": "TARGET_APP=codemodList craco start",
 		"build": "craco build",
 		"test": "craco test"
 	},
@@ -49,9 +44,17 @@
 	"devDependencies": {
 		"@craco/craco": "^7.1.0",
 		"@craco/types": "^7.1.0",
-		"@types/react-syntax-highlighter": "^15.5.6",
+		"@testing-library/jest-dom": "^5.16.5",
+		"@testing-library/react": "^13.4.0",
+		"@testing-library/user-event": "^13.5.0",
+		"@types/jest": "^27.5.2",
+		"@types/node": "^16.18.21",
+		"@types/react": "^18.0.30",
+		"@types/react-dom": "^18.0.11",
 		"@types/react-treeview": "^0.4.3",
 		"@types/testing-library__jest-dom": "^5.14.5",
-		"@types/vscode-webview": "^1.57.1"
+		"@types/vscode-webview": "^1.57.1",
+		"react-scripts": "5.0.1",
+		"web-vitals": "^2.1.4"
 	}
 }

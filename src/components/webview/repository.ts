@@ -1,32 +1,12 @@
 import { API, Repository, Branch, Change, Remote } from '../../types/git';
-import { MessageBus, MessageKind } from '../messageBus';
-
-const branchNameFromStr = (str: string): string => {
-	let branchName = str
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9-]/g, '-')
-		.replace(/--+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	if (branchName.length > 63) {
-		branchName = branchName.substr(0, 63);
-	}
-
-	if (!/^[a-z0-9]/.test(branchName)) {
-		branchName = 'x-' + branchName;
-	}
-
-	return branchName;
-};
 
 export class RepositoryService {
 	__repo: Repository | null = null;
 	__remoteUrl: string | null = null;
+	__stackedBranches: string[] = [];
 
 	constructor(
 		private readonly __gitAPI: API | null,
-		private readonly __messageBus: MessageBus,
 		remoteUrl: string | null,
 	) {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
@@ -43,14 +23,30 @@ export class RepositoryService {
 		});
 	}
 
+	public areStackedBranchesEmpty() {
+		return this.__stackedBranches.length === 0;
+	}
+
+	public addStackedBranch(branchName: string): void {
+		this.__stackedBranches.push(branchName);
+	}
+
+	public getStackedBranchBase(branchName: string): string | null {
+		const branchIndex = this.__stackedBranches.findIndex(
+			(name) => name === branchName,
+		);
+
+		return this.__stackedBranches[branchIndex - 1] ?? null;
+	}
+
+	public getStackedBranches(): string[] {
+		return this.__stackedBranches;
+	}
+
 	private __init(remoteUrl: string | null): void {
 		this.__repo = this.__gitAPI?.repositories[0] ?? null;
 		this.__remoteUrl =
 			remoteUrl ?? this.__repo?.state.remotes[0]?.pushUrl ?? null;
-		this.__messageBus.publish({
-			kind: MessageKind.repositoryPathChanged,
-			repositoryPath: this.__remoteUrl,
-		});
 	}
 
 	public async getAllBranches() {
@@ -76,10 +72,6 @@ export class RepositoryService {
 		);
 	}
 
-	public getBranchName(jobHash: string, jobTitle: string): string {
-		return branchNameFromStr(`${jobTitle}-${jobHash}`);
-	}
-
 	public async getBranch(branchName: string): Promise<Branch | null> {
 		if (this.__repo === null) {
 			return null;
@@ -92,29 +84,47 @@ export class RepositoryService {
 		}
 	}
 
-	public async isBranchExists(branchName: string): Promise<boolean> {
+	public async doesBranchExist(branchName: string): Promise<boolean> {
 		const branch = await this.getBranch(branchName);
 		return branch !== null;
+	}
+
+	public async createOrCheckoutBranch(branchName: string): Promise<void> {
+		if (this.__repo === null) {
+			return;
+		}
+
+		const branchExists = await this.doesBranchExist(branchName);
+
+		if (branchExists) {
+			await this.__repo.checkout(branchName);
+		} else {
+			await this.__repo.createBranch(branchName, true);
+		}
+	}
+
+	public async commitChanges(branchName: string, commitMessage: string) {
+		if (this.__repo === null) {
+			return;
+		}
+
+		await this.createOrCheckoutBranch(branchName);
+
+		await this.__repo.add([]);
+		await this.__repo.commit(commitMessage, { all: true });
 	}
 
 	public async submitChanges(
 		branchName: string,
 		remoteName: string,
+		commitMessage: string,
 	): Promise<void> {
+		// this should throw instead returning undefined
 		if (this.__repo === null) {
 			return;
 		}
 
-		const branchAlreadyExists = await this.isBranchExists(branchName);
-
-		if (branchAlreadyExists) {
-			await this.__repo.checkout(branchName);
-		} else {
-			await this.__repo.createBranch(branchName, true);
-		}
-
-		await this.__repo.add([]);
-		await this.__repo.commit('Test commit', { all: true });
+		await this.commitChanges(branchName, commitMessage);
 		await this.__repo.push(remoteName, branchName, true);
 	}
 

@@ -168,8 +168,8 @@ export class NoraCompareServiceEngine {
 			kind: caseKind,
 			subKind: caseSubKind,
 			jobHashes: new Set([job.hash]),
-			codemodSetName: message.codemodSetName,
-			codemodName: message.codemodName,
+			codemodSetName: job.codemodSetName,
+			codemodName: job.codemodName,
 		};
 
 		this.#messageBus.publish({

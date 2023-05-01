@@ -44,8 +44,12 @@ module.exports = {
 
 				config.entry = {
 					sourceControl: resolveApp('src/sourceControl/index.tsx'),
-					main: resolveApp('src/main/index.tsx'),
+					campaignManager: resolveApp(
+						'src/campaignManager/index.tsx',
+					),
+					fileExplorer: resolveApp('src/fileExplorer/index.tsx'),
 					jobDiffView: resolveApp('src/jobDiffView/index.tsx'),
+					codemodList: resolveApp('src/codemodList/index.tsx'),
 				};
 			} else if (env === 'development') {
 				const targetApp = process.env.TARGET_APP;
