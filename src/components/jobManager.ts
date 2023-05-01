@@ -371,6 +371,8 @@ export class JobManager {
 			this.deleteJob(hash);
 		});
 
+		this.#messageBus.publish({ kind: MessageKind.updateElements });
+
 		const tuples = Object.entries(codemods);
 
 		for (const tuple of tuples) {
