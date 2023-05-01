@@ -121,6 +121,11 @@
 .bold {
 	font-weight: bold;
 }
+
 .cursor-pointer {
 	cursor: pointer;
+}
+
+.pointer-events-none {
+	pointer-events: none;
 }
