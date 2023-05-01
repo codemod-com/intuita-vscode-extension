@@ -138,7 +138,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		const job = this.__jobManager.getJob(jobHash);
 		// @TODO
-		const jobAccepted = this.__jobManager.isJobApplied(jobHash);
 
 		if (!job) {
 			return null;
@@ -158,40 +157,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const oldFileContent = oldContentUri
 			? (await workspace.fs.readFile(oldContentUri)).toString()
 			: null;
-		const getTitle = function () {
-			switch (kind) {
-				case JobKind.createFile:
-					return `${
-						jobAccepted ? 'Created' : 'Create'
-					} ${newFileTitle}`;
-				case JobKind.deleteFile:
-					return `${
-						jobAccepted ? 'Deleted' : 'Delete'
-					} ${oldFileTitle}`;
-
-				case JobKind.moveFile:
-					return `${
-						jobAccepted ? 'Moved' : 'Move'
-					} ${oldFileTitle} -> ${newFileTitle}`;
-
-				case JobKind.moveAndRewriteFile:
-					return `${
-						jobAccepted ? 'Moved and rewritten' : 'Move and rewrite'
-					} ${oldFileTitle} -> ${newFileTitle}`;
-				case JobKind.copyFile:
-					return `${
-						jobAccepted ? 'Copied' : 'Copy'
-					} ${oldFileTitle} -> ${newFileTitle}`;
-
-				case JobKind.rewriteFile:
-					return `${
-						jobAccepted ? 'Rewritten' : 'Rewrite'
-					} ${newFileTitle}`;
-
-				default:
-					throw new Error('unknown jobkind');
-			}
-		};
 
 		return {
 			jobHash,
@@ -215,7 +180,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				? { oldFileContent }
 				: { oldFileContent: null }),
 			newFileContent,
-			title: getTitle(),
+			title: newFileTitle,
 			actions: [],
 		};
 	}
