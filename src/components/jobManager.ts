@@ -7,6 +7,7 @@ import { buildUriHash } from '../uris/buildUriHash';
 import { FileService } from './fileService';
 import { acceptJobs } from '../jobs/acceptJobs';
 import { buildExecutionId } from '../telemetry/hashes';
+import { EngineService } from './engineService';
 
 type Codemod = Readonly<{
 	setName: string;
@@ -31,6 +32,8 @@ export class JobManager {
 		appliedJobsHashes: ReadonlyArray<JobHash>,
 		messageBus: MessageBus,
 		private readonly __fileService: FileService,
+		private readonly __engineService: EngineService,
+		private readonly __storageUri: Uri, 
 	) {
 		this.#jobMap = new Map(jobs.map((job) => [job.hash, job]));
 		this.#appliedJobsHashes = new Set(appliedJobsHashes);
@@ -199,6 +202,8 @@ export class JobManager {
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}
+
+		await this.refreshAllJobs();
 	}
 
 	public applyJob(jobHash: JobHash): void {
@@ -329,74 +334,44 @@ export class JobManager {
 		});
 	}
 
-	public async refreshStaleJobs(storageUri: Uri): Promise<void> {
-		const staleJobs = Array.from(this.getJobs());
-		const codemodsWithFilePaths: Record<string, Uri[]> = {};
+	public async refreshAllJobs(): Promise<void> {
+		const allJobs = Array.from(this.getJobs());
+		const allCodemods = await this.__engineService.getCodemodList();
+		const codemodHashUriTuple: [string, Uri][] = [];
 
-		staleJobs.forEach((staleJob) => {
-			if (!staleJob.oldUri) {
+		allJobs.forEach((job) => {
+			if (job.oldUri === null) {
 				return;
 			}
-			if (!codemodsWithFilePaths[staleJob.codemodName]) {
-				codemodsWithFilePaths[staleJob.codemodName] = [];
-			}
 
-			codemodsWithFilePaths[staleJob.codemodName]?.push(staleJob.oldUri);
+			const jobCodemod =  allCodemods.find(c => c.name === job.codemodName) ?? null;
+
+			if(jobCodemod === null) {
+				return;
+			} 
+			codemodHashUriTuple.push([jobCodemod.hashDigest, job.oldUri]);
 		});
 
 		const executionId = buildExecutionId();
 		const happenedAt = String(Date.now());
-		const messages: Message[] = [];
-		// const messages: Message[] = Object.entries(codemodsWithFilePaths).map(
-		// 	([codemodName, filePaths]) => ({
-		// 		kind: MessageKind.executeCodemodSet,
-		// 		command: {
-		// 			kind: 'executeCodemod',
-		// 			codemodHash: '',
-		// 			engine: 'node',
-		// 			storageUri,
-		// 			uris: filePaths,
-		// 		},
-		// 		executionId,
-		// 		happenedAt,
-		// 	}),
-		// );
 
-		for (const message of messages) {
-			this.#messageBus.publish(message);
-		}
+		const messages: Message[] = codemodHashUriTuple.map(([codemodHash, uri]) =>({
+			kind: MessageKind.executeCodemodSet,
+			command: {
+				kind: 'executeCodemod',
+				codemodHash,
+				engine: 'node',
+				storageUri: this.__storageUri,
+				uri,
+			},
+			executionId,
+			happenedAt,
+		}));
+
+		console.log(messages, 'test');
+		
+		// for (const message of messages) {
+		// 	this.#messageBus.publish(message);
+		// }
 	}
-
-	// private async __getStaleJobs(): Promise<Job[]> {
-	// 	const allJobs = this.getJobs();
-	// 	const modifiedFilesMap = new Map<Uri, number>();
-	// 	const staleJobs: Job[] = [];
-
-	// 	for (const job of allJobs) {
-	// 		if (job.kind !== JobKind.rewriteFile) {
-	// 			continue;
-	// 		}
-
-	// 		if (!job.oldUri) {
-	// 			continue;
-	// 		}
-
-	// 		if (!modifiedFilesMap.has(job.oldUri)) {
-	// 			const modificationTime =
-	// 				await this.__fileSystemUtilities.getModificationTime(
-	// 					job.oldUri,
-	// 				);
-	// 			modifiedFilesMap.set(job.oldUri, modificationTime);
-	// 		}
-
-	// 		const isStale =
-	// 			modifiedFilesMap.get(job.oldUri) ?? 0 >= job.createdAt;
-
-	// 		if (isStale) {
-	// 			staleJobs.push(job);
-	// 		}
-	// 	}
-
-	// 	return staleJobs;
-	// }
 }

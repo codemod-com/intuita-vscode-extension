@@ -68,6 +68,11 @@ import { randomBytes } from 'crypto';
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
+
+	if(!context.storageUri) {
+		throw new Error('Storage Uri not found');
+	}
+	
 	messageBus.setDisposables(context.subscriptions);
 
 	const configurationContainer = buildContainer(getConfiguration());
@@ -86,11 +91,32 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const fileService = new FileService(messageBus);
 
+	const statusBarItem = vscode.window.createStatusBarItem(
+		'intuita.statusBarItem',
+		vscode.StatusBarAlignment.Right,
+		100,
+	);
+	
+	statusBarItem.command = 'intuita.shutdownEngines';
+
+	context.subscriptions.push(statusBarItem);
+
+	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
+
+	const engineService = new EngineService(
+		configurationContainer,
+		messageBus,
+		vscode.workspace.fs,
+		statusBarItemManager,
+	);
+
 	const jobManager = new JobManager(
 		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
 		(persistedState?.appliedJobsHashes ?? []) as JobHash[],
 		messageBus,
 		fileService,
+		engineService,
+		context.storageUri
 	);
 
 	const caseManager = new CaseManager(
@@ -105,25 +131,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,
 		fileSystemUtilities,
-	);
-
-	const statusBarItem = vscode.window.createStatusBarItem(
-		'intuita.statusBarItem',
-		vscode.StatusBarAlignment.Right,
-		100,
-	);
-
-	statusBarItem.command = 'intuita.shutdownEngines';
-
-	context.subscriptions.push(statusBarItem);
-
-	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
-
-	const engineService = new EngineService(
-		configurationContainer,
-		messageBus,
-		vscode.workspace.fs,
-		statusBarItemManager,
 	);
 
 	new BootstrapExecutablesService(
