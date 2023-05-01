@@ -16,6 +16,7 @@ import {
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+import fs from 'fs';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -214,6 +215,12 @@ export class EngineService {
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
+		await this.executeCodemodSet(message);
+	}
+
+	public async executeCodemodSet(
+		message: Message & { kind: MessageKind.executeCodemodSet },
+	) {
 		if (this.#execution) {
 			await window.showErrorMessage(
 				'Wait until the previous codemod set execution has finished',
@@ -286,23 +293,29 @@ export class EngineService {
 					singleQuotify(doubleQuotify(message.command.codemodHash)),
 				);
 
-				const commandUri = message.command.uri;
+				const commandUris = message.command.uris;
 
-				includePatterns.forEach((includePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, includePattern);
-
-					const path = singleQuotify(fsPath);
-
-					args.push('-p', path);
-				});
-
-				excludePatterns.forEach((excludePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
-
-					const path = singleQuotify(fsPath);
-
-					args.push('-p', `!${path}`);
-				});
+				commandUris.forEach((commandUri) => {
+					if(fs.lstatSync(commandUri.fsPath).isDirectory()) {
+						includePatterns.forEach((includePattern) => {
+							const { fsPath } = Uri.joinPath(commandUri, includePattern);
+		
+							const path = singleQuotify(fsPath);
+		
+							args.push('-p', path);
+						});
+		
+						excludePatterns.forEach((excludePattern) => {
+							const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+		
+							const path = singleQuotify(fsPath);
+		
+							args.push('-p', `!${path}`);
+						});
+					} else {
+						args.push('-p', commandUri.fsPath);
+					}
+				})
 
 				args.push(
 					'-w',
@@ -433,7 +446,7 @@ export class EngineService {
 			if (!this.#execution) {
 				return;
 			}
-
+	
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
@@ -585,42 +598,51 @@ export class EngineService {
 			});
 		});
 
-		interfase.on('close', async () => {
-			this.#statusBarItemManager.moveToStandby();
-
-			if (this.#execution) {
-				this.#messageBus.publish({
-					kind: MessageKind.codemodSetExecuted,
-					executionId: this.#execution.executionId,
-					codemodSetName: this.#execution.codemodSetName,
-					halted: this.#execution.halted,
-					fileCount: this.#execution.totalFileCount,
-				});
-
-				if (!errorMessages.size && !this.#execution.affectedAnyFile) {
-					window.showWarningMessage(Messages.noAffectedFiles);
-				}
-
-				errorMessages.forEach((error) => {
-					try {
-						const parsedError = JSON.parse(error);
-						window.showErrorMessage(
-							`${
-								'kind' in parsedError &&
-								parsedError.kind === 'unrecognizedCodemod'
-									? Messages.codemodUnrecognized
-									: Messages.errorRunningCodemod
-							}. Error: ${error}`,
-						);
-					} catch (err) {
-						window.showErrorMessage(`Error: ${error}`);
-						console.error(err);
+		const executionPromise = new Promise((resolve, reject) => {
+			interfase.on('close', async () => {
+				try {
+					this.#statusBarItemManager.moveToStandby();
+	
+					if (this.#execution) {
+						this.#messageBus.publish({
+							kind: MessageKind.codemodSetExecuted,
+							executionId: this.#execution.executionId,
+							codemodSetName: this.#execution.codemodSetName,
+							halted: this.#execution.halted,
+							fileCount: this.#execution.totalFileCount,
+						});
+		
+						if (!errorMessages.size && !this.#execution.affectedAnyFile) {
+							window.showWarningMessage(Messages.noAffectedFiles);
+						}
+		
+						errorMessages.forEach((error) => {
+							try {
+								const parsedError = JSON.parse(error);
+								window.showErrorMessage(
+									`${
+										'kind' in parsedError &&
+										parsedError.kind === 'unrecognizedCodemod'
+											? Messages.codemodUnrecognized
+											: Messages.errorRunningCodemod
+									}. Error: ${error}`,
+								);
+							} catch (err) {
+								window.showErrorMessage(`Error: ${error}`);
+								console.error(err);
+							}
+						});
 					}
-				});
-			}
-
-			this.#execution = null;
+		
+					this.#execution = null;
+					resolve(null);
+				} catch(e) {
+					reject(e);
+				}
+			});
 		});
+
+		return executionPromise;
 	}
 
 	async #onFilesComparedMessage(

@@ -199,6 +199,11 @@ export class JobManager {
 			await acceptJobs(this.__fileService, jobs);
 		}
 
+		for (const jobHash of jobHashes) {
+			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
+			this.#jobMap.delete(jobHash);
+		}
+
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}
@@ -335,43 +340,56 @@ export class JobManager {
 	}
 
 	public async refreshAllJobs(): Promise<void> {
-		const allJobs = Array.from(this.getJobs());
-		const allCodemods = await this.__engineService.getCodemodList();
-		const codemodHashUriTuple: [string, Uri][] = [];
+		const oldJobs = Array.from(this.getJobs());
 
-		allJobs.forEach((job) => {
+		const allCodemods = await this.__engineService.getCodemodList();
+		const codemods: Record<string, Uri[]> = {};
+
+ 		oldJobs.forEach((job) => {
 			if (job.oldUri === null) {
 				return;
 			}
 
 			const jobCodemod =  allCodemods.find(c => c.name === job.codemodName) ?? null;
-
+			
 			if(jobCodemod === null) {
 				return;
 			} 
-			codemodHashUriTuple.push([jobCodemod.hashDigest, job.oldUri]);
+
+			if(!codemods[jobCodemod.hashDigest]) {
+				codemods[jobCodemod.hashDigest] = [];
+			} 
+
+			codemods[jobCodemod.hashDigest]?.push(job.oldUri);
 		});
 
-		const executionId = buildExecutionId();
-		const happenedAt = String(Date.now());
+		oldJobs.forEach(({hash}) => {
+			this.#uriHashJobHashSetManager.deleteRightHash(hash);
+			this.#jobMap.delete(hash);
+		})
 
-		const messages: Message[] = codemodHashUriTuple.map(([codemodHash, uri]) =>({
-			kind: MessageKind.executeCodemodSet,
-			command: {
-				kind: 'executeCodemod',
-				codemodHash,
-				engine: 'node',
-				storageUri: this.__storageUri,
-				uri,
-			},
-			executionId,
-			happenedAt,
-		}));
+		const tuples = Object.entries(codemods);
 
-		console.log(messages, 'test');
+		for(const tuple of tuples) {
+			const [codemodHash, uris] = tuple;
+			const executionId = buildExecutionId();
+			const happenedAt = String(Date.now());
+
+			await this.__engineService.executeCodemodSet({kind: MessageKind.executeCodemodSet,
+				command: {
+					kind: 'executeCodemod',
+					codemodHash,
+					engine: 'node',
+					storageUri: this.__storageUri,
+					uris,
+				},
+				executionId,
+				happenedAt
+			})
+		}
+
 		
-		// for (const message of messages) {
-		// 	this.#messageBus.publish(message);
-		// }
 	}
+
+
 }

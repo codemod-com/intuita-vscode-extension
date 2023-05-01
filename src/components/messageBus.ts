@@ -105,7 +105,7 @@ export type Command =
 			codemodHash: string;
 			engine: Engine;
 			storageUri: Uri;
-			uri: Uri;
+			uris: Uri[];
 	  }>;
 
 export type Message =
