@@ -6,7 +6,6 @@ import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetMana
 import { buildUriHash } from '../uris/buildUriHash';
 import { FileService } from './fileService';
 import { acceptJobs } from '../jobs/acceptJobs';
-import { buildExecutionId } from '../telemetry/hashes';
 import { EngineService } from './engineService';
 
 type Codemod = Readonly<{
@@ -346,7 +345,11 @@ export class JobManager {
 		const oldJobs = Array.from(this.getJobs());
 
 		const allCodemods = await this.__engineService.getCodemodList();
-		const codemods: Record<string, Uri[]> = {};
+		const codemodCommands: {
+			executionId: string;
+			codemodHash: string;
+			uris: Uri[];
+		}[] = [];
 
 		oldJobs.forEach((job) => {
 			if (job.oldUri === null) {
@@ -360,11 +363,20 @@ export class JobManager {
 				return;
 			}
 
-			if (!codemods[jobCodemod.hashDigest]) {
-				codemods[jobCodemod.hashDigest] = [];
+			const command =
+				codemodCommands.find(
+					(c) => c.codemodHash === jobCodemod.hashDigest,
+				) ?? null;
+
+			if (command === null) {
+				codemodCommands.push({
+					executionId: job.executionId,
+					codemodHash: jobCodemod.hashDigest,
+					uris: [],
+				});
 			}
 
-			codemods[jobCodemod.hashDigest]?.push(job.oldUri);
+			command?.uris.push(job.oldUri);
 		});
 
 		oldJobs.forEach(({ hash }) => {
@@ -373,11 +385,8 @@ export class JobManager {
 
 		this.#messageBus.publish({ kind: MessageKind.updateElements });
 
-		const tuples = Object.entries(codemods);
-
-		for (const tuple of tuples) {
-			const [codemodHash, uris] = tuple;
-			const executionId = buildExecutionId();
+		for (const command of codemodCommands) {
+			const { codemodHash, executionId, uris } = command;
 			const happenedAt = String(Date.now());
 
 			await this.__engineService.executeCodemodSet({
