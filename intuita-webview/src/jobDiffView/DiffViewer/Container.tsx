@@ -91,13 +91,7 @@ export const Header = ({
 						lockScroll
 						on={['hover', 'focus']}
 					>
-						<div>
-							{getJobTitle(
-								jobKind as unknown as JobKind,
-								newFileTitle,
-								oldFileTitle,
-							)}
-						</div>
+						<div>{title}</div>
 					</Popup>
 				</div>
 
@@ -161,28 +155,5 @@ const showDiff = (jobKind: JobKind): boolean => {
 			return false;
 		default:
 			return true;
-	}
-};
-
-const getJobTitle = (
-	jobKind: JobKind,
-	oldFileTitle: string,
-	newFileContent: string,
-): string => {
-	switch (jobKind) {
-		case JobKind.copyFile:
-			return `Copy ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.createFile:
-			return `Create new File ${newFileContent}`;
-		case JobKind.deleteFile:
-			return `Delete File`;
-		case JobKind.moveAndRewriteFile:
-			return `Move and Rewrite ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.moveFile:
-			return `Move ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.rewriteFile:
-			return `Modified Contet of ${oldFileTitle} `;
-		default:
-			throw new Error('Unknown job kind');
 	}
 };
