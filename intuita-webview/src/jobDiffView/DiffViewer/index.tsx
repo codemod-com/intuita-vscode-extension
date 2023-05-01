@@ -44,6 +44,7 @@ export const JobDiffViewContainer = ({
 
 			{jobs.map((el) => (
 				<JobDiffView
+					changesAccepted={changesAccepted}
 					ViewType={viewType}
 					key={el.jobHash}
 					postMessage={postMessage}

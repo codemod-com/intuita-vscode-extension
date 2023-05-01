@@ -504,7 +504,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.rewrite) {
 				const oldUri = Uri.file(message.i);
@@ -524,7 +524,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.delete) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -542,7 +542,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.move) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -561,7 +561,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.copy) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -580,7 +580,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else {
 				throw new Error(`Unrecognized message`);

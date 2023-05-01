@@ -5,9 +5,9 @@ import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { Diff } from './Diff';
+import cn from 'classnames';
 
 type ContainerProps = Readonly<{
-	id: string;
 	oldFileName: string | null;
 	newFileName: string | null;
 	viewType: 'inline' | 'side-by-side';
@@ -15,13 +15,9 @@ type ContainerProps = Readonly<{
 }>;
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	(
-		{ id, oldFileName, newFileName, children, viewType }: ContainerProps,
-		ref,
-	) => {
+	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
 		return (
 			<div
-				id={id}
 				className="flex  flex-wrap w-full container flex-col"
 				ref={ref}
 			>
@@ -43,6 +39,7 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 );
 
 type HeaderProps = Readonly<{
+	id: string;
 	diff: Diff | null;
 	title: string;
 	newFileTitle: string;
@@ -53,6 +50,7 @@ type HeaderProps = Readonly<{
 	children?: React.ReactNode;
 	actions: JobDiffViewProps['actions'];
 	jobStaged: boolean;
+	changesAccepted: boolean;
 	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
@@ -61,15 +59,15 @@ type HeaderProps = Readonly<{
 }>;
 
 export const Header = ({
+	id,
 	diff,
 	title,
 	jobKind,
-	newFileTitle,
-	oldFileTitle,
 	children,
 	viewed,
 	actions,
 	jobStaged,
+	changesAccepted,
 	onToggleJob,
 	onViewedChange,
 	onAction,
@@ -77,9 +75,13 @@ export const Header = ({
 }: HeaderProps) => {
 	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	return (
-		<div className="flex w-full items-center container-header">
+		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob} />
+				<VSCodeCheckbox
+					checked={jobStaged}
+					disabled={changesAccepted}
+					onChange={onToggleJob}
+				/>
 				<div className="flex items-center flex-1">
 					<Popup
 						trigger={
@@ -91,13 +93,7 @@ export const Header = ({
 						lockScroll
 						on={['hover', 'focus']}
 					>
-						<div>
-							{getJobTitle(
-								jobKind as unknown as JobKind,
-								newFileTitle,
-								oldFileTitle,
-							)}
-						</div>
+						<div>{title}</div>
 					</Popup>
 				</div>
 
@@ -115,14 +111,14 @@ export const Header = ({
 					</VSCodeButton>
 					{shouldShowDiff && (
 						<div className="ml-10 flex items-center justify-end diff-changes-container">
-							<span className="diff-changes diff-added">
-								+{diff.added}
+							<span className="diff-changes diff-removed">
+								-{diff.removed}
 							</span>
 
 							<span> / </span>
 
-							<span className="diff-changes diff-removed">
-								-{diff.removed}
+							<span className="diff-changes diff-added">
+								+{diff.added}
 							</span>
 						</div>
 					)}
@@ -137,13 +133,21 @@ export const Header = ({
 							</VSCodeButton>
 						))}
 					<div
-						className="flex ml-10 justify-between checkbox-container items-center"
+						className={cn(
+							'viewed-button flex ml-10 justify-between checkbox-container items-center',
+							{
+								disabled: changesAccepted,
+							},
+						)}
 						onClick={(e) => {
 							e.stopPropagation();
 							onViewedChange();
 						}}
 					>
-						<VSCodeCheckbox checked={viewed} />
+						<VSCodeCheckbox
+							checked={viewed}
+							disabled={changesAccepted}
+						/>
 						<p className="my-0 ml-10">Viewed</p>
 					</div>
 				</div>
@@ -161,28 +165,5 @@ const showDiff = (jobKind: JobKind): boolean => {
 			return false;
 		default:
 			return true;
-	}
-};
-
-const getJobTitle = (
-	jobKind: JobKind,
-	oldFileTitle: string,
-	newFileContent: string,
-): string => {
-	switch (jobKind) {
-		case JobKind.copyFile:
-			return `Copy ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.createFile:
-			return `Create new File ${newFileContent}`;
-		case JobKind.deleteFile:
-			return `Delete File`;
-		case JobKind.moveAndRewriteFile:
-			return `Move and Rewrite ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.moveFile:
-			return `Move ${oldFileTitle} to ${newFileContent}`;
-		case JobKind.rewriteFile:
-			return `Modified Contet of ${oldFileTitle} `;
-		default:
-			throw new Error('Unknown job kind');
 	}
 };

@@ -15,6 +15,7 @@ type Props = JobDiffViewProps & {
 	ViewType: 'inline' | 'side-by-side';
 	jobStaged: boolean;
 	onToggleJob(): void;
+	changesAccepted: boolean;
 };
 
 export const JobDiffView = ({
@@ -28,6 +29,7 @@ export const JobDiffView = ({
 	newFileTitle,
 	title,
 	jobStaged,
+	changesAccepted,
 	postMessage,
 	onToggleJob,
 }: Props) => {
@@ -85,6 +87,7 @@ export const JobDiffView = ({
 			headerSticky
 			headerComponent={
 				<Header
+					id={`diffViewHeader-${jobHash}`}
 					diff={diff}
 					oldFileTitle={oldFileTitle ?? ''}
 					newFileTitle={newFileTitle ?? ''}
@@ -96,6 +99,7 @@ export const JobDiffView = ({
 					title={title ?? ''}
 					viewType={viewType}
 					jobStaged={jobStaged}
+					changesAccepted={changesAccepted}
 					onToggleJob={onToggleJob}
 					onViewTypeChange={setViewType}
 					onReportIssue={reportIssue}
@@ -103,7 +107,6 @@ export const JobDiffView = ({
 			}
 		>
 			<Container
-				id={`diffViewContainer-${jobHash}`}
 				viewType={viewType}
 				oldFileName={oldFileTitle}
 				newFileName={newFileTitle}
