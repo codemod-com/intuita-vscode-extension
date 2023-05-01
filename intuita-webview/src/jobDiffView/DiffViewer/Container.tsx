@@ -151,9 +151,6 @@ export const Header = ({
 							},
 						)}
 						onClick={(e) => {
-							if (changesAccepted) {
-								return;
-							}
 							e.stopPropagation();
 							onViewedChange();
 						}}
