@@ -7,7 +7,6 @@ import { JobKind } from '../../shared/constants';
 import { Diff } from './Diff';
 
 type ContainerProps = Readonly<{
-	id: string;
 	oldFileName: string | null;
 	newFileName: string | null;
 	viewType: 'inline' | 'side-by-side';
@@ -15,13 +14,9 @@ type ContainerProps = Readonly<{
 }>;
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	(
-		{ id, oldFileName, newFileName, children, viewType }: ContainerProps,
-		ref,
-	) => {
+	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
 		return (
 			<div
-				id={id}
 				className="flex  flex-wrap w-full container flex-col"
 				ref={ref}
 			>
@@ -43,6 +38,7 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 );
 
 type HeaderProps = Readonly<{
+	id: string;
 	diff: Diff | null;
 	title: string;
 	newFileTitle: string;
@@ -61,11 +57,10 @@ type HeaderProps = Readonly<{
 }>;
 
 export const Header = ({
+	id,
 	diff,
 	title,
 	jobKind,
-	newFileTitle,
-	oldFileTitle,
 	children,
 	viewed,
 	actions,
@@ -77,7 +72,7 @@ export const Header = ({
 }: HeaderProps) => {
 	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	return (
-		<div className="flex w-full items-center container-header">
+		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<VSCodeCheckbox checked={jobStaged} onChange={onToggleJob} />
 				<div className="flex items-center flex-1">

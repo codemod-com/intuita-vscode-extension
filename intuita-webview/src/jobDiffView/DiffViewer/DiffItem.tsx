@@ -85,6 +85,7 @@ export const JobDiffView = ({
 			headerSticky
 			headerComponent={
 				<Header
+					id={`diffViewHeader-${jobHash}`}
 					diff={diff}
 					oldFileTitle={oldFileTitle ?? ''}
 					newFileTitle={newFileTitle ?? ''}
@@ -103,7 +104,6 @@ export const JobDiffView = ({
 			}
 		>
 			<Container
-				id={`diffViewContainer-${jobHash}`}
 				viewType={viewType}
 				oldFileName={oldFileTitle}
 				newFileName={newFileTitle}
