@@ -18,9 +18,9 @@ export const getDiffEditorHeight = (
 	);
 
 	const originalEditorLineCount =
-		originalEditor.getModel()?.getLineCount() || 0;
+		originalEditor.getModel()?.getLineCount() ?? 0;
 	const modifiedEditorLineCount =
-		modifiedEditor.getModel()?.getLineCount() || 0;
+		modifiedEditor.getModel()?.getLineCount() ?? 0;
 
 	const originalEditorHeight =
 		originalEditor.getTopForLineNumber(originalEditorLineCount + 1) +
@@ -29,7 +29,5 @@ export const getDiffEditorHeight = (
 		modifiedEditor.getTopForLineNumber(modifiedEditorLineCount + 1) +
 		modifiedEditorLineHeight;
 
-	const height = Math.max(originalEditorHeight, modifiedEditorHeight);
-
-	return height;
+	return Math.max(originalEditorHeight, modifiedEditorHeight);
 };

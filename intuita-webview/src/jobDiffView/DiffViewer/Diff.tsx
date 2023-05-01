@@ -13,7 +13,7 @@ export const useDiffViewer = ({
 }: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
 	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
 	const [diff, setDiff] = useState<Diff | null>(null);
-	const [height, setHeight] = useState<number | null>(null);
+	const [height, setHeight] = useState<string>('90vh');
 
 	const getDiffChanges = (): Diff | undefined => {
 		if (!editorRef.current) {
@@ -30,8 +30,10 @@ export const useDiffViewer = ({
 		if (!editorRef.current) {
 			return;
 		}
-
-		setHeight(getDiffEditorHeight(editorRef.current) ?? null);
+		const editorHeight = getDiffEditorHeight(editorRef.current);
+		if (editorHeight) {
+			setHeight(`${editorHeight}px`);
+		}
 	};
 
 	const handleRefSet = () => {
@@ -43,7 +45,7 @@ export const useDiffViewer = ({
 	const getDiffViewer = (
 		<div className="w-full">
 			<MonacoDiffEditor
-				height={height ?? '90vh'}
+				height={height}
 				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
