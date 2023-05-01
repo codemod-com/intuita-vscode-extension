@@ -64,8 +64,6 @@ export const Header = ({
 	diff,
 	title,
 	jobKind,
-	newFileTitle,
-	oldFileTitle,
 	children,
 	viewed,
 	actions,
