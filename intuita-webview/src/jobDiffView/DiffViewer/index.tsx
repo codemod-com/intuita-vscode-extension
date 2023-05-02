@@ -28,7 +28,7 @@ export const JobDiffViewContainer = ({
 	});
 
 	return (
-		<div className="m-10 mt-0">
+		<div className="m-10 mt-0" id={`diffViewer-${diffId}`}>
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}

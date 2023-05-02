@@ -68,6 +68,36 @@ function App() {
 				const element = document.getElementById(elementId);
 				element?.scrollIntoView();
 			}
+
+			if (
+				message.kind === 'webview.diffView.focusFolder' &&
+				view.viewId === 'jobDiffView' &&
+				view.viewProps.diffId
+			) {
+				const folderPathExcludingRootPath = message.folderPath.slice(
+					message.folderPath.indexOf('/'),
+				);
+
+				const element =
+					document.getElementById(
+						`diffViewer-${view.viewProps.diffId}`,
+					) ?? null;
+
+				if (element === null) {
+					return;
+				}
+
+				const fileInsideSelectedFolder =
+					Array.from(element.children).find((child) =>
+						child.id.includes(folderPathExcludingRootPath),
+					) ?? null;
+
+				if (fileInsideSelectedFolder === null) {
+					return;
+				}
+
+				fileInsideSelectedFolder.scrollIntoView();
+			}
 		},
 		[view],
 	);

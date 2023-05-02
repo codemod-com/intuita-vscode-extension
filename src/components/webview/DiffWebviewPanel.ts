@@ -263,4 +263,11 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			jobHash,
 		});
 	}
+
+	public focusFolder(folderPath: string) {
+		this._panel?.webview.postMessage({
+			kind: 'webview.diffView.focusFolder',
+			folderPath,
+		});
+	}
 }
