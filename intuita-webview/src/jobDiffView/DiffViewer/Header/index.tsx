@@ -7,6 +7,7 @@ import { DiffViewType } from '../../../shared/types';
 import styles from './style.module.css';
 import { vscode } from '../../../shared/utilities/vscode';
 import { JobHash } from '../../../../../src/jobs/types';
+import { CaseHash } from '../../../../../src/cases/types';
 
 type Props = Readonly<{
 	title: string;
@@ -22,7 +23,6 @@ const Header = ({
 	viewType,
 	diffId,
 	stagedJobHashes,
-	changesAccepted,
 	onViewChange,
 }: Props) => {
 	const handleTitleClick = () => {
@@ -31,11 +31,14 @@ const Header = ({
 
 	const jobHashes = Array.from(stagedJobHashes);
 
-	const handleCommit = () => {
+	const handleDiscardChanges = () => {
 		vscode.postMessage({
-			kind: 'webview.global.navigateToCommitView',
-			jobHashes,
-			diffId,
+			kind: 'webview.global.discardChanges',
+			caseHash: diffId as CaseHash,
+		});
+
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
 		});
 	};
 
@@ -61,33 +64,24 @@ const Header = ({
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
-				{changesAccepted ? (
-					<VSCodeButton
-						title={
-							hasStagedJobs
-								? 'Go to commit settings'
-								: 'At least one file should be selected'
-						}
-						appearance="primary"
-						onClick={handleCommit}
-						disabled={!hasStagedJobs}
-					>
-						Commit...
-					</VSCodeButton>
-				) : (
-					<VSCodeButton
-						title={
-							hasStagedJobs
-								? 'Apply all selected files'
-								: 'At least one file should be selected'
-						}
-						appearance="primary"
-						onClick={handleApplySelected}
-						disabled={!hasStagedJobs}
-					>
-						Apply selected
-					</VSCodeButton>
-				)}
+				<VSCodeButton
+					appearance="secondary"
+					onClick={handleDiscardChanges}
+				>
+					Discard All
+				</VSCodeButton>
+				<VSCodeButton
+					title={
+						hasStagedJobs
+							? 'Save changes to file, further tweak things if needed, and commit later.'
+							: 'At least one file should be selected'
+					}
+					appearance="primary"
+					onClick={handleApplySelected}
+					disabled={!hasStagedJobs}
+				>
+					Apply Selected
+				</VSCodeButton>
 			</div>
 			{viewType === 'side-by-side' ? (
 				<VSCodeButton
