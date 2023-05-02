@@ -5,7 +5,6 @@ import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { Diff } from './Diff';
-import cn from 'classnames';
 
 type ContainerProps = Readonly<{
 	oldFileName: string | null;
@@ -50,12 +49,11 @@ type HeaderProps = Readonly<{
 	children?: React.ReactNode;
 	actions: JobDiffViewProps['actions'];
 	jobStaged: boolean;
-	changesAccepted: boolean;
 	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
 	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	onReportIssue(): void;
-	onToggleJob(): void;
+	onToggleJob(staged: boolean): void;
 }>;
 
 export const Header = ({
@@ -67,7 +65,6 @@ export const Header = ({
 	viewed,
 	actions,
 	jobStaged,
-	changesAccepted,
 	onToggleJob,
 	onViewedChange,
 	onAction,
@@ -79,8 +76,10 @@ export const Header = ({
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<VSCodeCheckbox
 					checked={jobStaged}
-					disabled={changesAccepted}
-					onChange={onToggleJob}
+					onClick={(e) => {
+						e.stopPropagation();
+						onToggleJob(!jobStaged);
+					}}
 				/>
 				<div className="flex items-center flex-1">
 					<Popup
@@ -133,21 +132,13 @@ export const Header = ({
 							</VSCodeButton>
 						))}
 					<div
-						className={cn(
-							'viewed-button flex ml-10 justify-between checkbox-container items-center',
-							{
-								disabled: changesAccepted,
-							},
-						)}
+						className="viewed-button flex ml-10 justify-between checkbox-container items-center"
 						onClick={(e) => {
 							e.stopPropagation();
 							onViewedChange();
 						}}
 					>
-						<VSCodeCheckbox
-							checked={viewed}
-							disabled={changesAccepted}
-						/>
+						<VSCodeCheckbox checked={viewed} />
 						<p className="my-0 ml-10">Viewed</p>
 					</div>
 				</div>

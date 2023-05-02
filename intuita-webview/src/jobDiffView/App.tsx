@@ -15,14 +15,13 @@ const getViewComponent = (
 ) => {
 	switch (view.viewId) {
 		case 'jobDiffView':
-			const { data, title, diffId, changesAccepted } = view.viewProps;
+			const { data, title, diffId } = view.viewProps;
 
 			return (
 				<JobDiffViewContainer
 					diffId={diffId}
 					title={title}
 					jobs={data}
-					changesAccepted={changesAccepted}
 					postMessage={postMessage}
 				/>
 			);
@@ -63,41 +62,11 @@ function App() {
 					},
 				});
 			}
-			if (
-				message.kind === 'webview.diffview.rejectedJob' &&
-				view.viewId === 'jobDiffView'
-			) {
-				const jobHash = message.data[0];
-				const nextData = view.viewProps.data.filter(
-					(element) => element.jobHash !== jobHash,
-				);
-
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						data: nextData,
-					},
-				});
-			}
 
 			if (message.kind === 'webview.diffView.focusFile') {
 				const elementId = `diffViewHeader-${message.jobHash}`;
 				const element = document.getElementById(elementId);
 				element?.scrollIntoView();
-			}
-
-			if (
-				message.kind === 'webview.diffView.setChangesAccepted' &&
-				view.viewId === 'jobDiffView'
-			) {
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						changesAccepted: message.value,
-					},
-				});
 			}
 		},
 		[view],
