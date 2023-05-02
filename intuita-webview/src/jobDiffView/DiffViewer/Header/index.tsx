@@ -74,7 +74,7 @@ const Header = ({
 					title={
 						hasStagedJobs
 							? 'Save changes to file, further tweak things if needed, and commit later.'
-							: 'At least one file should be selected'
+							: 'At least one file should be selected.'
 					}
 					appearance="primary"
 					onClick={handleApplySelected}
