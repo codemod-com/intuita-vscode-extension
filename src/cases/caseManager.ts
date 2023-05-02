@@ -11,15 +11,12 @@ export class CaseManager {
 		JobHash
 	>;
 
-	readonly #acceptedCaseHashes: Set<CaseHash>;
-
 	public constructor(
 		cases: ReadonlyArray<Case>,
 		caseHashJobHashes: ReadonlySet<string>,
 		messageBus: MessageBus,
 	) {
 		this.#messageBus = messageBus;
-		this.#acceptedCaseHashes = new Set();
 
 		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
 		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
@@ -44,14 +41,6 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
-	}
-
-	public acceptCase(caseHash: CaseHash): void {
-		this.#acceptedCaseHashes.add(caseHash);
-	}
-
-	public isCaseAccepted(caseHash: CaseHash): boolean {
-		return this.#acceptedCaseHashes.has(caseHash);
 	}
 
 	public getCases(): IterableIterator<Case> {
@@ -178,7 +167,6 @@ export class CaseManager {
 
 	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
 		const deleted = this.#cases.delete(message.caseHash);
-		this.#acceptedCaseHashes.delete(message.caseHash);
 
 		if (!deleted) {
 			throw new Error('You tried to remove a case that does not exist.');
@@ -198,6 +186,5 @@ export class CaseManager {
 	#onClearStateMessage() {
 		this.#cases.clear();
 		this.#caseHashJobHashSetManager.clear();
-		this.#acceptedCaseHashes.clear();
 	}
 }

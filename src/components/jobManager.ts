@@ -223,6 +223,7 @@ export class JobManager {
 	public deleteJob(jobHash: JobHash) {
 		this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
 		this.#jobMap.delete(jobHash);
+		this.#appliedJobsHashes.delete(jobHash);
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
@@ -271,8 +272,7 @@ export class JobManager {
 				});
 			}
 
-			this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
-			this.#jobMap.delete(jobHash);
+			this.deleteJob(jobHash);
 		}
 
 		messages.push({ kind: MessageKind.updateElements });
