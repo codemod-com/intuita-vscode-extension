@@ -13,7 +13,7 @@ const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
 	commit: 'Commit or create pull requests for selected changes.',
-	copy: 'Copy the title of this codemod to the clipboard.'
+	copy: 'Copy the title of this codemod to the clipboard.',
 };
 
 type Props = Readonly<{
