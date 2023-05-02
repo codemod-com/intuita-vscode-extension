@@ -4,10 +4,10 @@ import { PopupProps } from 'reactjs-popup/dist/types';
 type Props = Readonly<
 	{
 		popoverText: string;
-	} & PopupProps
+	} & Omit<PopupProps, 'children'>
 >;
 
-const Popover = ({ trigger, popoverText }: Props) => {
+const Popover = ({ trigger, popoverText, ...others }: Props) => {
 	if (!popoverText) {
 		return null;
 	}
@@ -18,6 +18,7 @@ const Popover = ({ trigger, popoverText }: Props) => {
 			position={['top left', 'right center']}
 			lockScroll
 			on={['hover', 'focus']}
+			{...others}
 		>
 			<div>{popoverText}</div>
 		</Popup>
