@@ -3,6 +3,7 @@ import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -102,7 +103,7 @@ export type Command =
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
-			codemodHash: string;
+			codemodHash: CodemodHash;
 			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
@@ -251,6 +252,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.showProgress;
 			processedFiles: number;
+			codemodHash?: CodemodHash;
 			totalFiles: number;
 	  }>
 	| Readonly<{

@@ -6,6 +6,7 @@ import { CodemodTreeNode } from '../../shared/types';
 
 type Props = {
 	id: string;
+	progressBar: JSX.Element | null;
 	label: string;
 	description: string;
 	hoverDescription?: string;
@@ -23,6 +24,7 @@ type Props = {
 const TreeItem = ({
 	id,
 	label,
+	progressBar,
 	description,
 	hoverDescription,
 	kind,
@@ -71,14 +73,17 @@ const TreeItem = ({
 			{(kind === 'path' || !description) && (
 				<div className={styles.icon}>{icon}</div>
 			)}
-			<span className={styles.label}>
-				{label}
-				{kind === 'codemodItem' && (
-					<span className={styles.description}>
-						{hoverDescription}
-					</span>
-				)}
-			</span>
+			<div className="flex w-full flex-col">
+				<span className={styles.label}>
+					{label}
+					{kind === 'codemodItem' && (
+						<span className={styles.description}>
+							{hoverDescription}
+						</span>
+					)}
+				</span>
+				{progressBar}
+			</div>
 			<div className={styles.actions}>
 				{actionButtons.map((el) => el)}
 			</div>

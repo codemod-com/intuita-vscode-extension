@@ -7,6 +7,7 @@ export {
 	CodemodTreeNode,
 	Command,
 	RunCodemodsCommand,
+	CodemodHash,
 } from '../../../src/components/webview/webviewEvents';
 
 export type DiffViewType = 'inline' | 'side-by-side';

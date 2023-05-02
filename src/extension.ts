@@ -1163,7 +1163,8 @@ export async function activate(context: vscode.ExtensionContext) {
 							kind: 'executeCodemod',
 							engine: 'node',
 							storageUri,
-							codemodHash: selectedCodemod.hashDigest,
+							codemodHash:
+								selectedCodemod.hashDigest as CodemodHash,
 							uri,
 						},
 						executionId,

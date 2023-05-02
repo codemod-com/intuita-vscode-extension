@@ -1,7 +1,11 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
-import { RunCodemodsCommand, CodemodTreeNode } from '../../shared/types';
+import {
+	RunCodemodsCommand,
+	CodemodTreeNode,
+	CodemodHash,
+} from '../../shared/types';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { vscode } from '../../shared/utilities/vscode';
@@ -10,6 +14,7 @@ import cn from 'classnames';
 import { DirectorySelector } from '../components/DirectorySelector';
 import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
+import { useProgressBar } from '../useProgressBar';
 
 type Props = {
 	node?: CodemodTreeNode<string>;
@@ -44,6 +49,26 @@ const TreeView = ({
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
+	const [executionStack, setExecutionStack] = useState<CodemodHash[]>([]);
+
+	const onHalt = useCallback(() => {
+		if (!executionStack.length) {
+			return;
+		}
+		const stack = [...executionStack];
+		const hash = stack.shift();
+		if (!hash) {
+			return;
+		}
+		setExecutionStack(stack);
+		vscode.postMessage({
+			kind: 'webview.codemodList.dryRunCodemod',
+			value: hash,
+		});
+	}, [executionStack]);
+
+	const [progress, { progressBar, stopProgress }] = useProgressBar(onHalt);
+
 	useEffect(() => {
 		if (response._tag === 'Right') {
 			setEditExecutionPath(null);
@@ -63,9 +88,20 @@ const TreeView = ({
 
 	const handleActionButtonClick = useCallback(
 		(action: RunCodemodsCommand) => {
+			if (
+				(progress || executionStack.length) &&
+				action.kind === 'webview.codemodList.dryRunCodemod'
+			) {
+				if (executionStack.includes(action.value)) {
+					return;
+				}
+				setExecutionStack((prev) => [...prev, action.value]);
+				return;
+			}
+
 			vscode.postMessage(action);
 		},
-		[],
+		[executionStack, progress],
 	);
 
 	const handleEditExecutionPath = useCallback(
@@ -98,11 +134,21 @@ const TreeView = ({
 				key={action.kind}
 				className={styles.action}
 				role="button"
+				title={`${
+					action.kind === 'webview.codemodList.dryRunCodemod' &&
+					executionStack.includes(action.value)
+						? 'Queued:'
+						: ''
+				} ${action.description}`}
 				onClick={(e) => {
 					e.stopPropagation();
 					handleActionButtonClick(action);
 				}}
 			>
+				{action.kind === 'webview.codemodList.dryRunCodemod' &&
+					executionStack.includes(action.value) && (
+						<i className="codicon codicon-history mr-2" />
+					)}
 				{action.title}
 			</a>
 		));
@@ -117,13 +163,29 @@ const TreeView = ({
 					e.stopPropagation();
 					handleEditExecutionPath(node);
 				}}
+				title="Edit Execution Path"
 			>
 				<i className="codicon codicon-pencil"></i> Edit Path
 			</a>
 		);
 
+		const getActionButtons = () => {
+			if (progress?.codemodHash === node.id) {
+				return [stopProgress];
+			}
+			return [
+				...actionButtons,
+				...(node.kind === 'codemodItem'
+					? [editExecutionPathAction]
+					: []),
+			];
+		};
+
 		return (
 			<TreeItem
+				progressBar={
+					progress?.codemodHash === node.id ? progressBar : null
+				}
 				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
@@ -140,12 +202,7 @@ const TreeView = ({
 					setIsOpen(!open);
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={[
-					...actionButtons,
-					...(node.kind === 'codemodItem'
-						? [editExecutionPathAction]
-						: []),
-				]}
+				actionButtons={getActionButtons()}
 			/>
 		);
 	};

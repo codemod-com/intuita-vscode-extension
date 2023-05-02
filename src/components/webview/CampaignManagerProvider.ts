@@ -53,7 +53,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __fileExplorerProvider: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
-
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 	}
 

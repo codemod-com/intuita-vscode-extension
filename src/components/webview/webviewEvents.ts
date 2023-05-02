@@ -6,6 +6,7 @@ import * as E from 'fp-ts/Either';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 
+export { CodemodHash };
 export type JobActionCommands =
 	| 'intuita.rejectJob'
 	| 'intuita.createIssue'
@@ -45,11 +46,13 @@ export type CommitChangesFormData = Readonly<{
 export type RunCodemodsCommand =
 	| Readonly<{
 			title: string;
+			description?: string;
 			kind: 'webview.codemodList.runCodemod';
 			value: CodemodHash;
 	  }>
 	| Readonly<{
 			title: string;
+			description?: string;
 			kind: 'webview.codemodList.dryRunCodemod';
 			value: CodemodHash;
 	  }>;
@@ -165,6 +168,14 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathResponse';
 			data: E.Either<Error, string | null>;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodExecutionProgress';
+			value: number;
+			codemodHash: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.codemodExecutionHalted';
 	  }>;
 
 export type WebviewResponse =
@@ -223,7 +234,7 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
-	| RunCodemodsCommand
+	| Omit<RunCodemodsCommand, 'title' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.navigateToCommitView';
 			jobHashes: JobHash[];
@@ -257,6 +268,10 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.global.discardChanges';
 			caseHash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodeList.haltCodemodExecution';
+			value: CodemodHash;
 	  }>;
 
 export type View =

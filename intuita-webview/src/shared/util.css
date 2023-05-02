@@ -91,7 +91,18 @@
 .m-10 {
 	margin: 10px;
 }
-
+.mr-10 {
+	margin-right: 10px;
+}
+.mr-2 {
+	margin-right: 2px;
+}
+.mt-2 {
+	margin-top: 2px;
+}
+.mt-10 {
+	margin-top: 10px;
+}
 .ml-50 {
 	margin-left: 50px;
 }
@@ -128,4 +139,8 @@
 
 .pointer-events-none {
 	pointer-events: none;
+}
+
+.h-2 {
+	height: 2px;
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import ListView from './ListView';
 import styles from './style.module.css';
-
+import '../shared/util.css';
 import type {
 	View,
 	WebviewMessage,
