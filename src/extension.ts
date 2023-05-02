@@ -1174,6 +1174,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
+
+					// opens "Code Change Projects" panel if not opened
+					campaignManagerProvider.showView();
 				} catch (e) {
 					vscode.window.showErrorMessage(
 						e instanceof Error ? e.message : String(e),

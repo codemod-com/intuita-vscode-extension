@@ -158,6 +158,10 @@ export type WebviewMessage =
 			folderPath: string;
 	  }>
 	| Readonly<{
+			kind: 'webview.campaignManager.selectCase';
+			node: CaseTreeNode;
+	  }>
+	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
