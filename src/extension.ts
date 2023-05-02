@@ -207,7 +207,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 					const { title, data } = viewProps;
-					panelInstance.setTitle(`Diff - ${title}`);
+					panelInstance.setTitle(`${title} (${data.length})`);
 
 					const caseAccepted = caseManager.isCaseAccepted(
 						String(caseHash) as CaseHash,
