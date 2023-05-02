@@ -9,7 +9,9 @@ type ProgressType = {
 	codemodHash: CodemodHash;
 };
 
-export const useProgressBar = (): [
+export const useProgressBar = (
+	onHalt: () => void,
+): [
 	ProgressType | null,
 	{
 		progressBar: JSX.Element | null;
@@ -42,6 +44,7 @@ export const useProgressBar = (): [
 
 			if (message.kind === 'webview.global.codemodExecutionHalted') {
 				setCodemodExecutionProgress(null);
+				onHalt();
 			}
 		};
 
@@ -50,7 +53,7 @@ export const useProgressBar = (): [
 		return () => {
 			window.removeEventListener('message', handler);
 		};
-	}, [codemodExecutionProgress?.codemodHash]);
+	}, [codemodExecutionProgress?.codemodHash, onHalt]);
 
 	const progressBar =
 		codemodExecutionProgress !== null ? (

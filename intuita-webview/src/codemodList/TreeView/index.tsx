@@ -49,24 +49,25 @@ const TreeView = ({
 	const [focusedNodeId, setFocusedNodeId] = useState('');
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
-	const [progress, { progressBar, stopProgress }] = useProgressBar();
-	const [executionStack, setExecutionStack] = useState<Set<CodemodHash>>(
-		new Set(),
-	);
+	const [executionStack, setExecutionStack] = useState<CodemodHash[]>([]);
 
-	useEffect(() => {
-		if (progress || executionStack.size === 0) {
+	const onHalt = useCallback(() => {
+		if (!executionStack.length) {
 			return;
 		}
-		const hash = Array.from(executionStack).shift();
-		if (hash) {
-			executionStack.delete(hash);
-			vscode.postMessage({
-				kind: 'webview.codemodList.dryRunCodemod',
-				value: hash,
-			});
+		const stack = [...executionStack];
+		const hash = stack.shift();
+		if (!hash) {
+			return;
 		}
-	}, [executionStack, progress]);
+		setExecutionStack(stack);
+		vscode.postMessage({
+			kind: 'webview.codemodList.dryRunCodemod',
+			value: hash,
+		});
+	}, [executionStack]);
+
+	const [progress, { progressBar, stopProgress }] = useProgressBar(onHalt);
 
 	useEffect(() => {
 		if (response._tag === 'Right') {
@@ -88,10 +89,13 @@ const TreeView = ({
 	const handleActionButtonClick = useCallback(
 		(action: RunCodemodsCommand) => {
 			if (
-				(progress || executionStack.size) &&
+				(progress || executionStack.length) &&
 				action.kind === 'webview.codemodList.dryRunCodemod'
 			) {
-				setExecutionStack((prev) => prev.add(action.value));
+				if (executionStack.includes(action.value)) {
+					return;
+				}
+				setExecutionStack((prev) => [...prev, action.value]);
 				return;
 			}
 
@@ -132,7 +136,7 @@ const TreeView = ({
 				role="button"
 				title={`${
 					action.kind === 'webview.codemodList.dryRunCodemod' &&
-					Array.from(executionStack).includes(action.value)
+					executionStack.includes(action.value)
 						? 'Queued:'
 						: ''
 				} ${action.description}`}
@@ -142,7 +146,7 @@ const TreeView = ({
 				}}
 			>
 				{action.kind === 'webview.codemodList.dryRunCodemod' &&
-					Array.from(executionStack).includes(action.value) && (
+					executionStack.includes(action.value) && (
 						<i className="codicon codicon-history mr-2" />
 					)}
 				{action.title}
