@@ -1,11 +1,11 @@
 import React, { forwardRef } from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
-import Popup from 'reactjs-popup';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { Diff } from './Diff';
 import cn from 'classnames';
+import Popover from '../../shared/Popover';
 
 type ContainerProps = Readonly<{
 	oldFileName: string | null;
@@ -77,24 +77,20 @@ export const Header = ({
 	return (
 		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<VSCodeCheckbox
-					checked={jobStaged}
-					disabled={changesAccepted}
-					onChange={onToggleJob}
+				<Popover
+					trigger={
+						<VSCodeCheckbox
+							checked={jobStaged}
+							disabled={changesAccepted}
+							onChange={onToggleJob}
+						/>
+					}
+					popoverText="Select / Unselect to include or exclude the change."
 				/>
 				<div className="flex items-center flex-1">
-					<Popup
-						trigger={
-							<h4 className="my-0 ml-3 diff-title align-self-center">
-								{title}
-							</h4>
-						}
-						position={['top left', 'right center']}
-						lockScroll
-						on={['hover', 'focus']}
-					>
-						<div>{title}</div>
-					</Popup>
+					<h4 className="my-0 ml-3 diff-title align-self-center">
+						{title}
+					</h4>
 				</div>
 
 				<div
@@ -103,12 +99,17 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<VSCodeButton
-						appearance="secondary"
-						onClick={onReportIssue}
-					>
-						Report Issue
-					</VSCodeButton>
+					<Popover
+						trigger={
+							<VSCodeButton
+								appearance="secondary"
+								onClick={onReportIssue}
+							>
+								Report Issue
+							</VSCodeButton>
+						}
+						popoverText="Open a Github issue with a provided template to report a problem."
+					/>
 					{shouldShowDiff && (
 						<div className="ml-10 flex items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
