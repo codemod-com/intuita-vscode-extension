@@ -4,6 +4,7 @@ import ListView from './ListView';
 import styles from './style.module.css';
 import '../shared/util.css';
 import type {
+	CaseTreeNode,
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
@@ -12,7 +13,8 @@ type MainViews = Extract<View, { viewId: 'campaignManagerView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-
+	const [selectedCaseNode, setSelectedCaseNode] =
+		useState<CaseTreeNode | null>(null);
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
@@ -22,6 +24,10 @@ function App() {
 				if (message.value.viewId === 'campaignManagerView') {
 					setView(message.value);
 				}
+			}
+
+			if (message.kind === 'webview.campaignManager.selectCase') {
+				setSelectedCaseNode(message.node);
 			}
 		};
 
@@ -44,7 +50,10 @@ function App() {
 
 	return (
 		<main className="App">
-			<ListView nodes={view.viewProps.nodes} />
+			<ListView
+				nodes={view.viewProps.nodes}
+				selectedCaseNode={selectedCaseNode}
+			/>
 		</main>
 	);
 }

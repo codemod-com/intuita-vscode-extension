@@ -1,29 +1,44 @@
-import {
-	CaseTreeNode,
-	TreeNode,
-} from '../../../../src/components/webview/webviewEvents';
+import { CaseTreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type Props = {
 	nodes: CaseTreeNode[];
+	selectedCaseNode: CaseTreeNode | null;
 };
 
-const ListView = ({ nodes }: Props) => {
+const ListView = ({ nodes, selectedCaseNode }: Props) => {
 	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 
-	const handleClick = useCallback((node: TreeNode) => {
-		if (!node.command) {
+	const handleClick = useCallback((node: CaseTreeNode) => {
+		setFocusedNodeId(node.id);
+
+		vscode.postMessage({
+			kind: 'webview.campaignManager.caseSelected',
+			hash: node.id,
+		});
+
+		if (node.command) {
+			vscode.postMessage({
+				kind: 'webview.command',
+				value: node.command,
+			});
+		}
+	}, []);
+
+	useEffect(() => {
+		if (
+			selectedCaseNode === null ||
+			selectedCaseNode.id === focusedNodeId
+		) {
 			return;
 		}
-		vscode.postMessage({
-			kind: 'webview.command',
-			value: node.command,
-		});
-	}, []);
+
+		handleClick(selectedCaseNode);
+	}, [handleClick, focusedNodeId, selectedCaseNode]);
 
 	return (
 		<div className={styles.container}>
@@ -49,11 +64,6 @@ const ListView = ({ nodes }: Props) => {
 						index={index}
 						onClick={() => {
 							handleClick(node);
-							setFocusedNodeId(node.id);
-							vscode.postMessage({
-								kind: 'webview.campaignManager.caseSelected',
-								hash: node.id,
-							});
 						}}
 					/>
 				);

@@ -14,12 +14,7 @@ import {
 	WebviewResponse,
 } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
-import {
-	CaseElement,
-	Element,
-	ElementHash,
-	FileElement,
-} from '../../elements/types';
+import { CaseElement, FileElement } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
 import { debounce } from '../../utilities';
 import { JobManager } from '../jobManager';
@@ -43,7 +38,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
-	__elementMap = new Map<ElementHash, Element>();
+	__treeMap = new Map<CaseHash, CaseTreeNode>();
 
 	constructor(
 		context: ExtensionContext,
@@ -97,6 +92,18 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__view?.show();
+	}
+
+	private __selectCase(hash: CaseHash) {
+		const node = this.__treeMap.get(hash) ?? null;
+
+		if (node === null) {
+			return;
+		}
+		this.__postMessage({
+			kind: 'webview.campaignManager.selectCase',
+			node,
+		});
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -263,11 +270,17 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 					  }
 					: null,
 		});
+
+		const newCaseHash = this.__caseManager.getNewCaseHash();
+		if (newCaseHash !== null) {
+			this.__selectCase(newCaseHash);
+		}
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
+		const caseHash = element.hash as unknown as CaseHash;
 		const mappedNode: CaseTreeNode = {
-			id: element.hash as unknown as CaseHash,
+			id: caseHash,
 			iconName: 'case.svg',
 			label: element.label,
 			kind: 'caseElement',
@@ -279,6 +292,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			},
 			caseApplied: false,
 		};
+
+		this.__treeMap.set(caseHash, mappedNode);
 
 		return mappedNode;
 	};
