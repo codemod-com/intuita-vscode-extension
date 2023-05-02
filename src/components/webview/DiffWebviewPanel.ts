@@ -126,6 +126,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.closeView') {
 			this.dispose();
 		}
+
+		if (message.kind === 'webview.global.discardChanges') {
+			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		}
 	}
 
 	public override dispose() {
