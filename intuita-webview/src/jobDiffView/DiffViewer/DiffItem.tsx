@@ -14,8 +14,7 @@ type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
 	ViewType: 'inline' | 'side-by-side';
 	jobStaged: boolean;
-	onToggleJob(): void;
-	changesAccepted: boolean;
+	onToggleJob(staged: boolean): void;
 };
 
 export const JobDiffView = ({
@@ -29,7 +28,6 @@ export const JobDiffView = ({
 	newFileTitle,
 	title,
 	jobStaged,
-	changesAccepted,
 	postMessage,
 	onToggleJob,
 }: Props) => {
@@ -99,7 +97,6 @@ export const JobDiffView = ({
 					title={title ?? ''}
 					viewType={viewType}
 					jobStaged={jobStaged}
-					changesAccepted={changesAccepted}
 					onToggleJob={onToggleJob}
 					onViewTypeChange={setViewType}
 					onReportIssue={reportIssue}

@@ -6,26 +6,22 @@ import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
 import Header from './Header';
+import { vscode } from '../../shared/utilities/vscode';
 
 type JobDiffViewContainerProps = {
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
 	title: string;
 	diffId: string;
-	changesAccepted: boolean;
 };
 
 export const JobDiffViewContainer = ({
 	title,
 	jobs,
 	diffId,
-	changesAccepted,
 	postMessage,
 }: JobDiffViewContainerProps) => {
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
-	const [stagedJobHashes, setStagedJobHashes] = useState(
-		new Set(jobs.map(({ jobHash }) => jobHash)),
-	);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
@@ -37,30 +33,21 @@ export const JobDiffViewContainer = ({
 				onViewChange={setViewType}
 				viewType={viewType}
 				title={title}
-				stagedJobHashes={stagedJobHashes}
+				jobs={jobs}
 				diffId={diffId}
-				changesAccepted={changesAccepted}
 			/>
 
 			{jobs.map((el) => (
 				<JobDiffView
-					changesAccepted={changesAccepted}
 					ViewType={viewType}
 					key={el.jobHash}
 					postMessage={postMessage}
-					jobStaged={stagedJobHashes.has(el.jobHash)}
-					onToggleJob={() => {
-						setStagedJobHashes((prevStagedJobHashes) => {
-							const nextStagedJobHashes = new Set(
-								prevStagedJobHashes,
-							);
-							if (nextStagedJobHashes.has(el.jobHash)) {
-								nextStagedJobHashes.delete(el.jobHash);
-							} else {
-								nextStagedJobHashes.add(el.jobHash);
-							}
-
-							return nextStagedJobHashes;
+					jobStaged={el.staged}
+					onToggleJob={(staged: boolean) => {
+						vscode.postMessage({
+							kind: 'webview.global.stageJob',
+							jobHash: el.jobHash,
+							staged,
 						});
 					}}
 					{...el}

@@ -28,6 +28,7 @@ export type JobDiffViewProps = Readonly<{
 	newFileTitle: string | null;
 	title: string | null;
 	actions?: JobAction[];
+	staged: boolean;
 }>;
 
 export type CommitChangesFormData = Readonly<{
@@ -150,10 +151,6 @@ export type WebviewMessage =
 			jobHash: JobHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.setChangesAccepted';
-			value: boolean;
-	  }>
-	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
@@ -238,6 +235,11 @@ export type WebviewResponse =
 			diffId: string;
 	  }>
 	| Readonly<{
+			kind: 'webview.global.stageJob';
+			jobHash: JobHash;
+			staged: boolean;
+	  }>
+	| Readonly<{
 			kind: 'webview.campaignManager.caseSelected';
 			hash: CaseHash;
 	  }>
@@ -289,7 +291,6 @@ export type View =
 			viewId: 'jobDiffView';
 			viewProps: {
 				diffId: string;
-				changesAccepted: boolean;
 				title: string;
 				data: JobDiffViewProps[];
 			};

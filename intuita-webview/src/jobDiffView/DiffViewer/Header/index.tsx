@@ -1,11 +1,10 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { DiffViewType } from '../../../shared/types';
+import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
 import { vscode } from '../../../shared/utilities/vscode';
-import { JobHash } from '../../../../../src/jobs/types';
 import { CaseHash } from '../../../../../src/cases/types';
 import Popover from '../../../shared/Popover';
 
@@ -19,24 +18,19 @@ const POPOVER_TEXTS = {
 type Props = Readonly<{
 	title: string;
 	viewType: DiffViewType;
-	stagedJobHashes: Set<JobHash>;
+	jobs: JobDiffViewProps[];
 	diffId: string;
-	changesAccepted: boolean;
 	onViewChange(value: DiffViewType): void;
 }>;
 
-const Header = ({
-	title,
-	viewType,
-	diffId,
-	stagedJobHashes,
-	onViewChange,
-}: Props) => {
+const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
 	};
 
-	const jobHashes = Array.from(stagedJobHashes);
+	const stagedJobHashes = jobs
+		.filter((job) => job.staged)
+		.map(({ jobHash }) => jobHash);
 
 	const handleDiscardChanges = () => {
 		vscode.postMessage({
@@ -52,7 +46,7 @@ const Header = ({
 	const handleApplySelected = () => {
 		vscode.postMessage({
 			kind: 'webview.global.applySelected',
-			jobHashes,
+			jobHashes: stagedJobHashes,
 			diffId,
 		});
 
@@ -61,7 +55,7 @@ const Header = ({
 		});
 	};
 
-	const hasStagedJobs = stagedJobHashes.size !== 0;
+	const hasStagedJobs = stagedJobHashes.length !== 0;
 	return (
 		<div className={styles.root}>
 			<div className={styles.title} onClick={handleTitleClick}>

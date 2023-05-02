@@ -10,7 +10,9 @@ export const useDiffViewer = ({
 	oldFileContent,
 	newFileContent,
 	viewType,
-}: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
+}: Omit<JobDiffViewProps, 'staged'> & {
+	viewType: 'inline' | 'side-by-side';
+}) => {
 	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
 	const [diff, setDiff] = useState<Diff | null>(null);
 	const [height, setHeight] = useState<string>('90vh');

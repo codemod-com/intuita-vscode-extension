@@ -1,5 +1,5 @@
 import { workspace, commands } from 'vscode';
-import { MessageBus, MessageKind } from '../messageBus';
+import { MessageBus } from '../messageBus';
 import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
@@ -65,13 +65,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		);
 	}
 
-	public setChangesAccepted(value: boolean): void {
-		this._postMessage({
-			kind: 'webview.diffView.setChangesAccepted',
-			value,
-		});
-	}
-
 	private __onDidReceiveMessage(message: WebviewResponse) {
 		if (message.kind === 'webview.command') {
 			commands.executeCommand(
@@ -130,6 +123,31 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.discardChanges') {
 			commands.executeCommand('intuita.rejectCase', message.caseHash);
 		}
+
+		if (message.kind === 'webview.global.stageJob') {
+			const { jobHash, staged } = message;
+
+			if (staged) {
+				this.__jobManager.applyJob(jobHash);
+			} else {
+				this.__jobManager.unapplyJob(jobHash);
+			}
+
+			this.__updateJobProps(jobHash);
+		}
+	}
+
+	private async __updateJobProps(jobHash: JobHash) {
+		const props = await this.getViewDataForJob(jobHash);
+
+		if (props === null) {
+			return;
+		}
+
+		this._postMessage({
+			kind: 'webview.diffView.updateDiffViewProps',
+			data: props,
+		});
 	}
 
 	public override dispose() {
@@ -166,6 +184,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			? (await workspace.fs.readFile(oldContentUri)).toString()
 			: null;
 
+		const jobStaged = this.__jobManager.isJobApplied(job.hash);
+
 		return {
 			jobHash,
 			jobKind: kind,
@@ -190,6 +210,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			newFileContent,
 			title: newFileTitle,
 			actions: [],
+			staged: jobStaged,
 		};
 	}
 
@@ -236,40 +257,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
-	private __onUpdateJobMessage = async (jobHashes: ReadonlySet<JobHash>) => {
-		for (const jobHash of Array.from(jobHashes)) {
-			const props = await this.getViewDataForJob(jobHash);
-			if (!props) continue;
-			this._postMessage({
-				kind: 'webview.diffView.updateDiffViewProps',
-				data: props,
-			});
-		}
-	};
-
 	public focusFile(jobHash: JobHash) {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFile',
 			jobHash,
-		});
-	}
-
-	private __onRejectJob = async (jobHashes: ReadonlySet<JobHash>) => {
-		for (const jobHash of jobHashes) {
-			this._postMessage({
-				kind: 'webview.diffview.rejectedJob',
-				data: [jobHash],
-			});
-		}
-	};
-
-	_attachExtensionEventListeners() {
-		this._addHook(MessageKind.jobsAccepted, (message) => {
-			this.__onUpdateJobMessage(message.deletedJobHashes);
-		});
-
-		this._addHook(MessageKind.jobsRejected, (message) => {
-			this.__onRejectJob(message.deletedJobHashes);
 		});
 	}
 }
