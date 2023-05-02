@@ -16,6 +16,7 @@ type Props = Readonly<{
 	depth: number;
 	index: number;
 	style?: CSSProperties;
+	onPressChevron?(): void;
 }>;
 
 const TreeItem = ({
@@ -30,6 +31,7 @@ const TreeItem = ({
 	onClick,
 	depth,
 	style,
+	onPressChevron,
 }: Props) => {
 	return (
 		<div
@@ -46,6 +48,7 @@ const TreeItem = ({
 			{hasChildren ? (
 				<div className={styles.codicon}>
 					<span
+						onClick={onPressChevron}
 						className={cn('codicon', {
 							'codicon-chevron-right': !open,
 							'codicon-chevron-down': open,
