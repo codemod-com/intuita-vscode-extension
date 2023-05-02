@@ -401,6 +401,24 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
+
+		this.__addHook(MessageKind.updateElements, () => {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+
+			// when "last selected case" was removed, clear the state
+			if (
+				this.__caseManager.getCase(this.__lastSelectedCaseHash) ===
+				undefined
+			) {
+				this.__onClearStateMessage();
+				return;
+			}
+
+			// when job elements are updated, refresh the view
+			this.updateExplorerView(this.__lastSelectedCaseHash);
+		});
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {

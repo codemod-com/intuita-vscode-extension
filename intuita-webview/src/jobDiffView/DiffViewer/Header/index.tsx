@@ -48,6 +48,10 @@ const Header = ({
 			jobHashes,
 			diffId,
 		});
+
+		vscode.postMessage({
+			kind: 'webview.global.closeView',
+		});
 	};
 
 	const hasStagedJobs = stagedJobHashes.size !== 0;
