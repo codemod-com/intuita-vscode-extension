@@ -13,6 +13,7 @@ const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
 	commit: 'Commit or create pull requests for selected changes.',
+	copy: 'Copy the title of this codemod to the clipboard.'
 };
 
 type Props = Readonly<{
@@ -65,13 +66,18 @@ const Header = ({
 		<div className={styles.root}>
 			<div className={styles.title} onClick={handleTitleClick}>
 				<span>{title}</span>
-				<VSCodeButton
-					className={styles.copyButton}
-					onClick={handleTitleClick}
-					appearance="secondary"
-				>
-					Copy
-				</VSCodeButton>
+				<Popover
+					trigger={
+						<VSCodeButton
+							className={styles.copyButton}
+							onClick={handleTitleClick}
+							appearance="secondary"
+						>
+							Copy
+						</VSCodeButton>
+					}
+					popoverText={POPOVER_TEXTS.copy}
+				/>
 			</div>
 			<div className={styles.actionsContainer}>
 				<Popover

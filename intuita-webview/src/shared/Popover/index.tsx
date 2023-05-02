@@ -14,13 +14,15 @@ const Popover = ({ trigger, popoverText, ...others }: Props) => {
 
 	return (
 		<Popup
+			arrow
 			trigger={trigger}
 			position={['top left', 'right center']}
 			lockScroll
 			on={['hover', 'focus']}
+			contentStyle={{ display: 'flex', alignItems: 'center' }}
 			{...others}
 		>
-			<div>{popoverText}</div>
+			<span>{popoverText}</span>
 		</Popup>
 	);
 };
