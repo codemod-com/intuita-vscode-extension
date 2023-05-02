@@ -55,15 +55,16 @@ const TreeView = ({
 	);
 
 	useEffect(() => {
-		if (!progress && executionStack.size > 0) {
-			const hash = Array.from(executionStack).shift();
-			if (hash) {
-				executionStack.delete(hash);
-				vscode.postMessage({
-					kind: 'webview.codemodList.dryRunCodemod',
-					value: hash,
-				});
-			}
+		if (progress || executionStack.size === 0) {
+			return;
+		}
+		const hash = Array.from(executionStack).shift();
+		if (hash) {
+			executionStack.delete(hash);
+			vscode.postMessage({
+				kind: 'webview.codemodList.dryRunCodemod',
+				value: hash,
+			});
 		}
 	}, [executionStack, progress]);
 
