@@ -36,8 +36,8 @@ export const JobDiffViewContainer = ({
 				jobs={jobs}
 				diffId={diffId}
 			/>
-
-			{jobs.map((el) => (
+			{/* Reversing the array sorts the items in an alphabetical order of directories */}
+			{jobs.reverse().map((el) => (
 				<JobDiffView
 					ViewType={viewType}
 					key={el.jobHash}
