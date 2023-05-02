@@ -469,6 +469,30 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 			panelInstance.focusFile(jobHash);
 		}
+
+		if (message.kind === 'webview.fileExplorer.folderSelected') {
+			const rootPath =
+				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
+			if (rootPath === null) {
+				return;
+			}
+			const panelInstance = DiffWebviewPanel.getInstance(
+				{
+					type: 'intuitaPanel',
+					title: 'Diff',
+					extensionUri: this.__extensionPath,
+					initialData: {},
+					viewColumn: ViewColumn.One,
+					webviewName: 'jobDiffView',
+				},
+				this.__messageBus,
+				this.__jobManager,
+				this.__caseManager,
+				rootPath,
+			);
+			const folderPath = message.id;
+			panelInstance.focusFolder(folderPath);
+		}
 	};
 
 	private __attachWebviewEventListeners() {

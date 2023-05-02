@@ -154,6 +154,10 @@ export type WebviewMessage =
 			jobHash: JobHash;
 	  }>
 	| Readonly<{
+			kind: 'webview.diffView.focusFolder';
+			folderPath: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
@@ -253,6 +257,10 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.campaignManager.caseSelected';
 			hash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.folderSelected';
+			id: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';

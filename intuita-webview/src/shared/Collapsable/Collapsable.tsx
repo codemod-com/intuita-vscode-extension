@@ -11,6 +11,7 @@ import cn from 'classnames';
 import Popover from '../Popover';
 
 type CollapsableProps = Readonly<{
+	id: string;
 	defaultExpanded: boolean;
 	headerComponent: React.ReactNode;
 	headerClassName?: string;
@@ -32,6 +33,7 @@ export const Collapsable = memo(
 	forwardRef<CollapsableRefMethods, CollapsableProps>(
 		(
 			{
+				id,
 				onToggle,
 				defaultExpanded: defaultCollapsed,
 				headerSticky,
@@ -57,7 +59,7 @@ export const Collapsable = memo(
 			}, [expanded, onToggle]);
 
 			return (
-				<div className={cn('collapsable', className)}>
+				<div className={cn('collapsable', className)} id={id}>
 					<div
 						className={cn(headerClassName, {
 							collapsable__header: true,

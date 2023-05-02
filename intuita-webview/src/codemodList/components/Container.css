@@ -29,11 +29,11 @@
 	flex-grow: unset;
 }
 
-.codemodListcollapsable {
+.codemodListCollapsable {
 	background: var(--vscode-sideBar-background);
 }
 
-.codemodlistCollapsableArrow {
+.codemodListCollapsableArrow {
 	margin-right: 0.5rem;
 	width: 12px;
 	height: 12px;

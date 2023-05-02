@@ -77,6 +77,7 @@ export const JobDiffView = ({
 
 	return (
 		<Collapsable
+			id={newFileTitle ?? ''}
 			ref={collapsableRef}
 			defaultExpanded={true}
 			className="overflow-hidden my-10 rounded "

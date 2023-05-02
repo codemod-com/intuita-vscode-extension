@@ -127,10 +127,12 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 				open={open}
 				focused={node.id === focusedNodeId}
 				onClick={() => {
-					setIsOpen(!open);
 					setFocusedNodeId(node.id);
 				}}
 				actionButtons={actionButtons}
+				onPressChevron={() => {
+					setIsOpen(!open);
+				}}
 				index={index}
 			/>
 		);
@@ -149,14 +151,21 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	}, []);
 
 	useEffect(() => {
-		if (focusedNodeId === null || !fileNodeIds.has(focusedNodeId)) {
+		if (focusedNodeId === null) {
 			return;
 		}
 
-		vscode.postMessage({
-			kind: 'webview.fileExplorer.fileSelected',
-			id: focusedNodeId,
-		});
+		if (fileNodeIds.has(focusedNodeId)) {
+			vscode.postMessage({
+				kind: 'webview.fileExplorer.fileSelected',
+				id: focusedNodeId,
+			});
+		} else {
+			vscode.postMessage({
+				kind: 'webview.fileExplorer.folderSelected',
+				id: focusedNodeId,
+			});
+		}
 	}, [focusedNodeId, fileNodeIds]);
 
 	if (userSearchingFile) {

@@ -36,8 +36,9 @@ export const Container = ({
 			})}
 		>
 			<Collapsable
-				className="codemodListcollapsable"
-				headerChevronClassName="codemodlistCollapsableArrow"
+				id="codemodListCollapsable"
+				className="codemodListCollapsable"
+				headerChevronClassName="codemodListCollapsableArrow"
 				headerClassName="collapsableHeader"
 				contentClassName="collpasableContent"
 				onToggle={(expanded) => {
