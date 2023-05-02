@@ -195,6 +195,10 @@ export class JobManager {
 			await acceptJobs(this.__fileService, jobs);
 		}
 
+		for (const jobHash of jobHashes) {
+			this.deleteJob(jobHash);
+		}
+
 		for (const message of messages) {
 			this.#messageBus.publish(message);
 		}
@@ -214,6 +218,11 @@ export class JobManager {
 
 	public getAppliedJobsHashes() {
 		return this.#appliedJobsHashes;
+	}
+
+	public deleteJob(jobHash: JobHash) {
+		this.#uriHashJobHashSetManager.deleteRightHash(jobHash);
+		this.#jobMap.delete(jobHash);
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {

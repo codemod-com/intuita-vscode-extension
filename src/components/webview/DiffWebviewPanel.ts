@@ -122,6 +122,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				message,
 			);
 		}
+
+		if (message.kind === 'webview.global.closeView') {
+			this.dispose();
+		}
 	}
 
 	public override dispose() {
