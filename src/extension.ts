@@ -746,7 +746,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						new Set(jobHashes as JobHash[]),
 					);
 
-					vscode.commands.executeCommand('intuita.rejectCase', caseHash);
+					vscode.commands.executeCommand(
+						'intuita.rejectCase',
+						caseHash,
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
