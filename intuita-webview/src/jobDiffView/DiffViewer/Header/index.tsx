@@ -1,5 +1,4 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
 import { DiffViewType } from '../../../shared/types';
@@ -8,6 +7,13 @@ import styles from './style.module.css';
 import { vscode } from '../../../shared/utilities/vscode';
 import { JobHash } from '../../../../../src/jobs/types';
 import { CaseHash } from '../../../../../src/cases/types';
+import Popover from '../../../shared/Popover';
+
+const POPOVER_TEXTS = {
+	discard: 'Discard the codemod in progress without saving changes.',
+	apply: 'Save changes to file, further tweak things if needed, and commit later.',
+	commit: 'Commit or create pull requests for selected changes.',
+};
 
 type Props = Readonly<{
 	title: string;
@@ -68,24 +74,29 @@ const Header = ({
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
-				<VSCodeButton
-					appearance="secondary"
-					onClick={handleDiscardChanges}
-				>
-					Discard All
-				</VSCodeButton>
-				<VSCodeButton
-					title={
-						hasStagedJobs
-							? 'Save changes to file, further tweak things if needed, and commit later.'
-							: 'At least one file should be selected.'
+				<Popover
+					trigger={
+						<VSCodeButton
+							appearance="secondary"
+							onClick={handleDiscardChanges}
+						>
+							Discard All
+						</VSCodeButton>
 					}
-					appearance="primary"
-					onClick={handleApplySelected}
-					disabled={!hasStagedJobs}
-				>
-					Apply Selected
-				</VSCodeButton>
+					popoverText={POPOVER_TEXTS.discard}
+				/>
+				<Popover
+					trigger={
+						<VSCodeButton
+							appearance="primary"
+							onClick={handleApplySelected}
+							disabled={!hasStagedJobs}
+						>
+							Apply Selected
+						</VSCodeButton>
+					}
+					popoverText={POPOVER_TEXTS.apply}
+				/>
 			</div>
 			{viewType === 'side-by-side' ? (
 				<VSCodeButton
