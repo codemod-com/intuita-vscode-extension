@@ -251,6 +251,10 @@ export type WebviewResponse =
 				codemodHash: CodemodHash;
 				newPath: string;
 			};
+	  }>
+	| Readonly<{
+			kind: 'webview.global.discardChanges';
+			caseHash: CaseHash;
 	  }>;
 
 export type View =
