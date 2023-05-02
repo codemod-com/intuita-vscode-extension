@@ -209,14 +209,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const { title, data } = viewProps;
 					panelInstance.setTitle(`${title} (${data.length})`);
 
-					const caseAccepted = caseManager.isCaseAccepted(
-						String(caseHash) as CaseHash,
-					);
-
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							changesAccepted: caseAccepted,
 							diffId: String(caseHash) as CaseHash,
 							title,
 							data,
@@ -758,8 +753,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (diffViewPanel === null) {
 						return;
 					}
-
-					diffViewPanel.setChangesAccepted(true);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
