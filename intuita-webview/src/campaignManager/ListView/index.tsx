@@ -1,6 +1,5 @@
 import {
 	CaseTreeNode,
-	Command,
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
@@ -26,26 +25,9 @@ const ListView = ({ nodes }: Props) => {
 		});
 	}, []);
 
-	const handleActionButtonClick = (action: Command) => {
-		vscode.postMessage({ kind: 'webview.command', value: action });
-	};
-
 	return (
 		<div className={styles.container}>
 			{nodes.map((node, index) => {
-				const actionButtons = (node.actions ?? []).map((action) => (
-					// eslint-disable-next-line jsx-a11y/anchor-is-valid
-					<a
-						title={action.title}
-						role="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							handleActionButtonClick(action);
-						}}
-					>
-						{action.title}
-					</a>
-				));
 				return (
 					<TreeItem
 						style={{
@@ -63,7 +45,7 @@ const ListView = ({ nodes }: Props) => {
 						kind={node.kind}
 						open={false}
 						focused={node.id === focusedNodeId}
-						actionButtons={actionButtons}
+						actionButtons={null}
 						index={index}
 						onClick={() => {
 							handleClick(node);
