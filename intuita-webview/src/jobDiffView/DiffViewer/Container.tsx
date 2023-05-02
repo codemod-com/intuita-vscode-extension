@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
-import Popup from 'reactjs-popup';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
@@ -83,18 +82,9 @@ export const Header = ({
 					onChange={onToggleJob}
 				/>
 				<div className="flex items-center flex-1">
-					<Popup
-						trigger={
-							<h4 className="my-0 ml-3 diff-title align-self-center">
-								{title}
-							</h4>
-						}
-						position={['top left', 'right center']}
-						lockScroll
-						on={['hover', 'focus']}
-					>
-						<div>{title}</div>
-					</Popup>
+					<h4 className="my-0 ml-3 diff-title align-self-center">
+						{title}
+					</h4>
 				</div>
 
 				<div
