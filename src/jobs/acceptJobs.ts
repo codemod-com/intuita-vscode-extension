@@ -11,6 +11,8 @@ export const acceptJobs = async (
 	const deleteJobOutputs: Uri[] = [];
 	const moveJobOutputs: [Uri, Uri, Uri][] = [];
 
+	const storageFilesToDelete: Uri[] = [];
+
 	for (const job of jobs) {
 		if (
 			job.kind === JobKind.createFile &&
@@ -18,6 +20,7 @@ export const acceptJobs = async (
 			job.newContentUri
 		) {
 			createJobOutputs.push([job.newUri, job.newContentUri]);
+			storageFilesToDelete.push(job.newContentUri);
 		}
 
 		if (job.kind === JobKind.deleteFile && job.oldUri) {
@@ -32,6 +35,7 @@ export const acceptJobs = async (
 			job.newContentUri
 		) {
 			moveJobOutputs.push([job.oldUri, job.newUri, job.newContentUri]);
+			storageFilesToDelete.push(job.newContentUri);
 		}
 
 		if (
@@ -40,6 +44,7 @@ export const acceptJobs = async (
 			job.newContentUri
 		) {
 			updateJobOutputs.push([job.oldUri, job.newContentUri]);
+			storageFilesToDelete.push(job.newContentUri);
 		}
 
 		if (job.kind === JobKind.copyFile && job.newUri && job.newContentUri) {
@@ -73,6 +78,6 @@ export const acceptJobs = async (
 	}
 
 	await fileService.deleteFiles({
-		uris: deleteJobOutputs.slice(),
+		uris: deleteJobOutputs.concat(storageFilesToDelete),
 	});
 };
