@@ -53,6 +53,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.handleCodemodExecutionProgress.bind(this),
 		);
 
+		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
+			this.__view?.show();
+
+			this.__postMessage({
+				kind: 'webview.codemods.focusCodemod',
+				codemodHashDigest: message.codemodHashDigest,
+			});
+		});
+
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
 			this.__postMessage({
 				kind: 'webview.global.codemodExecutionHalted',
@@ -230,7 +239,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.getCodemodTree('recommended');
 			this.getCodemodTree('public');
 		}
 	};

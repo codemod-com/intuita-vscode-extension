@@ -5,6 +5,7 @@ import {
 	RunCodemodsCommand,
 	CodemodTreeNode,
 	CodemodHash,
+	WebviewMessage,
 } from '../../shared/types';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -20,6 +21,27 @@ type Props = Readonly<{
 	node: CodemodTreeNode<string>;
 	response: E.Either<Error, string | null>;
 }>;
+
+export const containsCodemodHashDigest = (
+	node: CodemodTreeNode<string>,
+	codemodHashDigest: CodemodHash,
+	set: Set<CodemodHash>,
+): boolean => {
+	if (node.id === codemodHashDigest) {
+		set.add(node.id);
+		return true;
+	}
+
+	const someChildContains = node.children.some((childNode) =>
+		containsCodemodHashDigest(childNode, codemodHashDigest, set),
+	);
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
+};
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === 'case.svg') {
@@ -53,20 +75,6 @@ const TreeView = ({ node, response }: Props) => {
 		ReadonlyArray<CodemodHash>
 	>([]);
 
-	const flipTreeItem = (id: CodemodHash) => {
-		setOpenedIds((oldSet) => {
-			const newSet = new Set(oldSet);
-
-			if (oldSet.has(id)) {
-				newSet.delete(id);
-			} else {
-				newSet.add(id);
-			}
-
-			return newSet;
-		});
-	};
-
 	const onHalt = useCallback(() => {
 		if (!executionStack.length) {
 			return;
@@ -93,6 +101,36 @@ const TreeView = ({ node, response }: Props) => {
 			setEditExecutionPath(null);
 		}
 	}, [response]);
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+
+			if (message.kind === 'webview.codemods.focusCodemod') {
+				const { codemodHashDigest } = message;
+
+				setOpenedIds((oldOpenedIds) => {
+					const newOpenedIds = new Set(oldOpenedIds);
+
+					containsCodemodHashDigest(
+						node,
+						codemodHashDigest,
+						newOpenedIds,
+					);
+
+					return newOpenedIds;
+				});
+
+				setFocusedNodeId(codemodHashDigest);
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, [node]);
 
 	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
 		if (!node.command) {
@@ -129,6 +167,20 @@ const TreeView = ({ node, response }: Props) => {
 		},
 		[],
 	);
+
+	const flipTreeItem = (id: CodemodHash) => {
+		setOpenedIds((oldSet) => {
+			const newSet = new Set(oldSet);
+
+			if (oldSet.has(id)) {
+				newSet.delete(id);
+			} else {
+				newSet.add(id);
+			}
+
+			return newSet;
+		});
+	};
 
 	const renderItem = ({
 		node,

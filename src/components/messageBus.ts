@@ -77,6 +77,8 @@ export const enum MessageKind {
 
 	beforePRCreated = 33,
 	afterPRCreated = 34,
+
+	focusCodemod = 35,
 }
 
 export type Engine = 'node' | 'rust';
@@ -260,6 +262,10 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.afterPRCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.focusCodemod;
+			codemodHashDigest: CodemodHash;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

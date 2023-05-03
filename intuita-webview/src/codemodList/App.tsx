@@ -42,7 +42,7 @@ function App() {
 			<Container
 				defaultExpanded
 				headerTitle="Public Codemods"
-				className="content-border-top  h-full"
+				className="content-border-top h-full"
 			>
 				<div>
 					{E.isRight(publicCodemods) &&

@@ -1411,6 +1411,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const searchParams = new URLSearchParams(uri.query);
 				const base64UrlEncodedContent = searchParams.get('c');
 				const userId = searchParams.get('userId');
+				const codemodHashDigest = searchParams.get('chd');
 
 				if (base64UrlEncodedContent) {
 					const buffer = Buffer.from(
@@ -1427,9 +1428,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 
 					vscode.window.showTextDocument(document);
-				}
-
-				if (userId) {
+				} else if (userId) {
 					try {
 						userService.linkUsersIntuitaAccount(userId);
 					} catch (e) {
@@ -1447,6 +1446,15 @@ export async function activate(context: vscode.ExtensionContext) {
 							}
 						}
 					}
+				} else if (codemodHashDigest !== null) {
+					messageBus.publish({
+						kind: MessageKind.focusCodemod,
+						codemodHashDigest: codemodHashDigest as CodemodHash,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				}
 			},
 		}),
