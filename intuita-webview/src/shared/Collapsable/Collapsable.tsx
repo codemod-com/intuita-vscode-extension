@@ -8,7 +8,6 @@ import React, {
 import { ReactComponent as ArrowDownIcon } from '../../assets/arrow-down.svg';
 import './Collapsable.css';
 import cn from 'classnames';
-import Popover from '../Popover';
 
 type CollapsableProps = Readonly<{
 	id: string;
@@ -67,20 +66,14 @@ export const Collapsable = memo(
 						})}
 						onClick={() => setExpanded(!expanded)}
 					>
-						<Popover
-							trigger={
-								<ArrowDownIcon
-									className={cn(
-										'collapsable__arrow',
-										headerChevronClassName,
-										{
-											'collapsable__arrow--collapsed':
-												!expanded,
-										},
-									)}
-								/>
-							}
-							popoverText={expanded ? 'Collapse' : 'Expand'}
+						<ArrowDownIcon
+							className={cn(
+								'collapsable__arrow',
+								headerChevronClassName,
+								{
+									'collapsable__arrow--collapsed': !expanded,
+								},
+							)}
 						/>
 						{headerComponent}
 					</div>

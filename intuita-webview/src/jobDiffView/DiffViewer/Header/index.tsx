@@ -1,6 +1,7 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
+import { ReactComponent as CopyIcon } from '../../../assets/copy.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
@@ -12,7 +13,6 @@ const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
 	commit: 'Commit or create pull requests for selected changes.',
-	copy: 'Copy the title of this codemod to the clipboard.',
 };
 
 type Props = Readonly<{
@@ -60,18 +60,19 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 		<div className={styles.root}>
 			<div className={styles.title} onClick={handleTitleClick}>
 				<span>{title}</span>
-				<Popover
-					trigger={
-						<VSCodeButton
-							className={styles.copyButton}
-							onClick={handleTitleClick}
-							appearance="secondary"
-						>
-							Copy
-						</VSCodeButton>
-					}
-					popoverText={POPOVER_TEXTS.copy}
-				/>
+				<VSCodeButton
+					onClick={handleTitleClick}
+					appearance="icon"
+					className={styles.iconContainer}
+				>
+					<CopyIcon
+						className={styles.icon}
+						style={{
+							width: '21px',
+							height: '21px',
+						}}
+					/>
+				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
 				<Popover
@@ -103,6 +104,7 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 					title="Inline"
 					appearance="icon"
 					onClick={() => onViewChange('inline')}
+					className={styles.iconContainer}
 				>
 					Inline <UnifiedIcon className={styles.icon} />
 				</VSCodeButton>
@@ -111,6 +113,7 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 					title="Side by Side"
 					appearance="icon"
 					onClick={() => onViewChange('side-by-side')}
+					className={styles.iconContainer}
 				>
 					Side by Side <SplitIcon className={styles.icon} />
 				</VSCodeButton>
