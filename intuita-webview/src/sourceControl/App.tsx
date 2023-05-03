@@ -6,6 +6,7 @@ import CreateIssue from './CreateIssueView';
 import CommitView from './CommitView';
 
 import type {
+	CodemodHash,
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
@@ -14,6 +15,7 @@ declare global {
 	interface Window {
 		INITIAL_STATE: {
 			userId: string | null;
+			focusedCodemodHashDigest?: CodemodHash | null | undefined;
 		};
 	}
 }

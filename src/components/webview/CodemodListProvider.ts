@@ -30,6 +30,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
+	__focusedCodemodHashDigest: CodemodHash | null = null;
+
 	readonly __eventEmitter = new EventEmitter<void>();
 
 	constructor(
@@ -52,6 +54,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			MessageKind.showProgress,
 			this.handleCodemodExecutionProgress.bind(this),
 		);
+
+		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
+			this.__focusedCodemodHashDigest = message.codemodHashDigest;
+
+			this.__postMessage({
+				kind: 'webview.codemods.focusCodemod',
+				codemodHashDigest: message.codemodHashDigest,
+			});
+		});
 
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
 			this.__postMessage({
@@ -95,16 +106,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			this.__view.webview,
 			'codemodList',
-			'{}',
+			JSON.stringify({
+				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
+			}),
 		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__view.webview.postMessage(message);
+		this.__view?.webview.postMessage(message);
 	}
 
 	private __watchPackageJson() {
@@ -122,7 +131,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			webviewView.webview,
 			'codemodList',
-			'{}',
+			JSON.stringify({
+				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
+			}),
 		);
 		this.__view = webviewView;
 
@@ -230,7 +241,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.getCodemodTree('recommended');
 			this.getCodemodTree('public');
 		}
 	};

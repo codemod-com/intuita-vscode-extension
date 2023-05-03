@@ -184,6 +184,10 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';
+	  }>
+	| Readonly<{
+			kind: 'webview.codemods.focusCodemod';
+			codemodHashDigest: CodemodHash;
 	  }>;
 
 export type WebviewResponse =

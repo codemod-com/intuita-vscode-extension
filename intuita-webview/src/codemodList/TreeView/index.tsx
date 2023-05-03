@@ -1,10 +1,11 @@
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
 import {
 	RunCodemodsCommand,
 	CodemodTreeNode,
 	CodemodHash,
+	WebviewMessage,
 } from '../../shared/types';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -16,10 +17,30 @@ import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 
-type Props = {
-	node?: CodemodTreeNode<string>;
+type Props = Readonly<{
+	node: CodemodTreeNode<string>;
 	response: E.Either<Error, string | null>;
-	emptyTreeMessage: string | null;
+}>;
+
+export const containsCodemodHashDigest = (
+	node: CodemodTreeNode<string>,
+	codemodHashDigest: CodemodHash,
+	set: Set<CodemodHash>,
+): boolean => {
+	if (node.id === codemodHashDigest) {
+		set.add(node.id);
+		return true;
+	}
+
+	const someChildContains = node.children.some((childNode) =>
+		containsCodemodHashDigest(childNode, codemodHashDigest, set),
+	);
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -41,43 +62,97 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
-const TreeView = ({
-	node,
-	response,
-	emptyTreeMessage: emptyMessage,
-}: Props) => {
-	const [focusedNodeId, setFocusedNodeId] = useState('');
-	const [editExecutionPath, setEditExecutionPath] =
-		useState<CodemodTreeNode<string> | null>(null);
-	const [executionStack, setExecutionStack] = useState<CodemodHash[]>([]);
-	const [openedIds, setOpenedIds] = useState<ReadonlySet<CodemodHash>>(
-		new Set(node ? [node.id] : []),
+type State = Readonly<{
+	node: CodemodTreeNode<string>;
+	openedIds: ReadonlySet<CodemodHash>;
+	focusedId: CodemodHash | null;
+}>;
+
+type InitializerArgument = Readonly<{
+	node: CodemodTreeNode<string>;
+	focusedId: CodemodHash | null;
+}>;
+
+type Action = Readonly<{
+	kind: 'focus' | 'flip';
+	id: CodemodHash;
+}>;
+
+const reducer = (state: State, action: Action): State => {
+	if (action.kind === 'focus') {
+		const openedIds = new Set(state.openedIds);
+
+		containsCodemodHashDigest(state.node, action.id, openedIds);
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'flip') {
+		const openedIds = new Set(state.openedIds);
+
+		if (openedIds.has(action.id)) {
+			openedIds.delete(action.id);
+		} else {
+			openedIds.add(action.id);
+		}
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	return state;
+};
+
+const initializer = ({ node, focusedId }: InitializerArgument): State => {
+	const openedIds = new Set([node.id]);
+
+	if (focusedId !== null) {
+		containsCodemodHashDigest(node, focusedId, openedIds);
+	}
+
+	return {
+		node,
+		openedIds,
+		focusedId,
+	};
+};
+
+const TreeView = ({ node, response }: Props) => {
+	const [state, dispatch] = useReducer(
+		reducer,
+		{
+			node,
+			focusedId: window.INITIAL_STATE.focusedCodemodHashDigest ?? null,
+		},
+		initializer,
 	);
 
-	const flipTreeItem = (id: CodemodHash) => {
-		setOpenedIds((oldSet) => {
-			const newSet = new Set(oldSet);
-
-			if (oldSet.has(id)) {
-				newSet.delete(id);
-			} else {
-				newSet.add(id);
-			}
-
-			return newSet;
-		});
-	};
+	const [editExecutionPath, setEditExecutionPath] =
+		useState<CodemodTreeNode<string> | null>(null);
+	const [executionStack, setExecutionStack] = useState<
+		ReadonlyArray<CodemodHash>
+	>([]);
 
 	const onHalt = useCallback(() => {
 		if (!executionStack.length) {
 			return;
 		}
-		const stack = [...executionStack];
+		const stack = executionStack.slice();
 		const hash = stack.shift();
+
 		if (!hash) {
 			return;
 		}
+
 		setExecutionStack(stack);
+
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
 			value: hash,
@@ -91,6 +166,25 @@ const TreeView = ({
 			setEditExecutionPath(null);
 		}
 	}, [response]);
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+
+			if (message.kind === 'webview.codemods.focusCodemod') {
+				dispatch({
+					kind: 'focus',
+					id: message.codemodHashDigest,
+				});
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, [node]);
 
 	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
 		if (!node.command) {
@@ -135,7 +229,7 @@ const TreeView = ({
 		node: CodemodTreeNode<string>;
 		depth: number;
 	}) => {
-		const opened = openedIds.has(node.id);
+		const opened = state.openedIds.has(node.id);
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
@@ -207,20 +301,19 @@ const TreeView = ({
 				depth={depth}
 				kind={node.kind}
 				open={opened}
-				focused={node.id === focusedNodeId}
+				focused={node.id === state.focusedId}
 				onClick={() => {
 					handleClick(node);
-					flipTreeItem(node.id);
-					setFocusedNodeId(node.id);
+
+					dispatch({
+						kind: 'flip',
+						id: node.id,
+					});
 				}}
 				actionButtons={getActionButtons()}
 			/>
 		);
 	};
-
-	if (!node || (node.children?.length ?? 0) === 0) {
-		return <p> {emptyMessage} </p>;
-	}
 
 	const onEditDone = (value: string) => {
 		if (!editExecutionPath) {
@@ -272,7 +365,7 @@ const TreeView = ({
 				node={node}
 				renderItem={renderItem}
 				depth={0}
-				openedIds={openedIds}
+				openedIds={state.openedIds}
 			/>
 		</div>
 	);
