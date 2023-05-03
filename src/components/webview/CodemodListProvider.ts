@@ -30,6 +30,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
+	__focusedCodemodHashDigest: CodemodHash | null = null;
+
 	readonly __eventEmitter = new EventEmitter<void>();
 
 	constructor(
@@ -54,7 +56,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__view?.show();
+			this.__focusedCodemodHashDigest = message.codemodHashDigest;
 
 			this.__postMessage({
 				kind: 'webview.codemods.focusCodemod',
@@ -104,16 +106,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			this.__view.webview,
 			'codemodList',
-			'{}',
+			JSON.stringify({
+				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
+			}),
 		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__view.webview.postMessage(message);
+		this.__view?.webview.postMessage(message);
 	}
 
 	private __watchPackageJson() {
@@ -131,7 +131,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			webviewView.webview,
 			'codemodList',
-			'{}',
+			JSON.stringify({
+				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
+			}),
 		);
 		this.__view = webviewView;
 

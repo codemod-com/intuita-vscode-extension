@@ -67,7 +67,7 @@ const TreeView = ({ node, response }: Props) => {
 		new Set([node.id]),
 	);
 	const [focusedNodeId, setFocusedNodeId] = useState<CodemodHash | null>(
-		null,
+		window.INITIAL_STATE.focusedCodemodHashDigest ?? null,
 	);
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
@@ -130,6 +130,20 @@ const TreeView = ({ node, response }: Props) => {
 		return () => {
 			window.removeEventListener('message', handler);
 		};
+	}, [node]);
+
+	useEffect(() => {
+		if (focusedNodeId === null) {
+			return;
+		}
+
+		setOpenedIds((oldOpenedIds) => {
+			const newOpenedIds = new Set(oldOpenedIds);
+
+			containsCodemodHashDigest(node, focusedNodeId, newOpenedIds);
+
+			return newOpenedIds;
+		});
 	}, [node]);
 
 	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
