@@ -74,7 +74,7 @@ type InitializerArgument = Readonly<{
 }>;
 
 type Action = Readonly<{
-	kind: 'focus';
+	kind: 'focus' | 'flip';
 	id: CodemodHash;
 }>;
 
@@ -91,7 +91,23 @@ const reducer = (state: State, action: Action): State => {
 		};
 	}
 
-	return state; // default state;
+	if (action.kind === 'flip') {
+		const openedIds = new Set(state.openedIds);
+
+		if (openedIds.has(action.id)) {
+			openedIds.delete(action.id);
+		} else {
+			openedIds.add(action.id);
+		}
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	return state;
 };
 
 const initializer = ({ node, focusedId }: InitializerArgument): State => {
@@ -206,20 +222,6 @@ const TreeView = ({ node, response }: Props) => {
 		[],
 	);
 
-	const flipTreeItem = (id: CodemodHash) => {
-		setOpenedIds((oldSet) => {
-			const newSet = new Set(oldSet);
-
-			if (oldSet.has(id)) {
-				newSet.delete(id);
-			} else {
-				newSet.add(id);
-			}
-
-			return newSet;
-		});
-	};
-
 	const renderItem = ({
 		node,
 		depth,
@@ -302,10 +304,9 @@ const TreeView = ({ node, response }: Props) => {
 				focused={node.id === state.focusedId}
 				onClick={() => {
 					handleClick(node);
-					flipTreeItem(node.id);
 
 					dispatch({
-						kind: 'focus',
+						kind: 'flip',
 						id: node.id,
 					});
 				}}
