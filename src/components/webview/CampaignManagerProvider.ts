@@ -164,7 +164,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			}
 
 			const uriSet = new Set<Uri>();
-
 			for (const job of jobs) {
 				if (
 					[
@@ -250,7 +249,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
-
 		const jobMap = this.__buildJobMap(casesWithJobHashes);
 
 		const [caseElements] = this.__buildCaseElementsAndLatestJob(

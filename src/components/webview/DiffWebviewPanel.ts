@@ -1,9 +1,9 @@
 import { workspace, commands } from 'vscode';
-import { MessageBus } from '../messageBus';
+import { MessageBus, MessageKind } from '../messageBus';
 import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
-import { isNeitherNullNorUndefined } from '../../utilities';
+import { debounce, isNeitherNullNorUndefined } from '../../utilities';
 import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
@@ -27,6 +27,8 @@ Codemod: ${codemodName}
 **Additional context**`;
 };
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
+	private __openedCaseHash: ElementHash | null = null;
+
 	static instance: DiffWebviewPanel | null = null;
 
 	static getInstance(
@@ -153,6 +155,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	public override dispose() {
 		super.dispose();
 		DiffWebviewPanel.instance = null;
+		this.__openedCaseHash = null;
 	}
 
 	public async getViewDataForJob(
@@ -232,9 +235,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const viewDataArray = await Promise.all(
 			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
+
+		this.__openedCaseHash = caseHash;
+
+		const data = viewDataArray.filter(isNeitherNullNorUndefined);
+
 		return {
-			title: kase.codemodName,
-			data: viewDataArray.filter(isNeitherNullNorUndefined),
+			title: `${kase.codemodName} (${data.length})`,
+			data,
 		};
 	}
 
@@ -268,6 +276,42 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFolder',
 			folderPath,
+		});
+	}
+
+	async __onUpdateElementsMessage(): Promise<void> {
+		if (this.__openedCaseHash === null) {
+			return;
+		}
+
+		const viewData = await this.getViewDataForCase(this.__openedCaseHash);
+
+		if (viewData === null) {
+			return;
+		}
+
+		const { title, data } = viewData;
+
+		const view: View = {
+			viewId: 'jobDiffView' as const,
+			viewProps: {
+				diffId: this.__openedCaseHash as string,
+				title,
+				data,
+			},
+		};
+
+		this.setTitle(title);
+		this.setView(view);
+	}
+
+	_attachExtensionEventListeners() {
+		const debouncedOnUpdateElementsMessage = debounce(async () => {
+			this.__onUpdateElementsMessage();
+		}, 300);
+
+		this._addHook(MessageKind.updateElements, async () => {
+			debouncedOnUpdateElementsMessage();
 		});
 	}
 }

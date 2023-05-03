@@ -207,7 +207,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 					const { title, data } = viewProps;
-					panelInstance.setTitle(`${title} (${data.length})`);
+					panelInstance.setTitle(title);
 
 					panelInstance.setView({
 						viewId: 'jobDiffView',
