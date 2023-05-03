@@ -29,6 +29,8 @@ export const Messages = {
 	codemodUnrecognized: 'The codemod is invalid / unsupported',
 };
 
+const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
+
 export const enum EngineMessageKind {
 	change = 1,
 	finish = 2,
@@ -177,6 +179,7 @@ export class EngineService {
 			{
 				stdio: 'pipe',
 				shell: true,
+				detached: false,
 			},
 		);
 
@@ -440,7 +443,17 @@ export class EngineService {
 
 		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
 
+		let timer: NodeJS.Timeout | null = null;
+
 		interfase.on('line', async (line) => {
+			if (timer !== null) {
+				clearTimeout(timer);
+			}
+
+			timer = setTimeout(() => {
+				childProcess.kill();
+			}, TERMINATE_IDLE_PROCESS_TIMEOUT);
+
 			if (!this.#execution) {
 				return;
 			}
