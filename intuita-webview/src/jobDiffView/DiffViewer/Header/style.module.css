@@ -32,10 +32,19 @@
 	display: block;
 }
 
+.iconContainer .iconContainer:focus .iconContainer:active {
+	outline: 0px !important;
+}
+
 .icon {
+	outline: 0px !important;
 	stroke: var(--vscode-icon-foreground);
 	height: 16px;
 	width: 16px;
+}
+
+.icon:focus .icon:active {
+	outline: 0px !important;
 }
 
 .actionsContainer {
