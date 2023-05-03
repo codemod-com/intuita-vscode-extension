@@ -45,9 +45,15 @@ export const useDiffViewer = ({
 	};
 
 	const getDiffViewer = (
-		<div className="w-full">
+		<div
+			className="w-full"
+			style={{
+				height: height,
+			}}
+		>
 			<MonacoDiffEditor
 				height={height}
+				width={'100%'}
 				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
@@ -56,9 +62,14 @@ export const useDiffViewer = ({
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
 					scrollBeyondLastLine: false,
+					wordBreak: 'normal',
 					diffAlgorithm: 'smart',
+					scrollBeyondLastColumn: 0,
+					contextmenu: false,
 					scrollbar: {
 						horizontal: 'hidden',
+						verticalSliderSize: 0,
+						vertical: 'hidden',
 						alwaysConsumeMouseWheel: false,
 					},
 				}}

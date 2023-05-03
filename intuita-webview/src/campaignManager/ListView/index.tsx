@@ -3,19 +3,16 @@ import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
-import { useCallback, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 
 type Props = {
 	nodes: CaseTreeNode[];
 	selectedCaseNode: CaseTreeNode | null;
+	setSelectedCaseNode: Dispatch<SetStateAction<CaseTreeNode | null>>;
 };
 
-const ListView = ({ nodes, selectedCaseNode }: Props) => {
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-
+const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 	const handleClick = useCallback((node: CaseTreeNode) => {
-		setFocusedNodeId(node.id);
-
 		vscode.postMessage({
 			kind: 'webview.campaignManager.caseSelected',
 			hash: node.id,
@@ -30,15 +27,12 @@ const ListView = ({ nodes, selectedCaseNode }: Props) => {
 	}, []);
 
 	useEffect(() => {
-		if (
-			selectedCaseNode === null ||
-			selectedCaseNode.id === focusedNodeId
-		) {
+		if (selectedCaseNode === null) {
 			return;
 		}
 
 		handleClick(selectedCaseNode);
-	}, [handleClick, focusedNodeId, selectedCaseNode]);
+	}, [handleClick, selectedCaseNode]);
 
 	return (
 		<div className={styles.container}>
@@ -59,10 +53,15 @@ const ListView = ({ nodes, selectedCaseNode }: Props) => {
 						depth={0}
 						kind={node.kind}
 						open={false}
-						focused={node.id === focusedNodeId}
+						focused={
+							selectedCaseNode !== null
+								? node.id === selectedCaseNode.id
+								: false
+						}
 						actionButtons={null}
 						index={index}
 						onClick={() => {
+							setSelectedCaseNode(node);
 							handleClick(node);
 						}}
 					/>
