@@ -62,7 +62,7 @@ export const useDiffViewer = ({
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
 					scrollBeyondLastLine: false,
- 					wordBreak: 'normal',
+					wordBreak: 'normal',
 					diffAlgorithm: 'smart',
 					scrollBeyondLastColumn: 0,
 					contextmenu: false,
