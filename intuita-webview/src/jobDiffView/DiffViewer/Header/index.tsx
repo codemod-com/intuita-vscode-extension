@@ -8,11 +8,13 @@ import styles from './style.module.css';
 import { vscode } from '../../../shared/utilities/vscode';
 import { CaseHash } from '../../../../../src/cases/types';
 import Popover from '../../../shared/Popover';
+import { JobHash } from '../../../../../src/jobs/types';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
 	commit: 'Commit or create pull requests for selected changes.',
+	cannotApply: 'At least one job should be staged to commit the changes.',
 };
 
 type Props = Readonly<{
@@ -22,6 +24,33 @@ type Props = Readonly<{
 	diffId: string;
 	onViewChange(value: DiffViewType): void;
 }>;
+
+type CheckboxState = 'allStaged' | 'someStaged' | 'noneStaged';
+
+const getCheckboxProps = (checkboxState: CheckboxState) => {
+	switch (checkboxState) {
+		case 'allStaged': {
+			return {
+				title: 'Unselect All',
+				icon: 'diff-added',
+			};
+		}
+
+		case 'someStaged': {
+			return {
+				title: 'Unselect All',
+				icon: 'diff-removed',
+			};
+		}
+
+		case 'noneStaged': {
+			return {
+				title: 'Select All',
+				icon: 'debug-stop',
+			};
+		}
+	}
+};
 
 const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 	const handleTitleClick = () => {
@@ -56,9 +85,43 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 	};
 
 	const hasStagedJobs = stagedJobHashes.length !== 0;
+	const allJobsStaged = stagedJobHashes.length === jobs.length;
+
+	const checkboxState: CheckboxState = allJobsStaged
+		? 'allStaged'
+		: hasStagedJobs
+		? 'someStaged'
+		: 'noneStaged';
+	const props = getCheckboxProps(checkboxState);
+
+	const setStagedJobs = (jobHashes: JobHash[]): void => {
+		vscode.postMessage({
+			kind: 'webview.global.stageJobs',
+			jobHashes,
+		});
+	};
+
 	return (
 		<div className={styles.root}>
 			<div className={styles.title} onClick={handleTitleClick}>
+				<Popover
+					trigger={
+						<VSCodeButton
+							onClick={(e) => {
+								e.stopPropagation();
+								const jobsToBeStaged = hasStagedJobs
+									? []
+									: jobs.map(({ jobHash }) => jobHash);
+								setStagedJobs(jobsToBeStaged);
+							}}
+							appearance="icon"
+							className={styles.checkbox}
+						>
+							<i className={`codicon codicon-${props?.icon}`} />
+						</VSCodeButton>
+					}
+					popoverText={props?.title}
+				/>
 				<span>{title}</span>
 				<VSCodeButton
 					onClick={handleTitleClick}
@@ -96,7 +159,11 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 							Apply Selected
 						</VSCodeButton>
 					}
-					popoverText={POPOVER_TEXTS.apply}
+					popoverText={
+						!hasStagedJobs
+							? POPOVER_TEXTS.cannotApply
+							: POPOVER_TEXTS.apply
+					}
 				/>
 			</div>
 			{viewType === 'side-by-side' ? (

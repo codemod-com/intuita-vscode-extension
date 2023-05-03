@@ -204,6 +204,10 @@ export class JobManager {
 		}
 	}
 
+	public setAppliedJobs(jobHashes: JobHash[]): void {
+		this.#appliedJobsHashes = new Set(jobHashes);
+	}
+
 	public applyJob(jobHash: JobHash): void {
 		this.#appliedJobsHashes.add(jobHash);
 	}

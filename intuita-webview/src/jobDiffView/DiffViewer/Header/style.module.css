@@ -51,3 +51,7 @@
 	display: flex;
 	gap: 8px;
 }
+
+.checkbox {
+	color: var(--vscode-icon-foreground);
+}
