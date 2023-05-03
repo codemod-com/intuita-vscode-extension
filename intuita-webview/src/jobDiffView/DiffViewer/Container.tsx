@@ -71,6 +71,7 @@ export const Header = ({
 	onReportIssue,
 }: HeaderProps) => {
 	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
+	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
 	return (
 		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
@@ -87,7 +88,12 @@ export const Header = ({
 					popoverText="Select / Unselect to include or exclude the change."
 				/>
 				<div className="flex items-center flex-1">
-					<h4 className="my-0 ml-3 diff-title align-self-center">
+					{jobKindText ? (
+						<h4 className="my-0 ml-2 job-kind-text align-self-center">
+							{jobKindText}
+						</h4>
+					) : null}
+					<h4 className="my-0 ml-1 diff-title align-self-center">
 						{title}
 					</h4>
 				</div>
@@ -157,5 +163,22 @@ const showDiff = (jobKind: JobKind): boolean => {
 			return false;
 		default:
 			return true;
+	}
+};
+
+const getJobKindText = (jobKind: JobKind): string => {
+	switch (jobKind) {
+		case JobKind.copyFile:
+			return '(copied)';
+		case JobKind.createFile:
+			return '(created)';
+		case JobKind.deleteFile:
+			return '(deleted)';
+		case JobKind.moveAndRewriteFile:
+			return '(moved & rewritten)';
+		case JobKind.moveFile:
+			return '(moved)';
+		default:
+			return '';
 	}
 };
