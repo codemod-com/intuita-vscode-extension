@@ -227,7 +227,7 @@ const TreeView = ({ node, response }: Props) => {
 		node: CodemodTreeNode<string>;
 		depth: number;
 	}) => {
-		const opened = openedIds.has(node.id);
+		const opened = state.openedIds.has(node.id);
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
@@ -299,11 +299,15 @@ const TreeView = ({ node, response }: Props) => {
 				depth={depth}
 				kind={node.kind}
 				open={opened}
-				focused={node.id === focusedNodeId}
+				focused={node.id === state.focusedId}
 				onClick={() => {
 					handleClick(node);
 					flipTreeItem(node.id);
-					setFocusedNodeId(node.id);
+
+					dispatch({
+						kind: 'focus',
+						id: node.id,
+					});
 				}}
 				actionButtons={getActionButtons()}
 			/>
@@ -360,7 +364,7 @@ const TreeView = ({ node, response }: Props) => {
 				node={node}
 				renderItem={renderItem}
 				depth={0}
-				openedIds={openedIds}
+				openedIds={state.openedIds}
 			/>
 		</div>
 	);
