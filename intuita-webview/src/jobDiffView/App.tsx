@@ -114,12 +114,12 @@ function App() {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
-	const postMessage = (event: JobAction) => {
+	const postMessage = useCallback((event: JobAction) => {
 		vscode.postMessage({
 			kind: event.command,
 			value: event.arguments,
 		});
-	};
+	}, []);
 
 	if (!view) {
 		return null;
