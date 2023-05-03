@@ -750,6 +750,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						'intuita.rejectCase',
 						caseHash,
 					);
+
+					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
