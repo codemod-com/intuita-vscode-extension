@@ -48,7 +48,6 @@ function App() {
 					{E.isRight(publicCodemods) &&
 						publicCodemods.right !== null && (
 							<TreeView
-								emptyTreeMessage={null}
 								response={pathEditResponse}
 								node={publicCodemods.right}
 							/>

@@ -16,11 +16,10 @@ import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 
-type Props = {
-	node?: CodemodTreeNode<string>;
+type Props = Readonly<{
+	node: CodemodTreeNode<string>;
 	response: E.Either<Error, string | null>;
-	emptyTreeMessage: string | null;
-};
+}>;
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === 'case.svg') {
@@ -41,18 +40,18 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
-const TreeView = ({
-	node,
-	response,
-	emptyTreeMessage: emptyMessage,
-}: Props) => {
-	const [focusedNodeId, setFocusedNodeId] = useState('');
+const TreeView = ({ node, response }: Props) => {
+	const [openedIds, setOpenedIds] = useState<ReadonlySet<CodemodHash>>(
+		new Set([node.id]),
+	);
+	const [focusedNodeId, setFocusedNodeId] = useState<CodemodHash | null>(
+		null,
+	);
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
-	const [executionStack, setExecutionStack] = useState<CodemodHash[]>([]);
-	const [openedIds, setOpenedIds] = useState<ReadonlySet<CodemodHash>>(
-		new Set(node ? [node.id] : []),
-	);
+	const [executionStack, setExecutionStack] = useState<
+		ReadonlyArray<CodemodHash>
+	>([]);
 
 	const flipTreeItem = (id: CodemodHash) => {
 		setOpenedIds((oldSet) => {
@@ -72,12 +71,15 @@ const TreeView = ({
 		if (!executionStack.length) {
 			return;
 		}
-		const stack = [...executionStack];
+		const stack = executionStack.slice();
 		const hash = stack.shift();
+
 		if (!hash) {
 			return;
 		}
+
 		setExecutionStack(stack);
+
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
 			value: hash,
@@ -217,10 +219,6 @@ const TreeView = ({
 			/>
 		);
 	};
-
-	if (!node || (node.children?.length ?? 0) === 0) {
-		return <p> {emptyMessage} </p>;
-	}
 
 	const onEditDone = (value: string) => {
 		if (!editExecutionPath) {
