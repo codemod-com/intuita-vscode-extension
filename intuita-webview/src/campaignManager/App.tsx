@@ -53,6 +53,7 @@ function App() {
 			<ListView
 				nodes={view.viewProps.nodes}
 				selectedCaseNode={selectedCaseNode}
+				setSelectedCaseNode={setSelectedCaseNode}
 			/>
 		</main>
 	);
