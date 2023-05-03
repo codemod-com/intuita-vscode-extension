@@ -330,10 +330,4 @@ export type View =
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
 			};
-	  }>
-	| Readonly<{
-			viewId: 'codemodList';
-			viewProps: {
-				data?: CodemodTreeNode<string>;
-			};
 	  }>;
