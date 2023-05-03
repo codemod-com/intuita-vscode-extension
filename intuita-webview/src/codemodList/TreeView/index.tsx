@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
 import {
@@ -62,13 +62,62 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
+type State = Readonly<{
+	node: CodemodTreeNode<string>;
+	openedIds: ReadonlySet<CodemodHash>;
+	focusedId: CodemodHash | null;
+}>;
+
+type InitializerArgument = Readonly<{
+	node: CodemodTreeNode<string>;
+	focusedId: CodemodHash | null;
+}>;
+
+type Action = Readonly<{
+	kind: 'focus';
+	id: CodemodHash;
+}>;
+
+const reducer = (state: State, action: Action): State => {
+	if (action.kind === 'focus') {
+		const openedIds = new Set(state.openedIds);
+
+		containsCodemodHashDigest(state.node, action.id, openedIds);
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	return state; // default state;
+};
+
+const initializer = ({ node, focusedId }: InitializerArgument): State => {
+	const openedIds = new Set([node.id]);
+
+	if (focusedId !== null) {
+		containsCodemodHashDigest(node, focusedId, openedIds);
+	}
+
+	return {
+		node,
+		openedIds,
+		focusedId,
+	};
+};
+
 const TreeView = ({ node, response }: Props) => {
-	const [openedIds, setOpenedIds] = useState<ReadonlySet<CodemodHash>>(
-		new Set([node.id]),
+	const [state, dispatch] = useReducer(
+		reducer,
+		{
+			node,
+			focusedId: window.INITIAL_STATE.focusedCodemodHashDigest ?? null,
+		},
+		initializer,
 	);
-	const [focusedNodeId, setFocusedNodeId] = useState<CodemodHash | null>(
-		window.INITIAL_STATE.focusedCodemodHashDigest ?? null,
-	);
+
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
 	const [executionStack, setExecutionStack] = useState<
@@ -107,21 +156,10 @@ const TreeView = ({ node, response }: Props) => {
 			const message = e.data;
 
 			if (message.kind === 'webview.codemods.focusCodemod') {
-				const { codemodHashDigest } = message;
-
-				setOpenedIds((oldOpenedIds) => {
-					const newOpenedIds = new Set(oldOpenedIds);
-
-					containsCodemodHashDigest(
-						node,
-						codemodHashDigest,
-						newOpenedIds,
-					);
-
-					return newOpenedIds;
+				dispatch({
+					kind: 'focus',
+					id: message.codemodHashDigest,
 				});
-
-				setFocusedNodeId(codemodHashDigest);
 			}
 		};
 
@@ -130,20 +168,6 @@ const TreeView = ({ node, response }: Props) => {
 		return () => {
 			window.removeEventListener('message', handler);
 		};
-	}, [node]);
-
-	useEffect(() => {
-		if (focusedNodeId === null) {
-			return;
-		}
-
-		setOpenedIds((oldOpenedIds) => {
-			const newOpenedIds = new Set(oldOpenedIds);
-
-			containsCodemodHashDigest(node, focusedNodeId, newOpenedIds);
-
-			return newOpenedIds;
-		});
 	}, [node]);
 
 	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
