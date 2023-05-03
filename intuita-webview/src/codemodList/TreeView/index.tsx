@@ -50,6 +50,23 @@ const TreeView = ({
 	const [editExecutionPath, setEditExecutionPath] =
 		useState<CodemodTreeNode<string> | null>(null);
 	const [executionStack, setExecutionStack] = useState<CodemodHash[]>([]);
+	const [openedIds, setOpenedIds] = useState<ReadonlySet<CodemodHash>>(
+		new Set(node ? [node.id] : []),
+	);
+
+	const flipTreeItem = (id: CodemodHash) => {
+		setOpenedIds((oldSet) => {
+			const newSet = new Set(oldSet);
+
+			if (oldSet.has(id)) {
+				newSet.delete(id);
+			} else {
+				newSet.add(id);
+			}
+
+			return newSet;
+		});
+	};
 
 	const onHalt = useCallback(() => {
 		if (!executionStack.length) {
@@ -114,19 +131,13 @@ const TreeView = ({
 	const renderItem = ({
 		node,
 		depth,
-		open,
-		setIsOpen,
-		focusedNodeId,
-		setFocusedNodeId,
 	}: {
 		node: CodemodTreeNode<string>;
 		depth: number;
-		open: boolean;
-		setIsOpen: (value: boolean) => void;
-		focusedNodeId: string;
-		setFocusedNodeId: (value: string) => void;
 	}) => {
-		const icon = getIcon(node.iconName ?? null, open);
+		const opened = openedIds.has(node.id);
+
+		const icon = getIcon(node.iconName ?? null, opened);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
 			// eslint-disable-next-line jsx-a11y/anchor-is-valid
@@ -195,11 +206,11 @@ const TreeView = ({
 				icon={icon}
 				depth={depth}
 				kind={node.kind}
-				open={open}
+				open={opened}
 				focused={node.id === focusedNodeId}
 				onClick={() => {
 					handleClick(node);
-					setIsOpen(!open);
+					flipTreeItem(node.id);
 					setFocusedNodeId(node.id);
 				}}
 				actionButtons={getActionButtons()}
@@ -259,10 +270,9 @@ const TreeView = ({
 
 			<Tree
 				node={node}
-				renderItem={(props) =>
-					renderItem({ ...props, setFocusedNodeId, focusedNodeId })
-				}
+				renderItem={renderItem}
 				depth={0}
+				openedIds={openedIds}
 			/>
 		</div>
 	);
