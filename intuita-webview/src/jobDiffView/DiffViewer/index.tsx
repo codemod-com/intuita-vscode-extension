@@ -43,11 +43,22 @@ export const JobDiffViewContainer = ({
 					key={el.jobHash}
 					postMessage={postMessage}
 					jobStaged={el.staged}
-					onToggleJob={(staged: boolean) => {
+					onToggleJob={() => {
+						const stagedJobs = new Set(
+							jobs.filter((job) => job.staged),
+						);
+
+						if (stagedJobs.has(el)) {
+							stagedJobs.delete(el);
+						} else {
+							stagedJobs.add(el);
+						}
+
 						vscode.postMessage({
-							kind: 'webview.global.stageJob',
-							jobHash: el.jobHash,
-							staged,
+							kind: 'webview.global.stageJobs',
+							jobHashes: Array.from(stagedJobs).map(
+								({ jobHash }) => jobHash,
+							),
 						});
 					}}
 					{...el}

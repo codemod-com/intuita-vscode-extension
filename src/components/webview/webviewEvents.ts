@@ -258,9 +258,8 @@ export type WebviewResponse =
 			diffId: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.stageJob';
-			jobHash: JobHash;
-			staged: boolean;
+			kind: 'webview.global.stageJobs';
+			jobHashes: JobHash[];
 	  }>
 	| Readonly<{
 			kind: 'webview.campaignManager.caseSelected';

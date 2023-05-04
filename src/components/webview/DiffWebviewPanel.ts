@@ -126,30 +126,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			commands.executeCommand('intuita.rejectCase', message.caseHash);
 		}
 
-		if (message.kind === 'webview.global.stageJob') {
-			const { jobHash, staged } = message;
-
-			if (staged) {
-				this.__jobManager.applyJob(jobHash);
-			} else {
-				this.__jobManager.unapplyJob(jobHash);
-			}
-
-			this.__updateJobProps(jobHash);
+		if (message.kind === 'webview.global.stageJobs') {
+			this.__jobManager.setAppliedJobs(message.jobHashes);
+			this.__onUpdateElementsMessage();
 		}
-	}
-
-	private async __updateJobProps(jobHash: JobHash) {
-		const props = await this.getViewDataForJob(jobHash);
-
-		if (props === null) {
-			return;
-		}
-
-		this._postMessage({
-			kind: 'webview.diffView.updateDiffViewProps',
-			data: props,
-		});
 	}
 
 	public override dispose() {
