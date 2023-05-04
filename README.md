@@ -34,7 +34,7 @@ Get started with automating dependency upgrades using Intuita in three steps:
 ## Features
 
 - **Out-of-the-box Prettier Integration -** Your favorite code transformation engines such as Meta’s JSCodeshift or TS-morph will mess up the formatting. Intuita will automatically prettify the changes according to your settings, saving you much time and energy for more exciting features.
-- **Multiple Transformation Engines -** Intuita supports different transformation engines under the hood, including Meta’s, Uber’s, and Semgrep’s - and more to come.
+- **Multiple Transformation Engines -** Intuita supports different transformation engines under the hood, including JSCodeshift and TS-Morph - and more to come.
 
 ---
 
