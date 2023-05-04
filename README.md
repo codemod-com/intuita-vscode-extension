@@ -16,13 +16,13 @@ Get started with automating dependency upgrades using Intuita in three steps:
 1. Install Intuita VS Code Extension.
 2. Open the Intuita sidebar menu → View the upgrade codemod you’d like to run → Click `Dry Run` 
 
-![Dry running codemod](https://github.com/intuita-inc/intuita-docs/blob/main/static/img/vsce/vsce-dry-run.gif)
+![Dry running codemod](https://github.com/intuita-inc/intuita-docs/raw/main/static/img/vsce/vsce-dry-run.gif)
 
 > 💡 In this example, we’re using the [`netlify/next-runtime`](https://github.com/netlify/next-runtime/) repository and `replace-next-router` upgrade codemod. <br>Intuita is in Public Beta and we’re continuously working on improving codemods and solving any compatibility issues. <br>If you run into an issue while running a codemod, please [let us know →]()
 
 3. View the changes made by Intuita → then apply the approved changes to your project files.
 
-![Applying changes made by intuita](https://github.com/intuita-inc/intuita-docs/blob/main/static/img/vsce/vsce-apply-changes.gif)
+![Applying changes made by intuita](https://github.com/intuita-inc/intuita-docs/raw/main/static/img/vsce/vsce-apply-changes.gif)
 
 
 ## How Does It Work?
