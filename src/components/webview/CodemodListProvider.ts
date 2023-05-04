@@ -46,7 +46,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__messageBus.subscribe(MessageKind.extensionDeactivated, () => {
 			watcher?.dispose();
 		});
-		this.__messageBus.subscribe(MessageKind.enginesBootstrapped, () => {
+		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
 			this.__engineBootstrapped = true;
 			this.getCodemodTree('public');
 		});

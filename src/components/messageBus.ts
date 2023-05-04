@@ -22,8 +22,8 @@ export const enum MessageKind {
 	jobsAccepted = 10,
 
 	/** bootstrap */
-	bootstrapEngines = 13,
-	enginesBootstrapped = 14,
+	bootstrapEngine = 13,
+	engineBootstrapped = 14,
 
 	/** state */
 	clearState = 16,
@@ -77,32 +77,26 @@ export const enum MessageKind {
 	focusCodemod = 35,
 }
 
-export type Engine = 'node';
-
 export type Command =
 	| Readonly<{
 			kind: 'repomod';
-			engine: Engine;
 			inputPath: Uri;
 			storageUri: Uri;
 			repomodFilePath: string;
 	  }>
 	| Readonly<{
 			recipeName: RecipeName;
-			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
 	  }>
 	| Readonly<{
 			fileUri: Uri;
-			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
-			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
 	  }>;
@@ -152,10 +146,10 @@ export type Message =
 			codemodName: string;
 	  }>
 	| Readonly<{
-			kind: MessageKind.bootstrapEngines;
+			kind: MessageKind.bootstrapEngine;
 	  }>
 	| Readonly<{
-			kind: MessageKind.enginesBootstrapped;
+			kind: MessageKind.engineBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
 	  }>
 	| Readonly<{

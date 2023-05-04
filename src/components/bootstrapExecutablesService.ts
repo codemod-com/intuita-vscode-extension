@@ -24,7 +24,7 @@ export class BootstrapExecutablesService {
 		this.#messageBus = messageBus;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.bootstrapEngines, () =>
+		messageBus.subscribe(MessageKind.bootstrapEngine, () =>
 			this.#onBootstrapEngines(),
 		);
 	}
@@ -34,15 +34,14 @@ export class BootstrapExecutablesService {
 
 		this.#statusBarItemManager.moveToBootstrap();
 
-		const [noraNodeEngineExecutableUri] = await Promise.all([
-			this.#bootstrapNoraNodeEngineExecutableUri(),
-			// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
-		]);
+		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
+		const noraNodeEngineExecutableUri =
+			await this.#bootstrapNoraNodeEngineExecutableUri();
 
 		this.#statusBarItemManager.moveToStandby();
 
 		this.#messageBus.publish({
-			kind: MessageKind.enginesBootstrapped,
+			kind: MessageKind.engineBootstrapped,
 			noraNodeEngineExecutableUri,
 		});
 	}
