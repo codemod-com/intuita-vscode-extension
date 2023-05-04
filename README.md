@@ -27,7 +27,7 @@ Get started with automating dependency upgrades using Intuita in three steps:
 
 ## How Does It Work?
 
-- **Codemod Registry -** A public database of code transformation bots, aka codemods, with 9 Intuita-backed high-quality ones built in partnership with Vercel specifically for Next.js upgrade.
+- **Codemod Registry -** A public database of code transformation bots, aka codemods, with 9 Intuita-backed high-quality ones built specifically for Next.js.
 - **Dry Run →  Review → Commit -** Intuita’s bots are double-reviewed for quality. Yet, we developed the “Dry-Run” mode to give you full control before applying changes to your code. If needed, dismiss faulty changes, commit the rest with one click, and handle exceptions later.
 - **Continuous Improvement -** Bots & AI make mistakes. Our one-click issue report, with some context included, makes reporting & improving mistakes in our bots & AI a breeze.
 
