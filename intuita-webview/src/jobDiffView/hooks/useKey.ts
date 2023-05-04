@@ -26,8 +26,8 @@ export const useCTLKey = (key: string, callback: () => void) => {
 export const useKey = (key: string, callback: () => void) => {
 	const keyPressCallback = useCallback(
 		(event: KeyboardEvent) => {
-			event.preventDefault();
 			if (event.key === key) {
+				event.preventDefault();
 				callback();
 			}
 		},
