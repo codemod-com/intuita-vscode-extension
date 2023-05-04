@@ -10,7 +10,6 @@ import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { NoraCompareServiceEngine } from './components/noraCompareServiceEngine';
 import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { StatusBarItemManager } from './components/statusBarItemManager';
@@ -133,8 +132,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		statusBarItemManager,
 	);
-
-	new NoraCompareServiceEngine(messageBus);
 
 	const gitExtension =
 		vscode.extensions.getExtension<GitExtension>('vscode.git');
