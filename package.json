@@ -19,10 +19,12 @@
 	],
 	"keywords": [
 		"codemod",
+		"upgrade",
+		"javascript",
+		"typescript",
+		"next",
+		"next.js",
 		"prettier",
-		"intellicode",
-		"intellisense",
-		"tabnine",
 		"copilot",
 		"refactor",
 		"dependency"
