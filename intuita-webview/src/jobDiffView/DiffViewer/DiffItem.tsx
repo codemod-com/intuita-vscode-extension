@@ -38,7 +38,7 @@ export const JobDiffView = ({
 		setViewType(ViewType);
 	}, [ViewType]);
 
-	const [isVisible, setVisible] = useState(false);
+	const [isVisible, setVisible] = useState(true);
 
 	const toggleViewed = useCallback(() => {
 		setVisible((v) => !v);

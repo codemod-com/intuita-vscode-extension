@@ -30,9 +30,9 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 		if (selectedCaseNode === null) {
 			return;
 		}
+
 		handleClick(selectedCaseNode);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [handleClick, selectedCaseNode?.id]);
+	}, [handleClick, selectedCaseNode]);
 
 	return (
 		<div className={styles.container}>
