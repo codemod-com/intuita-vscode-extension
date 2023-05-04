@@ -38,6 +38,7 @@
 		"cutcopypaste",
 		"codicons",
 		"codicon",
-		"upsert"
+		"upsert",
+		"JSCodeshift"
 	]
 }
