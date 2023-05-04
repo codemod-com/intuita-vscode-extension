@@ -287,7 +287,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	_attachExtensionEventListeners() {
 		this._addHook(MessageKind.codemodSetExecuted, async () => {
-			console.log('codemodSetExecuted');
 			this.__onUpdateElementsMessage();
 		});
 	}
