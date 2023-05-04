@@ -3,7 +3,7 @@ import { MessageBus, MessageKind } from '../messageBus';
 import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
-import { debounce, isNeitherNullNorUndefined } from '../../utilities';
+import { isNeitherNullNorUndefined } from '../../utilities';
 import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
