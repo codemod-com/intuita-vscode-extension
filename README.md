@@ -36,7 +36,6 @@ Get started with automating dependency upgrades using Intuita in three steps:
 
 - **Out-of-the-box Prettier Integration -** Your favorite code transformation engines such as Meta’s JSCodeshift or TS-morph will mess up the formatting. Intuita will automatically prettify the changes according to your settings, saving you much time and energy for more exciting features.
 - **Multiple Transformation Engines -** Intuita supports different transformation engines under the hood, including Meta’s, Uber’s, Semgrep’s, and LLM engines - and more to come.
-- **~~Parallelized Code Transformation Engine:** Intuita’s JSCodeshift is parallelized into configurable number of threads and it can be as fast as your machine, by default it used 6 threads, meaning its is 6x faster than the standard JSCodeshift.~~
 
 ---
 
