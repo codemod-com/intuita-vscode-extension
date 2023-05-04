@@ -21,7 +21,7 @@ Get started with automating dependency upgrades using Intuita in three steps:
 ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2f9805e9-1b00-423a-a68c-d7909d830194/Untitled.gif)
 
 
-> 💡 In this example, we’re using the [`netlify/next-runtime`](https://github.com/netlify/next-runtime/) repository and `replace-next-router` upgrade codemod. <br><br>Intuita is in Public Beta and we’re continuously working on improving codemods and solving any compatibility issues. <br>If you run into an issue while running a codemod, please [let us know →]()
+> 💡 <br>In this example, we’re using the [`netlify/next-runtime`](https://github.com/netlify/next-runtime/) repository and `replace-next-router` upgrade codemod. <br><br>Intuita is in Public Beta and we’re continuously working on improving codemods and solving any compatibility issues. <br>If you run into an issue while running a codemod, please [let us know →]()
 
 3. View the changes made by Intuita → then apply the approved changes to your project files.
     ![Applying changes made by intuita](https://file.notion.so/f/s/a948d67c-fd04-465c-a7bd-c32dbaf21e87/Untitled.gif?id=fb98b5c9-d89c-4345-aed7-82f140250ad0&table=block&spaceId=5081bd3f-5196-4c3f-9e83-9e49a44d3d9b&expirationTimestamp=1683292091597&signature=EQegfh4SxerjRB8lox8oU57agVhNc17H11XaYnyMfVc&downloadName=Untitled.gif)
