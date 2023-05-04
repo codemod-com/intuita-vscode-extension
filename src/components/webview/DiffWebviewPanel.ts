@@ -286,12 +286,9 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(async () => {
+		this._addHook(MessageKind.codemodSetExecuted, async () => {
+			console.log('codemodSetExecuted');
 			this.__onUpdateElementsMessage();
-		}, 300);
-
-		this._addHook(MessageKind.updateElements, async () => {
-			debouncedOnUpdateElementsMessage();
 		});
 	}
 }
