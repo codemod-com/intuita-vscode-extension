@@ -132,19 +132,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	}
 
-	// private async __updateJobProps(jobHash: JobHash) {
-	// 	const props = await this.getViewDataForJob(jobHash);
-
-	// 	if (props === null) {
-	// 		return;
-	// 	}
-
-	// 	this._postMessage({
-	// 		kind: 'webview.diffView.updateDiffViewProps',
-	// 		data: props,
-	// 	});
-	// }
-
 	public override dispose() {
 		super.dispose();
 		DiffWebviewPanel.instance = null;
