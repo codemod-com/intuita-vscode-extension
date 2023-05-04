@@ -1,22 +1,27 @@
-import { useRef, useState } from 'react';
+import { createRef } from 'react';
 import MonacoDiffEditor, { monaco } from '../../shared/Snippet/DiffEditor';
-import { JobDiffViewProps } from '../App';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import { getDiffEditorHeight } from '../../shared/Snippet/getDiffEditorHeight';
 
 export type { Diff };
 
-export const useDiffViewer = ({
+export const DiffComponent = ({
 	oldFileContent,
 	newFileContent,
 	viewType,
-}: Omit<JobDiffViewProps, 'staged'> & {
+	onDiffCalculated,
+	height,
+	onHeightSet,
+}: {
+	oldFileContent: string | null;
+	newFileContent: string | null;
 	viewType: 'inline' | 'side-by-side';
+	onDiffCalculated: (diff: Diff) => void;
+	height: number;
+	onHeightSet: (height: number) => void;
 }) => {
-	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
-	const [diff, setDiff] = useState<Diff | null>(null);
-	const [height, setHeight] = useState<string>('90vh');
-
+	const editorRef = createRef<monaco.editor.IStandaloneDiffEditor>();
+ 
 	const getDiffChanges = (): Diff | undefined => {
 		if (!editorRef.current) {
 			return;
@@ -34,26 +39,27 @@ export const useDiffViewer = ({
 		}
 		const editorHeight = getDiffEditorHeight(editorRef.current);
 		if (editorHeight) {
-			setHeight(`${editorHeight}px`);
+			onHeightSet(editorHeight);
 		}
 	};
 
 	const handleRefSet = () => {
 		const diffChanges = getDiffChanges();
-		setDiff(diffChanges ?? null);
+		if (diffChanges) {
+			onDiffCalculated(diffChanges);
+		}
 		getHeight();
 	};
 
-	const getDiffViewer = (
+	return (
 		<div
-			className="w-full"
+ 			className="w-full"
 			style={{
-				height: height,
+				height,
 			}}
 		>
 			<MonacoDiffEditor
-				height={height}
-				width={'100%'}
+				height={`${height}px`}
 				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
@@ -80,6 +86,4 @@ export const useDiffViewer = ({
 			/>
 		</div>
 	);
-
-	return { diffViewer: getDiffViewer, diff };
 };

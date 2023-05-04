@@ -6,6 +6,7 @@ import * as E from 'fp-ts/Either';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 
+export { JobHash };
 export { CodemodHash };
 export type JobActionCommands =
 	| 'intuita.rejectJob'

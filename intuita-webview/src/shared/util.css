@@ -144,3 +144,6 @@
 .h-2 {
 	height: 2px;
 }
+.h-full {
+	height: 100%;
+}
