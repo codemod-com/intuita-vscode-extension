@@ -2,10 +2,8 @@
 
 With Intuita, you can start adopting the latest framework versions faster and easier than ever - one framework at a time, starting with Next.js v13.
 
-<aside>
-❓ What frameworks should we support next? [Let us know →](https://feedback.intuita.io/codemod-requests)
+> warning: What frameworks should we support next? [Let us know →](https://feedback.intuita.io/codemod-requests)
 
-</aside>
 
 ## Why?
 
