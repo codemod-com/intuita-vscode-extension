@@ -2,3 +2,8 @@ dist
 img
 resources
 *.md
+pnpm-lock.yaml
+yarn.lock
+intuita-webview/build
+
+.trunk

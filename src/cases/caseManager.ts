@@ -4,6 +4,7 @@ import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetMana
 import { Case, CaseWithJobHashes, CaseHash } from './types';
 
 export class CaseManager {
+	#newCaseHash: CaseHash | null;
 	readonly #messageBus: MessageBus;
 	readonly #cases: Map<CaseHash, Case>;
 	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<
@@ -17,7 +18,7 @@ export class CaseManager {
 		messageBus: MessageBus,
 	) {
 		this.#messageBus = messageBus;
-
+		this.#newCaseHash = null;
 		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
 		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
 			caseHashJobHashes,
@@ -29,11 +30,11 @@ export class CaseManager {
 		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
 			this.#onAcceptCaseMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
-			this.#onJobsAcceptedOrJobsRejectedMessage(message),
-		);
 		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
+		);
+		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
+			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
 		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
 			this.#onJobsAcceptedOrJobsRejectedMessage(message),
@@ -43,8 +44,20 @@ export class CaseManager {
 		);
 	}
 
+	public getNewCaseHash(): CaseHash | null {
+		return this.#newCaseHash;
+	}
+
 	public getCases(): IterableIterator<Case> {
 		return this.#cases.values();
+	}
+
+	public getCase(caseHash: CaseHash): Case | undefined {
+		return this.#cases.get(caseHash);
+	}
+
+	public getCaseCount(): number {
+		return this.#cases.size;
 	}
 
 	public getCaseHashJobHashSetValues(): IterableIterator<string> {
@@ -89,6 +102,11 @@ export class CaseManager {
 	#onUpsertCasesMessage(
 		message: Message & { kind: MessageKind.upsertCases },
 	) {
+		const newCaseHash = message.casesWithJobHashes[0]?.hash ?? null;
+		if (newCaseHash === null) {
+			return;
+		}
+		this.#newCaseHash = newCaseHash;
 		message.casesWithJobHashes.map((caseWithJobHash) => {
 			this.#cases.set(caseWithJobHash.hash, caseWithJobHash);
 

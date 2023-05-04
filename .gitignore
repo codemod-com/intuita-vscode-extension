@@ -6,3 +6,8 @@ node_modules
 .idea
 *.js
 yarn-error.log
+.DS_Store
+
+build
+
+.trunk

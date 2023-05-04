@@ -2,6 +2,8 @@ import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
+import type { Configuration } from '../configuration';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -46,11 +48,49 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
+
+	/**
+	 * account events
+	 */
+	accountLinked = 26,
+	accountUnlinked = 27,
+
+	/**
+	 * config events
+	 */
+
+	configurationChanged = 28,
+
+	/**
+	 * create issue
+	 */
+
+	beforeIssueCreated = 29,
+	afterIssueCreated = 30,
+	/**
+	 * show progress
+	 */
+	showProgress = 31,
+	/**
+	 * create PR
+	 */
+
+	beforePRCreated = 33,
+	afterPRCreated = 34,
+
+	focusCodemod = 35,
 }
 
 export type Engine = 'node' | 'rust';
 
 export type Command =
+	| Readonly<{
+			kind: 'repomod';
+			engine: Engine;
+			inputPath: Uri;
+			storageUri: Uri;
+			repomodFilePath: string;
+	  }>
 	| Readonly<{
 			recipeName: RecipeName;
 			engine: Engine;
@@ -59,6 +99,13 @@ export type Command =
 	  }>
 	| Readonly<{
 			fileUri: Uri;
+			engine: Engine;
+			storageUri: Uri;
+			uri: Uri;
+	  }>
+	| Readonly<{
+			kind: 'executeCodemod';
+			codemodHash: CodemodHash;
 			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
@@ -183,6 +230,42 @@ export type Message =
 			newUri: Uri;
 			oldUri: Uri;
 			newContentUri: Uri;
+	  }>
+	| Readonly<{
+			kind: MessageKind.accountUnlinked;
+	  }>
+	| Readonly<{
+			kind: MessageKind.accountLinked;
+			account: string;
+	  }>
+	| Readonly<{
+			kind: MessageKind.configurationChanged;
+			nextConfiguration: Configuration;
+	  }>
+	| Readonly<{
+			kind: MessageKind.beforeIssueCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.beforeIssueCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.afterIssueCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.showProgress;
+			processedFiles: number;
+			codemodHash?: CodemodHash;
+			totalFiles: number;
+	  }>
+	| Readonly<{
+			kind: MessageKind.beforePRCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.afterPRCreated;
+	  }>
+	| Readonly<{
+			kind: MessageKind.focusCodemod;
+			codemodHashDigest: CodemodHash;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
@@ -212,7 +295,7 @@ export class MessageBus {
 			this.#emitters[kind] = emitter;
 		}
 
-		emitter.event(fn, this.#disposables);
+		return emitter.event(fn, this.#disposables);
 	}
 
 	publish(message: Message): void {

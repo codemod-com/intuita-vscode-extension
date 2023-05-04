@@ -5,6 +5,7 @@ import { MessageBus, MessageKind } from '../components/messageBus';
 import { debounce } from '../utilities';
 import { PersistedState } from './codecs';
 import { mapCaseToPersistedCase, mapJobToPersistedJob } from './mappers';
+import { RepositoryService } from '../components/webview/repository';
 
 export class PersistedStateService {
 	constructor(
@@ -13,21 +14,23 @@ export class PersistedStateService {
 		private readonly getStorageUri: () => Uri | null,
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
+		private readonly __repositoryService: RepositoryService,
 	) {
 		const debouncedOnUpdateElementsMessage = debounce(
-			() => this.#onUpdateElementsMessage(),
+			() => this.saveExtensionState(),
 			1000,
 		);
 
 		this.messageBus.subscribe(MessageKind.updateElements, () =>
 			debouncedOnUpdateElementsMessage(),
 		);
+
 		this.messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
 	}
 
-	async #onUpdateElementsMessage() {
+	public async saveExtensionState() {
 		const uri = this.getStorageUri();
 
 		if (!uri) {
@@ -58,15 +61,19 @@ export class PersistedStateService {
 		const jobs = Array.from(this.jobManager.getJobs()).map((job) =>
 			mapJobToPersistedJob(job),
 		);
-		const rejectedJobHashes = Array.from(
-			this.jobManager.getRejectedJobHashes(),
+
+		const appliedJobsHashes = Array.from(
+			this.jobManager.getAppliedJobsHashes(),
 		);
+
+		const remoteUrl = this.__repositoryService.getRemoteUrl();
 
 		return {
 			cases,
 			caseHashJobHashes,
 			jobs,
-			rejectedJobHashes,
+			appliedJobsHashes,
+			remoteUrl,
 		};
 	}
 
@@ -83,11 +90,13 @@ export class PersistedStateService {
 
 		const localStateUri = Uri.joinPath(uri, 'localState.json');
 
+		// @TODO add ability to rewrite state partially
 		const persistedState: PersistedState = {
 			cases: [],
 			caseHashJobHashes: [],
 			jobs: [],
-			rejectedJobHashes: [],
+			appliedJobsHashes: [],
+			remoteUrl: this.__repositoryService.getRemoteUrl(),
 		};
 
 		const buffer = Buffer.from(JSON.stringify(persistedState));

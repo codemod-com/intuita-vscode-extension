@@ -26,50 +26,62 @@ export class FileService {
 	}
 
 	async #onCreateFile(message: Message & { kind: MessageKind.createFile }) {
-		const content = await workspace.fs.readFile(message.newContentUri);
-
-		const directory = dirname(message.newUri.fsPath);
-
-		await workspace.fs.createDirectory(Uri.file(directory));
-
-		await workspace.fs.writeFile(message.newUri, content);
-
-		if (message.deleteNewContentUri) {
-			this.#messageBus.publish({
-				kind: MessageKind.deleteFiles,
-				uris: [message.newContentUri],
-			});
-		}
+		await this.createFile(message);
 	}
 
 	async #onUpdateFile(message: Message & { kind: MessageKind.updateFile }) {
-		const content = await workspace.fs.readFile(message.contentUri);
-
-		await workspace.fs.writeFile(message.uri, content);
-
-		this.#messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris: [message.contentUri],
-		});
+		await this.updateFile(message);
 	}
 
 	async #onMoveFile(message: Message & { kind: MessageKind.moveFile }) {
-		const content = await workspace.fs.readFile(message.newContentUri);
-
-		const directory = dirname(message.newUri.fsPath);
-
-		await workspace.fs.createDirectory(Uri.file(directory));
-
-		await workspace.fs.writeFile(message.newUri, content);
-
-		this.#messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris: [message.oldUri, message.newContentUri],
-		});
+		await this.moveFile(message);
 	}
 
 	async #onDeleteFile(message: Message & { kind: MessageKind.deleteFiles }) {
-		for (const uri of message.uris) {
+		await this.deleteFiles(message);
+	}
+
+	public async createFile(params: {
+		newUri: Uri;
+		newContentUri: Uri;
+	}): Promise<void> {
+		const content = await workspace.fs.readFile(params.newContentUri);
+
+		const directory = dirname(params.newUri.fsPath);
+
+		await workspace.fs.createDirectory(Uri.file(directory));
+
+		await workspace.fs.writeFile(params.newUri, content);
+	}
+
+	public async updateFile(params: {
+		uri: Uri;
+		contentUri: Uri;
+	}): Promise<void> {
+		const content = await workspace.fs.readFile(params.contentUri);
+		await workspace.fs.writeFile(params.uri, content);
+	}
+
+	public async moveFile(params: {
+		newUri: Uri;
+		oldUri: Uri;
+		newContentUri: Uri;
+	}): Promise<void> {
+		const content = await workspace.fs.readFile(params.newContentUri);
+
+		const directory = dirname(params.newUri.fsPath);
+
+		await workspace.fs.createDirectory(Uri.file(directory));
+
+		await workspace.fs.writeFile(params.newUri, content);
+
+		await this.deleteFiles({ uris: [params.oldUri] });
+	}
+
+	public async deleteFiles(params: {
+		uris: ReadonlyArray<Uri>;
+	}): Promise<void> {
+		for (const uri of params.uris) {
 			await workspace.fs.delete(uri, {
 				recursive: false,
 				useTrash: false,

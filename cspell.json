@@ -1,4 +1,5 @@
 {
+	"ignorePaths": ["**/*.d.ts"],
 	"dictionaries": [
 		"en_US",
 		"typescript",
@@ -34,6 +35,9 @@
 		"userdata",
 		"vsix",
 		"yarnrc",
-		"cutcopypaste"
+		"cutcopypaste",
+		"codicons",
+		"codicon",
+		"upsert"
 	]
 }

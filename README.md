@@ -2,8 +2,6 @@
 
 With Intuita, you can start adopting the latest framework versions faster and easier than ever - one framework at a time, starting with Next.js v13.
 
-> :warning: What frameworks should we support next? [Let us know →](https://feedback.intuita.io/codemod-requests)
-
 
 ## Why?
 
@@ -25,6 +23,7 @@ Get started with automating dependency upgrades using Intuita in three steps:
 3. View the changes made by Intuita → then apply the approved changes to your project files.
 
 ![Applying changes made by intuita](https://github.com/intuita-inc/intuita-docs/blob/main/static/img/vsce/vsce-apply-changes.gif)
+
 
 ## How Does It Work?
 
@@ -48,4 +47,4 @@ Get started with automating dependency upgrades using Intuita in three steps:
 
 ## Share Feedback 🎁
 
-- Please share your ideas, questions, feature requests **[here](https://feedback.intuita.io/)**, or chat with us in [Slack](https://join.slack.com/t/intuita-inc/shared_invite/zt-1tvxm6ct0-mLZld_78yguDYOSM7DM7Cw).
+Please share your ideas, questions, feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>

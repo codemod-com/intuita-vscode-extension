@@ -1,0 +1,22 @@
+.form {
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
+	padding: 4px;
+}
+
+.actionButton {
+	height: 24px;
+	width: 160px;
+}
+
+.formField {
+	display: flex;
+	flex-direction: column;
+}
+
+.actions {
+	display: flex;
+	column-gap: 8px;
+	justify-content: flex-end;
+}

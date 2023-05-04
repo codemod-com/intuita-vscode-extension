@@ -1,5 +1,5 @@
 import { Case } from '../cases/types';
-import type { CaseElement, ElementHash, FileElement } from './types';
+import { CaseElement, ElementHash, ElementKind, FileElement } from './types';
 
 export const buildCaseElement = (
 	kase: Case,
@@ -10,10 +10,11 @@ export const buildCaseElement = (
 		.reduce((a, b) => a + b, 0);
 
 	return {
-		kind: 'CASE',
+		kind: ElementKind.CASE,
 		label: `${kase.subKind} (${count})`,
 		children,
 		hash: kase.hash as unknown as ElementHash,
+		codemodName: kase.codemodName,
 	};
 };
 

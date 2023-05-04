@@ -1,6 +1,6 @@
 import type { CaseHash } from '../cases/types';
 import { buildHash } from '../utilities';
-import type { JobElement, ElementHash, FileElement } from './types';
+import { JobElement, ElementHash, FileElement, ElementKind } from './types';
 
 export const buildFileElement = (
 	caseHash: CaseHash,
@@ -10,10 +10,11 @@ export const buildFileElement = (
 	const count = children.length;
 
 	return {
-		kind: 'FILE' as const,
+		kind: ElementKind.FILE,
 		label: `${label} (${count})`,
 		children,
 		hash: buildHash(`${caseHash}${label}`) as ElementHash,
+		caseHash,
 	};
 };
 

@@ -1,8 +1,8 @@
 {
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
-	"description": "Upgrade dependencies faster with high-quality codemods.",
-	"version": "0.13.1",
+	"description": " Discover, run & manage codemods faster & easier.",
+	"version": "0.22.0",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -39,49 +39,13 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
-			},
-			{
-				"view": "explorerIntuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!"
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Codemod On Path\" and select a codemod you want to execute."
 			}
 		],
 		"commands": [
 			{
-				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js v13 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeNextJsExperimentalCodemods",
-				"title": "Intuita: execute Next.js v13 Experimental codemods over the workspace"
-			},
-			{
-				"command": "intuita.executePagesToAppsCodemods",
-				"title": "Intuita: execute Next.js v13 Pages-to-Apps codemods over the workspace (experimental)"
-			},
-			{
-				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute Material UI v5 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv4Codemods",
-				"title": "Intuita: execute React Router v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv6Codemods",
-				"title": "Intuita: execute React Router v6 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv0Codemods",
-				"title": "Intuita: execute ImmutableJS removal codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv4Codemods",
-				"title": "Intuita: execute ImmutableJS v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeRedwoodJsCore4Codemods",
-				"title": "Intuita: execute RedwoodJS v4 codemods over the workspace"
+				"command": "intuita.createPR",
+				"title": "Intuita: Create a Pull Request"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
@@ -107,15 +71,23 @@
 				"title": "✓ Apply"
 			},
 			{
+				"command": "intuita.sourceControl.commitStagedJobs",
+				"title": "✓ Apply"
+			},
+			{
+				"command": "intuita.acceptFolder",
+				"title": "✓ Apply"
+			},
+			{
 				"command": "intuita.rejectJob",
 				"title": "✗ Dismiss"
 			},
 			{
-				"command": "intuita.acceptCase",
-				"title": "✓ Apply"
+				"command": "intuita.rejectCase",
+				"title": "✗ Dismiss"
 			},
 			{
-				"command": "intuita.rejectCase",
+				"command": "intuita.rejectFolder",
 				"title": "✗ Dismiss"
 			},
 			{
@@ -123,8 +95,12 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
-				"command": "intuita.executeRecipeWithinPath",
-				"title": "Intuita: Execute Recipe On Path"
+				"command": "intuita.executeCodemod",
+				"title": "Intuita: Execute Codemod"
+			},
+			{
+				"command": "intuita.executeCodemodWithinPath",
+				"title": "Intuita: Execute Codemod On Path"
 			},
 			{
 				"command": "intuita.executeImportedModOnPath",
@@ -137,6 +113,16 @@
 			{
 				"command": "intuita.sendAsAfterSnippet",
 				"title": "Intuita: Send as After Snippet to the Codemod Studio"
+			},
+			{
+				"command": "intuita.createIssue",
+				"title": "Issue",
+				"icon": "$(issues)"
+			},
+			{
+				"command": "intuita.createPR",
+				"title": "Pull Request",
+				"icon": "$(git-pull-request)"
 			}
 		],
 		"configuration": {
@@ -151,7 +137,7 @@
 				"intuita.fileLimit": {
 					"order": 1,
 					"type": "number",
-					"default": 100,
+					"default": 2000,
 					"description": "The maximum number of files to execute any codemod over"
 				},
 				"intuita.telemetryEnabled": {
@@ -165,6 +151,22 @@
 					"type": "number",
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
+				},
+				"intuita.includePatterns": {
+					"order": 5,
+					"type": "array",
+					"default": [
+						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
+					],
+					"description": "The glob pattern to use when searching for files to execute codemods over"
+				},
+				"intuita.excludePatterns": {
+					"order": 6,
+					"type": "array",
+					"default": [
+						"**/node_modules"
+					],
+					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
 				}
 			}
 		},
@@ -178,20 +180,24 @@
 			]
 		},
 		"views": {
-			"explorer": [
-				{
-					"id": "explorerIntuitaViewId",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
-				}
-			],
 			"intuitaViewId": [
 				{
-					"id": "intuitaViewId",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
+					"type": "webview",
+					"id": "intuita-available-codemod-tree-view",
+					"name": "Codemod Discovery",
+					"contextualTitle": "Codemod Discovery"
+				},
+				{
+					"type": "webview",
+					"id": "intuitaCampaignManager",
+					"name": "Code Change Projects",
+					"contextualTitle": "Code Change Projects"
+				},
+				{
+					"type": "webview",
+					"id": "intuitaFileExplorer",
+					"name": "Change Explorer",
+					"contextualTitle": "Change Explorer"
 				}
 			]
 		},
@@ -214,15 +220,39 @@
 					"when": "false"
 				},
 				{
+					"command": "intuita.sourceControl.commitStagedJobs",
+					"when": "false"
+				},
+				{
+					"command": "intuita.acceptFolder",
+					"when": "false"
+				},
+				{
 					"command": "intuita.rejectJob",
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
+					"command": "intuita.rejectCase",
 					"when": "false"
 				},
 				{
-					"command": "intuita.rejectCase",
+					"command": "intuita.rejectFolder",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeAsCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeCodemodWithinPath",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeImportedModOnPath",
 					"when": "false"
 				}
 			],
@@ -245,7 +275,7 @@
 					"when": "resourceExtname == .js || resourceExtname == .ts"
 				},
 				{
-					"command": "intuita.executeRecipeWithinPath",
+					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				},
@@ -258,40 +288,8 @@
 			"view/title": [
 				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
+					"when": "view == intuitaCampaignManager",
 					"group": "navigation"
-				},
-				{
-					"command": "intuita.requestFeature",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaViewId || view == explorerIntuitaViewId",
-					"group": "navigation"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "intuita.acceptJob",
-					"when": "viewItem == jobElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.rejectJob",
-					"when": "viewItem == jobElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.acceptCase",
-					"when": "viewItem == caseElement",
-					"group": "inline"
-				},
-				{
-					"command": "intuita.rejectCase",
-					"when": "viewItem == caseElement",
-					"group": "inline"
 				}
 			]
 		}
@@ -301,10 +299,13 @@
 		"vscode:prepublish": "yarn run package",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"package": "webpack --mode production --devtool hidden-source-map",
+		"package": "yarn install:webview && yarn build:webview && webpack --mode production --devtool hidden-source-map",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
-		"spellcheck": "yarn cspell '**.*'"
+		"spellcheck": "yarn cspell '**.*'",
+		"install:webview": "cd intuita-webview && pnpm install",
+		"build:webview": "cd intuita-webview && pnpm build",
+		"watch:webview": "cd intuita-webview && pnpm start"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.4",
@@ -340,5 +341,8 @@
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
 		"semver": "^7.3.8"
-	}
+	},
+	"extensionDependencies": [
+		"vscode.git"
+	]
 }

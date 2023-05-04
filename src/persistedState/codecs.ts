@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import { withFallback } from 'io-ts-types/lib/withFallback';
 import { CaseKind } from '../cases/types';
 import { JobKind } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
@@ -41,7 +42,8 @@ export const persistedStateCodec = buildTypeCodec({
 	cases: t.readonlyArray(persistedCaseCodec),
 	jobs: t.readonlyArray(persistedJobCodec),
 	caseHashJobHashes: t.readonlyArray(t.string),
-	rejectedJobHashes: t.readonlyArray(t.string),
+	appliedJobsHashes: withFallback(t.readonlyArray(t.string), []),
+	remoteUrl: withFallback(t.union([t.string, t.null]), null),
 });
 
 export type PersistedState = t.TypeOf<typeof persistedStateCodec>;
