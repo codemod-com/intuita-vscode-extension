@@ -47,4 +47,4 @@ Get started with automating dependency upgrades using Intuita in three steps:
 
 ## Share Feedback 🎁
 
-Please share your ideas, questions, feature requests <kbd>[**here**](https://feedback.intuita.io/feature-requests)</kbd>, or chat with us in <kbd>[**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA)</kbd>
+Please share your ideas, questions, feature requests [**here**](https://feedback.intuita.io/feature-requests), or chat with us in [**Slack**](https://join.slack.com/t/intuita-inc/shared_invite/zt-1bjj5exxi-95yPfWi71HcO2p_sS5L2wA).
