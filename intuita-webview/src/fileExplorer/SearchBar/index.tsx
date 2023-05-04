@@ -16,8 +16,10 @@ const SearchBar = ({ searchQuery, setSearchQuery }: Props) => {
 			type="text"
 			value={searchQuery}
 			placeholder="Search files..."
-			onInput={(event: any) => {
-				setSearchQuery((prev) => event.target?.value ?? prev);
+			onInput={(event: Event | React.FormEvent<HTMLElement>) => {
+				setSearchQuery(
+					(prev) => (event.target as HTMLInputElement).value ?? prev,
+				);
 			}}
 			className={styles.container}
 		>
