@@ -3,6 +3,7 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import Popup from 'reactjs-popup';
 import { CodemodTreeNode } from '../../shared/types';
+import Popover from '../../shared/Popover';
 
 type Props = {
 	id: string;
@@ -59,7 +60,7 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
-			{kind === 'codemodItem' && description && (
+		{kind === 'codemodItem' && description && (
 				<Popup
 					trigger={<div className={styles.icon}>{icon}</div>}
 					position={['bottom left', 'top left']}
@@ -91,4 +92,17 @@ const TreeItem = ({
 	);
 };
 
-export default TreeItem;
+
+const TreeItemWithDescription = (props: Props) => {
+	console.log(props, 'test')
+	if(props.kind === 'codemodItem') {
+		return <Popover
+		trigger={<div><TreeItem {...props}/></div>}
+		popoverText={props.description || "Missing description"}
+	/>
+	}
+	
+	return <TreeItem  {...props} />
+}
+
+export default TreeItemWithDescription;

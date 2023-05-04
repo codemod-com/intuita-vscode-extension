@@ -14,7 +14,7 @@ const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
 	commit: 'Commit or create pull requests for selected changes.',
-	cannotApply: 'At least one job should be staged to commit the changes.',
+	cannotApply: 'Select at least one change to apply.',
 };
 
 type Props = Readonly<{
