@@ -15,7 +15,7 @@ const SearchBar = ({ searchQuery, setSearchQuery }: Props) => {
 		<VSCodeTextField
 			type="text"
 			value={searchQuery}
-			placeholder=""
+			placeholder="Search files..."
 			onInput={(event: any) => {
 				setSearchQuery((prev) => event.target?.value ?? prev);
 			}}
