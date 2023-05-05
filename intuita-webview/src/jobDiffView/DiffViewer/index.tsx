@@ -17,21 +17,22 @@ import { Diff } from './Diff';
 import { useElementSize } from '../hooks/useElementSize';
 import { useTheme } from '../../shared/Snippet/useTheme';
 
-type JobDiffViewContainerProps = {
+type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
 	title: string;
 	diffId: string;
 	scrollIntoHash: JobHash | null;
-};
+	stagedJobs: JobHash[];
+}>
 
-type DiffItem = {
+type DiffItem = Readonly<{
 	visible: boolean;
 	diff: Diff | null;
 	height: number | null;
 	containerHeight: number;
 	expanded: boolean;
-};
+}>
 type DiffData = Record<JobHash, DiffItem>;
 
 const defaultHeight = 1200;
@@ -42,6 +43,7 @@ export const JobDiffViewContainer = ({
 	diffId,
 	postMessage,
 	scrollIntoHash,
+	stagedJobs,
 }: JobDiffViewContainerProps) => {
 	const reversedJob = useMemo(() => jobs.reverse(), [jobs]);
 
@@ -224,18 +226,18 @@ export const JobDiffViewContainer = ({
 		});
 	};
 
-	const onToggleJob = (el: JobDiffViewProps) => {
-		const stagedJobs = new Set(reversedJob.filter((job) => job.staged));
+	const onToggleJob = (jobHash: JobHash) => {
+		const stagedJobsSet = new Set(stagedJobs);
 
-		if (stagedJobs.has(el)) {
-			stagedJobs.delete(el);
+		if (stagedJobsSet.has(jobHash)) {
+			stagedJobsSet.delete(jobHash);
 		} else {
-			stagedJobs.add(el);
+			stagedJobsSet.add(jobHash);
 		}
 
 		vscode.postMessage({
 			kind: 'webview.global.stageJobs',
-			jobHashes: Array.from(stagedJobs).map(({ jobHash }) => jobHash),
+			jobHashes: Array.from(stagedJobsSet),
 		});
 	};
 
@@ -250,6 +252,7 @@ export const JobDiffViewContainer = ({
 				title={title}
 				jobs={reversedJob}
 				diffId={diffId}
+				stagedJobs={stagedJobs}
 			/>
 			<div className="w-full py-2-5 h-full" ref={containerRef}>
 				<List
@@ -303,9 +306,11 @@ export const JobDiffViewContainer = ({
 												ViewType={viewType}
 												key={el.jobHash}
 												postMessage={postMessage}
-												jobStaged={el.staged}
+												jobStaged={stagedJobs.includes(
+													el.jobHash,
+												)}
 												onToggleJob={() =>
-													onToggleJob(el)
+													onToggleJob(el.jobHash)
 												}
 												height={
 													diffData[el.jobHash]

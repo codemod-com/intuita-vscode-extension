@@ -23,6 +23,7 @@ type Props = Readonly<{
 	jobs: JobDiffViewProps[];
 	diffId: string;
 	onViewChange(value: DiffViewType): void;
+	stagedJobs: JobHash[];
 }>;
 
 type CheckboxState = 'allStaged' | 'someStaged' | 'noneStaged';
@@ -52,14 +53,17 @@ const getCheckboxProps = (checkboxState: CheckboxState) => {
 	}
 };
 
-const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
+const Header = ({
+	title,
+	viewType,
+	diffId,
+	jobs,
+	onViewChange,
+	stagedJobs,
+}: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
 	};
-
-	const stagedJobHashes = jobs
-		.filter((job) => job.staged)
-		.map(({ jobHash }) => jobHash);
 
 	const handleDiscardChanges = () => {
 		vscode.postMessage({
@@ -75,7 +79,7 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 	const handleApplySelected = () => {
 		vscode.postMessage({
 			kind: 'webview.global.applySelected',
-			jobHashes: stagedJobHashes,
+			jobHashes: stagedJobs,
 			diffId,
 		});
 
@@ -84,8 +88,8 @@ const Header = ({ title, viewType, diffId, jobs, onViewChange }: Props) => {
 		});
 	};
 
-	const hasStagedJobs = stagedJobHashes.length !== 0;
-	const allJobsStaged = stagedJobHashes.length === jobs.length;
+	const hasStagedJobs = stagedJobs.length !== 0;
+	const allJobsStaged = stagedJobs.length === jobs.length;
 
 	const checkboxState: CheckboxState = allJobsStaged
 		? 'allStaged'

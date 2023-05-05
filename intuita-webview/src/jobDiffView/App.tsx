@@ -13,6 +13,7 @@ import './index.css';
 function App() {
 	const [view, setView] = useState<View | null>(null);
 	const [scrollIntoHash, setScrollIntoHash] = useState<JobHash | null>(null);
+	const [stagedJobs , setStagedJobs] = useState<JobHash[]>([])
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
@@ -44,9 +45,6 @@ function App() {
 
 			if (message.kind === 'webview.diffView.focusFile') {
 				setScrollIntoHash(message.jobHash);
-				// const elementId = `diffViewHeader-${message.jobHash}`;
-				// const element = document.getElementById(elementId);
-				// element?.scrollIntoView();
 			}
 
 			if (
@@ -78,9 +76,18 @@ function App() {
 
 				fileInsideSelectedFolder.scrollIntoView();
 			}
+			if(message.kind === 'webview.diffView.updateStagedJobs') {
+				setStagedJobs(message.value)
+			}
 		},
 		[view],
 	);
+
+	useEffect(() => {
+		if(view?.viewProps && view.viewId === 'jobDiffView') {
+			setStagedJobs(view.viewProps.stagedJobs)
+		}
+	}, [view?.viewId, view?.viewProps])
 
 	useEffect(() => {
 		window.addEventListener('message', eventHandler);
@@ -104,7 +111,7 @@ function App() {
 	if (!view || view.viewId !== 'jobDiffView') {
 		return null;
 	}
-	const { data, title, diffId } = view.viewProps;
+	const { data, title, diffId  } = view.viewProps;
 
 	return (
 		<main className="App">
@@ -113,6 +120,7 @@ function App() {
 				diffId={diffId}
 				title={title}
 				jobs={data}
+				stagedJobs={stagedJobs}
 				postMessage={postMessage}
 			/>
 		</main>

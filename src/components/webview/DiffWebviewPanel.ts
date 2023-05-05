@@ -128,7 +128,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		if (message.kind === 'webview.global.stageJobs') {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
-			this.__onUpdateElementsMessage();
+			this.__onUpdateStagedJobsMessage();
 		}
 	}
 
@@ -267,6 +267,24 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
+	async __onUpdateStagedJobsMessage(): Promise<void> {
+		if (this.__openedCaseHash === null) {
+			return;
+		}
+
+		const viewData = await this.getViewDataForCase(this.__openedCaseHash);
+
+		if (viewData === null) {
+			return;
+		}
+
+		const { stagedJobs } = viewData;
+		this._postMessage({
+			kind: 'webview.diffView.updateStagedJobs',
+			value: stagedJobs,
+		});
+	}
+
 	async __onUpdateElementsMessage(): Promise<void> {
 		if (this.__openedCaseHash === null) {
 			return;
@@ -278,7 +296,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			return;
 		}
 
-		const { title, data , stagedJobs } = viewData;
+		const { title, data, stagedJobs } = viewData;
 
 		const view: View = {
 			viewId: 'jobDiffView' as const,
