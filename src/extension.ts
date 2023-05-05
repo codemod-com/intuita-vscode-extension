@@ -63,6 +63,7 @@ import { CodemodListPanelProvider } from './components/webview/CodemodListProvid
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { randomBytes } from 'crypto';
+import { CommunityProvider } from './components/webview/CommunityProvider';
 
 const messageBus = new MessageBus();
 
@@ -265,6 +266,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaCampaignManager);
+
+	const communityProvider = new CommunityProvider(context);
+
+	const intuitaCommunityView = vscode.window.registerWebviewViewProvider(
+		'intuitaCommunityView',
+		communityProvider,
+	);
+
+	context.subscriptions.push(intuitaCommunityView);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
@@ -668,24 +678,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				await engineService.clearOutputFiles(storageUri);
 			},
 		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.requestFeature', () => {
-			vscode.env.openExternal(
-				vscode.Uri.parse('https://feedback.intuita.io/'),
-			);
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.openYouTubeChannel', () => {
-			vscode.env.openExternal(
-				vscode.Uri.parse(
-					'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
-				),
-			);
-		}),
 	);
 
 	context.subscriptions.push(

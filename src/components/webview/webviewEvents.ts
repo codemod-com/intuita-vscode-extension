@@ -125,6 +125,12 @@ export type TreeNode = {
 	children: TreeNode[];
 };
 
+export type ExternalLink = {
+	text: string;
+	icon: string;
+	url: string;
+};
+
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createIssue.setFormData';
@@ -224,12 +230,6 @@ export type WebviewResponse =
 			kind: 'webview.tree.clearOutputFiles';
 	  }>
 	| Readonly<{
-			kind: 'webview.global.requestFeature';
-	  }>
-	| Readonly<{
-			kind: 'webview.global.openYouTubeChannel';
-	  }>
-	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
 	  }>
@@ -314,6 +314,10 @@ export type View =
 				nodeIds: string[];
 				fileNodes: TreeNode[];
 			} | null;
+	  }>
+	| Readonly<{
+			viewId: 'communityView';
+			externalLinks: ExternalLink[];
 	  }>
 	| Readonly<{
 			viewId: 'campaignManagerView';
