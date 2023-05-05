@@ -1,7 +1,6 @@
 import { forwardRef } from 'react';
 import { DiffEditorProps, DiffEditor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { useTheme } from './useTheme';
 
 export { monaco };
 
@@ -10,8 +9,6 @@ const DiffViewer = forwardRef<
 	monaco.editor.IStandaloneDiffEditor,
 	DiffViewerProps
 >(({ onRefSet, ...props }, ref) => {
-	const theme = useTheme();
-
 	return (
 		<div className="relative w-full h-full">
 			<DiffEditor
@@ -22,7 +19,6 @@ const DiffViewer = forwardRef<
 					}
 					onRefSet();
 				}}
-				theme={theme}
 				{...props}
 			/>
 		</div>

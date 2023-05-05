@@ -4,6 +4,7 @@ import React, {
 	memo,
 	useImperativeHandle,
 	useState,
+	useRef,
 } from 'react';
 import { ReactComponent as ArrowDownIcon } from '../../assets/arrow-down.svg';
 import './Collapsable.css';
@@ -26,6 +27,7 @@ export type CollapsableRefMethods = Readonly<{
 	expanded: boolean;
 	collapse: () => void;
 	expand: () => void;
+	getHeight: () => number;
 }>;
 
 export const Collapsable = memo(
@@ -46,11 +48,12 @@ export const Collapsable = memo(
 			ref,
 		) => {
 			const [expanded, setExpanded] = useState(defaultCollapsed);
-
+			const containerRef = useRef<HTMLDivElement>(null);
 			useImperativeHandle(ref, () => ({
 				expanded,
 				collapse: () => setExpanded(false),
 				expand: () => setExpanded(true),
+				getHeight: () => containerRef.current?.clientHeight ?? 0,
 			}));
 
 			useEffect(() => {
@@ -58,7 +61,11 @@ export const Collapsable = memo(
 			}, [expanded, onToggle]);
 
 			return (
-				<div className={cn('collapsable', className)} id={id}>
+				<div
+					className={cn('collapsable', className)}
+					ref={containerRef}
+					id={id}
+				>
 					<div
 						className={cn(headerClassName, {
 							collapsable__header: true,

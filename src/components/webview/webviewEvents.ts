@@ -6,6 +6,7 @@ import * as E from 'fp-ts/Either';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 
+export { JobHash };
 export { CodemodHash };
 export type JobActionCommands =
 	| 'intuita.rejectJob'
@@ -29,7 +30,6 @@ export type JobDiffViewProps = Readonly<{
 	newFileTitle: string | null;
 	title: string | null;
 	actions?: JobAction[];
-	staged: boolean;
 }>;
 
 export type CommitChangesFormData = Readonly<{
@@ -188,6 +188,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemods.focusCodemod';
 			codemodHashDigest: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.diffView.updateStagedJobs';
+			value: JobHash[];
 	  }>;
 
 export type WebviewResponse =
@@ -323,6 +327,7 @@ export type View =
 				diffId: string;
 				title: string;
 				data: JobDiffViewProps[];
+				stagedJobs: JobHash[];
 			};
 	  }>
 	| Readonly<{

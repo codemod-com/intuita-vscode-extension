@@ -51,7 +51,6 @@ type HeaderProps = Readonly<{
 	jobStaged: boolean;
 	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
-	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
 	onReportIssue(): void;
 	onToggleJob(staged: boolean): void;
 }>;

@@ -8,8 +8,6 @@
 	top: 0;
 	padding: 0 8px;
 	background-color: var(--vscode-tab-inactiveBackground);
-	margin-left: -10px;
-	margin-right: -10px;
 	gap: 8px;
 }
 
