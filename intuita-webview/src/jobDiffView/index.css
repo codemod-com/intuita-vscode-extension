@@ -44,7 +44,6 @@ html {
 .ReactVirtualized__Grid__innerScrollContainer {
 	overflow: initial !important;
 }
-/** TODO: make sure this works **/
 html {
 	overflow: hidden;
 }

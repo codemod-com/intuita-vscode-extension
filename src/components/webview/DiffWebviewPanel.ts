@@ -304,7 +304,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				diffId: this.__openedCaseHash as string,
 				title,
 				data,
-				stagedJobs: stagedJobs,
+				stagedJobs,
 			},
 		};
 
