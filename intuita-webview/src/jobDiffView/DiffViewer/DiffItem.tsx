@@ -54,12 +54,12 @@ export const JobDiffView = ({
 	};
 
 	return (
-		<div ref={containerRef}>
+		<div ref={containerRef} className="px-5 py-2-5 ">
 			<Collapsable
 				id={newFileTitle ?? ''}
 				defaultExpanded={expanded}
 				onToggle={onToggle}
-				className="overflow-hidden my-10 rounded "
+				className="overflow-hidden rounded "
 				headerClassName="p-10"
 				contentClassName="p-10"
 				headerSticky

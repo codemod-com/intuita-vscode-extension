@@ -5,35 +5,14 @@ import {
 	WebviewMessage,
 	JobDiffViewProps,
 	JobAction,
+	JobHash,
 } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 
-const getViewComponent = (
-	view: View,
-	postMessage: (arg: JobAction) => void,
-) => {
-	switch (view.viewId) {
-		case 'jobDiffView':
-			const { data, title, diffId } = view.viewProps;
-
-			return (
-				<JobDiffViewContainer
-					diffId={diffId}
-					title={title}
-					jobs={data}
-					postMessage={postMessage}
-				/>
-			);
-
-		default:
-			return null;
-	}
-};
-
 function App() {
 	const [view, setView] = useState<View | null>(null);
-
+	const [scrollIntoHash, setScrollIntoHash] = useState<JobHash | null>(null);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
@@ -64,9 +43,10 @@ function App() {
 			}
 
 			if (message.kind === 'webview.diffView.focusFile') {
-				const elementId = `diffViewHeader-${message.jobHash}`;
-				const element = document.getElementById(elementId);
-				element?.scrollIntoView();
+				setScrollIntoHash(message.jobHash);
+				// const elementId = `diffViewHeader-${message.jobHash}`;
+				// const element = document.getElementById(elementId);
+				// element?.scrollIntoView();
 			}
 
 			if (
@@ -121,11 +101,22 @@ function App() {
 		});
 	}, []);
 
-	if (!view) {
+	if (!view || view.viewId !== 'jobDiffView') {
 		return null;
 	}
+	const { data, title, diffId } = view.viewProps;
 
-	return <main className="App">{getViewComponent(view, postMessage)}</main>;
+	return (
+		<main className="App">
+			<JobDiffViewContainer
+				scrollIntoHash={scrollIntoHash}
+				diffId={diffId}
+				title={title}
+				jobs={data}
+				postMessage={postMessage}
+			/>
+		</main>
+	);
 }
 export type { JobDiffViewProps };
 export default App;

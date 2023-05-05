@@ -8,7 +8,7 @@ import {
 	CellMeasurerProps,
 	CellMeasurerCache,
 } from 'react-virtualized';
-
+export { _List };
 export const List = _List as unknown as FC<ListProps>;
 export const WindowScroller =
 	_WindowScroller as unknown as FC<WindowScrollerProps>;

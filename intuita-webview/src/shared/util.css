@@ -59,6 +59,13 @@
 .p-10 {
 	padding: 10px;
 }
+.px-5 {
+	padding: 5px;
+}
+.py-2-5 {
+	padding-top: 2.5px;
+	padding-bottom: 2.5px;
+}
 .px-10 {
 	padding-left: 10px;
 	padding-right: 10px;
