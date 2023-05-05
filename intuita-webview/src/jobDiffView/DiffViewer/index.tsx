@@ -252,7 +252,7 @@ export const JobDiffViewContainer = ({
 				title={title}
 				jobs={reversedJob}
 				diffId={diffId}
-				stagedJobs={stagedJobs}
+				stagedJobsHashes={stagedJobs}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<List
