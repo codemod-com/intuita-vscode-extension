@@ -49,7 +49,6 @@ export const Collapsable = memo(
 		) => {
 			const [expanded, setExpanded] = useState(defaultCollapsed);
 			const containerRef = useRef<HTMLDivElement>(null);
-console.log('reloading ....')
 			useImperativeHandle(ref, () => ({
 				expanded,
 				collapse: () => setExpanded(false),

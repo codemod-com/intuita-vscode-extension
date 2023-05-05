@@ -1,15 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
 import { DiffViewType, JobHash } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
-import {
-	List,
-	CellMeasurerCache,
-	CellMeasurer,
-	WindowScroller,
-} from '../_reactVirtualized';
+import { List, CellMeasurerCache, CellMeasurer } from '../_reactVirtualized';
 
 import Header from './Header';
 import { vscode } from '../../shared/utilities/vscode';
@@ -48,6 +43,7 @@ export const JobDiffViewContainer = ({
 	);
 
 	const listRef = useRef<any>();
+	const containerRef = useRef<HTMLDivElement>(null);
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diffData, setDiffData] = useState<DiffData>(() =>
 		jobs.reduce((acc, el) => {
@@ -61,7 +57,23 @@ export const JobDiffViewContainer = ({
 			return acc;
 		}, {} as DiffData),
 	);
-
+	const prevDiffData = useRef<DiffData>(diffData);
+	useEffect(() => {
+		cache.current.clearAll();
+		const diffData = jobs.reduce((acc, el) => {
+			acc[el.jobHash] = {
+				visible: true,
+				diff: null,
+				height: defaultHeight,
+				expanded: true,
+				containerHeight: 50,
+			};
+			return acc;
+		}, {} as DiffData);
+		prevDiffData.current = diffData;
+		setDiffData(diffData);
+		listRef.current?.measureAllRows();
+	}, [jobs]);
 	const toggleVisible = (jobHash: JobHash) => {
 		const copy = { ...diffData };
 		if (!copy[jobHash]) {
@@ -77,6 +89,7 @@ export const JobDiffViewContainer = ({
 				[jobHash]: {
 					...copy[jobHash],
 					visible: !copy[jobHash]?.visible,
+					expanded: !copy[jobHash]?.visible
 				},
 			};
 		});
@@ -159,6 +172,28 @@ export const JobDiffViewContainer = ({
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
 
+	useEffect(() => {
+		for (const data of Object.entries(diffData)) {
+			const jobHash = data[0] as JobHash;
+			const prevData = prevDiffData.current?.[jobHash];
+			if (!prevData) {
+				continue;
+			}
+			if (
+				prevData.height !== data[1].height ||
+				prevData.expanded !== data[1].expanded
+			) {
+				const index = jobs.findIndex((job) => job.jobHash === jobHash);
+				if (index === -1) {
+					return;
+				}
+				cache.current?.clear(index, 0);
+				listRef.current.recomputeRowHeights(index);
+			}
+		}
+		prevDiffData.current = diffData;
+	}, [diffData, jobs]);
+
 	return (
 		<div
 			className="w-full h-full flex flex-col "
@@ -171,34 +206,31 @@ export const JobDiffViewContainer = ({
 				jobs={jobs}
 				diffId={diffId}
 			/>
-			<WindowScroller>
-				{({ width, height, isScrolling, scrollTop, onChildScroll }) => (
-					<List
-						autoHeight
-						height={height}
-						isScrolling={isScrolling}
-						onScroll={onChildScroll}
-						// ref={listRef}
-						columnWidth={cache.current.columnWidth}
-						deferredMeasurementCache={cache.current}
-						width={width}
-						scrollTop={scrollTop}
-						rowHeight={cache.current.rowHeight}
-						rowCount={jobs.length}
-						rowRenderer={({ index, style, parent, key }) => {
-							const el = jobs[index];
-							if (!el) {
-								return null;
-							}
-							return (
-								<CellMeasurer
-									cache={cache.current}
-									columnIndex={0}
-									key={key}
-									parent={parent}
-									rowIndex={index}
-								>
-									{({ measure, registerChild }) => (
+			<div className="w-full h-full" ref={containerRef}>
+				<List
+					height={containerRef.current?.clientHeight ?? 30}
+					ref={listRef}
+					columnWidth={cache.current.columnWidth}
+					deferredMeasurementCache={cache.current}
+					width={containerRef.current?.scrollWidth ?? 30}
+					rowHeight={cache.current.rowHeight}
+					overscanRowCount={1}
+					rowCount={jobs.length}
+					rowRenderer={({ index, style, parent, key }) => {
+						const el = jobs[index];
+						if (!el) {
+							return null;
+						}
+						return (
+							<CellMeasurer
+								cache={cache.current}
+								columnIndex={0}
+								key={key}
+								parent={parent}
+								rowIndex={index}
+							>
+								{({ registerChild, measure }) => {
+									return (
 										<div style={style}>
 											<JobDiffView
 												containerRef={registerChild}
@@ -262,10 +294,6 @@ export const JobDiffViewContainer = ({
 														el.jobHash,
 														height,
 													);
-													setTimeout(
-														() => measure(),
-														100,
-													);
 												}}
 												onDiffCalculated={
 													onDiffCalculated
@@ -273,13 +301,13 @@ export const JobDiffViewContainer = ({
 												{...el}
 											/>
 										</div>
-									)}
-								</CellMeasurer>
-							);
-						}}
-					/>
-				)}
-			</WindowScroller>
+									);
+								}}
+							</CellMeasurer>
+						);
+					}}
+				/>
+			</div>
 		</div>
 	);
 };

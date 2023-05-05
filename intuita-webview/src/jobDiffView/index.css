@@ -25,9 +25,9 @@
 **/
 
 .App {
-    height: 100%;
-    width: 100%;
- 	position: relative;
+	height: 100%;
+	width: 100%;
+	position: relative;
 	background-color: var(--vscode-textCodeBlock-background);
 }
 
@@ -39,4 +39,12 @@
 
 html {
 	overflow-y: scroll;
+}
+
+.ReactVirtualized__Grid__innerScrollContainer {
+	overflow: initial !important;
+}
+/** TODO: make sure this works **/
+html {
+	overflow: hidden;
 }
