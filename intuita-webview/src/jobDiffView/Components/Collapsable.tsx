@@ -28,7 +28,7 @@ export const Collapsable = ({
 	className,
 	children,
 }: CollapsableProps) => {
- 	return (
+	return (
 		<div className={cn('collapsable', className)} id={id}>
 			<div
 				className={cn(headerClassName, {

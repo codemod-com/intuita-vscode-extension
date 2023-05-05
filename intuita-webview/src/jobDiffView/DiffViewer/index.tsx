@@ -24,7 +24,7 @@ type JobDiffViewContainerProps = Readonly<{
 	diffId: string;
 	scrollIntoHash: JobHash | null;
 	stagedJobs: JobHash[];
-}>
+}>;
 
 type DiffItem = Readonly<{
 	visible: boolean;
@@ -32,7 +32,7 @@ type DiffItem = Readonly<{
 	height: number | null;
 	containerHeight: number;
 	expanded: boolean;
-}>
+}>;
 type DiffData = Record<JobHash, DiffItem>;
 
 const defaultHeight = 1200;

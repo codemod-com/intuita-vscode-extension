@@ -51,7 +51,7 @@ type HeaderProps = Readonly<{
 	jobStaged: boolean;
 	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
- 	onReportIssue(): void;
+	onReportIssue(): void;
 	onToggleJob(staged: boolean): void;
 }>;
 
