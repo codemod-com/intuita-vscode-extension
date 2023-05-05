@@ -206,7 +206,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (!viewProps) {
 						return;
 					}
-					const { title, data } = viewProps;
+					const { title, data, stagedJobs } = viewProps;
 					panelInstance.setTitle(title);
 
 					panelInstance.setView({
@@ -215,6 +215,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							diffId: String(caseHash) as CaseHash,
 							title,
 							data,
+							stagedJobs,
 						},
 					});
 				} catch (err) {

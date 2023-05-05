@@ -30,8 +30,7 @@ export type JobDiffViewProps = Readonly<{
 	newFileTitle: string | null;
 	title: string | null;
 	actions?: JobAction[];
-	staged: boolean;
-}>;
+ }>;
 
 export type CommitChangesFormData = Readonly<{
 	remoteUrl: string;
@@ -189,7 +188,11 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemods.focusCodemod';
 			codemodHashDigest: CodemodHash;
-	  }>;
+	  }>
+	| Readonly<{
+		kind: 'webview.diffView.updateStagedJobs';
+		value: JobHash[];
+	}>
 
 export type WebviewResponse =
 	| Readonly<{
@@ -324,6 +327,7 @@ export type View =
 				diffId: string;
 				title: string;
 				data: JobDiffViewProps[];
+				stagedJobs: JobHash[];
 			};
 	  }>
 	| Readonly<{

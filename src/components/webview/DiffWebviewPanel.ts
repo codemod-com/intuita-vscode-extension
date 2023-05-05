@@ -140,7 +140,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	public async getViewDataForJob(
 		jobHash: JobHash,
-	): Promise<JobDiffViewProps | null> {
+	): Promise<(JobDiffViewProps & { staged: boolean }) | null> {
 		if (!this.__rootPath) {
 			return null;
 		}
@@ -199,7 +199,11 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	public async getViewDataForCase(
 		caseHash: ElementHash,
-	): Promise<null | Readonly<{ title: string; data: JobDiffViewProps[] }>> {
+	): Promise<null | Readonly<{
+		title: string;
+		data: JobDiffViewProps[];
+		stagedJobs: JobHash[];
+	}>> {
 		const hash = caseHash as unknown as CaseHash;
 		const kase = this.__caseManager.getCase(hash);
 		if (!kase) {
@@ -219,10 +223,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this.__openedCaseHash = caseHash;
 
 		const data = viewDataArray.filter(isNeitherNullNorUndefined);
+		const stagedJobs = data
+			.filter((job) => job.staged)
+			.map((job) => job.jobHash);
 
 		return {
 			title: `${kase.codemodName} (${data.length})`,
 			data,
+			stagedJobs: stagedJobs,
 		};
 	}
 
@@ -270,7 +278,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			return;
 		}
 
-		const { title, data } = viewData;
+		const { title, data , stagedJobs } = viewData;
 
 		const view: View = {
 			viewId: 'jobDiffView' as const,
@@ -278,6 +286,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				diffId: this.__openedCaseHash as string,
 				title,
 				data,
+				stagedJobs: stagedJobs,
 			},
 		};
 
