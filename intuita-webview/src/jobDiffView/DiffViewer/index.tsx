@@ -254,7 +254,7 @@ export const JobDiffViewContainer = ({
 				diffId={diffId}
 				stagedJobs={stagedJobs}
 			/>
-			<div className="w-full py-2-5 h-full" ref={containerRef}>
+			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<List
 					scrollToAlignment="start"
 					height={height}
@@ -263,7 +263,7 @@ export const JobDiffViewContainer = ({
 					deferredMeasurementCache={cache.current}
 					width={width}
 					rowHeight={cache.current.rowHeight}
-					overscanRowCount={1}
+					overscanRowCount={6}
 					rowCount={reversedJob.length}
 					rowRenderer={({ index, style, parent, key }) => {
 						const el = reversedJob[index];

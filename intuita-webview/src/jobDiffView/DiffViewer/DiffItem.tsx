@@ -58,7 +58,7 @@ export const JobDiffView = ({
 	return (
 		<div
 			ref={(ref) => containerRef?.(ref ?? undefined)}
-			className="px-5 py-2-5 "
+			className="px-5 pb-2-5 "
 		>
 			<Collapsable
 				id={newFileTitle ?? ''}

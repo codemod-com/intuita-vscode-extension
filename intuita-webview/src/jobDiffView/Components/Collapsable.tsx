@@ -1,6 +1,6 @@
 import React from 'react';
 import { ReactComponent as ArrowDownIcon } from '../../assets/arrow-down.svg';
-import '../../shared/Collapsable/Collapsable.css';
+import './Collapsable.css';
 import cn from 'classnames';
 
 type CollapsableProps = Readonly<{
