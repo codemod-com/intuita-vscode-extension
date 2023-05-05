@@ -19,7 +19,8 @@ type Props = JobDiffViewProps & {
 	onHeightSet: (height: number) => void;
 	diff: Diff | null;
 	onDiffCalculated: (jobHash: JobHash, diff: Diff) => void;
-	containerRef: any;
+	containerRef: ((element?: Element | undefined) => void) | undefined;
+	theme: string;
 };
 
 export const JobDiffView = ({
@@ -44,6 +45,7 @@ export const JobDiffView = ({
 	expanded,
 	onToggle,
 	containerRef,
+	theme,
 }: Props) => {
 	const onAction = (action: JobAction) => {
 		postMessage(action);
@@ -54,7 +56,10 @@ export const JobDiffView = ({
 	};
 
 	return (
-		<div ref={containerRef} className="px-5 py-2-5 ">
+		<div
+			ref={(ref) => containerRef?.(ref ?? undefined)}
+			className="px-5 py-2-5 "
+		>
 			<Collapsable
 				id={newFileTitle ?? ''}
 				defaultExpanded={expanded}
@@ -88,6 +93,7 @@ export const JobDiffView = ({
 					newFileName={newFileTitle}
 				>
 					<DiffComponent
+						theme={theme}
 						height={height}
 						onHeightSet={onHeightSet}
 						onDiffCalculated={(diff) =>

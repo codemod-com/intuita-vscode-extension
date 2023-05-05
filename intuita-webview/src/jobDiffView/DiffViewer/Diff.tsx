@@ -12,6 +12,7 @@ export const DiffComponent = ({
 	onDiffCalculated,
 	height,
 	onHeightSet,
+	theme
 }: {
 	oldFileContent: string | null;
 	newFileContent: string | null;
@@ -19,6 +20,7 @@ export const DiffComponent = ({
 	onDiffCalculated: (diff: Diff) => void;
 	height: number;
 	onHeightSet: (height: number) => void;
+	theme: string;
 }) => {
 	const editorRef = createRef<monaco.editor.IStandaloneDiffEditor>();
  
@@ -61,6 +63,7 @@ export const DiffComponent = ({
 			<MonacoDiffEditor
 				height={`${height}px`}
 				onRefSet={handleRefSet}
+				theme={theme}
 				ref={editorRef}
 				options={{
 					readOnly: true,
