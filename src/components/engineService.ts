@@ -97,8 +97,6 @@ export const messageCodec = t.union([
 	}),
 ]);
 
-const STORAGE_DIRECTORY_MAP = new Map([['node', 'nora-node-engine']]);
-
 type Execution = {
 	readonly executionId: string;
 	readonly childProcess: ChildProcessWithoutNullStreams;
@@ -141,7 +139,7 @@ export class EngineService {
 		this.#fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.enginesBootstrapped, (message) =>
+		messageBus.subscribe(MessageKind.engineBootstrapped, (message) =>
 			this.#onEnginesBootstrappedMessage(message),
 		);
 
@@ -151,7 +149,7 @@ export class EngineService {
 	}
 
 	#onEnginesBootstrappedMessage(
-		message: Message & { kind: MessageKind.enginesBootstrapped },
+		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 	}
@@ -229,14 +227,10 @@ export class EngineService {
 
 		const { storageUri } = message.command;
 
-		const storageDirectory = 'nora-node-engine';
-
 		const outputUri = Uri.joinPath(
 			message.command.storageUri,
-			storageDirectory,
+			'nora-node-engine',
 		);
-
-		const executableUri = this.#noraNodeEngineExecutableUri;
 
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
@@ -309,32 +303,28 @@ export class EngineService {
 				return args;
 			}
 
-			if (message.command.engine === 'node') {
-				const commandUri = message.command.uri;
+			const commandUri = message.command.uri;
 
-				includePatterns.forEach((includePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, includePattern);
+			includePatterns.forEach((includePattern) => {
+				const { fsPath } = Uri.joinPath(commandUri, includePattern);
 
-					const path = singleQuotify(fsPath);
+				const path = singleQuotify(fsPath);
 
-					args.push('-p', path);
-				});
-				excludePatterns.forEach((excludePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+				args.push('-p', path);
+			});
+			excludePatterns.forEach((excludePattern) => {
+				const { fsPath } = Uri.joinPath(commandUri, excludePattern);
 
-					const path = singleQuotify(fsPath);
+				const path = singleQuotify(fsPath);
 
-					args.push('-p', `!${path}`);
-				});
-				args.push(
-					'-w',
-					String(
-						this.#configurationContainer.get().workerThreadCount,
-					),
-				);
+				args.push('-p', `!${path}`);
+			});
+			args.push(
+				'-w',
+				String(this.#configurationContainer.get().workerThreadCount),
+			);
 
-				args.push('-l', String(fileLimit));
-			}
+			args.push('-l', String(fileLimit));
 
 			if ('fileUri' in message.command) {
 				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
@@ -359,15 +349,16 @@ export class EngineService {
 
 		const args = buildArguments();
 
-		const caseKind =
-			message.command.engine === 'node'
-				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
-				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
+		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
-		const childProcess = spawn(singleQuotify(executableUri.fsPath), args, {
-			stdio: 'pipe',
-			shell: true,
-		});
+		const childProcess = spawn(
+			singleQuotify(this.#noraNodeEngineExecutableUri.fsPath),
+			args,
+			{
+				stdio: 'pipe',
+				shell: true,
+			},
+		);
 
 		const errorMessages = new Set<string>();
 
@@ -624,13 +615,11 @@ export class EngineService {
 	}
 
 	async clearOutputFiles(storageUri: Uri) {
-		for (const storageDirectory of STORAGE_DIRECTORY_MAP.values()) {
-			const outputUri = Uri.joinPath(storageUri, storageDirectory);
+		const outputUri = Uri.joinPath(storageUri, 'nora-node-engine');
 
-			await this.#fileSystem.delete(outputUri, {
-				recursive: true,
-				useTrash: false,
-			});
-		}
+		await this.#fileSystem.delete(outputUri, {
+			recursive: true,
+			useTrash: false,
+		});
 	}
 }

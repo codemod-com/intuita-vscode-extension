@@ -25,11 +25,7 @@ export const persistedJobCodec = buildTypeCodec({
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
 
 export const persistedCaseCodec = buildTypeCodec({
-	kind: t.union([
-		t.literal(CaseKind.REWRITE_FILE_BY_POLYGLOT_PIRANHA),
-		t.literal(CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE),
-		t.literal(CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE),
-	]),
+	kind: t.literal(CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE),
 	subKind: t.string,
 	hash: t.string,
 	codemodSetName: t.string,

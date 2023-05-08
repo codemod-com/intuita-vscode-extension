@@ -644,7 +644,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus.publish({
 				kind: MessageKind.executeCodemodSet,
 				command: {
-					engine: 'node',
 					storageUri,
 					uri,
 					recipeName: recipeName,
@@ -1063,7 +1062,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					kind: MessageKind.executeCodemodSet,
 					command: {
 						uri: rootUri,
-						engine: 'node',
 						storageUri,
 						fileUri: uri,
 					},
@@ -1094,7 +1092,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeCodemod',
-							engine: 'node',
 							storageUri,
 							codemodHash: hashDigest,
 							uri,
@@ -1161,7 +1158,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeCodemod',
-							engine: 'node',
 							storageUri,
 							codemodHash:
 								selectedCodemod.hashDigest as CodemodHash,
@@ -1248,13 +1244,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					recipeName === 'redwoodjs_experimental'
 						? {
 								kind: 'repomod',
-								engine: 'node',
 								repomodFilePath: recipeName,
 								storageUri,
 								inputPath: uri,
 						  }
 						: {
-								engine: 'node',
 								storageUri,
 								recipeName,
 								uri,
@@ -1308,7 +1302,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					kind: MessageKind.executeCodemodSet,
 					command: {
 						uri,
-						engine: 'node',
 						storageUri,
 						fileUri: modUri,
 					},
@@ -1481,7 +1474,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	messageBus.publish({
-		kind: MessageKind.bootstrapEngines,
+		kind: MessageKind.bootstrapEngine,
 	});
 
 	messageBus.publish({ kind: MessageKind.extensionActivated });
