@@ -14,11 +14,7 @@ type MainViews = Extract<View, { viewId: 'communityView' }>;
 
 const getIcon = (icon: string): ReactElement | null => {
 	const IntuitaIcon = (
-		<img
-			className={styles.icon}
-			src={intuitaLogo}
-			alt="intuita-logo"
-		/>
+		<img className={styles.icon} src={intuitaLogo} alt="intuita-logo" />
 	);
 
 	switch (icon) {

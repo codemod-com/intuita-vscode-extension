@@ -86,7 +86,9 @@ export class WebviewResolver {
 					<meta name="theme-color" content="#000000">
 					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${
 			webview.cspSource
-		}; style-src ${webview.cspSource} 'unsafe-inline'; img-src 'self' data:;">
+		}; style-src ${
+			webview.cspSource
+		} 'unsafe-inline'; img-src 'self' data:;">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
