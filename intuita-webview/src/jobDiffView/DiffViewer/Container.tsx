@@ -69,8 +69,8 @@ export const Header = ({
 	onAction,
 	onReportIssue,
 }: HeaderProps) => {
-	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
+	const hasDiff = diff !== null;
 	return (
 		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
@@ -114,7 +114,7 @@ export const Header = ({
 						}
 						popoverText="Open a Github issue with a provided template to report a problem."
 					/>
-					{shouldShowDiff && (
+					{hasDiff ? (
 						<div className="ml-10 flex items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
 								-{diff.removed}
@@ -126,7 +126,7 @@ export const Header = ({
 								+{diff.added}
 							</span>
 						</div>
-					)}
+					) : null}
 					{actions &&
 						actions?.map((el) => (
 							<VSCodeButton
@@ -152,17 +152,6 @@ export const Header = ({
 			{children}
 		</div>
 	);
-};
-
-const showDiff = (jobKind: JobKind): boolean => {
-	switch (jobKind) {
-		case JobKind.copyFile:
-		case JobKind.moveFile:
-		case JobKind.deleteFile:
-			return false;
-		default:
-			return true;
-	}
 };
 
 const getJobKindText = (jobKind: JobKind): string => {
