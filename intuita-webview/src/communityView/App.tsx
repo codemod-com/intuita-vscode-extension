@@ -68,21 +68,24 @@ function App() {
 			<div className={styles.container}>
 				{view.viewProps.externalLinks.map(
 					({ text, url, icon }: ExternalLink) => {
+						const handleButtonClick = (
+							event: Event | React.FormEvent<HTMLElement>,
+						) => {
+							event.stopPropagation();
+							vscode.postMessage({
+								kind: 'webview.command',
+								value: {
+									command: 'openLink',
+									arguments: [url],
+									title: text,
+								},
+							});
+						};
 						return (
 							<VSCodeButton
 								className={styles.button}
 								appearance="icon"
-								onClick={(event) => {
-									event.stopPropagation();
-									vscode.postMessage({
-										kind: 'webview.command',
-										value: {
-											command: 'openLink',
-											arguments: [url],
-											title: text,
-										},
-									});
-								}}
+								onClick={handleButtonClick}
 							>
 								{getIcon(icon)}
 								<span className={styles.text}>{text}</span>
