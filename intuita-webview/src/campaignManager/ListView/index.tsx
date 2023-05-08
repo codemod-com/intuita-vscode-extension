@@ -32,6 +32,8 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 		}
 
 		handleClick(selectedCaseNode);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [handleClick, selectedCaseNode?.id]);
 
 	return (
