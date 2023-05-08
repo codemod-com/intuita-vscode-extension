@@ -31,7 +31,18 @@ const getIcon = (icon: string): ReactElement | null => {
 			return <DocsIcon className={styles.icon} />;
 
 		case 'slack':
-			return <SlackIcon className={styles.icon} />;
+			return (
+				<SlackIcon
+					className={styles.icon}
+					style={{
+						width: '30px',
+						height: '30px',
+						marginTop: '-2px',
+						marginLeft: '-6px',
+						marginRight: '1px',
+					}}
+				/>
+			);
 	}
 	return null;
 };
