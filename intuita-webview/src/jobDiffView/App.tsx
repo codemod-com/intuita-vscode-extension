@@ -57,9 +57,9 @@ function App() {
 				);
 
 				const element =
-					document.getElementById(
-						`diffViewer-${view.viewProps.diffId}`,
-					) ?? null;
+					document.getElementsByClassName(
+						'ReactVirtualized__Grid__innerScrollContainer',
+					)[0] ?? null;
 
 				if (element === null) {
 					return;

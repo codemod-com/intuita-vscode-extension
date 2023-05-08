@@ -4,7 +4,6 @@ import './Collapsable.css';
 import cn from 'classnames';
 
 type CollapsableProps = Readonly<{
-	id: string;
 	defaultExpanded: boolean;
 	headerComponent: React.ReactNode;
 	headerClassName?: string;
@@ -17,7 +16,6 @@ type CollapsableProps = Readonly<{
 }>;
 
 export const Collapsable = ({
-	id,
 	onToggle,
 	defaultExpanded: defaultCollapsed,
 	headerSticky,
@@ -29,7 +27,7 @@ export const Collapsable = ({
 	children,
 }: CollapsableProps) => {
 	return (
-		<div className={cn('collapsable', className)} id={id}>
+		<div className={cn('collapsable', className)}>
 			<div
 				className={cn(headerClassName, {
 					collapsable__header: true,

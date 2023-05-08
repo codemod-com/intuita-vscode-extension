@@ -242,10 +242,7 @@ export const JobDiffViewContainer = ({
 	};
 
 	return (
-		<div
-			className="w-full h-full flex flex-col "
-			id={`diffViewer-${diffId}`}
-		>
+		<div className="w-full h-full flex flex-col">
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
@@ -280,7 +277,7 @@ export const JobDiffViewContainer = ({
 							>
 								{({ registerChild }) => {
 									return (
-										<div style={style}>
+										<div style={style} id={el.newFileTitle ?? ''}>
 											<JobDiffView
 												theme={theme}
 												containerRef={registerChild}
