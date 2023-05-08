@@ -3,6 +3,7 @@ import {
 	WebviewView,
 	Uri,
 	ExtensionContext,
+	commands,
 } from 'vscode';
 import {
 	ExternalLink,
@@ -89,6 +90,16 @@ export class CommunityProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
+		if (message.kind === 'webview.command') {
+			if (message.value.command === 'openLink') {
+				commands.executeCommand(
+					'vscode.open',
+					Uri.parse(message.value.arguments?.[0] ?? ''),
+				);
+				return;
+			}
+		}
+
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.setView({
 				viewId: 'communityView',

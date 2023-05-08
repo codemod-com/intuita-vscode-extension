@@ -1,0 +1,21 @@
+.container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+.button {
+	width: 100%;
+	padding: 10px 5px;
+}
+
+.icon {
+	margin-right: 10px;
+	width: 25px;
+	height: 25px;
+}
+
+.text {
+	width: 100%;
+	font-size: 20px;
+}

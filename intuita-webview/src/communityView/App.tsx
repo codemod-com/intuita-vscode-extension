@@ -1,28 +1,39 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import { ReactComponent as CaseIcon } from '../assets/arrow-down.svg';
+import { ReactComponent as DocsIcon } from '../assets/docs.svg';
+import { ReactComponent as SlackIcon } from '../assets/slack.svg';
+import { ReactComponent as YoutubeIcon } from '../assets/youtube.svg';
 import { ReactElement, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { View, WebviewMessage } from '../shared/types';
 import { ExternalLink } from '../../../src/components/webview/webviewEvents';
+import styles from './style.module.css';
 
 type MainViews = Extract<View, { viewId: 'communityView' }>;
 
 const getIcon = (icon: string): ReactElement | null => {
+	const IntuitaIcon = (
+		<img
+			className={styles.icon}
+			alt="intuita-logo"
+			src="https://avatars.githubusercontent.com/u/78830094?s=200&v=4"
+		/>
+	);
+
 	switch (icon) {
 		case 'youtube':
-			return <CaseIcon />;
+			return <YoutubeIcon className={styles.icon} />;
 
 		case 'featureRequest':
-			return <CaseIcon />;
+			return IntuitaIcon;
 
 		case 'codemodRequest':
-			return <CaseIcon />;
+			return IntuitaIcon;
 
 		case 'docs':
-			return <CaseIcon />;
+			return <DocsIcon className={styles.icon} />;
 
 		case 'slack':
-			return <CaseIcon />;
+			return <SlackIcon className={styles.icon} />;
 	}
 	return null;
 };
@@ -57,17 +68,15 @@ function App() {
 	return (
 		<main className="App">
 			<div
-				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					width: '100%',
-				}}
+				className={styles.container}
 			>
 				{view.externalLinks.map(({ text, url, icon }: ExternalLink) => {
 					return (
 						<VSCodeButton
-							appearance="secondary"
-							onClick={() => {
+							className={styles.button}
+							appearance="icon"
+							onClick={(event) => {
+								event.stopPropagation();
 								vscode.postMessage({
 									kind: 'webview.command',
 									value: {
@@ -77,13 +86,11 @@ function App() {
 									},
 								});
 							}}
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-							}}
 						>
 							{getIcon(icon)}
-							{text}
+							<span className={styles.text}>
+								{text}
+							</span>
 						</VSCodeButton>
 					);
 				})}
