@@ -206,9 +206,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					const { title, data, stagedJobs } = viewProps;
 					panelInstance.setTitle(title);
 
+					const isExecutionInProgress =
+						engineService.isExecutionInProgress();
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							loading: isExecutionInProgress,
 							diffId: String(caseHash) as CaseHash,
 							title,
 							data,

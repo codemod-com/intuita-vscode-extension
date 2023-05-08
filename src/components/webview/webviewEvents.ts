@@ -326,6 +326,7 @@ export type View =
 			viewProps: {
 				diffId: string;
 				title: string;
+				loading: boolean;
 				data: JobDiffViewProps[];
 				stagedJobs: JobHash[];
 			};

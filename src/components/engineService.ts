@@ -197,6 +197,10 @@ export class EngineService {
 		}
 	}
 
+	public isExecutionInProgress(): boolean {
+		return this.#execution !== null;
+	}
+
 	shutdownEngines() {
 		if (!this.#execution) {
 			return;

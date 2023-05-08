@@ -9,6 +9,7 @@ import {
 } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
+import LoadingProgress from './Components/LoadingProgress';
 
 function App() {
 	const [view, setView] = useState<View | null>(null);
@@ -111,6 +112,11 @@ function App() {
 	if (!view || view.viewId !== 'jobDiffView') {
 		return null;
 	}
+
+	if (view.viewProps.loading) {
+		return <LoadingProgress />;
+	}
+
 	const { data, title, diffId } = view.viewProps;
 
 	return (
