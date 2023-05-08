@@ -1,7 +1,6 @@
 import { Webview, Uri } from 'vscode';
 import { randomBytes } from 'crypto';
 import { getUri } from '../../utilities';
-import fs from 'fs';
 
 export class WebviewResolver {
 	constructor(private readonly __extensionPath: Uri) {}
@@ -38,60 +37,40 @@ export class WebviewResolver {
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
-			`${webviewName}.css`,
+			webviewName,
+			'assets',
+			`index.css`,
 		]);
 		const scriptUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
 			'build',
+			webviewName,
 			'assets',
 			`${webviewName}.js`,
 		]);
-
-		// TODO: enable importing chunks on demand
-		// find files that end with .chunk.js
-		const chunkFiles = webviewName === 'jobDiffView' ? fs
-			.readdirSync(
-				Uri.joinPath(
-					this.__extensionPath,
-					'intuita-webview/build/assets',
-				).fsPath,
-			) 
-			// @TODO what chunks do we need for monaco-editor?
-			.filter((file) => ['javascript.js', 'typescript.js'].includes(file)) : [];
-      
-			// @TODO setup vite to pack all css in single chunk 
-			const styleModulesCssFiles = fs
-			.readdirSync(
-				Uri.joinPath(
-					this.__extensionPath,
-					'intuita-webview/build/assets',
-				).fsPath,
-			)
-			.filter((file) => file.endsWith('.css'));
-
-		const chunkUris = chunkFiles.map((file) =>
-			getUri(webview, this.__extensionPath, [
-				'intuita-webview',
-				'build',
-				'assets',
-				file,
-			]),
-		);
-
-		const cssChunkUris = styleModulesCssFiles.map((file) =>
-		getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			'assets',
-			file,
-		]),
-	)
 
 		const nonce = randomBytes(16).toString('hex');
 		const codiconsUri = getUri(webview, this.__extensionPath, [
 			'resources',
 			'codicon.css',
 		]);
+
+		const scriptSources = [
+			`'nonce-${nonce}'`,
+			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/',
+		];
+
+		const styleSources = [
+			webview.cspSource,
+			`'self'`,
+			`'unsafe-inline'`,
+			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/',
+		];
+
+		const fontSrc = [
+			webview.cspSource,
+			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1',
+		];
 
 		return /*html*/ `
 			<!DOCTYPE html>
@@ -100,17 +79,14 @@ export class WebviewResolver {
 					<meta charset="utf-8">
 					<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 					<meta name="theme-color" content="#000000">
-					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; font-src ${
-			webview.cspSource
-		}; style-src ${webview.cspSource} 'unsafe-inline'">
+					<meta http-equiv="Content-Security-Policy" content="
+					default-src 'none';
+					script-src ${scriptSources.join(' ')}; 
+					font-src ${fontSrc.join(' ')};
+					style-src ${styleSources.join(' ')};
+					worker-src blob:;">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
-					${cssChunkUris
-						.map(
-							(uri) =>
-								`	<link rel="stylesheet" type="text/css" href="${uri}">`,
-						)
-						.join('')}
 					<title>Intuita Panel</title>
 					<style>
 					 .placeholder {
@@ -126,12 +102,6 @@ export class WebviewResolver {
 					window.INITIAL_STATE=${initialData}
 					</script>
 					<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-					${chunkUris
-						.map(
-							(uri) =>
-								`<script async nonce="${nonce}" src="${uri}"></script>`,
-						)
-						.join('')}
 				</body>
 			</html>
 		`;
