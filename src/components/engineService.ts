@@ -3,14 +3,25 @@ import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, window } from 'vscode';
-import { CaseKind } from '../cases/types';
+import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
-import { buildTypeCodec, singleQuotify } from '../utilities';
+import {
+	buildTypeCodec,
+	doubleQuotify,
+	singleQuotify,
+	streamToString,
+} from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { StatusBarItemManager } from './statusBarItemManager';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
+import { buildCaseHash } from '../cases/buildCaseHash';
+
+export class EngineNotFoundError extends Error {}
+export class UnableToParseEngineResponseError extends Error {}
+export class InvalidEngineResponseFormatError extends Error {}
 
 export const Messages = {
 	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
@@ -18,6 +29,8 @@ export const Messages = {
 	errorRunningCodemod: 'An error occurred while running the codemod',
 	codemodUnrecognized: 'The codemod is invalid / unsupported',
 };
+
+const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
 
 export const enum EngineMessageKind {
 	change = 1,
@@ -84,19 +97,27 @@ export const messageCodec = t.union([
 	}),
 ]);
 
-const STORAGE_DIRECTORY_MAP = new Map([
-	['node', 'nora-node-engine'],
-	['rust', 'nora-rust-engine'],
-]);
-
 type Execution = {
 	readonly executionId: string;
 	readonly childProcess: ChildProcessWithoutNullStreams;
 	readonly codemodSetName: string;
+	readonly codemodHash?: CodemodHash;
 	totalFileCount: number;
 	halted: boolean;
 	affectedAnyFile: boolean;
+	readonly jobs: Job[];
 };
+
+const codemodEntryCodec = buildTypeCodec({
+	kind: t.literal('codemod'),
+	hashDigest: t.string,
+	name: t.string,
+	description: t.string,
+});
+
+type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
+
+const codemodListCodec = t.readonlyArray(codemodEntryCodec);
 
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
@@ -106,7 +127,6 @@ export class EngineService {
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
-	#noraRustEngineExecutableUri: Uri | null = null;
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
@@ -119,24 +139,66 @@ export class EngineService {
 		this.#fileSystem = fileSystem;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.enginesBootstrapped, (message) =>
+		messageBus.subscribe(MessageKind.engineBootstrapped, (message) =>
 			this.#onEnginesBootstrappedMessage(message),
 		);
 
 		messageBus.subscribe(MessageKind.executeCodemodSet, (message) => {
 			this.#onExecuteCodemodSetMessage(message);
 		});
-
-		messageBus.subscribe(MessageKind.filesCompared, (message) => {
-			this.#onFilesComparedMessage(message);
-		});
 	}
 
 	#onEnginesBootstrappedMessage(
-		message: Message & { kind: MessageKind.enginesBootstrapped },
+		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
-		this.#noraRustEngineExecutableUri = message.noraRustEngineExecutableUri;
+	}
+
+	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+		const executableUri = this.#noraNodeEngineExecutableUri;
+
+		if (!executableUri) {
+			throw new EngineNotFoundError(
+				'The codemod engine node has not been downloaded yet',
+			);
+		}
+
+		const childProcess = spawn(
+			singleQuotify(executableUri.fsPath),
+			['list'],
+			{
+				stdio: 'pipe',
+				shell: true,
+				detached: false,
+			},
+		);
+
+		const codemodListJSON = await streamToString(childProcess.stdout);
+
+		try {
+			const codemodListOrError = codemodListCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
+
+			if (codemodListOrError._tag === 'Left') {
+				const report = prettyReporter.report(codemodListOrError);
+				throw new InvalidEngineResponseFormatError(report.join(`\n`));
+			}
+
+			return codemodListOrError.right;
+		} catch (e) {
+			if (e instanceof InvalidEngineResponseFormatError) {
+				throw e;
+			}
+
+			throw new UnableToParseEngineResponseError(
+				'Unable to parse engine output',
+			);
+		}
+	}
+
+	public isExecutionInProgress(): boolean {
+		return this.#execution !== null;
 	}
 
 	shutdownEngines() {
@@ -159,12 +221,9 @@ export class EngineService {
 			return;
 		}
 
-		if (
-			!this.#noraNodeEngineExecutableUri ||
-			!this.#noraRustEngineExecutableUri
-		) {
+		if (!this.#noraNodeEngineExecutableUri) {
 			await window.showErrorMessage(
-				'Wait until the engines have been bootstrapped to execute the operation',
+				'Wait until the engine has been bootstrapped to execute the operation',
 			);
 
 			return;
@@ -172,20 +231,10 @@ export class EngineService {
 
 		const { storageUri } = message.command;
 
-		const storageDirectory =
-			message.command.engine === 'node'
-				? 'nora-node-engine'
-				: 'nora-rust-engine';
-
 		const outputUri = Uri.joinPath(
 			message.command.storageUri,
-			storageDirectory,
+			'nora-node-engine',
 		);
-
-		const executableUri =
-			message.command.engine === 'node'
-				? this.#noraNodeEngineExecutableUri
-				: this.#noraRustEngineExecutableUri;
 
 		await this.#fileSystem.createDirectory(storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
@@ -196,7 +245,10 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if ('kind' in message.command) {
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'repomod'
+			) {
 				args.push('repomod');
 				args.push('-f', singleQuotify(message.command.repomodFilePath));
 				args.push(
@@ -211,7 +263,15 @@ export class EngineService {
 				return args;
 			}
 
-			if (message.command.engine === 'node') {
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'executeCodemod'
+			) {
+				args.push(
+					'-c',
+					singleQuotify(doubleQuotify(message.command.codemodHash)),
+				);
+
 				const commandUri = message.command.uri;
 
 				includePatterns.forEach((includePattern) => {
@@ -221,6 +281,7 @@ export class EngineService {
 
 					args.push('-p', path);
 				});
+
 				excludePatterns.forEach((excludePattern) => {
 					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
 
@@ -228,6 +289,7 @@ export class EngineService {
 
 					args.push('-p', `!${path}`);
 				});
+
 				args.push(
 					'-w',
 					String(
@@ -236,24 +298,37 @@ export class EngineService {
 				);
 
 				args.push('-l', String(fileLimit));
-			} else if (message.command.engine === 'rust') {
-				const commandUri = message.command.uri;
 
-				args.push('-d', singleQuotify(commandUri.fsPath));
+				args.push(
+					'-o',
+					singleQuotify(message.command.storageUri.fsPath),
+				);
 
-				['js', 'jsx', 'ts', 'tsx'].forEach((extension) => {
-					const { fsPath } = Uri.joinPath(
-						commandUri,
-						`**/*.${extension}`,
-					);
-
-					const path = singleQuotify(fsPath);
-
-					args.push('-p', path);
-				});
-
-				args.push('-a', '**/node_modules/**/*');
+				return args;
 			}
+
+			const commandUri = message.command.uri;
+
+			includePatterns.forEach((includePattern) => {
+				const { fsPath } = Uri.joinPath(commandUri, includePattern);
+
+				const path = singleQuotify(fsPath);
+
+				args.push('-p', path);
+			});
+			excludePatterns.forEach((excludePattern) => {
+				const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+
+				const path = singleQuotify(fsPath);
+
+				args.push('-p', `!${path}`);
+			});
+			args.push(
+				'-w',
+				String(this.#configurationContainer.get().workerThreadCount),
+			);
+
+			args.push('-l', String(fileLimit));
 
 			if ('fileUri' in message.command) {
 				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
@@ -278,15 +353,16 @@ export class EngineService {
 
 		const args = buildArguments();
 
-		const caseKind =
-			message.command.engine === 'node'
-				? CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE
-				: CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE;
+		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
-		const childProcess = spawn(singleQuotify(executableUri.fsPath), args, {
-			stdio: 'pipe',
-			shell: true,
-		});
+		const childProcess = spawn(
+			singleQuotify(this.#noraNodeEngineExecutableUri.fsPath),
+			args,
+			{
+				stdio: 'pipe',
+				shell: true,
+			},
+		);
 
 		const errorMessages = new Set<string>();
 
@@ -312,13 +388,31 @@ export class EngineService {
 			halted: false,
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
+			jobs: [],
 		};
+		if (
+			'kind' in message.command &&
+			message.command.kind === 'executeCodemod'
+		) {
+			this.#execution = {
+				...this.#execution,
+				codemodHash: message.command.codemodHash,
+			};
+		}
 
 		const interfase = readline.createInterface(childProcess.stdout);
 
-		const noraRustEngineExecutableUri = this.#noraRustEngineExecutableUri;
+		let timer: NodeJS.Timeout | null = null;
 
 		interfase.on('line', async (line) => {
+			if (timer !== null) {
+				clearTimeout(timer);
+			}
+
+			timer = setTimeout(() => {
+				childProcess.kill();
+			}, TERMINATE_IDLE_PROCESS_TIMEOUT);
+
 			if (!this.#execution) {
 				return;
 			}
@@ -340,6 +434,7 @@ export class EngineService {
 					kind: MessageKind.showProgress,
 					totalFiles: message.t,
 					processedFiles: message.p,
+					codemodHash: this.#execution.codemodHash,
 				});
 				this.#execution.totalFileCount = message.t;
 				return;
@@ -374,7 +469,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.rewrite) {
 				const oldUri = Uri.file(message.i);
@@ -394,7 +489,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.delete) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -412,7 +507,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.move) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -431,7 +526,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else if (message.k === EngineMessageKind.copy) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -450,7 +545,7 @@ export class EngineService {
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob),
+					hash: buildJobHash(hashlessJob, executionId),
 				};
 			} else {
 				throw new Error(`Unrecognized message`);
@@ -460,19 +555,32 @@ export class EngineService {
 				this.#execution.affectedAnyFile = true;
 			}
 
+			this.#execution.jobs.push(job);
+
+			const kase = {
+				kind: caseKind,
+				subKind: codemodName,
+			} as const;
+
+			const caseWithJobHashes: CaseWithJobHashes = {
+				hash: buildCaseHash(kase, executionId),
+				kind: caseKind,
+				subKind: codemodName,
+				jobHashes: new Set([job.hash]),
+				codemodSetName: job.codemodSetName,
+				codemodName: job.codemodName,
+			};
+
 			this.#messageBus.publish({
-				kind: MessageKind.compareFiles,
-				noraRustEngineExecutableUri,
-				job,
-				caseKind,
-				caseSubKind: codemodName,
+				kind: MessageKind.upsertCases,
+				casesWithJobHashes: [caseWithJobHashes],
+				jobs: [job],
+				inactiveJobHashes: new Set(),
 				executionId,
-				codemodSetName,
-				codemodName,
 			});
 		});
 
-		interfase.on('close', () => {
+		interfase.on('close', async () => {
 			this.#statusBarItemManager.moveToStandby();
 
 			if (this.#execution) {
@@ -510,27 +618,12 @@ export class EngineService {
 		});
 	}
 
-	async #onFilesComparedMessage(
-		message: Message & { kind: MessageKind.filesCompared },
-	) {
-		if (
-			!this.#execution ||
-			this.#execution.executionId !== message.executionId
-		) {
-			return;
-		}
-
-		this.#execution.affectedAnyFile = true;
-	}
-
 	async clearOutputFiles(storageUri: Uri) {
-		for (const storageDirectory of STORAGE_DIRECTORY_MAP.values()) {
-			const outputUri = Uri.joinPath(storageUri, storageDirectory);
+		const outputUri = Uri.joinPath(storageUri, 'nora-node-engine');
 
-			await this.#fileSystem.delete(outputUri, {
-				recursive: true,
-				useTrash: false,
-			});
-		}
+		await this.#fileSystem.delete(outputUri, {
+			recursive: true,
+			useTrash: false,
+		});
 	}
 }

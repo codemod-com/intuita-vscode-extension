@@ -58,7 +58,6 @@ export class InformationMessageService {
 		this.#messageBus.publish({
 			kind: MessageKind.executeCodemodSet,
 			command: {
-				engine: 'node',
 				storageUri,
 				uri,
 				recipeName,

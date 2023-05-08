@@ -15,8 +15,7 @@ export class StatusBarItemManager {
 
 	moveToBootstrap() {
 		this.#statusBarItem.text = '$(loading~spin) Intuita: Bootstrapping';
-		this.#statusBarItem.tooltip =
-			'Bootstrapping the Nora Node Engine and the Nora Rust Engine';
+		this.#statusBarItem.tooltip = 'Bootstrapping the Codemod Engine Node';
 		this.#statusBarItem.show();
 	}
 

@@ -1,7 +1,8 @@
 .collapsable {
 	display: flex;
 	flex-direction: column;
-	background-color: var(--vscode-dropdown-background);
+	background-color: var(--vscode-editor-background);
+	border-radius: 5px;
 }
 
 .collapsable__header {
@@ -16,7 +17,7 @@
 	position: sticky;
 	top: 0;
 	z-index: 1000;
-	background-color: var(--vscode-dropdown-background);
+	background-color: var(--vscode-editor-background);
 }
 
 .collapsable__arrow {
@@ -26,8 +27,8 @@
 	transition: transform 0.2s ease-in-out;
 }
 
-.collapsable__arrow--open {
-	transform: rotate(180deg);
+.collapsable__arrow--collapsed {
+	transform: rotate(-90deg);
 }
 
 .collapsable_content {

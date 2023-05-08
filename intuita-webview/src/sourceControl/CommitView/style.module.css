@@ -36,7 +36,7 @@
 
 .actionButton {
 	height: 24px;
-	width: 160px;
+	min-width: 160px;
 }
 
 .formField {

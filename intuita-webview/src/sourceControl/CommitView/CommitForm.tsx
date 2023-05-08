@@ -1,10 +1,10 @@
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
-import { FormData } from '.';
+import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
 
 type Props = {
-	formData: FormData;
+	formData: CommitChangesFormData;
 	onChangeFormField: (
-		fieldName: keyof FormData,
+		fieldName: keyof CommitChangesFormData,
 	) => (e: Event | React.FormEvent<HTMLElement>) => unknown;
 };
 
@@ -15,7 +15,7 @@ const CommitForm = ({ formData, onChangeFormField }: Props) => {
 			value={formData.commitMessage}
 			onInput={onChangeFormField('commitMessage')}
 		>
-			Message
+			Commit message
 		</VSCodeTextField>
 	);
 };

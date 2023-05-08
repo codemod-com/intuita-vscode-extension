@@ -1,15 +1,28 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
 import { Container, Header } from './Container';
 import { JobDiffViewProps } from '../App';
-import { Collapsable, CollapsableRefMethods } from './Collapsable';
-import { useDiffViewer } from './Diff';
+import { Collapsable } from '../Components/Collapsable';
+import { JobHash } from '../../shared/types';
+import { Diff, DiffComponent } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
-import { DiffViewType } from '../../shared/types';
+import { reportIssue } from '../util';
 
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
 	ViewType: 'inline' | 'side-by-side';
+	jobStaged: boolean;
+	onToggleJob(staged: boolean): void;
+	visible: boolean;
+	toggleVisible: (jobHash: JobHash) => void;
+	expanded: boolean;
+	onToggle: (expanded: boolean) => void;
+	height: number;
+	onHeightSet: (height: number) => void;
+	diff: Diff | null;
+	onDiffCalculated: (jobHash: JobHash, diff: Diff) => void;
+	containerRef: ((element?: Element | undefined) => void) | undefined;
+	theme: string;
 };
+
 export const JobDiffView = ({
 	ViewType,
 	actions,
@@ -20,74 +33,77 @@ export const JobDiffView = ({
 	oldFileTitle,
 	newFileTitle,
 	title,
+	jobStaged,
 	postMessage,
+	onToggleJob,
+	visible,
+	toggleVisible,
+	height,
+	onHeightSet,
+	onDiffCalculated,
+	diff,
+	expanded,
+	onToggle,
+	containerRef,
+	theme,
 }: Props) => {
-	const collapsableRef = useRef<CollapsableRefMethods>(null);
-	const [viewType, setViewType] = useState<DiffViewType>(ViewType);
-
-	useEffect(() => {
-		setViewType(ViewType);
-	}, [ViewType]);
-
-	const [isVisible, setVisible] = useState(true);
-
-	const toggleViewed = useCallback(() => {
-		setVisible((v) => !v);
-	}, [setVisible]);
-
-	useEffect(() => {
-		if (isVisible) {
-			collapsableRef.current?.expand();
-		} else {
-			collapsableRef.current?.collapse();
-		}
-	}, [isVisible]);
-
 	const onAction = (action: JobAction) => {
 		postMessage(action);
 	};
-	const { diff, diffViewer } = useDiffViewer({
-		viewType,
-		oldFileTitle,
-		newFileTitle,
-		jobKind,
-		oldFileContent,
-		newFileContent,
-		jobHash,
-		title,
-	});
+
+	const report = () => {
+		reportIssue(jobHash, oldFileContent ?? '', newFileContent ?? '');
+	};
 
 	return (
-		<Collapsable
-			ref={collapsableRef}
-			defaultExpanded={true}
-			className="overflow-hidden my-10 rounded "
-			headerClassName="p-10"
-			contentClassName="p-10"
-			headerSticky
-			headerComponent={
-				<Header
-					diff={diff}
-					oldFileTitle={oldFileTitle ?? ''}
-					newFileTitle={newFileTitle ?? ''}
-					jobKind={jobKind}
-					onViewedChange={toggleViewed}
-					viewed={!isVisible}
-					onAction={onAction}
-					actions={actions}
-					title={title ?? ''}
-					viewType={viewType}
-					onViewTypeChange={setViewType}
-				/>
-			}
+		<div
+			ref={(ref) => containerRef?.(ref ?? undefined)}
+			className="px-5 pb-2-5 "
 		>
-			<Container
-				viewType={viewType}
-				oldFileName={oldFileTitle}
-				newFileName={newFileTitle}
+			<Collapsable
+				defaultExpanded={expanded}
+				onToggle={onToggle}
+				className="overflow-hidden rounded "
+				headerClassName="p-10"
+				contentClassName="p-10"
+				headerSticky
+				headerComponent={
+					<Header
+						id={`diffViewHeader-${jobHash}`}
+						diff={diff}
+						oldFileTitle={oldFileTitle ?? ''}
+						newFileTitle={newFileTitle ?? ''}
+						jobKind={jobKind}
+						onViewedChange={() => toggleVisible(jobHash)}
+						viewed={!visible}
+						onAction={onAction}
+						actions={actions}
+						title={title ?? ''}
+						viewType={ViewType}
+						jobStaged={jobStaged}
+						onToggleJob={onToggleJob}
+						onReportIssue={report}
+					/>
+				}
 			>
-				{diffViewer}
-			</Container>
-		</Collapsable>
+				<Container
+					viewType={ViewType}
+					oldFileName={oldFileTitle}
+					newFileName={newFileTitle}
+				>
+					<DiffComponent
+						theme={theme}
+						height={height}
+						onHeightSet={onHeightSet}
+						onDiffCalculated={(diff) =>
+							onDiffCalculated(jobHash, diff)
+						}
+						viewType={ViewType}
+						oldFileContent={oldFileContent}
+						newFileContent={newFileContent}
+					/>
+				</Container>
+			</Collapsable>
+		</div>
 	);
 };

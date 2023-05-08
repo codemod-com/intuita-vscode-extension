@@ -16,6 +16,14 @@
 	overflow: hidden;
 }
 
+.job-kind-text {
+	color: var(--vscode-editorSuggestWidget-focusHighlightForeground);
+	padding: 5px 0px 5px 8px;
+	background: var(--vscode-editor-background);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
 .diff-changes {
 	padding: 2px 4px;
 	margin-left: 2px;
@@ -27,4 +35,33 @@
 }
 .diff-added {
 	color: #3ac06b;
+}
+
+.icon-container {
+	background-color: var(--vscode-editor-background);
+	border-radius: 5px;
+	margin-left: 4px;
+	overflow: hidden;
+}
+.icon {
+	width: 32px;
+	height: 32px;
+	margin-left: 22px;
+	stroke: var(--vscode-editor-foreground);
+}
+
+/** monaco fix **/
+.monaco-diff-editor .diffViewport {
+	/** Override the monaco css **/
+	background-color: transparent !important;
+}
+
+.diff-changes-container {
+	min-width: 80px;
+}
+
+.viewed-button.disabled {
+	pointer-events: none !important;
+	cursor: not-allowed !important;
+	opacity: var(--disabled-opacity) !important;
 }

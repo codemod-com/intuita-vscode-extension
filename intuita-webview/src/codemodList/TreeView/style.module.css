@@ -1,6 +1,5 @@
 .root {
 	display: flex;
-	height: 22px;
 	line-height: 22px;
 	flex: 1;
 	text-overflow: ellipsis;
@@ -8,9 +7,6 @@
 	flex-wrap: nowrap;
 	padding-left: 3px;
 	padding-right: 12px;
-}
-.w-full {
-	width: 100%;
 }
 
 .root:hover {
@@ -23,6 +19,10 @@
 
 .root:hover .actions {
 	display: flex;
+}
+
+.root:hover .description {
+	display: inline;
 }
 
 .focused,
@@ -60,6 +60,9 @@
 .description {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	line-height: normal;
+	margin-left: 5px;
+	display: none;
 }
 
 .actions {
@@ -72,10 +75,10 @@
 }
 
 .actions a {
-	padding: 2px;
 	display: flex;
 	font-size: 11px;
-	padding: 3px;
+	padding-left: 3px;
+	padding-right: 3px;
 	border-radius: 5px;
 	text-decoration: none;
 	cursor: pointer;
@@ -95,7 +98,6 @@
 	font-size: 16px;
 	cursor: pointer;
 }
-.welcomeMessage {
-	padding: 0 20px 1em;
-	margin-top: 13px;
+.action {
+	margin-left: 3px;
 }

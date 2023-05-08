@@ -1,13 +1,13 @@
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
-import { FormData } from '.';
+import { CommitChangesFormData } from '../../../../src/components/webview/webviewEvents';
 
 type Props = {
-	formData: FormData;
+	formData: CommitChangesFormData;
 };
 
 const BranchForm = ({ formData }: Props) => {
 	return (
-		<VSCodeTextField readOnly value={formData.targetBranch}>
+		<VSCodeTextField readOnly value={formData.newBranchName}>
 			Branch
 		</VSCodeTextField>
 	);

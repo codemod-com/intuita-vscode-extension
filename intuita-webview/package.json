@@ -6,10 +6,14 @@
 		"@monaco-editor/react": "^4.5.0",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"classnames": "^2.3.2",
+		"fp-ts": "^2.14.0",
 		"monaco-editor": "^0.37.1",
+		"rc-progress": "^3.4.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-treeview": "^0.4.7",
+		"react-virtualized": "^9.22.5",
+		"reactjs-popup": "^2.0.5",
 		"typescript": "^4.9.5"
 	},
 	"scripts": {
@@ -43,13 +47,15 @@
 		"@types/react": "^18.0.30",
 		"@types/react-dom": "^18.0.11",
 		"@types/react-treeview": "^0.4.3",
-		"@types/testing-library__jest-dom": "^5.14.5",
-		"@types/vscode-webview": "^1.57.1",
 		"@vitejs/plugin-react": "^4.0.0",
 		"rollup-plugin-css-chunks": "^2.0.3",
 		"vite": "^4.3.1",
 		"vite-plugin-svgr": "^2.4.0",
 		"vite-tsconfig-paths": "^4.2.0",
+		"@types/react-virtualized": "^9.21.21",
+		"@types/testing-library__jest-dom": "^5.14.5",
+		"@types/vscode-webview": "^1.57.1",
+		"react-scripts": "5.0.1",
 		"web-vitals": "^2.1.4"
 	}
 }

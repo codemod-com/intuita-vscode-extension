@@ -1,27 +1,22 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, memo, useState } from 'react';
-import { CodemodTreeNode } from '../../shared/types';
+import { ReactNode } from 'react';
+import { CodemodHash, CodemodTreeNode } from '../../shared/types';
 
 type Props = {
 	depth: number;
+	openedIds: ReadonlySet<CodemodHash>;
 	node: CodemodTreeNode<string>;
 	renderItem({
 		node,
 		depth,
-		open,
-		setIsOpen,
 	}: {
 		node: CodemodTreeNode<string>;
 		depth: number;
-		open: boolean;
-		setIsOpen: (value: boolean) => void;
 	}): ReactNode;
 };
 
-const Tree = ({ node, depth, renderItem }: Props) => {
-	const [open, setIsOpen] = useState(depth === 0);
-
-	const treeItem = renderItem({ node, depth, open, setIsOpen });
+const Tree = ({ node, openedIds, depth, renderItem }: Props) => {
+	const treeItem = renderItem({ node, depth });
 
 	if (!node.children || node.children.length === 0) {
 		return <>{treeItem}</>;
@@ -36,6 +31,7 @@ const Tree = ({ node, depth, renderItem }: Props) => {
 						node={child}
 						depth={depth + 1}
 						renderItem={renderItem}
+						openedIds={openedIds}
 					/>
 				))}
 			</>
@@ -43,18 +39,19 @@ const Tree = ({ node, depth, renderItem }: Props) => {
 	}
 
 	return (
-		<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
+		<ReactTreeView collapsed={!openedIds.has(node.id)} nodeLabel={treeItem}>
 			{node.children.map((child) => (
 				<Tree
 					key={child.id}
 					node={child}
 					depth={depth + 1}
 					renderItem={renderItem}
+					openedIds={openedIds}
 				/>
 			))}
 		</ReactTreeView>
 	);
 };
 
-export default memo(Tree);
+export default Tree;
 export type { CodemodTreeNode };

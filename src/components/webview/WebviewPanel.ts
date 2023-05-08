@@ -56,11 +56,19 @@ export abstract class IntuitaWebviewPanel {
 
 		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
-		this._attachExtensionEventListeners();
+		this._attachExtensionEventListeners?.();
 		this._attachWebviewEventListeners?.();
 	}
 
-	protected abstract _attachExtensionEventListeners(): void;
+	setTitle = (title: string) => {
+		if (!this._panel) {
+			return;
+		}
+
+		this._panel.title = title;
+	};
+
+	protected _attachExtensionEventListeners?(): void;
 	protected _attachWebviewEventListeners?(): void;
 
 	protected _postMessage(message: WebviewMessage) {

@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react';
 
-import { vscode } from '../shared/utilities/vscode';
-
 import TreeView from './TreeView';
+import styles from './style.module.css';
 
 import type {
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
+import SearchBar from './SearchBar';
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-
-	useEffect(() => {
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
-	}, []);
+	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -37,13 +34,22 @@ function App() {
 		};
 	}, []);
 
-	if (!view) {
-		return null;
+	if (!view || view.viewProps === null) {
+		return (
+			<p className={styles.welcomeMessage}>
+				Choose a Codemod from Code Change Projects to explore its
+				changes!
+			</p>
+		);
 	}
 
 	return (
 		<main className="App">
-			<TreeView {...view.viewProps} />
+			<SearchBar
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+			/>
+			<TreeView {...view.viewProps} searchQuery={searchQuery} />
 		</main>
 	);
 }

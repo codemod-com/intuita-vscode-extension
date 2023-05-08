@@ -5,29 +5,16 @@ import {
 	WebviewMessage,
 	JobDiffViewProps,
 	JobAction,
+	JobHash,
 } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
-
-const getViewComponent = (
-	view: View,
-	postMessage: (arg: JobAction) => void,
-) => {
-	switch (view.viewId) {
-		case 'jobDiffView':
-			const { data } = view.viewProps;
-
-			return (
-				<JobDiffViewContainer jobs={data} postMessage={postMessage} />
-			);
-
-		default:
-			return null;
-	}
-};
+import LoadingProgress from './Components/LoadingProgress';
 
 function App() {
 	const [view, setView] = useState<View | null>(null);
+	const [scrollIntoHash, setScrollIntoHash] = useState<JobHash | null>(null);
+	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
@@ -43,52 +30,65 @@ function App() {
 				message.kind === 'webview.diffView.updateDiffViewProps' &&
 				view.viewId === 'jobDiffView'
 			) {
-				const jobHash = message.data.jobHash ?? null;
-				if (jobHash === null) {
-					return;
-				}
-				const dataCopy = [...view.viewProps.data];
+				const jobHash = message.data.jobHash;
+				const nextData = view.viewProps.data.map((element) =>
+					element.jobHash === jobHash ? message.data : element,
+				);
 
-				const index = dataCopy
-					.slice()
-					.findIndex((element) => element.jobHash === jobHash);
-				if (index === -1) {
-					return;
-				}
-				dataCopy.splice(index, 1, message.data);
 				setView({
 					...view,
 					viewProps: {
-						data: dataCopy,
+						...view.viewProps,
+						data: nextData,
 					},
 				});
 			}
+
+			if (message.kind === 'webview.diffView.focusFile') {
+				setScrollIntoHash(message.jobHash);
+			}
+
 			if (
-				message.kind === 'webview.diffview.rejectedJob' &&
-				view?.viewId === 'jobDiffView'
+				message.kind === 'webview.diffView.focusFolder' &&
+				view.viewId === 'jobDiffView' &&
+				view.viewProps.diffId
 			) {
-				const jobHash = message.data[0];
-				if (!jobHash) {
-					return;
-				}
-				const viewData = [...view?.viewProps?.data];
-				const index = viewData.findIndex(
-					(el) => el.jobHash === jobHash,
+				const folderPathExcludingRootPath = message.folderPath.slice(
+					message.folderPath.indexOf('/'),
 				);
-				if (index === -1) {
+
+				const element =
+					document.getElementsByClassName(
+						'ReactVirtualized__Grid__innerScrollContainer',
+					)[0] ?? null;
+
+				if (element === null) {
 					return;
 				}
-				viewData.splice(index, 1);
-				setView({
-					...view,
-					viewProps: {
-						data: viewData,
-					},
-				});
+
+				const fileInsideSelectedFolder =
+					Array.from(element.children).find((child) =>
+						child.id.includes(folderPathExcludingRootPath),
+					) ?? null;
+
+				if (fileInsideSelectedFolder === null) {
+					return;
+				}
+
+				fileInsideSelectedFolder.scrollIntoView();
+			}
+			if (message.kind === 'webview.diffView.updateStagedJobs') {
+				setStagedJobs(message.value);
 			}
 		},
 		[view],
 	);
+
+	useEffect(() => {
+		if (view?.viewProps && view.viewId === 'jobDiffView') {
+			setStagedJobs(view.viewProps.stagedJobs);
+		}
+	}, [view?.viewId, view?.viewProps]);
 
 	useEffect(() => {
 		window.addEventListener('message', eventHandler);
@@ -102,18 +102,35 @@ function App() {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
-	const postMessage = (event: JobAction) => {
+	const postMessage = useCallback((event: JobAction) => {
 		vscode.postMessage({
 			kind: event.command,
 			value: event.arguments,
 		});
-	};
+	}, []);
 
-	if (!view) {
+	if (!view || view.viewId !== 'jobDiffView') {
 		return null;
 	}
 
-	return <main className="App">{getViewComponent(view, postMessage)}</main>;
+	if (view.viewProps.loading) {
+		return <LoadingProgress />;
+	}
+
+	const { data, title, diffId } = view.viewProps;
+
+	return (
+		<main className="App">
+			<JobDiffViewContainer
+				scrollIntoHash={scrollIntoHash}
+				diffId={diffId}
+				title={title}
+				jobs={data}
+				stagedJobs={stagedJobs}
+				postMessage={postMessage}
+			/>
+		</main>
+	);
 }
 export type { JobDiffViewProps };
 export default App;

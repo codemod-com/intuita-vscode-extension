@@ -15,7 +15,10 @@ export class CodemodExecutionProgressWebviewViewProvider
 		this.#messageBus.subscribe(MessageKind.showProgress, (data) => {
 			const { processedFiles, totalFiles } = data;
 
-			const progress = Math.round((processedFiles / totalFiles) * 100);
+			const progress =
+				totalFiles > 0
+					? Math.round((processedFiles / totalFiles) * 100)
+					: 0;
 			this.#progress = progress;
 			this.#totalFiles = totalFiles;
 			this.#processedFiles = processedFiles;

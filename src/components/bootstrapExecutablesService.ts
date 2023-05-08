@@ -24,7 +24,7 @@ export class BootstrapExecutablesService {
 		this.#messageBus = messageBus;
 		this.#statusBarItemManager = statusBarItemManager;
 
-		messageBus.subscribe(MessageKind.bootstrapEngines, () =>
+		messageBus.subscribe(MessageKind.bootstrapEngine, () =>
 			this.#onBootstrapEngines(),
 		);
 	}
@@ -34,19 +34,15 @@ export class BootstrapExecutablesService {
 
 		this.#statusBarItemManager.moveToBootstrap();
 
-		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
-			await Promise.all([
-				this.#bootstrapNoraNodeEngineExecutableUri(),
-				// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
-				this.#bootstrapNoraRustEngineExecutableUri(),
-			]);
+		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
+		const noraNodeEngineExecutableUri =
+			await this.#bootstrapNoraNodeEngineExecutableUri();
 
 		this.#statusBarItemManager.moveToStandby();
 
 		this.#messageBus.publish({
-			kind: MessageKind.enginesBootstrapped,
+			kind: MessageKind.engineBootstrapped,
 			noraNodeEngineExecutableUri,
-			noraRustEngineExecutableUri,
 		});
 	}
 
@@ -66,38 +62,6 @@ export class BootstrapExecutablesService {
 		try {
 			await this.#downloadService.downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
-				executableUri,
-				'755',
-			);
-		} catch (error) {
-			if (!(error instanceof ForbiddenRequestError)) {
-				throw error;
-			}
-
-			throw new Error(
-				`Your platform (${process.platform}) is not supported.`,
-			);
-		}
-
-		return executableUri;
-	}
-
-	async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
-		const platform =
-			process.platform === 'darwin'
-				? 'macos'
-				: encodeURIComponent(process.platform);
-
-		const executableBaseName = `nora-rust-engine-${platform}`;
-
-		const executableUri = Uri.joinPath(
-			this.#globalStorageUri,
-			executableBaseName,
-		);
-
-		try {
-			await this.#downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
 				executableUri,
 				'755',
 			);

@@ -1,17 +1,28 @@
-import { useRef, useState } from 'react';
+import { createRef } from 'react';
 import MonacoDiffEditor, { monaco } from '../../shared/Snippet/DiffEditor';
-import { JobDiffViewProps } from '../App';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
+import { getDiffEditorHeight } from '../../shared/Snippet/getDiffEditorHeight';
 
 export type { Diff };
 
-export const useDiffViewer = ({
+export const DiffComponent = ({
 	oldFileContent,
 	newFileContent,
 	viewType,
-}: JobDiffViewProps & { viewType: 'inline' | 'side-by-side' }) => {
-	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
-	const [diff, setDiff] = useState<Diff | null>(null);
+	onDiffCalculated,
+	height,
+	onHeightSet,
+	theme,
+}: {
+	oldFileContent: string | null;
+	newFileContent: string | null;
+	viewType: 'inline' | 'side-by-side';
+	onDiffCalculated: (diff: Diff) => void;
+	height: number;
+	onHeightSet: (height: number) => void;
+	theme: string;
+}) => {
+	const editorRef = createRef<monaco.editor.IStandaloneDiffEditor>();
 
 	const getDiffChanges = (): Diff | undefined => {
 		if (!editorRef.current) {
@@ -24,24 +35,55 @@ export const useDiffViewer = ({
 		return getDiff(lineChanges);
 	};
 
-	const handleRefSet = () => {
-		const diffChanges = getDiffChanges();
-		setDiff(diffChanges ?? null);
+	const getHeight = () => {
+		if (!editorRef.current) {
+			return;
+		}
+		const editorHeight = getDiffEditorHeight(editorRef.current);
+		if (editorHeight) {
+			onHeightSet(editorHeight);
+		}
 	};
 
-	const getDiffViewer = (
-		<div className="w-full">
+	const handleRefSet = () => {
+		const diffChanges = getDiffChanges();
+		if (diffChanges) {
+			onDiffCalculated(diffChanges);
+		}
+		getHeight();
+	};
+
+	return (
+		<div
+			className="w-full"
+			style={{
+				height,
+			}}
+		>
 			<MonacoDiffEditor
+				height={`${height}px`}
 				onRefSet={handleRefSet}
+				theme={theme}
 				ref={editorRef}
 				options={{
 					readOnly: true,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
+					wordWrap: 'wordWrapColumn',
+					wordWrapColumn: 75,
+					wrappingIndent: 'indent',
 					scrollBeyondLastLine: false,
+					wordBreak: 'normal',
 					diffAlgorithm: 'smart',
+					scrollBeyondLastColumn: 0,
+					contextmenu: false,
+					scrollbar: {
+						horizontal: 'hidden',
+						verticalSliderSize: 0,
+						vertical: 'hidden',
+						alwaysConsumeMouseWheel: false,
+					},
 				}}
-				height="90vh"
 				loading={<div>Loading content ...</div>}
 				modified={newFileContent ?? undefined}
 				original={oldFileContent ?? undefined}
@@ -49,6 +91,4 @@ export const useDiffViewer = ({
 			/>
 		</div>
 	);
-
-	return { diffViewer: getDiffViewer, diff };
 };

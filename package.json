@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.17.0",
+	"version": "0.23.0",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -19,20 +19,19 @@
 	],
 	"keywords": [
 		"codemod",
+		"upgrade",
+		"javascript",
+		"typescript",
+		"next",
+		"next.js",
 		"prettier",
-		"intellicode",
-		"intellisense",
-		"tabnine",
-		"copilot",
 		"refactor",
 		"dependency"
 	],
 	"activationEvents": [
 		"onUri",
 		"workspaceContains:**/*.ts*",
-		"workspaceContains:**/*.js*",
-		"onView:intuitaMainWebview",
-		"onView:intuita-progress-webview"
+		"workspaceContains:**/*.js*"
 	],
 	"capabilities": {
 		"codeActionProvider": "true"
@@ -41,49 +40,13 @@
 		"viewsWelcome": [
 			{
 				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Recipe On Path\" and select a recipe you want to execute."
+				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Codemod On Path\" and select a codemod you want to execute."
 			}
 		],
 		"commands": [
 			{
 				"command": "intuita.createPR",
 				"title": "Intuita: Create a Pull Request"
-			},
-			{
-				"command": "intuita.executeNextJsCodemods",
-				"title": "Intuita: execute Next.js v13 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeNextJsExperimentalCodemods",
-				"title": "Intuita: execute Next.js v13 Experimental codemods over the workspace"
-			},
-			{
-				"command": "intuita.executePagesToAppsCodemods",
-				"title": "Intuita: execute Next.js v13 Pages-to-Apps codemods over the workspace (experimental)"
-			},
-			{
-				"command": "intuita.executeMuiCodemods",
-				"title": "Intuita: execute Material UI v5 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv4Codemods",
-				"title": "Intuita: execute React Router v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeReactRouterv6Codemods",
-				"title": "Intuita: execute React Router v6 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv0Codemods",
-				"title": "Intuita: execute ImmutableJS removal codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeImmutableJSv4Codemods",
-				"title": "Intuita: execute ImmutableJS v4 codemods over the workspace"
-			},
-			{
-				"command": "intuita.executeRedwoodJsCore4Codemods",
-				"title": "Intuita: execute RedwoodJS v4 codemods over the workspace"
 			},
 			{
 				"command": "intuita.clearOutputFiles",
@@ -105,25 +68,11 @@
 				"icon": "$(clear-all)"
 			},
 			{
-				"command": "intuita.folderBreakdown",
-				"title": "View by folder",
-				"icon": "$(list-tree)"
-			},
-			{
-				"command": "intuita.caseBreakdown",
-				"title": "View by codemod",
-				"icon": "$(list-unordered)"
-			},
-			{
 				"command": "intuita.acceptJob",
 				"title": "✓ Apply"
 			},
 			{
-				"command": "intuita.acceptCase",
-				"title": "✓ Apply"
-			},
-			{
-				"command": "intuita.acceptCaseByFolder",
+				"command": "intuita.sourceControl.commitStagedJobs",
 				"title": "✓ Apply"
 			},
 			{
@@ -139,10 +88,6 @@
 				"title": "✗ Dismiss"
 			},
 			{
-				"command": "intuita.rejectCaseByFolder",
-				"title": "✗ Dismiss"
-			},
-			{
 				"command": "intuita.rejectFolder",
 				"title": "✗ Dismiss"
 			},
@@ -151,8 +96,12 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
-				"command": "intuita.executeRecipeWithinPath",
-				"title": "Intuita: Execute Recipe On Path"
+				"command": "intuita.executeCodemod",
+				"title": "Intuita: Execute Codemod"
+			},
+			{
+				"command": "intuita.executeCodemodWithinPath",
+				"title": "Intuita: Execute Codemod On Path"
 			},
 			{
 				"command": "intuita.executeImportedModOnPath",
@@ -232,34 +181,24 @@
 			]
 		},
 		"views": {
-			"explorer": [
-				{
-					"type": "webview",
-					"id": "intuitaMainWebviewExplorer",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
-				},
-				{
-					"type": "webview",
-					"id": "intuita-progress-webview",
-					"name": "Intuita: Execution Progress",
-					"contextualTitle": "Intuita: Execution Progress"
-				}
-			],
 			"intuitaViewId": [
 				{
 					"type": "webview",
-					"id": "intuitaMainWebview",
-					"name": "Intuita",
-					"icon": "img/intuita.svg",
-					"contextualTitle": "Intuita"
+					"id": "intuita-available-codemod-tree-view",
+					"name": "Codemod Discovery",
+					"contextualTitle": "Codemod Discovery"
 				},
 				{
 					"type": "webview",
-					"id": "intuita-available-codemod-tree-view",
-					"name": "Recommended Codemods (For This Workspace)",
-					"contextualTitle": "Recommended Codemods (For This Workspace)"
+					"id": "intuitaCampaignManager",
+					"name": "Code Change Projects",
+					"contextualTitle": "Code Change Projects"
+				},
+				{
+					"type": "webview",
+					"id": "intuitaFileExplorer",
+					"name": "Change Explorer",
+					"contextualTitle": "Change Explorer"
 				}
 			]
 		},
@@ -274,14 +213,6 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.caseBreakdown",
-					"when": "false"
-				},
-				{
-					"command": "intuita.folderBreakdown",
-					"when": "false"
-				},
-				{
 					"command": "intuita.clearState",
 					"when": "false"
 				},
@@ -290,11 +221,7 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.acceptCase",
-					"when": "false"
-				},
-				{
-					"command": "intuita.acceptCaseByFolder",
+					"command": "intuita.sourceControl.commitStagedJobs",
 					"when": "false"
 				},
 				{
@@ -310,47 +237,7 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.rejectCaseByFolder",
-					"when": "false"
-				},
-				{
 					"command": "intuita.rejectFolder",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeNextJsCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeNextJsExperimentalCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executePagesToAppsCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeMuiCodemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeReactRouterv4Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeReactRouterv6Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeImmutableJSv0Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeImmutableJSv4Codemods",
-					"when": "false"
-				},
-				{
-					"command": "intuita.executeRedwoodJsCore4Codemods",
 					"when": "false"
 				},
 				{
@@ -358,7 +245,11 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.executeRecipeWithinPath",
+					"command": "intuita.executeCodemod",
+					"when": "false"
+				},
+				{
+					"command": "intuita.executeCodemodWithinPath",
 					"when": "false"
 				},
 				{
@@ -385,7 +276,7 @@
 					"when": "resourceExtname == .js || resourceExtname == .ts"
 				},
 				{
-					"command": "intuita.executeRecipeWithinPath",
+					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
 					"when": "explorerResourceIsFolder"
 				},
@@ -397,28 +288,8 @@
 			],
 			"view/title": [
 				{
-					"command": "intuita.caseBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.folderBreakdown",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
 					"command": "intuita.clearState",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.requestFeature",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
-					"group": "navigation"
-				},
-				{
-					"command": "intuita.openYouTubeChannel",
-					"when": "view == intuitaMainWebviewExplorer || view == intuitaMainWebview",
+					"when": "view == intuitaCampaignManager",
 					"group": "navigation"
 				}
 			]

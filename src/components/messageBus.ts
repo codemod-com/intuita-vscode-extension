@@ -1,8 +1,9 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
+import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -20,13 +21,9 @@ export const enum MessageKind {
 	acceptJobs = 9,
 	jobsAccepted = 10,
 
-	/** file comparison */
-	compareFiles = 11,
-	filesCompared = 12,
-
 	/** bootstrap */
-	bootstrapEngines = 13,
-	enginesBootstrapped = 14,
+	bootstrapEngine = 13,
+	engineBootstrapped = 14,
 
 	/** state */
 	clearState = 16,
@@ -77,35 +74,29 @@ export const enum MessageKind {
 	beforePRCreated = 33,
 	afterPRCreated = 34,
 
-	repositoryPathChanged = 35,
-
-	/**
-	 * view breakdown
-	 */
-
-	caseBreakdown = 36,
-	folderBreakdown = 37,
+	focusCodemod = 35,
 }
-
-export type Engine = 'node' | 'rust';
 
 export type Command =
 	| Readonly<{
 			kind: 'repomod';
-			engine: Engine;
 			inputPath: Uri;
 			storageUri: Uri;
 			repomodFilePath: string;
 	  }>
 	| Readonly<{
 			recipeName: RecipeName;
-			engine: Engine;
 			storageUri: Uri;
 			uri: Uri;
 	  }>
 	| Readonly<{
 			fileUri: Uri;
-			engine: Engine;
+			storageUri: Uri;
+			uri: Uri;
+	  }>
+	| Readonly<{
+			kind: 'executeCodemod';
+			codemodHash: CodemodHash;
 			storageUri: Uri;
 			uri: Uri;
 	  }>;
@@ -155,39 +146,14 @@ export type Message =
 			codemodName: string;
 	  }>
 	| Readonly<{
-			kind: MessageKind.compareFiles;
-			noraRustEngineExecutableUri: Uri;
-			job: Job;
-			caseKind: CaseKind;
-			caseSubKind: string;
-			executionId: string;
-			codemodSetName: string;
-			codemodName: string;
+			kind: MessageKind.bootstrapEngine;
 	  }>
 	| Readonly<{
-			kind: MessageKind.filesCompared;
-			jobHash: JobHash;
-			equal: boolean;
-			executionId: string;
-			codemodSetName: string;
-			codemodName: string;
-	  }>
-	| Readonly<{
-			kind: MessageKind.bootstrapEngines;
-	  }>
-	| Readonly<{
-			kind: MessageKind.enginesBootstrapped;
+			kind: MessageKind.engineBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
-			noraRustEngineExecutableUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.clearState;
-	  }>
-	| Readonly<{
-			kind: MessageKind.caseBreakdown;
-	  }>
-	| Readonly<{
-			kind: MessageKind.folderBreakdown;
 	  }>
 	| Readonly<{
 			kind: MessageKind.showInformationMessage;
@@ -259,6 +225,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.showProgress;
 			processedFiles: number;
+			codemodHash?: CodemodHash;
 			totalFiles: number;
 	  }>
 	| Readonly<{
@@ -268,8 +235,8 @@ export type Message =
 			kind: MessageKind.afterPRCreated;
 	  }>
 	| Readonly<{
-			kind: MessageKind.repositoryPathChanged;
-			repositoryPath: string | null;
+			kind: MessageKind.focusCodemod;
+			codemodHashDigest: CodemodHash;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

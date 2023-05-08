@@ -7,19 +7,23 @@ const stagedJobCodec = buildTypeCodec({
 });
 
 export const createPullRequestParamsCodec = buildTypeCodec({
-	title: t.string,
-	body: t.string,
-	baseBranch: t.string,
-	targetBranch: t.string,
+	currentBranchName: t.string,
+	newBranchName: t.string,
 	remoteUrl: t.string,
 	stagedJobs: t.readonlyArray(stagedJobCodec),
 	commitMessage: t.string,
-	createPullRequest: t.boolean,
 	createNewBranch: t.boolean,
+	pullRequestTitle: t.string,
+	pullRequestBody: t.string,
 });
 
 export const createIssueParamsCodec = buildTypeCodec({
 	title: t.string,
 	body: t.string,
 	remoteUrl: t.string,
+});
+
+export const applyChangesCoded = buildTypeCodec({
+	jobHashes: t.readonlyArray(t.string),
+	diffId: t.string,
 });

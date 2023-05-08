@@ -1,17 +1,21 @@
 import { ReactNode } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
+import Popup from 'reactjs-popup';
+import { CodemodTreeNode } from '../../shared/types';
 
 type Props = {
 	id: string;
+	progressBar: JSX.Element | null;
 	label: string;
 	description: string;
+	hoverDescription?: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: ReactNode;
+	actionButtons: ReactNode[];
 	hasChildren: boolean;
-	kind: string;
+	kind: CodemodTreeNode['kind'];
 	onClick(): void;
 	depth: number;
 	disabled: boolean;
@@ -20,7 +24,10 @@ type Props = {
 const TreeItem = ({
 	id,
 	label,
+	progressBar,
 	description,
+	hoverDescription,
+	kind,
 	icon,
 	open,
 	focused,
@@ -52,12 +59,34 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
-			<div className={styles.icon}>{icon}</div>
-			<span className={styles.label}>
-				{label}
-				<span className={styles.description}> {description}</span>
-			</span>
-			<div className={styles.actions}>{actionButtons}</div>
+			{kind === 'codemodItem' && description && (
+				<Popup
+					trigger={<div className={styles.icon}>{icon}</div>}
+					position={['bottom left', 'top left']}
+					on={['hover', 'focus']}
+					closeOnDocumentClick
+					mouseEnterDelay={300}
+				>
+					{description}
+				</Popup>
+			)}
+			{(kind === 'path' || !description) && (
+				<div className={styles.icon}>{icon}</div>
+			)}
+			<div className="flex w-full flex-col">
+				<span className={styles.label}>
+					{label}
+					{kind === 'codemodItem' && (
+						<span className={styles.description}>
+							{hoverDescription}
+						</span>
+					)}
+				</span>
+				{progressBar}
+			</div>
+			<div className={styles.actions}>
+				{actionButtons.map((el) => el)}
+			</div>
 		</div>
 	);
 };
