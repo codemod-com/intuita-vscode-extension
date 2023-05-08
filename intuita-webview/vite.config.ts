@@ -11,9 +11,9 @@ const target = process.env.TARGET_APP ?? '';
 export default defineConfig({
 	resolve: {
 		alias: {
-			"react": "preact/compat",
-      "react-dom": "preact/compat"
-		}
+			react: 'preact/compat',
+			'react-dom': 'preact/compat',
+		},
 	},
 	build: {
 		outDir: `build/${target}`,
