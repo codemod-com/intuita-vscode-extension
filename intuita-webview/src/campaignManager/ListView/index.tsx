@@ -32,7 +32,7 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 		}
 
 		handleClick(selectedCaseNode);
-	}, [handleClick, selectedCaseNode]);
+	}, [handleClick, selectedCaseNode?.id]);
 
 	return (
 		<div className={styles.container}>

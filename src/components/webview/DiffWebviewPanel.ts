@@ -3,7 +3,7 @@ import { MessageBus, MessageKind } from '../messageBus';
 import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
-import { debounce, isNeitherNullNorUndefined } from '../../utilities';
+import { isNeitherNullNorUndefined } from '../../utilities';
 import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
@@ -285,7 +285,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
-	async __onUpdateElementsMessage(): Promise<void> {
+	async __onCodemodSetExecuted(): Promise<void> {
 		if (this.__openedCaseHash === null) {
 			return;
 		}
@@ -301,6 +301,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const view: View = {
 			viewId: 'jobDiffView' as const,
 			viewProps: {
+				loading: false,
 				diffId: this.__openedCaseHash as string,
 				title,
 				data,
@@ -313,12 +314,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.__onUpdateElementsMessage();
-		}, 300);
-
-		this._addHook(MessageKind.updateElements, async () => {
-			debouncedOnUpdateElementsMessage();
+		this._addHook(MessageKind.codemodSetExecuted, async () => {
+			this.__onCodemodSetExecuted();
 		});
 	}
 }
