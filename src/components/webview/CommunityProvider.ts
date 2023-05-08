@@ -103,7 +103,9 @@ export class CommunityProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.setView({
 				viewId: 'communityView',
-				externalLinks: EXTERNAL_LINKS,
+				viewProps: {
+					externalLinks: EXTERNAL_LINKS,
+				},
 			});
 		}
 	};

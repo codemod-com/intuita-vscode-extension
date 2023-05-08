@@ -317,7 +317,9 @@ export type View =
 	  }>
 	| Readonly<{
 			viewId: 'communityView';
-			externalLinks: ExternalLink[];
+			viewProps: {
+				externalLinks: ExternalLink[];
+			};
 	  }>
 	| Readonly<{
 			viewId: 'campaignManagerView';

@@ -14,8 +14,8 @@ const getIcon = (icon: string): ReactElement | null => {
 	const IntuitaIcon = (
 		<img
 			className={styles.icon}
+			src={require('./../assets/intuita_square128.png')}
 			alt="intuita-logo"
-			src="https://avatars.githubusercontent.com/u/78830094?s=200&v=4"
 		/>
 	);
 
@@ -61,39 +61,37 @@ function App() {
 		};
 	}, []);
 
-	if (!view || !view.externalLinks) {
+	if (!view || !view.viewProps?.externalLinks) {
 		return null;
 	}
 
 	return (
 		<main className="App">
-			<div
-				className={styles.container}
-			>
-				{view.externalLinks.map(({ text, url, icon }: ExternalLink) => {
-					return (
-						<VSCodeButton
-							className={styles.button}
-							appearance="icon"
-							onClick={(event) => {
-								event.stopPropagation();
-								vscode.postMessage({
-									kind: 'webview.command',
-									value: {
-										command: 'openLink',
-										arguments: [url],
-										title: text,
-									},
-								});
-							}}
-						>
-							{getIcon(icon)}
-							<span className={styles.text}>
-								{text}
-							</span>
-						</VSCodeButton>
-					);
-				})}
+			<div className={styles.container}>
+				{view.viewProps.externalLinks.map(
+					({ text, url, icon }: ExternalLink) => {
+						return (
+							<VSCodeButton
+								className={styles.button}
+								appearance="icon"
+								onClick={(event) => {
+									event.stopPropagation();
+									vscode.postMessage({
+										kind: 'webview.command',
+										value: {
+											command: 'openLink',
+											arguments: [url],
+											title: text,
+										},
+									});
+								}}
+							>
+								{getIcon(icon)}
+								<span className={styles.text}>{text}</span>
+							</VSCodeButton>
+						);
+					},
+				)}
 			</div>
 		</main>
 	);
