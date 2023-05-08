@@ -70,6 +70,8 @@ export const DiffComponent = ({
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
+					wordWrapColumn: 75,
+					wrappingIndent: 'indent',
 					scrollBeyondLastLine: false,
 					wordBreak: 'normal',
 					diffAlgorithm: 'smart',
