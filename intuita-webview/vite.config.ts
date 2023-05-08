@@ -9,6 +9,12 @@ const target = process.env.TARGET_APP ?? '';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	resolve: {
+		alias: {
+			"react": "preact/compat",
+      "react-dom": "preact/compat"
+		}
+	},
 	build: {
 		outDir: `build/${target}`,
 		rollupOptions: {
