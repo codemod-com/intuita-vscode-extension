@@ -15,11 +15,6 @@ import { WebviewResolver } from './WebviewResolver';
 
 const EXTERNAL_LINKS: ExternalLink[] = [
 	{
-		text: 'Youtube channel',
-		icon: 'youtube',
-		url: 'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
-	},
-	{
 		text: 'Feature requests',
 		icon: 'featureRequest',
 		url: 'https://feedback.intuita.io/feature-requests-and-bugs',
@@ -33,6 +28,11 @@ const EXTERNAL_LINKS: ExternalLink[] = [
 		text: 'Docs',
 		icon: 'docs',
 		url: 'https://docs.intuita.io/docs/intro',
+	},
+	{
+		text: 'Youtube channel',
+		icon: 'youtube',
+		url: 'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
 	},
 	{
 		text: 'Chat with us on Slack',
