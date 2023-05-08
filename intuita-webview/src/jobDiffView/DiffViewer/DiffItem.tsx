@@ -61,7 +61,6 @@ export const JobDiffView = ({
 			className="px-5 pb-2-5 "
 		>
 			<Collapsable
-				id={newFileTitle ?? ''}
 				defaultExpanded={expanded}
 				onToggle={onToggle}
 				className="overflow-hidden rounded "
