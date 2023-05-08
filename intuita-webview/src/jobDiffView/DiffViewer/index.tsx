@@ -277,7 +277,10 @@ export const JobDiffViewContainer = ({
 							>
 								{({ registerChild }) => {
 									return (
-										<div style={style} id={el.newFileTitle ?? ''}>
+										<div
+											style={style}
+											id={el.newFileTitle ?? ''}
+										>
 											<JobDiffView
 												theme={theme}
 												containerRef={registerChild}
