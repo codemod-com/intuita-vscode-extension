@@ -39,7 +39,7 @@ const getIcon = (icon: string): ReactElement | null => {
 						height: '30px',
 						marginTop: '-2px',
 						marginLeft: '-6px',
-						marginRight: '1px',
+						marginRight: '1.5px',
 					}}
 				/>
 			);
