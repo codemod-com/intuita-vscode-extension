@@ -6,6 +6,8 @@ import { ReactElement, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { View, WebviewMessage } from '../shared/types';
 import { ExternalLink } from '../../../src/components/webview/webviewEvents';
+import intuitaLogo from './../assets/intuita_square128.png';
+
 import styles from './style.module.css';
 
 type MainViews = Extract<View, { viewId: 'communityView' }>;
@@ -14,7 +16,7 @@ const getIcon = (icon: string): ReactElement | null => {
 	const IntuitaIcon = (
 		<img
 			className={styles.icon}
-			src={require('./../assets/intuita_square128.png')}
+			src={intuitaLogo}
 			alt="intuita-logo"
 		/>
 	);
