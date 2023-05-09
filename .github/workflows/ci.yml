@@ -17,7 +17,7 @@ jobs:
             - name: Install dependencies
               run: pnpm install
             - name: Run cSpell
-              run: pnpm spellcheck
+              run: pnpm run spellcheck
     Build:
         runs-on: ubuntu-latest
         steps:
