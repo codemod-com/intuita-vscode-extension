@@ -31,9 +31,7 @@ jobs:
                   version: 7
             - name: Install dependencies
               run: pnpm install
-            - name: Install vsce
-              run: pnpm add -g @vscode/vsce
-            - name: Package using esbuild
+            - name: Package using webpack
               run: pnpm run package
     Lint:
         runs-on: ubuntu-latest
