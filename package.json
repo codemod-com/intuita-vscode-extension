@@ -53,16 +53,6 @@
 				"title": "Intuita: clear output files"
 			},
 			{
-				"command": "intuita.requestFeature",
-				"title": "Feature Request",
-				"icon": "$(flame)"
-			},
-			{
-				"command": "intuita.openYouTubeChannel",
-				"title": "YouTube Channel",
-				"icon": "$(device-camera-video)"
-			},
-			{
 				"command": "intuita.clearState",
 				"title": "Clear All",
 				"icon": "$(clear-all)"
@@ -199,19 +189,17 @@
 					"id": "intuitaFileExplorer",
 					"name": "Change Explorer",
 					"contextualTitle": "Change Explorer"
+				},
+				{
+					"type": "webview",
+					"id": "intuitaCommunityView",
+					"name": "Community",
+					"contextualTitle": "Community"
 				}
 			]
 		},
 		"menus": {
 			"commandPalette": [
-				{
-					"command": "intuita.requestFeature",
-					"when": "false"
-				},
-				{
-					"command": "intuita.openYouTubeChannel",
-					"when": "false"
-				},
 				{
 					"command": "intuita.clearState",
 					"when": "false"

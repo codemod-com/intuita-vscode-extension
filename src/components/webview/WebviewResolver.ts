@@ -84,7 +84,9 @@ export class WebviewResolver {
 					script-src ${scriptSources.join(' ')}; 
 					font-src ${fontSrc.join(' ')};
 					style-src ${styleSources.join(' ')};
-					worker-src blob:;">
+					worker-src blob:;
+					img-src 'self' data:;
+					">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
 					<title>Intuita Panel</title>
