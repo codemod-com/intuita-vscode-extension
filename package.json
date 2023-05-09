@@ -291,7 +291,7 @@
 		"build": "pnpm install:webview && pnpm build:webview && pnpm install && esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
-		"spellcheck": "pnpm cspell '**.*'",
+		"spellcheck": "cspell 'src/**.*'",
 		"install:webview": "cd intuita-webview && pnpm install",
 		"build:webview": "cd intuita-webview && pnpm build",
 		"watch:webview": "cd intuita-webview && pnpm start",
