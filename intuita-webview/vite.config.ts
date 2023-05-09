@@ -16,6 +16,7 @@ export default defineConfig({
 		},
 	},
 	build: {
+		assetsInlineLimit: 10000,
 		outDir: `build/${target}`,
 		rollupOptions: {
 			input: {

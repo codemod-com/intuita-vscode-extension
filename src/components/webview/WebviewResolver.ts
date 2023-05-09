@@ -1,7 +1,6 @@
 import { Webview, Uri } from 'vscode';
 import { randomBytes } from 'crypto';
 import { getUri } from '../../utilities';
-
 export class WebviewResolver {
 	constructor(private readonly __extensionPath: Uri) {}
 
@@ -67,9 +66,17 @@ export class WebviewResolver {
 			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/',
 		];
 
-		const fontSrc = [
+		const fontSources = [
 			webview.cspSource,
 			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1',
+		];
+
+		const imageSources = [
+			webview.cspSource,
+			`'self'`,
+			`data:`,
+			`vscode-resource:`,
+			`https:`,
 		];
 
 		return /*html*/ `
@@ -82,10 +89,10 @@ export class WebviewResolver {
 					<meta http-equiv="Content-Security-Policy" content="
 					default-src 'none';
 					script-src ${scriptSources.join(' ')}; 
-					font-src ${fontSrc.join(' ')};
+					font-src ${fontSources.join(' ')};
 					style-src ${styleSources.join(' ')};
 					worker-src blob:;
-					img-src 'self' data:;
+					img-src ${imageSources.join(' ')};
 					">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
 					<link rel="stylesheet" type="text/css" href="${stylesUri}">
