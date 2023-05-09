@@ -26,13 +26,13 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Install PNPM
-              run: npm install -g pnpm
-            - name: Compile using webpack
-              run: yarn compile
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install dependencies
+              run: pnpm install
             - name: Package using webpack
-              run: yarn package
+              run: pnpm run package
     Lint:
         runs-on: ubuntu-latest
         steps:
@@ -41,7 +41,11 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install dependencies
+              run: pnpm install
             - name: Run ESLint
               run: yarn eslint src --ext ts
     Prettier:
@@ -52,6 +56,10 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install dependencies
+              run: pnpm install
             - name: Ensure Prettier was run
               run: yarn prettier --check .
