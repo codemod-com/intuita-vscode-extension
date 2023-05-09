@@ -11,7 +11,7 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-            - uses: pnpm/action-setup@v2
+              uses: pnpm/action-setup@v2
               with:
                   version: 7
             - name: Run cSpell
