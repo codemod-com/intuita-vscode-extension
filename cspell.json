@@ -39,6 +39,9 @@
 		"codicons",
 		"codicon",
 		"upsert",
-		"jscodeshift"
+		"jscodeshift",
+		"unapply",
+		"redwoodjs",
+		"repomod"
 	]
 }

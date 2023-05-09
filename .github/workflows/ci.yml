@@ -10,10 +10,16 @@ jobs:
               with:
                   node-version: 16
             - uses: actions/checkout@v2
-            - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Run cSpell
-              run: yarn spellcheck
+            - uses: streetsidesoftware/cspell-action@v2
+              with:
+                  files: '**/*.{ts,tsx}'
+                  check_dot_files: explicit
+                  root: '.'
+                  inline: warning
+                  strict: true
+                  incremental_files_only: true
+                  config: './cspell.json'
+                  verbose: true
     Build:
         runs-on: ubuntu-latest
         steps:
@@ -22,13 +28,15 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Install PNPM
-              run: npm install -g pnpm
-            - name: Compile using webpack
-              run: yarn compile
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install vsce
+              run: pnpm add -g @vscode/vsce
+            - name: Install dependencies
+              run: pnpm install
             - name: Package using webpack
-              run: yarn package
+              run: pnpm run package
     Lint:
         runs-on: ubuntu-latest
         steps:
@@ -37,9 +45,13 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install dependencies
+              run: pnpm install
             - name: Run ESLint
-              run: yarn eslint src --ext ts
+              run: pnpm eslint src --ext ts
     Prettier:
         runs-on: ubuntu-latest
         steps:
@@ -48,6 +60,10 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 7
+            - name: Install dependencies
+              run: pnpm install
             - name: Ensure Prettier was run
-              run: yarn prettier --check .
+              run: pnpm prettier --check .

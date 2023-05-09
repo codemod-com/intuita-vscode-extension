@@ -285,16 +285,17 @@
 	},
 	"main": "./dist/extension.js",
 	"scripts": {
-		"vscode:prepublish": "yarn run package",
+		"vscode:prepublish": "pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"package": "yarn install:webview && yarn build:webview && webpack --mode production --devtool hidden-source-map",
+		"build": "pnpm install:webview && pnpm build:webview && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
-		"spellcheck": "yarn cspell '**.*'",
+		"spellcheck": "pnpm cspell '**/*.{ts,tsx}'",
 		"install:webview": "cd intuita-webview && pnpm install",
 		"build:webview": "cd intuita-webview && pnpm build",
-		"watch:webview": "cd intuita-webview && pnpm start"
+		"watch:webview": "cd intuita-webview && pnpm start",
+		"package": "vsce package --no-dependencies"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.3.4",
@@ -308,6 +309,7 @@
 		"@vscode/test-electron": "^2.2.2",
 		"chai": "^4.3.7",
 		"cspell-cli": "^6.17.1",
+		"esbuild": "^0.17.18",
 		"eslint": "^8.31.0",
 		"eslint-config-prettier": "^8.6.0",
 		"eslint-plugin-prettier": "^4.2.1",
