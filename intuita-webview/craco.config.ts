@@ -48,6 +48,7 @@ module.exports = {
 						'src/campaignManager/index.tsx',
 					),
 					fileExplorer: resolveApp('src/fileExplorer/index.tsx'),
+					communityView: resolveApp('src/communityView/index.tsx'),
 					jobDiffView: resolveApp('src/jobDiffView/index.tsx'),
 					codemodList: resolveApp('src/codemodList/index.tsx'),
 				};
