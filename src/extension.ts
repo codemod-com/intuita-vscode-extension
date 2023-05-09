@@ -67,9 +67,6 @@ import { CommunityProvider } from './components/webview/CommunityProvider';
 
 const messageBus = new MessageBus();
 
-const Jdasdfld = '23';
-console.log(Jdasdfld);
-
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
 
