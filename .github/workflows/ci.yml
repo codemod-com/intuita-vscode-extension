@@ -14,8 +14,6 @@ jobs:
               uses: pnpm/action-setup@v2
               with:
                   version: 7
-            - name: Install vsce
-              run: pnpm add -g @vscode/vsce
             - name: Install dependencies
               run: pnpm install
             - name: Run cSpell
@@ -31,6 +29,8 @@ jobs:
               uses: pnpm/action-setup@v2
               with:
                   version: 7
+            - name: Install vsce
+              run: pnpm add -g @vscode/vsce
             - name: Install dependencies
               run: pnpm install
             - name: Package using webpack
