@@ -1,8 +1,6 @@
-import * as monaco from 'monaco-editor';
+import type { editor } from 'monaco-editor';
 
-export const getDiffEditorHeight = (
-	editor: monaco.editor.IStandaloneDiffEditor,
-) => {
+export const getDiffEditorHeight = (editor: editor.IStandaloneDiffEditor) => {
 	const originalEditor = editor.getOriginalEditor();
 	const modifiedEditor = editor.getModifiedEditor();
 
