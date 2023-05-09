@@ -10,16 +10,16 @@ jobs:
               with:
                   node-version: 16
             - uses: actions/checkout@v2
-            - name: Install modules
-              uses: pnpm/action-setup@v2
+            - uses: streetsidesoftware/cspell-action@v2
               with:
-                  version: 7
-            - name: Install cSpell
-              run: pnpm add -g cspell-cli
-            - name: Install dependencies
-              run: pnpm install
-            - name: Run cSpell
-              run: pnpm run spellcheck
+                files: '**/*.{ts,tsx}'
+                check_dot_files: explicit
+                root: 'src'
+                inline: warning
+                strict: true
+                incremental_files_only: true
+                config: './cspell.json'
+                verbose: false
     Build:
         runs-on: ubuntu-latest
         steps:
