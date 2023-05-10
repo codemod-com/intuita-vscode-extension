@@ -8,6 +8,7 @@ import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
+import { getConfiguration } from '../../configuration';
 
 const buildIssueTemplate = (codemodName: string): string => {
 	return `
@@ -129,6 +130,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.stageJobs') {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
 			this.__onUpdateStagedJobsMessage();
+		}
+
+		if (message.kind === 'webview.global.openConfiguration') {
+			commands.executeCommand(
+				'workbench.action.openSettings',
+				'@ext:Intuita.intuita-vscode-extension',
+			);
 		}
 
 		if (message.kind === 'webview.global.showInformationMessage') {
@@ -289,7 +297,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
-	async __onCodemodSetExecuted(): Promise<void> {
+	async __refreshView(): Promise<void> {
 		if (this.__openedCaseHash === null) {
 			return;
 		}
@@ -301,10 +309,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		const { title, data, stagedJobs } = viewData;
+		const { onDryRunCompleted } = getConfiguration();
+		const showHooksCTA = onDryRunCompleted === null;
 
 		const view: View = {
 			viewId: 'jobDiffView' as const,
 			viewProps: {
+				showHooksCTA,
 				loading: false,
 				diffId: this.__openedCaseHash as string,
 				title,
@@ -318,8 +329,16 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachExtensionEventListeners() {
-		this._addHook(MessageKind.codemodSetExecuted, async () => {
-			this.__onCodemodSetExecuted();
+		this._addHook(MessageKind.afterDryRunHooksExecuted, () => {
+			this.__refreshView();
+		});
+
+		this._addHook(MessageKind.codemodSetExecuted, () => {
+			this.__refreshView();
+		});
+
+		this._addHook(MessageKind.configurationChanged, () => {
+			this.__refreshView();
 		});
 
 		this._addHook(MessageKind.clearState, () => {

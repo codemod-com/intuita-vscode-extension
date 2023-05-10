@@ -352,7 +352,6 @@ export class EngineService {
 		};
 
 		const args = buildArguments();
-
 		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
 		const childProcess = spawn(
@@ -590,6 +589,7 @@ export class EngineService {
 					codemodSetName: this.#execution.codemodSetName,
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
+					jobs: this.#execution.jobs,
 				});
 
 				if (!errorMessages.size && !this.#execution.affectedAnyFile) {

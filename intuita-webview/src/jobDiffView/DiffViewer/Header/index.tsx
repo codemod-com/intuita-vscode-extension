@@ -8,6 +8,7 @@ import { vscode } from '../../../shared/utilities/vscode';
 import { CaseHash } from '../../../../../src/cases/types';
 import Popover from '../../../shared/Popover';
 import { JobHash } from '../../../../../src/jobs/types';
+import HooksCTA from './HooksCTA';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
@@ -17,6 +18,8 @@ const POPOVER_TEXTS = {
 };
 
 type Props = Readonly<{
+	title: string;
+	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	diffId: string;
@@ -57,6 +60,7 @@ const Header = ({
 	jobs,
 	onViewChange,
 	stagedJobsHashes,
+	showHooksCTA,
 }: Props) => {
 	const handleDiscardChanges = () => {
 		vscode.postMessage({
@@ -89,6 +93,7 @@ const Header = ({
 		: hasStagedJobs
 		? 'someStaged'
 		: 'noneStaged';
+
 	const props = getCheckboxProps(checkboxState);
 
 	const setStagedJobs = (jobHashes: JobHash[]): void => {
@@ -116,6 +121,7 @@ const Header = ({
 				popoverText={props?.title}
 			/>
 			<div className={styles.actionsContainer}>
+				{showHooksCTA ? <HooksCTA /> : null}
 				<Popover
 					trigger={
 						<VSCodeButton

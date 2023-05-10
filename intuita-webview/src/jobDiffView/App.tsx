@@ -117,7 +117,7 @@ function App() {
 		return <LoadingProgress />;
 	}
 
-	const { data, diffId } = view.viewProps;
+	const { data, diffId, showHooksCTA } = view.viewProps;
 
 	return (
 		<main className="App">
@@ -126,6 +126,7 @@ function App() {
 				diffId={diffId}
 				jobs={data}
 				stagedJobs={stagedJobs}
+				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
 			/>
 		</main>

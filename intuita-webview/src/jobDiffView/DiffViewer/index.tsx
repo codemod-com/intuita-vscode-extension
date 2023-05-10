@@ -23,6 +23,7 @@ type JobDiffViewContainerProps = Readonly<{
 	diffId: string;
 	scrollIntoHash: JobHash | null;
 	stagedJobs: JobHash[];
+	showHooksCTA: boolean;
 }>;
 
 type DiffItem = Readonly<{
@@ -42,6 +43,7 @@ export const JobDiffViewContainer = ({
 	postMessage,
 	scrollIntoHash,
 	stagedJobs,
+	showHooksCTA,
 }: JobDiffViewContainerProps) => {
 	const reversedJobs = useMemo(() => jobs.reverse(), [jobs]);
 
@@ -247,6 +249,7 @@ export const JobDiffViewContainer = ({
 				jobs={reversedJobs}
 				diffId={diffId}
 				stagedJobsHashes={stagedJobs}
+				showHooksCTA={showHooksCTA}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<List

@@ -158,6 +158,11 @@
 						"**/node_modules"
 					],
 					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
+				},
+				"intuita.onDryRunCompleted": {
+					"order": 7,
+					"type": "string",
+					"description": "Specify a command that will be executed when dry run is completed"
 				}
 			}
 		},

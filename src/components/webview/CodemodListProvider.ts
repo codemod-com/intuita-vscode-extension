@@ -184,7 +184,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.codemodeList.haltCodemodExecution') {
+		if (message.kind === 'webview.codemodList.haltCodemodExecution') {
 			this.__codemodService.haltCurrentCodemodExecution();
 		}
 

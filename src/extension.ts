@@ -64,6 +64,7 @@ import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
+import { UserHooksService } from './components/hooks';
 
 const messageBus = new MessageBus();
 
@@ -210,9 +211,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					const isExecutionInProgress =
 						engineService.isExecutionInProgress();
 
+					const { onDryRunCompleted } = getConfiguration();
+					const showHooksCTA = onDryRunCompleted === null;
+
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
+							showHooksCTA,
 							loading: isExecutionInProgress,
 							diffId: String(caseHash) as CaseHash,
 							title,
@@ -279,6 +284,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaCommunityView);
+
+	if (rootPath) {
+		new UserHooksService(messageBus, { getConfiguration }, rootPath);
+	}
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
