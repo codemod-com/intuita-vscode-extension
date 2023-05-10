@@ -3,6 +3,7 @@ import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
 import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
+import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
 import Popover from '../../shared/Popover';
 
@@ -71,6 +72,11 @@ export const Header = ({
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
 	const hasDiff = diff !== null;
+	const handleCopyFileName = (event: React.FormEvent<HTMLElement>) => {
+		event.stopPropagation();
+		navigator.clipboard.writeText(title);
+	};
+
 	return (
 		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
@@ -95,6 +101,12 @@ export const Header = ({
 					<h4 className="my-0 ml-1 diff-title align-self-center">
 						{title}
 					</h4>
+					<VSCodeButton
+						onClick={handleCopyFileName}
+						appearance="icon"
+					>
+						<CopyIcon className="copy-icon" />
+					</VSCodeButton>
 				</div>
 
 				<div
