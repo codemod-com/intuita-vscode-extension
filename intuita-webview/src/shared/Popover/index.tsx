@@ -15,9 +15,11 @@ const Popover = ({ trigger, popoverText, ...others }: Props) => {
 	return (
 		<Popup
 			arrow
+			mouseEnterDelay={30} // 100ms by default; Ref: https://react-popup.elazizi.com/component-api#mouseleavedelay
 			mouseLeaveDelay={30} // 100ms by default; Ref: https://react-popup.elazizi.com/component-api#mouseleavedelay
 			trigger={trigger}
-			position={['top left', 'right center']}
+			position={['top right', 'right center']}
+			offsetY={30}
 			lockScroll
 			on={['hover', 'focus']}
 			contentStyle={{ display: 'flex', alignItems: 'center' }}
