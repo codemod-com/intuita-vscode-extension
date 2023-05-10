@@ -281,7 +281,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(intuitaCommunityView);
 
-	new UserHooksService(messageBus, getConfiguration());
+	if (rootPath) {
+		new UserHooksService(messageBus, getConfiguration(), rootPath);
+	}
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {

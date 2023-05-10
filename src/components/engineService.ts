@@ -352,7 +352,6 @@ export class EngineService {
 		};
 
 		const args = buildArguments();
-
 		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
 		const childProcess = spawn(
