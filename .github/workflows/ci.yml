@@ -30,7 +30,7 @@ jobs:
             - name: Install modules
               uses: pnpm/action-setup@v2
               with:
-                  version: 7
+                  version: 8
             - name: Install vsce
               run: pnpm add -g @vscode/vsce
             - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
             - name: Install modules
               uses: pnpm/action-setup@v2
               with:
-                  version: 7
+                  version: 8
             - name: Install dependencies
               run: pnpm install
             - name: Run ESLint
@@ -62,7 +62,7 @@ jobs:
             - name: Install modules
               uses: pnpm/action-setup@v2
               with:
-                  version: 7
+                  version: 8
             - name: Install dependencies
               run: pnpm install
             - name: Ensure Prettier was run
