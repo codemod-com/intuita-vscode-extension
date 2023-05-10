@@ -181,8 +181,8 @@
 				{
 					"type": "webview",
 					"id": "intuitaCampaignManager",
-					"name": "Code Change Projects",
-					"contextualTitle": "Code Change Projects"
+					"name": "Recent Codemod Runs",
+					"contextualTitle": "Recent Codemod Runs"
 				},
 				{
 					"type": "webview",
