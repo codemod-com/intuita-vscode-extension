@@ -117,14 +117,13 @@ function App() {
 		return <LoadingProgress />;
 	}
 
-	const { data, title, diffId } = view.viewProps;
+	const { data, diffId } = view.viewProps;
 
 	return (
 		<main className="App">
 			<JobDiffViewContainer
 				scrollIntoHash={scrollIntoHash}
 				diffId={diffId}
-				title={title}
 				jobs={data}
 				stagedJobs={stagedJobs}
 				postMessage={postMessage}

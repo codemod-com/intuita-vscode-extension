@@ -1,7 +1,6 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { ReactComponent as CopyIcon } from '../../../assets/copy.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
@@ -18,7 +17,6 @@ const POPOVER_TEXTS = {
 };
 
 type Props = Readonly<{
-	title: string;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	diffId: string;
@@ -54,17 +52,12 @@ const getCheckboxProps = (checkboxState: CheckboxState) => {
 };
 
 const Header = ({
-	title,
 	viewType,
 	diffId,
 	jobs,
 	onViewChange,
 	stagedJobsHashes,
 }: Props) => {
-	const handleTitleClick = () => {
-		navigator.clipboard.writeText(title);
-	};
-
 	const handleDiscardChanges = () => {
 		vscode.postMessage({
 			kind: 'webview.global.discardChanges',
@@ -107,52 +100,22 @@ const Header = ({
 
 	return (
 		<div className={styles.root}>
-			<div className={styles.title} onClick={handleTitleClick}>
-				<Popover
-					trigger={
-						<VSCodeButton
-							onClick={(e) => {
-								e.stopPropagation();
-								const jobsToBeStaged = hasStagedJobs
-									? []
-									: jobs.map(({ jobHash }) => jobHash);
-								setStagedJobs(jobsToBeStaged);
-							}}
-							appearance="icon"
-							className={styles.checkbox}
-						>
-							<i className={`codicon codicon-${props?.icon}`} />
-						</VSCodeButton>
-					}
-					popoverText={props?.title}
-				/>
-				<span>{title}</span>
-				<VSCodeButton
-					onClick={handleTitleClick}
-					appearance="icon"
-					className={styles.iconContainer}
-				>
-					<CopyIcon
-						className={styles.icon}
-						style={{
-							width: '21px',
-							height: '21px',
+			<Popover
+				trigger={
+					<VSCodeCheckbox
+						onClick={(e) => {
+							e.stopPropagation();
+							const jobsToBeStaged = hasStagedJobs
+								? []
+								: jobs.map(({ jobHash }) => jobHash);
+							setStagedJobs(jobsToBeStaged);
 						}}
+						className={styles.checkbox}
 					/>
-				</VSCodeButton>
-			</div>
+				}
+				popoverText={props?.title}
+			/>
 			<div className={styles.actionsContainer}>
-				<Popover
-					trigger={
-						<VSCodeButton
-							appearance="secondary"
-							onClick={handleDiscardChanges}
-						>
-							Discard All
-						</VSCodeButton>
-					}
-					popoverText={POPOVER_TEXTS.discard}
-				/>
 				<Popover
 					trigger={
 						<VSCodeButton
@@ -169,26 +132,37 @@ const Header = ({
 							: POPOVER_TEXTS.apply
 					}
 				/>
+				<Popover
+					trigger={
+						<VSCodeButton
+							appearance="secondary"
+							onClick={handleDiscardChanges}
+						>
+							Discard All
+						</VSCodeButton>
+					}
+					popoverText={POPOVER_TEXTS.discard}
+				/>
 			</div>
-			{viewType === 'side-by-side' ? (
-				<VSCodeButton
-					title="Inline"
-					appearance="icon"
-					onClick={() => onViewChange('inline')}
-					className={styles.iconContainer}
-				>
-					Inline <UnifiedIcon className={styles.icon} />
-				</VSCodeButton>
-			) : (
-				<VSCodeButton
-					title="Side by Side"
-					appearance="icon"
-					onClick={() => onViewChange('side-by-side')}
-					className={styles.iconContainer}
-				>
-					Side by Side <SplitIcon className={styles.icon} />
-				</VSCodeButton>
-			)}
+			<div className={styles.buttonGroup}>
+				{viewType === 'side-by-side' ? (
+					<VSCodeButton
+						title="Inline"
+						appearance="icon"
+						onClick={() => onViewChange('inline')}
+					>
+						Inline <UnifiedIcon className={styles.icon} />
+					</VSCodeButton>
+				) : (
+					<VSCodeButton
+						title="Side by Side"
+						appearance="icon"
+						onClick={() => onViewChange('side-by-side')}
+					>
+						Side by Side <SplitIcon className={styles.icon} />
+					</VSCodeButton>
+				)}
+			</div>
 		</div>
 	);
 };
