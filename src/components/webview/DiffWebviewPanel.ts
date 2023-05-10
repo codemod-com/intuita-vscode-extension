@@ -138,7 +138,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				'@ext:Intuita.intuita-vscode-extension',
 			);
 		}
-		
+
 		if (message.kind === 'webview.global.showInformationMessage') {
 			window.showInformationMessage(message.value);
 		}
