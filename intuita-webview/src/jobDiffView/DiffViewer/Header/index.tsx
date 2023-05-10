@@ -1,7 +1,6 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { ReactComponent as CopyIcon } from '../../../assets/copy.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
@@ -126,20 +125,6 @@ const Header = ({
 					}
 					popoverText={props?.title}
 				/>
-				<span>{title}</span>
-				<VSCodeButton
-					onClick={handleTitleClick}
-					appearance="icon"
-					className={styles.iconContainer}
-				>
-					<CopyIcon
-						className={styles.icon}
-						style={{
-							width: '21px',
-							height: '21px',
-						}}
-					/>
-				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
 				<Popover
@@ -175,7 +160,6 @@ const Header = ({
 					title="Inline"
 					appearance="icon"
 					onClick={() => onViewChange('inline')}
-					className={styles.iconContainer}
 				>
 					Inline <UnifiedIcon className={styles.icon} />
 				</VSCodeButton>
@@ -184,7 +168,6 @@ const Header = ({
 					title="Side by Side"
 					appearance="icon"
 					onClick={() => onViewChange('side-by-side')}
-					className={styles.iconContainer}
 				>
 					Side by Side <SplitIcon className={styles.icon} />
 				</VSCodeButton>
