@@ -1,6 +1,5 @@
 .root {
 	display: flex;
-	justify-content: flex-end;
 	align-items: center;
 	z-index: 1001;
 	position: sticky;
@@ -11,38 +10,10 @@
 	gap: 8px;
 }
 
-.title {
-	height: 100%;
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	flex-grow: 1;
-	text-align: center;
-	cursor: pointer;
-	color: var(--foreground);
-}
-
-.title .copyButton {
-	display: none;
-}
-
-.title:hover .copyButton {
-	display: block;
-}
-
-.iconContainer .iconContainer:focus .iconContainer:active {
-	outline: 0px !important;
-}
-
 .icon {
-	outline: 0px !important;
 	stroke: var(--vscode-icon-foreground);
 	height: 16px;
 	width: 16px;
-}
-
-.icon:focus .icon:active {
-	outline: 0px !important;
 }
 
 .actionsContainer {
@@ -52,4 +23,9 @@
 
 .checkbox {
 	color: var(--vscode-icon-foreground);
+	margin-left: 32px;
+}
+
+.buttonGroup {
+	margin-left: auto;
 }

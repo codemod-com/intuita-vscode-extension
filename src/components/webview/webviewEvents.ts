@@ -261,6 +261,7 @@ export type WebviewResponse =
 			kind: 'webview.global.stageJobs';
 			jobHashes: JobHash[];
 	  }>
+	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{
 			kind: 'webview.campaignManager.caseSelected';
 			hash: CaseHash;
