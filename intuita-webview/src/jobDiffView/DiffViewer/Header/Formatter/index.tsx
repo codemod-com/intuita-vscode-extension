@@ -9,8 +9,6 @@ const POPOVER_TEXTS = {
 };
 
 const HooksCTA = () => {
-	const hasFormatterCommand = false;
-
 	const handleShowExtensionSettings = () => {
 		vscode.postMessage({
 			kind: 'webview.global.openConfiguration',
@@ -18,21 +16,17 @@ const HooksCTA = () => {
 	};
 
 	return (
-		<>
-			{!hasFormatterCommand ? (
-				<Popover
-					trigger={
-						<VSCodeButton
-							appearance="primary"
-							onClick={handleShowExtensionSettings}
-						>
-							Try intuita hooks
-						</VSCodeButton>
-					}
-					popoverText={POPOVER_TEXTS.showExtensionSettings}
-				/>
-			) : null}
-		</>
+		<Popover
+			trigger={
+				<VSCodeButton
+					appearance="primary"
+					onClick={handleShowExtensionSettings}
+				>
+					Try intuita hooks
+				</VSCodeButton>
+			}
+			popoverText={POPOVER_TEXTS.showExtensionSettings}
+		/>
 	);
 };
 

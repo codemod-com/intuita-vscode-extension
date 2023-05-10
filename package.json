@@ -162,7 +162,6 @@
 				"intuita.onDryRunCompleted": {
 					"order": 7,
 					"type": "string",
-					"default": "prettier --write $DRY_RUN_CHANGED_FILES",
 					"description": "Specify a command that will be executed when dry run is completed"
 				}
 			}

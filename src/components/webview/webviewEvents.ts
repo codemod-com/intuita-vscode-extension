@@ -333,6 +333,7 @@ export type View =
 				diffId: string;
 				title: string;
 				loading: boolean;
+				showHooksCTA: boolean;
 				data: JobDiffViewProps[];
 				stagedJobs: JobHash[];
 			};

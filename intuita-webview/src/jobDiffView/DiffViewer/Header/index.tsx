@@ -20,6 +20,7 @@ const POPOVER_TEXTS = {
 
 type Props = Readonly<{
 	title: string;
+	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	diffId: string;
@@ -61,6 +62,7 @@ const Header = ({
 	jobs,
 	onViewChange,
 	stagedJobsHashes,
+	showHooksCTA,
 }: Props) => {
 	const handleTitleClick = () => {
 		navigator.clipboard.writeText(title);
@@ -145,7 +147,7 @@ const Header = ({
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
-				<HooksCTA />
+				{showHooksCTA ? <HooksCTA /> : null}
 				<Popover
 					trigger={
 						<VSCodeButton

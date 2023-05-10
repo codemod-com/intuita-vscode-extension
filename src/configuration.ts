@@ -29,7 +29,7 @@ export const getConfiguration = () => {
 	];
 
 	const onDryRunCompleted =
-		configuration.get<string>('onDryRunCompleted') ?? null;
+		configuration.get<string>('onDryRunCompleted') || null;
 
 	return {
 		saveDocumentOnJobAccept,
