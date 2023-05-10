@@ -9,6 +9,7 @@ import { vscode } from '../../../shared/utilities/vscode';
 import { CaseHash } from '../../../../../src/cases/types';
 import Popover from '../../../shared/Popover';
 import { JobHash } from '../../../../../src/jobs/types';
+import HooksCTA from './Formatter';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
@@ -96,6 +97,7 @@ const Header = ({
 		: hasStagedJobs
 		? 'someStaged'
 		: 'noneStaged';
+
 	const props = getCheckboxProps(checkboxState);
 
 	const setStagedJobs = (jobHashes: JobHash[]): void => {
@@ -127,6 +129,7 @@ const Header = ({
 					popoverText={props?.title}
 				/>
 				<span>{title}</span>
+
 				<VSCodeButton
 					onClick={handleTitleClick}
 					appearance="icon"
@@ -142,6 +145,7 @@ const Header = ({
 				</VSCodeButton>
 			</div>
 			<div className={styles.actionsContainer}>
+				<HooksCTA />
 				<Popover
 					trigger={
 						<VSCodeButton

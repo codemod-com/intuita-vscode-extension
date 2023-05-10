@@ -174,6 +174,7 @@ export type Message =
 			codemodSetName: string;
 			halted: boolean;
 			fileCount: number;
+			jobs: Job[];
 	  }>
 	| Readonly<{
 			kind: MessageKind.extensionActivated;

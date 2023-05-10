@@ -130,6 +130,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
 			this.__onUpdateStagedJobsMessage();
 		}
+
+		if (message.kind === 'webview.global.openConfiguration') {
+			commands.executeCommand(
+				'workbench.action.openSettings',
+				'@ext:Intuita.intuita-vscode-extension',
+			);
+		}
 	}
 
 	public override dispose() {

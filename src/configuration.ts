@@ -28,6 +28,9 @@ export const getConfiguration = () => {
 		'**/node_modules',
 	];
 
+	const onDryRunCompleted =
+		configuration.get<string>('onDryRunCompleted') ?? null;
+
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
@@ -35,6 +38,7 @@ export const getConfiguration = () => {
 		workerThreadCount,
 		includePatterns,
 		excludePatterns,
+		onDryRunCompleted,
 	};
 };
 

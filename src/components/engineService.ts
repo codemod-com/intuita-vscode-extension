@@ -590,6 +590,7 @@ export class EngineService {
 					codemodSetName: this.#execution.codemodSetName,
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
+					jobs: this.#execution.jobs,
 				});
 
 				if (!errorMessages.size && !this.#execution.affectedAnyFile) {

@@ -64,6 +64,7 @@ import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
+import { UserHooksService } from './components/hooks';
 
 const messageBus = new MessageBus();
 
@@ -279,6 +280,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(intuitaCommunityView);
+
+	new UserHooksService(messageBus, getConfiguration());
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
