@@ -9,7 +9,7 @@ import { vscode } from '../../../shared/utilities/vscode';
 import { CaseHash } from '../../../../../src/cases/types';
 import Popover from '../../../shared/Popover';
 import { JobHash } from '../../../../../src/jobs/types';
-import HooksCTA from './Formatter';
+import HooksCTA from './HooksCTA';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',

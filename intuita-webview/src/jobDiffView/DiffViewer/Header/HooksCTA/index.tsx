@@ -5,7 +5,6 @@ import { vscode } from '../../../../shared/utilities/vscode';
 const POPOVER_TEXTS = {
 	showExtensionSettings:
 		'Use hooks to perform actions (e.g formatting) on specific stages of codemod execution',
-	formatChanges: '',
 };
 
 const HooksCTA = () => {

@@ -17,9 +17,14 @@ const buildEnvForDryRunCompleted = (
 	message: Message & { kind: MessageKind.codemodSetExecuted },
 ): DryRunCompletedEnv => {
 	const changedFilePaths = message.jobs
-		.map(({ newContentUri }) => newContentUri?.fsPath)
-		.filter(isNeitherNullNorUndefined)
-		.map(singleQuotify);
+		.map(({ newContentUri }) => {
+			if (newContentUri === null) {
+				return;
+			}
+
+			return singleQuotify(newContentUri.fsPath);
+		})
+		.filter(isNeitherNullNorUndefined);
 
 	const changedFilesAsPattern = changedFilePaths.join(' ');
 
