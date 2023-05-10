@@ -1,4 +1,4 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
@@ -100,38 +100,22 @@ const Header = ({
 
 	return (
 		<div className={styles.root}>
-			<div className={styles.title}>
-				<Popover
-					trigger={
-						<VSCodeButton
-							onClick={(e) => {
-								e.stopPropagation();
-								const jobsToBeStaged = hasStagedJobs
-									? []
-									: jobs.map(({ jobHash }) => jobHash);
-								setStagedJobs(jobsToBeStaged);
-							}}
-							appearance="icon"
-							className={styles.checkbox}
-						>
-							<i className={`codicon codicon-${props?.icon}`} />
-						</VSCodeButton>
-					}
-					popoverText={props?.title}
-				/>
-			</div>
+			<Popover
+				trigger={
+					<VSCodeCheckbox
+						onClick={(e) => {
+							e.stopPropagation();
+							const jobsToBeStaged = hasStagedJobs
+								? []
+								: jobs.map(({ jobHash }) => jobHash);
+							setStagedJobs(jobsToBeStaged);
+						}}
+						className={styles.checkbox}
+					/>
+				}
+				popoverText={props?.title}
+			/>
 			<div className={styles.actionsContainer}>
-				<Popover
-					trigger={
-						<VSCodeButton
-							appearance="secondary"
-							onClick={handleDiscardChanges}
-						>
-							Discard All
-						</VSCodeButton>
-					}
-					popoverText={POPOVER_TEXTS.discard}
-				/>
 				<Popover
 					trigger={
 						<VSCodeButton
@@ -148,24 +132,37 @@ const Header = ({
 							: POPOVER_TEXTS.apply
 					}
 				/>
+				<Popover
+					trigger={
+						<VSCodeButton
+							appearance="secondary"
+							onClick={handleDiscardChanges}
+						>
+							Discard All
+						</VSCodeButton>
+					}
+					popoverText={POPOVER_TEXTS.discard}
+				/>
 			</div>
-			{viewType === 'side-by-side' ? (
-				<VSCodeButton
-					title="Inline"
-					appearance="icon"
-					onClick={() => onViewChange('inline')}
-				>
-					Inline <UnifiedIcon className={styles.icon} />
-				</VSCodeButton>
-			) : (
-				<VSCodeButton
-					title="Side by Side"
-					appearance="icon"
-					onClick={() => onViewChange('side-by-side')}
-				>
-					Side by Side <SplitIcon className={styles.icon} />
-				</VSCodeButton>
-			)}
+			<div className={styles.buttonGroup}>
+				{viewType === 'side-by-side' ? (
+					<VSCodeButton
+						title="Inline"
+						appearance="icon"
+						onClick={() => onViewChange('inline')}
+					>
+						Inline <UnifiedIcon className={styles.icon} />
+					</VSCodeButton>
+				) : (
+					<VSCodeButton
+						title="Side by Side"
+						appearance="icon"
+						onClick={() => onViewChange('side-by-side')}
+					>
+						Side by Side <SplitIcon className={styles.icon} />
+					</VSCodeButton>
+				)}
+			</div>
 		</div>
 	);
 };
