@@ -1,4 +1,4 @@
-import { workspace, commands } from 'vscode';
+import { workspace, commands, window } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
 import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
@@ -129,6 +129,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.stageJobs') {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
 			this.__onUpdateStagedJobsMessage();
+		}
+
+		if (message.kind === 'webview.global.showInformationMessage') {
+			window.showInformationMessage(message.value);
 		}
 	}
 

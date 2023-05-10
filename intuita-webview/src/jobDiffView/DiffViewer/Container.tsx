@@ -6,6 +6,7 @@ import { JobKind } from '../../shared/constants';
 import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
 import Popover from '../../shared/Popover';
+import { vscode } from '../../shared/utilities/vscode';
 
 type ContainerProps = Readonly<{
 	oldFileName: string | null;
@@ -75,6 +76,10 @@ export const Header = ({
 	const handleCopyFileName = (event: React.FormEvent<HTMLElement>) => {
 		event.stopPropagation();
 		navigator.clipboard.writeText(title);
+		vscode.postMessage({
+			kind: 'webview.global.showInformationMessage',
+			value: 'File name copied to clipboard',
+		});
 	};
 
 	return (
