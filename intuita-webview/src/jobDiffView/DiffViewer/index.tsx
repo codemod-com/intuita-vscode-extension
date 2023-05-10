@@ -20,7 +20,6 @@ import { useTheme } from '../../shared/Snippet/useTheme';
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
-	title: string;
 	diffId: string;
 	scrollIntoHash: JobHash | null;
 	stagedJobs: JobHash[];
@@ -38,7 +37,6 @@ type DiffData = Record<JobHash, DiffItem>;
 const defaultHeight = 1200;
 
 export const JobDiffViewContainer = ({
-	title,
 	jobs,
 	diffId,
 	postMessage,
@@ -246,7 +244,6 @@ export const JobDiffViewContainer = ({
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				title={title}
 				jobs={reversedJobs}
 				diffId={diffId}
 				stagedJobsHashes={stagedJobs}

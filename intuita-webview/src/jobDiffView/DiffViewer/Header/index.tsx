@@ -17,7 +17,6 @@ const POPOVER_TEXTS = {
 };
 
 type Props = Readonly<{
-	title: string;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	diffId: string;
@@ -53,17 +52,12 @@ const getCheckboxProps = (checkboxState: CheckboxState) => {
 };
 
 const Header = ({
-	title,
 	viewType,
 	diffId,
 	jobs,
 	onViewChange,
 	stagedJobsHashes,
 }: Props) => {
-	const handleTitleClick = () => {
-		navigator.clipboard.writeText(title);
-	};
-
 	const handleDiscardChanges = () => {
 		vscode.postMessage({
 			kind: 'webview.global.discardChanges',
@@ -106,7 +100,7 @@ const Header = ({
 
 	return (
 		<div className={styles.root}>
-			<div className={styles.title} onClick={handleTitleClick}>
+			<div className={styles.title}>
 				<Popover
 					trigger={
 						<VSCodeButton
