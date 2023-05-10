@@ -42,6 +42,9 @@
 		"jscodeshift",
 		"unapply",
 		"redwoodjs",
-		"repomod"
+		"repomod",
+		"hashless",
+		"interfase",
+		"Quotify"
 	]
 }

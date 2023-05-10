@@ -152,10 +152,6 @@ export type WebviewMessage =
 			data: JobDiffViewProps;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffview.rejectedJob';
-			data: [JobHash];
-	  }>
-	| Readonly<{
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
@@ -289,7 +285,7 @@ export type WebviewResponse =
 			caseHash: CaseHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodeList.haltCodemodExecution';
+			kind: 'webview.codemodList.haltCodemodExecution';
 			value: CodemodHash;
 	  }>;
 

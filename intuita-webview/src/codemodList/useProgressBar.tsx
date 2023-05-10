@@ -26,7 +26,7 @@ export const useProgressBar = (
 			return;
 		}
 		vscode.postMessage({
-			kind: 'webview.codemodeList.haltCodemodExecution',
+			kind: 'webview.codemodList.haltCodemodExecution',
 			value: codemodExecutionProgress.codemodHash,
 		});
 	};
