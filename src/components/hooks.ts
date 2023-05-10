@@ -63,6 +63,10 @@ export class UserHooksService {
 						vscode.window.showInformationMessage(
 							`Executed onDryRunCompleted hook: \n ${res}`,
 						);
+
+						this.__messageBus.publish({
+							kind: MessageKind.afterDryRunHooksExecuted,
+						});
 					},
 				);
 			},

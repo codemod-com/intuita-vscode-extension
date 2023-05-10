@@ -325,7 +325,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachExtensionEventListeners() {
-		// @TODO refresh view when onDryRunCompleted hooks are executed
+		this._addHook(MessageKind.afterDryRunHooksExecuted, () => {
+			this.__refreshView();
+		});
+
 		this._addHook(MessageKind.codemodSetExecuted, () => {
 			this.__refreshView();
 		});

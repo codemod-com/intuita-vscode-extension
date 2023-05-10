@@ -75,6 +75,8 @@ export const enum MessageKind {
 	afterPRCreated = 34,
 
 	focusCodemod = 35,
+
+	afterDryRunHooksExecuted = 36,
 }
 
 export type Command =
@@ -238,6 +240,9 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.focusCodemod;
 			codemodHashDigest: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: MessageKind.afterDryRunHooksExecuted;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
