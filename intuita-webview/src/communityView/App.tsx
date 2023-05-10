@@ -1,5 +1,4 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import { ReactComponent as DocsIcon } from '../assets/docs.svg';
 import { ReactComponent as SlackIcon } from '../assets/slack.svg';
 import { ReactComponent as YoutubeIcon } from '../assets/youtube.svg';
 import { ReactElement, useEffect, useState } from 'react';
@@ -28,18 +27,15 @@ const getIcon = (icon: string): ReactElement | null => {
 			return IntuitaIcon;
 
 		case 'docs':
-			return <DocsIcon className={styles.icon} />;
+			return IntuitaIcon;
 
 		case 'slack':
 			return (
 				<SlackIcon
 					className={styles.icon}
 					style={{
-						width: '30px',
-						height: '30px',
-						marginTop: '-2px',
-						marginLeft: '-6px',
-						marginRight: '1.5px',
+						width: '17px',
+						height: '17px',
 					}}
 				/>
 			);
@@ -94,11 +90,18 @@ function App() {
 						};
 						return (
 							<VSCodeButton
+								type="button"
 								className={styles.button}
-								appearance="icon"
+								appearance="secondary"
 								onClick={handleButtonClick}
 							>
-								{getIcon(icon)}
+								<span
+									slot="start"
+									/* to override left margin created due to slot="start" */
+									style={{ marginLeft: '-10px' }}
+								>
+									{getIcon(icon)}
+								</span>
 								<span className={styles.text}>{text}</span>
 							</VSCodeButton>
 						);
