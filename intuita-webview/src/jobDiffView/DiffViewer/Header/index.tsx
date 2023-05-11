@@ -27,33 +27,6 @@ type Props = Readonly<{
 	stagedJobsHashes: JobHash[];
 }>;
 
-type CheckboxState = 'allStaged' | 'someStaged' | 'noneStaged';
-
-const getCheckboxProps = (checkboxState: CheckboxState) => {
-	switch (checkboxState) {
-		case 'allStaged': {
-			return {
-				title: 'Unselect All',
-				icon: 'diff-added',
-			};
-		}
-
-		case 'someStaged': {
-			return {
-				title: 'Unselect All',
-				icon: 'diff-removed',
-			};
-		}
-
-		case 'noneStaged': {
-			return {
-				title: 'Select All',
-				icon: 'debug-stop',
-			};
-		}
-	}
-};
-
 const Header = ({
 	viewType,
 	diffId,
@@ -88,14 +61,6 @@ const Header = ({
 	const hasStagedJobs = stagedJobsHashes.length !== 0;
 	const allJobsStaged = stagedJobsHashes.length === jobs.length;
 
-	const checkboxState: CheckboxState = allJobsStaged
-		? 'allStaged'
-		: hasStagedJobs
-		? 'someStaged'
-		: 'noneStaged';
-
-	const props = getCheckboxProps(checkboxState);
-
 	const setStagedJobs = (jobHashes: JobHash[]): void => {
 		vscode.postMessage({
 			kind: 'webview.global.stageJobs',
@@ -116,9 +81,10 @@ const Header = ({
 							setStagedJobs(jobsToBeStaged);
 						}}
 						className={styles.checkbox}
+						checked={allJobsStaged}
 					/>
 				}
-				popoverText={props?.title}
+				popoverText={allJobsStaged ? 'Unselect all' : 'Select all'}
 			/>
 			<div className={styles.actionsContainer}>
 				{showHooksCTA ? <HooksCTA /> : null}
