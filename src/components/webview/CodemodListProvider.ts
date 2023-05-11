@@ -37,7 +37,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
-		public readonly __rootPath: string | 'NO_ACTIVE_WORKSPACE',
+		public readonly __rootPath: string | 'NO_ACTIVE_WORKSPACE' | null,
 		public readonly __codemodService: CodemodService,
 	) {
 		this.__extensionPath = context.extensionUri;

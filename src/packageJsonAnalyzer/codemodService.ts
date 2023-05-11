@@ -16,12 +16,12 @@ import {
 import { EngineService } from '../components/engineService';
 
 export class CodemodService {
-	#rootPath: string | 'NO_ACTIVE_WORKSPACE';
+	#rootPath: string | 'NO_ACTIVE_WORKSPACE' | null;
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	#publicCodemods: Map<CodemodHash, CodemodElement> = new Map();
 
 	constructor(
-		rootPath: string | 'NO_ACTIVE_WORKSPACE',
+		rootPath: string | 'NO_ACTIVE_WORKSPACE' | null,
 		private __engineService: EngineService,
 	) {
 		this.#rootPath = rootPath;
@@ -225,7 +225,7 @@ export class CodemodService {
 
 			const splitParts: readonly string[] = uri.fsPath
 				.replace('/package.json', '')
-				.replace(rootPath, '')
+				.replace(rootPath ?? '', '')
 				.split('/');
 
 			codemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
