@@ -37,8 +37,7 @@ function App() {
 	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
-				Choose a Codemod from Recent Codemod Runs to explore its
-				changes!
+				Choose a Codemod from Codemod Runs to explore its changes!
 			</p>
 		);
 	}

@@ -1109,7 +1109,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					// opens "Recent Codemod Runs" panel if not opened
+					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();
 				} catch (e) {
 					vscode.window.showErrorMessage(
@@ -1176,7 +1176,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					// opens "Recent Codemod Runs" panel if not opened
+					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();
 				} catch (e) {
 					vscode.window.showErrorMessage(
