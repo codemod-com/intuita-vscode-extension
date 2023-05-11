@@ -290,6 +290,7 @@ export class CodemodService {
 	public getListOfCodemodCommands() {
 		return Object.values(commandList);
 	}
+	
 	getUnsortedChildren(
 		recommended: boolean,
 		el: CodemodHash | null,

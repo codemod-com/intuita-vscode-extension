@@ -272,7 +272,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		} catch (error) {
 			console.error(error);
 
-			if (error instanceof Error && recommended) {
+			if (error instanceof Error) {
 				this.__postMessage({
 					kind: 'webview.codemods.setPublicCodemods',
 					data: E.left(error),
