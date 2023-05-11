@@ -135,7 +135,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (message.kind === 'webview.global.openConfiguration') {
 			commands.executeCommand(
 				'workbench.action.openSettings',
-				'@ext:Intuita.intuita-vscode-extension',
+				'@ext:Intuita.intuita-vscode-extension onDryRunCompleted',
 			);
 		}
 
