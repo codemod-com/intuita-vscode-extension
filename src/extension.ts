@@ -1,8 +1,9 @@
 import * as t from 'io-ts';
 import * as vscode from 'vscode';
+import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { Command, MessageBus, MessageKind } from './components/messageBus';
+import { MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
@@ -19,10 +20,7 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import {
-	dependencyNameToRecipeName,
-	InformationMessageService,
-} from './components/informationMessageService';
+import { InformationMessageService } from './components/informationMessageService';
 import {
 	branchNameFromStr,
 	buildTypeCodec,
@@ -31,12 +29,6 @@ import {
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
-import {
-	projectNameCodec,
-	PROJECT_NAMES,
-	RECIPE_MAP,
-	recipeNameCodec,
-} from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
@@ -65,6 +57,7 @@ import { CodemodHash } from './packageJsonAnalyzer/types';
 import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
+import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 
 const messageBus = new MessageBus();
 
@@ -175,6 +168,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
+	const telemetryKey = '';
+	const vscodeTelemetry = new VscodeTelemetry(
+		new TelemetryReporter(telemetryKey),
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openCaseDiff',
@@ -226,6 +224,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (err) {
+					const message =
+						err instanceof Error ? err.message : String(err);
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.openCaseDiff',
+						errorMessage: message,
+					});
 					console.error(err);
 				}
 			},
@@ -290,47 +295,56 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.createIssue', async () => {
-			const initialData = {
-				userId: globalStateAccountStorage.getUserAccount(),
-			};
+			try {
+				const initialData = {
+					userId: globalStateAccountStorage.getUserAccount(),
+				};
 
-			// @TODO
-			const title = 'Label';
+				// @TODO
+				const title = 'Label';
 
-			const panelInstance = SourceControlWebviewPanel.getInstance(
-				{
-					type: 'intuitaPanel',
-					title,
-					extensionUri: context.extensionUri,
-					initialData,
-					viewColumn: vscode.ViewColumn.One,
-					webviewName: 'sourceControl',
-				},
-				messageBus,
-			);
+				const panelInstance = SourceControlWebviewPanel.getInstance(
+					{
+						type: 'intuitaPanel',
+						title,
+						extensionUri: context.extensionUri,
+						initialData,
+						viewColumn: vscode.ViewColumn.One,
+						webviewName: 'sourceControl',
+					},
+					messageBus,
+				);
 
-			await panelInstance.render();
+				await panelInstance.render();
 
-			const remoteUrl = repositoryService.getRemoteUrl();
+				const remoteUrl = repositoryService.getRemoteUrl();
 
-			if (remoteUrl === null) {
-				throw new Error('Unable to detect the git remote URI');
+				if (remoteUrl === null) {
+					throw new Error('Unable to detect the git remote URI');
+				}
+
+				const remotes = repositoryService.getRemotes();
+				const remoteOptions = remotes
+					.map(({ pushUrl }) => pushUrl)
+					.filter(isNeitherNullNorUndefined);
+
+				panelInstance.setView({
+					viewId: 'createIssue',
+					viewProps: {
+						initialFormData: { title, body: '', remoteUrl },
+						loading: false,
+						error: '',
+						remoteOptions,
+					},
+				});
+			} catch (e) {
+				const message = e instanceof Error ? e.message : String(e);
+				vscodeTelemetry.sendError({
+					kind: 'failedToExecuteCommand',
+					commandName: 'intuita.createIssue',
+					errorMessage: message,
+				});
 			}
-
-			const remotes = repositoryService.getRemotes();
-			const remoteOptions = remotes
-				.map(({ pushUrl }) => pushUrl)
-				.filter(isNeitherNullNorUndefined);
-
-			panelInstance.setView({
-				viewId: 'createIssue',
-				viewProps: {
-					initialFormData: { title, body: '', remoteUrl },
-					loading: false,
-					error: '',
-					remoteOptions,
-				},
-			});
 		}),
 	);
 
@@ -351,44 +365,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				vscode.window.showWarningMessage('Invalid URL:' + arg0);
 			}
 		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.applyJob',
-			async (arg0: unknown) => {
-				const jobHash = typeof arg0 === 'string' ? arg0 : null;
-
-				if (jobHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
-				}
-
-				jobManager.applyJob(jobHash as JobHash);
-
-				messageBus.publish({ kind: MessageKind.updateElements });
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.unapplyJob',
-			async (arg0: unknown) => {
-				const jobHash = typeof arg0 === 'string' ? arg0 : null;
-
-				if (jobHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
-				}
-
-				jobManager.unapplyJob(jobHash as JobHash);
-
-				messageBus.publish({ kind: MessageKind.updateElements });
-			},
-		),
 	);
 
 	// @TODO reuse this in createPR
@@ -450,6 +426,12 @@ export async function activate(context: vscode.ExtensionContext) {
 							: e instanceof Error
 							? e.message
 							: String(e);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.sourceControl.commitChanges',
+						errorMessage: message,
+					});
 					vscode.window.showErrorMessage(message);
 				}
 			},
@@ -554,6 +536,12 @@ export async function activate(context: vscode.ExtensionContext) {
 							: e instanceof Error
 							? e.message
 							: String(e);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.sourceControl.createPR',
+						errorMessage: message,
+					});
 					vscode.window.showErrorMessage(message);
 				}
 			},
@@ -614,6 +602,11 @@ export async function activate(context: vscode.ExtensionContext) {
 							? e.message
 							: String(e);
 
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.sourceControl.submitIssue',
+						errorMessage: message,
+					});
 					vscode.window.showErrorMessage(message);
 				}
 			},
@@ -623,56 +616,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
 			engineService.shutdownEngines();
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			const { storageUri } = context;
-
-			if (!storageUri) {
-				console.error('No storage URI, aborting the command.');
-				return;
-			}
-
-			const codec = buildTypeCodec({
-				path: t.string,
-				dependencyName: t.string,
-			});
-
-			const validation = codec.decode(arg0);
-
-			if (validation._tag === 'Left') {
-				const report = prettyReporter.report(validation);
-
-				console.error(report);
-
-				return;
-			}
-
-			const { path, dependencyName } = validation.right;
-
-			const uri = vscode.Uri.file(path);
-
-			const recipeName = dependencyNameToRecipeName[dependencyName];
-
-			if (!recipeName) {
-				return;
-			}
-
-			const executionId = buildExecutionId();
-			const happenedAt = String(Date.now());
-
-			messageBus.publish({
-				kind: MessageKind.executeCodemodSet,
-				command: {
-					storageUri,
-					uri,
-					recipeName: recipeName,
-				},
-				executionId,
-				happenedAt,
-			});
 		}),
 	);
 
@@ -690,42 +633,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				await engineService.clearOutputFiles(storageUri);
 			},
 		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.acceptJob',
-			async (arg0: unknown) => {
-				const jobHash = typeof arg0 === 'string' ? arg0 : null;
-
-				if (jobHash === null) {
-					throw new Error(
-						`Could not decode the first positional arguments: it should have been a string`,
-					);
-				}
-
-				messageBus.publish({
-					kind: MessageKind.acceptJobs,
-					jobHashes: new Set([jobHash as JobHash]),
-				});
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.rejectJob', async (arg0) => {
-			const jobHash: string | null =
-				typeof arg0 === 'string' ? arg0 : null;
-
-			if (jobHash === null) {
-				throw new Error('Did not pass the jobHash into the command.');
-			}
-
-			messageBus.publish({
-				kind: MessageKind.rejectJobs,
-				jobHashes: new Set([jobHash as JobHash]),
-			});
-		}),
 	);
 
 	context.subscriptions.push(
@@ -755,6 +662,12 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName:
+							'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+						errorMessage: message,
+					});
 					vscode.window.showErrorMessage(message);
 				}
 			},
@@ -862,9 +775,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (e) {
-					vscode.window.showErrorMessage(
-						e instanceof Error ? e.message : String(e),
-					);
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.sourceControl.commitStagedJobs',
+						errorMessage: message,
+					});
 				}
 			},
 		),
@@ -872,163 +790,40 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.rejectCase', async (arg0) => {
-			const caseHash: string | null =
-				typeof arg0 === 'string' ? arg0 : null;
-
-			if (caseHash === null) {
-				throw new Error('Did not pass the caseHash into the command.');
-			}
-
-			messageBus.publish({
-				kind: MessageKind.rejectCase,
-				caseHash: caseHash as CaseHash,
-			});
-
-			messageBus.publish({
-				kind: MessageKind.updateElements,
-			});
-
-			fileExplorerProvider.setView({
-				viewId: 'treeView',
-				viewProps: null,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.acceptFolder',
-			async (arg0) => {
-				try {
-					const codec = buildTypeCodec({
-						path: t.string,
-						hash: t.string,
-						jobHashes: t.readonlyArray(t.string),
-					});
-
-					const validation = codec.decode(arg0);
-
-					if (validation._tag === 'Left') {
-						const report = prettyReporter.report(validation);
-
-						console.error(report);
-
-						return;
-					}
-
-					const {
-						path,
-						hash,
-						jobHashes: _jobHashes,
-					} = validation.right;
-
-					const jobHashes = _jobHashes.slice() as JobHash[];
-
-					const currentBranch = repositoryService.getCurrentBranch();
-
-					if (
-						currentBranch === null ||
-						currentBranch.name === undefined
-					) {
-						throw new Error('Unable to get current branch');
-					}
-
-					// @TODO for now stagedJobs = all case jobs
-					const stagedJobs = [];
-
-					for (const jobHash of jobHashes) {
-						const job = jobManager.getJob(jobHash);
-
-						if (job === null) {
-							continue;
-						}
-
-						stagedJobs.push({
-							hash: job.hash.toString(),
-							label: buildJobElementLabel(
-								job,
-								vscode.workspace.workspaceFolders?.[0]?.uri
-									.path ?? '',
-							),
-						});
-					}
-
-					const newBranchName = `${path}-${hash.toLowerCase()}`;
-					const title = path;
-
-					const initialData = {
-						userId: globalStateAccountStorage.getUserAccount(),
-					};
-
-					const panelInstance = SourceControlWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title,
-							extensionUri: context.extensionUri,
-							initialData,
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'sourceControl',
-						},
-						messageBus,
-					);
-
-					await panelInstance.render();
-
-					const remotes = repositoryService.getRemotes();
-					const remoteOptions = (remotes ?? [])
-						.map((remote) => remote.pushUrl)
-						.filter(isNeitherNullNorUndefined);
-
-					const defaultRemoteUrl = repositoryService.getRemoteUrl();
-
-					if (!defaultRemoteUrl) {
-						throw new Error('Remote not found');
-					}
-
-					panelInstance.setView({
-						viewId: 'commitView',
-						viewProps: {
-							remoteOptions,
-							initialFormData: {
-								currentBranchName: currentBranch.name,
-								newBranchName,
-								remoteUrl: defaultRemoteUrl,
-								commitMessage: '',
-								createNewBranch: true,
-								stagedJobs,
-							},
-							loading: false,
-							error: '',
-						},
-					});
-				} catch (e) {
-					vscode.window.showErrorMessage(
-						e instanceof Error ? e.message : String(e),
-					);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.rejectFolder',
-			async (arg0, ...otherArgs) => {
-				const firstJobHash: string | null =
+			try {
+				const caseHash: string | null =
 					typeof arg0 === 'string' ? arg0 : null;
-				if (firstJobHash === null) {
+
+				if (caseHash === null) {
 					throw new Error(
-						'Did not pass the jobHashes into the command.',
+						'Did not pass the caseHash into the command.',
 					);
 				}
-				const jobHashes = [arg0].concat(otherArgs.slice());
 
 				messageBus.publish({
-					kind: MessageKind.rejectJobs,
-					jobHashes: new Set(jobHashes),
+					kind: MessageKind.rejectCase,
+					caseHash: caseHash as CaseHash,
 				});
-			},
-		),
+
+				messageBus.publish({
+					kind: MessageKind.updateElements,
+				});
+
+				fileExplorerProvider.setView({
+					viewId: 'treeView',
+					viewProps: null,
+				});
+			} catch (e) {
+				const message = e instanceof Error ? e.message : String(e);
+				vscode.window.showErrorMessage(message);
+
+				vscodeTelemetry.sendError({
+					kind: 'failedToExecuteCommand',
+					commandName: 'intuita.rejectCase',
+					errorMessage: message,
+				});
+			}
+		}),
 	);
 
 	context.subscriptions.push(
@@ -1060,31 +855,44 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
 			(uri: vscode.Uri) => {
-				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+				try {
+					const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
 
-				if (!rootUri) {
-					throw new Error('No workspace has been opened.');
+					if (!rootUri) {
+						throw new Error('No workspace has been opened.');
+					}
+
+					const { storageUri } = context;
+
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
+
+					const happenedAt = String(Date.now());
+					const executionId = buildExecutionId();
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command: {
+							uri: rootUri,
+							storageUri,
+							fileUri: uri,
+						},
+						happenedAt,
+						executionId,
+					});
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.executeAsCodemod',
+						errorMessage: message,
+					});
 				}
-
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					throw new Error('No storage URI, aborting the command.');
-				}
-
-				const happenedAt = String(Date.now());
-				const executionId = buildExecutionId();
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						uri: rootUri,
-						storageUri,
-						fileUri: uri,
-					},
-					happenedAt,
-					executionId,
-				});
 			},
 		),
 	);
@@ -1124,9 +932,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();
 				} catch (e) {
-					vscode.window.showErrorMessage(
-						e instanceof Error ? e.message : String(e),
-					);
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.executeCodemod',
+						errorMessage: message,
+					});
 				}
 			},
 		),
@@ -1191,92 +1004,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();
 				} catch (e) {
-					vscode.window.showErrorMessage(
-						e instanceof Error ? e.message : String(e),
-					);
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.executeCodemodWithinPath',
+						errorMessage: message,
+					});
 				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeRecipeWithinPath',
-			async (uri: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					throw new Error('No storage URI, aborting the command.');
-				}
-
-				const projectName = await vscode.window.showQuickPick(
-					PROJECT_NAMES.slice(),
-					{
-						placeHolder:
-							'Pick the project to execute a codemod set (recipe) over the selected path',
-					},
-				);
-
-				if (!projectNameCodec.is(projectName)) {
-					return;
-				}
-
-				const recipeMap = RECIPE_MAP.get(projectName);
-
-				if (!recipeMap) {
-					return;
-				}
-
-				let version = await vscode.window.showQuickPick(
-					Object.keys(recipeMap).map((version) =>
-						!isNaN(parseFloat(version)) ? `v${version}` : version,
-					),
-					{
-						placeHolder:
-							'Pick the codemod set (recipe) to execute over the selected path',
-					},
-				);
-
-				if (!version) {
-					return;
-				}
-
-				if (
-					version.startsWith('v') &&
-					!isNaN(parseFloat(version.slice(1)))
-				) {
-					version = version.slice(1);
-				}
-
-				const recipeName = recipeMap[version];
-
-				if (!recipeNameCodec.is(recipeName)) {
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				const command: Command =
-					recipeName === 'redwoodjs_experimental'
-						? {
-								kind: 'repomod',
-								repomodFilePath: recipeName,
-								storageUri,
-								inputPath: uri,
-						  }
-						: {
-								storageUri,
-								recipeName,
-								uri,
-						  };
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command,
-					executionId,
-					happenedAt,
-				});
 			},
 		),
 	);
@@ -1285,46 +1021,61 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.executeImportedModOnPath',
 			async (uri: vscode.Uri) => {
-				const { storageUri } = context;
+				try {
+					const { storageUri } = context;
 
-				if (!storageUri) {
-					throw new Error('No storage URI, aborting the command.');
-				}
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
 
-				const modUri = vscode.Uri.joinPath(
-					storageUri,
-					'jscodeshiftCodemod.ts',
-				);
-
-				const document = await vscode.workspace.openTextDocument(
-					intuitaTextDocumentContentProvider.URI,
-				);
-
-				const text = document.getText();
-
-				// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
-				if (!text) {
-					vscode.window.showWarningMessage(Messages.noImportedMod);
-					return;
-				}
-
-				const buffer = Buffer.from(text);
-				const content = new Uint8Array(buffer);
-				vscode.workspace.fs.writeFile(modUri, content);
-
-				const happenedAt = String(Date.now());
-				const executionId = buildExecutionId();
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command: {
-						uri,
+					const modUri = vscode.Uri.joinPath(
 						storageUri,
-						fileUri: modUri,
-					},
-					happenedAt,
-					executionId,
-				});
+						'jscodeshiftCodemod.ts',
+					);
+
+					const document = await vscode.workspace.openTextDocument(
+						intuitaTextDocumentContentProvider.URI,
+					);
+
+					const text = document.getText();
+
+					// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
+					if (!text) {
+						vscode.window.showWarningMessage(
+							Messages.noImportedMod,
+						);
+						return;
+					}
+
+					const buffer = Buffer.from(text);
+					const content = new Uint8Array(buffer);
+					vscode.workspace.fs.writeFile(modUri, content);
+
+					const happenedAt = String(Date.now());
+					const executionId = buildExecutionId();
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command: {
+							uri,
+							storageUri,
+							fileUri: modUri,
+						},
+						happenedAt,
+						executionId,
+					});
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.executeImportedModOnPath',
+						errorMessage: message,
+					});
+				}
 			},
 		),
 	);
