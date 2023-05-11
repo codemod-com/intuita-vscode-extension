@@ -37,7 +37,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
-		public readonly __rootPath: string | null,
+		public readonly __rootPath: string | 'NO_ACTIVE_WORKSPACE',
 		public readonly __codemodService: CodemodService,
 	) {
 		this.__extensionPath = context.extensionUri;
@@ -189,6 +189,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
+			if (this.__rootPath === 'NO_ACTIVE_WORKSPACE') {
+				window.showWarningMessage('No active workspace is found.');
+				return;
+			}
 			const codemod = this.__codemodService.getCodemodItem(message.value);
 			if (!codemod || codemod.kind === 'path') {
 				return;
@@ -201,6 +205,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
+			if (this.__rootPath === 'NO_ACTIVE_WORKSPACE') {
+				window.showWarningMessage('No active workspace is found.');
+				return;
+			}
 			const { codemodHash, newPath } = message.value;
 			const codemodItem =
 				this.__codemodService.getCodemodItem(codemodHash);

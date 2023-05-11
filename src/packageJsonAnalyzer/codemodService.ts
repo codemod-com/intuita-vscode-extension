@@ -16,12 +16,12 @@ import {
 import { EngineService } from '../components/engineService';
 
 export class CodemodService {
-	#rootPath: string | null;
+	#rootPath: string | 'NO_ACTIVE_WORKSPACE';
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	#publicCodemods: Map<CodemodHash, CodemodElement> = new Map();
 
 	constructor(
-		rootPath: string | null,
+		rootPath: string | 'NO_ACTIVE_WORKSPACE',
 		private __engineService: EngineService,
 	) {
 		this.#rootPath = rootPath;
@@ -205,10 +205,6 @@ export class CodemodService {
 	async getCodemods(): Promise<void> {
 		const rootPath = this.#rootPath;
 
-		if (rootPath === null) {
-			return;
-		}
-
 		const packageJsonList = await getPackageJsonUris();
 
 		const codemods: Map<CodemodHash, CodemodElement> = new Map();
@@ -290,12 +286,11 @@ export class CodemodService {
 	public getListOfCodemodCommands() {
 		return Object.values(commandList);
 	}
-	
+
 	getUnsortedChildren(
 		recommended: boolean,
 		el: CodemodHash | null,
 	): CodemodHash[] {
-		if (!this.#rootPath) return [];
 		if (el) {
 			const parent = recommended
 				? this.#codemodItemsMap.get(el)
