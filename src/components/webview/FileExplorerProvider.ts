@@ -423,18 +423,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (message.value.command === 'intuita.openJobDiff') {
-				const args = message.value.arguments;
-				if (!args || !args[0]) {
-					throw new Error('Expected args[0] to be job hash');
-				}
-				const jobHash = args[0];
-
-				commands.executeCommand(message.value.command, jobHash);
-
-				return;
-			}
-
 			commands.executeCommand(
 				message.value.command,
 				...(message.value.arguments ?? []),
