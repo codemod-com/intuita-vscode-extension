@@ -87,7 +87,6 @@ const Header = ({
 				popoverText={allJobsStaged ? 'Unselect all' : 'Select all'}
 			/>
 			<div className={styles.actionsContainer}>
-				{showHooksCTA ? <HooksCTA /> : null}
 				<Popover
 					trigger={
 						<VSCodeButton
@@ -117,6 +116,9 @@ const Header = ({
 				/>
 			</div>
 			<div className={styles.buttonGroup}>
+				{showHooksCTA ? (
+					<HooksCTA style={{ marginRight: '5px' }} />
+				) : null}
 				{viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"
