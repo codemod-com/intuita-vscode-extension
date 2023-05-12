@@ -5,6 +5,7 @@ import { JobHash } from '../../shared/types';
 import { Diff, DiffComponent } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { reportIssue } from '../util';
+import { useCallback } from 'react';
 
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
@@ -16,8 +17,8 @@ type Props = JobDiffViewProps & {
 	expanded: boolean;
 	onToggle: (expanded: boolean) => void;
 	height: number;
-	onHeightSet: (height: number) => void;
 	diff: Diff | null;
+	onHeightSet: (jobHash: JobHash, height: number) => void;
 	onDiffCalculated: (jobHash: JobHash, diff: Diff) => void;
 	containerRef: ((element?: Element | undefined) => void) | undefined;
 	theme: string;
@@ -54,6 +55,20 @@ export const JobDiffView = ({
 	const report = () => {
 		reportIssue(jobHash, oldFileContent ?? '', newFileContent ?? '');
 	};
+
+	const handleDiffCalculated = useCallback(
+		(diff: Diff) => {
+			onDiffCalculated(jobHash, diff);
+		},
+		[jobHash, onDiffCalculated],
+	);
+
+	const handleSetHeight = useCallback(
+		(height: number) => {
+			onHeightSet(jobHash, height);
+		},
+		[jobHash, onHeightSet],
+	);
 
 	return (
 		<div
@@ -94,13 +109,11 @@ export const JobDiffView = ({
 					<DiffComponent
 						theme={theme}
 						height={height}
-						onHeightSet={onHeightSet}
-						onDiffCalculated={(diff) =>
-							onDiffCalculated(jobHash, diff)
-						}
 						viewType={ViewType}
 						oldFileContent={oldFileContent}
 						newFileContent={newFileContent}
+						onDiffCalculated={handleDiffCalculated}
+						onHeightSet={handleSetHeight}
 					/>
 				</Container>
 			</Collapsable>

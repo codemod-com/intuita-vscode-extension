@@ -19,12 +19,13 @@
 		"typescript": "^4.9.5"
 	},
 	"scripts": {
+		"start:diffView": "TARGET_APP=jobDiffView craco start",
 		"build:campaignManager": "TARGET_APP='campaignManager' vite build",
 		"build:fileExplorer": "TARGET_APP='fileExplorer' vite build",
 		"build:codemodList": "TARGET_APP='codemodList' vite build",
 		"build:jobDiffView": "TARGET_APP='jobDiffView' vite build",
 		"build:communityView": "TARGET_APP='communityView' vite build",
-		"build": "pnpm build:campaignManager && pnpm build:fileExplorer && pnpm build:codemodList && pnpm build:jobDiffView && pnpm build:communityView"
+		"build": "NODE_ENV='production' pnpm build:campaignManager && pnpm build:fileExplorer && pnpm build:codemodList && pnpm build:jobDiffView && pnpm build:communityView"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -45,6 +46,7 @@
 		]
 	},
 	"devDependencies": {
+		"@craco/craco": "^7.1.0",
 		"@preact/preset-vite": "^2.5.0",
 		"@testing-library/jest-dom": "^5.16.5",
 		"@testing-library/react": "^13.4.0",
