@@ -43,19 +43,12 @@ export type CommitChangesFormData = Readonly<{
 	pullRequestBody: string;
 }>;
 
-export type RunCodemodsCommand =
-	| Readonly<{
-			title: string;
-			description?: string;
-			kind: 'webview.codemodList.runCodemod';
-			value: CodemodHash;
-	  }>
-	| Readonly<{
-			title: string;
-			description?: string;
-			kind: 'webview.codemodList.dryRunCodemod';
-			value: CodemodHash;
-	  }>;
+export type RunCodemodsCommand = Readonly<{
+	title: string;
+	description?: string;
+	kind: 'webview.codemodList.dryRunCodemod';
+	value: CodemodHash;
+}>;
 
 export type CodemodTreeNode<T = undefined> = {
 	id: CodemodHash;
@@ -64,22 +57,10 @@ export type CodemodTreeNode<T = undefined> = {
 	description?: string;
 	iconName?: string;
 	command?:
-		| (Command & {
-				command: 'intuita.openJobDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
+		| Command & {
 				command: 'intuita.openCaseDiff';
 				arguments?: ElementHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseByFolderDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openFolderDiff';
-				arguments?: JobHash[];
-		  });
+		  };
 	actions?: RunCodemodsCommand[];
 	children: CodemodTreeNode<T>[];
 	extraData?: T;
@@ -105,22 +86,10 @@ export type TreeNode = {
 	label?: string;
 	iconName?: string;
 	command?:
-		| (Command & {
-				command: 'intuita.openJobDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
+		| Command & {
 				command: 'intuita.openCaseDiff';
 				arguments?: ElementHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseByFolderDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openFolderDiff';
-				arguments?: JobHash[];
-		  });
+		  };
 	actions?: Command[];
 	children: TreeNode[];
 };
@@ -133,23 +102,12 @@ export type ExternalLink = {
 
 export type WebviewMessage =
 	| Readonly<{
-			kind: 'webview.createIssue.setFormData';
-			value: Partial<{
-				title: string;
-				description: string;
-			}>;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setUserAccount';
 			value: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
-	  }>
-	| Readonly<{
-			kind: 'webview.diffView.updateDiffViewProps';
-			data: JobDiffViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.diffView.focusFile';
@@ -223,15 +181,8 @@ export type WebviewResponse =
 			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
-			kind: 'webview.tree.clearOutputFiles';
-	  }>
-	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
-	  }>
-	| Readonly<{
-			kind: 'webview.createPR.formDataChanged';
-			value: CommitChangesFormData;
 	  }>
 	| Readonly<{
 			kind: JobActionCommands;

@@ -26,24 +26,6 @@ function App() {
 				return;
 			}
 
-			if (
-				message.kind === 'webview.diffView.updateDiffViewProps' &&
-				view.viewId === 'jobDiffView'
-			) {
-				const jobHash = message.data.jobHash;
-				const nextData = view.viewProps.data.map((element) =>
-					element.jobHash === jobHash ? message.data : element,
-				);
-
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						data: nextData,
-					},
-				});
-			}
-
 			if (message.kind === 'webview.diffView.focusFile') {
 				setScrollIntoHash(message.jobHash);
 			}
