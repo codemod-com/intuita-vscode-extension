@@ -29,7 +29,6 @@ export type JobDiffViewProps = Readonly<{
 	oldFileTitle: string | null;
 	newFileTitle: string | null;
 	title: string | null;
-	actions?: JobAction[];
 }>;
 
 export type CommitChangesFormData = Readonly<{

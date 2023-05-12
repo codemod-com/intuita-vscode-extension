@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
-import { JobAction, JobDiffViewProps } from '../../shared/types';
+import { JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
@@ -49,12 +49,10 @@ type HeaderProps = Readonly<{
 	viewType: 'inline' | 'side-by-side';
 	viewed?: boolean;
 	children?: React.ReactNode;
-	actions: JobDiffViewProps['actions'];
 	jobStaged: boolean;
-	onAction: (arg: JobAction) => void;
 	onViewedChange: () => void;
 	onReportIssue(): void;
-	onToggleJob(staged: boolean): void;
+	onToggleJob(): void;
 }>;
 
 export const Header = ({
@@ -64,11 +62,9 @@ export const Header = ({
 	jobKind,
 	children,
 	viewed,
-	actions,
 	jobStaged,
 	onToggleJob,
 	onViewedChange,
-	onAction,
 	onReportIssue,
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
@@ -89,10 +85,7 @@ export const Header = ({
 					trigger={
 						<VSCodeCheckbox
 							checked={jobStaged}
-							onClick={(e) => {
-								e.stopPropagation();
-								onToggleJob(!jobStaged);
-							}}
+							onClick={onToggleJob}
 						/>
 					}
 					popoverText="Select / Unselect to include or exclude the change."
@@ -145,16 +138,6 @@ export const Header = ({
 							</span>
 						</div>
 					) : null}
-					{actions &&
-						actions?.map((el) => (
-							<VSCodeButton
-								onClick={() => onAction(el)}
-								appearance="secondary"
-								key={el.command}
-							>
-								{el.title}
-							</VSCodeButton>
-						))}
 					<div
 						className="viewed-button flex ml-10 justify-between checkbox-container items-center"
 						onClick={(e) => {

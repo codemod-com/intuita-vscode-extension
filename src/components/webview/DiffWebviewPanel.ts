@@ -204,7 +204,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				: { oldFileContent: null }),
 			newFileContent,
 			title: newFileTitle,
-			actions: [],
 			staged: jobStaged,
 		};
 	}
