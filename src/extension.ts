@@ -160,14 +160,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const codemodService = new CodemodService(
-		rootPath ?? 'NO_ACTIVE_WORKSPACE',
-		engineService,
-	);
+	const codemodService = new CodemodService(rootPath, engineService);
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
 		context,
 		messageBus,
-		rootPath ?? 'NO_ACTIVE_WORKSPACE',
+		rootPath,
 		codemodService,
 	);
 

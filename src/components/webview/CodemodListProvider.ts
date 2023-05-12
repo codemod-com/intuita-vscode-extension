@@ -37,7 +37,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
-		public readonly __rootPath: string | 'NO_ACTIVE_WORKSPACE' | null,
+		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
 		this.__extensionPath = context.extensionUri;
@@ -189,7 +189,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
-			if (this.__rootPath === 'NO_ACTIVE_WORKSPACE') {
+			if (this.__rootPath === null) {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
@@ -205,7 +205,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
-			if (this.__rootPath === 'NO_ACTIVE_WORKSPACE') {
+			if (this.__rootPath === null) {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
@@ -292,16 +292,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
 	): CodemodTreeNode<string> {
-		if (!this.__rootPath) {
-			throw new Error('Expected rootPath to be defined');
-		}
+		const rootPath = this.__rootPath ?? '';
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, pathToExecute, description, hash } =
 				codemodElement;
 			return {
 				kind,
 				label,
-				extraData: pathToExecute.replace(this.__rootPath, '') || '/',
+				extraData: pathToExecute.replace(rootPath, '') || '/',
 				description: description,
 				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,

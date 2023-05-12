@@ -16,12 +16,12 @@ import {
 import { EngineService } from '../components/engineService';
 
 export class CodemodService {
-	#rootPath: string | 'NO_ACTIVE_WORKSPACE' | null;
+	#rootPath: string | null;
 	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	#publicCodemods: Map<CodemodHash, CodemodElement> = new Map();
 
 	constructor(
-		rootPath: string | 'NO_ACTIVE_WORKSPACE' | null,
+		rootPath: string | null,
 		private __engineService: EngineService,
 	) {
 		this.#rootPath = rootPath;
@@ -48,11 +48,14 @@ export class CodemodService {
 			this.#publicCodemods.set(codemodHash, newCodemodItem);
 		}
 	};
+
 	__makePathItem(path: string, label: string) {
+		const rootPath = this.#rootPath ?? '';
+
 		const hashlessPathItem = {
 			kind: 'path' as const,
 			label,
-			path: `${this.#rootPath}${path}`,
+			path: `${rootPath}${path}`,
 			children: [] as CodemodHash[],
 		};
 
@@ -75,11 +78,10 @@ export class CodemodService {
 			.map((word) => capitalize(word))
 			.join(' ');
 	}
+
 	getDiscoveredCodemods = async () => {
-		const path = this.#rootPath;
-		if (!path) {
-			return;
-		}
+		const path = this.#rootPath ?? '';
+
 		if (this.#publicCodemods.size) {
 			return;
 		}
@@ -203,7 +205,7 @@ export class CodemodService {
 	}
 
 	async getCodemods(): Promise<void> {
-		const rootPath = this.#rootPath;
+		const rootPath = this.#rootPath ?? '';
 
 		const packageJsonList = await getPackageJsonUris();
 
@@ -225,7 +227,7 @@ export class CodemodService {
 
 			const splitParts: readonly string[] = uri.fsPath
 				.replace('/package.json', '')
-				.replace(rootPath ?? '', '')
+				.replace(rootPath, '')
 				.split('/');
 
 			codemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
@@ -291,6 +293,7 @@ export class CodemodService {
 		recommended: boolean,
 		el: CodemodHash | null,
 	): CodemodHash[] {
+		const rootPath = this.#rootPath ?? '';
 		if (el) {
 			const parent = recommended
 				? this.#codemodItemsMap.get(el)
@@ -308,7 +311,7 @@ export class CodemodService {
 			recommended
 				? this.#codemodItemsMap.values()
 				: this.#publicCodemods.values(),
-		).find((el) => el.kind === 'path' && el.path === this.#rootPath);
+		).find((el) => el.kind === 'path' && el.path === rootPath);
 		if (!rootCodemodPath || rootCodemodPath.kind !== 'path') {
 			return [];
 		}
