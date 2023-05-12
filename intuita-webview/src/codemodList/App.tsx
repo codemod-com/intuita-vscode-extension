@@ -46,19 +46,18 @@ function App() {
 			>
 				<div>
 					{E.isRight(publicCodemods) &&
-						publicCodemods.right !== null && (
+						(publicCodemods.right !== null ? (
 							<TreeView
 								response={pathEditResponse}
 								node={publicCodemods.right}
 							/>
-						)}
-					{E.isRight(publicCodemods) &&
-						publicCodemods.right === null && (
+						) : (
 							<LoadingContainer>
 								<VSCodeProgressRing className="progressBar" />
 								<span aria-label="loading">Loading ...</span>
 							</LoadingContainer>
-						)}
+						))}
+					{/* Error thrown while fetching codemods */}
 					{E.isLeft(publicCodemods) && (
 						<p>{publicCodemods.left.message}</p>
 					)}
