@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
@@ -102,6 +102,7 @@ export const JobDiffViewContainer = ({
 		setDiffData(diffData);
 		listRef.current?.measureAllRows();
 	}, [reversedJobs]);
+
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
@@ -133,98 +134,85 @@ export const JobDiffViewContainer = ({
 
 	const { width, height } = useElementSize(containerRef);
 
-	const toggleVisible = (jobHash: JobHash) => {
-		const copy = { ...diffData };
-		if (!copy[jobHash]) {
-			return;
-		}
-		setDiffData((data) => {
-			const copy = { ...data };
-			if (!copy[jobHash]) {
-				return data;
-			}
-			return {
-				...copy,
-				[jobHash]: {
-					...copy[jobHash],
-					visible: !copy[jobHash]?.visible,
-					expanded: !copy[jobHash]?.visible,
-				},
-			};
-		});
-		const index = reversedJobs.findIndex((job) => job.jobHash === jobHash);
-		if (index === -1) {
-			return;
-		}
-	};
+	const toggleVisible = useCallback(
+		(jobHash: JobHash) => {
+			setDiffData((prevDiffData) => {
+				const diffItem = prevDiffData[jobHash];
 
-	const onToggle = (jobHash: JobHash, expanded: boolean) => {
-		const copy = { ...diffData };
-		if (!copy[jobHash]) {
-			return;
-		}
-		setDiffData((data) => {
-			const copy = { ...data };
-			if (!copy[jobHash]) {
-				return data;
-			}
-			return {
-				...copy,
-				[jobHash]: {
-					...copy[jobHash],
-					expanded,
-				},
-			};
-		});
-		const index = reversedJobs.findIndex((job) => job.jobHash === jobHash);
-		if (index === -1) {
-			return;
-		}
-	};
+				if (diffItem === undefined) {
+					return prevDiffData;
+				}
 
-	const onHeightSet = (jobHash: JobHash, height: number) => {
-		const copy = { ...diffData };
-		if (!copy[jobHash]) {
-			return;
-		}
-		setDiffData((data) => {
-			const copy = { ...data };
-			if (!copy[jobHash]) {
-				return data;
-			}
-			return {
-				...copy,
-				[jobHash]: {
-					...copy[jobHash],
-					height,
-				},
-			};
-		});
-		const index = reversedJobs.findIndex((job) => job.jobHash === jobHash);
-		if (index === -1) {
-			return;
-		}
-	};
+				return {
+					...prevDiffData,
+					[jobHash]: {
+						...diffItem,
+						visible: !diffItem?.visible,
+						expanded: !diffItem?.visible,
+					},
+				};
+			});
+		},
+		[setDiffData],
+	);
 
-	const onDiffCalculated = (jobHash: JobHash, diff: Diff) => {
-		const copy = { ...diffData };
-		if (!copy[jobHash]) {
-			return;
-		}
-		setDiffData((data) => {
-			const copy = { ...data };
-			if (!copy[jobHash]) {
-				return data;
-			}
-			return {
-				...copy,
-				[jobHash]: {
-					...copy[jobHash],
-					diff,
-				},
-			};
-		});
-	};
+	const onToggle = useCallback(
+		(jobHash: JobHash, expanded: boolean) => {
+			setDiffData((prevDiffData) => {
+				// @TODO fix code duplication
+				if (!prevDiffData[jobHash]) {
+					return prevDiffData;
+				}
+
+				return {
+					...prevDiffData,
+					[jobHash]: {
+						...prevDiffData[jobHash],
+						expanded,
+					},
+				};
+			});
+		},
+		[setDiffData],
+	);
+
+	const onHeightSet = useCallback(
+		(jobHash: JobHash, height: number) => {
+			setDiffData((prevDiffData) => {
+				if (!prevDiffData[jobHash]) {
+					return prevDiffData;
+				}
+
+				return {
+					...prevDiffData,
+					[jobHash]: {
+						...prevDiffData[jobHash],
+						height,
+					},
+				};
+			});
+		},
+		[setDiffData],
+	);
+
+	const onDiffCalculated = useCallback(
+		(jobHash: JobHash, diff: Diff) => {
+			setDiffData((prevDiffData) => {
+				if (!prevDiffData[jobHash]) {
+					return prevDiffData;
+				}
+
+				return {
+					...prevDiffData,
+					[jobHash]: {
+						...prevDiffData[jobHash],
+						diff,
+					},
+				};
+			});
+		},
+		[setDiffData],
+	);
 
 	const onToggleJob = (jobHash: JobHash) => {
 		const stagedJobsSet = new Set(stagedJobs);
@@ -317,12 +305,7 @@ export const JobDiffViewContainer = ({
 														?.height ??
 													defaultHeight
 												}
-												onHeightSet={(height) => {
-													onHeightSet(
-														el.jobHash,
-														height,
-													);
-												}}
+												onHeightSet={onHeightSet}
 												onDiffCalculated={
 													onDiffCalculated
 												}

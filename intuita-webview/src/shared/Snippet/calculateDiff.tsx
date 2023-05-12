@@ -1,8 +1,8 @@
-import { monaco } from './DiffEditor';
+import type { editor } from 'monaco-editor';
 
 export type Diff = { added: number; removed: number };
 
-export const getDiff = (lineChanges: monaco.editor.ILineChange[]): Diff => {
+export const getDiff = (lineChanges: editor.ILineChange[]): Diff => {
 	const diff: Diff = {
 		added: 0,
 		removed: 0,

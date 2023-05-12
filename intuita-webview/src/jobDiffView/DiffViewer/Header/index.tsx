@@ -18,7 +18,6 @@ const POPOVER_TEXTS = {
 };
 
 type Props = Readonly<{
-	title: string;
 	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
