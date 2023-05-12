@@ -24,7 +24,7 @@ const HooksCTA = ({ style }: { style?: CSSProperties }) => {
 					appearance="secondary"
 					onClick={handleShowExtensionSettings}
 				>
-					Try Intuita Hooks
+					Configure Hooks
 				</VSCodeButton>
 			}
 			popoverText={POPOVER_TEXTS.showExtensionSettings}

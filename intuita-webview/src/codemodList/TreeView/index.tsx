@@ -16,6 +16,7 @@ import { DirectorySelector } from '../components/DirectorySelector';
 import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
 type Props = Readonly<{
 	node: CodemodTreeNode<string>;
@@ -234,11 +235,10 @@ const TreeView = ({ node, response }: Props) => {
 		const icon = getIcon(node.iconName ?? null, opened);
 
 		const actionButtons = (node.actions ?? []).map((action) => (
-			// eslint-disable-next-line jsx-a11y/anchor-is-valid
-			<a
+			<VSCodeButton
 				key={action.kind}
 				className={styles.action}
-				role="button"
+				appearance="icon"
 				title={`${
 					action.kind === 'webview.codemodList.dryRunCodemod' &&
 					executionStack.includes(action.value)
@@ -255,23 +255,26 @@ const TreeView = ({ node, response }: Props) => {
 						<i className="codicon codicon-history mr-2" />
 					)}
 				{action.title}
-			</a>
+			</VSCodeButton>
 		));
 
 		const editExecutionPathAction = (
-			// eslint-disable-next-line jsx-a11y/anchor-is-valid
-			<a
+			<VSCodeButton
 				key="executionOnPath"
 				className={styles.action}
-				role="button"
+				appearance="icon"
 				onClick={(e) => {
 					e.stopPropagation();
 					handleEditExecutionPath(node);
 				}}
 				title="Edit Execution Path"
 			>
-				<i className="codicon codicon-pencil"></i> Edit Path
-			</a>
+				<i
+					className="codicon codicon-pencil"
+					style={{ alignSelf: 'center' }}
+				/>
+				Edit Path
+			</VSCodeButton>
 		);
 
 		const getActionButtons = () => {

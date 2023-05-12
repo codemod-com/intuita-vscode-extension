@@ -58,10 +58,10 @@ export const useProgressBar = (
 	const progressBar =
 		codemodExecutionProgress !== null ? (
 			<>
-				<div className="flex w-full h-2">
+				<div className="flex w-full mb-2" style={{ height: '3.5px' }}>
 					<Line
 						percent={codemodExecutionProgress.progress}
-						strokeWidth={0.5}
+						strokeWidth={1.5}
 						className="w-full"
 						strokeLinecap="round"
 						trailColor="var(--scrollbar-slider-background)"

@@ -98,6 +98,13 @@
 	font-size: 16px;
 	cursor: pointer;
 }
+
 .action {
 	margin-left: 3px;
+	display: flex;
+	align-items: center;
+}
+
+.action > * {
+	font-size: 12px;
 }
