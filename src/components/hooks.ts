@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
-import { isNeitherNullNorUndefined, singleQuotify } from '../utilities';
+import { doubleQuotify, isNeitherNullNorUndefined } from '../utilities';
 import * as vscode from 'vscode';
 
 interface Configuration {
@@ -22,7 +22,7 @@ const buildEnvForDryRunCompleted = (
 				return;
 			}
 
-			return singleQuotify(newContentUri.fsPath);
+			return doubleQuotify(newContentUri.fsPath);
 		})
 		.filter(isNeitherNullNorUndefined);
 
@@ -50,25 +50,26 @@ export class UserHooksService {
 				}
 
 				const env = buildEnvForDryRunCompleted(message);
-
-				exec(
-					command,
-					{ cwd: this.__rootPath, env: { ...process.env, ...env } },
-					(err, res) => {
-						if (err !== null) {
-							vscode.window.showErrorMessage(err.message);
-							return;
-						}
-
-						vscode.window.showInformationMessage(
-							`Executed onDryRunCompleted hook: \n ${res}`,
-						);
-
-						this.__messageBus.publish({
-							kind: MessageKind.afterDryRunHooksExecuted,
-						});
-					},
+				const commandWithEnv = command.replace(
+					'$DRY_RUN_CHANGED_FILES',
+					env.DRY_RUN_CHANGED_FILES,
 				);
+
+				exec(commandWithEnv, { cwd: this.__rootPath }, (err, res) => {
+					if (err !== null) {
+						vscode.window.showErrorMessage(err.message);
+						console.error(err);
+						return;
+					}
+
+					vscode.window.showInformationMessage(
+						`Executed onDryRunCompleted hook: \n ${res}`,
+					);
+
+					this.__messageBus.publish({
+						kind: MessageKind.afterDryRunHooksExecuted,
+					});
+				});
 			},
 		);
 	}
