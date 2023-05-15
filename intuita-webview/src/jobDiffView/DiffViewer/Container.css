@@ -37,6 +37,11 @@
 	color: #3ac06b;
 }
 
+/* VSCodeButton creates a shadow <button /> element with part='control' */
+.vscode-button::part(control):focus {
+	outline: none;
+}
+
 .icon-container {
 	background-color: var(--vscode-editor-background);
 	border-radius: 5px;
