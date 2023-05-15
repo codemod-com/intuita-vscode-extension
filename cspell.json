@@ -51,6 +51,8 @@
 		"reactjs",
 		"Collapsable",
 		"bpfrpt",
-		"proptype"
+		"proptype",
+		"svgr",
+		"preact"
 	]
 }
