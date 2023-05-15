@@ -27,7 +27,7 @@ export const JobDiffView = memo(
 	forwardRef(
 		(
 			{
-				viewType: ViewType,
+				viewType,
 				jobHash,
 				jobKind,
 				oldFileContent,
@@ -112,22 +112,18 @@ export const JobDiffView = memo(
 								onViewedChange={handleToggleVisible}
 								viewed={!visible}
 								title={title ?? ''}
-								viewType={ViewType}
+								viewType={viewType}
 								jobStaged={jobStaged}
 								onToggleJob={handleToggleJob}
 								onReportIssue={report}
 							/>
 						}
 					>
-						<Container
-							viewType={ViewType}
-							oldFileName={oldFileTitle}
-							newFileName={newFileTitle}
-						>
+						<Container>
 							<DiffComponent
 								theme={theme}
 								height={height}
-								viewType={ViewType}
+								viewType={viewType}
 								oldFileContent={oldFileContent}
 								newFileContent={newFileContent}
 								onDiffCalculated={handleDiffCalculated}

@@ -40,14 +40,14 @@ export const Container = ({
 				className="codemodListCollapsable"
 				headerChevronClassName="codemodListCollapsableArrow"
 				headerClassName="collapsableHeader"
-				contentClassName="collpasableContent"
+				contentClassName="collapsableContent"
 				onToggle={(expanded) => {
 					setExpanded(expanded);
 					onToggle?.(expanded);
 				}}
 				defaultExpanded={defaultExpanded}
 				headerComponent={
-					<>{headerTitle && <Header title={headerTitle} />}</>
+					headerTitle ? <Header title={headerTitle} /> : null
 				}
 			>
 				{children}

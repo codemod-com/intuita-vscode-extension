@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
@@ -6,16 +6,20 @@ import { DiffViewType, JobHash } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 import {
 	List,
-	_List,
 	CellMeasurerCache,
 	CellMeasurer,
-} from '../_reactVirtualized';
+	ListProps,
+	CellMeasurerProps,
+} from 'react-virtualized';
 
 import Header from './Header';
 import { vscode } from '../../shared/utilities/vscode';
 import { Diff } from './Diff';
 import { useElementSize } from '../hooks/useElementSize';
 import { useTheme } from '../../shared/Snippet/useTheme';
+
+const ListComponent = List as unknown as FC<ListProps>;
+const CellMeasurerComponent = CellMeasurer as unknown as FC<CellMeasurerProps>;
 
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
@@ -47,7 +51,7 @@ export const JobDiffViewContainer = ({
 }: JobDiffViewContainerProps) => {
 	const reversedJobs = useMemo(() => jobs.reverse(), [jobs]);
 
-	const listRef = useRef<_List>(null);
+	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
@@ -243,7 +247,7 @@ export const JobDiffViewContainer = ({
 				showHooksCTA={showHooksCTA}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
-				<List
+				<ListComponent
 					scrollToAlignment="start"
 					height={height}
 					ref={listRef}
@@ -259,7 +263,7 @@ export const JobDiffViewContainer = ({
 							return null;
 						}
 						return (
-							<CellMeasurer
+							<CellMeasurerComponent
 								cache={cache.current}
 								columnIndex={0}
 								key={key}
@@ -306,7 +310,7 @@ export const JobDiffViewContainer = ({
 										</div>
 									);
 								}}
-							</CellMeasurer>
+							</CellMeasurerComponent>
 						);
 					}}
 				/>

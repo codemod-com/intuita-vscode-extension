@@ -9,30 +9,16 @@ import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 
 type ContainerProps = Readonly<{
-	oldFileName: string | null;
-	newFileName: string | null;
-	viewType: 'inline' | 'side-by-side';
 	children?: React.ReactNode;
 }>;
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
+	({ children }: ContainerProps, ref) => {
 		return (
 			<div
 				className="flex  flex-wrap w-full container flex-col"
 				ref={ref}
 			>
-				{viewType === 'side-by-side' && newFileName && oldFileName && (
-					<div className="flex flex-row w-full">
-						<div className="w-half ml-50">
-							<p>{oldFileName}</p>
-						</div>
-						<div className="w-half ml-30">
-							<p>{newFileName}</p>
-						</div>
-					</div>
-				)}
-
 				<div className="flex flex-wrap flex-col w-full">{children}</div>
 			</div>
 		);
@@ -60,6 +46,7 @@ export const Header = ({
 	diff,
 	title,
 	jobKind,
+	oldFileTitle,
 	children,
 	viewed,
 	jobStaged,
@@ -96,9 +83,18 @@ export const Header = ({
 							{jobKindText}
 						</h4>
 					) : null}
-					<h4 className="my-0 ml-1 diff-title align-self-center">
-						{title}
-					</h4>
+					<Popover
+						disabled={
+							(jobKind as unknown as JobKind) !== JobKind.copyFile
+						}
+						trigger={
+							<h4 className="my-0 ml-1 diff-title align-self-center">
+								{title}
+							</h4>
+						}
+						popoverText={`Copied from ${oldFileTitle}`}
+						offsetY={0}
+					/>
 					<VSCodeButton
 						onClick={handleCopyFileName}
 						appearance="icon"
@@ -158,7 +154,6 @@ export const Header = ({
 const getJobKindText = (jobKind: JobKind): string => {
 	switch (jobKind) {
 		case JobKind.copyFile:
-			return '(copied)';
 		case JobKind.createFile:
 			return '(created)';
 		case JobKind.deleteFile:
