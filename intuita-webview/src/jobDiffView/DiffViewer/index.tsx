@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
@@ -25,8 +25,6 @@ type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
 	diffId: string;
-	scrollIntoHash: JobHash | null;
-	scrollIntoFolderPath: string | null;
 	stagedJobs: JobHash[];
 	showHooksCTA: boolean;
 }>;
@@ -46,19 +44,15 @@ export const JobDiffViewContainer = ({
 	jobs,
 	diffId,
 	postMessage,
-	scrollIntoHash,
-	scrollIntoFolderPath,
 	stagedJobs,
 	showHooksCTA,
 }: JobDiffViewContainerProps) => {
-	const sortedJobs = useMemo(() => jobs, [jobs]);
-
 	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diffData, setDiffData] = useState<DiffData>(() =>
-		sortedJobs.reduce((acc, el) => {
+		jobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -80,59 +74,8 @@ export const JobDiffViewContainer = ({
 	);
 
 	useEffect(() => {
-		if ((!scrollIntoHash && !scrollIntoFolderPath) || !listRef.current) {
-			return;
-		}
-		const index = sortedJobs.findIndex(
-			(job) =>
-				(scrollIntoHash && job.jobHash === scrollIntoHash) ||
-				(scrollIntoFolderPath &&
-					job.newFileTitle?.includes(scrollIntoFolderPath)),
-		);
-
-		if (index === -1) {
-			return;
-		}
-
-		for (let i = 0; i < Math.ceil(sortedJobs.length / 6); i++) {
-			const element =
-				document.getElementsByClassName(
-					'ReactVirtualized__Grid__innerScrollContainer',
-				)[0] ?? null;
-
-			if (element === null) {
-				return;
-			}
-
-			const children = Array.from(element.children);
-
-			const diffViewToFocus = children.find(
-				(child) => child.id === `${index}`,
-			);
-
-			if (diffViewToFocus) {
-				diffViewToFocus?.scrollIntoView();
-				return;
-			}
-
-			const lastRenderedChild = children[children.length - 1];
-
-			if (!lastRenderedChild) {
-				return;
-			}
-
-			lastRenderedChild.scrollIntoView();
-
-			// last diff item is reached
-			if (lastRenderedChild.id === `${sortedJobs.length - 1}`) {
-				return;
-			}
-		}
-	}, [sortedJobs, scrollIntoHash, scrollIntoFolderPath]);
-
-	useEffect(() => {
 		cache.current.clearAll();
-		const diffData = sortedJobs.reduce((acc, el) => {
+		const diffData = jobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -145,7 +88,7 @@ export const JobDiffViewContainer = ({
 		prevDiffData.current = diffData;
 		setDiffData(diffData);
 		listRef.current?.measureAllRows();
-	}, [sortedJobs]);
+	}, [jobs]);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
@@ -163,9 +106,7 @@ export const JobDiffViewContainer = ({
 				prevData.height !== data[1].height ||
 				prevData.expanded !== data[1].expanded
 			) {
-				const index = sortedJobs.findIndex(
-					(job) => job.jobHash === jobHash,
-				);
+				const index = jobs.findIndex((job) => job.jobHash === jobHash);
 				if (index === -1) {
 					return;
 				}
@@ -174,7 +115,7 @@ export const JobDiffViewContainer = ({
 			}
 		}
 		prevDiffData.current = diffData;
-	}, [diffData, sortedJobs]);
+	}, [diffData, jobs]);
 
 	const { width, height } = useElementSize(containerRef);
 
@@ -281,7 +222,7 @@ export const JobDiffViewContainer = ({
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobs={sortedJobs}
+				jobs={jobs}
 				diffId={diffId}
 				stagedJobsHashes={stagedJobs}
 				showHooksCTA={showHooksCTA}
@@ -296,9 +237,9 @@ export const JobDiffViewContainer = ({
 					width={width}
 					rowHeight={cache.current.rowHeight}
 					overscanRowCount={10}
-					rowCount={sortedJobs.length}
+					rowCount={jobs.length}
 					rowRenderer={({ index, style, parent, key }) => {
-						const el = sortedJobs[index];
+						const el = jobs[index];
 						if (!el) {
 							return null;
 						}
@@ -321,11 +262,7 @@ export const JobDiffViewContainer = ({
 										diffItem;
 
 									return (
-										<div
-											style={style}
-											id={`${index}`}
-											key={el.jobHash}
-										>
+										<div style={style} key={el.jobHash}>
 											<JobDiffView
 												ref={registerChild}
 												theme={theme}
