@@ -5,7 +5,7 @@
 	position: sticky;
 	height: 35px;
 	top: 0;
-	padding: 0 8px;
+	padding: 4px 8px;
 	background-color: var(--vscode-tab-inactiveBackground);
 	gap: 8px;
 }
