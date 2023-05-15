@@ -26,11 +26,10 @@ export const DiffComponent = memo(
 	}) => {
 		const editorRef = createRef<editor.IStandaloneDiffEditor>();
 
-		const getDiffChanges = (): Diff | undefined => {
-			if (!editorRef.current) {
-				return;
-			}
-			const lineChanges = editorRef.current.getLineChanges();
+		const getDiffChanges = (
+			editor: editor.IStandaloneDiffEditor,
+		): Diff | undefined => {
+			const lineChanges = editor.getLineChanges();
 			if (!lineChanges) {
 				return;
 			}
@@ -47,11 +46,14 @@ export const DiffComponent = memo(
 			}
 		};
 
-		const handleRefSet = () => {
-			const diffChanges = getDiffChanges();
-			if (diffChanges) {
-				onDiffCalculated(diffChanges);
-			}
+		const handleRefSet = (editor: editor.IStandaloneDiffEditor) => {
+			editor.onDidUpdateDiff(() => {
+				const diffChanges = getDiffChanges(editor);
+				if (diffChanges) {
+					onDiffCalculated(diffChanges);
+				}
+			});
+
 			getHeight();
 		};
 
