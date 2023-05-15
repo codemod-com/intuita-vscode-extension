@@ -218,20 +218,23 @@ export const JobDiffViewContainer = ({
 		[setDiffData],
 	);
 
-	const onToggleJob = (jobHash: JobHash) => {
-		const stagedJobsSet = new Set(stagedJobs);
+	const onToggleJob = useCallback(
+		(jobHash: JobHash) => {
+			const stagedJobsSet = new Set(stagedJobs);
 
-		if (stagedJobsSet.has(jobHash)) {
-			stagedJobsSet.delete(jobHash);
-		} else {
-			stagedJobsSet.add(jobHash);
-		}
+			if (stagedJobsSet.has(jobHash)) {
+				stagedJobsSet.delete(jobHash);
+			} else {
+				stagedJobsSet.add(jobHash);
+			}
 
-		vscode.postMessage({
-			kind: 'webview.global.stageJobs',
-			jobHashes: Array.from(stagedJobsSet),
-		});
-	};
+			vscode.postMessage({
+				kind: 'webview.global.stageJobs',
+				jobHashes: Array.from(stagedJobsSet),
+			});
+		},
+		[stagedJobs],
+	);
 
 	return (
 		<div className="w-full h-full flex flex-col">
@@ -268,47 +271,36 @@ export const JobDiffViewContainer = ({
 								rowIndex={index}
 							>
 								{({ registerChild }) => {
+									const diffItem = diffData[el.jobHash];
+
+									if (diffItem === undefined) {
+										return null;
+									}
+
+									const { expanded, diff, visible, height } =
+										diffItem;
+
 									return (
 										<div
 											style={style}
 											id={el.newFileTitle ?? ''}
+											key={el.jobHash}
 										>
 											<JobDiffView
+												ref={registerChild}
 												theme={theme}
-												containerRef={registerChild}
-												onToggle={(expanded) => {
-													onToggle(
-														el.jobHash,
-														expanded,
-													);
-												}}
-												expanded={
-													diffData[el.jobHash]
-														?.expanded ?? false
-												}
-												toggleVisible={toggleVisible}
-												diff={
-													diffData[el.jobHash]
-														?.diff ?? null
-												}
-												visible={
-													diffData[el.jobHash]
-														?.visible ?? true
-												}
-												ViewType={viewType}
-												key={el.jobHash}
-												postMessage={postMessage}
+												expanded={expanded}
+												diff={diff}
+												visible={visible}
+												viewType={viewType}
 												jobStaged={stagedJobs.includes(
 													el.jobHash,
 												)}
-												onToggleJob={() =>
-													onToggleJob(el.jobHash)
-												}
-												height={
-													diffData[el.jobHash]
-														?.height ??
-													defaultHeight
-												}
+												height={height ?? defaultHeight}
+												onToggle={onToggle}
+												toggleVisible={toggleVisible}
+												postMessage={postMessage}
+												onToggleJob={onToggleJob}
 												onHeightSet={onHeightSet}
 												onDiffCalculated={
 													onDiffCalculated
