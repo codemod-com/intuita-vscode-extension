@@ -80,11 +80,14 @@ export const JobDiffViewContainer = ({
 	);
 
 	useEffect(() => {
-		if (!scrollIntoHash || !listRef.current) {
+		if ((!scrollIntoHash && !scrollIntoFolderPath) || !listRef.current) {
 			return;
 		}
 		const index = sortedJobs.findIndex(
-			(job) => job.jobHash === scrollIntoHash,
+			(job) =>
+				(scrollIntoHash && job.jobHash === scrollIntoHash) ||
+				(scrollIntoFolderPath &&
+					job.newFileTitle?.includes(scrollIntoFolderPath)),
 		);
 
 		if (index === -1) {
@@ -125,21 +128,7 @@ export const JobDiffViewContainer = ({
 				return;
 			}
 		}
-	}, [sortedJobs, scrollIntoHash]);
-
-	useEffect(() => {
-		if (!scrollIntoFolderPath || !listRef.current) {
-			return;
-		}
-		const index = sortedJobs.findIndex((job) =>
-			job.newFileTitle?.includes(scrollIntoFolderPath),
-		);
-
-		if (index === -1) {
-			return;
-		}
-		listRef.current.scrollToRow(index);
-	}, [sortedJobs, scrollIntoFolderPath]);
+	}, [sortedJobs, scrollIntoHash, scrollIntoFolderPath]);
 
 	useEffect(() => {
 		cache.current.clearAll();
