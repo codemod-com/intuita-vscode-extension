@@ -101,11 +101,7 @@ export const JobDiffView = ({
 					/>
 				}
 			>
-				<Container
-					viewType={ViewType}
-					oldFileName={oldFileTitle}
-					newFileName={newFileTitle}
-				>
+				<Container>
 					<DiffComponent
 						theme={theme}
 						height={height}

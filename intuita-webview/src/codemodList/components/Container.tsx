@@ -47,7 +47,7 @@ export const Container = ({
 				}}
 				defaultExpanded={defaultExpanded}
 				headerComponent={
-					<>{headerTitle && <Header title={headerTitle} />}</>
+					headerTitle ? <Header title={headerTitle} /> : null
 				}
 			>
 				{children}
