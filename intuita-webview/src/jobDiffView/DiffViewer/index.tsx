@@ -90,7 +90,41 @@ export const JobDiffViewContainer = ({
 		if (index === -1) {
 			return;
 		}
-		listRef.current.scrollToRow(index);
+
+		for (let i = 0; i < Math.ceil(sortedJobs.length / 6); i++) {
+			const element =
+				document.getElementsByClassName(
+					'ReactVirtualized__Grid__innerScrollContainer',
+				)[0] ?? null;
+
+			if (element === null) {
+				return;
+			}
+
+			const children = Array.from(element.children);
+
+			const diffViewToFocus = children.find(
+				(child) => child.id === `${index}`,
+			);
+
+			if (diffViewToFocus) {
+				diffViewToFocus?.scrollIntoView();
+				return;
+			}
+
+			const lastRenderedChild = children[children.length - 1];
+
+			if (!lastRenderedChild) {
+				return;
+			}
+
+			lastRenderedChild.scrollIntoView();
+
+			// last diff item is reached
+			if (lastRenderedChild.id === `${sortedJobs.length - 1}`) {
+				return;
+			}
+		}
 	}, [sortedJobs, scrollIntoHash]);
 
 	useEffect(() => {
@@ -300,7 +334,7 @@ export const JobDiffViewContainer = ({
 									return (
 										<div
 											style={style}
-											id={el.newFileTitle ?? ''}
+											id={`${index}`}
 											key={el.jobHash}
 										>
 											<JobDiffView
