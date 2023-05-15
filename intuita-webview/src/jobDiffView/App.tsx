@@ -14,6 +14,9 @@ import LoadingProgress from './Components/LoadingProgress';
 function App() {
 	const [view, setView] = useState<View | null>(null);
 	const [scrollIntoHash, setScrollIntoHash] = useState<JobHash | null>(null);
+	const [scrollIntoFolderPath, setScrollIntoFolderPath] = useState<
+		string | null
+	>(null);
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
@@ -30,34 +33,11 @@ function App() {
 				setScrollIntoHash(message.jobHash);
 			}
 
-			if (
-				message.kind === 'webview.diffView.focusFolder' &&
-				view.viewId === 'jobDiffView' &&
-				view.viewProps.diffId
-			) {
+			if (message.kind === 'webview.diffView.focusFolder') {
 				const folderPathExcludingRootPath = message.folderPath.slice(
 					message.folderPath.indexOf('/'),
 				);
-
-				const element =
-					document.getElementsByClassName(
-						'ReactVirtualized__Grid__innerScrollContainer',
-					)[0] ?? null;
-
-				if (element === null) {
-					return;
-				}
-
-				const fileInsideSelectedFolder =
-					Array.from(element.children).find((child) =>
-						child.id.includes(folderPathExcludingRootPath),
-					) ?? null;
-
-				if (fileInsideSelectedFolder === null) {
-					return;
-				}
-
-				fileInsideSelectedFolder.scrollIntoView();
+				setScrollIntoFolderPath(folderPathExcludingRootPath);
 			}
 			if (message.kind === 'webview.diffView.updateStagedJobs') {
 				setStagedJobs(message.value);
@@ -100,11 +80,18 @@ function App() {
 	}
 
 	const { data, diffId, showHooksCTA } = view.viewProps;
+	data.sort((a, b) => {
+		if (!a.newFileTitle || !b.newFileTitle) {
+			return 0;
+		}
+		return a.newFileTitle.localeCompare(b.newFileTitle);
+	});
 
 	return (
 		<main className="App">
 			<JobDiffViewContainer
 				scrollIntoHash={scrollIntoHash}
+				scrollIntoFolderPath={scrollIntoFolderPath}
 				diffId={diffId}
 				jobs={data}
 				stagedJobs={stagedJobs}

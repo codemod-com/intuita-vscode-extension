@@ -26,6 +26,7 @@ type JobDiffViewContainerProps = Readonly<{
 	jobs: JobDiffViewProps[];
 	diffId: string;
 	scrollIntoHash: JobHash | null;
+	scrollIntoFolderPath: string | null;
 	stagedJobs: JobHash[];
 	showHooksCTA: boolean;
 }>;
@@ -46,17 +47,18 @@ export const JobDiffViewContainer = ({
 	diffId,
 	postMessage,
 	scrollIntoHash,
+	scrollIntoFolderPath,
 	stagedJobs,
 	showHooksCTA,
 }: JobDiffViewContainerProps) => {
-	const reversedJobs = useMemo(() => jobs.reverse(), [jobs]);
+	const sortedJobs = useMemo(() => jobs, [jobs]);
 
 	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diffData, setDiffData] = useState<DiffData>(() =>
-		reversedJobs.reduce((acc, el) => {
+		sortedJobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -78,21 +80,36 @@ export const JobDiffViewContainer = ({
 	);
 
 	useEffect(() => {
-		if (!scrollIntoHash) {
+		if (!scrollIntoHash || !listRef.current) {
 			return;
 		}
-		const index = reversedJobs.findIndex(
+		const index = sortedJobs.findIndex(
 			(job) => job.jobHash === scrollIntoHash,
 		);
+
 		if (index === -1) {
 			return;
 		}
-		listRef.current?.scrollToRow(index);
-	}, [reversedJobs, scrollIntoHash]);
+		listRef.current.scrollToRow(index);
+	}, [sortedJobs, scrollIntoHash]);
+
+	useEffect(() => {
+		if (!scrollIntoFolderPath || !listRef.current) {
+			return;
+		}
+		const index = sortedJobs.findIndex((job) =>
+			job.newFileTitle?.includes(scrollIntoFolderPath),
+		);
+
+		if (index === -1) {
+			return;
+		}
+		listRef.current.scrollToRow(index);
+	}, [sortedJobs, scrollIntoFolderPath]);
 
 	useEffect(() => {
 		cache.current.clearAll();
-		const diffData = reversedJobs.reduce((acc, el) => {
+		const diffData = sortedJobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -105,7 +122,7 @@ export const JobDiffViewContainer = ({
 		prevDiffData.current = diffData;
 		setDiffData(diffData);
 		listRef.current?.measureAllRows();
-	}, [reversedJobs]);
+	}, [sortedJobs]);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
@@ -123,7 +140,7 @@ export const JobDiffViewContainer = ({
 				prevData.height !== data[1].height ||
 				prevData.expanded !== data[1].expanded
 			) {
-				const index = reversedJobs.findIndex(
+				const index = sortedJobs.findIndex(
 					(job) => job.jobHash === jobHash,
 				);
 				if (index === -1) {
@@ -134,7 +151,7 @@ export const JobDiffViewContainer = ({
 			}
 		}
 		prevDiffData.current = diffData;
-	}, [diffData, reversedJobs]);
+	}, [diffData, sortedJobs]);
 
 	const { width, height } = useElementSize(containerRef);
 
@@ -241,7 +258,7 @@ export const JobDiffViewContainer = ({
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobs={reversedJobs}
+				jobs={sortedJobs}
 				diffId={diffId}
 				stagedJobsHashes={stagedJobs}
 				showHooksCTA={showHooksCTA}
@@ -255,10 +272,10 @@ export const JobDiffViewContainer = ({
 					deferredMeasurementCache={cache.current}
 					width={width}
 					rowHeight={cache.current.rowHeight}
-					overscanRowCount={6}
-					rowCount={reversedJobs.length}
+					overscanRowCount={10}
+					rowCount={sortedJobs.length}
 					rowRenderer={({ index, style, parent, key }) => {
-						const el = reversedJobs[index];
+						const el = sortedJobs[index];
 						if (!el) {
 							return null;
 						}
