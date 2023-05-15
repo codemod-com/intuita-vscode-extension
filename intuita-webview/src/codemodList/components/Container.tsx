@@ -40,7 +40,7 @@ export const Container = ({
 				className="codemodListCollapsable"
 				headerChevronClassName="codemodListCollapsableArrow"
 				headerClassName="collapsableHeader"
-				contentClassName="collpasableContent"
+				contentClassName="collapsableContent"
 				onToggle={(expanded) => {
 					setExpanded(expanded);
 					onToggle?.(expanded);
