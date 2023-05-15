@@ -124,7 +124,14 @@ export const Header = ({
 					{hasDiff ? (
 						<div className="ml-10 flex items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
-								-{diff.removed}
+								-
+								{[
+									JobKind.createFile,
+									JobKind.copyFile,
+									JobKind.moveFile,
+								].includes(jobKind as unknown as JobKind)
+									? '0'
+									: diff.removed}
 							</span>
 
 							<span> / </span>
