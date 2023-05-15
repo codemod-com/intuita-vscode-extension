@@ -79,7 +79,7 @@ export const Header = ({
 				/>
 				<div className="flex items-center flex-1">
 					{jobKindText ? (
-						<h4 className="my-0 ml-2 job-kind-text align-self-center">
+						<h4 className="my-0 ml-2 job-kind-text align-self-center user-select-none">
 							{jobKindText}
 						</h4>
 					) : null}
@@ -149,7 +149,7 @@ export const Header = ({
 						}}
 					>
 						<VSCodeCheckbox checked={viewed} />
-						<p className="my-0 ml-10">Viewed</p>
+						<p className="my-0 ml-10 user-select-none">Viewed</p>
 					</div>
 				</div>
 			</div>
