@@ -109,6 +109,7 @@ export const Header = ({
 					<VSCodeButton
 						onClick={handleCopyFileName}
 						appearance="icon"
+						className="vscode-button"
 					>
 						<CopyIcon className="copy-icon" />
 					</VSCodeButton>

@@ -37,6 +37,10 @@
 	color: #3ac06b;
 }
 
+.vscode-button::part(control):focus {
+	outline: none;
+}
+
 .icon-container {
 	background-color: var(--vscode-editor-background);
 	border-radius: 5px;
