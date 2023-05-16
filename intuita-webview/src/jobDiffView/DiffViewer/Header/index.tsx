@@ -1,4 +1,4 @@
-import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
@@ -29,7 +29,6 @@ type Props = Readonly<{
 const Header = ({
 	viewType,
 	diffId,
-	jobs,
 	onViewChange,
 	stagedJobsHashes,
 	showHooksCTA,
@@ -58,33 +57,9 @@ const Header = ({
 	};
 
 	const hasStagedJobs = stagedJobsHashes.length !== 0;
-	const allJobsStaged = stagedJobsHashes.length === jobs.length;
-
-	const setStagedJobs = (jobHashes: JobHash[]): void => {
-		vscode.postMessage({
-			kind: 'webview.global.stageJobs',
-			jobHashes,
-		});
-	};
 
 	return (
 		<div className={styles.root}>
-			<Popover
-				trigger={
-					<VSCodeCheckbox
-						onClick={(e) => {
-							e.stopPropagation();
-							const jobsToBeStaged = hasStagedJobs
-								? []
-								: jobs.map(({ jobHash }) => jobHash);
-							setStagedJobs(jobsToBeStaged);
-						}}
-						className={styles.checkbox}
-						checked={allJobsStaged}
-					/>
-				}
-				popoverText={allJobsStaged ? 'Unselect all' : 'Select all'}
-			/>
 			<div className={styles.actionsContainer}>
 				<Popover
 					trigger={
