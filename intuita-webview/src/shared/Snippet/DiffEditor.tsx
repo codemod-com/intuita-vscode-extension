@@ -2,7 +2,9 @@ import { forwardRef } from 'react';
 import { DiffEditorProps, DiffEditor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 
-type DiffViewerProps = DiffEditorProps & { onRefSet: () => void };
+type DiffViewerProps = DiffEditorProps & {
+	onRefSet: (editor: editor.IStandaloneDiffEditor) => void;
+};
 const DiffViewer = forwardRef<editor.IStandaloneDiffEditor, DiffViewerProps>(
 	({ onRefSet, ...props }, ref) => {
 		return (
@@ -13,7 +15,7 @@ const DiffViewer = forwardRef<editor.IStandaloneDiffEditor, DiffViewerProps>(
 						if (!(typeof ref === 'function') && ref) {
 							ref.current = editor;
 						}
-						onRefSet();
+						onRefSet(editor);
 					}}
 					{...props}
 				/>
