@@ -13,10 +13,14 @@ type Props = {
 
 const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 	const handleClick = useCallback((node: CaseTreeNode) => {
-		vscode.postMessage({
-			kind: 'webview.campaignManager.caseSelected',
-			hash: node.id,
-		});
+		if (node.commands) {
+			node.commands.forEach((command) => {
+				vscode.postMessage({
+					kind: 'webview.command',
+					value: command,
+				});
+			});
+		}
 	}, []);
 
 	useEffect(() => {
