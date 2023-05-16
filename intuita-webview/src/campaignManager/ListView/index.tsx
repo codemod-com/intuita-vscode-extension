@@ -3,7 +3,7 @@ import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
-import { Dispatch, SetStateAction, useCallback, useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 type Props = {
 	nodes: CaseTreeNode[];
@@ -12,26 +12,20 @@ type Props = {
 };
 
 const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
-	const handleClick = useCallback((node: CaseTreeNode) => {
-		if (node.commands) {
-			node.commands.forEach((command) => {
-				vscode.postMessage({
-					kind: 'webview.command',
-					value: command,
-				});
-			});
-		}
-	}, []);
-
 	useEffect(() => {
 		if (selectedCaseNode === null) {
 			return;
 		}
 
-		handleClick(selectedCaseNode);
+		selectedCaseNode.commands?.forEach((command) => {
+			vscode.postMessage({
+				kind: 'webview.command',
+				value: command,
+			});
+		});
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [handleClick, selectedCaseNode?.id]);
+	}, [selectedCaseNode?.id]);
 
 	return (
 		<div className={styles.container}>
@@ -61,7 +55,6 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 						index={index}
 						onClick={() => {
 							setSelectedCaseNode(node);
-							handleClick(node);
 						}}
 					/>
 				);
