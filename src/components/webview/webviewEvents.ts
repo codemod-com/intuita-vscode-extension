@@ -233,7 +233,6 @@ export type WebviewResponse =
 				| 'codemodRuns'
 				| 'codemodDiscovery'
 				| 'diffView';
-			lastNodeId?: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';

@@ -36,7 +36,6 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 			vscode.postMessage({
 				kind: 'webview.global.focusView',
 				webviewName: 'diffView',
-				lastNodeId: node.id,
 			});
 			return;
 		}

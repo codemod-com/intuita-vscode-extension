@@ -51,7 +51,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
-	__fileNodeIdBeforeShiftingFocus: string | null = null;
+	__lastSelectedFileNode: TreeNode | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -161,7 +161,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	public focusFile() {
 		this.__postMessage({
 			kind: 'webview.fileExplorer.focusFile',
-			id: this.__fileNodeIdBeforeShiftingFocus,
+			id: this.__lastSelectedFileNode?.id ?? null,
 		});
 	}
 
@@ -437,6 +437,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
+			this.__lastSelectedFileNode = fileNodeObj.node;
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -486,9 +487,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.focusView') {
-			if (message.lastNodeId) {
-				this.__fileNodeIdBeforeShiftingFocus = message.lastNodeId;
-			}
 			commands.executeCommand('intuita.focusView', message.webviewName);
 		}
 	};
