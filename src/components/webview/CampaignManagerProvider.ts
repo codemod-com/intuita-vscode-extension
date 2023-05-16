@@ -272,6 +272,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const newCaseHash = this.__caseManager.getNewCaseHash();
 		if (newCaseHash !== null) {
 			this.__selectCase(newCaseHash);
+			this.__updateAndRevealChangeExplorer(newCaseHash);
 		}
 	}
 
@@ -319,8 +320,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.campaignManager.caseSelected') {
-			this.__fileExplorerProvider.updateExplorerView(message.hash);
-			this.__fileExplorerProvider.showView();
+			this.__updateAndRevealChangeExplorer(message.hash);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -330,5 +330,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	private __attachWebviewEventListeners() {
 		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+	}
+
+	private __updateAndRevealChangeExplorer(caseHash: CaseHash) {
+		this.__fileExplorerProvider.updateExplorerView(caseHash);
+		this.__fileExplorerProvider.showView();
 	}
 }
