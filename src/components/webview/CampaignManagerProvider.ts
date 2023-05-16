@@ -32,7 +32,6 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
-import { FileExplorerProvider } from './FileExplorerProvider';
 
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -45,7 +44,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
-		private readonly __fileExplorerProvider: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -283,11 +281,18 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			label: element.label,
 			kind: 'caseElement',
 			children: [],
-			command: {
-				title: 'Diff View',
-				command: 'intuita.openCaseDiff',
-				arguments: [element.hash],
-			},
+			commands: [
+				{
+					title: 'Diff View',
+					command: 'intuita.openCaseDiff',
+					arguments: [element.hash],
+				},
+				{
+					title: 'Change Explorer',
+					command: 'intuita.openChangeExplorer',
+					arguments: [caseHash],
+				},
+			],
 			caseApplied: false,
 		};
 
@@ -316,11 +321,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				message.value.command,
 				...(message.value.arguments ?? []),
 			);
-		}
-
-		if (message.kind === 'webview.campaignManager.caseSelected') {
-			this.__fileExplorerProvider.updateExplorerView(message.hash);
-			this.__fileExplorerProvider.showView();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {

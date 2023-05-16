@@ -266,7 +266,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		fileExplorerProvider,
 	);
 
 	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
@@ -1028,6 +1027,19 @@ export async function activate(context: vscode.ExtensionContext) {
 					kind: MessageKind.rejectJobs,
 					jobHashes: new Set(jobHashes),
 				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.openChangeExplorer',
+			async (caseHash: CaseHash | null) => {
+				if (caseHash === null) {
+					return;
+				}
+				fileExplorerProvider.showView();
+				fileExplorerProvider.updateExplorerView(caseHash);
 			},
 		),
 	);

@@ -70,10 +70,16 @@ export type CaseTreeNode = {
 	kind: 'caseElement';
 	label?: string;
 	iconName: 'case.svg';
-	command?: Command & {
-		command: 'intuita.openCaseDiff';
-		arguments?: ElementHash[];
-	};
+	commands?: [
+		Command & {
+			command: 'intuita.openCaseDiff';
+			arguments?: ElementHash[];
+		},
+		Command & {
+			command: 'intuita.openChangeExplorer';
+			arguments?: CaseHash[];
+		},
+	];
 	actions?: Command[];
 	children: TreeNode[];
 	caseApplied: boolean;
@@ -84,7 +90,7 @@ export type TreeNode = {
 	kind: string;
 	label?: string;
 	iconName?: string;
-	command?:
+	commands?:
 		| Command & {
 				command: 'intuita.openCaseDiff';
 				arguments?: ElementHash[];
@@ -212,10 +218,6 @@ export type WebviewResponse =
 			jobHashes: JobHash[];
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
-	| Readonly<{
-			kind: 'webview.campaignManager.caseSelected';
-			hash: CaseHash;
-	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';
 			id: string;

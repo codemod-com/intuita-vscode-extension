@@ -42,8 +42,8 @@ function App() {
 	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
-				No change to review! Run some codemods via VS Code Command &
-				check back later!
+				No change to review! Run some codemods via Codemod Discovery or
+				VS Code Command & check back later!
 			</p>
 		);
 	}
