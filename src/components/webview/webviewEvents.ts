@@ -116,6 +116,7 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.focusView';
+			nodeIdToFocus: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.diffView.focusFile';
@@ -160,6 +161,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.diffView.updateStagedJobs';
 			value: JobHash[];
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.focusFile';
+			id: string | null;
 	  }>;
 
 export type WebviewResponse =
@@ -222,15 +227,21 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{
+			kind: 'webview.global.focusView';
+			webviewName:
+				| 'changeExplorer'
+				| 'codemodRuns'
+				| 'codemodDiscovery'
+				| 'diffView';
+			lastNodeId?: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';
 			id: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: string;
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.shiftFocusToDiffView';
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';

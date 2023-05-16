@@ -13,6 +13,7 @@ type MainViews = Extract<View, { viewId: 'treeView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
+	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	useEffect(() => {
@@ -24,6 +25,13 @@ function App() {
 				if (message.value.viewId === 'treeView') {
 					setView(message.value);
 				}
+			}
+
+			if (
+				message.kind === 'webview.fileExplorer.focusFile' &&
+				message.id !== null
+			) {
+				setFocusedNodeId(message.id);
 			}
 		};
 
@@ -48,7 +56,12 @@ function App() {
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 			/>
-			<TreeView {...view.viewProps} searchQuery={searchQuery} />
+			<TreeView
+				{...view.viewProps}
+				searchQuery={searchQuery}
+				focusedNodeId={focusedNodeId}
+				setFocusedNodeId={setFocusedNodeId}
+			/>
 		</main>
 	);
 }

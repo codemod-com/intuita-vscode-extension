@@ -51,6 +51,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
+	__fileNodeIdBeforeShiftingFocus: string | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -155,6 +156,13 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				},
 			});
 		}
+	}
+
+	public focusFile() {
+		this.__postMessage({
+			kind: 'webview.fileExplorer.focusFile',
+			id: this.__fileNodeIdBeforeShiftingFocus,
+		});
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -477,27 +485,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			panelInstance.focusFolder(folderPath);
 		}
 
-		if (message.kind === 'webview.fileExplorer.shiftFocusToDiffView') {
-			const rootPath =
-				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-			if (rootPath === null) {
-				return;
+		if (message.kind === 'webview.global.focusView') {
+			if (message.lastNodeId) {
+				this.__fileNodeIdBeforeShiftingFocus = message.lastNodeId;
 			}
-			const panelInstance = DiffWebviewPanel.getInstance(
-				{
-					type: 'intuitaPanel',
-					title: 'Diff',
-					extensionUri: this.__extensionPath,
-					initialData: {},
-					viewColumn: ViewColumn.One,
-					webviewName: 'jobDiffView',
-				},
-				this.__messageBus,
-				this.__jobManager,
-				this.__caseManager,
-				rootPath,
-			);
-			panelInstance.focusView();
+			commands.executeCommand('intuita.focusView', message.webviewName);
 		}
 	};
 

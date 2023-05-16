@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo } from 'react';
 import Tree from '../../shared/Tree';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -16,6 +16,8 @@ type Props = {
 	nodeIds: string[];
 	fileNodes: TreeNode[];
 	searchQuery: string;
+	focusedNodeId: string | null;
+	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -54,9 +56,15 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
-const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
+const TreeView = ({
+	node,
+	nodeIds,
+	fileNodes,
+	searchQuery,
+	focusedNodeId,
+	setFocusedNodeId,
+}: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const fileNodeIds = useMemo(
 		() => new Set(fileNodes.map((node) => node.id)),
 		[fileNodes],
@@ -129,7 +137,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		return () => {
 			window.removeEventListener('blur', handler);
 		};
-	}, []);
+	}, [setFocusedNodeId]);
 
 	useEffect(() => {
 		if (focusedNodeId === null) {

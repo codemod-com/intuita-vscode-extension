@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties, ReactNode, useEffect } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
@@ -33,9 +33,16 @@ const TreeItem = ({
 	style,
 	onPressChevron,
 }: Props) => {
+	useEffect(() => {
+		if (focused) {
+			document.getElementById(id)?.focus();
+		}
+	}, [id, focused]);
+
 	return (
 		<div
 			id={id}
+			tabIndex={0}
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
 			style={style}

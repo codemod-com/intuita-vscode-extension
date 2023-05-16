@@ -75,6 +75,11 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				message.value.arguments,
 			);
 		}
+
+		if (message.kind === 'webview.global.focusView') {
+			commands.executeCommand('intuita.focusView', message.webviewName);
+		}
+
 		if (
 			message.kind === 'intuita.rejectJob' ||
 			message.kind === 'intuita.createIssue' ||

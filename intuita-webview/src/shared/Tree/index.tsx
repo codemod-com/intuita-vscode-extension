@@ -34,13 +34,16 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 
 		if (key === 'ArrowRight' && hasNoChildren) {
 			vscode.postMessage({
-				kind: 'webview.fileExplorer.shiftFocusToDiffView',
+				kind: 'webview.global.focusView',
+				webviewName: 'diffView',
+				lastNodeId: node.id,
 			});
 			return;
 		}
 
 		setIsOpen(key === 'ArrowLeft' ? false : true);
 	};
+
 	useKey('ArrowLeft', () => {
 		handleArrowKeyDown('ArrowLeft');
 	});
