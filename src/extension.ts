@@ -171,6 +171,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const telemetryKey = '';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
+		messageBus,
+		jobManager,
 	);
 
 	context.subscriptions.push(

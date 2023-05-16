@@ -168,9 +168,15 @@ export class JobManager {
 					continue;
 				}
 
+				const deletedJobs = new Set(
+					[...deletedJobHashes]
+						.map((jobHash) => this.getJob(jobHash))
+						.filter(isNeitherNullNorUndefined),
+				);
+
 				messages.push({
 					kind: MessageKind.jobsAccepted,
-					deletedJobHashes,
+					deletedJobs,
 					codemodSetName: codemod.setName,
 					codemodName: codemod.name,
 				});
@@ -250,9 +256,15 @@ export class JobManager {
 					continue;
 				}
 
+				const deletedJobs = new Set(
+					[...deletedJobHashes]
+						.map((jobHash) => this.getJob(jobHash))
+						.filter(isNeitherNullNorUndefined),
+				);
+
 				messages.push({
 					kind: MessageKind.jobsRejected,
-					deletedJobHashes,
+					deletedJobs,
 					codemodSetName: codemod.setName,
 					codemodName: codemod.name,
 				});
