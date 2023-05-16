@@ -90,7 +90,7 @@ export type TreeNode = {
 	kind: string;
 	label?: string;
 	iconName?: string;
-	commands?:
+	command?:
 		| Command & {
 				command: 'intuita.openCaseDiff';
 				arguments?: ElementHash[];
