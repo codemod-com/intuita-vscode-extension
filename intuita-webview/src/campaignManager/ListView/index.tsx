@@ -17,13 +17,6 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 			kind: 'webview.campaignManager.caseSelected',
 			hash: node.id,
 		});
-
-		if (node.command) {
-			vscode.postMessage({
-				kind: 'webview.command',
-				value: node.command,
-			});
-		}
 	}, []);
 
 	useEffect(() => {

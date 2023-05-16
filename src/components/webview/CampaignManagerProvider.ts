@@ -272,7 +272,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const newCaseHash = this.__caseManager.getNewCaseHash();
 		if (newCaseHash !== null) {
 			this.__selectCase(newCaseHash);
-			this.__updateAndRevealChangeExplorer(newCaseHash);
 		}
 	}
 
@@ -284,11 +283,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			label: element.label,
 			kind: 'caseElement',
 			children: [],
-			command: {
-				title: 'Diff View',
-				command: 'intuita.openCaseDiff',
-				arguments: [element.hash],
-			},
 			caseApplied: false,
 		};
 
@@ -320,7 +314,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.campaignManager.caseSelected') {
-			this.__updateAndRevealChangeExplorer(message.hash);
+			this.__onNewCodemodRun(message.hash);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -332,8 +326,9 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 
-	private __updateAndRevealChangeExplorer(caseHash: CaseHash) {
-		this.__fileExplorerProvider.updateExplorerView(caseHash);
+	private __onNewCodemodRun(caseHash: CaseHash) {
 		this.__fileExplorerProvider.showView();
+		this.__fileExplorerProvider.updateExplorerView(caseHash);
+		commands.executeCommand('intuita.openCaseDiff', caseHash);
 	}
 }
