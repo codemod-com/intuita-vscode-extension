@@ -173,11 +173,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				kind: 'folderElement',
 				iconName: 'folder.svg',
 				children: [],
-				command: {
-					title: 'Diff View',
-					command: 'intuita.openCaseDiff',
-					arguments: [element.hash],
-				},
 			});
 			element.children.forEach(this.__getTreeByDirectory);
 			const treeNode = this.__folderMap.get(repoName) ?? undefined;

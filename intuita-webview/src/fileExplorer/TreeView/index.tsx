@@ -1,10 +1,7 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import Tree from '../../shared/Tree';
-import {
-	Command,
-	TreeNode,
-} from '../../../../src/components/webview/webviewEvents';
+import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
@@ -80,10 +77,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		window.scrollBy(0, 20); // height of 1 tree item is slightly bigger than 20px
 	});
 
-	const handleActionButtonClick = (action: Command) => {
-		vscode.postMessage({ kind: 'webview.command', value: action });
-	};
-
 	const renderItem = ({
 		node,
 		depth,
@@ -103,20 +96,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
 
-		const actionButtons = (node.actions ?? []).map((action) => (
-			// eslint-disable-next-line jsx-a11y/anchor-is-valid
-			<a
-				title={action.title}
-				role="button"
-				onClick={(e) => {
-					e.stopPropagation();
-					handleActionButtonClick(action);
-				}}
-			>
-				{action.title}
-			</a>
-		));
-
 		return (
 			<TreeItem
 				hasChildren={(node.children?.length ?? 0) !== 0}
@@ -131,7 +110,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 				onClick={() => {
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={actionButtons}
+				actionButtons={[]}
 				onPressChevron={() => {
 					setIsOpen(!open);
 				}}
