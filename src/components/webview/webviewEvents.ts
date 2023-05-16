@@ -115,6 +115,9 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
+			kind: 'webview.global.focusView';
+	  }>
+	| Readonly<{
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
@@ -225,6 +228,9 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.shiftFocusToDiffView';
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';

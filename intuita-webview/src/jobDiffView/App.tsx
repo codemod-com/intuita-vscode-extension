@@ -36,6 +36,13 @@ function App() {
 				return;
 			}
 
+			if (message.kind === 'webview.global.focusView') {
+				const diffViewContainer =
+					document.getElementById('diffViewContainer');
+
+				diffViewContainer?.focus();
+			}
+
 			if (message.kind === 'webview.diffView.focusFile') {
 				const index = view.viewProps.data.findIndex(
 					(job) => job.jobHash === message.jobHash,

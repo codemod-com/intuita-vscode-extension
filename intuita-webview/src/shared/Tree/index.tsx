@@ -2,6 +2,7 @@ import ReactTreeView from 'react-treeview';
 import { ReactNode, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { useKey } from '../../jobDiffView/hooks/useKey';
+import { vscode } from '../utilities/vscode';
 
 type Props = {
 	index: number;
@@ -28,6 +29,13 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 	const [open, setIsOpen] = useState(true);
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (node.id !== focusedNodeId) {
+			return;
+		}
+
+		if (key === 'ArrowRight' && hasNoChildren) {
+			vscode.postMessage({
+				kind: 'webview.fileExplorer.shiftFocusToDiffView',
+			});
 			return;
 		}
 
