@@ -156,10 +156,10 @@ export class CaseManager {
 
 			let deletedCount = 0;
 
-			for (const jobHash of message.deletedJobHashes) {
+			for (const job of message.deletedJobs) {
 				const deleted = this.#caseHashJobHashSetManager.delete(
 					kase.hash,
-					jobHash,
+					job.hash,
 				);
 
 				deletedCount += Number(deleted);

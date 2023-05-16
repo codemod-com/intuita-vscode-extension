@@ -18,13 +18,13 @@ export type Event =
 			codemodName: string;
 	  }>
 	| Readonly<{
-			kind: 'jobAccepted';
-			jobHash: string;
+			kind: 'jobsAccepted';
+			jobCount: number;
 			executionId: string;
 	  }>
 	| Readonly<{
-			kind: 'jobRejected';
-			jobHash: string;
+			kind: 'jobsRejected';
+			jobCount: number;
 			executionId: string;
 	  }>;
 

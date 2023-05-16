@@ -168,11 +168,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const telemetryKey = '';
+	const telemetryKey = '61406ec7-5d8d-48e0-bf19-0cb1650bfb2c';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
 		messageBus,
-		jobManager,
 	);
 
 	context.subscriptions.push(

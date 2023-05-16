@@ -1,13 +1,12 @@
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { Event, ErrorEvent, Telemetry } from './telemetry';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
-import { JobManager } from '../components/jobManager';
+import { Job } from '../jobs/types';
 
 export class VscodeTelemetry implements Telemetry {
 	constructor(
 		private readonly __telemetryReporter: TelemetryReporter,
 		private readonly __messageBus: MessageBus,
-		private readonly __jobManager: JobManager,
 	) {
 		this.__messageBus.subscribe(
 			MessageKind.codemodSetExecuted,
@@ -30,13 +29,22 @@ export class VscodeTelemetry implements Telemetry {
 	): void {
 		const { deletedJobs } = message;
 
-		for (const job of deletedJobs) {
-			const { executionId, hash } = job;
+		const jobsByExecution: Record<string, Job[]> = {};
 
-			// @TODO check if sender batches requests
+		for (const job of deletedJobs) {
+			const { executionId } = job;
+
+			if (!jobsByExecution[executionId]) {
+				jobsByExecution[executionId] = [];
+			}
+
+			jobsByExecution[executionId]?.push(job);
+		}
+
+		for (const [executionId, jobs] of Object.entries(jobsByExecution)) {
 			this.sendEvent({
-				kind: 'jobAccepted',
-				jobHash: hash,
+				kind: 'jobsAccepted',
+				jobCount: jobs.length,
 				executionId,
 			});
 		}
@@ -47,12 +55,22 @@ export class VscodeTelemetry implements Telemetry {
 	): void {
 		const { deletedJobs } = message;
 
-		for (const job of deletedJobs) {
-			const { executionId, hash } = job;
+		const jobsByExecution: Record<string, Job[]> = {};
 
+		for (const job of deletedJobs) {
+			const { executionId } = job;
+
+			if (!jobsByExecution[executionId]) {
+				jobsByExecution[executionId] = [];
+			}
+
+			jobsByExecution[executionId]?.push(job);
+		}
+
+		for (const [executionId, jobs] of Object.entries(jobsByExecution)) {
 			this.sendEvent({
-				kind: 'jobRejected',
-				jobHash: hash,
+				kind: 'jobsRejected',
+				jobCount: jobs.length,
 				executionId,
 			});
 		}
@@ -111,6 +129,9 @@ export class VscodeTelemetry implements Telemetry {
 	sendEvent(event: Event): void {
 		const { name, properties, measurements } =
 			this.__rawEventToTelemetryEvent(event);
+
+		console.log('sendEvent', name, properties, measurements);
+
 		this.__telemetryReporter.sendTelemetryEvent(
 			name,
 			properties,

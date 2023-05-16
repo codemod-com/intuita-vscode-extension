@@ -128,7 +128,7 @@ export class TelemetryService {
 			happenedAt: String(Date.now()),
 			codemodSetName: message.codemodSetName,
 			codemodName: message.codemodName,
-			jobCount: String(message.deletedJobHashes.size),
+			jobCount: String(message.deletedJobs.size),
 		});
 	}
 
@@ -141,7 +141,7 @@ export class TelemetryService {
 			happenedAt: String(Date.now()),
 			codemodSetName: message.codemodSetName,
 			codemodName: message.codemodName,
-			jobCount: String(message.deletedJobHashes.size),
+			jobCount: String(message.deletedJobs.size),
 		});
 	}
 
