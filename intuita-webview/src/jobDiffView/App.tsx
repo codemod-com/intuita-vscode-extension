@@ -111,12 +111,13 @@ function App() {
 	}
 
 	const { data, diffId, showHooksCTA } = view.viewProps;
+	const job = data[jobIndex];
 
 	return (
 		<main className="App">
 			<JobDiffViewContainer
 				diffId={diffId}
-				jobs={[data[jobIndex]!]}
+				jobs={job ? [job] : []}
 				stagedJobs={stagedJobs}
 				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
