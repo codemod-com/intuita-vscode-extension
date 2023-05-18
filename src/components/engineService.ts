@@ -113,6 +113,12 @@ const codemodEntryCodec = buildTypeCodec({
 	hashDigest: t.string,
 	name: t.string,
 	description: t.string,
+	engine: t.union([
+		t.literal('jscodeshift'),
+		t.literal('ts-morph'),
+		t.literal('repomod-engine'),
+		t.literal('filemod-engine'),
+	]),
 });
 
 type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
@@ -352,6 +358,7 @@ export class EngineService {
 		};
 
 		const args = buildArguments();
+
 		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
 		const childProcess = spawn(
