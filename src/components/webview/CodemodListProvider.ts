@@ -137,11 +137,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		);
 		this.__view = webviewView;
 
-		this.__view.onDidChangeVisibility(() => {
-			this.getCodemodTree('recommended');
-			this.getCodemodTree('public');
-		});
-
 		this.__attachWebviewEventListeners();
 	}
 
