@@ -164,7 +164,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			return null;
 		}
 
-		const { oldUri, newUri, kind, oldContentUri, newContentUri } = job;
+		const { oldUri, newUri, kind, newContentUri } = job;
 
 		const newFileTitle = newUri
 			? newUri.fsPath.replace(this.__rootPath, '') ?? ''
@@ -175,8 +175,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const newFileContent = newContentUri
 			? (await workspace.fs.readFile(newContentUri)).toString()
 			: null;
-		const oldFileContent = oldContentUri
-			? (await workspace.fs.readFile(oldContentUri)).toString()
+		const oldFileContent = oldUri
+			? (await workspace.fs.readFile(oldUri)).toString()
 			: null;
 
 		const jobStaged = this.__jobManager.isJobApplied(job.hash);

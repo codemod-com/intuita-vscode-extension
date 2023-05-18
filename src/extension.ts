@@ -627,56 +627,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.executeCodemods', (arg0) => {
-			const { storageUri } = context;
-
-			if (!storageUri) {
-				console.error('No storage URI, aborting the command.');
-				return;
-			}
-
-			const codec = buildTypeCodec({
-				path: t.string,
-				dependencyName: t.string,
-			});
-
-			const validation = codec.decode(arg0);
-
-			if (validation._tag === 'Left') {
-				const report = prettyReporter.report(validation);
-
-				console.error(report);
-
-				return;
-			}
-
-			const { path, dependencyName } = validation.right;
-
-			const uri = vscode.Uri.file(path);
-
-			const recipeName = dependencyNameToRecipeName[dependencyName];
-
-			if (!recipeName) {
-				return;
-			}
-
-			const executionId = buildExecutionId();
-			const happenedAt = String(Date.now());
-
-			messageBus.publish({
-				kind: MessageKind.executeCodemodSet,
-				command: {
-					storageUri,
-					uri,
-					recipeName: recipeName,
-				},
-				executionId,
-				happenedAt,
-			});
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.clearOutputFiles',
 			async () => {
@@ -1105,14 +1055,27 @@ export async function activate(context: vscode.ExtensionContext) {
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
 
-					messageBus.publish({
-						kind: MessageKind.executeCodemodSet,
-						command: {
+					let command: Command;
+
+					if (hashDigest === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
+						command = {
+							kind: 'repomod',
+							inputPath: uri,
+							storageUri,
+							repomodFilePath: hashDigest,
+						};
+					} else {
+						command = {
 							kind: 'executeCodemod',
 							storageUri,
 							codemodHash: hashDigest,
 							uri,
-						},
+						};
+					}
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command,
 						executionId,
 						happenedAt,
 					});
