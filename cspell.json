@@ -1,5 +1,7 @@
 {
-	"ignorePaths": ["**/*.d.ts"],
+	"ignorePaths": [
+		"**/*.d.ts"
+	],
 	"dictionaries": [
 		"en_US",
 		"typescript",
@@ -53,6 +55,8 @@
 		"bpfrpt",
 		"proptype",
 		"svgr",
-		"preact"
+		"preact",
+		"filemod",
+		"QKEdp-pofR9UnglrKAGDm1Oj6W0"
 	]
 }
