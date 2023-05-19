@@ -54,7 +54,7 @@ function App() {
 			(error) => <p>{error.message}</p>,
 			O.fold(
 				() => loadingContainer,
-				(node) => <TreeView response={executionPath} node={node} />,
+				(node) => <TreeView executionPath={executionPath} node={node} />,
 			),
 		),
 	);
