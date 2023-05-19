@@ -80,7 +80,6 @@ export const Header = ({
 							</h4>
 						}
 						popoverText={`Copied from ${oldFileTitle}`}
-						offsetY={0}
 					/>
 					<VSCodeButton
 						onClick={handleCopyFileName}

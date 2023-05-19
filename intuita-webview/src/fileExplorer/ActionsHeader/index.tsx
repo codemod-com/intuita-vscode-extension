@@ -79,6 +79,10 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 					</VSCodeButton>
 				}
 				popoverText={POPOVER_TEXTS.discard}
+				contentStyle={{
+					backgroundColor: 'var(--vscode-editor-background)',
+					padding: '8px',
+				}}
 			/>
 			<Popover
 				trigger={
@@ -96,10 +100,27 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}
+				contentStyle={{
+					backgroundColor: 'var(--vscode-editor-background)',
+					padding: '8px',
+				}}
 			/>
-			<VSCodeCheckbox
-				checked={hasStagedJobs}
-				onClick={handleToggleAllJobs}
+			<Popover
+				trigger={
+					<VSCodeCheckbox
+						checked={hasStagedJobs}
+						onClick={handleToggleAllJobs}
+					/>
+				}
+				popoverText={
+					!hasStagedJobs
+						? 'Select all changes'
+						: 'Unselect all changes'
+				}
+				contentStyle={{
+					backgroundColor: 'var(--vscode-editor-background)',
+					padding: '8px',
+				}}
 			/>
 		</div>
 	);
