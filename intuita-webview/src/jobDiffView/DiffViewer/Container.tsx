@@ -35,10 +35,8 @@ type HeaderProps = Readonly<{
 	viewType: 'inline' | 'side-by-side';
 	viewed?: boolean;
 	children?: React.ReactNode;
-	jobStaged: boolean;
 	onViewedChange: () => void;
 	onReportIssue(): void;
-	onToggleJob(): void;
 }>;
 
 export const Header = ({
@@ -49,8 +47,6 @@ export const Header = ({
 	oldFileTitle,
 	children,
 	viewed,
-	jobStaged,
-	onToggleJob,
 	onViewedChange,
 	onReportIssue,
 }: HeaderProps) => {
@@ -68,15 +64,6 @@ export const Header = ({
 	return (
 		<div id={id} className="flex w-full items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<Popover
-					trigger={
-						<VSCodeCheckbox
-							checked={jobStaged}
-							onClick={onToggleJob}
-						/>
-					}
-					popoverText="Select / Unselect to include or exclude the change."
-				/>
 				<div className="flex items-center flex-1">
 					{jobKindText ? (
 						<h4 className="my-0 ml-2 job-kind-text align-self-center user-select-none">

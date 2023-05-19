@@ -132,11 +132,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			commands.executeCommand('intuita.rejectCase', message.caseHash);
 		}
 
-		if (message.kind === 'webview.global.stageJobs') {
-			this.__jobManager.setAppliedJobs(message.jobHashes);
-			this.__onUpdateStagedJobsMessage();
-		}
-
 		if (message.kind === 'webview.global.openConfiguration') {
 			commands.executeCommand(
 				'workbench.action.openSettings',
@@ -286,24 +281,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFolder',
 			folderPath,
-		});
-	}
-
-	async __onUpdateStagedJobsMessage(): Promise<void> {
-		if (this.__openedCaseHash === null) {
-			return;
-		}
-
-		const viewData = await this.getViewDataForCase(this.__openedCaseHash);
-
-		if (viewData === null) {
-			return;
-		}
-
-		const { stagedJobs } = viewData;
-		this._postMessage({
-			kind: 'webview.diffView.updateStagedJobs',
-			value: stagedJobs,
 		});
 	}
 

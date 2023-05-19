@@ -69,10 +69,6 @@ function App() {
 
 				setJobIndex(index);
 			}
-
-			if (message.kind === 'webview.diffView.updateStagedJobs') {
-				setStagedJobs(message.value);
-			}
 		},
 		[view],
 	);
