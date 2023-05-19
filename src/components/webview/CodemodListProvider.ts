@@ -24,6 +24,7 @@ import { watchFileWithPattern } from '../../fileWatcher';
 import { debounce, getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import { ElementKind } from '../../elements/types';
+import { readdir } from 'node:fs/promises';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -69,6 +70,22 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				kind: 'webview.global.codemodExecutionHalted',
 			});
 		});
+	}
+
+	async getAutocompleteItems(input: string): Promise<string[]> {
+		if (!this.__rootPath) {
+			return [];
+		}
+
+		const currAddedDir =
+			input.indexOf('/') !== -1
+				? input.substring(0, input.lastIndexOf('/') + 1)
+				: '';
+		const currAddingDir = input.substr(input.lastIndexOf('/') + 1);
+		const path = this.__rootPath;
+		+'/' + currAddedDir;
+		const completions = await readdir(path);
+		return completions.filter((c) => c.indexOf(currAddingDir) === 0);
 	}
 
 	handleCodemodExecutionProgress = ({
