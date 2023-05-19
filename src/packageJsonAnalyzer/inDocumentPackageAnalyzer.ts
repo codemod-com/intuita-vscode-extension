@@ -40,10 +40,10 @@ export const handleActiveTextEditor = () => {
 		const textLine = document.lineAt(i);
 
 		const textWithoutSpace = textLine.text.replace(/\s/g, '');
-		const dependencyAndVersionExtractpattern =
+		const dependencyAndVersionExtractPattern =
 			/"(.+)":"(?:(?:\*|\^|~)\s*)?(\d+\.\d+\.\d+)/;
 		const dependencyMatcher = textWithoutSpace.match(
-			dependencyAndVersionExtractpattern,
+			dependencyAndVersionExtractPattern,
 		);
 		const dependency = dependencyMatcher?.[1];
 		const version = dependencyMatcher?.[2];
@@ -65,10 +65,10 @@ export const handleActiveTextEditor = () => {
 			Object.keys(dependencies).includes(dependency) &&
 			!checkedDependencies.length
 		) {
-			const codmodsAvaliable = packageUpgradeList.find(
+			const codemodsAvailable = packageUpgradeList.find(
 				(el) => el.packageName === dependency,
 			);
-			if (!textLine.range.intersection(selection) || codmodsAvaliable) {
+			if (!textLine.range.intersection(selection) || codemodsAvailable) {
 				continue;
 			}
 			packagesWithNoCodemod.push([

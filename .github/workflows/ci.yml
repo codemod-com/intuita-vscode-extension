@@ -3,6 +3,21 @@ on: [push]
 name: CI
 
 jobs:
+    SpellCheck:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+            - uses: actions/checkout@v2
+            - name: Install modules
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install dependencies
+              run: pnpm install
+            - name: Check spelling
+              run: pnpm spellcheck
     Build:
         runs-on: ubuntu-latest
         steps:
