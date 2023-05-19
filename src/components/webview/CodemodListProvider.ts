@@ -20,8 +20,7 @@ import {
 	CodemodElementWithChildren,
 	CodemodHash,
 } from '../../packageJsonAnalyzer/types';
-import { watchFileWithPattern } from '../../fileWatcher';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import { ElementKind } from '../../elements/types';
 
@@ -42,10 +41,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
-		const watcher = this.__watchPackageJson();
-		this.__messageBus.subscribe(MessageKind.extensionDeactivated, () => {
-			watcher?.dispose();
-		});
+
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
 			this.__engineBootstrapped = true;
 			this.getCodemodTree();
@@ -114,13 +110,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
-	}
-
-	private __watchPackageJson() {
-		return watchFileWithPattern(
-			'**/package.json',
-			debounce(this.getCodemodTree.bind(this), 50),
-		);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -316,9 +305,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		const childrenHashes = this.__codemodService.getChildren(codemodHash);
 		const children: CodemodElementWithChildren[] = [];
 		childrenHashes.forEach((child) => {
-			const codemod = this.__codemodService.getCodemodElement(
-				child,
-			);
+			const codemod = this.__codemodService.getCodemodElement(child);
 			if (!codemod) {
 				return;
 			}
