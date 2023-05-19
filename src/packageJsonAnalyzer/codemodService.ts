@@ -174,7 +174,7 @@ export class CodemodService {
 	};
 
 	public getCodemodElement = (codemodHash: CodemodHash) => {
-		this.#publicCodemods.get(codemodHash);
+		return this.#publicCodemods.get(codemodHash);
 	};
 
 	async getPackageJsonList() {
@@ -274,15 +274,10 @@ export class CodemodService {
 		return Object.values(commandList);
 	}
 
-	getUnsortedChildren(
-		recommended: boolean,
-		el: CodemodHash | null,
-	): CodemodHash[] {
+	getUnsortedChildren(el: CodemodHash | null): CodemodHash[] {
 		const rootPath = this.#rootPath ?? '';
 		if (el) {
-			const parent = recommended
-				? this.#codemodItemsMap.get(el)
-				: this.#publicCodemods.get(el);
+			const parent = this.#publicCodemods.get(el);
 			if (!parent) {
 				return [];
 			}
@@ -302,7 +297,7 @@ export class CodemodService {
 	}
 
 	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
-		const children = this.getUnsortedChildren(false, el ?? null);
+		const children = this.getUnsortedChildren(el ?? null);
 		const sortedChildren = children
 			.map((el) => this.#publicCodemods.get(el))
 			.filter(isNeitherNullNorUndefined)

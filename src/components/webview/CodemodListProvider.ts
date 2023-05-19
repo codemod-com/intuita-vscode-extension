@@ -317,7 +317,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		const children: CodemodElementWithChildren[] = [];
 		childrenHashes.forEach((child) => {
 			const codemod = this.__codemodService.getCodemodElement(
-				false,
 				child,
 			);
 			if (!codemod) {
