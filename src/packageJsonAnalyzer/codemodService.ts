@@ -26,10 +26,7 @@ export class CodemodService {
 	) {
 		this.#rootPath = rootPath;
 	}
-	updateCodemodItemPath = (
-		codemodHash: CodemodHash,
-		newPath: string,
-	) => {
+	updateCodemodItemPath = (codemodHash: CodemodHash, newPath: string) => {
 		const codemodItem = this.#publicCodemods.get(codemodHash);
 		if (!codemodItem || codemodItem.kind === 'path') {
 			return;
@@ -300,28 +297,19 @@ export class CodemodService {
 			return [el];
 		}
 		// List codemods starting from the root
-		const rootCodemodPath = Array.from(
-			recommended
-				? this.#codemodItemsMap.values()
-				: this.#publicCodemods.values(),
-		).find((el) => el.kind === 'path' && el.path === rootPath);
+		const rootCodemodPath = Array.from(this.#publicCodemods.values()).find(
+			(el) => el.kind === 'path' && el.path === rootPath,
+		);
 		if (!rootCodemodPath || rootCodemodPath.kind !== 'path') {
 			return [];
 		}
 		return [rootCodemodPath.hash];
 	}
 
-	getChildren(
-		recommended: boolean,
-		el?: CodemodHash | undefined,
-	): CodemodHash[] {
-		const children = this.getUnsortedChildren(recommended, el ?? null);
+	getChildren(el?: CodemodHash | undefined): CodemodHash[] {
+		const children = this.getUnsortedChildren(false, el ?? null);
 		const sortedChildren = children
-			.map((el) =>
-				recommended
-					? this.#codemodItemsMap.get(el)
-					: this.#publicCodemods.get(el),
-			)
+			.map((el) => this.#publicCodemods.get(el))
 			.filter(isNeitherNullNorUndefined)
 			.sort((a, b) => {
 				if (a.kind === 'path' && b.kind === 'path') {

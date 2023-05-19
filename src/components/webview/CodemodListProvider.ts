@@ -251,7 +251,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			await this.__codemodService.getDiscoveredCodemods();
 
-			const codemodList = this.__getCodemod(false);
+			const codemodList = this.__getCodemod();
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod),
 			);
@@ -311,17 +311,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 
 	private __getCodemod(
-		recommended: boolean,
 		codemodHash?: CodemodHash,
 	): CodemodElementWithChildren[] {
-		const childrenHashes = this.__codemodService.getChildren(
-			recommended,
-			codemodHash,
-		);
+		const childrenHashes = this.__codemodService.getChildren(codemodHash);
 		const children: CodemodElementWithChildren[] = [];
 		childrenHashes.forEach((child) => {
 			const codemod = this.__codemodService.getCodemodElement(
-				recommended,
+				false,
 				child,
 			);
 			if (!codemod) {
@@ -332,7 +328,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
-			const childDescendents = this.__getCodemod(recommended, child);
+			const childDescendents = this.__getCodemod(child);
 
 			children.push({ ...codemod, children: childDescendents });
 		});
