@@ -121,12 +121,14 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 						{!hasStagedJobs && (
 							<CheckboxBlank className={styles.icon} />
 						)}
-						{hasStagedAllJobs && (
-							<CheckboxChecked className={styles.icon} />
-						)}
-						{hasStagedJobs && !hasStagedAllJobs && (
-							<CheckboxIndeterminate className={styles.icon} />
-						)}
+						{hasStagedJobs &&
+							(hasStagedAllJobs ? (
+								<CheckboxChecked className={styles.icon} />
+							) : (
+								<CheckboxIndeterminate
+									className={styles.icon}
+								/>
+							))}
 					</VSCodeButton>
 				}
 				popoverText={
