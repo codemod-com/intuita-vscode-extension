@@ -11,16 +11,17 @@ const getAutocompleteValue = (
 	index: number = 0,
 ) => {
 	const autocompleteItem = autocompleteItems[index];
-
+	
 	if (autocompleteItem === undefined) {
 		return null;
 	}
-
+	
 	const currAddedDir =
-		currentValue.indexOf('/') !== -1
-			? currentValue.substring(0, currentValue.lastIndexOf('/') + 1)
+	currentValue.indexOf('/') !== -1
+	? currentValue.substring(0, currentValue.lastIndexOf('/') + 1)
 			: '';
-
+			
+	console.log(autocompleteItems, autocompleteItem, currAddedDir, 'test');
 	return `${currAddedDir}${autocompleteItem}`;
 };
 
@@ -42,8 +43,6 @@ export const DirectorySelector = ({
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
 
-	console.log(autocompleteIndex, autocompleteItems, 'test');
-	// currently always 0, in future switch items with Tab;
 	const autocompleteContent = getAutocompleteValue(
 		value,
 		autocompleteItems,
@@ -63,17 +62,20 @@ export const DirectorySelector = ({
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-		if(e.key === 'Tab') {
-			e.preventDefault();
-			const nextAutocompleteIndex = (autocompleteIndex + 1) % autocompleteItems.length;
-			setValue((prevValue) =>  getAutocompleteValue(prevValue, autocompleteItems, nextAutocompleteIndex) ?? prevValue);
-			setAutocompleteIndex(nextAutocompleteIndex);
+		if(e.key !== 'Tab') {
+			return;
 		}
+
+		const nextAutocompleteIndex = (autocompleteIndex + 1) % autocompleteItems.length;
+
+		e.preventDefault();
+		setValue((prevValue) =>  getAutocompleteValue(prevValue, autocompleteItems, autocompleteIndex) ?? prevValue);
+		setAutocompleteIndex(nextAutocompleteIndex);
 	}
 
 	return (
 		<div className="flex flex-row justify-between pb-10">
-			<div className="flex flex-col w-full">
+			<div className="flex flex-col w-full overflow-hidden input-background relative">
 				{autocompleteContent ? (
 					<span className="autocomplete">{autocompleteContent}</span>
 				) : null}
@@ -82,8 +84,10 @@ export const DirectorySelector = ({
 					value={value}
 					onInput={handleChange}
 					onKeyDown={handleKeyDown}
+					ref={() => {
+						document.querySelector('vscode-text-field')?.shadowRoot?.querySelector('.root')?.setAttribute('style', 'background: none')
+					}}
 				/>
-
 				{showError && (
 					<span className="text-error">{showError.value}</span>
 				)}
