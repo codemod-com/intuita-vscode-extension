@@ -48,7 +48,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
 			this.__engineBootstrapped = true;
-			this.getCodemodTree('public');
+			this.getCodemodTree();
 		});
 		this.__messageBus.subscribe(
 			MessageKind.showProgress,
@@ -207,19 +207,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			const { codemodHash, newPath } = message.value;
 			const codemodItem =
 				this.__codemodService.getCodemodItem(codemodHash);
-			const isRecommended =
-				this.__codemodService.isRecommended(codemodHash);
+
 			if (!codemodItem) {
 				return;
 			}
 			const path = `${this.__rootPath}${newPath}`;
 			try {
 				await workspace.fs.stat(Uri.file(path));
-				this.__codemodService.updateCodemodItemPath(
-					'public',
-					codemodHash,
-					path,
-				);
+				this.__codemodService.updateCodemodItemPath(codemodHash, path);
 				this.__postMessage({
 					kind: 'webview.codemodList.updatePathResponse',
 					data: E.right('Updated path'),
@@ -227,7 +222,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showInformationMessage(
 					`Updated path for codemod ${codemodItem.label} `,
 				);
-				this.getCodemodTree(isRecommended ? 'recommended' : 'public');
+				this.getCodemodTree();
 			} catch (err) {
 				// for better error message , we reconstruct the error
 				const reConstructedError = new Error(
@@ -244,26 +239,19 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.getCodemodTree('public');
+			this.getCodemodTree();
 		}
 	};
 
-	public async getCodemodTree(type: 'recommended' | 'public') {
-		const recommended = type === 'recommended';
+	public async getCodemodTree() {
 		try {
-			if (recommended) {
-				await this.__codemodService.getCodemods();
-			}
-
-			if (!recommended && !this.__engineBootstrapped) {
+			if (!this.__engineBootstrapped) {
 				return;
 			}
 
-			if (!recommended) {
-				await this.__codemodService.getDiscoveredCodemods();
-			}
+			await this.__codemodService.getDiscoveredCodemods();
 
-			const codemodList = this.__getCodemod(recommended);
+			const codemodList = this.__getCodemod(false);
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod),
 			);

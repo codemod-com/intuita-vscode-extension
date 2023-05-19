@@ -27,7 +27,6 @@ export class CodemodService {
 		this.#rootPath = rootPath;
 	}
 	updateCodemodItemPath = (
-		type: 'public',
 		codemodHash: CodemodHash,
 		newPath: string,
 	) => {
