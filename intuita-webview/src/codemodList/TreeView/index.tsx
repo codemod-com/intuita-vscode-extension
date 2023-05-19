@@ -17,11 +17,20 @@ import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import {debounce} from '../../../../src/utilities';
 
 type Props = Readonly<{
 	node: CodemodTreeNode<string>;
 	response: E.Either<Error, string | null>;
+	autocompleteItems: string[];
 }>;
+
+const handleCodemodPathChange = debounce((codemodPath: string) => {
+	vscode.postMessage({
+		kind: 'webview.codemodList.codemodPathChange', 
+		codemodPath
+	})
+}, 300);
 
 export const containsCodemodHashDigest = (
 	node: CodemodTreeNode<string>,
@@ -125,7 +134,7 @@ const initializer = ({ node, focusedId }: InitializerArgument): State => {
 	};
 };
 
-const TreeView = ({ node, response }: Props) => {
+const TreeView = ({ node, response, autocompleteItems }: Props) => {
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -331,6 +340,7 @@ const TreeView = ({ node, response }: Props) => {
 		});
 	};
 
+
 	return (
 		<div>
 			{editExecutionPath && (
@@ -352,6 +362,7 @@ const TreeView = ({ node, response }: Props) => {
 					<DirectorySelector
 						defaultValue={editExecutionPath.extraData ?? ''}
 						onEditDone={onEditDone}
+						onChange={handleCodemodPathChange}
 						error={
 							response._tag === 'Left'
 								? {
@@ -360,6 +371,7 @@ const TreeView = ({ node, response }: Props) => {
 								  }
 								: null
 						}
+						autocompleteItems={autocompleteItems}
 					/>
 				</Popup>
 			)}

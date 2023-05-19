@@ -7,15 +7,21 @@ import {
 type Props = {
 	defaultValue: string;
 	error: { value: string; timestamp: number } | null;
+	autocompleteItems: string[];
 	onEditDone: (value: string) => void;
+	onChange: (value: string) => void;
 };
 export const DirectorySelector = ({
 	defaultValue,
 	onEditDone,
+	onChange, 
 	error,
+	autocompleteItems,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
+
+	const firstItem = autocompleteItems[0] ?? null;
 
 	useEffect(() => {
 		setShowError(error);
@@ -25,11 +31,13 @@ export const DirectorySelector = ({
 		setShowError(null);
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
+		onChange(value);
 	};
 
 	return (
 		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full">
+				<span className="autocomplete">{firstItem}</span>
 				<VSCodeTextField
 					className="flex-1"
 					value={value}

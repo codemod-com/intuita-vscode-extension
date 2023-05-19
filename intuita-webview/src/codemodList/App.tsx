@@ -16,6 +16,8 @@ function App() {
 		E.Either<Error, string | null>
 	>(E.right(null));
 
+	const [autocompleteItems, setAutocompleteItems] = useState<string[]>([]);
+
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
@@ -25,6 +27,9 @@ function App() {
 			}
 			if (message.kind === 'webview.codemodList.updatePathResponse') {
 				setPathEditResponse(message.data);
+			}
+			if(message.kind === 'webview.codemodList.setAutocompleteItems') {
+				setAutocompleteItems(message.autocompleteItems);
 			}
 		};
 
@@ -50,6 +55,7 @@ function App() {
 							<TreeView
 								response={pathEditResponse}
 								node={publicCodemods.right}
+								autocompleteItems={autocompleteItems}
 							/>
 						) : (
 							<LoadingContainer>
