@@ -1,6 +1,5 @@
 import { capitalize, isNeitherNullNorUndefined } from '../utilities';
 import { CodemodHash, CodemodElement } from './types';
-import { commandList } from './constants';
 import { buildCodemodElementHash } from './utils';
 import { EngineService } from '../components/engineService';
 
@@ -157,10 +156,6 @@ export class CodemodService {
 	public getCodemodElement = (codemodHash: CodemodHash) => {
 		return this.#publicCodemods.get(codemodHash);
 	};
-
-	public getListOfCodemodCommands() {
-		return Object.values(commandList);
-	}
 
 	getUnsortedChildren(el: CodemodHash | null): CodemodHash[] {
 		const rootPath = this.#rootPath ?? '';

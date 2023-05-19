@@ -137,23 +137,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (
-				this.__codemodService
-					.getListOfCodemodCommands()
-					.includes(message.value.command)
-			) {
-				const args = message.value.arguments;
-				if (!args || !args[0]) {
-					throw new Error('Expected args[0] to be a path');
-				}
-				const path = args[0];
-				const parsedPath = Uri.file(path);
-				if (parsedPath) {
-					commands.executeCommand(message.value.command, parsedPath);
-				}
-
-				return;
-			}
 			if (message.value.command === 'openLink') {
 				commands.executeCommand(
 					'vscode.open',
