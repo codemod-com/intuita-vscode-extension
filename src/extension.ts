@@ -18,7 +18,6 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import { InformationMessageService } from './components/informationMessageService';
 import {
 	branchNameFromStr,
 	buildTypeCodec,
@@ -1356,8 +1355,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// const dependencyService = new DependencyService(messageBus);
 
 	// dependencyService.showInformationMessagesAboutUpgrades();
-
-	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 
 	{
 		const codec = buildTypeCodec({ version: t.string });
