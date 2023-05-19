@@ -3,6 +3,7 @@ import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 
@@ -64,6 +65,8 @@ export type CodemodTreeNode<T = undefined> = {
 	children: CodemodTreeNode<T>[];
 	extraData?: T;
 };
+
+export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode<string>>>;
 
 export type CaseTreeNode = {
 	id: CaseHash;
@@ -311,6 +314,6 @@ export type View =
 	| Readonly<{
 			viewId: 'codemods';
 			viewProps: {
-				codemods: E.Either<Error, CodemodTreeNode<string> | null>;
+				codemods: E.Either<Error, CodemodTreeNode<string>>;
 			};
 	  }>;
