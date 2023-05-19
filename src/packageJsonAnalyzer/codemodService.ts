@@ -169,10 +169,6 @@ export class CodemodService {
 		return this.#publicCodemods.get(codemodHash);
 	};
 
-	public isRecommended = (codemodHash: CodemodHash) => {
-		return this.#codemodItemsMap.has(codemodHash);
-	};
-
 	public getCodemodElement = (codemodHash: CodemodHash) => {
 		return this.#publicCodemods.get(codemodHash);
 	};
