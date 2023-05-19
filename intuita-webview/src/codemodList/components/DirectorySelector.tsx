@@ -5,6 +5,12 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import { KeyboardEvent } from 'react';
 
+const removeInputBackground = () => {
+	document
+		.querySelector('vscode-text-field#directory-selector')
+		?.shadowRoot?.querySelector('.root')
+		?.setAttribute('style', 'background: none');
+};
 
 type Props = {
 	defaultValue: string;
@@ -23,18 +29,19 @@ export const DirectorySelector = ({
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
+	const [appliedAutocomplete, setAppliedAutocomplete] = useState(false);
+	const validAutocompleteItems = autocompleteItems.filter(
+		(item) => appliedAutocomplete || (value && item.startsWith(value)),
+	);
 
-	const validAutocompleteItems = autocompleteItems.filter(item => item.startsWith(value));
-	console.log(value, validAutocompleteItems, autocompleteItems, autocompleteIndex,  'test');
+	removeInputBackground();
 
 	useEffect(() => {
-		console.log('HERE');
 		setAutocompleteIndex(0);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [validAutocompleteItems.join()])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [validAutocompleteItems.join()]);
 
 	const autocompleteContent = validAutocompleteItems[autocompleteIndex];
-	console.log(autocompleteContent, 'autocompleteContent');
 	useEffect(() => {
 		setShowError(error);
 	}, [error]);
@@ -44,34 +51,38 @@ export const DirectorySelector = ({
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
 		onChange(value);
+		setAppliedAutocomplete(false);
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-		if(e.key !== 'Tab') {
+		if (e.key !== 'Tab') {
 			return;
 		}
 
-		const nextAutocompleteIndex = (autocompleteIndex + 1) % autocompleteItems.length;
-		console.log(nextAutocompleteIndex)
-		setValue((prevValue) =>  autocompleteItems[autocompleteIndex] ?? prevValue);
+		const nextAutocompleteIndex =
+			(autocompleteIndex + 1) % validAutocompleteItems.length;
+
+		setValue(
+			(prevValue) =>
+				validAutocompleteItems[autocompleteIndex] ?? prevValue,
+		);
+		setAppliedAutocomplete(true);
 		setAutocompleteIndex(nextAutocompleteIndex);
 		e.preventDefault();
-	}
+	};
 
 	return (
 		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full overflow-hidden input-background relative">
-				{autocompleteContent ? (
+				{autocompleteContent && !appliedAutocomplete ? (
 					<span className="autocomplete">{autocompleteContent}</span>
 				) : null}
 				<VSCodeTextField
+					id="directory-selector"
 					className="flex-1"
 					value={value}
 					onInput={handleChange}
 					onKeyDown={handleKeyDown}
-					ref={() => {
-						document.querySelector('vscode-text-field')?.shadowRoot?.querySelector('.root')?.setAttribute('style', 'background: none')
-					}}
 				/>
 				{showError && (
 					<span className="text-error">{showError.value}</span>

@@ -107,8 +107,8 @@
 	line-height: 26px;
 	height: 26px;
 	width: 100%;
-  text-overflow: ellipsis;
-  box-sizing: border-box;
+	text-overflow: ellipsis;
+	box-sizing: border-box;
 }
 
 .relative {
