@@ -314,6 +314,6 @@ export type View =
 	| Readonly<{
 			viewId: 'codemods';
 			viewProps: {
-				codemods: E.Either<Error, CodemodTreeNode<string>>;
+				codemodTree: CodemodTree;
 			};
 	  }>;

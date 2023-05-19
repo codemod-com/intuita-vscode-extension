@@ -5,7 +5,9 @@ import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import './index.css';
+import { pipe } from 'fp-ts/lib/function';
 
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
 
@@ -52,7 +54,18 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemods } = view.viewProps;
+	const { codemodTree } = view.viewProps;
+
+	const component = pipe(
+		codemodTree,
+		E.fold(
+			(error) => <p>{error.message}</p>,
+			O.fold(
+				() => loadingContainer,
+				(node) => <TreeView response={pathEditResponse} node={node} />,
+			),
+		),
+	);
 
 	return (
 		<main className="App">
@@ -61,18 +74,7 @@ function App() {
 				headerTitle="Public Codemods"
 				className="content-border-top h-full"
 			>
-				<div>
-					{E.isRight(codemods) &&
-						(codemods.right !== null ? (
-							<TreeView
-								response={pathEditResponse}
-								node={codemods.right}
-							/>
-						) : (
-							loadingContainer
-						))}
-					{E.isLeft(codemods) && <p>{codemods.left.message}</p>}
-				</div>
+				<div>{component}</div>
 			</Container>
 		</main>
 	);

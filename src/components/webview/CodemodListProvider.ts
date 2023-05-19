@@ -258,7 +258,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.setView({
 			viewId: 'codemods',
 			viewProps: {
-				codemods,
+				codemodTree: codemods,
 			},
 		});
 	}
