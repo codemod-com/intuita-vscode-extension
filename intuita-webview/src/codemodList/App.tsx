@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import type { WebviewMessage, CodemodTreeNode, View } from '../shared/types';
+import type { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
@@ -9,12 +9,15 @@ import './index.css';
 
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
 
+const loadingContainer = (
+	<LoadingContainer>
+		<VSCodeProgressRing className="progressBar" />
+		<span aria-label="loading">Loading ...</span>
+	</LoadingContainer>
+);
+
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
-
-	const [publicCodemods, setPublicCodemods] = useState<
-		E.Either<Error, CodemodTreeNode<string> | null>
-	>(E.right(null));
 
 	const [pathEditResponse, setPathEditResponse] = useState<
 		E.Either<Error, string | null>
@@ -32,7 +35,7 @@ function App() {
 			}
 
 			if (message.kind === 'webview.codemods.setPublicCodemods') {
-				setPublicCodemods(message.data);
+				// TODO remove the clause
 			}
 			if (message.kind === 'webview.codemodList.updatePathResponse') {
 				setPathEditResponse(message.data);
@@ -48,6 +51,12 @@ function App() {
 		};
 	}, []);
 
+	if (view === null) {
+		return <main className="App">{loadingContainer}</main>;
+	}
+
+	const { codemods } = view.viewProps;
+
 	return (
 		<main className="App">
 			<Container
@@ -56,22 +65,16 @@ function App() {
 				className="content-border-top h-full"
 			>
 				<div>
-					{E.isRight(publicCodemods) &&
-						(publicCodemods.right !== null ? (
+					{E.isRight(codemods) &&
+						(codemods.right !== null ? (
 							<TreeView
 								response={pathEditResponse}
-								node={publicCodemods.right}
+								node={codemods.right}
 							/>
 						) : (
-							<LoadingContainer>
-								<VSCodeProgressRing className="progressBar" />
-								<span aria-label="loading">Loading ...</span>
-							</LoadingContainer>
+							loadingContainer
 						))}
-					{/* Error thrown while fetching codemods */}
-					{E.isLeft(publicCodemods) && (
-						<p>{publicCodemods.left.message}</p>
-					)}
+					{E.isLeft(codemods) && <p>{codemods.left.message}</p>}
 				</div>
 			</Container>
 		</main>
