@@ -146,7 +146,8 @@ const TreeView = ({
 
 			return (
 				<VSCodeCheckbox
-					onClick={() => {
+					onClick={(event) => {
+						event.stopPropagation();
 						onToggleJob((node as FileTreeNode).jobHash);
 					}}
 					checked={checked}

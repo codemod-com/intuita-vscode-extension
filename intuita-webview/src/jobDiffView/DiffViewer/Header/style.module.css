@@ -36,3 +36,10 @@
 	align-items: center;
 	gap: 8px;
 }
+
+.buttonGroup h4 {
+	user-select: none;
+	font-size: var(--vscode-editor-font-size);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
