@@ -6,9 +6,7 @@ export const buildCodemodElementHash = (
 	element: DistributiveOmit<CodemodElement, 'hash'>,
 ) => {
 	if (element.kind === 'codemodItem') {
-		return buildHash(
-			`${element.label}${element.pathToExecute}`,
-		) as CodemodHash;
+		return buildHash(element.label) as CodemodHash;
 	}
 
 	return buildHash(

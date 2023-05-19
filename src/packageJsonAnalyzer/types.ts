@@ -12,7 +12,6 @@ export type CodemodItem = Readonly<{
 	hash: CodemodHash;
 	kind: 'codemodItem';
 	label: string;
-	pathToExecute: string;
 	description: string;
 }>;
 

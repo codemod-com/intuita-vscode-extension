@@ -14,17 +14,18 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import { DirectorySelector } from '../components/DirectorySelector';
 import Popup from 'reactjs-popup';
-import E from 'fp-ts/Either';
+import * as E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { pipe } from 'fp-ts/lib/function';
 
 type Props = Readonly<{
-	node: CodemodTreeNode<string>;
-	response: E.Either<Error, string | null>;
+	node: CodemodTreeNode;
+	executionPath: E.Either<Error, string>;
 }>;
 
 export const containsCodemodHashDigest = (
-	node: CodemodTreeNode<string>,
+	node: CodemodTreeNode,
 	codemodHashDigest: CodemodHash,
 	set: Set<CodemodHash>,
 ): boolean => {
@@ -64,13 +65,13 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 };
 
 type State = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
 }>;
 
 type InitializerArgument = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	focusedId: CodemodHash | null;
 }>;
 
@@ -125,7 +126,7 @@ const initializer = ({ node, focusedId }: InitializerArgument): State => {
 	};
 };
 
-const TreeView = ({ node, response }: Props) => {
+const TreeView = ({ node, executionPath }: Props) => {
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -134,9 +135,8 @@ const TreeView = ({ node, response }: Props) => {
 		},
 		initializer,
 	);
+	const [executionPathModalOpened, setExecutionPathOpened] = useState(false);
 
-	const [editExecutionPath, setEditExecutionPath] =
-		useState<CodemodTreeNode<string> | null>(null);
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
 	>([]);
@@ -163,12 +163,6 @@ const TreeView = ({ node, response }: Props) => {
 	const [progress, { progressBar, stopProgress }] = useProgressBar(onHalt);
 
 	useEffect(() => {
-		if (response._tag === 'Right') {
-			setEditExecutionPath(null);
-		}
-	}, [response]);
-
-	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
@@ -187,7 +181,7 @@ const TreeView = ({ node, response }: Props) => {
 		};
 	}, [node]);
 
-	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
+	const handleClick = useCallback((node: CodemodTreeNode) => {
 		if (!node.command) {
 			return;
 		}
@@ -216,18 +210,11 @@ const TreeView = ({ node, response }: Props) => {
 		[executionStack, progress],
 	);
 
-	const handleEditExecutionPath = useCallback(
-		(node: CodemodTreeNode<string>) => {
-			setEditExecutionPath(node);
-		},
-		[],
-	);
-
 	const renderItem = ({
 		node,
 		depth,
 	}: {
-		node: CodemodTreeNode<string>;
+		node: CodemodTreeNode;
 		depth: number;
 	}) => {
 		const opened = state.openedIds.has(node.id);
@@ -265,7 +252,7 @@ const TreeView = ({ node, response }: Props) => {
 				appearance="icon"
 				onClick={(e) => {
 					e.stopPropagation();
-					handleEditExecutionPath(node);
+					setExecutionPathOpened(true);
 				}}
 				title="Edit Execution Path"
 			>
@@ -298,7 +285,7 @@ const TreeView = ({ node, response }: Props) => {
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				description={node.description ?? ''}
-				hoverDescription={`Target: ${node.extraData}`}
+				hoverDescription={''}
 				label={node.label ?? ''}
 				icon={icon}
 				depth={depth}
@@ -319,47 +306,53 @@ const TreeView = ({ node, response }: Props) => {
 	};
 
 	const onEditDone = (value: string) => {
-		if (!editExecutionPath) {
-			return;
-		}
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
 				newPath: value,
-				codemodHash: editExecutionPath.id,
 			},
 		});
 	};
 
+	const currentExecutionPath = pipe(
+		executionPath,
+		E.fold(
+			(error) => error.message,
+			(p) => p,
+		),
+	);
+
+	const error = pipe(
+		executionPath,
+		E.fold(
+			(e) => ({
+				value: e.message,
+				timestamp: Date.now(),
+			}),
+			() => null,
+		),
+	);
+
 	return (
 		<div>
-			{editExecutionPath && (
+			{executionPathModalOpened && (
 				<Popup
 					modal
-					open={!!editExecutionPath}
+					open={executionPathModalOpened}
 					onClose={() => {
-						setEditExecutionPath(null);
+						setExecutionPathOpened(false);
 					}}
 					closeOnEscape
 				>
 					<span
 						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
-						onClick={() => setEditExecutionPath(null)}
+						onClick={() => setExecutionPathOpened(false)}
 					></span>
-					<p className="bold">Codemod: {editExecutionPath.label}</p>
-
-					<p> Current Path: {editExecutionPath.extraData}</p>
+					<p>Current Path: {currentExecutionPath}</p>
 					<DirectorySelector
-						defaultValue={editExecutionPath.extraData ?? ''}
+						defaultValue={currentExecutionPath}
 						onEditDone={onEditDone}
-						error={
-							response._tag === 'Left'
-								? {
-										value: response.left.message,
-										timestamp: Date.now(),
-								  }
-								: null
-						}
+						error={error}
 					/>
 				</Popup>
 			)}

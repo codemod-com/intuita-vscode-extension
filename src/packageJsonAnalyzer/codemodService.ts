@@ -13,18 +13,6 @@ export class CodemodService {
 	) {
 		this.#rootPath = rootPath;
 	}
-	updateCodemodItemPath = (codemodHash: CodemodHash, newPath: string) => {
-		const codemodItem = this.#publicCodemods.get(codemodHash);
-		if (!codemodItem || codemodItem.kind === 'path') {
-			return;
-		}
-		const newCodemodItem = {
-			...codemodItem,
-			pathToExecute: newPath,
-		};
-
-		this.#publicCodemods.set(codemodHash, newCodemodItem);
-	};
 
 	__makePathItem(path: string, label: string) {
 		const rootPath = this.#rootPath ?? '';

@@ -50,7 +50,7 @@ export type RunCodemodsCommand = Readonly<{
 	value: CodemodHash;
 }>;
 
-export type CodemodTreeNode<T = undefined> = {
+export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
 	label: string;
@@ -62,11 +62,10 @@ export type CodemodTreeNode<T = undefined> = {
 				arguments?: ElementHash[];
 		  };
 	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode<T>[];
-	extraData?: T;
+	children: CodemodTreeNode[];
 };
 
-export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode<string>>>;
+export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode>>;
 
 export type CaseTreeNode = {
 	id: CaseHash;
@@ -144,10 +143,6 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createPR.setPullRequestSubmitting';
 			value: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.updatePathResponse';
-			data: E.Either<Error, string | null>;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
@@ -252,7 +247,6 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
-				codemodHash: CodemodHash;
 				newPath: string;
 			};
 	  }>
@@ -324,5 +318,6 @@ export type View =
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
+				executionPath: E.Either<Error, string>;
 			};
 	  }>;

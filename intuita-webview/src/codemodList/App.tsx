@@ -21,10 +21,6 @@ const loadingContainer = (
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
 
-	const [pathEditResponse, setPathEditResponse] = useState<
-		E.Either<Error, string | null>
-	>(E.right(null));
-
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
@@ -34,10 +30,6 @@ function App() {
 				message.value.viewId === 'codemods'
 			) {
 				setView(message.value);
-			}
-
-			if (message.kind === 'webview.codemodList.updatePathResponse') {
-				setPathEditResponse(message.data);
 			}
 		};
 
@@ -54,7 +46,7 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree } = view.viewProps;
+	const { codemodTree, executionPath } = view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -62,7 +54,9 @@ function App() {
 			(error) => <p>{error.message}</p>,
 			O.fold(
 				() => loadingContainer,
-				(node) => <TreeView response={pathEditResponse} node={node} />,
+				(node) => (
+					<TreeView executionPath={executionPath} node={node} />
+				),
 			),
 		),
 	);

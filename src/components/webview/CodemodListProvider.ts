@@ -12,7 +12,6 @@ import { MessageBus, MessageKind } from '../messageBus';
 import {
 	CodemodTree,
 	CodemodTreeNode,
-	View,
 	WebviewMessage,
 	WebviewResponse,
 } from './webviewEvents';
@@ -34,6 +33,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 
+	__codemodTree: CodemodTree = E.right(O.none);
+	__executionPath: E.Either<Error, string> = E.right('/');
+
 	readonly __eventEmitter = new EventEmitter<void>();
 
 	constructor(
@@ -42,6 +44,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
+		this.__executionPath = E.right(__rootPath ?? '/');
+
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
@@ -115,10 +119,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__view?.webview.postMessage(message);
 	}
 
-	public setView(data: View) {
+	public setView() {
 		this.__postMessage({
 			kind: 'webview.global.setView',
-			value: data,
+			value: {
+				viewId: 'codemods',
+				viewProps: {
+					codemodTree: this.__codemodTree,
+					executionPath: this.__executionPath,
+				},
+			},
 		});
 	}
 
@@ -174,9 +184,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			if (!codemod || codemod.kind === 'path') {
 				return;
 			}
-			const { pathToExecute, hash } = codemod;
 
-			const uri = Uri.file(pathToExecute);
+			const { hash } = codemod;
+
+			if (E.isLeft(this.__executionPath)) {
+				return;
+			}
+
+			const uri = Uri.file(this.__executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -186,38 +201,27 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const { codemodHash, newPath } = message.value;
-			const codemodItem =
-				this.__codemodService.getCodemodItem(codemodHash);
+			const { newPath } = message.value;
 
-			if (!codemodItem) {
-				return;
-			}
-			const path = `${this.__rootPath}${newPath}`;
+			// const path = `${this.__rootPath}${newPath}`;
+
 			try {
-				await workspace.fs.stat(Uri.file(path));
-				this.__codemodService.updateCodemodItemPath(codemodHash, path);
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.right('Updated path'),
-				});
+				await workspace.fs.stat(Uri.file(newPath));
+
+				this.__executionPath = E.right(newPath);
+
 				window.showInformationMessage(
-					`Updated path for codemod ${codemodItem.label} `,
+					'Updated the codemod execution path',
 				);
-				this.getCodemodTree();
-			} catch (err) {
-				// for better error message , we reconstruct the error
-				const reConstructedError = new Error(
-					'Path specified does not exist',
+			} catch (e) {
+				const error = new Error(
+					'The specified codemod execution path does not exist',
 				);
-				const stringified = JSON.stringify(reConstructedError, [
-					'message',
-				]);
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.left(JSON.parse(stringified)),
-				});
+
+				this.__executionPath = E.left(error);
 			}
+
+			this.setView();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -254,26 +258,20 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	// TODO change to private & separate calculation from sending
 	public async getCodemodTree() {
-		const codemods = await this.__getCodemodTree();
-		this.setView({
-			viewId: 'codemods',
-			viewProps: {
-				codemodTree: codemods,
-			},
-		});
+		this.__codemodTree = await this.__getCodemodTree();
+
+		this.setView();
 	}
 
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
-	): CodemodTreeNode<string> {
-		const rootPath = this.__rootPath ?? '';
+	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
-			const { label, kind, pathToExecute, description, hash } =
-				codemodElement;
+			const { label, kind, description, hash } = codemodElement;
+
 			return {
 				kind,
 				label,
-				extraData: pathToExecute.replace(rootPath, '') || '/',
 				description: description,
 				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,
