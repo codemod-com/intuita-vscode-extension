@@ -11,54 +11,65 @@ import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 import LoadingProgress from './Components/LoadingProgress';
 
+type MainViews = Extract<View, { viewId: 'jobDiffView' }>;
+
 function App() {
-	const [view, setView] = useState<View | null>(null);
-	const [scrollIntoHash, setScrollIntoHash] = useState<JobHash | null>(null);
+	const [view, setView] = useState<MainViews | null>(null);
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
+	const [jobIndex, setJobIndex] = useState<number>(0);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
 			const { data: message } = event;
 			if (message.kind === 'webview.global.setView') {
-				setView(message.value);
+				if (message.value.viewId === 'jobDiffView') {
+					message.value.viewProps.data.sort((a, b) => {
+						if (!a.newFileTitle || !b.newFileTitle) {
+							return 0;
+						}
+						return a.newFileTitle.localeCompare(b.newFileTitle);
+					});
+					setView(message.value);
+				}
 			}
 
 			if (view === null) {
 				return;
 			}
 
-			if (message.kind === 'webview.diffView.focusFile') {
-				setScrollIntoHash(message.jobHash);
+			if (message.kind === 'webview.global.focusView') {
+				const diffViewContainer =
+					document.getElementById('diffViewContainer');
+
+				diffViewContainer?.focus();
 			}
 
-			if (
-				message.kind === 'webview.diffView.focusFolder' &&
-				view.viewId === 'jobDiffView' &&
-				view.viewProps.diffId
-			) {
+			if (message.kind === 'webview.diffView.focusFile') {
+				const index = view.viewProps.data.findIndex(
+					(job) => job.jobHash === message.jobHash,
+				);
+
+				if (index === -1) {
+					return;
+				}
+
+				setJobIndex(index);
+			}
+
+			if (message.kind === 'webview.diffView.focusFolder') {
 				const folderPathExcludingRootPath = message.folderPath.slice(
 					message.folderPath.indexOf('/'),
 				);
+				const index = view.viewProps.data.findIndex((job) =>
+					job.newFileTitle?.includes(folderPathExcludingRootPath),
+				);
 
-				const element =
-					document.getElementsByClassName(
-						'ReactVirtualized__Grid__innerScrollContainer',
-					)[0] ?? null;
-
-				if (element === null) {
+				if (index === -1) {
 					return;
 				}
 
-				const fileInsideSelectedFolder =
-					Array.from(element.children).find((child) =>
-						child.id.includes(folderPathExcludingRootPath),
-					) ?? null;
-
-				if (fileInsideSelectedFolder === null) {
-					return;
-				}
-
-				fileInsideSelectedFolder.scrollIntoView();
+				setJobIndex(index);
 			}
+
 			if (message.kind === 'webview.diffView.updateStagedJobs') {
 				setStagedJobs(message.value);
 			}
@@ -100,13 +111,13 @@ function App() {
 	}
 
 	const { data, diffId, showHooksCTA } = view.viewProps;
+	const job = data[jobIndex];
 
 	return (
 		<main className="App">
 			<JobDiffViewContainer
-				scrollIntoHash={scrollIntoHash}
 				diffId={diffId}
-				jobs={data}
+				jobs={job ? [job] : []}
 				stagedJobs={stagedJobs}
 				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}

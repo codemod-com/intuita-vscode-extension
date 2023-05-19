@@ -1,10 +1,7 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo } from 'react';
 import Tree from '../../shared/Tree';
-import {
-	Command,
-	TreeNode,
-} from '../../../../src/components/webview/webviewEvents';
+import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
@@ -19,6 +16,8 @@ type Props = {
 	nodeIds: string[];
 	fileNodes: TreeNode[];
 	searchQuery: string;
+	focusedNodeId: string | null;
+	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
 };
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
@@ -57,9 +56,15 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
-const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
+const TreeView = ({
+	node,
+	nodeIds,
+	fileNodes,
+	searchQuery,
+	focusedNodeId,
+	setFocusedNodeId,
+}: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const fileNodeIds = useMemo(
 		() => new Set(fileNodes.map((node) => node.id)),
 		[fileNodes],
@@ -80,10 +85,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		window.scrollBy(0, 20); // height of 1 tree item is slightly bigger than 20px
 	});
 
-	const handleActionButtonClick = (action: Command) => {
-		vscode.postMessage({ kind: 'webview.command', value: action });
-	};
-
 	const renderItem = ({
 		node,
 		depth,
@@ -103,20 +104,6 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
 
-		const actionButtons = (node.actions ?? []).map((action) => (
-			// eslint-disable-next-line jsx-a11y/anchor-is-valid
-			<a
-				title={action.title}
-				role="button"
-				onClick={(e) => {
-					e.stopPropagation();
-					handleActionButtonClick(action);
-				}}
-			>
-				{action.title}
-			</a>
-		));
-
 		return (
 			<TreeItem
 				hasChildren={(node.children?.length ?? 0) !== 0}
@@ -131,7 +118,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 				onClick={() => {
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={actionButtons}
+				actionButtons={[]}
 				onPressChevron={() => {
 					setIsOpen(!open);
 				}}
@@ -150,7 +137,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		return () => {
 			window.removeEventListener('blur', handler);
 		};
-	}, []);
+	}, [setFocusedNodeId]);
 
 	useEffect(() => {
 		if (focusedNodeId === null) {

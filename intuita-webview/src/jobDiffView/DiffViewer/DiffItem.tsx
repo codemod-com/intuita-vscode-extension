@@ -5,7 +5,9 @@ import { JobHash } from '../../shared/types';
 import { Diff, DiffComponent } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { reportIssue } from '../util';
-import { forwardRef, memo, useCallback } from 'react';
+import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
+import './DiffItem.css';
+import { vscode } from '../../shared/utilities/vscode';
 
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
@@ -93,12 +95,24 @@ export const JobDiffView = memo(
 							ref(r ?? undefined);
 						}
 					}}
-					className="px-5 pb-2-5 "
+					className="px-5 pb-2-5 diff-view-container"
+					id="diffViewContainer"
+					tabIndex={0}
+					onKeyDown={(event: KeyboardEvent) => {
+						if (event.key === 'ArrowLeft') {
+							event.preventDefault();
+
+							vscode.postMessage({
+								kind: 'webview.global.focusView',
+								webviewName: 'changeExplorer',
+							});
+						}
+					}}
 				>
 					<Collapsable
 						defaultExpanded={expanded}
 						onToggle={handleToggle}
-						className="overflow-hidden rounded "
+						className="overflow-hidden rounded"
 						headerClassName="p-10"
 						contentClassName="p-10"
 						headerSticky

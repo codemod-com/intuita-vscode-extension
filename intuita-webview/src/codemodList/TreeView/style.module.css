@@ -104,7 +104,3 @@
 	display: flex;
 	align-items: center;
 }
-
-.action > * {
-	font-size: 12px;
-}

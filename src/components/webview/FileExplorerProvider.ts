@@ -51,6 +51,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
+	__lastSelectedFileNode: TreeNode | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -157,6 +158,13 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 	}
 
+	public focusFile() {
+		this.__postMessage({
+			kind: 'webview.fileExplorer.focusFile',
+			id: this.__lastSelectedFileNode?.id ?? null,
+		});
+	}
+
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
@@ -173,11 +181,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				kind: 'folderElement',
 				iconName: 'folder.svg',
 				children: [],
-				command: {
-					title: 'Diff View',
-					command: 'intuita.openCaseDiff',
-					arguments: [element.hash],
-				},
 			});
 			element.children.forEach(this.__getTreeByDirectory);
 			const treeNode = this.__folderMap.get(repoName) ?? undefined;
@@ -434,6 +437,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
+			this.__lastSelectedFileNode = fileNodeObj.node;
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -480,6 +484,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			);
 			const folderPath = message.id;
 			panelInstance.focusFolder(folderPath);
+		}
+
+		if (message.kind === 'webview.global.focusView') {
+			commands.executeCommand('intuita.focusView', message.webviewName);
 		}
 	};
 
