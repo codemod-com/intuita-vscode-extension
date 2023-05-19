@@ -855,12 +855,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.test', async () => {
-			codemodListWebviewProvider.getAutocompleteItems('compo');
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.acceptFolder',
 			async (arg0) => {

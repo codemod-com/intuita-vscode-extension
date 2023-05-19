@@ -165,7 +165,11 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.fileExplorer.focusFile';
 			id: string | null;
-	  }>;
+	  }>
+	| Readonly<{
+		kind: 'webview.codemodList.setAutocompleteItems', 
+		autocompleteItems: string[]
+	}>
 
 export type WebviewResponse =
 	| Readonly<{
@@ -256,7 +260,11 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
 			value: CodemodHash;
-	  }>;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.codemodPathChange';
+			codemodPath: string;
+	}>
 
 export type View =
 	| Readonly<{

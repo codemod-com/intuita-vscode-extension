@@ -72,7 +72,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
-	async getAutocompleteItems(input: string): Promise<string[]> {
+	async __getAutocompleteItems(input: string): Promise<string[]> {
 		if (!this.__rootPath) {
 			return [];
 		}
@@ -190,6 +190,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
+			
+
 			commands.executeCommand(
 				message.value.command,
 				...(message.value.arguments ?? []),
@@ -262,6 +264,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.getCodemodTree('public');
+		}
+
+		if(message.kind === 'webview.codemodList.codemodPathChange') {
+			const autocompleteItems = await this.__getAutocompleteItems(message.codemodPath);
+			this.__postMessage({
+				kind: 'webview.codemodList.setAutocompleteItems', 
+				autocompleteItems
+			})
 		}
 	};
 
