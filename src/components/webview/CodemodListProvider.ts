@@ -260,7 +260,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.codemodPathChange') {
-				this.__autocompleteItems =  await this.__getAutocompleteItems(
+			this.__autocompleteItems = await this.__getAutocompleteItems(
 				message.codemodPath,
 			);
 

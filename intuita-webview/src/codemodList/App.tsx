@@ -31,7 +31,6 @@ function App() {
 			) {
 				setView(message.value);
 			}
-			
 		};
 
 		window.addEventListener('message', handler);
@@ -56,7 +55,11 @@ function App() {
 			O.fold(
 				() => loadingContainer,
 				(node) => (
-					<TreeView executionPath={executionPath} node={node} autocompleteItems={autocompleteItems} />
+					<TreeView
+						executionPath={executionPath}
+						node={node}
+						autocompleteItems={autocompleteItems}
+					/>
 				),
 			),
 		),
