@@ -12,7 +12,6 @@ import { MessageBus, MessageKind } from '../messageBus';
 import {
 	CodemodTree,
 	CodemodTreeNode,
-	View,
 	WebviewMessage,
 	WebviewResponse,
 } from './webviewEvents';
@@ -33,6 +32,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
+
+	__codemodTree: CodemodTree = E.right(O.none);
+	__executionPath: E.Either<Error, string> = E.right('/');
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -115,10 +117,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__view?.webview.postMessage(message);
 	}
 
-	public setView(data: View) {
+	public setView() {
 		this.__postMessage({
 			kind: 'webview.global.setView',
-			value: data,
+			value: {
+				viewId: 'codemods',
+				viewProps: {
+					codemodTree: this.__codemodTree,
+					executionPath: this.__executionPath,
+				},
+			},
 		});
 	}
 
@@ -193,26 +201,20 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			try {
 				await workspace.fs.stat(Uri.file(path));
 
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.right(path),
-				});
+				this.__executionPath = E.right(path);
+
 				window.showInformationMessage(
 					'Updated the codemod execution path',
 				);
-			} catch (err) {
-				// for better error message , we reconstruct the error
-				const reConstructedError = new Error(
-					'Path specified does not exist',
+			} catch (e) {
+				const error = new Error(
+					'The specified codemod execution path does not exist',
 				);
-				const stringified = JSON.stringify(reConstructedError, [
-					'message',
-				]);
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.left(JSON.parse(stringified)),
-				});
+
+				this.__executionPath = E.left(error);
 			}
+
+			this.setView();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -249,15 +251,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	// TODO change to private & separate calculation from sending
 	public async getCodemodTree() {
-		const codemods = await this.__getCodemodTree();
-		
-		this.setView({
-			viewId: 'codemods',
-			viewProps: {
-				codemodTree: codemods,
-				executionPath: '',
-			},
-		});
+		this.__codemodTree = await this.__getCodemodTree();
+
+		this.setView();
 	}
 
 	private __getTreeNode(

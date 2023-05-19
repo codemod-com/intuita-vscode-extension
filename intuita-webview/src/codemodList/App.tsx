@@ -31,10 +31,6 @@ function App() {
 			) {
 				setView(message.value);
 			}
-
-			if (message.kind === 'webview.codemodList.updatePathResponse') {
-				// TODO
-			}
 		};
 
 		window.addEventListener('message', handler);

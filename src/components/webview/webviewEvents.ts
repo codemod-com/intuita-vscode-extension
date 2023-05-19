@@ -146,10 +146,6 @@ export type WebviewMessage =
 			value: boolean;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodList.updatePathResponse';
-			data: E.Either<Error, string | null>;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
 			codemodHash: CodemodHash;
