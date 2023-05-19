@@ -19,10 +19,7 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import {
-	dependencyNameToRecipeName,
-	InformationMessageService,
-} from './components/informationMessageService';
+import { InformationMessageService } from './components/informationMessageService';
 import {
 	branchNameFromStr,
 	buildTypeCodec,
@@ -31,12 +28,6 @@ import {
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { TelemetryService } from './telemetry/telemetryService';
-import {
-	projectNameCodec,
-	PROJECT_NAMES,
-	RECIPE_MAP,
-	recipeNameCodec,
-} from './recipes/codecs';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
@@ -1030,18 +1021,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.openTopLevelNodeKindOrderSetting',
-			() => {
-				return vscode.commands.executeCommand(
-					'workbench.action.openSettings',
-					'intuita.topLevelNodeKindOrder',
-				);
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
 			(uri: vscode.Uri) => {
 				const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
@@ -1192,88 +1171,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						e instanceof Error ? e.message : String(e),
 					);
 				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.executeRecipeWithinPath',
-			async (uri: vscode.Uri) => {
-				const { storageUri } = context;
-
-				if (!storageUri) {
-					throw new Error('No storage URI, aborting the command.');
-				}
-
-				const projectName = await vscode.window.showQuickPick(
-					PROJECT_NAMES.slice(),
-					{
-						placeHolder:
-							'Pick the project to execute a codemod set (recipe) over the selected path',
-					},
-				);
-
-				if (!projectNameCodec.is(projectName)) {
-					return;
-				}
-
-				const recipeMap = RECIPE_MAP.get(projectName);
-
-				if (!recipeMap) {
-					return;
-				}
-
-				let version = await vscode.window.showQuickPick(
-					Object.keys(recipeMap).map((version) =>
-						!isNaN(parseFloat(version)) ? `v${version}` : version,
-					),
-					{
-						placeHolder:
-							'Pick the codemod set (recipe) to execute over the selected path',
-					},
-				);
-
-				if (!version) {
-					return;
-				}
-
-				if (
-					version.startsWith('v') &&
-					!isNaN(parseFloat(version.slice(1)))
-				) {
-					version = version.slice(1);
-				}
-
-				const recipeName = recipeMap[version];
-
-				if (!recipeNameCodec.is(recipeName)) {
-					return;
-				}
-
-				const executionId = buildExecutionId();
-				const happenedAt = String(Date.now());
-
-				const command: Command =
-					recipeName === 'redwoodjs_experimental'
-						? {
-								kind: 'repomod',
-								repomodFilePath: recipeName,
-								storageUri,
-								inputPath: uri,
-						  }
-						: {
-								storageUri,
-								recipeName,
-								uri,
-						  };
-
-				messageBus.publish({
-					kind: MessageKind.executeCodemodSet,
-					command,
-					executionId,
-					happenedAt,
-				});
 			},
 		),
 	);
