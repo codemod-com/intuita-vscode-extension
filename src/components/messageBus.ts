@@ -1,7 +1,6 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
-import { RecipeName } from '../recipes/codecs';
 import type { Configuration } from '../configuration';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 
@@ -85,11 +84,6 @@ export type Command =
 			inputPath: Uri;
 			storageUri: Uri;
 			repomodFilePath: string;
-	  }>
-	| Readonly<{
-			recipeName: RecipeName;
-			storageUri: Uri;
-			uri: Uri;
 	  }>
 	| Readonly<{
 			fileUri: Uri;

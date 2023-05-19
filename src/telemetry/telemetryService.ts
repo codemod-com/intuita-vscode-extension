@@ -71,10 +71,7 @@ export class TelemetryService {
 			sessionId: this.#sessionId,
 			happenedAt: String(Date.now()),
 			executionId: message.executionId,
-			codemodSetName:
-				'recipeName' in message.command
-					? message.command.recipeName
-					: '',
+			codemodSetName: '',
 		});
 	}
 

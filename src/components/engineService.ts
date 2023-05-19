@@ -344,10 +344,6 @@ export class EngineService {
 				args.push('-p', '!**/node_modules');
 			}
 
-			if ('recipeName' in message.command) {
-				args.push('-g', message.command.recipeName);
-			}
-
 			args.push('-o', singleQuotify(outputUri.fsPath));
 
 			return args;
@@ -380,8 +376,8 @@ export class EngineService {
 
 		const executionId = message.executionId;
 
-		const codemodSetName =
-			'recipeName' in message.command ? message.command.recipeName : '';
+		// TODO remove the codemod set name
+		const codemodSetName = '';
 
 		this.#execution = {
 			childProcess,
