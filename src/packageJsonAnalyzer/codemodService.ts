@@ -17,7 +17,6 @@ import { EngineService } from '../components/engineService';
 
 export class CodemodService {
 	#rootPath: string | null;
-	#codemodItemsMap: Map<CodemodHash, CodemodElement> = new Map();
 	#publicCodemods: Map<CodemodHash, CodemodElement> = new Map();
 
 	constructor(
@@ -163,9 +162,6 @@ export class CodemodService {
 	};
 
 	public getCodemodItem = (codemodHash: CodemodHash) => {
-		if (this.#codemodItemsMap.has(codemodHash)) {
-			return this.#codemodItemsMap.get(codemodHash);
-		}
 		return this.#publicCodemods.get(codemodHash);
 	};
 
@@ -262,8 +258,6 @@ export class CodemodService {
 				});
 			});
 		}
-
-		this.#codemodItemsMap = codemods;
 	}
 
 	public getListOfCodemodCommands() {
