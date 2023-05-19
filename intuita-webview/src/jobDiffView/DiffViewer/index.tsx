@@ -13,7 +13,6 @@ import {
 } from 'react-virtualized';
 
 import Header from './Header';
-import { vscode } from '../../shared/utilities/vscode';
 import { Diff } from './Diff';
 import { useElementSize } from '../hooks/useElementSize';
 import { useTheme } from '../../shared/Snippet/useTheme';
@@ -24,8 +23,6 @@ const CellMeasurerComponent = CellMeasurer as unknown as FC<CellMeasurerProps>;
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
-	diffId: string;
-	stagedJobs: JobHash[];
 	showHooksCTA: boolean;
 }>;
 
@@ -42,9 +39,7 @@ const defaultHeight = 1200;
 
 export const JobDiffViewContainer = ({
 	jobs,
-	diffId,
 	postMessage,
-	stagedJobs,
 	showHooksCTA,
 }: JobDiffViewContainerProps) => {
 	const listRef = useRef<List>(null);
@@ -199,32 +194,12 @@ export const JobDiffViewContainer = ({
 		[setDiffData],
 	);
 
-	const onToggleJob = useCallback(
-		(jobHash: JobHash) => {
-			const stagedJobsSet = new Set(stagedJobs);
-
-			if (stagedJobsSet.has(jobHash)) {
-				stagedJobsSet.delete(jobHash);
-			} else {
-				stagedJobsSet.add(jobHash);
-			}
-
-			vscode.postMessage({
-				kind: 'webview.global.stageJobs',
-				jobHashes: Array.from(stagedJobsSet),
-			});
-		},
-		[stagedJobs],
-	);
-
 	return (
 		<div className="w-full h-full flex flex-col">
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
 				jobs={jobs}
-				diffId={diffId}
-				stagedJobsHashes={stagedJobs}
 				showHooksCTA={showHooksCTA}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
@@ -270,14 +245,10 @@ export const JobDiffViewContainer = ({
 												diff={diff}
 												visible={visible}
 												viewType={viewType}
-												jobStaged={stagedJobs.includes(
-													el.jobHash,
-												)}
 												height={height ?? defaultHeight}
 												onToggle={onToggle}
 												toggleVisible={toggleVisible}
 												postMessage={postMessage}
-												onToggleJob={onToggleJob}
 												onHeightSet={onHeightSet}
 												onDiffCalculated={
 													onDiffCalculated

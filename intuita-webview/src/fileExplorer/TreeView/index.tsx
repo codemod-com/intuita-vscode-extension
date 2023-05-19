@@ -1,7 +1,18 @@
 import ReactTreeView from 'react-treeview';
-import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo } from 'react';
+import {
+	Dispatch,
+	ReactNode,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useMemo,
+} from 'react';
 import Tree from '../../shared/Tree';
-import { TreeNode } from '../../../../src/components/webview/webviewEvents';
+import {
+	FileTreeNode,
+	JobHash,
+	TreeNode,
+} from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
@@ -10,15 +21,8 @@ import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
-
-type Props = {
-	node: TreeNode;
-	nodeIds: string[];
-	fileNodes: TreeNode[];
-	searchQuery: string;
-	focusedNodeId: string | null;
-	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
-};
+import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { CaseHash } from '../../../../src/cases/types';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -56,6 +60,17 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
+type Props = {
+	node: TreeNode;
+	nodeIds: string[];
+	fileNodes: FileTreeNode[];
+	caseHash: CaseHash;
+	searchQuery: string;
+	focusedNodeId: string | null;
+	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
+	stagedJobs: JobHash[];
+};
+
 const TreeView = ({
 	node,
 	nodeIds,
@@ -63,12 +78,32 @@ const TreeView = ({
 	searchQuery,
 	focusedNodeId,
 	setFocusedNodeId,
+	stagedJobs,
 }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const fileNodeIds = useMemo(
 		() => new Set(fileNodes.map((node) => node.id)),
 		[fileNodes],
 	);
+
+	const onToggleJob = useCallback(
+		(jobHash: JobHash) => {
+			const stagedJobsSet = new Set(stagedJobs);
+
+			if (stagedJobsSet.has(jobHash)) {
+				stagedJobsSet.delete(jobHash);
+			} else {
+				stagedJobsSet.add(jobHash);
+			}
+
+			vscode.postMessage({
+				kind: 'webview.global.stageJobs',
+				jobHashes: Array.from(stagedJobsSet),
+			});
+		},
+		[stagedJobs],
+	);
+
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
 		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
 		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
@@ -94,7 +129,7 @@ const TreeView = ({
 		setFocusedNodeId,
 		index,
 	}: {
-		node: TreeNode;
+		node: TreeNode | FileTreeNode;
 		depth: number;
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
@@ -103,10 +138,25 @@ const TreeView = ({
 		index: number;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
+		const focused = node.id === focusedNodeId;
+		const hasChildren = node.children && node.children.length > 0;
+		const enableCheckbox = depth > 0 && !hasChildren;
+		const Checkbox = () => {
+			const checked = stagedJobs.includes((node as FileTreeNode).jobHash);
+
+			return (
+				<VSCodeCheckbox
+					onClick={() => {
+						onToggleJob((node as FileTreeNode).jobHash);
+					}}
+					checked={checked}
+				/>
+			);
+		};
 
 		return (
 			<TreeItem
-				hasChildren={(node.children?.length ?? 0) !== 0}
+				hasChildren={hasChildren}
 				id={node.id}
 				label={node.label ?? ''}
 				subLabel=""
@@ -114,15 +164,28 @@ const TreeView = ({
 				depth={depth}
 				kind={node.kind}
 				open={open}
-				focused={node.id === focusedNodeId}
+				focused={focused}
 				onClick={() => {
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={[]}
+				actionButtons={[enableCheckbox && <Checkbox />]}
 				onPressChevron={() => {
 					setIsOpen(!open);
 				}}
 				index={index}
+				inlineStyles={{
+					...(enableCheckbox && {
+						root: {
+							...(!focused && {
+								backgroundColor:
+									'var(--vscode-list-hoverBackground)',
+							}),
+
+							paddingRight: 4,
+						},
+					}),
+					actions: { display: 'flex' },
+				}}
 			/>
 		);
 	};

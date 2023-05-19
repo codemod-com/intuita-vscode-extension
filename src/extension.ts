@@ -319,7 +319,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				if (webviewName === 'changeExplorer') {
-					fileExplorerProvider.focusFile();
+					fileExplorerProvider.focusNode();
 				}
 
 				if (webviewName === 'diffView' && rootPath !== null) {
@@ -338,6 +338,36 @@ export async function activate(context: vscode.ExtensionContext) {
 						rootPath,
 					);
 					panelInstance.focusView();
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.disposeView',
+			(arg0: unknown) => {
+				const webviewName = typeof arg0 === 'string' ? arg0 : null;
+				if (webviewName === null) {
+					return;
+				}
+
+				if (webviewName === 'diffView' && rootPath !== null) {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					panelInstance.dispose();
 				}
 			},
 		),
@@ -997,6 +1027,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
+				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
 			},

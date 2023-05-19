@@ -12,8 +12,6 @@ import { vscode } from '../../shared/utilities/vscode';
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
 	viewType: 'inline' | 'side-by-side';
-	jobStaged: boolean;
-	onToggleJob(jobHash: JobHash): void;
 	visible: boolean;
 	toggleVisible: (jobHash: JobHash) => void;
 	expanded: boolean;
@@ -37,8 +35,6 @@ export const JobDiffView = memo(
 				oldFileTitle,
 				newFileTitle,
 				title,
-				jobStaged,
-				onToggleJob,
 				visible,
 				toggleVisible,
 				height,
@@ -84,10 +80,6 @@ export const JobDiffView = memo(
 				[jobHash, onHeightSet],
 			);
 
-			const handleToggleJob = useCallback(() => {
-				onToggleJob(jobHash);
-			}, [jobHash, onToggleJob]);
-
 			return (
 				<div
 					ref={(r) => {
@@ -127,8 +119,6 @@ export const JobDiffView = memo(
 								viewed={!visible}
 								title={title ?? ''}
 								viewType={viewType}
-								jobStaged={jobStaged}
-								onToggleJob={handleToggleJob}
 								onReportIssue={report}
 							/>
 						}
