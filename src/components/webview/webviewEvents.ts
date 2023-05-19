@@ -50,7 +50,7 @@ export type RunCodemodsCommand = Readonly<{
 	value: CodemodHash;
 }>;
 
-export type CodemodTreeNode<T = undefined> = {
+export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
 	label: string;
@@ -62,11 +62,10 @@ export type CodemodTreeNode<T = undefined> = {
 				arguments?: ElementHash[];
 		  };
 	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode<T>[];
-	extraData?: T;
+	children: CodemodTreeNode[];
 };
 
-export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode<string>>>;
+export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode>>;
 
 export type CaseTreeNode = {
 	id: CaseHash;

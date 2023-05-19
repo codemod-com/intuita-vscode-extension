@@ -182,9 +182,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			if (!codemod || codemod.kind === 'path') {
 				return;
 			}
-			const { pathToExecute, hash } = codemod;
 
-			const uri = Uri.file(pathToExecute);
+			const { hash } = codemod;
+
+			if (E.isLeft(this.__executionPath)) {
+				return;
+			}
+
+			const uri = Uri.file(this.__executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -258,15 +263,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
-	): CodemodTreeNode<string> {
-		const rootPath = this.__rootPath ?? '';
+	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
-			const { label, kind, pathToExecute, description, hash } =
-				codemodElement;
+			const { label, kind, description, hash } = codemodElement;
+
 			return {
 				kind,
 				label,
-				extraData: pathToExecute.replace(rootPath, '') || '/',
 				description: description,
 				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,

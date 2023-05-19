@@ -19,12 +19,12 @@ import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
 type Props = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	response: E.Either<Error, string | null>;
 }>;
 
 export const containsCodemodHashDigest = (
-	node: CodemodTreeNode<string>,
+	node: CodemodTreeNode,
 	codemodHashDigest: CodemodHash,
 	set: Set<CodemodHash>,
 ): boolean => {
@@ -64,13 +64,13 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 };
 
 type State = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
 }>;
 
 type InitializerArgument = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	focusedId: CodemodHash | null;
 }>;
 
@@ -136,7 +136,7 @@ const TreeView = ({ node, response }: Props) => {
 	);
 
 	const [editExecutionPath, setEditExecutionPath] =
-		useState<CodemodTreeNode<string> | null>(null);
+		useState<CodemodTreeNode | null>(null);
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
 	>([]);
@@ -187,7 +187,7 @@ const TreeView = ({ node, response }: Props) => {
 		};
 	}, [node]);
 
-	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
+	const handleClick = useCallback((node: CodemodTreeNode) => {
 		if (!node.command) {
 			return;
 		}
@@ -216,18 +216,15 @@ const TreeView = ({ node, response }: Props) => {
 		[executionStack, progress],
 	);
 
-	const handleEditExecutionPath = useCallback(
-		(node: CodemodTreeNode<string>) => {
-			setEditExecutionPath(node);
-		},
-		[],
-	);
+	const handleEditExecutionPath = useCallback((node: CodemodTreeNode) => {
+		setEditExecutionPath(node);
+	}, []);
 
 	const renderItem = ({
 		node,
 		depth,
 	}: {
-		node: CodemodTreeNode<string>;
+		node: CodemodTreeNode;
 		depth: number;
 	}) => {
 		const opened = state.openedIds.has(node.id);
