@@ -21,11 +21,18 @@
 	gap: 8px;
 }
 
+.actionsContainer span {
+	padding: 8px;
+}
+
 .checkbox {
 	color: var(--vscode-icon-foreground);
 	margin-left: 32px;
 }
 
 .buttonGroup {
+	display: flex;
 	margin-left: auto;
+	align-items: center;
+	gap: 8px;
 }

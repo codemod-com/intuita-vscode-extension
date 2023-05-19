@@ -107,6 +107,9 @@ function App() {
 				jobs={job ? [job] : []}
 				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
+				totalJobsCount={data.length}
+				jobIndex={jobIndex}
+				setJobIndex={setJobIndex}
 			/>
 		</main>
 	);
