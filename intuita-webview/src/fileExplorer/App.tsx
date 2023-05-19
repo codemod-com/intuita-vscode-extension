@@ -56,6 +56,12 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (searchQuery.length > 0) {
+			setFocusedNodeId(null);
+		}
+	}, [searchQuery]);
+
 	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
