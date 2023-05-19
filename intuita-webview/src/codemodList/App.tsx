@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import type { WebviewMessage, CodemodTreeNode } from '../shared/types';
+import type { WebviewMessage, CodemodTreeNode, View } from '../shared/types';
 import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import './index.css';
 
+type CodemodView = Extract<View, { viewId: 'codemods' }>;
+
 function App() {
+	const [view, setView] = useState<CodemodView | null>(null);
+
 	const [publicCodemods, setPublicCodemods] = useState<
 		E.Either<Error, CodemodTreeNode<string> | null>
 	>(E.right(null));
@@ -19,6 +23,13 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
+
+			if (
+				message.kind === 'webview.global.setView' &&
+				message.value.viewId === 'codemods'
+			) {
+				setView(message.value);
+			}
 
 			if (message.kind === 'webview.codemods.setPublicCodemods') {
 				setPublicCodemods(message.data);
