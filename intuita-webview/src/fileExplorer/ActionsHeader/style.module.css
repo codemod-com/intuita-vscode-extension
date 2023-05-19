@@ -6,7 +6,7 @@
 	position: sticky;
 	height: 35px;
 	top: 0;
-	padding: 4px;
+	padding: 4px 0px 4px 4px;
 	background-color: var(--vscode-tab-inactiveBackground);
 	gap: 8px;
 }
@@ -18,4 +18,13 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-left: 4px;
+}
+
+.icon {
+	width: 22px;
+	height: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* stroke: var(--vscode-editor-foreground); */
 }

@@ -86,8 +86,6 @@ export const getElementIconBaseName = (
 				: 'file.svg';
 		case ElementKind.JOB:
 			return 'bluelightbulb.svg';
-		case ElementKind.ROOT:
-			return 'wrench.svg';
 		default:
 			return 'bluelightbulb.svg';
 	}

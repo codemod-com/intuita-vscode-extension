@@ -15,7 +15,6 @@ import {
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
-import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
@@ -42,9 +41,6 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 			break;
 		case 'newFile.svg':
 			icon = <span className={cn('codicon', 'codicon-file-add')} />;
-			break;
-		case 'wrench.svg':
-			icon = <WrenchIcon />;
 			break;
 		case 'folder.svg':
 			icon = (
