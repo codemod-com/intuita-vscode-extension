@@ -5,12 +5,12 @@ import { CodemodHash, CodemodTreeNode } from '../../shared/types';
 type Props = {
 	depth: number;
 	openedIds: ReadonlySet<CodemodHash>;
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	renderItem({
 		node,
 		depth,
 	}: {
-		node: CodemodTreeNode<string>;
+		node: CodemodTreeNode;
 		depth: number;
 	}): ReactNode;
 };

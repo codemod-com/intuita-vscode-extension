@@ -14,14 +14,15 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import { DirectorySelector } from '../components/DirectorySelector';
 import Popup from 'reactjs-popup';
-import * as E from 'fp-ts/Either';
+import * as T from 'fp-ts/These';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { pipe } from 'fp-ts/lib/function';
+import { SyntheticError } from '../../../../src/errors/types';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
-	executionPath: E.Either<Error, string>;
+	executionPath: T.These<SyntheticError, string>;
 }>;
 
 export const containsCodemodHashDigest = (
@@ -314,22 +315,27 @@ const TreeView = ({ node, executionPath }: Props) => {
 		});
 	};
 
-	const currentExecutionPath = pipe(
-		executionPath,
-		E.fold(
-			(error) => error.message,
-			(p) => p,
-		),
-	);
-
 	const error = pipe(
 		executionPath,
-		E.fold(
+		T.fold(
 			(e) => ({
 				value: e.message,
 				timestamp: Date.now(),
 			}),
 			() => null,
+			(e) => ({
+				value: e.message,
+				timestamp: Date.now(),
+			}),
+		),
+	);
+
+	const defaultValue = pipe(
+		executionPath,
+		T.fold(
+			() => '',
+			(p) => p,
+			(_, p) => p,
 		),
 	);
 
@@ -348,9 +354,9 @@ const TreeView = ({ node, executionPath }: Props) => {
 						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
 						onClick={() => setExecutionPathOpened(false)}
 					></span>
-					<p>Current Path: {currentExecutionPath}</p>
+					<p>Current Path: {defaultValue}</p>
 					<DirectorySelector
-						defaultValue={currentExecutionPath}
+						defaultValue={defaultValue}
 						onEditDone={onEditDone}
 						error={error}
 					/>
