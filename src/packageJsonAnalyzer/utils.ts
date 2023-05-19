@@ -1,4 +1,3 @@
-import { Uri, workspace } from 'vscode';
 import { CodemodElement } from './types';
 import { CodemodHash } from './types';
 import { buildHash, DistributiveOmit } from '../utilities';
@@ -15,14 +14,4 @@ export const buildCodemodElementHash = (
 	return buildHash(
 		`${element.path}${element.kind}${element.label}`,
 	) as CodemodHash;
-};
-
-export const doesPathExist = async (path: string): Promise<boolean> => {
-	try {
-		await workspace.fs.stat(Uri.file(path));
-
-		return true;
-	} catch (err) {
-		return false;
-	}
 };
