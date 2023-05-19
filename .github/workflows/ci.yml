@@ -16,7 +16,7 @@ jobs:
                   version: 8
             - name: Install dependencies
               run: pnpm install
-            - name: Ensure Prettier was run
+            - name: Check spelling
               run: pnpm spellcheck
     Build:
         runs-on: ubuntu-latest
