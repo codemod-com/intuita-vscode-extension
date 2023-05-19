@@ -3,8 +3,9 @@ import {
 	VSCodeButton,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
+import { KeyboardEvent } from 'react';
 
-const getAutocompleteContent = (
+const getAutocompleteValue = (
 	currentValue: string,
 	autocompleteItems: string[],
 	index: number = 0,
@@ -39,12 +40,14 @@ export const DirectorySelector = ({
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
+	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
 
+	console.log(autocompleteIndex, autocompleteItems, 'test');
 	// currently always 0, in future switch items with Tab;
-	const autocompleteContent = getAutocompleteContent(
+	const autocompleteContent = getAutocompleteValue(
 		value,
 		autocompleteItems,
-		0,
+		autocompleteIndex,
 	);
 
 	useEffect(() => {
@@ -56,7 +59,17 @@ export const DirectorySelector = ({
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
 		onChange(value);
+		setAutocompleteIndex(0);
 	};
+
+	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+		if(e.key === 'Tab') {
+			e.preventDefault();
+			const nextAutocompleteIndex = (autocompleteIndex + 1) % autocompleteItems.length;
+			setValue((prevValue) =>  getAutocompleteValue(prevValue, autocompleteItems, nextAutocompleteIndex) ?? prevValue);
+			setAutocompleteIndex(nextAutocompleteIndex);
+		}
+	}
 
 	return (
 		<div className="flex flex-row justify-between pb-10">
@@ -68,6 +81,7 @@ export const DirectorySelector = ({
 					className="flex-1"
 					value={value}
 					onInput={handleChange}
+					onKeyDown={handleKeyDown}
 				/>
 
 				{showError && (

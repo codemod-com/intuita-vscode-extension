@@ -77,15 +77,18 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			return [];
 		}
 
-		const currAddedDir =
-			input.indexOf('/') !== -1
-				? input.substring(0, input.lastIndexOf('/') + 1)
-				: '';
-		const currAddingDir = input.substr(input.lastIndexOf('/') + 1);
-		const path = this.__rootPath;
-		+'/' + currAddedDir;
-		const completions = await readdir(path);
-		return completions.filter((c) => c.indexOf(currAddingDir) === 0);
+		try {
+			const currAddedDir =
+				input.indexOf('/') !== -1
+					? input.substring(0, input.lastIndexOf('/') + 1)
+					: '';
+			const currAddingDir = input.substr(input.lastIndexOf('/') + 1);
+			const path = this.__rootPath + '/' + currAddedDir;
+			const completions = await readdir(path);
+			return completions.filter((c) => c.indexOf(currAddingDir) === 0);
+		} catch(e) {
+			return [];
+		}
 	}
 
 	handleCodemodExecutionProgress = ({
