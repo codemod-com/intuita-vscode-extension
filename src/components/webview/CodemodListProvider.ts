@@ -11,6 +11,7 @@ import {
 import { MessageBus, MessageKind } from '../messageBus';
 import {
 	CodemodTreeNode,
+	View,
 	WebviewMessage,
 	WebviewResponse,
 } from './webviewEvents';
@@ -110,6 +111,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
+	}
+
+	public setView(data: View) {
+		this.__postMessage({
+			kind: 'webview.global.setView',
+			value: data,
+		});
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -232,6 +240,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				kind: 'webview.codemods.setPublicCodemods',
 				data: E.right(treeNodes[0] ?? null),
 			});
+
+			this.setView({
+				viewId: 'codemods',
+				viewProps: {
+					codemods: E.right(treeNodes[0] ?? null),
+				},
+			});
 		} catch (error) {
 			console.error(error);
 
@@ -239,6 +254,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				this.__postMessage({
 					kind: 'webview.codemods.setPublicCodemods',
 					data: E.left(error),
+				});
+
+				this.setView({
+					viewId: 'codemods',
+					viewProps: {
+						codemods: E.left(error),
+					},
 				});
 			}
 		}
