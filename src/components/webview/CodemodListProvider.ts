@@ -25,6 +25,7 @@ import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import { ElementKind } from '../../elements/types';
+import type { SyntheticError } from '../../errors/types';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -34,7 +35,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 
 	__codemodTree: CodemodTree = E.right(O.none);
-	__executionPath: E.Either<Error, string> = E.right('/');
+	__executionPath: E.Either<SyntheticError, string> = E.right('/');
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -214,11 +215,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					'Updated the codemod execution path',
 				);
 			} catch (e) {
-				const error = new Error(
-					'The specified codemod execution path does not exist',
-				);
-
-				this.__executionPath = E.left(error);
+				this.__executionPath = E.left<SyntheticError>({
+					kind: 'syntheticError',
+					message:
+						'The specified codemod execution path does not exist',
+				});
 			}
 
 			this.setView();
@@ -243,16 +244,28 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			);
 
 			if (!treeNodes[0]) {
-				return E.left(new Error('No codemods were found'));
+				return E.left({
+					kind: 'syntheticError',
+					message: 'No codemods were found',
+				});
 			}
 
 			return E.right(O.some(treeNodes[0]));
 		} catch (error) {
 			console.error(error);
 
-			const e = error instanceof Error ? error : new Error(String(error));
+			const syntheticError: SyntheticError =
+				error instanceof Error
+					? {
+							kind: 'syntheticError',
+							message: error.message,
+					  }
+					: {
+							kind: 'syntheticError',
+							message: String(error),
+					  };
 
-			return E.left(e);
+			return E.left(syntheticError);
 		}
 	}
 

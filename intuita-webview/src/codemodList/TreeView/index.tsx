@@ -18,10 +18,11 @@ import * as E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { pipe } from 'fp-ts/lib/function';
+import { SyntheticError } from '../../../../src/errors/types';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
-	executionPath: E.Either<Error, string>;
+	executionPath: E.Either<SyntheticError, string>;
 }>;
 
 export const containsCodemodHashDigest = (
@@ -314,14 +315,6 @@ const TreeView = ({ node, executionPath }: Props) => {
 		});
 	};
 
-	const currentExecutionPath = pipe(
-		executionPath,
-		E.fold(
-			(error) => error.message,
-			(p) => p,
-		),
-	);
-
 	const error = pipe(
 		executionPath,
 		E.fold(
@@ -330,6 +323,14 @@ const TreeView = ({ node, executionPath }: Props) => {
 				timestamp: Date.now(),
 			}),
 			() => null,
+		),
+	);
+
+	const defaultValue = pipe(
+		executionPath,
+		E.fold(
+			() => '',
+			(p) => p,
 		),
 	);
 
@@ -348,9 +349,13 @@ const TreeView = ({ node, executionPath }: Props) => {
 						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
 						onClick={() => setExecutionPathOpened(false)}
 					></span>
-					<p>Current Path: {currentExecutionPath}</p>
+					<p>
+						{E.isLeft(executionPath)
+							? '&nbsp;'
+							: `Current Path: ${executionPath.right}`}
+					</p>
 					<DirectorySelector
-						defaultValue={currentExecutionPath}
+						defaultValue={defaultValue}
 						onEditDone={onEditDone}
 						error={error}
 					/>
