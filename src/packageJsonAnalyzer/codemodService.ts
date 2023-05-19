@@ -173,13 +173,8 @@ export class CodemodService {
 		return this.#codemodItemsMap.has(codemodHash);
 	};
 
-	public getCodemodElement = (
-		recommended: boolean,
-		codemodHash: CodemodHash,
-	) => {
-		return recommended
-			? this.#codemodItemsMap.get(codemodHash)
-			: this.#publicCodemods.get(codemodHash);
+	public getCodemodElement = (codemodHash: CodemodHash) => {
+		this.#publicCodemods.get(codemodHash);
 	};
 
 	async getPackageJsonList() {
