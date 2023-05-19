@@ -9,6 +9,7 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 import SearchBar from './SearchBar';
+import ActionsHeader from './ActionsHeader';
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
@@ -26,6 +27,11 @@ function App() {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'treeView') {
 					setView(message.value);
+					setStagedJobs(
+						message.value.viewProps?.fileNodes.map(
+							(node) => node.jobHash,
+						) ?? [],
+					);
 				}
 			}
 
@@ -56,8 +62,17 @@ function App() {
 		);
 	}
 
+	const { fileNodes, caseHash } = view.viewProps;
+
 	return (
 		<main className="App">
+			{searchQuery.length === 0 && (
+				<ActionsHeader
+					stagedJobs={stagedJobs}
+					fileNodes={fileNodes}
+					caseHash={caseHash}
+				/>
+			)}
 			<SearchBar
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}

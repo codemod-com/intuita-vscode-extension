@@ -117,21 +117,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			);
 		}
 
-		if (message.kind === 'webview.global.applySelected') {
-			commands.executeCommand(
-				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
-				message,
-			);
-		}
-
-		if (message.kind === 'webview.global.closeView') {
-			this.dispose();
-		}
-
-		if (message.kind === 'webview.global.discardChanges') {
-			commands.executeCommand('intuita.rejectCase', message.caseHash);
-		}
-
 		if (message.kind === 'webview.global.openConfiguration') {
 			commands.executeCommand(
 				'workbench.action.openSettings',

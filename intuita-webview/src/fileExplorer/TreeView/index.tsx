@@ -9,6 +9,7 @@ import {
 } from 'react';
 import Tree from '../../shared/Tree';
 import {
+	FileTreeNode,
 	JobHash,
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
@@ -21,6 +22,7 @@ import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { CaseHash } from '../../../../src/cases/types';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -61,7 +63,8 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 type Props = {
 	node: TreeNode;
 	nodeIds: string[];
-	fileNodes: TreeNode[];
+	fileNodes: FileTreeNode[];
+	caseHash: CaseHash;
 	searchQuery: string;
 	focusedNodeId: string | null;
 	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
@@ -125,28 +128,26 @@ const TreeView = ({
 		focusedNodeId,
 		setFocusedNodeId,
 		index,
-		checked,
-		setChecked,
 	}: {
-		node: TreeNode;
+		node: TreeNode | FileTreeNode;
 		depth: number;
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
 		focusedNodeId: string | null;
 		setFocusedNodeId: (value: string) => void;
 		index: number;
-		checked: boolean;
-		setChecked: Dispatch<SetStateAction<boolean>>;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
 		const focused = node.id === focusedNodeId;
 		const hasChildren = node.children && node.children.length > 0;
+		const enableCheckbox = depth > 0 && !hasChildren;
 		const Checkbox = () => {
+			const checked = stagedJobs.includes((node as FileTreeNode).jobHash);
+
 			return (
 				<VSCodeCheckbox
 					onClick={() => {
-						onToggleJob(node.id as JobHash);
-						setChecked((prev) => !prev);
+						onToggleJob((node as FileTreeNode).jobHash);
 					}}
 					checked={checked}
 				/>
@@ -167,19 +168,20 @@ const TreeView = ({
 				onClick={() => {
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={[!hasChildren && <Checkbox />]}
+				actionButtons={[enableCheckbox && <Checkbox />]}
 				onPressChevron={() => {
 					setIsOpen(!open);
 				}}
 				index={index}
 				inlineStyles={{
-					...(!hasChildren && {
+					...(enableCheckbox && {
 						root: {
 							...(!focused && {
 								backgroundColor:
 									'var(--vscode-list-hoverBackground)',
 							}),
-							paddingRight: 0,
+
+							paddingRight: 4,
 						},
 					}),
 					actions: { display: 'flex' },

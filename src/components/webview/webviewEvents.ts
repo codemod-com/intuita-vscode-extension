@@ -102,6 +102,10 @@ export type TreeNode = {
 	children: TreeNode[];
 };
 
+export type FileTreeNode = TreeNode & {
+	jobHash: JobHash;
+};
+
 export type ExternalLink = {
 	text: string;
 	icon: string;
@@ -234,6 +238,10 @@ export type WebviewResponse =
 				| 'diffView';
 	  }>
 	| Readonly<{
+			kind: 'webview.fileExplorer.disposeView';
+			webviewName: 'diffView';
+	  }>
+	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';
 			id: string;
 	  }>
@@ -274,9 +282,10 @@ export type View =
 	| Readonly<{
 			viewId: 'treeView';
 			viewProps: {
+				caseHash: CaseHash;
 				node: TreeNode;
 				nodeIds: string[];
-				fileNodes: TreeNode[];
+				fileNodes: FileTreeNode[];
 			} | null;
 	  }>
 	| Readonly<{

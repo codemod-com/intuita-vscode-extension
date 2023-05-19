@@ -345,6 +345,36 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.disposeView',
+			(arg0: unknown) => {
+				const webviewName = typeof arg0 === 'string' ? arg0 : null;
+				if (webviewName === null) {
+					return;
+				}
+
+				if (webviewName === 'diffView' && rootPath !== null) {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					panelInstance.dispose();
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.user.unlinkIntuitaAccount',
 			() => {
 				userService.unlinkUserIntuitaAccount();

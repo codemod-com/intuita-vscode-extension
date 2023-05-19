@@ -14,16 +14,12 @@ type Props = {
 		depth,
 		open,
 		setIsOpen,
-		checked,
-		setChecked,
 	}: {
 		index: number;
 		node: TreeNode;
 		depth: number;
 		open: boolean;
 		setIsOpen: Dispatch<SetStateAction<boolean>>;
-		checked: boolean;
-		setChecked: Dispatch<SetStateAction<boolean>>;
 	}): ReactNode;
 	focusedNodeId: string | null;
 };
@@ -31,7 +27,6 @@ type Props = {
 const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
 	const [open, setIsOpen] = useState(true);
-	const [checked, setChecked] = useState(true);
 
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (node.id !== focusedNodeId) {
@@ -63,8 +58,6 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 		depth,
 		open,
 		setIsOpen,
-		checked,
-		setChecked,
 	});
 
 	if (hasNoChildren) {

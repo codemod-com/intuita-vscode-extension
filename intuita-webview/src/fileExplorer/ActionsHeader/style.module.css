@@ -1,0 +1,12 @@
+.root {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	z-index: 1001;
+	position: sticky;
+	height: 35px;
+	top: 0;
+	padding: 4px;
+	background-color: var(--vscode-tab-inactiveBackground);
+	gap: 8px;
+}

@@ -23,8 +23,6 @@ const CellMeasurerComponent = CellMeasurer as unknown as FC<CellMeasurerProps>;
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
-	diffId: string;
-	stagedJobs: JobHash[];
 	showHooksCTA: boolean;
 }>;
 
@@ -41,9 +39,7 @@ const defaultHeight = 1200;
 
 export const JobDiffViewContainer = ({
 	jobs,
-	diffId,
 	postMessage,
-	stagedJobs,
 	showHooksCTA,
 }: JobDiffViewContainerProps) => {
 	const listRef = useRef<List>(null);
@@ -204,8 +200,6 @@ export const JobDiffViewContainer = ({
 				onViewChange={setViewType}
 				viewType={viewType}
 				jobs={jobs}
-				diffId={diffId}
-				stagedJobsHashes={stagedJobs}
 				showHooksCTA={showHooksCTA}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>

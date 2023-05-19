@@ -9,6 +9,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
+	FileTreeNode,
 	TreeNode,
 	View,
 	WebviewMessage,
@@ -48,7 +49,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
 	// map between URIs to the File Tree Node and the job hash
-	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
+	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
 	__lastSelectedNodeId: string | null = null;
@@ -153,6 +154,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					fileNodes: Array.from(this.__fileNodes.values()).map(
 						(obj) => obj.node,
 					),
+					caseHash,
 				},
 			});
 		}
@@ -226,7 +228,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 				path += `/${dir}`;
 				if (!this.__folderMap.has(path)) {
-					const newTreeNode: TreeNode =
+					const newTreeNode =
 						dir === fileName
 							? {
 									id: path,
@@ -237,6 +239,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										jobKind ?? null,
 									),
 									children: [],
+									jobHash,
 							  }
 							: {
 									id: path,
@@ -249,7 +252,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					if (dir === fileName) {
 						this.__fileNodes.set(path, {
 							jobHash,
-							node: newTreeNode,
+							node: newTreeNode as FileTreeNode,
 						});
 					}
 					this.__folderMap.set(path, newTreeNode);
@@ -489,6 +492,21 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.global.focusView') {
 			commands.executeCommand('intuita.focusView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.fileExplorer.disposeView') {
+			commands.executeCommand('intuita.disposeView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.global.discardChanges') {
+			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		}
+
+		if (message.kind === 'webview.global.applySelected') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message,
+			);
 		}
 
 		if (message.kind === 'webview.global.stageJobs') {
