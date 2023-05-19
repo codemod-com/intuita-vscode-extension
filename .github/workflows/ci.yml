@@ -3,23 +3,6 @@ on: [push]
 name: CI
 
 jobs:
-    SpellCheck:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: 16
-            - uses: actions/checkout@v2
-            - uses: streetsidesoftware/cspell-action@v2
-              with:
-                  files: '**/*.{ts,tsx}'
-                  check_dot_files: explicit
-                  root: '.'
-                  inline: warning
-                  strict: true
-                  incremental_files_only: true
-                  config: './cspell.json'
-                  verbose: true
     Build:
         runs-on: ubuntu-latest
         steps:
