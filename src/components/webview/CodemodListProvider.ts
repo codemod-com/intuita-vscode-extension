@@ -236,11 +236,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				this.__getTreeNode(codemod),
 			);
 
-			this.__postMessage({
-				kind: 'webview.codemods.setPublicCodemods',
-				data: E.right(treeNodes[0] ?? null),
-			});
-
 			this.setView({
 				viewId: 'codemods',
 				viewProps: {
@@ -251,11 +246,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			console.error(error);
 
 			if (error instanceof Error) {
-				this.__postMessage({
-					kind: 'webview.codemods.setPublicCodemods',
-					data: E.left(error),
-				});
-
 				this.setView({
 					viewId: 'codemods',
 					viewProps: {

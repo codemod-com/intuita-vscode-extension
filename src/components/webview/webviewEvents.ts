@@ -139,10 +139,6 @@ export type WebviewMessage =
 			value: boolean;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemods.setPublicCodemods';
-			data: E.Either<Error, CodemodTreeNode<string> | null>;
-	  }>
-	| Readonly<{
 			kind: 'webview.codemodList.updatePathResponse';
 			data: E.Either<Error, string | null>;
 	  }>

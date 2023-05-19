@@ -34,9 +34,6 @@ function App() {
 				setView(message.value);
 			}
 
-			if (message.kind === 'webview.codemods.setPublicCodemods') {
-				// TODO remove the clause
-			}
 			if (message.kind === 'webview.codemodList.updatePathResponse') {
 				setPathEditResponse(message.data);
 			}
