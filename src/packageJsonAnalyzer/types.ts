@@ -12,14 +12,14 @@ export type CodemodItem = Readonly<{
 	hash: CodemodHash;
 	kind: 'codemodItem';
 	label: string;
-	commandToExecute: string;
 	pathToExecute: string;
 	description: string;
 }>;
+
+export type CodemodElement = CodemodItem | CodemodPath;
 
 export type CodemodPathWithChildren = Omit<CodemodPath, 'children'> & {
 	children: CodemodElementWithChildren[];
 };
 
-export type CodemodElement = CodemodItem | CodemodPath;
 export type CodemodElementWithChildren = CodemodItem | CodemodPathWithChildren;

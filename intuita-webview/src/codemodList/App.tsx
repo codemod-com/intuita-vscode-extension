@@ -1,16 +1,25 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import type { WebviewMessage, CodemodTreeNode } from '../shared/types';
+import type { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import './index.css';
+import { pipe } from 'fp-ts/lib/function';
+
+type CodemodView = Extract<View, { viewId: 'codemods' }>;
+
+const loadingContainer = (
+	<LoadingContainer>
+		<VSCodeProgressRing className="progressBar" />
+		<span aria-label="loading">Loading ...</span>
+	</LoadingContainer>
+);
 
 function App() {
-	const [publicCodemods, setPublicCodemods] = useState<
-		E.Either<Error, CodemodTreeNode<string> | null>
-	>(E.right(null));
+	const [view, setView] = useState<CodemodView | null>(null);
 
 	const [pathEditResponse, setPathEditResponse] = useState<
 		E.Either<Error, string | null>
@@ -20,9 +29,13 @@ function App() {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
-			if (message.kind === 'webview.codemods.setPublicCodemods') {
-				setPublicCodemods(message.data);
+			if (
+				message.kind === 'webview.global.setView' &&
+				message.value.viewId === 'codemods'
+			) {
+				setView(message.value);
 			}
+
 			if (message.kind === 'webview.codemodList.updatePathResponse') {
 				setPathEditResponse(message.data);
 			}
@@ -37,6 +50,23 @@ function App() {
 		};
 	}, []);
 
+	if (view === null) {
+		return <main className="App">{loadingContainer}</main>;
+	}
+
+	const { codemodTree } = view.viewProps;
+
+	const component = pipe(
+		codemodTree,
+		E.fold(
+			(error) => <p>{error.message}</p>,
+			O.fold(
+				() => loadingContainer,
+				(node) => <TreeView response={pathEditResponse} node={node} />,
+			),
+		),
+	);
+
 	return (
 		<main className="App">
 			<Container
@@ -44,24 +74,7 @@ function App() {
 				headerTitle="Public Codemods"
 				className="content-border-top h-full"
 			>
-				<div>
-					{E.isRight(publicCodemods) &&
-						(publicCodemods.right !== null ? (
-							<TreeView
-								response={pathEditResponse}
-								node={publicCodemods.right}
-							/>
-						) : (
-							<LoadingContainer>
-								<VSCodeProgressRing className="progressBar" />
-								<span aria-label="loading">Loading ...</span>
-							</LoadingContainer>
-						))}
-					{/* Error thrown while fetching codemods */}
-					{E.isLeft(publicCodemods) && (
-						<p>{publicCodemods.left.message}</p>
-					)}
-				</div>
+				<div>{component}</div>
 			</Container>
 		</main>
 	);

@@ -10,7 +10,9 @@ import {
 } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
 import {
+	CodemodTree,
 	CodemodTreeNode,
+	View,
 	WebviewMessage,
 	WebviewResponse,
 } from './webviewEvents';
@@ -22,6 +24,7 @@ import {
 } from '../../packageJsonAnalyzer/types';
 import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import { ElementKind } from '../../elements/types';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
@@ -110,6 +113,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
+	}
+
+	public setView(data: View) {
+		this.__postMessage({
+			kind: 'webview.global.setView',
+			value: data,
+		});
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -215,12 +225,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 	};
 
-	public async getCodemodTree() {
-		try {
-			if (!this.__engineBootstrapped) {
-				return;
-			}
+	private async __getCodemodTree(): Promise<CodemodTree> {
+		if (!this.__engineBootstrapped) {
+			return E.right(O.none);
+		}
 
+		try {
 			await this.__codemodService.getDiscoveredCodemods();
 
 			const codemodList = this.__getCodemod();
@@ -228,20 +238,29 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				this.__getTreeNode(codemod),
 			);
 
-			this.__postMessage({
-				kind: 'webview.codemods.setPublicCodemods',
-				data: E.right(treeNodes[0] ?? null),
-			});
+			if (!treeNodes[0]) {
+				return E.left(new Error('No codemods were found'));
+			}
+
+			return E.right(O.some(treeNodes[0]));
 		} catch (error) {
 			console.error(error);
 
-			if (error instanceof Error) {
-				this.__postMessage({
-					kind: 'webview.codemods.setPublicCodemods',
-					data: E.left(error),
-				});
-			}
+			const e = error instanceof Error ? error : new Error(String(error));
+
+			return E.left(e);
 		}
+	}
+
+	// TODO change to private & separate calculation from sending
+	public async getCodemodTree() {
+		const codemods = await this.__getCodemodTree();
+		this.setView({
+			viewId: 'codemods',
+			viewProps: {
+				codemodTree: codemods,
+			},
+		});
 	}
 
 	private __getTreeNode(

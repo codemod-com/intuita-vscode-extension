@@ -3,6 +3,7 @@ import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 
@@ -64,6 +65,8 @@ export type CodemodTreeNode<T = undefined> = {
 	children: CodemodTreeNode<T>[];
 	extraData?: T;
 };
+
+export type CodemodTree = E.Either<Error, O.Option<CodemodTreeNode<string>>>;
 
 export type CaseTreeNode = {
 	id: CaseHash;
@@ -137,10 +140,6 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.createPR.setPullRequestSubmitting';
 			value: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemods.setPublicCodemods';
-			data: E.Either<Error, CodemodTreeNode<string> | null>;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathResponse';
@@ -310,5 +309,11 @@ export type View =
 				error: string;
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
+			};
+	  }>
+	| Readonly<{
+			viewId: 'codemods';
+			viewProps: {
+				codemodTree: CodemodTree;
 			};
 	  }>;
