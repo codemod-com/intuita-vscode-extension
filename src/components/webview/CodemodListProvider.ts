@@ -89,7 +89,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					? input.substring(0, input.lastIndexOf('/') + 1)
 					: '';
 			const currAddingDir = input.substr(input.lastIndexOf('/') + 1);
-			const path = this.__rootPath + '/' + currAddedDir;
+			const path = currAddedDir;
 			const allPathsInDir = await readdir(path);
 			const completions = allPathsInDir.filter((path) =>
 				path.startsWith(currAddingDir),
