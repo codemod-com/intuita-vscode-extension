@@ -1,18 +1,7 @@
-import { readFileSync } from 'fs';
 import { capitalize, isNeitherNullNorUndefined } from '../utilities';
-import {
-	CodemodHash,
-	CodemodItem,
-	PackageUpgradeItem,
-	CodemodElement,
-} from './types';
+import { CodemodHash, CodemodElement } from './types';
 import { commandList } from './constants';
-import {
-	getDependencyUpgrades,
-	doesPathExist,
-	getPackageJsonUris,
-	buildCodemodElementHash,
-} from './utils';
+import { buildCodemodElementHash } from './utils';
 import { EngineService } from '../components/engineService';
 
 export class CodemodService {
@@ -169,85 +158,6 @@ export class CodemodService {
 		return this.#publicCodemods.get(codemodHash);
 	};
 
-	async getCodemods(): Promise<void> {
-		const rootPath = this.#rootPath ?? '';
-
-		const packageJsonList = await getPackageJsonUris();
-
-		const codemods: Map<CodemodHash, CodemodElement> = new Map();
-
-		for (const uri of packageJsonList) {
-			const pathExists = await doesPathExist(uri.fsPath);
-			if (!pathExists) {
-				continue;
-			}
-
-			const codemodsFromPackageJson = await this.getDepsInPackageJson(
-				uri.fsPath,
-			);
-
-			if (!codemodsFromPackageJson.size) {
-				continue;
-			}
-
-			const splitParts: readonly string[] = uri.fsPath
-				.replace('/package.json', '')
-				.replace(rootPath, '')
-				.split('/');
-
-			codemodsFromPackageJson.forEach((codemodItem, codemodHash) => {
-				codemods.set(codemodHash, codemodItem);
-			});
-
-			splitParts.forEach((part, index) => {
-				const currentWD = `${splitParts.slice(0, index + 1).join('/')}`;
-
-				const nextWD =
-					index + 1 < splitParts.length
-						? `${splitParts.slice(0, index + 2).join('/')}`
-						: null;
-				const nextLabel =
-					index + 1 < splitParts.length
-						? splitParts[index + 1]
-						: null;
-
-				const codemodPath = this.__makePathItem(currentWD, part);
-				const children = new Set<CodemodHash>();
-
-				if (!nextWD || !nextLabel) {
-					for (const codemodHash of codemodsFromPackageJson.keys()) {
-						children.add(codemodHash);
-					}
-				} else {
-					const nextPath = this.__makePathItem(nextWD, nextLabel);
-					children.add(nextPath.hash);
-				}
-
-				{
-					const current = codemods.get(codemodPath.hash);
-
-					if (current && current.kind === 'path') {
-						current.children.forEach((child) => {
-							children.add(child);
-						});
-
-						codemods.set(codemodPath.hash, {
-							...current,
-							children: Array.from(children),
-						});
-
-						return;
-					}
-				}
-
-				codemods.set(codemodPath.hash, {
-					...codemodPath,
-					children: Array.from(children),
-				});
-			});
-		}
-	}
-
 	public getListOfCodemodCommands() {
 		return Object.values(commandList);
 	}
@@ -292,53 +202,5 @@ export class CodemodService {
 				return 0;
 			});
 		return sortedChildren.map(({ hash }) => hash);
-	}
-
-	private async getDepsInPackageJson(
-		path: string,
-	): Promise<Map<CodemodHash, CodemodItem>> {
-		const pathExists = await doesPathExist(path);
-		if (!pathExists) {
-			return new Map();
-		}
-
-		const executionPath = path.replace('/package.json', '');
-		const document = JSON.parse(readFileSync(path, 'utf-8')) as {
-			dependencies: Record<string, string>;
-		};
-		const dependencyCodemods: PackageUpgradeItem[] = [];
-		const foundDependencies = document.dependencies;
-
-		for (const key in foundDependencies) {
-			const checkedDependencies = getDependencyUpgrades(
-				key,
-				foundDependencies[key] as string,
-			);
-			if (checkedDependencies.length !== 0) {
-				dependencyCodemods.push(...checkedDependencies);
-			}
-		}
-
-		const codemodsHashMap = new Map<CodemodHash, CodemodItem>();
-		dependencyCodemods
-			.filter((el) => el)
-			.forEach((codemod) => {
-				const command = commandList[codemod.id] as string;
-
-				const hashlessCodemodItem: Omit<CodemodItem, 'hash'> = {
-					commandToExecute: command,
-					pathToExecute: executionPath,
-					label: codemod.name,
-					kind: 'codemodItem',
-					description: `${codemod.kind} ${codemod.packageName} to ${codemod.latestVersionSupported}`,
-				};
-
-				const hash = buildCodemodElementHash(hashlessCodemodItem);
-				codemodsHashMap.set(hash, {
-					...hashlessCodemodItem,
-					hash,
-				});
-			});
-		return codemodsHashMap;
 	}
 }
