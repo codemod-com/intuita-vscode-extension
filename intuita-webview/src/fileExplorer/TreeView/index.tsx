@@ -1,7 +1,17 @@
 import ReactTreeView from 'react-treeview';
-import { Dispatch, ReactNode, SetStateAction, useEffect, useMemo } from 'react';
+import {
+	Dispatch,
+	ReactNode,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useMemo,
+} from 'react';
 import Tree from '../../shared/Tree';
-import { TreeNode } from '../../../../src/components/webview/webviewEvents';
+import {
+	JobHash,
+	TreeNode,
+} from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
@@ -10,15 +20,7 @@ import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
-
-type Props = {
-	node: TreeNode;
-	nodeIds: string[];
-	fileNodes: TreeNode[];
-	searchQuery: string;
-	focusedNodeId: string | null;
-	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
-};
+import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -56,6 +58,16 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
+type Props = {
+	node: TreeNode;
+	nodeIds: string[];
+	fileNodes: TreeNode[];
+	searchQuery: string;
+	focusedNodeId: string | null;
+	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
+	stagedJobs: JobHash[];
+};
+
 const TreeView = ({
 	node,
 	nodeIds,
@@ -63,12 +75,32 @@ const TreeView = ({
 	searchQuery,
 	focusedNodeId,
 	setFocusedNodeId,
+	stagedJobs,
 }: Props) => {
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const fileNodeIds = useMemo(
 		() => new Set(fileNodes.map((node) => node.id)),
 		[fileNodes],
 	);
+
+	const onToggleJob = useCallback(
+		(jobHash: JobHash) => {
+			const stagedJobsSet = new Set(stagedJobs);
+
+			if (stagedJobsSet.has(jobHash)) {
+				stagedJobsSet.delete(jobHash);
+			} else {
+				stagedJobsSet.add(jobHash);
+			}
+
+			vscode.postMessage({
+				kind: 'webview.global.stageJobs',
+				jobHashes: Array.from(stagedJobsSet),
+			});
+		},
+		[stagedJobs],
+	);
+
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
 		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
 		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
@@ -93,6 +125,8 @@ const TreeView = ({
 		focusedNodeId,
 		setFocusedNodeId,
 		index,
+		checked,
+		setChecked,
 	}: {
 		node: TreeNode;
 		depth: number;
@@ -101,12 +135,27 @@ const TreeView = ({
 		focusedNodeId: string | null;
 		setFocusedNodeId: (value: string) => void;
 		index: number;
+		checked: boolean;
+		setChecked: Dispatch<SetStateAction<boolean>>;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
+		const focused = node.id === focusedNodeId;
+		const hasChildren = node.children && node.children.length > 0;
+		const Checkbox = () => {
+			return (
+				<VSCodeCheckbox
+					onClick={() => {
+						onToggleJob(node.id as JobHash);
+						setChecked((prev) => !prev);
+					}}
+					checked={checked}
+				/>
+			);
+		};
 
 		return (
 			<TreeItem
-				hasChildren={(node.children?.length ?? 0) !== 0}
+				hasChildren={hasChildren}
 				id={node.id}
 				label={node.label ?? ''}
 				subLabel=""
@@ -114,15 +163,27 @@ const TreeView = ({
 				depth={depth}
 				kind={node.kind}
 				open={open}
-				focused={node.id === focusedNodeId}
+				focused={focused}
 				onClick={() => {
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={[]}
+				actionButtons={[!hasChildren && <Checkbox />]}
 				onPressChevron={() => {
 					setIsOpen(!open);
 				}}
 				index={index}
+				inlineStyles={{
+					...(!hasChildren && {
+						root: {
+							...(!focused && {
+								backgroundColor:
+									'var(--vscode-list-hoverBackground)',
+							}),
+							paddingRight: 0,
+						},
+					}),
+					actions: { display: 'flex' },
+				}}
 			/>
 		);
 	};

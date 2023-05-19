@@ -4,6 +4,7 @@ import TreeView from './TreeView';
 import styles from './style.module.css';
 
 import type {
+	JobHash,
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
@@ -15,6 +16,7 @@ function App() {
 	const [view, setView] = useState<MainViews | null>(null);
 	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
+	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -32,6 +34,10 @@ function App() {
 				message.id !== null
 			) {
 				setFocusedNodeId(message.id);
+			}
+
+			if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
+				setStagedJobs(message.value);
 			}
 		};
 
@@ -61,6 +67,7 @@ function App() {
 				searchQuery={searchQuery}
 				focusedNodeId={focusedNodeId}
 				setFocusedNodeId={setFocusedNodeId}
+				stagedJobs={stagedJobs}
 			/>
 		</main>
 	);

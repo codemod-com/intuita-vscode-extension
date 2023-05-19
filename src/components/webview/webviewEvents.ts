@@ -158,7 +158,7 @@ export type WebviewMessage =
 			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.updateStagedJobs';
+			kind: 'webview.fileExplorer.updateStagedJobs';
 			value: JobHash[];
 	  }>
 	| Readonly<{

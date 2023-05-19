@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, memo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { vscode } from '../utilities/vscode';
@@ -14,12 +14,16 @@ type Props = {
 		depth,
 		open,
 		setIsOpen,
+		checked,
+		setChecked,
 	}: {
 		index: number;
 		node: TreeNode;
 		depth: number;
 		open: boolean;
-		setIsOpen: (value: boolean) => void;
+		setIsOpen: Dispatch<SetStateAction<boolean>>;
+		checked: boolean;
+		setChecked: Dispatch<SetStateAction<boolean>>;
 	}): ReactNode;
 	focusedNodeId: string | null;
 };
@@ -27,6 +31,8 @@ type Props = {
 const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
 	const [open, setIsOpen] = useState(true);
+	const [checked, setChecked] = useState(true);
+
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (node.id !== focusedNodeId) {
 			return;
@@ -57,6 +63,8 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 		depth,
 		open,
 		setIsOpen,
+		checked,
+		setChecked,
 	});
 
 	if (hasNoChildren) {

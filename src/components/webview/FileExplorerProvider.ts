@@ -489,6 +489,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.global.focusView') {
 			commands.executeCommand('intuita.focusView', message.webviewName);
 		}
+
+		if (message.kind === 'webview.global.stageJobs') {
+			this.__jobManager.setAppliedJobs(message.jobHashes);
+			this.__postMessage({
+				kind: 'webview.fileExplorer.updateStagedJobs',
+				value: message.jobHashes,
+			});
+		}
 	};
 
 	private __attachWebviewEventListeners() {
