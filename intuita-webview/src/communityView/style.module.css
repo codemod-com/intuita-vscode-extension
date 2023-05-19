@@ -9,6 +9,12 @@
 	height: 24px;
 	display: block;
 	border-radius: 0px;
+	background-color: var(--vscode-list-background);
+	color: var(--vscode-foreground);
+}
+
+.button:hover {
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 /* VSCodeButton creates a shadow <button /> element with part='control' */
