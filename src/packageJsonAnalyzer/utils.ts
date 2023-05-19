@@ -7,7 +7,7 @@ export const buildCodemodElementHash = (
 ) => {
 	if (element.kind === 'codemodItem') {
 		return buildHash(
-			`${element.label}${element.commandToExecute}${element.pathToExecute}`,
+			`${element.label}${element.pathToExecute}`,
 		) as CodemodHash;
 	}
 

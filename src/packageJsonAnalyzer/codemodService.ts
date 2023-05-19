@@ -79,8 +79,6 @@ export class CodemodService {
 					nameParts[nameParts.length - 1] as string,
 				),
 				pathToExecute: path,
-				// TODO: remove codemod to execute (once cleaned up the codemod tree)
-				commandToExecute: name,
 				description,
 			};
 			discoveredCodemods.set(codemod.hash, codemod);
