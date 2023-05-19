@@ -169,18 +169,6 @@ export class CodemodService {
 		return this.#publicCodemods.get(codemodHash);
 	};
 
-	async getPackageJsonList() {
-		const packageJsonList = await getPackageJsonUris();
-		if (!packageJsonList.length) {
-			/**
-			 * return silently if no package.json is found
-			 */
-			return;
-		}
-
-		this.getCodemods();
-	}
-
 	async getCodemods(): Promise<void> {
 		const rootPath = this.#rootPath ?? '';
 
