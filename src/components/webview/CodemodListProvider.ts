@@ -186,25 +186,20 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const { codemodHash, newPath } = message.value;
-			const codemodItem =
-				this.__codemodService.getCodemodItem(codemodHash);
+			const { newPath } = message.value;
 
-			if (!codemodItem) {
-				return;
-			}
 			const path = `${this.__rootPath}${newPath}`;
+
 			try {
 				await workspace.fs.stat(Uri.file(path));
-				this.__codemodService.updateCodemodItemPath(codemodHash, path);
+
 				this.__postMessage({
 					kind: 'webview.codemodList.updatePathResponse',
-					data: E.right('Updated path'),
+					data: E.right(path),
 				});
 				window.showInformationMessage(
-					`Updated path for codemod ${codemodItem.label} `,
+					'Updated the codemod execution path',
 				);
-				this.getCodemodTree();
 			} catch (err) {
 				// for better error message , we reconstruct the error
 				const reConstructedError = new Error(
@@ -255,10 +250,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	// TODO change to private & separate calculation from sending
 	public async getCodemodTree() {
 		const codemods = await this.__getCodemodTree();
+		
 		this.setView({
 			viewId: 'codemods',
 			viewProps: {
 				codemodTree: codemods,
+				executionPath: '',
 			},
 		});
 	}

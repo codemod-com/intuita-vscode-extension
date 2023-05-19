@@ -324,5 +324,6 @@ export type View =
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
+				executionPath: E.Either<Error, string>;
 			};
 	  }>;
