@@ -32,11 +32,6 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 			{nodes.map((node, index) => {
 				return (
 					<TreeItem
-						style={{
-							...(node.caseApplied && {
-								opacity: 0.5,
-							}),
-						}}
 						key={node.id}
 						hasChildren={(node.children?.length ?? 0) !== 0}
 						id={node.id}

@@ -12,24 +12,13 @@ export type CodemodItem = Readonly<{
 	hash: CodemodHash;
 	kind: 'codemodItem';
 	label: string;
-	commandToExecute: string;
-	pathToExecute: string;
 	description: string;
 }>;
+
+export type CodemodElement = CodemodItem | CodemodPath;
 
 export type CodemodPathWithChildren = Omit<CodemodPath, 'children'> & {
 	children: CodemodElementWithChildren[];
 };
 
-export type CodemodElement = CodemodItem | CodemodPath;
 export type CodemodElementWithChildren = CodemodItem | CodemodPathWithChildren;
-
-export type PackageUpgradeItem = Readonly<{
-	id: string;
-	packageName: string;
-	name: string;
-	kind: 'upgrade' | 'migration' | 'remove';
-	leastVersionSupported: string;
-	latestVersionSupported: string;
-	leastSupportedUpgrade: string;
-}>;

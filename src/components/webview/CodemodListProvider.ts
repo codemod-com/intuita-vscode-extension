@@ -10,6 +10,7 @@ import {
 } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
 import {
+	CodemodTree,
 	CodemodTreeNode,
 	WebviewMessage,
 	WebviewResponse,
@@ -20,11 +21,13 @@ import {
 	CodemodElementWithChildren,
 	CodemodHash,
 } from '../../packageJsonAnalyzer/types';
-import { watchFileWithPattern } from '../../fileWatcher';
-import { debounce, getElementIconBaseName } from '../../utilities';
+import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
+import * as T from 'fp-ts/These';
 import { ElementKind } from '../../elements/types';
 import { readdir } from 'node:fs/promises';
+import type { SyntheticError } from '../../errors/types';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -32,6 +35,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
+
+	__codemodTree: CodemodTree = E.right(O.none);
+	__executionPath: T.These<SyntheticError, string> = T.right('/');
+	__autocompleteItems: string[] = [];
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -41,15 +48,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
+		this.__executionPath = T.right(__rootPath ?? '/');
+
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
-		const watcher = this.__watchPackageJson();
-		this.__messageBus.subscribe(MessageKind.extensionDeactivated, () => {
-			watcher?.dispose();
-		});
+
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
 			this.__engineBootstrapped = true;
-			this.getCodemodTree('public');
+			this.getCodemodTree();
 		});
 		this.__messageBus.subscribe(
 			MessageKind.showProgress,
@@ -140,11 +146,18 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__view?.webview.postMessage(message);
 	}
 
-	private __watchPackageJson() {
-		return watchFileWithPattern(
-			'**/package.json',
-			debounce(this.getCodemodTree.bind(this), 50),
-		);
+	public setView() {
+		this.__postMessage({
+			kind: 'webview.global.setView',
+			value: {
+				viewId: 'codemods',
+				viewProps: {
+					codemodTree: this.__codemodTree,
+					executionPath: this.__executionPath,
+					autocompleteItems: this.__autocompleteItems,
+				},
+			},
+		});
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -172,23 +185,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (
-				this.__codemodService
-					.getListOfCodemodCommands()
-					.includes(message.value.command)
-			) {
-				const args = message.value.arguments;
-				if (!args || !args[0]) {
-					throw new Error('Expected args[0] to be a path');
-				}
-				const path = args[0];
-				const parsedPath = Uri.file(path);
-				if (parsedPath) {
-					commands.executeCommand(message.value.command, parsedPath);
-				}
-
-				return;
-			}
 			if (message.value.command === 'openLink') {
 				commands.executeCommand(
 					'vscode.open',
@@ -216,9 +212,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			if (!codemod || codemod.kind === 'path') {
 				return;
 			}
-			const { pathToExecute, hash } = codemod;
 
-			const uri = Uri.file(pathToExecute);
+			const { hash } = codemod;
+
+			if (T.isLeft(this.__executionPath)) {
+				return;
+			}
+
+			const uri = Uri.file(this.__executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -228,107 +229,94 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const { codemodHash, newPath } = message.value;
-			const codemodItem =
-				this.__codemodService.getCodemodItem(codemodHash);
-			const isRecommended =
-				this.__codemodService.isRecommended(codemodHash);
-			if (!codemodItem) {
-				return;
-			}
-			const path = `${this.__rootPath}${newPath}`;
+			const { newPath } = message.value;
+
+			// const path = `${this.__rootPath}${newPath}`;
+
 			try {
-				await workspace.fs.stat(Uri.file(path));
-				this.__codemodService.updateCodemodItemPath(
-					isRecommended ? 'recommended' : 'public',
-					codemodHash,
-					path,
-				);
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.right('Updated path'),
-				});
+				await workspace.fs.stat(Uri.file(newPath));
+
+				this.__executionPath = E.right(newPath);
+
 				window.showInformationMessage(
-					`Updated path for codemod ${codemodItem.label} `,
+					'Updated the codemod execution path',
 				);
-				this.getCodemodTree(isRecommended ? 'recommended' : 'public');
-			} catch (err) {
-				// for better error message , we reconstruct the error
-				const reConstructedError = new Error(
-					'Path specified does not exist',
+			} catch (e) {
+				this.__executionPath = T.both<SyntheticError, string>(
+					{
+						kind: 'syntheticError',
+						message:
+							'The specified codemod execution path does not exist',
+					},
+					newPath,
 				);
-				const stringified = JSON.stringify(reConstructedError, [
-					'message',
-				]);
-				this.__postMessage({
-					kind: 'webview.codemodList.updatePathResponse',
-					data: E.left(JSON.parse(stringified)),
-				});
 			}
+
+			this.setView();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.getCodemodTree('public');
+			this.getCodemodTree();
 		}
 
 		if (message.kind === 'webview.codemodList.codemodPathChange') {
-			const autocompleteItems = await this.__getAutocompleteItems(
+				this.__autocompleteItems =  await this.__getAutocompleteItems(
 				message.codemodPath,
 			);
-			this.__postMessage({
-				kind: 'webview.codemodList.setAutocompleteItems',
-				autocompleteItems,
-			});
+
+			this.setView();
 		}
 	};
 
-	public async getCodemodTree(type: 'recommended' | 'public') {
-		const recommended = type === 'recommended';
+	private async __getCodemodTree(): Promise<CodemodTree> {
+		if (!this.__engineBootstrapped) {
+			return E.right(O.none);
+		}
+
 		try {
-			if (recommended) {
-				await this.__codemodService.getCodemods();
-			}
+			await this.__codemodService.getDiscoveredCodemods();
 
-			if (!recommended && !this.__engineBootstrapped) {
-				return;
-			}
-
-			if (!recommended) {
-				await this.__codemodService.getDiscoveredCodemods();
-			}
-
-			const codemodList = this.__getCodemod(recommended);
+			const codemodList = this.__getCodemod();
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod),
 			);
 
-			this.__postMessage({
-				kind: 'webview.codemods.setPublicCodemods',
-				data: E.right(treeNodes[0] ?? null),
-			});
+			if (!treeNodes[0]) {
+				return E.left({
+					kind: 'syntheticError',
+					message: 'No codemods were found',
+				});
+			}
+
+			return E.right(O.some(treeNodes[0]));
 		} catch (error) {
 			console.error(error);
 
-			if (error instanceof Error) {
-				this.__postMessage({
-					kind: 'webview.codemods.setPublicCodemods',
-					data: E.left(error),
-				});
-			}
+			const syntheticError: SyntheticError = {
+				kind: 'syntheticError',
+				message: error instanceof Error ? error.message : String(error),
+			};
+
+			return E.left(syntheticError);
 		}
+	}
+
+	// TODO change to private & separate calculation from sending
+	public async getCodemodTree() {
+		this.__codemodTree = await this.__getCodemodTree();
+
+		this.setView();
 	}
 
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
-	): CodemodTreeNode<string> {
-		const rootPath = this.__rootPath ?? '';
+	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
-			const { label, kind, pathToExecute, description, hash } =
-				codemodElement;
+			const { label, kind, description, hash } = codemodElement;
+
 			return {
 				kind,
 				label,
-				extraData: pathToExecute.replace(rootPath, '') || '/',
 				description: description,
 				iconName: getElementIconBaseName(ElementKind.CASE, null),
 				id: hash,
@@ -357,19 +345,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 
 	private __getCodemod(
-		recommended: boolean,
 		codemodHash?: CodemodHash,
 	): CodemodElementWithChildren[] {
-		const childrenHashes = this.__codemodService.getChildren(
-			recommended,
-			codemodHash,
-		);
+		const childrenHashes = this.__codemodService.getChildren(codemodHash);
 		const children: CodemodElementWithChildren[] = [];
 		childrenHashes.forEach((child) => {
-			const codemod = this.__codemodService.getCodemodElement(
-				recommended,
-				child,
-			);
+			const codemod = this.__codemodService.getCodemodElement(child);
 			if (!codemod) {
 				return;
 			}
@@ -378,7 +359,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
-			const childDescendents = this.__getCodemod(recommended, child);
+			const childDescendents = this.__getCodemod(child);
 
 			children.push({ ...codemod, children: childDescendents });
 		});

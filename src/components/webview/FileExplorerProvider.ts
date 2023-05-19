@@ -9,6 +9,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
+	FileTreeNode,
 	TreeNode,
 	View,
 	WebviewMessage,
@@ -48,10 +49,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__elementMap = new Map<ElementHash, Element>();
 	__folderMap = new Map<string, TreeNode>();
 	// map between URIs to the File Tree Node and the job hash
-	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
+	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
-	__lastSelectedFileNode: TreeNode | null = null;
+	__lastSelectedNodeId: string | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -111,6 +112,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__view?.show();
 	}
 
+	public setCaseHash(caseHash: CaseHash) {
+		this.__lastSelectedCaseHash = caseHash;
+	}
+
 	public updateExplorerView(caseHash: CaseHash) {
 		if (caseHash === null) {
 			return;
@@ -135,6 +140,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const caseElement = caseElements.find(
 			(kase) => kase.hash === (caseHash as unknown as ElementHash),
 		);
+
 		if (!caseElement) {
 			return;
 		}
@@ -145,6 +151,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const tree = this.__getTreeByDirectory(caseElement);
 
 		if (tree) {
+			console.log('SET');
 			this.setView({
 				viewId: 'treeView',
 				viewProps: {
@@ -153,15 +160,16 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					fileNodes: Array.from(this.__fileNodes.values()).map(
 						(obj) => obj.node,
 					),
+					caseHash,
 				},
 			});
 		}
 	}
 
-	public focusFile() {
+	public focusNode() {
 		this.__postMessage({
-			kind: 'webview.fileExplorer.focusFile',
-			id: this.__lastSelectedFileNode?.id ?? null,
+			kind: 'webview.fileExplorer.focusNode',
+			id: this.__lastSelectedNodeId ?? null,
 		});
 	}
 
@@ -226,7 +234,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 				path += `/${dir}`;
 				if (!this.__folderMap.has(path)) {
-					const newTreeNode: TreeNode =
+					const newTreeNode =
 						dir === fileName
 							? {
 									id: path,
@@ -237,6 +245,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										jobKind ?? null,
 									),
 									children: [],
+									jobHash,
 							  }
 							: {
 									id: path,
@@ -249,7 +258,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					if (dir === fileName) {
 						this.__fileNodes.set(path, {
 							jobHash,
-							node: newTreeNode,
+							node: newTreeNode as FileTreeNode,
 						});
 					}
 					this.__folderMap.set(path, newTreeNode);
@@ -437,7 +446,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
-			this.__lastSelectedFileNode = fileNodeObj.node;
+			this.__lastSelectedNodeId = fileNodeObj.node.id;
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -483,11 +492,43 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 			const folderPath = message.id;
+			this.__lastSelectedNodeId = folderPath;
 			panelInstance.focusFolder(folderPath);
 		}
 
 		if (message.kind === 'webview.global.focusView') {
 			commands.executeCommand('intuita.focusView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.fileExplorer.disposeView') {
+			commands.executeCommand('intuita.disposeView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.global.discardChanges') {
+			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		}
+
+		if (message.kind === 'webview.global.applySelected') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message,
+			);
+		}
+
+		if (message.kind === 'webview.global.stageJobs') {
+			this.__jobManager.setAppliedJobs(message.jobHashes);
+			this.__postMessage({
+				kind: 'webview.fileExplorer.updateStagedJobs',
+				value: message.jobHashes,
+			});
+		}
+
+		if (message.kind === 'webview.global.afterWebviewMounted') {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+			this.showView();
+			this.updateExplorerView(this.__lastSelectedCaseHash);
 		}
 	};
 

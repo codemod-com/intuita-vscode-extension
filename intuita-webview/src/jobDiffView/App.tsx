@@ -5,7 +5,6 @@ import {
 	WebviewMessage,
 	JobDiffViewProps,
 	JobAction,
-	JobHash,
 } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
@@ -15,7 +14,6 @@ type MainViews = Extract<View, { viewId: 'jobDiffView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 	const [jobIndex, setJobIndex] = useState<number>(0);
 	const eventHandler = useCallback(
 		(event: MessageEvent<WebviewMessage>) => {
@@ -69,19 +67,9 @@ function App() {
 
 				setJobIndex(index);
 			}
-
-			if (message.kind === 'webview.diffView.updateStagedJobs') {
-				setStagedJobs(message.value);
-			}
 		},
 		[view],
 	);
-
-	useEffect(() => {
-		if (view?.viewProps && view.viewId === 'jobDiffView') {
-			setStagedJobs(view.viewProps.stagedJobs);
-		}
-	}, [view?.viewId, view?.viewProps]);
 
 	useEffect(() => {
 		window.addEventListener('message', eventHandler);
@@ -110,17 +98,18 @@ function App() {
 		return <LoadingProgress />;
 	}
 
-	const { data, diffId, showHooksCTA } = view.viewProps;
+	const { data, showHooksCTA } = view.viewProps;
 	const job = data[jobIndex];
 
 	return (
 		<main className="App">
 			<JobDiffViewContainer
-				diffId={diffId}
 				jobs={job ? [job] : []}
-				stagedJobs={stagedJobs}
 				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
+				totalJobsCount={data.length}
+				jobIndex={jobIndex}
+				setJobIndex={setJobIndex}
 			/>
 		</main>
 	);
