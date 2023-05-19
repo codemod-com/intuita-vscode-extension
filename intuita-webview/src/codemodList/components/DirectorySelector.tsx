@@ -4,6 +4,25 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 
+const getAutocompleteContent = (
+	currentValue: string,
+	autocompleteItems: string[],
+	index: number = 0,
+) => {
+	const autocompleteItem = autocompleteItems[index];
+
+	if (autocompleteItem === undefined) {
+		return null;
+	}
+
+	const currAddedDir =
+		currentValue.indexOf('/') !== -1
+			? currentValue.substring(0, currentValue.lastIndexOf('/') + 1)
+			: '';
+
+	return `${currAddedDir}${autocompleteItem}`;
+};
+
 type Props = {
 	defaultValue: string;
 	error: { value: string; timestamp: number } | null;
@@ -14,14 +33,19 @@ type Props = {
 export const DirectorySelector = ({
 	defaultValue,
 	onEditDone,
-	onChange, 
+	onChange,
 	error,
 	autocompleteItems,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
 
-	const firstItem = autocompleteItems[0] ?? null;
+	// currently always 0, in future switch items with Tab;
+	const autocompleteContent = getAutocompleteContent(
+		value,
+		autocompleteItems,
+		0,
+	);
 
 	useEffect(() => {
 		setShowError(error);
@@ -37,7 +61,9 @@ export const DirectorySelector = ({
 	return (
 		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full">
-				<span className="autocomplete">{firstItem}</span>
+				{autocompleteContent ? (
+					<span className="autocomplete">{autocompleteContent}</span>
+				) : null}
 				<VSCodeTextField
 					className="flex-1"
 					value={value}

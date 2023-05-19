@@ -28,7 +28,7 @@ function App() {
 			if (message.kind === 'webview.codemodList.updatePathResponse') {
 				setPathEditResponse(message.data);
 			}
-			if(message.kind === 'webview.codemodList.setAutocompleteItems') {
+			if (message.kind === 'webview.codemodList.setAutocompleteItems') {
 				setAutocompleteItems(message.autocompleteItems);
 			}
 		};

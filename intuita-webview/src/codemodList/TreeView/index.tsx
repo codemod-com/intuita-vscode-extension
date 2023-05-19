@@ -17,7 +17,7 @@ import Popup from 'reactjs-popup';
 import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import {debounce} from '../../../../src/utilities';
+import debounce from '../../shared/utilities/debounce';
 
 type Props = Readonly<{
 	node: CodemodTreeNode<string>;
@@ -25,11 +25,17 @@ type Props = Readonly<{
 	autocompleteItems: string[];
 }>;
 
-const handleCodemodPathChange = debounce((codemodPath: string) => {
+const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
+	const codemodPath = rawCodemodPath.trim();
+
+	if (codemodPath.length < 3) {
+		return;
+	}
+
 	vscode.postMessage({
-		kind: 'webview.codemodList.codemodPathChange', 
-		codemodPath
-	})
+		kind: 'webview.codemodList.codemodPathChange',
+		codemodPath,
+	});
 }, 300);
 
 export const containsCodemodHashDigest = (
@@ -339,7 +345,6 @@ const TreeView = ({ node, response, autocompleteItems }: Props) => {
 			},
 		});
 	};
-
 
 	return (
 		<div>

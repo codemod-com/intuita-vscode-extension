@@ -94,3 +94,17 @@
 .h-full {
 	height: 100%;
 }
+
+.autocomplete {
+	position: absolute;
+	z-index: 1001;
+	opacity: 0.7;
+	padding: 0 calc(var(--design-unit) * 2px + 2px);
+	margin-top: auto;
+	margin-bottom: auto;
+	display: block;
+	font-size: var(--type-ramp-base-font-size);
+	/* @TODO hardcoded values */
+	line-height: 26px;
+	height: 26px;
+}

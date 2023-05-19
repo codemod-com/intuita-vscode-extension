@@ -190,8 +190,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
-			
-
 			commands.executeCommand(
 				message.value.command,
 				...(message.value.arguments ?? []),
@@ -266,12 +264,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.getCodemodTree('public');
 		}
 
-		if(message.kind === 'webview.codemodList.codemodPathChange') {
-			const autocompleteItems = await this.__getAutocompleteItems(message.codemodPath);
+		if (message.kind === 'webview.codemodList.codemodPathChange') {
+			const autocompleteItems = await this.__getAutocompleteItems(
+				message.codemodPath,
+			);
 			this.__postMessage({
-				kind: 'webview.codemodList.setAutocompleteItems', 
-				autocompleteItems
-			})
+				kind: 'webview.codemodList.setAutocompleteItems',
+				autocompleteItems,
+			});
 		}
 	};
 
