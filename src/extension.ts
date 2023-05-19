@@ -1027,6 +1027,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
+				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
 			},

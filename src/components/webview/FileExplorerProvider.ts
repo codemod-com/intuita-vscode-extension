@@ -112,6 +112,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__view?.show();
 	}
 
+	public setCaseHash(caseHash: CaseHash) {
+		this.__lastSelectedCaseHash = caseHash;
+	}
+
 	public updateExplorerView(caseHash: CaseHash) {
 		if (caseHash === null) {
 			return;
@@ -136,6 +140,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const caseElement = caseElements.find(
 			(kase) => kase.hash === (caseHash as unknown as ElementHash),
 		);
+
 		if (!caseElement) {
 			return;
 		}
@@ -146,6 +151,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const tree = this.__getTreeByDirectory(caseElement);
 
 		if (tree) {
+			console.log('SET');
 			this.setView({
 				viewId: 'treeView',
 				viewProps: {
@@ -515,6 +521,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				kind: 'webview.fileExplorer.updateStagedJobs',
 				value: message.jobHashes,
 			});
+		}
+
+		if (message.kind === 'webview.global.afterWebviewMounted') {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+			this.showView();
+			this.updateExplorerView(this.__lastSelectedCaseHash);
 		}
 	};
 

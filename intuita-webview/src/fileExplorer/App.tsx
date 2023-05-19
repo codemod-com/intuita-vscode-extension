@@ -10,6 +10,7 @@ import type {
 } from '../../../src/components/webview/webviewEvents';
 import SearchBar from './SearchBar';
 import ActionsHeader from './ActionsHeader';
+import { vscode } from '../shared/utilities/vscode';
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
@@ -48,6 +49,7 @@ function App() {
 		};
 
 		window.addEventListener('message', handler);
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
