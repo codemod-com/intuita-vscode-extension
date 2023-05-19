@@ -259,15 +259,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			console.error(error);
 
 			const syntheticError: SyntheticError =
-				error instanceof Error
-					? {
+					{
 							kind: 'syntheticError',
-							message: error.message,
+							message: error instanceof Error ? error.message : String(error),
 					  }
-					: {
-							kind: 'syntheticError',
-							message: String(error),
-					  };
 
 			return E.left(syntheticError);
 		}
