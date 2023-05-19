@@ -27,14 +27,11 @@ export class CodemodService {
 		this.#rootPath = rootPath;
 	}
 	updateCodemodItemPath = (
-		type: 'recommended' | 'public',
+		type: 'public',
 		codemodHash: CodemodHash,
 		newPath: string,
 	) => {
-		const codemodItem =
-			type === 'recommended'
-				? this.#codemodItemsMap.get(codemodHash)
-				: this.#publicCodemods.get(codemodHash);
+		const codemodItem = this.#publicCodemods.get(codemodHash);
 		if (!codemodItem || codemodItem.kind === 'path') {
 			return;
 		}
@@ -42,11 +39,8 @@ export class CodemodService {
 			...codemodItem,
 			pathToExecute: newPath,
 		};
-		if (type === 'recommended') {
-			this.#codemodItemsMap.set(codemodHash, newCodemodItem);
-		} else {
-			this.#publicCodemods.set(codemodHash, newCodemodItem);
-		}
+
+		this.#publicCodemods.set(codemodHash, newCodemodItem);
 	};
 
 	__makePathItem(path: string, label: string) {

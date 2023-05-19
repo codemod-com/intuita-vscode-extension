@@ -216,7 +216,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			try {
 				await workspace.fs.stat(Uri.file(path));
 				this.__codemodService.updateCodemodItemPath(
-					isRecommended ? 'recommended' : 'public',
+					'public',
 					codemodHash,
 					path,
 				);
