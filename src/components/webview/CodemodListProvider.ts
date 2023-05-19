@@ -44,6 +44,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
+		this.__executionPath = E.right(__rootPath ?? '/');
+
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
@@ -201,12 +203,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 			const { newPath } = message.value;
 
-			const path = `${this.__rootPath}${newPath}`;
+			// const path = `${this.__rootPath}${newPath}`;
 
 			try {
-				await workspace.fs.stat(Uri.file(path));
+				await workspace.fs.stat(Uri.file(newPath));
 
-				this.__executionPath = E.right(path);
+				this.__executionPath = E.right(newPath);
 
 				window.showInformationMessage(
 					'Updated the codemod execution path',
