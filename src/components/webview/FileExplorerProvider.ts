@@ -51,7 +51,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
-	__lastSelectedFileNode: TreeNode | null = null;
+	__lastSelectedNodeId: string | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -158,10 +158,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 	}
 
-	public focusFile() {
+	public focusNode() {
 		this.__postMessage({
-			kind: 'webview.fileExplorer.focusFile',
-			id: this.__lastSelectedFileNode?.id ?? null,
+			kind: 'webview.fileExplorer.focusNode',
+			id: this.__lastSelectedNodeId ?? null,
 		});
 	}
 
@@ -437,7 +437,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
-			this.__lastSelectedFileNode = fileNodeObj.node;
+			this.__lastSelectedNodeId = fileNodeObj.node.id;
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -483,6 +483,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 			const folderPath = message.id;
+			this.__lastSelectedNodeId = folderPath;
 			panelInstance.focusFolder(folderPath);
 		}
 

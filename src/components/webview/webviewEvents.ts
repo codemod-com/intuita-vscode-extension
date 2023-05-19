@@ -162,7 +162,7 @@ export type WebviewMessage =
 			value: JobHash[];
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.focusFile';
+			kind: 'webview.fileExplorer.focusNode';
 			id: string | null;
 	  }>;
 

@@ -38,7 +38,7 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 			return;
 		}
 
-		if (key === 'ArrowRight' && hasNoChildren) {
+		if (key === 'ArrowRight') {
 			vscode.postMessage({
 				kind: 'webview.global.focusView',
 				webviewName: 'diffView',

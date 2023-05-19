@@ -30,7 +30,7 @@ function App() {
 			}
 
 			if (
-				message.kind === 'webview.fileExplorer.focusFile' &&
+				message.kind === 'webview.fileExplorer.focusNode' &&
 				message.id !== null
 			) {
 				setFocusedNodeId(message.id);

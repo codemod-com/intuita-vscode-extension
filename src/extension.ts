@@ -319,7 +319,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				if (webviewName === 'changeExplorer') {
-					fileExplorerProvider.focusFile();
+					fileExplorerProvider.focusNode();
 				}
 
 				if (webviewName === 'diffView' && rootPath !== null) {
