@@ -5,25 +5,6 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import { KeyboardEvent } from 'react';
 
-const getAutocompleteValue = (
-	currentValue: string,
-	autocompleteItems: string[],
-	index: number = 0,
-) => {
-	const autocompleteItem = autocompleteItems[index];
-	
-	if (autocompleteItem === undefined) {
-		return null;
-	}
-	
-	const currAddedDir =
-	currentValue.indexOf('/') !== -1
-	? currentValue.substring(0, currentValue.lastIndexOf('/') + 1)
-			: '';
-			
-	console.log(autocompleteItems, autocompleteItem, currAddedDir, 'test');
-	return `${currAddedDir}${autocompleteItem}`;
-};
 
 type Props = {
 	defaultValue: string;
@@ -43,12 +24,17 @@ export const DirectorySelector = ({
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
 
-	const autocompleteContent = getAutocompleteValue(
-		value,
-		autocompleteItems,
-		autocompleteIndex,
-	);
+	const validAutocompleteItems = autocompleteItems.filter(item => item.startsWith(value));
+	console.log(value, validAutocompleteItems, autocompleteItems, autocompleteIndex,  'test');
 
+	useEffect(() => {
+		console.log('HERE');
+		setAutocompleteIndex(0);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [validAutocompleteItems.join()])
+
+	const autocompleteContent = validAutocompleteItems[autocompleteIndex];
+	console.log(autocompleteContent, 'autocompleteContent');
 	useEffect(() => {
 		setShowError(error);
 	}, [error]);
@@ -58,7 +44,6 @@ export const DirectorySelector = ({
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
 		onChange(value);
-		setAutocompleteIndex(0);
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -67,10 +52,10 @@ export const DirectorySelector = ({
 		}
 
 		const nextAutocompleteIndex = (autocompleteIndex + 1) % autocompleteItems.length;
-
-		e.preventDefault();
-		setValue((prevValue) =>  getAutocompleteValue(prevValue, autocompleteItems, autocompleteIndex) ?? prevValue);
+		console.log(nextAutocompleteIndex)
+		setValue((prevValue) =>  autocompleteItems[autocompleteIndex] ?? prevValue);
 		setAutocompleteIndex(nextAutocompleteIndex);
+		e.preventDefault();
 	}
 
 	return (
