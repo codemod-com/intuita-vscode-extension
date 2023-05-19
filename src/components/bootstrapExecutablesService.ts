@@ -1,7 +1,6 @@
 import { FileSystem, Uri } from 'vscode';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
-import { StatusBarItemManager } from './statusBarItemManager';
 
 // aka bootstrap engines
 export class BootstrapExecutablesService {
@@ -9,20 +8,17 @@ export class BootstrapExecutablesService {
 	#globalStorageUri: Uri;
 	#fileSystem: FileSystem;
 	#messageBus: MessageBus;
-	#statusBarItemManager: StatusBarItemManager;
 
 	constructor(
 		downloadService: DownloadService,
 		globalStorageUri: Uri,
 		fileSystem: FileSystem,
 		messageBus: MessageBus,
-		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#downloadService = downloadService;
 		this.#globalStorageUri = globalStorageUri;
 		this.#fileSystem = fileSystem;
 		this.#messageBus = messageBus;
-		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe(MessageKind.bootstrapEngine, () =>
 			this.#onBootstrapEngines(),
@@ -32,13 +28,9 @@ export class BootstrapExecutablesService {
 	async #onBootstrapEngines() {
 		await this.#fileSystem.createDirectory(this.#globalStorageUri);
 
-		this.#statusBarItemManager.moveToBootstrap();
-
 		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
 		const noraNodeEngineExecutableUri =
 			await this.#bootstrapNoraNodeEngineExecutableUri();
-
-		this.#statusBarItemManager.moveToStandby();
 
 		this.#messageBus.publish({
 			kind: MessageKind.engineBootstrapped,

@@ -12,7 +12,6 @@ import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
-import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
 import { getPersistedState } from './persistedState/getPersistedState';
 import {
@@ -99,23 +98,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
-	const statusBarItem = vscode.window.createStatusBarItem(
-		'intuita.statusBarItem',
-		vscode.StatusBarAlignment.Right,
-		100,
-	);
-
-	statusBarItem.command = 'intuita.shutdownEngines';
-
-	context.subscriptions.push(statusBarItem);
-
-	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
-
 	const engineService = new EngineService(
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
-		statusBarItemManager,
 	);
 
 	new BootstrapExecutablesService(
@@ -123,7 +109,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
-		statusBarItemManager,
 	);
 
 	const gitExtension =

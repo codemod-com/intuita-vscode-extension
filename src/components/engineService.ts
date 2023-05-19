@@ -15,7 +15,6 @@ import {
 	streamToString,
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { StatusBarItemManager } from './statusBarItemManager';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 
@@ -129,7 +128,6 @@ export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
-	readonly #statusBarItemManager: StatusBarItemManager;
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
@@ -138,12 +136,10 @@ export class EngineService {
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
-		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 		this.#fileSystem = fileSystem;
-		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe(MessageKind.engineBootstrapped, (message) =>
 			this.#onEnginesBootstrappedMessage(message),
@@ -435,7 +431,6 @@ export class EngineService {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
-				this.#statusBarItemManager.moveToProgress(message.p, message.t);
 				this.#messageBus.publish({
 					kind: MessageKind.showProgress,
 					totalFiles: message.t,
@@ -587,8 +582,6 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			this.#statusBarItemManager.moveToStandby();
-
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
