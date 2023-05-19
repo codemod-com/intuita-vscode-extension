@@ -24,6 +24,7 @@ import {
 import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
+import * as T from 'fp-ts/These';
 import { ElementKind } from '../../elements/types';
 import type { SyntheticError } from '../../errors/types';
 
@@ -35,7 +36,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 
 	__codemodTree: CodemodTree = E.right(O.none);
-	__executionPath: E.Either<SyntheticError, string> = E.right('/');
+	__executionPath: T.These<SyntheticError, string> = T.right('/');
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -45,7 +46,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
-		this.__executionPath = E.right(__rootPath ?? '/');
+		this.__executionPath = T.right(__rootPath ?? '/');
 
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -188,7 +189,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			const { hash } = codemod;
 
-			if (E.isLeft(this.__executionPath)) {
+			if (T.isLeft(this.__executionPath)) {
 				return;
 			}
 
@@ -215,11 +216,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					'Updated the codemod execution path',
 				);
 			} catch (e) {
-				this.__executionPath = E.left<SyntheticError>({
-					kind: 'syntheticError',
-					message:
-						'The specified codemod execution path does not exist',
-				});
+				this.__executionPath = T.both<SyntheticError, string>(
+					{
+						kind: 'syntheticError',
+						message:
+							'The specified codemod execution path does not exist',
+					},
+					newPath,
+				);
 			}
 
 			this.setView();
