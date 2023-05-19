@@ -68,6 +68,9 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 
 	return (
 		<div className={styles.root}>
+			<h4
+				className={styles.selectedFileCount}
+			>{`Selected files: ${stagedJobs.length} of ${fileNodes.length}`}</h4>
 			<Popover
 				trigger={
 					<VSCodeButton

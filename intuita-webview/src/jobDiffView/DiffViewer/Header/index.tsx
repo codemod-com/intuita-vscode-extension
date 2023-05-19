@@ -6,21 +6,67 @@ import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 import styles from './style.module.css';
 
 import HooksCTA from './HooksCTA';
+import cn from 'classnames';
+import Popover from '../../../shared/Popover';
+import { Dispatch, SetStateAction } from 'react';
 
 type Props = Readonly<{
 	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	onViewChange(value: DiffViewType): void;
+	totalJobsCount: number;
+	jobIndex: number;
+	setJobIndex: Dispatch<SetStateAction<number>>;
 }>;
 
-const Header = ({ viewType, onViewChange, showHooksCTA }: Props) => {
+const Header = ({
+	viewType,
+	onViewChange,
+	showHooksCTA,
+	totalJobsCount,
+	jobIndex,
+	setJobIndex,
+}: Props) => {
 	return (
 		<div className={styles.root}>
+			<div className={styles.actionsContainer}>
+				<Popover
+					trigger={
+						<VSCodeButton
+							disabled={jobIndex === 0}
+							appearance="icon"
+							onClick={() => {
+								setJobIndex((prev) => prev - 1);
+							}}
+						>
+							<span
+								className={cn('codicon', 'codicon-arrow-left')}
+							/>
+						</VSCodeButton>
+					}
+					popoverText="Move to the previous file"
+				/>
+				<Popover
+					trigger={
+						<VSCodeButton
+							disabled={jobIndex === totalJobsCount - 1}
+							appearance="icon"
+							onClick={() => {
+								setJobIndex((prev) => prev + 1);
+							}}
+						>
+							<span
+								className={cn('codicon', 'codicon-arrow-right')}
+							/>
+						</VSCodeButton>
+					}
+					popoverText="Move to the next file"
+				/>
+			</div>
 			<div className={styles.buttonGroup}>
-				{showHooksCTA ? (
-					<HooksCTA style={{ marginRight: '5px' }} />
-				) : null}
+				<h4>{`${jobIndex + 1} / ${totalJobsCount}`}</h4>
+				{showHooksCTA ? <HooksCTA /> : null}
 				{viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"

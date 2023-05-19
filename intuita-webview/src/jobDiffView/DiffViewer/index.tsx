@@ -1,4 +1,12 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import {
+	Dispatch,
+	FC,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
@@ -24,6 +32,9 @@ type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
 	showHooksCTA: boolean;
+	totalJobsCount: number;
+	jobIndex: number;
+	setJobIndex: Dispatch<SetStateAction<number>>;
 }>;
 
 type DiffItem = Readonly<{
@@ -33,6 +44,7 @@ type DiffItem = Readonly<{
 	containerHeight: number;
 	expanded: boolean;
 }>;
+
 type DiffData = Record<JobHash, DiffItem>;
 
 const defaultHeight = 1200;
@@ -41,6 +53,9 @@ export const JobDiffViewContainer = ({
 	jobs,
 	postMessage,
 	showHooksCTA,
+	totalJobsCount,
+	jobIndex,
+	setJobIndex,
 }: JobDiffViewContainerProps) => {
 	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -201,6 +216,9 @@ export const JobDiffViewContainer = ({
 				viewType={viewType}
 				jobs={jobs}
 				showHooksCTA={showHooksCTA}
+				totalJobsCount={totalJobsCount}
+				jobIndex={jobIndex}
+				setJobIndex={setJobIndex}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<ListComponent
