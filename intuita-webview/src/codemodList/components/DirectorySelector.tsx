@@ -29,19 +29,16 @@ export const DirectorySelector = ({
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
-	const [appliedAutocomplete, setAppliedAutocomplete] = useState(false);
-	const validAutocompleteItems = autocompleteItems.filter(
-		(item) => appliedAutocomplete || (value && item.startsWith(value)),
-	);
-
+	
 	removeInputBackground();
 
 	useEffect(() => {
 		setAutocompleteIndex(0);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [validAutocompleteItems.join()]);
+	}, [autocompleteItems.join()]);
 
-	const autocompleteContent = validAutocompleteItems[autocompleteIndex];
+	const autocompleteContent = autocompleteItems[autocompleteIndex];
+
 	useEffect(() => {
 		setShowError(error);
 	}, [error]);
@@ -51,7 +48,6 @@ export const DirectorySelector = ({
 		const value = (e.target as HTMLInputElement).value;
 		setValue(value);
 		onChange(value);
-		setAppliedAutocomplete(false);
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -59,14 +55,17 @@ export const DirectorySelector = ({
 			return;
 		}
 
-		const nextAutocompleteIndex =
-			(autocompleteIndex + 1) % validAutocompleteItems.length;
+		let nextAutocompleteIndex = autocompleteIndex;
+
+		if(autocompleteItems[nextAutocompleteIndex] === value) {
+			nextAutocompleteIndex =
+			(autocompleteIndex + 1) % autocompleteItems.length;
+		}
 
 		setValue(
 			(prevValue) =>
-				validAutocompleteItems[autocompleteIndex] ?? prevValue,
+			autocompleteItems[nextAutocompleteIndex] ?? prevValue,
 		);
-		setAppliedAutocomplete(true);
 		setAutocompleteIndex(nextAutocompleteIndex);
 		e.preventDefault();
 	};
@@ -74,7 +73,7 @@ export const DirectorySelector = ({
 	return (
 		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full overflow-hidden input-background relative">
-				{autocompleteContent && !appliedAutocomplete ? (
+				{autocompleteContent ? (
 					<span className="autocomplete">{autocompleteContent}</span>
 				) : null}
 				<VSCodeTextField

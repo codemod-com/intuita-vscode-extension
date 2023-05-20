@@ -38,7 +38,7 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 		kind: 'webview.codemodList.codemodPathChange',
 		codemodPath,
 	});
-}, 300);
+}, 50);
 
 export const containsCodemodHashDigest = (
 	node: CodemodTreeNode,
