@@ -82,12 +82,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	// @TODO cache result if we hit same dir
 	async __getAutocompleteItems(path: string): Promise<string[]> {
 		try {
-			const { dir, base } =  parse(path);
+			const { dir, base } = path.endsWith('/')
+				? { dir: path, base: '' }
+				: parse(path);
 			const paths = await readdir(dir);
-
-			const completions = paths.filter((path) =>
-				path.startsWith(base),
-			);
+			const completions = paths.filter((path) => path.startsWith(base));
 
 			return completions.map((completion) => join(dir, completion));
 		} catch (e) {

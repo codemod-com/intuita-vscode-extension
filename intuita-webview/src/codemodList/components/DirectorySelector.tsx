@@ -56,8 +56,9 @@ export const DirectorySelector = ({
 		}
 
 		let nextAutocompleteIndex = autocompleteIndex;
+		const completed = autocompleteItems[nextAutocompleteIndex] === value;
 
-		if (autocompleteItems[nextAutocompleteIndex] === value) {
+		if (completed) {
 			nextAutocompleteIndex =
 				(autocompleteIndex + 1) % autocompleteItems.length;
 		}
