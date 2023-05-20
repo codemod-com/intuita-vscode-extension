@@ -29,7 +29,7 @@ export const DirectorySelector = ({
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
-	
+
 	removeInputBackground();
 
 	useEffect(() => {
@@ -57,14 +57,14 @@ export const DirectorySelector = ({
 
 		let nextAutocompleteIndex = autocompleteIndex;
 
-		if(autocompleteItems[nextAutocompleteIndex] === value) {
+		if (autocompleteItems[nextAutocompleteIndex] === value) {
 			nextAutocompleteIndex =
-			(autocompleteIndex + 1) % autocompleteItems.length;
+				(autocompleteIndex + 1) % autocompleteItems.length;
 		}
 
 		setValue(
 			(prevValue) =>
-			autocompleteItems[nextAutocompleteIndex] ?? prevValue,
+				autocompleteItems[nextAutocompleteIndex] ?? prevValue,
 		);
 		setAutocompleteIndex(nextAutocompleteIndex);
 		e.preventDefault();
