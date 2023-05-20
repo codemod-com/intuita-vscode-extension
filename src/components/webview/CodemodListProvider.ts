@@ -27,6 +27,7 @@ import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import { ElementKind } from '../../elements/types';
 import { readdir } from 'node:fs/promises';
+import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
@@ -78,24 +79,17 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
-	async __getAutocompleteItems(input: string): Promise<string[]> {
-		if (!this.__rootPath) {
-			return [];
-		}
-
+	// @TODO cache result if we hit same dir
+	async __getAutocompleteItems(path: string): Promise<string[]> {
 		try {
-			const currAddedDir =
-				input.indexOf('/') !== -1
-					? input.substring(0, input.lastIndexOf('/') + 1)
-					: '';
-			const currAddingDir = input.substr(input.lastIndexOf('/') + 1);
-			const path = currAddedDir;
-			const allPathsInDir = await readdir(path);
-			const completions = allPathsInDir.filter((path) =>
-				path.startsWith(currAddingDir),
+			const { dir, base } =  parse(path);
+			const paths = await readdir(dir);
+
+			const completions = paths.filter((path) =>
+				path.startsWith(base),
 			);
 
-			return completions.map((c) => `${currAddedDir}${c}`);
+			return completions.map((completion) => join(dir, completion));
 		} catch (e) {
 			return [];
 		}
