@@ -25,10 +25,33 @@ import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
+import * as TE from 'fp-ts/TaskEither';
+
 import { ElementKind } from '../../elements/types';
 import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
+import { pipe } from 'fp-ts/lib/function';
+
+const readDir = (path: string): TE.TaskEither<Error, string[]> =>
+	TE.tryCatch(
+		() => readdir(path),
+		(reason) => new Error(String(reason)),
+	);
+// parsePath should be IO?
+const parsePath = (path: string): { dir: string; base: string } =>
+	path.endsWith('/') ? { dir: path, base: '' } : parse(path);
+
+const toCompletions = (paths: string[], dir: string, base: string) =>
+	paths.filter((path) => path.startsWith(base)).map((c) => join(dir, c));
+
+const getCompletionItems = (path: string) =>
+	pipe(parsePath(path), ({ dir, base }) =>
+		pipe(
+			readDir(dir),
+			TE.map((paths) => toCompletions(paths, dir, base)),
+		),
+	);
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -77,21 +100,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				kind: 'webview.global.codemodExecutionHalted',
 			});
 		});
-	}
-
-	// @TODO cache result if we hit same dir
-	async __getAutocompleteItems(path: string): Promise<string[]> {
-		try {
-			const { dir, base } = path.endsWith('/')
-				? { dir: path, base: '' }
-				: parse(path);
-			const paths = await readdir(dir);
-			const completions = paths.filter((path) => path.startsWith(base));
-
-			return completions.map((completion) => join(dir, completion));
-		} catch (e) {
-			return [];
-		}
 	}
 
 	handleCodemodExecutionProgress = ({
@@ -253,8 +261,17 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.codemodPathChange') {
-			this.__autocompleteItems = await this.__getAutocompleteItems(
+			const completionItemsOrError = await getCompletionItems(
 				message.codemodPath,
+			)();
+
+			pipe(
+				completionItemsOrError,
+				E.fold(
+					() => (this.__autocompleteItems = []),
+					(autocompleteItems) =>
+						(this.__autocompleteItems = autocompleteItems),
+				),
 			);
 
 			this.setView();
