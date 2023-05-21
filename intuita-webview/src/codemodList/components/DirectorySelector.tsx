@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -29,8 +29,32 @@ export const DirectorySelector = ({
 	const [value, setValue] = useState(defaultValue);
 	const [showError, setShowError] = useState(error);
 	const [autocompleteIndex, setAutocompleteIndex] = useState<number>(0);
-
+	const hintRef = useRef<HTMLInputElement>(null);
 	removeInputBackground();
+
+	useEffect(() => {
+		const inputElement = document
+			.querySelector('vscode-text-field#directory-selector')
+			?.shadowRoot?.querySelector('input');
+
+		if (!inputElement) {
+			return;
+		}
+
+		const onInputScroll = (e: Event) => {
+			if (hintRef.current) {
+				// adjust hint position when scrolling the main input
+				// @ts-ignore
+				hintRef.current.scrollLeft = e.target?.scrollLeft;
+			}
+		};
+
+		inputElement.addEventListener('scroll', onInputScroll);
+
+		return () => {
+			inputElement.removeEventListener('scroll', onInputScroll);
+		};
+	}, []);
 
 	useEffect(() => {
 		setAutocompleteIndex(0);
@@ -75,7 +99,13 @@ export const DirectorySelector = ({
 		<div className="flex flex-row justify-between pb-10">
 			<div className="flex flex-col w-full overflow-hidden input-background relative">
 				{autocompleteContent ? (
-					<span className="autocomplete">{autocompleteContent}</span>
+					<input
+						ref={hintRef}
+						className="autocomplete"
+						aria-hidden={true}
+						readOnly
+						value={autocompleteContent}
+					/>
 				) : null}
 				<VSCodeTextField
 					id="directory-selector"
