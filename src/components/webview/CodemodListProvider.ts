@@ -27,6 +27,7 @@ import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import { ElementKind } from '../../elements/types';
 import type { SyntheticError } from '../../errors/types';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -35,8 +36,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 	__codemodTree: CodemodTree = E.right(O.none);
-	__executionPathMap: Map<CodemodHash, T.These<SyntheticError, string>> =
-		new Map();
+	__workspaceState: WorkspaceState;
+	__executionPathErrorMap: Map<
+		CodemodHash,
+		T.These<SyntheticError, string> | null
+	> = new Map();
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -47,6 +51,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __codemodService: CodemodService,
 	) {
 		this.__extensionPath = context.extensionUri;
+		this.__workspaceState = new WorkspaceState(context.workspaceState);
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
@@ -185,12 +190,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-			const executionPath = this.__executionPathMap.get(hash) ?? null;
-			if (executionPath === null || T.isLeft(executionPath)) {
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+			if (executionPath === null) {
 				return;
 			}
 
-			const uri = Uri.file(executionPath.right);
+			const uri = Uri.file(executionPath);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -203,15 +208,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			const { newPath, codemodHash } = message.value;
 
 			try {
+				this.__executionPathErrorMap.set(codemodHash, null);
 				await workspace.fs.stat(Uri.file(newPath));
 
-				this.__executionPathMap.set(codemodHash, E.right(newPath));
+				this.__workspaceState.setExecutionPath(codemodHash, newPath);
 
 				window.showInformationMessage(
 					'Updated the codemod execution path',
 				);
 			} catch (e) {
-				this.__executionPathMap.set(
+				this.__executionPathErrorMap.set(
 					codemodHash,
 					T.both<SyntheticError, string>(
 						{
@@ -277,12 +283,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash } = codemodElement;
-			if (!this.__executionPathMap.has(hash)) {
-				this.__executionPathMap.set(
+			if (this.__workspaceState.getExecutionPath(hash) === null) {
+				this.__workspaceState.setExecutionPath(
 					hash,
-					T.right(this.__rootPath ?? '/'),
+					this.__rootPath ?? '/',
 				);
 			}
+			const executionPath =
+				this.__workspaceState.getExecutionPath(hash) ?? null;
+			const executionPathError =
+				this.__executionPathErrorMap.get(hash) ?? null;
 			return {
 				kind,
 				label,
@@ -299,7 +309,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					},
 				],
 				children: [],
-				executionPath: this.__executionPathMap.get(hash),
+				...(executionPath !== null && {
+					executionPath: T.right(executionPath),
+				}),
+				...(executionPathError !== null && {
+					executionPath: executionPathError,
+				}),
 			};
 		}
 
