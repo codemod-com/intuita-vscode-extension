@@ -55,6 +55,8 @@
 	overflow: hidden;
 	white-space: nowrap;
 	width: 100%;
+	display: flex;
+	align-items: center;
 }
 
 .description {
@@ -103,4 +105,9 @@
 	margin-left: 3px;
 	display: flex;
 	align-items: center;
+}
+
+.targetPathButton {
+	padding: 0px 2px;
+	margin-left: 4px;
 }

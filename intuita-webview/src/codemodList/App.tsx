@@ -46,7 +46,7 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, executionPath } = view.viewProps;
+	const { codemodTree } = view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -54,9 +54,7 @@ function App() {
 			(error) => <p>{error.message}</p>,
 			O.fold(
 				() => loadingContainer,
-				(node) => (
-					<TreeView executionPath={executionPath} node={node} />
-				),
+				(node) => <TreeView node={node} />,
 			),
 		),
 	);

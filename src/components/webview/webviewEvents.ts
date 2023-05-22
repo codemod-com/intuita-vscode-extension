@@ -56,6 +56,7 @@ export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
 	label: string;
+	children: CodemodTreeNode[];
 	description?: string;
 	iconName?: string;
 	command?:
@@ -64,7 +65,7 @@ export type CodemodTreeNode = {
 				arguments?: ElementHash[];
 		  };
 	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode[];
+	executionPath?: T.These<SyntheticError, string>;
 };
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
@@ -250,6 +251,7 @@ export type WebviewResponse =
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
 				newPath: string;
+				codemodHash: CodemodHash;
 			};
 	  }>
 	| Readonly<{
@@ -320,6 +322,5 @@ export type View =
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
-				executionPath: T.These<SyntheticError, string>;
 			};
 	  }>;

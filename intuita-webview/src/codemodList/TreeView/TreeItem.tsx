@@ -1,15 +1,20 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popup from 'reactjs-popup';
-import { CodemodTreeNode } from '../../shared/types';
+import { CodemodHash, CodemodTreeNode } from '../../shared/types';
+import Popover from '../../shared/Popover';
+import { DirectorySelector } from '../components/DirectorySelector';
+import { vscode } from '../../shared/utilities/vscode';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { pipe } from 'fp-ts/lib/function';
+import * as T from 'fp-ts/These';
+import { SyntheticError } from '../../../../src/errors/types';
 
 type Props = {
-	id: string;
+	id: CodemodHash;
 	progressBar: JSX.Element | null;
 	label: string;
 	description: string;
-	hoverDescription?: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
@@ -19,6 +24,7 @@ type Props = {
 	onClick(): void;
 	depth: number;
 	disabled: boolean;
+	executionPath?: T.These<SyntheticError, string>;
 };
 
 const TreeItem = ({
@@ -26,7 +32,6 @@ const TreeItem = ({
 	label,
 	progressBar,
 	description,
-	hoverDescription,
 	kind,
 	icon,
 	open,
@@ -35,7 +40,73 @@ const TreeItem = ({
 	hasChildren,
 	onClick,
 	depth,
+	executionPath,
 }: Props) => {
+	const rootPath = label;
+	const [targetPath, setTargetPath] = useState('');
+	const [targetPathError, setTargetPathError] = useState<{
+		value: string;
+		timestamp: number;
+	} | null>(null);
+	const [inPathEditingMode, setInPathEditingMode] = useState(false);
+
+	const onEditDone = (value: string) => {
+		setInPathEditingMode(false);
+		vscode.postMessage({
+			kind: 'webview.codemodList.updatePathToExecute',
+			value: {
+				newPath: value.replace('.', rootPath),
+				codemodHash: id,
+			},
+		});
+	};
+
+	const onCancelEditPath = () => {
+		setInPathEditingMode(false);
+	};
+
+	useEffect(() => {
+		if (!executionPath) {
+			return;
+		}
+
+		const error = pipe(
+			executionPath,
+			T.fold(
+				(e) => ({
+					value: e.message,
+					timestamp: Date.now(),
+				}),
+				() => null,
+				(e) => ({
+					value: e.message,
+					timestamp: Date.now(),
+				}),
+			),
+		);
+
+		setTargetPathError(error);
+
+		if (error) {
+			return;
+		}
+
+		const path = pipe(
+			executionPath,
+			T.fold(
+				() => '',
+				(p) => p,
+				(_, p) => p,
+			),
+		);
+
+		setTargetPath(
+			path.replace(rootPath, '').length === 0
+				? './'
+				: path.replace(rootPath, '.'),
+		);
+	}, [executionPath, rootPath]);
+
 	return (
 		<div
 			id={id}
@@ -44,7 +115,12 @@ const TreeItem = ({
 		>
 			<div
 				style={{
-					...(depth > 0 && {
+					// root folder, which we hide, has depth={0}
+					// framework/library folders have depth={1}
+					...(depth === 1 && {
+						minWidth: '0.25rem',
+					}),
+					...(depth > 1 && {
 						minWidth: `${5 + depth * 16}px`,
 					}),
 				}}
@@ -60,15 +136,12 @@ const TreeItem = ({
 				</div>
 			) : null}
 			{kind === 'codemodItem' && description && (
-				<Popup
+				<Popover
 					trigger={<div className={styles.icon}>{icon}</div>}
 					position={['bottom left', 'top left']}
-					on={['hover', 'focus']}
-					closeOnDocumentClick
 					mouseEnterDelay={300}
-				>
-					{description}
-				</Popup>
+					popoverText={description}
+				/>
 			)}
 			{(kind === 'path' || !description) && (
 				<div className={styles.icon}>{icon}</div>
@@ -76,11 +149,36 @@ const TreeItem = ({
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
 					{label}
-					{kind === 'codemodItem' && (
-						<span className={styles.description}>
-							{hoverDescription}
-						</span>
-					)}
+					{kind === 'codemodItem' &&
+						executionPath &&
+						(inPathEditingMode ? (
+							<DirectorySelector
+								defaultValue={targetPath}
+								onEditDone={onEditDone}
+								error={targetPathError}
+								onCancel={onCancelEditPath}
+							/>
+						) : (
+							<Popover
+								trigger={
+									<VSCodeButton
+										appearance="icon"
+										onClick={(e) => {
+											e.stopPropagation();
+											setInPathEditingMode(true);
+										}}
+										className={styles.targetPathButton}
+									>
+										<i
+											className="codicon codicon-pencil mr-2"
+											style={{ alignSelf: 'center' }}
+										/>
+										{targetPath}
+									</VSCodeButton>
+								}
+								popoverText="Codemod's target path. Click to edit."
+							/>
+						))}
 				</span>
 				{progressBar}
 			</div>

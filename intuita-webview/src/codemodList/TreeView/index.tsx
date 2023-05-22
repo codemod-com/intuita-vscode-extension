@@ -12,17 +12,11 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import cn from 'classnames';
-import { DirectorySelector } from '../components/DirectorySelector';
-import Popup from 'reactjs-popup';
-import * as T from 'fp-ts/These';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import { pipe } from 'fp-ts/lib/function';
-import { SyntheticError } from '../../../../src/errors/types';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
-	executionPath: T.These<SyntheticError, string>;
 }>;
 
 export const containsCodemodHashDigest = (
@@ -127,7 +121,7 @@ const initializer = ({ node, focusedId }: InitializerArgument): State => {
 	};
 };
 
-const TreeView = ({ node, executionPath }: Props) => {
+const TreeView = ({ node }: Props) => {
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -136,7 +130,6 @@ const TreeView = ({ node, executionPath }: Props) => {
 		},
 		initializer,
 	);
-	const [executionPathModalOpened, setExecutionPathOpened] = useState(false);
 
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
@@ -246,35 +239,11 @@ const TreeView = ({ node, executionPath }: Props) => {
 			</VSCodeButton>
 		));
 
-		const editExecutionPathAction = (
-			<VSCodeButton
-				key="executionOnPath"
-				className={styles.action}
-				appearance="icon"
-				onClick={(e) => {
-					e.stopPropagation();
-					setExecutionPathOpened(true);
-				}}
-				title="Edit Execution Path"
-			>
-				<i
-					className="codicon codicon-pencil"
-					style={{ alignSelf: 'center' }}
-				/>
-				Edit Path
-			</VSCodeButton>
-		);
-
 		const getActionButtons = () => {
 			if (progress?.codemodHash === node.id) {
 				return [stopProgress];
 			}
-			return [
-				...actionButtons,
-				...(node.kind === 'codemodItem'
-					? [editExecutionPathAction]
-					: []),
-			];
+			return actionButtons;
 		};
 
 		return (
@@ -285,8 +254,8 @@ const TreeView = ({ node, executionPath }: Props) => {
 				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
+				executionPath={node.executionPath}
 				description={node.description ?? ''}
-				hoverDescription={''}
 				label={node.label ?? ''}
 				icon={icon}
 				depth={depth}
@@ -306,63 +275,8 @@ const TreeView = ({ node, executionPath }: Props) => {
 		);
 	};
 
-	const onEditDone = (value: string) => {
-		vscode.postMessage({
-			kind: 'webview.codemodList.updatePathToExecute',
-			value: {
-				newPath: value,
-			},
-		});
-	};
-
-	const error = pipe(
-		executionPath,
-		T.fold(
-			(e) => ({
-				value: e.message,
-				timestamp: Date.now(),
-			}),
-			() => null,
-			(e) => ({
-				value: e.message,
-				timestamp: Date.now(),
-			}),
-		),
-	);
-
-	const defaultValue = pipe(
-		executionPath,
-		T.fold(
-			() => '',
-			(p) => p,
-			(_, p) => p,
-		),
-	);
-
 	return (
 		<div>
-			{executionPathModalOpened && (
-				<Popup
-					modal
-					open={executionPathModalOpened}
-					onClose={() => {
-						setExecutionPathOpened(false);
-					}}
-					closeOnEscape
-				>
-					<span
-						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
-						onClick={() => setExecutionPathOpened(false)}
-					></span>
-					<p>Current Path: {defaultValue}</p>
-					<DirectorySelector
-						defaultValue={defaultValue}
-						onEditDone={onEditDone}
-						error={error}
-					/>
-				</Popup>
-			)}
-
 			<Tree
 				node={node}
 				renderItem={renderItem}

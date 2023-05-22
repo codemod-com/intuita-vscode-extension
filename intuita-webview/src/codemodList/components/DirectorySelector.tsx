@@ -1,30 +1,38 @@
-import { useEffect, useState } from 'react';
-import {
-	VSCodeButton,
-	VSCodeTextField,
-} from '@vscode/webview-ui-toolkit/react';
+import React, { useState } from 'react';
+import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 
 type Props = {
 	defaultValue: string;
 	error: { value: string; timestamp: number } | null;
 	onEditDone: (value: string) => void;
+	onCancel: () => void;
 };
 export const DirectorySelector = ({
 	defaultValue,
 	onEditDone,
+	onCancel,
 	error,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
-	const [showError, setShowError] = useState(error);
-
-	useEffect(() => {
-		setShowError(error);
-	}, [error]);
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
-		setShowError(null);
-		const value = (e.target as HTMLInputElement).value;
-		setValue(value);
+		const newValue = (e.target as HTMLInputElement).value;
+		setValue(newValue);
+	};
+
+	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
+		if (event.key === 'Escape') {
+			onCancel();
+		}
+
+		if (event.key === 'Enter') {
+			if (value.length <= 2) {
+				// "./" (default path) should always be there
+				onCancel();
+				return;
+			}
+			onEditDone(value);
+		}
 	};
 
 	return (
@@ -34,17 +42,10 @@ export const DirectorySelector = ({
 					className="flex-1"
 					value={value}
 					onInput={handleChange}
+					onKeyUp={handleKeyUp}
 				/>
 
-				{showError && (
-					<span className="text-error">{showError.value}</span>
-				)}
-			</div>
-			<div
-				className="cursor-pointer ml-3"
-				onClick={() => onEditDone(value)}
-			>
-				<VSCodeButton>Update</VSCodeButton>
+				{error && <span className="text-error">{error.value}</span>}
 			</div>
 		</div>
 	);
