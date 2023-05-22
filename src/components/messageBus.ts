@@ -171,7 +171,7 @@ export type Message =
 			halted: boolean;
 			fileCount: number;
 			jobs: Job[];
-			case: Case | null;
+			case: Case;
 	  }>
 	| Readonly<{
 			kind: MessageKind.extensionActivated;

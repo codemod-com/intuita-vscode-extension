@@ -105,7 +105,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
-	case: Case | null;
+	case?: Case;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -388,7 +388,6 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
-			case: null,
 		};
 		if (
 			'kind' in message.command &&
@@ -582,7 +581,7 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			if (this.#execution) {
+			if (this.#execution && this.#execution.case) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					executionId: this.#execution.executionId,

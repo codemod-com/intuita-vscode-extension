@@ -315,10 +315,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		);
 
 		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
-			if (message.case === null) {
-				return;
-			}
-
 			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
 		});
 	}
