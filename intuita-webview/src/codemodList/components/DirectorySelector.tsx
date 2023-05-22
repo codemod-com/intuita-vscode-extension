@@ -58,8 +58,7 @@ export const DirectorySelector = ({
 
 	useEffect(() => {
 		setAutocompleteIndex(0);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [autocompleteItems.join()]);
+	}, [autocompleteItems]);
 
 	const autocompleteContent = autocompleteItems[autocompleteIndex];
 
