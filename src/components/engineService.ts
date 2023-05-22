@@ -3,7 +3,7 @@ import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, window } from 'vscode';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import { Case, CaseKind, CaseWithJobHashes } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
@@ -105,6 +105,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
+	case?: Case;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -568,6 +569,8 @@ export class EngineService {
 				codemodName: job.codemodName,
 			};
 
+			this.#execution.case = caseWithJobHashes;
+
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],
@@ -578,7 +581,7 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			if (this.#execution) {
+			if (this.#execution && this.#execution.case) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					executionId: this.#execution.executionId,
@@ -586,6 +589,7 @@ export class EngineService {
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
+					case: this.#execution.case,
 				});
 
 				if (!errorMessages.size && !this.#execution.affectedAnyFile) {

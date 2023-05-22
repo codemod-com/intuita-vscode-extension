@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseWithJobHashes } from '../cases/types';
+import type { Case, CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import type { Configuration } from '../configuration';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
@@ -171,6 +171,7 @@ export type Message =
 			halted: boolean;
 			fileCount: number;
 			jobs: Job[];
+			case: Case;
 	  }>
 	| Readonly<{
 			kind: MessageKind.extensionActivated;
