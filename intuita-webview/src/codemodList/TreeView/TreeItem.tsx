@@ -24,6 +24,7 @@ type Props = {
 	onClick(): void;
 	depth: number;
 	disabled: boolean;
+	rootPath: string;
 	executionPath?: T.These<SyntheticError, string>;
 };
 
@@ -36,13 +37,13 @@ const TreeItem = ({
 	icon,
 	open,
 	focused,
+	rootPath,
 	actionButtons,
 	hasChildren,
 	onClick,
 	depth,
 	executionPath,
 }: Props) => {
-	const rootPath = label;
 	const [targetPath, setTargetPath] = useState('');
 	const [targetPathError, setTargetPathError] = useState<{
 		value: string;

@@ -122,6 +122,7 @@ const initializer = ({ node, focusedId }: InitializerArgument): State => {
 };
 
 const TreeView = ({ node }: Props) => {
+	const rootPath = node.label;
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -255,6 +256,7 @@ const TreeView = ({ node }: Props) => {
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
 				executionPath={node.executionPath}
+				rootPath={rootPath}
 				description={node.description ?? ''}
 				label={node.label ?? ''}
 				icon={icon}
