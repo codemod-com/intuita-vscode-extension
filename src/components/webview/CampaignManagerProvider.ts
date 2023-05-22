@@ -313,6 +313,14 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
+
+		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
+			if (message.case === null) {
+				return;
+			}
+
+			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
+		});
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
