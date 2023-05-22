@@ -224,7 +224,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				);
 			}
 
-			this.setView();
+			await this.getCodemodTree();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
