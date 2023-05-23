@@ -47,7 +47,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __codemodService: CodemodService,
 	) {
 		this.__extensionPath = context.extensionUri;
-		this.__workspaceState = new WorkspaceState(context.workspaceState);
+		this.__workspaceState = new WorkspaceState(
+			context.workspaceState,
+			__rootPath ?? '/',
+		);
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
@@ -187,7 +190,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			const { hash } = codemod;
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
-			if (executionPath === null || T.isLeft(executionPath)) {
+			if (T.isLeft(executionPath)) {
 				return;
 			}
 
@@ -284,12 +287,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash } = codemodElement;
-			if (this.__workspaceState.getExecutionPath(hash) === null) {
-				this.__workspaceState.setExecutionPath(
-					hash,
-					T.right(this.__rootPath ?? '/'),
-				);
-			}
+
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 
 			return {

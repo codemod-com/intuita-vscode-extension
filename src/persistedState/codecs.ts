@@ -51,17 +51,16 @@ export const syntheticErrorCodec = buildTypeCodec({
 
 export const workspaceStateCodec = t.union([
 	buildTypeCodec({
+		_tag: t.literal('Left'),
 		left: syntheticErrorCodec,
 	}),
 	buildTypeCodec({
+		_tag: t.literal('Right'),
 		right: t.string,
 	}),
-	t.intersection([
-		buildTypeCodec({
-			left: syntheticErrorCodec,
-		}),
-		buildTypeCodec({
-			right: t.string,
-		}),
-	]),
+	buildTypeCodec({
+		_tag: t.literal('Both'),
+		left: syntheticErrorCodec,
+		right: t.string,
+	}),
 ]);

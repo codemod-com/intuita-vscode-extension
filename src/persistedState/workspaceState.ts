@@ -24,37 +24,52 @@ const ensureIsString = (value: unknown): string | null => {
 	return null;
 };
 
-export class WorkspaceState {
-	public constructor(private readonly __memento: Memento) {}
+type ExecutionPath = T.These<SyntheticError, string>;
 
-	public getExecutionPath(
-		codemodHash: CodemodHash,
-	): T.These<SyntheticError, string> | null {
+export class WorkspaceState {
+	public constructor(
+		private readonly __memento: Memento,
+		private readonly __rootPath: string,
+	) {}
+
+	public getExecutionPath(codemodHash: CodemodHash): ExecutionPath {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
 
 		const value = ensureIsString(this.__memento.get(hash));
+
 		if (value === null) {
-			return null;
+			// do not persist default values
+			return this.__buildDefaultExecutionPath();
 		}
 
 		try {
 			const json = JSON.parse(value);
-			const decoded = workspaceStateCodec.decode(json);
+			const validation = workspaceStateCodec.decode(json);
 
-			if (decoded._tag === 'Left') {
-				return null;
+			if (T.isLeft(validation)) {
+				throw new Error(
+					'The data for the execution path of the codemod hash ${codemodHash} is corrupted',
+				);
 			}
 
-			return json as unknown as T.These<SyntheticError, string>;
+			return validation.right;
 		} catch (error) {
+			// the JSON.parse has likely failed (corrupt data)
+
 			console.error(error);
-			return null;
+
+			// do not persist default values
+			return this.__buildDefaultExecutionPath();
 		}
+	}
+
+	private __buildDefaultExecutionPath(): ExecutionPath {
+		return T.right(this.__rootPath);
 	}
 
 	public setExecutionPath(
 		codemodHash: CodemodHash,
-		executionPath: T.These<SyntheticError, string>,
+		executionPath: ExecutionPath,
 	): void {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
 
