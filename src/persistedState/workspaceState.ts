@@ -45,10 +45,7 @@ export class WorkspaceState {
 				return null;
 			}
 
-			return {
-				...decoded.right,
-				_tag: decoded._tag,
-			} as unknown as T.These<SyntheticError, string>;
+			return json as unknown as T.These<SyntheticError, string>;
 		} catch (error) {
 			console.error(error);
 			return null;
