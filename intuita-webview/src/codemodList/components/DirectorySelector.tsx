@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
-import styles from "./style.module.css";
+import styles from './style.module.css';
 
 type Props = {
 	defaultValue: string;
