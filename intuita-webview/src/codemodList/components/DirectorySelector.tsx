@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
+import styles from "./style.module.css";
 
 type Props = {
 	defaultValue: string;
@@ -41,7 +42,7 @@ export const DirectorySelector = ({
 		>
 			<div className="flex flex-col w-full">
 				<VSCodeTextField
-					className="flex-1"
+					className={styles.textField}
 					value={value}
 					onInput={handleChange}
 					onKeyUp={handleKeyUp}

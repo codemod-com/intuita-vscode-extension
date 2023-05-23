@@ -1,0 +1,8 @@
+.textField {
+	flex-grow: 1;
+}
+
+.textField::part(root):focus,
+.textField::part(root):focus-within {
+	border: none;
+}
