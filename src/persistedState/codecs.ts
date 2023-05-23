@@ -43,3 +43,25 @@ export const persistedStateCodec = buildTypeCodec({
 });
 
 export type PersistedState = t.TypeOf<typeof persistedStateCodec>;
+
+export const syntheticErrorCodec = buildTypeCodec({
+	kind: t.literal('syntheticError'),
+	message: t.string,
+});
+
+export const workspaceStateCodec = t.union([
+	buildTypeCodec({
+		left: syntheticErrorCodec,
+	}),
+	buildTypeCodec({
+		right: t.string,
+	}),
+	t.intersection([
+		buildTypeCodec({
+			left: syntheticErrorCodec,
+		}),
+		buildTypeCodec({
+			right: t.string,
+		}),
+	]),
+]);

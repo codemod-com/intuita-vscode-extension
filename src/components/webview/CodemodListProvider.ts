@@ -37,10 +37,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 	__codemodTree: CodemodTree = E.right(O.none);
 	__workspaceState: WorkspaceState;
-	__executionPathErrorMap: Map<
-		CodemodHash,
-		T.These<SyntheticError, string> | null
-	> = new Map();
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -191,11 +187,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			const { hash } = codemod;
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
-			if (executionPath === null) {
+			if (executionPath === null || T.isLeft(executionPath)) {
 				return;
 			}
 
-			const uri = Uri.file(executionPath);
+			const uri = Uri.file(executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -208,16 +204,18 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			const { newPath, codemodHash } = message.value;
 
 			try {
-				this.__executionPathErrorMap.set(codemodHash, null);
 				await workspace.fs.stat(Uri.file(newPath));
 
-				this.__workspaceState.setExecutionPath(codemodHash, newPath);
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(newPath),
+				);
 
 				window.showInformationMessage(
 					'Updated the codemod execution path',
 				);
 			} catch (e) {
-				this.__executionPathErrorMap.set(
+				this.__workspaceState.setExecutionPath(
 					codemodHash,
 					T.both<SyntheticError, string>(
 						{
@@ -286,13 +284,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			if (this.__workspaceState.getExecutionPath(hash) === null) {
 				this.__workspaceState.setExecutionPath(
 					hash,
-					this.__rootPath ?? '/',
+					T.right(this.__rootPath ?? '/'),
 				);
 			}
-			const executionPath =
-				this.__workspaceState.getExecutionPath(hash) ?? null;
-			const executionPathError =
-				this.__executionPathErrorMap.get(hash) ?? null;
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+
 			return {
 				kind,
 				label,
@@ -310,10 +306,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				],
 				children: [],
 				...(executionPath !== null && {
-					executionPath: T.right(executionPath),
-				}),
-				...(executionPathError !== null && {
-					executionPath: executionPathError,
+					executionPath,
 				}),
 			};
 		}

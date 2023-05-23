@@ -1,6 +1,9 @@
 import type { Memento } from 'vscode';
 import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
+import { SyntheticError } from '../errors/types';
+import * as T from 'fp-ts/These';
+import { workspaceStateCodec } from './codecs';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -24,20 +27,40 @@ const ensureIsString = (value: unknown): string | null => {
 export class WorkspaceState {
 	public constructor(private readonly __memento: Memento) {}
 
-	public getExecutionPath(codemodHash: CodemodHash): string | null {
+	public getExecutionPath(
+		codemodHash: CodemodHash,
+	): T.These<SyntheticError, string> | null {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
 
-		const value = this.__memento.get(hash);
+		const value = ensureIsString(this.__memento.get(hash));
+		if (value === null) {
+			return null;
+		}
 
-		return ensureIsString(value);
+		try {
+			const json = JSON.parse(value);
+			const decoded = workspaceStateCodec.decode(json);
+
+			if (decoded._tag === 'Left') {
+				return null;
+			}
+
+			return {
+				...decoded.right,
+				_tag: decoded._tag,
+			} as unknown as T.These<SyntheticError, string>;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
 	}
 
 	public setExecutionPath(
 		codemodHash: CodemodHash,
-		executionPath: string,
+		executionPath: T.These<SyntheticError, string>,
 	): void {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
 
-		this.__memento.update(hash, executionPath);
+		this.__memento.update(hash, JSON.stringify(executionPath));
 	}
 }
