@@ -104,10 +104,6 @@ export const DirectorySelector = ({
 					}}
 					className={styles.targetPathButton}
 				>
-					<i
-						className="codicon codicon-pencil mr-2"
-						style={{ alignSelf: 'center' }}
-					/>
 					{defaultValue}
 				</VSCodeButton>
 			}
