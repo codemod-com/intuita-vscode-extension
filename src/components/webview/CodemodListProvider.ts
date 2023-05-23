@@ -306,9 +306,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					},
 				],
 				children: [],
-				...(executionPath !== null && {
-					executionPath,
-				}),
+				executionPath,
 			};
 		}
 

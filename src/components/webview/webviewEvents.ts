@@ -8,6 +8,7 @@ import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { SyntheticError } from '../../errors/types';
+import { ExecutionPath } from '../../persistedState/workspaceState';
 
 export { JobHash };
 export { CodemodHash };
@@ -65,7 +66,7 @@ export type CodemodTreeNode = {
 				arguments?: ElementHash[];
 		  };
 	actions?: RunCodemodsCommand[];
-	executionPath?: T.These<SyntheticError, string>;
+	executionPath?: ExecutionPath;
 };
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;

@@ -24,7 +24,7 @@ const ensureIsString = (value: unknown): string | null => {
 	return null;
 };
 
-type ExecutionPath = T.These<SyntheticError, string>;
+export type ExecutionPath = T.These<SyntheticError, string>;
 
 export class WorkspaceState {
 	public constructor(
