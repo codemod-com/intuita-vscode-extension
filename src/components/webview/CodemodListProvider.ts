@@ -208,7 +208,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			try {
 				await workspace.fs.stat(Uri.file(newPath));
-
 				this.__workspaceState.setExecutionPath(
 					codemodHash,
 					T.right(newPath),
@@ -218,6 +217,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					'Updated the codemod execution path.',
 				);
 			} catch (e) {
+				window.showErrorMessage(
+					'The specified codemod execution path does not exist.',
+				);
+
+				const oldExecutionPath =
+					this.__workspaceState.getExecutionPath(codemodHash);
+				if (T.isLeft(oldExecutionPath)) {
+					return;
+				}
 				this.__workspaceState.setExecutionPath(
 					codemodHash,
 					T.both<SyntheticError, string>(
@@ -226,11 +234,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 							message:
 								'The specified codemod execution path does not exist.',
 						},
-						newPath,
+						oldExecutionPath.right,
 					),
-				);
-				window.showErrorMessage(
-					'The specified codemod execution path does not exist.',
 				);
 			}
 

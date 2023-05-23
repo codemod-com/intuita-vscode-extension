@@ -43,6 +43,23 @@ const TreeItem = ({
 	executionPath,
 }: Props) => {
 	const [hideActionsGroup, setHideActionsGroup] = useState(false);
+	const error = executionPath
+		? pipe(
+				executionPath,
+				T.fold(
+					(e) => ({
+						value: e.message,
+						timestamp: Date.now(),
+					}),
+					() => null,
+					(e) => ({
+						value: e.message,
+						timestamp: Date.now(),
+					}),
+				),
+		  )
+		: null;
+
 	const path = executionPath
 		? pipe(
 				executionPath,
@@ -105,6 +122,7 @@ const TreeItem = ({
 						<DirectorySelector
 							defaultValue={targetPath}
 							rootPath={rootPath}
+							error={error}
 							codemodHash={id}
 							onEditStart={() => {
 								setHideActionsGroup(true);

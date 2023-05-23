@@ -12,6 +12,7 @@ type Props = {
 	defaultValue: string;
 	rootPath: string;
 	codemodHash: CodemodHash;
+	error: { value: string; timestamp: number } | null;
 	onEditStart(): void;
 	onEditEnd(): void;
 };
@@ -33,7 +34,6 @@ export const DirectorySelector = ({
 				codemodHash,
 			},
 		});
-		onEditEnd();
 	};
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
@@ -41,15 +41,20 @@ export const DirectorySelector = ({
 		setValue(newValue);
 	};
 
+	const handleCancel = () => {
+		setInPathEditingMode(false);
+		setValue(defaultValue);
+	};
+
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === 'Escape') {
-			setInPathEditingMode(false);
+			handleCancel();
 		}
 
 		if (event.key === 'Enter') {
 			if (value.length <= 2) {
 				// "./" (default path) should always be there
-				setInPathEditingMode(false);
+				handleCancel();
 				return;
 			}
 			onEditDone(value);
@@ -60,6 +65,14 @@ export const DirectorySelector = ({
 		// this is here rather than inside `onEditDone()` because otherwise
 		// the old target path is displayed for a split second
 		setInPathEditingMode(false);
+
+		// this is here rather than inside `onEditDone()` because in case of invalid path,
+		// edit mode is still true and the "Dry Run" button will get displayed (which we don't want)
+		onEditEnd();
+
+		// adding `onEditEnd` to dependency list causes `inPathEditingMode` to change
+		// as soon as user presses the button component, hence preventing `inPathEditingMode` from being ever `true`
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [defaultValue]);
 
 	if (inPathEditingMode) {
