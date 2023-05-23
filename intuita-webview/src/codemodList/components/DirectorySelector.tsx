@@ -44,6 +44,7 @@ export const DirectorySelector = ({
 	const handleCancel = () => {
 		setInPathEditingMode(false);
 		setValue(defaultValue);
+		onEditEnd();
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -57,6 +58,10 @@ export const DirectorySelector = ({
 				handleCancel();
 				return;
 			}
+			if (value === defaultValue) {
+				handleCancel();
+				return;
+			}
 			onEditDone(value);
 		}
 	};
@@ -66,7 +71,7 @@ export const DirectorySelector = ({
 		// the old target path is displayed for a split second
 		setInPathEditingMode(false);
 
-		// this is here rather than inside `onEditDone()` because in case of invalid path,
+		// this is here rather than inside `onEditDone()`. Otherwise, in case of invalid path,
 		// edit mode is still true and the "Dry Run" button will get displayed (which we don't want)
 		onEditEnd();
 
@@ -104,7 +109,7 @@ export const DirectorySelector = ({
 					}}
 					className={styles.targetPathButton}
 				>
-					{defaultValue}
+					<span className={styles.label}>{defaultValue}</span>
 				</VSCodeButton>
 			}
 			popoverText="Codemod's target path. Click to edit."

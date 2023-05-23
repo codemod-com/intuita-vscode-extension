@@ -118,20 +118,22 @@ const TreeItem = ({
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
 					{label}
-					{kind === 'codemodItem' && executionPath && (
-						<DirectorySelector
-							defaultValue={targetPath}
-							rootPath={rootPath}
-							error={error}
-							codemodHash={id}
-							onEditStart={() => {
-								setHideActionsGroup(true);
-							}}
-							onEditEnd={() => {
-								setHideActionsGroup(false);
-							}}
-						/>
-					)}
+					<span className={styles.directorySelector}>
+						{kind === 'codemodItem' && executionPath && (
+							<DirectorySelector
+								defaultValue={targetPath}
+								rootPath={rootPath}
+								error={error}
+								codemodHash={id}
+								onEditStart={() => {
+									setHideActionsGroup(true);
+								}}
+								onEditEnd={() => {
+									setHideActionsGroup(false);
+								}}
+							/>
+						)}
+					</span>
 				</span>
 				{progressBar}
 			</div>

@@ -12,11 +12,13 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.root .actions {
+.root .actions,
+.root .directorySelector {
 	display: none;
 }
 
-.root:hover .actions {
+.root:hover .actions,
+.root:hover .directorySelector {
 	display: flex;
 }
 
