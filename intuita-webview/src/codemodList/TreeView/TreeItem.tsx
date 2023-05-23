@@ -1,11 +1,9 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
 import Popover from '../../shared/Popover';
 import { DirectorySelector } from '../components/DirectorySelector';
-import { vscode } from '../../shared/utilities/vscode';
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import { SyntheticError } from '../../../../src/errors/types';
@@ -44,69 +42,22 @@ const TreeItem = ({
 	depth,
 	executionPath,
 }: Props) => {
-	const [targetPath, setTargetPath] = useState('');
-	const [targetPathError, setTargetPathError] = useState<{
-		value: string;
-		timestamp: number;
-	} | null>(null);
-	const [inPathEditingMode, setInPathEditingMode] = useState(false);
+	const [hideActionsGroup, setHideActionsGroup] = useState(false);
+	const path = executionPath
+		? pipe(
+				executionPath,
+				T.fold(
+					() => '',
+					(p) => p,
+					(_, p) => p,
+				),
+		  )
+		: '';
 
-	const onEditDone = (value: string) => {
-		vscode.postMessage({
-			kind: 'webview.codemodList.updatePathToExecute',
-			value: {
-				newPath: value.replace('.', rootPath),
-				codemodHash: id,
-			},
-		});
-	};
-
-	const onCancelEditPath = () => {
-		setInPathEditingMode(false);
-	};
-
-	useEffect(() => {
-		if (!executionPath) {
-			return;
-		}
-
-		const error = pipe(
-			executionPath,
-			T.fold(
-				(e) => ({
-					value: e.message,
-					timestamp: Date.now(),
-				}),
-				() => null,
-				(e) => ({
-					value: e.message,
-					timestamp: Date.now(),
-				}),
-			),
-		);
-
-		setTargetPathError(error);
-		setInPathEditingMode(false);
-
-		if (error) {
-			return;
-		}
-
-		const path = pipe(
-			executionPath,
-			T.fold(
-				() => '',
-				(p) => p,
-				(_, p) => p,
-			),
-		);
-
-		setTargetPath(
-			path.replace(rootPath, '').length === 0
-				? './'
-				: path.replace(rootPath, '.'),
-		);
-	}, [executionPath, rootPath]);
+	const targetPath =
+		path.replace(rootPath, '').length === 0
+			? './'
+			: path.replace(rootPath, '.');
 
 	return (
 		<div
@@ -150,40 +101,25 @@ const TreeItem = ({
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
 					{label}
-					{kind === 'codemodItem' &&
-						(inPathEditingMode ? (
-							<DirectorySelector
-								defaultValue={targetPath}
-								onEditDone={onEditDone}
-								error={targetPathError}
-								onCancel={onCancelEditPath}
-							/>
-						) : (
-							<Popover
-								trigger={
-									<VSCodeButton
-										appearance="icon"
-										onClick={() => {
-											setInPathEditingMode(true);
-										}}
-										className={styles.targetPathButton}
-									>
-										<i
-											className="codicon codicon-pencil mr-2"
-											style={{ alignSelf: 'center' }}
-										/>
-										{targetPath}
-									</VSCodeButton>
-								}
-								popoverText="Codemod's target path. Click to edit."
-							/>
-						))}
+					{kind === 'codemodItem' && executionPath && (
+						<DirectorySelector
+							defaultValue={targetPath}
+							rootPath={rootPath}
+							codemodHash={id}
+							onEditStart={() => {
+								setHideActionsGroup(true);
+							}}
+							onEditEnd={() => {
+								setHideActionsGroup(false);
+							}}
+						/>
+					)}
 				</span>
 				{progressBar}
 			</div>
 			<div
 				className={styles.actions}
-				style={{ ...(inPathEditingMode && { display: 'none' }) }}
+				style={{ ...(hideActionsGroup && { display: 'none' }) }}
 			>
 				{actionButtons.map((el) => el)}
 			</div>

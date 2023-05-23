@@ -4,7 +4,6 @@ import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
-import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { SyntheticError } from '../../errors/types';

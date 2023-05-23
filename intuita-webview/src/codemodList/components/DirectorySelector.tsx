@@ -1,19 +1,40 @@
-import React, { useState } from 'react';
-import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
+import React, { useEffect, useState } from 'react';
+import {
+	VSCodeButton,
+	VSCodeTextField,
+} from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
+import { vscode } from '../../shared/utilities/vscode';
+import { CodemodHash } from '../../shared/types';
+import Popover from '../../shared/Popover';
 
 type Props = {
 	defaultValue: string;
-	error: { value: string; timestamp: number } | null;
-	onEditDone: (value: string) => void;
-	onCancel: () => void;
+	rootPath: string;
+	codemodHash: CodemodHash;
+	onEditStart(): void;
+	onEditEnd(): void;
 };
 export const DirectorySelector = ({
 	defaultValue,
-	onEditDone,
-	onCancel,
+	rootPath,
+	codemodHash,
+	onEditStart,
+	onEditEnd,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
+	const [inPathEditingMode, setInPathEditingMode] = useState(false);
+
+	const onEditDone = (value: string) => {
+		vscode.postMessage({
+			kind: 'webview.codemodList.updatePathToExecute',
+			value: {
+				newPath: value.replace('.', rootPath),
+				codemodHash,
+			},
+		});
+		onEditEnd();
+	};
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		const newValue = (e.target as HTMLInputElement).value;
@@ -22,32 +43,62 @@ export const DirectorySelector = ({
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === 'Escape') {
-			onCancel();
+			setInPathEditingMode(false);
 		}
 
 		if (event.key === 'Enter') {
 			if (value.length <= 2) {
 				// "./" (default path) should always be there
-				onCancel();
+				setInPathEditingMode(false);
 				return;
 			}
 			onEditDone(value);
 		}
 	};
 
-	return (
-		<div
-			className="flex flex-row justify-between ml-10 align-items-center"
-			style={{ height: '22px', width: '100%' }}
-		>
-			<div className="flex flex-col w-full">
-				<VSCodeTextField
-					className={styles.textField}
-					value={value}
-					onInput={handleChange}
-					onKeyUp={handleKeyUp}
-				/>
+	useEffect(() => {
+		// this is here rather than inside `onEditDone()` because otherwise
+		// the old target path is displayed for a split second
+		setInPathEditingMode(false);
+	}, [defaultValue]);
+
+	if (inPathEditingMode) {
+		return (
+			<div
+				className="flex flex-row justify-between ml-10 align-items-center"
+				style={{ height: '22px', width: '100%' }}
+			>
+				<div className="flex flex-col w-full">
+					<VSCodeTextField
+						className={styles.textField}
+						value={value}
+						onInput={handleChange}
+						onKeyUp={handleKeyUp}
+					/>
+				</div>
 			</div>
-		</div>
+		);
+	}
+
+	return (
+		<Popover
+			trigger={
+				<VSCodeButton
+					appearance="icon"
+					onClick={() => {
+						setInPathEditingMode(true);
+						onEditStart();
+					}}
+					className={styles.targetPathButton}
+				>
+					<i
+						className="codicon codicon-pencil mr-2"
+						style={{ alignSelf: 'center' }}
+					/>
+					{defaultValue}
+				</VSCodeButton>
+			}
+			popoverText="Codemod's target path. Click to edit."
+		/>
 	);
 };

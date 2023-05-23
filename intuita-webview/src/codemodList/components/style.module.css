@@ -6,3 +6,8 @@
 .textField::part(root):focus-within {
 	border: none;
 }
+
+.targetPathButton {
+	padding: 0px 2px;
+	margin-left: 4px;
+}
