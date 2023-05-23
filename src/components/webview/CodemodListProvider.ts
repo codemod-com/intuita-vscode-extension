@@ -212,7 +212,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				);
 
 				window.showInformationMessage(
-					'Updated the codemod execution path',
+					'Updated the codemod execution path.',
 				);
 			} catch (e) {
 				this.__workspaceState.setExecutionPath(
@@ -221,10 +221,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 						{
 							kind: 'syntheticError',
 							message:
-								'The specified codemod execution path does not exist',
+								'The specified codemod execution path does not exist.',
 						},
 						newPath,
 					),
+				);
+				window.showErrorMessage(
+					'The specified codemod execution path does not exist.',
 				);
 			}
 

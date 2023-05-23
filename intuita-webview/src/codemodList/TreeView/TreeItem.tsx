@@ -52,7 +52,6 @@ const TreeItem = ({
 	const [inPathEditingMode, setInPathEditingMode] = useState(false);
 
 	const onEditDone = (value: string) => {
-		setInPathEditingMode(false);
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
@@ -87,6 +86,7 @@ const TreeItem = ({
 		);
 
 		setTargetPathError(error);
+		setInPathEditingMode(false);
 
 		if (error) {
 			return;
@@ -151,7 +151,6 @@ const TreeItem = ({
 				<span className={styles.label}>
 					{label}
 					{kind === 'codemodItem' &&
-						executionPath &&
 						(inPathEditingMode ? (
 							<DirectorySelector
 								defaultValue={targetPath}
@@ -164,8 +163,7 @@ const TreeItem = ({
 								trigger={
 									<VSCodeButton
 										appearance="icon"
-										onClick={(e) => {
-											e.stopPropagation();
+										onClick={() => {
 											setInPathEditingMode(true);
 										}}
 										className={styles.targetPathButton}
@@ -183,7 +181,10 @@ const TreeItem = ({
 				</span>
 				{progressBar}
 			</div>
-			<div className={styles.actions}>
+			<div
+				className={styles.actions}
+				style={{ ...(inPathEditingMode && { display: 'none' }) }}
+			>
 				{actionButtons.map((el) => el)}
 			</div>
 		</div>

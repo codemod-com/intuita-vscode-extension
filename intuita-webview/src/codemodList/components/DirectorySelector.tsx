@@ -11,7 +11,6 @@ export const DirectorySelector = ({
 	defaultValue,
 	onEditDone,
 	onCancel,
-	error,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
 
@@ -36,7 +35,10 @@ export const DirectorySelector = ({
 	};
 
 	return (
-		<div className="flex flex-row justify-between pb-10">
+		<div
+			className="flex flex-row justify-between ml-10 align-items-center"
+			style={{ height: '22px', width: '100%' }}
+		>
 			<div className="flex flex-col w-full">
 				<VSCodeTextField
 					className="flex-1"
@@ -44,8 +46,6 @@ export const DirectorySelector = ({
 					onInput={handleChange}
 					onKeyUp={handleKeyUp}
 				/>
-
-				{error && <span className="text-error">{error.value}</span>}
 			</div>
 		</div>
 	);
