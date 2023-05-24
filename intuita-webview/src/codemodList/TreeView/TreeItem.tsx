@@ -44,7 +44,8 @@ const TreeItem = ({
 	executionPath,
 }: Props) => {
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
-	const [hideActionsGroup, setHideActionsGroup] = useState(false);
+	const [editingPath, setEditingPath] = useState(false);
+
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),
 		O.fold(
@@ -75,15 +76,15 @@ const TreeItem = ({
 			: path.replace(rootPath, repoName);
 
 	const onEditStart = useCallback(() => {
-		setHideActionsGroup(true);
+		setEditingPath(true);
 	}, []);
 
 	const onEditEnd = useCallback(() => {
-		setHideActionsGroup(false);
+		setEditingPath(false);
 	}, []);
 
 	const onEditCancel = useCallback(() => {
-		setHideActionsGroup(false);
+		setEditingPath(false);
 	}, []);
 
 	return (
@@ -104,31 +105,42 @@ const TreeItem = ({
 					}),
 				}}
 			/>
-			{hasChildren ? (
-				<div className={styles.codicon}>
-					<span
-						className={cn('codicon', {
-							'codicon-chevron-right': !open,
-							'codicon-chevron-down': open,
-						})}
-					/>
-				</div>
-			) : null}
-			{kind === 'codemodItem' && description && (
-				<Popover
-					trigger={<div className={styles.icon}>{icon}</div>}
-					position={['bottom left', 'top left']}
-					mouseEnterDelay={300}
-					popoverText={description}
-				/>
-			)}
-			{(kind === 'path' || !description) && (
-				<div className={styles.icon}>{icon}</div>
+			{!editingPath && (
+				<>
+					{hasChildren ? (
+						<div className={styles.codicon}>
+							<span
+								className={cn('codicon', {
+									'codicon-chevron-right': !open,
+									'codicon-chevron-down': open,
+								})}
+							/>
+						</div>
+					) : null}
+					{kind === 'codemodItem' && description && (
+						<Popover
+							trigger={<div className={styles.icon}>{icon}</div>}
+							position={['bottom left', 'top left']}
+							mouseEnterDelay={300}
+							popoverText={description}
+						/>
+					)}
+					{(kind === 'path' || !description) && (
+						<div className={styles.icon}>{icon}</div>
+					)}
+				</>
 			)}
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
-					{label}
-					<span className={styles.directorySelector}>
+					{!editingPath && <span>{label}</span>}
+					<span
+						className={styles.directorySelector}
+						style={{
+							...(editingPath && {
+								display: 'flex',
+							}),
+						}}
+					>
 						{kind === 'codemodItem' && executionPath && (
 							<DirectorySelector
 								defaultValue={targetPath}
@@ -142,14 +154,14 @@ const TreeItem = ({
 						)}
 					</span>
 				</span>
+
 				{progressBar}
 			</div>
-			<div
-				className={styles.actions}
-				style={{ ...(hideActionsGroup && { display: 'none' }) }}
-			>
-				{actionButtons.map((el) => el)}
-			</div>
+			{!editingPath && (
+				<div className={styles.actions}>
+					{actionButtons.map((el) => el)}
+				</div>
+			)}
 		</div>
 	);
 };

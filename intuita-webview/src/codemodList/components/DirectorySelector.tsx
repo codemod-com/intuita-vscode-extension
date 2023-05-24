@@ -44,6 +44,10 @@ export const DirectorySelector = ({
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		const newValue = (e.target as HTMLInputElement).value;
+		if (!newValue.startsWith(repoName)) {
+			setValue(`${repoName}/`);
+			return;
+		}
 		setValue(newValue);
 	};
 
@@ -122,7 +126,10 @@ export const DirectorySelector = ({
 					}}
 					className={styles.targetPathButton}
 				>
-					<span className={styles.label}>{defaultValue}</span>
+					<span className={styles.label}>
+						<em>{repoName}</em>
+						{defaultValue.replace(repoName, '')}
+					</span>
 				</VSCodeButton>
 			}
 			popoverText="Codemod's target path. Click to edit."
