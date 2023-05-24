@@ -3,7 +3,7 @@ import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { FileSystem, Uri, window } from 'vscode';
-import { Case, CaseKind, CaseWithJobHashes } from '../cases/types';
+import { CaseKind, CaseWithJobHashes } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
@@ -105,7 +105,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
-	case?: Case;
+	case: CaseWithJobHashes;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -388,6 +388,7 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
+			case: {} as CaseWithJobHashes,
 		};
 		if (
 			'kind' in message.command &&
@@ -581,7 +582,7 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			if (this.#execution && this.#execution.case) {
+			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					executionId: this.#execution.executionId,
