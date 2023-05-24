@@ -256,9 +256,17 @@ const TreeView = ({ node }: Props) => {
 		});
 
 		const getActionButtons = () => {
-			if (progress?.codemodHash === node.id) {
+			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
+				return [];
+			}
+
+			if (
+				progress?.codemodHash === node.id &&
+				node.modKind === 'executeCodemod'
+			) {
 				return [stopProgress];
 			}
+
 			return actionButtons;
 		};
 
