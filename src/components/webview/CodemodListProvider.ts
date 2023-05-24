@@ -27,6 +27,7 @@ import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import { ElementKind } from '../../elements/types';
 import type { SyntheticError } from '../../errors/types';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -34,9 +35,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
-
 	__codemodTree: CodemodTree = E.right(O.none);
-	__executionPath: T.These<SyntheticError, string> = T.right('/');
+	__workspaceState: WorkspaceState;
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -46,9 +46,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
-		this.__executionPath = T.right(__rootPath ?? '/');
-
 		this.__extensionPath = context.extensionUri;
+		this.__workspaceState = new WorkspaceState(
+			context.workspaceState,
+			__rootPath ?? '/',
+		);
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
@@ -128,7 +130,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				viewId: 'codemods',
 				viewProps: {
 					codemodTree: this.__codemodTree,
-					executionPath: this.__executionPath,
 				},
 			},
 		});
@@ -188,12 +189,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-
-			if (T.isLeft(this.__executionPath)) {
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+			if (T.isLeft(executionPath)) {
 				return;
 			}
 
-			const uri = Uri.file(this.__executionPath.right);
+			const uri = Uri.file(executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -203,30 +204,42 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const { newPath } = message.value;
-
-			// const path = `${this.__rootPath}${newPath}`;
+			const { newPath, codemodHash } = message.value;
 
 			try {
 				await workspace.fs.stat(Uri.file(newPath));
-
-				this.__executionPath = E.right(newPath);
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(newPath),
+				);
 
 				window.showInformationMessage(
-					'Updated the codemod execution path',
+					'Updated the codemod execution path.',
 				);
 			} catch (e) {
-				this.__executionPath = T.both<SyntheticError, string>(
-					{
-						kind: 'syntheticError',
-						message:
-							'The specified codemod execution path does not exist',
-					},
-					newPath,
+				window.showErrorMessage(
+					'The specified codemod execution path does not exist.',
+				);
+
+				const oldExecutionPath =
+					this.__workspaceState.getExecutionPath(codemodHash);
+				if (T.isLeft(oldExecutionPath)) {
+					return;
+				}
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.both<SyntheticError, string>(
+						{
+							kind: 'syntheticError',
+							message:
+								'The specified codemod execution path does not exist.',
+						},
+						oldExecutionPath.right,
+					),
 				);
 			}
 
-			this.setView();
+			await this.getCodemodTree();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -280,6 +293,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash } = codemodElement;
 
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+
 			return {
 				kind,
 				label,
@@ -296,6 +311,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					},
 				],
 				children: [],
+				executionPath,
 			};
 		}
 
