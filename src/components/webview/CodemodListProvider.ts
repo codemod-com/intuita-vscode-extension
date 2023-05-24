@@ -311,6 +311,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				],
 				children: [],
 				executionPath,
+				modKind:
+					hash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0'
+						? 'repomod'
+						: 'executeCodemod',
 			};
 		}
 

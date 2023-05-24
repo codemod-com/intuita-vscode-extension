@@ -66,6 +66,7 @@ export type CodemodTreeNode = {
 		  };
 	actions?: RunCodemodsCommand[];
 	executionPath?: ExecutionPath;
+	modKind?: 'repomod' | 'executeCodemod';
 };
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
@@ -150,6 +151,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
+			codemodHash: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodExecutionProgressLoop';
 			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{

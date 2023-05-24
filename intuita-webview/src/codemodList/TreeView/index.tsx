@@ -135,8 +135,12 @@ const TreeView = ({ node }: Props) => {
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
 	>([]);
+	const [runningRepomodHash, setRunningRepomodHash] =
+		useState<CodemodHash | null>(null);
 
 	const onHalt = useCallback(() => {
+		setRunningRepomodHash(null);
+
 		if (!executionStack.length) {
 			return;
 		}
@@ -148,14 +152,16 @@ const TreeView = ({ node }: Props) => {
 		}
 
 		setExecutionStack(stack);
-
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
 			value: hash,
 		});
 	}, [executionStack]);
 
-	const [progress, { progressBar, stopProgress }] = useProgressBar(onHalt);
+	const [progress, { progressBar, stopProgress }] = useProgressBar(
+		onHalt,
+		runningRepomodHash,
+	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -216,29 +222,38 @@ const TreeView = ({ node }: Props) => {
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
-		const actionButtons = (node.actions ?? []).map((action) => (
-			<VSCodeButton
-				key={action.kind}
-				className={styles.action}
-				appearance="icon"
-				title={`${
-					action.kind === 'webview.codemodList.dryRunCodemod' &&
-					executionStack.includes(action.value)
-						? 'Queued:'
-						: ''
-				} ${action.description}`}
-				onClick={(e) => {
-					e.stopPropagation();
-					handleActionButtonClick(action);
-				}}
-			>
-				{action.kind === 'webview.codemodList.dryRunCodemod' &&
-					executionStack.includes(action.value) && (
-						<i className="codicon codicon-history mr-2" />
-					)}
-				{action.title}
-			</VSCodeButton>
-		));
+		const actionButtons = (node.actions ?? []).map((action) => {
+			return (
+				<VSCodeButton
+					key={action.kind}
+					className={styles.action}
+					appearance="icon"
+					title={`${
+						action.kind === 'webview.codemodList.dryRunCodemod' &&
+						executionStack.includes(action.value)
+							? 'Queued:'
+							: ''
+					} ${action.description}`}
+					onClick={(e) => {
+						e.stopPropagation();
+						handleActionButtonClick(action);
+						if (
+							action.kind ===
+								'webview.codemodList.dryRunCodemod' &&
+							node.modKind === 'repomod'
+						) {
+							setRunningRepomodHash(node.id);
+						}
+					}}
+				>
+					{action.kind === 'webview.codemodList.dryRunCodemod' &&
+						executionStack.includes(action.value) && (
+							<i className="codicon codicon-history mr-2" />
+						)}
+					{action.title}
+				</VSCodeButton>
+			);
+		});
 
 		const getActionButtons = () => {
 			if (progress?.codemodHash === node.id) {
