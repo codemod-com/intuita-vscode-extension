@@ -54,7 +54,7 @@ export const DirectorySelector = ({
 		}
 
 		if (event.key === 'Enter') {
-			if (value.length <= 2) {
+			if (value.length < 2) {
 				// "./" (default path) should always be there
 				handleCancel();
 				return;
