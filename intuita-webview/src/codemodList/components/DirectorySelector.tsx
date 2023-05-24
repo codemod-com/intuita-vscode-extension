@@ -12,7 +12,7 @@ type Props = {
 	defaultValue: string;
 	rootPath: string;
 	codemodHash: CodemodHash;
-	error: { value: string; timestamp: number } | null;
+	error: string | null;
 	onEditStart(): void;
 	onEditEnd(): void;
 };
@@ -22,9 +22,10 @@ export const DirectorySelector = ({
 	codemodHash,
 	onEditStart,
 	onEditEnd,
+	error,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
-	const [inPathEditingMode, setInPathEditingMode] = useState(false);
+	const [editing, setEditing] = useState(false);
 
 	const onEditDone = (value: string) => {
 		vscode.postMessage({
@@ -42,7 +43,7 @@ export const DirectorySelector = ({
 	};
 
 	const handleCancel = () => {
-		setInPathEditingMode(false);
+		setEditing(false);
 		setValue(defaultValue);
 		onEditEnd();
 	};
@@ -69,18 +70,14 @@ export const DirectorySelector = ({
 	useEffect(() => {
 		// this is here rather than inside `onEditDone()` because otherwise
 		// the old target path is displayed for a split second
-		setInPathEditingMode(false);
+		setEditing(false);
 
 		// this is here rather than inside `onEditDone()`. Otherwise, in case of invalid path,
 		// edit mode is still true and the "Dry Run" button will get displayed (which we don't want)
 		onEditEnd();
+	}, [defaultValue, onEditEnd]);
 
-		// adding `onEditEnd` to dependency list causes `inPathEditingMode` to change
-		// as soon as user presses the button component, hence preventing `inPathEditingMode` from being ever `true`
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [defaultValue]);
-
-	if (inPathEditingMode) {
+	if (editing) {
 		return (
 			<div
 				className="flex flex-row justify-between ml-10 align-items-center"
@@ -92,6 +89,7 @@ export const DirectorySelector = ({
 						value={value}
 						onInput={handleChange}
 						onKeyUp={handleKeyUp}
+						checkValidity={() => error !== null}
 					/>
 				</div>
 			</div>
@@ -104,7 +102,7 @@ export const DirectorySelector = ({
 				<VSCodeButton
 					appearance="icon"
 					onClick={() => {
-						setInPathEditingMode(true);
+						setEditing(true);
 						onEditStart();
 					}}
 					className={styles.targetPathButton}

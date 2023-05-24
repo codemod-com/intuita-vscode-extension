@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
@@ -6,6 +6,7 @@ import Popover from '../../shared/Popover';
 import { DirectorySelector } from '../components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
+import * as O from 'fp-ts/Option';
 import { SyntheticError } from '../../../../src/errors/types';
 
 type Props = {
@@ -43,38 +44,42 @@ const TreeItem = ({
 	executionPath,
 }: Props) => {
 	const [hideActionsGroup, setHideActionsGroup] = useState(false);
-	const error = executionPath
-		? pipe(
-				executionPath,
-				T.fold(
-					(e) => ({
-						value: e.message,
-						timestamp: Date.now(),
-					}),
-					() => null,
-					(e) => ({
-						value: e.message,
-						timestamp: Date.now(),
-					}),
-				),
-		  )
-		: null;
+	const error: string | null = pipe(
+		O.fromNullable(executionPath),
+		O.fold(
+			() => null,
+			T.fold(
+				({ message }) => message,
+				() => null,
+				({ message }) => message,
+			),
+		),
+	);
 
-	const path = executionPath
-		? pipe(
-				executionPath,
-				T.fold(
-					() => '',
-					(p) => p,
-					(_, p) => p,
-				),
-		  )
-		: '';
+	const path: string = pipe(
+		O.fromNullable(executionPath),
+		O.fold(
+			() => '',
+			T.fold(
+				() => '',
+				(p) => p,
+				(_, p) => p,
+			),
+		),
+	);
 
 	const targetPath =
 		path.replace(rootPath, '').length === 0
 			? './'
 			: path.replace(rootPath, '.');
+
+	const onEditStart = useCallback(() => {
+		setHideActionsGroup(true);
+	}, []);
+
+	const onEditEnd = useCallback(() => {
+		setHideActionsGroup(false);
+	}, []);
 
 	return (
 		<div
@@ -125,12 +130,8 @@ const TreeItem = ({
 								rootPath={rootPath}
 								error={error}
 								codemodHash={id}
-								onEditStart={() => {
-									setHideActionsGroup(true);
-								}}
-								onEditEnd={() => {
-									setHideActionsGroup(false);
-								}}
+								onEditStart={onEditStart}
+								onEditEnd={onEditEnd}
 							/>
 						)}
 					</span>
