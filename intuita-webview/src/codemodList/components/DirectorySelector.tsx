@@ -27,6 +27,7 @@ export const DirectorySelector = ({
 	onEditCancel,
 	error,
 }: Props) => {
+	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
@@ -35,7 +36,7 @@ export const DirectorySelector = ({
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
-				newPath: value.replace('.', rootPath),
+				newPath: value.replace(repoName, rootPath),
 				codemodHash,
 			},
 		});
@@ -43,6 +44,10 @@ export const DirectorySelector = ({
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		const newValue = (e.target as HTMLInputElement).value;
+		if (!newValue.startsWith(repoName)) {
+			setValue(`${repoName}/`);
+			return;
+		}
 		setValue(newValue);
 	};
 
@@ -60,8 +65,8 @@ export const DirectorySelector = ({
 		}
 
 		if (event.key === 'Enter') {
-			if (value.length < 2) {
-				// "./" (default path) should always be there
+			if (!value.startsWith(repoName)) {
+				// path must start with repo name
 				handleCancel();
 				return;
 			}
@@ -121,7 +126,10 @@ export const DirectorySelector = ({
 					}}
 					className={styles.targetPathButton}
 				>
-					<span className={styles.label}>{defaultValue}</span>
+					<span className={styles.label}>
+						<em>{repoName}</em>
+						{defaultValue.replace(repoName, '')}
+					</span>
 				</VSCodeButton>
 			}
 			popoverText="Codemod's target path. Click to edit."
