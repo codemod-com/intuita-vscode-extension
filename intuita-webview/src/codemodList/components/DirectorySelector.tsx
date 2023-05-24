@@ -7,6 +7,7 @@ import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
 import Popover from '../../shared/Popover';
+import classNames from 'classnames';
 
 type Props = {
 	defaultValue: string;
@@ -15,6 +16,7 @@ type Props = {
 	error: string | null;
 	onEditStart(): void;
 	onEditEnd(): void;
+	onEditCancel(): void;
 };
 export const DirectorySelector = ({
 	defaultValue,
@@ -22,9 +24,11 @@ export const DirectorySelector = ({
 	codemodHash,
 	onEditStart,
 	onEditEnd,
+	onEditCancel,
 	error,
 }: Props) => {
 	const [value, setValue] = useState(defaultValue);
+	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
 
 	const onEditDone = (value: string) => {
@@ -45,7 +49,8 @@ export const DirectorySelector = ({
 	const handleCancel = () => {
 		setEditing(false);
 		setValue(defaultValue);
-		onEditEnd();
+		onEditCancel();
+		setShowErrorStyle(false);
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -77,19 +82,28 @@ export const DirectorySelector = ({
 		onEditEnd();
 	}, [defaultValue, onEditEnd]);
 
+	useEffect(() => {
+		setShowErrorStyle(error !== null);
+	}, [error]);
+
 	if (editing) {
 		return (
 			<div
 				className="flex flex-row justify-between ml-10 align-items-center"
-				style={{ height: '22px', width: '100%' }}
+				style={{
+					width: '100%',
+				}}
 			>
 				<div className="flex flex-col w-full">
 					<VSCodeTextField
-						className={styles.textField}
+						className={classNames(
+							styles.textField,
+							showErrorStyle && styles.textFieldError,
+						)}
 						value={value}
 						onInput={handleChange}
 						onKeyUp={handleKeyUp}
-						checkValidity={() => error !== null}
+						autoFocus
 					/>
 				</div>
 			</div>

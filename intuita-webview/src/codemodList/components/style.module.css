@@ -2,9 +2,9 @@
 	flex-grow: 1;
 }
 
-.textField::part(root):focus,
-.textField::part(root):focus-within {
-	border: none;
+.textFieldError::part(root):focus,
+.textFieldError::part(root):focus-within {
+	border-color: var(--vscode-inputValidation-errorBorder);
 }
 
 .textField::part(control) {
