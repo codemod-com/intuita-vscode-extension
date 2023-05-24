@@ -29,6 +29,8 @@ import { ElementKind } from '../../elements/types';
 import type { SyntheticError } from '../../errors/types';
 import { WorkspaceState } from '../../persistedState/workspaceState';
 
+const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
+
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -315,10 +317,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				],
 				children: [],
 				executionPath,
-				modKind:
-					hash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0'
-						? 'repomod'
-						: 'executeCodemod',
+				modKind: repomodHashes.includes(hash)
+					? 'repomod'
+					: 'executeCodemod',
 			};
 		}
 
