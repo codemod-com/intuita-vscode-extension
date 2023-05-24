@@ -232,7 +232,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 						{
 							kind: 'syntheticError',
 							message:
-								'The specified codemod execution path does not exist.',
+								`${newPath} does not exist.`,
 						},
 						oldExecutionPath.right,
 					),

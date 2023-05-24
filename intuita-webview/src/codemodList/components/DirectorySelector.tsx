@@ -47,9 +47,10 @@ export const DirectorySelector = ({
 	};
 
 	const handleCancel = () => {
+		onEditDone(defaultValue);
+		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
-		onEditCancel();
 		setShowErrorStyle(false);
 	};
 
@@ -66,7 +67,6 @@ export const DirectorySelector = ({
 			}
 			if (value === defaultValue) {
 				handleCancel();
-				return;
 			}
 			onEditDone(value);
 		}
