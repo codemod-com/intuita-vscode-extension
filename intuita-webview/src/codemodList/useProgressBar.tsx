@@ -23,7 +23,16 @@ export const useProgressBar = (
 	const [codemodExecutionProgress, setCodemodExecutionProgress] =
 		useState<null | ProgressType>(null);
 
+	const handleClearInterval = () => {
+		if (intervalRef.current !== null) {
+			clearInterval(intervalRef.current);
+			intervalRef.current = null;
+		}
+		setCodemodExecutionProgress(null);
+	};
+
 	const handleStopCodemodExecution = (hash: CodemodHash) => {
+		handleClearInterval();
 		if (!hash) {
 			return;
 		}
@@ -45,10 +54,7 @@ export const useProgressBar = (
 			}
 
 			if (message.kind === 'webview.global.codemodExecutionHalted') {
-				if (intervalRef.current !== null) {
-					clearInterval(intervalRef.current);
-					intervalRef.current = null;
-				}
+				handleClearInterval();
 				setCodemodExecutionProgress(null);
 				onHalt();
 			}
@@ -78,10 +84,7 @@ export const useProgressBar = (
 		}, 400);
 
 		return () => {
-			if (intervalRef.current !== null) {
-				clearInterval(intervalRef.current);
-				intervalRef.current = null;
-			}
+			handleClearInterval();
 		};
 	}, [runningRepomodHash]);
 
