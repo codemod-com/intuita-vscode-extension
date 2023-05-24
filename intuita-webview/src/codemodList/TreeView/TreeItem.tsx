@@ -43,6 +43,7 @@ const TreeItem = ({
 	depth,
 	executionPath,
 }: Props) => {
+	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [hideActionsGroup, setHideActionsGroup] = useState(false);
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),
@@ -70,8 +71,8 @@ const TreeItem = ({
 
 	const targetPath =
 		path.replace(rootPath, '').length === 0
-			? './'
-			: path.replace(rootPath, '.');
+			? `${repoName}/`
+			: path.replace(rootPath, repoName);
 
 	const onEditStart = useCallback(() => {
 		setHideActionsGroup(true);
