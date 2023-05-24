@@ -62,7 +62,6 @@ export const useProgressBar = (
 	}, [codemodExecutionProgress?.codemodHash, onHalt]);
 
 	useEffect(() => {
-		console.log(runningRepomodHash);
 		if (runningRepomodHash === null) {
 			return;
 		}
