@@ -6,6 +6,8 @@
 	overflow: hidden;
 	flex-wrap: nowrap;
 	padding-left: 3px;
+	align-items: center;
+	height: 28px;
 }
 
 .root:hover {

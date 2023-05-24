@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
@@ -81,6 +81,10 @@ const TreeItem = ({
 		setHideActionsGroup(false);
 	}, []);
 
+	const onEditCancel = useCallback(() => {
+		setHideActionsGroup(false);
+	}, []);
+
 	return (
 		<div
 			id={id}
@@ -132,6 +136,7 @@ const TreeItem = ({
 								codemodHash={id}
 								onEditStart={onEditStart}
 								onEditEnd={onEditEnd}
+								onEditCancel={onEditCancel}
 							/>
 						)}
 					</span>

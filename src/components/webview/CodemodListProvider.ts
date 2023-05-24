@@ -231,8 +231,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					T.both<SyntheticError, string>(
 						{
 							kind: 'syntheticError',
-							message:
-								'The specified codemod execution path does not exist.',
+							message: `${newPath} does not exist.`,
 						},
 						oldExecutionPath.right,
 					),
