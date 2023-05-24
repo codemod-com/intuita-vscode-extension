@@ -29,6 +29,8 @@ import { ElementKind } from '../../elements/types';
 import type { SyntheticError } from '../../errors/types';
 import { WorkspaceState } from '../../persistedState/workspaceState';
 
+const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
+
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -205,7 +207,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 			const { newPath, codemodHash } = message.value;
-
+			const oldExecution =
+				this.__workspaceState.getExecutionPath(codemodHash);
+			const oldExecutionPath = T.isLeft(oldExecution)
+				? null
+				: oldExecution.right;
 			try {
 				await workspace.fs.stat(Uri.file(newPath));
 				this.__workspaceState.setExecutionPath(
@@ -213,17 +219,17 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					T.right(newPath),
 				);
 
-				window.showInformationMessage(
-					'Updated the codemod execution path.',
-				);
+				if (newPath !== oldExecutionPath) {
+					window.showInformationMessage(
+						'Updated the codemod execution path.',
+					);
+				}
 			} catch (e) {
 				window.showErrorMessage(
 					'The specified codemod execution path does not exist.',
 				);
 
-				const oldExecutionPath =
-					this.__workspaceState.getExecutionPath(codemodHash);
-				if (T.isLeft(oldExecutionPath)) {
+				if (oldExecutionPath === null) {
 					return;
 				}
 				this.__workspaceState.setExecutionPath(
@@ -233,7 +239,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 							kind: 'syntheticError',
 							message: `${newPath} does not exist.`,
 						},
-						oldExecutionPath.right,
+						oldExecutionPath,
 					),
 				);
 			}
@@ -311,6 +317,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				],
 				children: [],
 				executionPath,
+				modKind: repomodHashes.includes(hash)
+					? 'repomod'
+					: 'executeCodemod',
 			};
 		}
 
