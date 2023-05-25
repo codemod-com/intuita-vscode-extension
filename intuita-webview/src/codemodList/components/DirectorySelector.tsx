@@ -21,7 +21,6 @@ type Props = {
 	onChange(value: string): void;
 };
 
-
 export const DirectorySelector = ({
 	defaultValue,
 	rootPath,
@@ -29,7 +28,7 @@ export const DirectorySelector = ({
 	onEditStart,
 	onEditEnd,
 	onEditCancel,
-	onChange, 
+	onChange,
 	error,
 	autocompleteItems,
 }: Props) => {
@@ -68,7 +67,10 @@ export const DirectorySelector = ({
 		setAutocompleteIndex(0);
 	}, [autocompleteItems]);
 
-	const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(rootPath, repoName);
+	const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(
+		rootPath,
+		repoName,
+	);
 
 	const onEditDone = (value: string) => {
 		vscode.postMessage({
@@ -129,14 +131,18 @@ export const DirectorySelector = ({
 	useEffect(() => {
 		setShowErrorStyle(error !== null);
 	}, [error]);
-	
+
 	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
 		if (e.key !== 'Tab') {
 			return;
 		}
 
 		let nextAutocompleteIndex = autocompleteIndex;
-		const completed = autocompleteItems[nextAutocompleteIndex]?.replace(rootPath, repoName) === value;
+		const completed =
+			autocompleteItems[nextAutocompleteIndex]?.replace(
+				rootPath,
+				repoName,
+			) === value;
 
 		if (completed) {
 			nextAutocompleteIndex =
@@ -145,7 +151,10 @@ export const DirectorySelector = ({
 
 		setValue(
 			(prevValue) =>
-			autocompleteItems[nextAutocompleteIndex]?.replace(rootPath, repoName) ?? prevValue,
+				autocompleteItems[nextAutocompleteIndex]?.replace(
+					rootPath,
+					repoName,
+				) ?? prevValue,
 		);
 		setAutocompleteIndex(nextAutocompleteIndex);
 		e.preventDefault();
@@ -160,17 +169,17 @@ export const DirectorySelector = ({
 				}}
 			>
 				<div className="flex flex-col w-full overflow-hidden input-background relative">
-				{autocompleteContent ? (
-		<input
-			ref={hintRef}
-			className="autocomplete"
-			aria-hidden={true}
-			readOnly
-			value={autocompleteContent}
-		/>
-	) : null}
+					{autocompleteContent ? (
+						<input
+							ref={hintRef}
+							className="autocomplete"
+							aria-hidden={true}
+							readOnly
+							value={autocompleteContent}
+						/>
+					) : null}
 					<VSCodeTextField
-						id='directory-selector'
+						id="directory-selector"
 						className={classNames(
 							styles.textField,
 							showErrorStyle && styles.textFieldError,

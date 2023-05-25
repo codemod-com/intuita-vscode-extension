@@ -279,7 +279,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.codemodPathChange') {
-		console.log(message, 'message')
 			const completionItemsOrError = await getCompletionItems(
 				message.codemodPath,
 			)();

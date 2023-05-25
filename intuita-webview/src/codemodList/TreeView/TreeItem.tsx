@@ -54,7 +54,7 @@ const TreeItem = ({
 	onClick,
 	depth,
 	executionPath,
-	autocompleteItems
+	autocompleteItems,
 }: Props) => {
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
@@ -100,7 +100,6 @@ const TreeItem = ({
 		setEditingPath(false);
 	}, []);
 
-	
 	return (
 		<div
 			id={id}
