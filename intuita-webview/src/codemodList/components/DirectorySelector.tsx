@@ -40,6 +40,10 @@ export const DirectorySelector = ({
 	const hintRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
+		if (!editing) {
+			return;
+		}
+
 		const inputElement = document
 			.querySelector('vscode-text-field#directory-selector')
 			?.shadowRoot?.querySelector('input');
@@ -61,7 +65,7 @@ export const DirectorySelector = ({
 		return () => {
 			inputElement.removeEventListener('scroll', onInputScroll);
 		};
-	}, []);
+	}, [editing]);
 
 	useEffect(() => {
 		setAutocompleteIndex(0);
