@@ -29,6 +29,7 @@
 }
 
 .progressRing {
+	margin-right: auto;
 	width: 18px;
 	height: 18px;
 	padding: 0 4px;
