@@ -27,3 +27,9 @@
 	align-items: center;
 	justify-content: center;
 }
+
+.progressRing {
+	width: 18px;
+	height: 18px;
+	padding: 0 4px;
+}

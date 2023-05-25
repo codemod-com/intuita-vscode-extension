@@ -1,4 +1,4 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton, VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -76,10 +76,12 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 
 	return (
 		<div className={styles.root}>
-			{allFileNodesReady && (
+			{allFileNodesReady ? (
 				<h4
 					className={styles.selectedFileCount}
 				>{`Selected files: ${stagedJobs.length} of ${fileNodes.length}`}</h4>
+			) : (
+				<VSCodeProgressRing className={styles.progressRing} />
 			)}
 			<Popover
 				trigger={
