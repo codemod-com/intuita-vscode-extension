@@ -8,6 +8,8 @@ import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import * as O from 'fp-ts/Option';
 import { SyntheticError } from '../../../../src/errors/types';
+import debounce from '../../shared/utilities/debounce';
+import { vscode } from '../../shared/utilities/vscode';
 
 type Props = {
 	id: CodemodHash;
@@ -25,7 +27,17 @@ type Props = {
 	disabled: boolean;
 	rootPath: string;
 	executionPath?: T.These<SyntheticError, string>;
+	autocompleteItems: string[];
 };
+
+const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
+	const codemodPath = rawCodemodPath.trim();
+
+	vscode.postMessage({
+		kind: 'webview.codemodList.codemodPathChange',
+		codemodPath,
+	});
+}, 50);
 
 const TreeItem = ({
 	id,
@@ -42,6 +54,7 @@ const TreeItem = ({
 	onClick,
 	depth,
 	executionPath,
+	autocompleteItems,
 }: Props) => {
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
@@ -150,6 +163,8 @@ const TreeItem = ({
 								onEditStart={onEditStart}
 								onEditEnd={onEditEnd}
 								onEditCancel={onEditCancel}
+								onChange={handleCodemodPathChange}
+								autocompleteItems={autocompleteItems}
 							/>
 						)}
 					</span>

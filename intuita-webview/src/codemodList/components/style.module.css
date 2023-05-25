@@ -7,9 +7,14 @@
 	border-color: var(--vscode-inputValidation-errorBorder);
 }
 
+.textField::part(root) {
+	background: none;
+}
+
 .textField::part(control) {
 	font-size: 12px;
 	color: #a9a9a9;
+	background: none;
 }
 
 .targetPathButton {

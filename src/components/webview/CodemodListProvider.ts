@@ -25,9 +25,34 @@ import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
+import * as TE from 'fp-ts/TaskEither';
+
 import { ElementKind } from '../../elements/types';
+import { readdir } from 'node:fs/promises';
+import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
+import { pipe } from 'fp-ts/lib/function';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+
+const readDir = (path: string): TE.TaskEither<Error, string[]> =>
+	TE.tryCatch(
+		() => readdir(path),
+		(reason) => new Error(String(reason)),
+	);
+// parsePath should be IO?
+const parsePath = (path: string): { dir: string; base: string } =>
+	path.endsWith('/') ? { dir: path, base: '' } : parse(path);
+
+const toCompletions = (paths: string[], dir: string, base: string) =>
+	paths.filter((path) => path.startsWith(base)).map((c) => join(dir, c));
+
+const getCompletionItems = (path: string) =>
+	pipe(parsePath(path), ({ dir, base }) =>
+		pipe(
+			readDir(dir),
+			TE.map((paths) => toCompletions(paths, dir, base)),
+		),
+	);
 
 const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
 
@@ -38,6 +63,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
 	__codemodTree: CodemodTree = E.right(O.none);
+	__autocompleteItems: string[] = [];
 	__workspaceState: WorkspaceState;
 
 	readonly __eventEmitter = new EventEmitter<void>();
@@ -132,6 +158,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				viewId: 'codemods',
 				viewProps: {
 					codemodTree: this.__codemodTree,
+					autocompleteItems: this.__autocompleteItems,
 				},
 			},
 		});
@@ -249,6 +276,23 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.getCodemodTree();
+		}
+
+		if (message.kind === 'webview.codemodList.codemodPathChange') {
+			const completionItemsOrError = await getCompletionItems(
+				message.codemodPath,
+			)();
+
+			pipe(
+				completionItemsOrError,
+				E.fold(
+					() => (this.__autocompleteItems = []),
+					(autocompleteItems) =>
+						(this.__autocompleteItems = autocompleteItems),
+				),
+			);
+
+			this.setView();
 		}
 	};
 

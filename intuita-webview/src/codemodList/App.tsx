@@ -46,7 +46,7 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree } = view.viewProps;
+	const { codemodTree, autocompleteItems } = view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -54,7 +54,12 @@ function App() {
 			(error) => <p>{error.message}</p>,
 			O.fold(
 				() => loadingContainer,
-				(node) => <TreeView node={node} />,
+				(node) => (
+					<TreeView
+						node={node}
+						autocompleteItems={autocompleteItems}
+					/>
+				),
 			),
 		),
 	);

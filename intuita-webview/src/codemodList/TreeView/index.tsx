@@ -17,6 +17,7 @@ import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
+	autocompleteItems: string[];
 }>;
 
 export const containsCodemodHashDigest = (
@@ -121,7 +122,7 @@ const initializer = ({ node, focusedId }: InitializerArgument): State => {
 	};
 };
 
-const TreeView = ({ node }: Props) => {
+const TreeView = ({ node, autocompleteItems }: Props) => {
 	const rootPath = node.label;
 	const [state, dispatch] = useReducer(
 		reducer,
@@ -287,6 +288,7 @@ const TreeView = ({ node }: Props) => {
 				kind={node.kind}
 				open={opened}
 				focused={node.id === state.focusedId}
+				autocompleteItems={autocompleteItems}
 				onClick={() => {
 					handleClick(node);
 
