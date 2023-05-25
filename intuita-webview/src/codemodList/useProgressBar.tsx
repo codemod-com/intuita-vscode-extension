@@ -92,8 +92,8 @@ export const useProgressBar = (
 		codemodExecutionProgress !== null ? (
 			<>
 				<div
-					className="flex w-full mb-2"
-					style={{ height: '3.5px', marginRight: '10px' }}
+					className="flex mb-2"
+					style={{ height: '3.5px', width: '90%' }}
 				>
 					<Line
 						percent={codemodExecutionProgress.progress}
