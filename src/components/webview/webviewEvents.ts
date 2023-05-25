@@ -4,10 +4,10 @@ import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
-import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { SyntheticError } from '../../errors/types';
+import { ExecutionPath } from '../../persistedState/workspaceState';
 
 export { JobHash };
 export { CodemodHash };
@@ -56,6 +56,7 @@ export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
 	label: string;
+	children: CodemodTreeNode[];
 	description?: string;
 	iconName?: string;
 	command?:
@@ -64,7 +65,8 @@ export type CodemodTreeNode = {
 				arguments?: ElementHash[];
 		  };
 	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode[];
+	executionPath?: ExecutionPath;
+	modKind?: 'repomod' | 'executeCodemod';
 };
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
@@ -149,6 +151,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
+			codemodHash: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodExecutionProgressLoop';
 			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
@@ -254,6 +260,7 @@ export type WebviewResponse =
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
 				newPath: string;
+				codemodHash: CodemodHash;
 			};
 	  }>
 	| Readonly<{
@@ -328,7 +335,6 @@ export type View =
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
-				executionPath: T.These<SyntheticError, string>;
 				autocompleteItems: string[];
 			};
 	  }>;

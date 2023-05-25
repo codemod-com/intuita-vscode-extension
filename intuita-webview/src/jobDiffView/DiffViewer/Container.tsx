@@ -62,9 +62,12 @@ export const Header = ({
 	};
 
 	return (
-		<div id={id} className="flex w-full items-center container-header">
+		<div
+			id={id}
+			className="flex w-full align-items-center container-header"
+		>
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<div className="flex items-center flex-1">
+				<div className="flex align-items-center flex-1">
 					{jobKindText ? (
 						<h4 className="my-0 ml-2 job-kind-text align-self-center user-select-none">
 							{jobKindText}
@@ -108,7 +111,7 @@ export const Header = ({
 						popoverText="Open a Github issue with a provided template to report a problem."
 					/>
 					{hasDiff ? (
-						<div className="ml-10 flex items-center justify-end diff-changes-container">
+						<div className="ml-10 flex align-items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
 								-
 								{[
@@ -128,7 +131,7 @@ export const Header = ({
 						</div>
 					) : null}
 					<div
-						className="viewed-button flex ml-10 justify-between checkbox-container items-center"
+						className="viewed-button flex ml-10 justify-between checkbox-container align-items-center"
 						onClick={(e) => {
 							e.stopPropagation();
 							onViewedChange();

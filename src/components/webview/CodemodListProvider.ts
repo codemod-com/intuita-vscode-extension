@@ -32,6 +32,7 @@ import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
@@ -53,16 +54,17 @@ const getCompletionItems = (path: string) =>
 		),
 	);
 
+const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
+
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
 	__focusedCodemodHashDigest: CodemodHash | null = null;
-
 	__codemodTree: CodemodTree = E.right(O.none);
-	__executionPath: T.These<SyntheticError, string> = T.right('/');
 	__autocompleteItems: string[] = [];
+	__workspaceState: WorkspaceState;
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -72,9 +74,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 	) {
-		this.__executionPath = T.right(__rootPath ?? '/');
-
 		this.__extensionPath = context.extensionUri;
+		this.__workspaceState = new WorkspaceState(
+			context.workspaceState,
+			__rootPath ?? '/',
+		);
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
@@ -154,7 +158,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				viewId: 'codemods',
 				viewProps: {
 					codemodTree: this.__codemodTree,
-					executionPath: this.__executionPath,
 					autocompleteItems: this.__autocompleteItems,
 				},
 			},
@@ -215,12 +218,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-
-			if (T.isLeft(this.__executionPath)) {
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+			if (T.isLeft(executionPath)) {
 				return;
 			}
 
-			const uri = Uri.file(this.__executionPath.right);
+			const uri = Uri.file(executionPath.right);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -230,30 +233,45 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const { newPath } = message.value;
-
-			// const path = `${this.__rootPath}${newPath}`;
-
+			const { newPath, codemodHash } = message.value;
+			const oldExecution =
+				this.__workspaceState.getExecutionPath(codemodHash);
+			const oldExecutionPath = T.isLeft(oldExecution)
+				? null
+				: oldExecution.right;
 			try {
 				await workspace.fs.stat(Uri.file(newPath));
-
-				this.__executionPath = E.right(newPath);
-
-				window.showInformationMessage(
-					'Updated the codemod execution path',
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(newPath),
 				);
+
+				if (newPath !== oldExecutionPath) {
+					window.showInformationMessage(
+						'Updated the codemod execution path.',
+					);
+				}
 			} catch (e) {
-				this.__executionPath = T.both<SyntheticError, string>(
-					{
-						kind: 'syntheticError',
-						message:
-							'The specified codemod execution path does not exist',
-					},
-					newPath,
+				window.showErrorMessage(
+					'The specified codemod execution path does not exist.',
+				);
+
+				if (oldExecutionPath === null) {
+					return;
+				}
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.both<SyntheticError, string>(
+						{
+							kind: 'syntheticError',
+							message: `${newPath} does not exist.`,
+						},
+						oldExecutionPath,
+					),
 				);
 			}
 
-			this.setView();
+			await this.getCodemodTree();
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
@@ -324,6 +342,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash } = codemodElement;
 
+			const executionPath = this.__workspaceState.getExecutionPath(hash);
+
 			return {
 				kind,
 				label,
@@ -340,6 +360,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					},
 				],
 				children: [],
+				executionPath,
+				modKind: repomodHashes.includes(hash)
+					? 'repomod'
+					: 'executeCodemod',
 			};
 		}
 

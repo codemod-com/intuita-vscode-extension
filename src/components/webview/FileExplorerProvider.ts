@@ -151,7 +151,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const tree = this.__getTreeByDirectory(caseElement);
 
 		if (tree) {
-			console.log('SET');
 			this.setView({
 				viewId: 'treeView',
 				viewProps: {

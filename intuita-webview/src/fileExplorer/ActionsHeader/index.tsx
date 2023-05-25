@@ -1,16 +1,18 @@
-import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import { JobHash } from '../../shared/types';
 import { CaseHash } from '../../../../src/cases/types';
 import { FileTreeNode } from '../../../../src/components/webview/webviewEvents';
+import { ReactComponent as CheckboxIndeterminate } from '../../assets/checkbox_indeterminate.svg';
+import { ReactComponent as CheckboxBlank } from '../../assets/checkbox_blank.svg';
+import { ReactComponent as CheckboxChecked } from '../../assets/checkbox_checked.svg';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard the codemod in progress without saving changes.',
 	apply: 'Save changes to file, further tweak things if needed, and commit later.',
-	commit: 'Commit or create pull requests for selected changes.',
-	cannotApply: 'At least one job should be staged to commit the changes.',
+	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
 type Props = {
@@ -21,6 +23,7 @@ type Props = {
 
 const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 	const hasStagedJobs = stagedJobs.length > 0;
+	const hasStagedAllJobs = stagedJobs.length === fileNodes.length;
 
 	const handleToggleAllJobs = () => {
 		const jobHashes: JobHash[] = hasStagedJobs
@@ -110,10 +113,22 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 			/>
 			<Popover
 				trigger={
-					<VSCodeCheckbox
-						checked={hasStagedJobs}
+					<VSCodeButton
 						onClick={handleToggleAllJobs}
-					/>
+						appearance="icon"
+					>
+						{!hasStagedJobs && (
+							<CheckboxBlank className={styles.icon} />
+						)}
+						{hasStagedJobs &&
+							(hasStagedAllJobs ? (
+								<CheckboxChecked className={styles.icon} />
+							) : (
+								<CheckboxIndeterminate
+									className={styles.icon}
+								/>
+							))}
+					</VSCodeButton>
 				}
 				popoverText={
 					!hasStagedJobs

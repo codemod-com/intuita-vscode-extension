@@ -105,6 +105,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
+	case: CaseWithJobHashes;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -387,6 +388,7 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
+			case: {} as CaseWithJobHashes,
 		};
 		if (
 			'kind' in message.command &&
@@ -568,6 +570,8 @@ export class EngineService {
 				codemodName: job.codemodName,
 			};
 
+			this.#execution.case = caseWithJobHashes;
+
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],
@@ -586,6 +590,7 @@ export class EngineService {
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
+					case: this.#execution.case,
 				});
 
 				if (!errorMessages.size && !this.#execution.affectedAnyFile) {
