@@ -8,7 +8,7 @@ import type {
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
-import SearchBar from './SearchBar';
+import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 

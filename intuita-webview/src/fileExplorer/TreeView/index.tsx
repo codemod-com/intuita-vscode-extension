@@ -17,7 +17,7 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
-import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
