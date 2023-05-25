@@ -232,10 +232,12 @@ const TreeView = ({
 					if (node.kind !== 'fileElement') {
 						return null;
 					}
+					// e.g., cal.com/packages/file.tsx
+					const relativeFilePath = node.id ?? '';
 					const searchingFileFound =
 						userSearchingFile &&
 						node.kind === 'fileElement' &&
-						(node.label ?? '').toLowerCase().includes(searchQuery);
+						relativeFilePath.toLowerCase().includes(searchQuery);
 					if (!searchingFileFound) {
 						return null;
 					}
