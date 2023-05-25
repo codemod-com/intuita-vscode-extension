@@ -1,4 +1,7 @@
-import { VSCodeButton, VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodeButton,
+	VSCodeProgressRing,
+} from '@vscode/webview-ui-toolkit/react';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
