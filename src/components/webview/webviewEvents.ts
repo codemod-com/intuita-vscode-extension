@@ -288,7 +288,7 @@ export type View =
 				caseHash: CaseHash;
 				node: TreeNode;
 				nodeIds: string[];
-				fileNodes: FileTreeNode[];
+				fileNodes: FileTreeNode[] | null;
 			} | null;
 	  }>
 	| Readonly<{

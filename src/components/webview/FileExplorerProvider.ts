@@ -53,6 +53,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
 	__lastSelectedNodeId: string | null = null;
+	__codemodExecutionInProgress = false;
+	__lastData: Extract<View, { viewId: 'treeView' }> | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -101,7 +103,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(data: View) {
+	public setView(data: Extract<View, { viewId: 'treeView' }>) {
+		this.__lastData = data;
 		this.__postMessage({
 			kind: 'webview.global.setView',
 			value: data,
@@ -156,9 +159,11 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewProps: {
 					node: tree,
 					nodeIds: Array.from(this.__folderMap.keys()),
-					fileNodes: Array.from(this.__fileNodes.values()).map(
-						(obj) => obj.node,
-					),
+					fileNodes: this.__codemodExecutionInProgress
+						? null
+						: Array.from(this.__fileNodes.values()).map(
+								(obj) => obj.node,
+						  ),
 					caseHash,
 				},
 			});
@@ -412,6 +417,28 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
+
+		this.__addHook(MessageKind.executeCodemodSet, () => {
+			this.__codemodExecutionInProgress = true;
+		});
+
+		this.__addHook(MessageKind.codemodSetExecuted, () => {
+			this.__codemodExecutionInProgress = false;
+			if (
+				this.__lastData !== null &&
+				this.__lastData.viewProps !== null
+			) {
+				this.setView({
+					...this.__lastData,
+					viewProps: {
+						...this.__lastData.viewProps,
+						fileNodes: Array.from(this.__fileNodes.values()).map(
+							(obj) => obj.node,
+						),
+					},
+				});
+			}
+		});
 
 		this.__addHook(MessageKind.updateElements, () => {
 			if (this.__lastSelectedCaseHash === null) {
