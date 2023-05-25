@@ -151,26 +151,6 @@ export const JobDiffViewContainer = ({
 		[setDiffData],
 	);
 
-	const onToggle = useCallback(
-		(jobHash: JobHash, expanded: boolean) => {
-			setDiffData((prevDiffData) => {
-				// @TODO fix code duplication
-				if (!prevDiffData[jobHash]) {
-					return prevDiffData;
-				}
-
-				return {
-					...prevDiffData,
-					[jobHash]: {
-						...prevDiffData[jobHash],
-						expanded,
-					},
-				};
-			});
-		},
-		[setDiffData],
-	);
-
 	const onHeightSet = useCallback(
 		(jobHash: JobHash, height: number) => {
 			setDiffData((prevDiffData) => {
@@ -264,7 +244,6 @@ export const JobDiffViewContainer = ({
 												visible={visible}
 												viewType={viewType}
 												height={height ?? defaultHeight}
-												onToggle={onToggle}
 												toggleVisible={toggleVisible}
 												postMessage={postMessage}
 												onHeightSet={onHeightSet}
