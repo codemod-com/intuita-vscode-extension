@@ -45,10 +45,6 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.test",
-				"title": "Intuita :test"
-			},
-			{
 				"command": "intuita.createPR",
 				"title": "Intuita: Create a Pull Request"
 			},
