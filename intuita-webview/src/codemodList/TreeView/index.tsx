@@ -14,25 +14,11 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import debounce from '../../shared/utilities/debounce';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
 	autocompleteItems: string[];
 }>;
-
-const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
-	const codemodPath = rawCodemodPath.trim();
-
-	if (codemodPath.length < 3) {
-		return;
-	}
-
-	vscode.postMessage({
-		kind: 'webview.codemodList.codemodPathChange',
-		codemodPath,
-	});
-}, 50);
 
 export const containsCodemodHashDigest = (
 	node: CodemodTreeNode,
@@ -311,7 +297,6 @@ const TreeView = ({ node, autocompleteItems }: Props) => {
 						id: node.id,
 					});
 				}}
-				onChange={handleCodemodPathChange}
 				actionButtons={getActionButtons()}
 			/>
 		);

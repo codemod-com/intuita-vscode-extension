@@ -8,6 +8,8 @@ import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import * as O from 'fp-ts/Option';
 import { SyntheticError } from '../../../../src/errors/types';
+import debounce from '../../shared/utilities/debounce';
+import { vscode } from '../../shared/utilities/vscode';
 
 type Props = {
 	id: CodemodHash;
@@ -21,13 +23,21 @@ type Props = {
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
-	onChange(value: string): void;
 	depth: number;
 	disabled: boolean;
 	rootPath: string;
 	executionPath?: T.These<SyntheticError, string>;
 	autocompleteItems: string[];
 };
+
+const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
+	const codemodPath = rawCodemodPath.trim();
+
+	vscode.postMessage({
+		kind: 'webview.codemodList.codemodPathChange',
+		codemodPath,
+	});
+}, 50);
 
 const TreeItem = ({
 	id,
@@ -42,7 +52,6 @@ const TreeItem = ({
 	actionButtons,
 	hasChildren,
 	onClick,
-	onChange,
 	depth,
 	executionPath,
 	autocompleteItems
@@ -91,6 +100,7 @@ const TreeItem = ({
 		setEditingPath(false);
 	}, []);
 
+	
 	return (
 		<div
 			id={id}
@@ -154,7 +164,7 @@ const TreeItem = ({
 								onEditStart={onEditStart}
 								onEditEnd={onEditEnd}
 								onEditCancel={onEditCancel}
-								onChange={onChange}
+								onChange={handleCodemodPathChange}
 								autocompleteItems={autocompleteItems}
 							/>
 						)}

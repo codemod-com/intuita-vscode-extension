@@ -21,12 +21,6 @@ type Props = {
 	onChange(value: string): void;
 };
 
-const removeInputBackground = () => {
-	document
-		.querySelector('vscode-text-field#directory-selector')
-		?.shadowRoot?.querySelector('.root')
-		?.setAttribute('style', 'background: none');
-};
 
 export const DirectorySelector = ({
 	defaultValue,
@@ -45,7 +39,6 @@ export const DirectorySelector = ({
 	const [editing, setEditing] = useState(false);
 	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	const hintRef = useRef<HTMLInputElement>(null);
-	removeInputBackground();
 
 	useEffect(() => {
 		const inputElement = document
@@ -75,8 +68,8 @@ export const DirectorySelector = ({
 		setAutocompleteIndex(0);
 	}, [autocompleteItems]);
 
-	const autocompleteContent = autocompleteItems[autocompleteIndex];
-	
+	const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(rootPath, repoName);
+
 	const onEditDone = (value: string) => {
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
@@ -94,7 +87,7 @@ export const DirectorySelector = ({
 			return;
 		}
 		setValue(newValue);
-		onChange(value);
+		onChange(newValue.replace(repoName, rootPath));
 	};
 
 	const handleCancel = () => {
@@ -143,7 +136,7 @@ export const DirectorySelector = ({
 		}
 
 		let nextAutocompleteIndex = autocompleteIndex;
-		const completed = autocompleteItems[nextAutocompleteIndex] === value;
+		const completed = autocompleteItems[nextAutocompleteIndex]?.replace(rootPath, repoName) === value;
 
 		if (completed) {
 			nextAutocompleteIndex =
@@ -152,7 +145,7 @@ export const DirectorySelector = ({
 
 		setValue(
 			(prevValue) =>
-				autocompleteItems[nextAutocompleteIndex] ?? prevValue,
+			autocompleteItems[nextAutocompleteIndex]?.replace(rootPath, repoName) ?? prevValue,
 		);
 		setAutocompleteIndex(nextAutocompleteIndex);
 		e.preventDefault();
@@ -177,6 +170,7 @@ export const DirectorySelector = ({
 		/>
 	) : null}
 					<VSCodeTextField
+						id='directory-selector'
 						className={classNames(
 							styles.textField,
 							showErrorStyle && styles.textFieldError,

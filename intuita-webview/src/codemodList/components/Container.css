@@ -106,8 +106,7 @@
 	margin-top: auto;
 	margin-bottom: auto;
 	display: block;
-	font-size: var(--type-ramp-base-font-size);
-	/* @TODO hardcoded values */
+	font-size: 12px;
 	line-height: 26px;
 	height: 26px;
 	width: 100%;
