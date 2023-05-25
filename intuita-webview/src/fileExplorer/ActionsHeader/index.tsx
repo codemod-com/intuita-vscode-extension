@@ -1,4 +1,7 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodeButton,
+	VSCodeProgressRing,
+} from '@vscode/webview-ui-toolkit/react';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -18,14 +21,19 @@ const POPOVER_TEXTS = {
 type Props = {
 	stagedJobs: JobHash[];
 	caseHash: CaseHash;
-	fileNodes: FileTreeNode[];
+	fileNodes: FileTreeNode[] | null;
 };
 
 const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
+	const allFileNodesReady = fileNodes !== null;
 	const hasStagedJobs = stagedJobs.length > 0;
-	const hasStagedAllJobs = stagedJobs.length === fileNodes.length;
+	const hasStagedAllJobs =
+		allFileNodesReady && stagedJobs.length === fileNodes.length;
 
 	const handleToggleAllJobs = () => {
+		if (!allFileNodesReady) {
+			return;
+		}
 		const jobHashes: JobHash[] = hasStagedJobs
 			? []
 			: fileNodes.map((node) => node.jobHash) ?? [];
@@ -71,15 +79,20 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 
 	return (
 		<div className={styles.root}>
-			<h4
-				className={styles.selectedFileCount}
-			>{`Selected files: ${stagedJobs.length} of ${fileNodes.length}`}</h4>
+			{allFileNodesReady ? (
+				<h4
+					className={styles.selectedFileCount}
+				>{`Selected files: ${stagedJobs.length} of ${fileNodes.length}`}</h4>
+			) : (
+				<VSCodeProgressRing className={styles.progressRing} />
+			)}
 			<Popover
 				trigger={
 					<VSCodeButton
 						appearance="secondary"
 						onClick={handleDiscardChanges}
 						className={styles.vscodeButton}
+						disabled={!allFileNodesReady}
 					>
 						Discard All
 					</VSCodeButton>
@@ -95,7 +108,7 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 					<VSCodeButton
 						appearance="primary"
 						onClick={handleApplySelected}
-						disabled={!hasStagedJobs}
+						disabled={!allFileNodesReady || !hasStagedJobs}
 						className={styles.vscodeButton}
 					>
 						Apply Selected
@@ -114,6 +127,7 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 			<Popover
 				trigger={
 					<VSCodeButton
+						disabled={!allFileNodesReady}
 						onClick={handleToggleAllJobs}
 						appearance="icon"
 					>

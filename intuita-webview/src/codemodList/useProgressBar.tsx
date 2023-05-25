@@ -91,7 +91,10 @@ export const useProgressBar = (
 	const progressBar =
 		codemodExecutionProgress !== null ? (
 			<>
-				<div className="flex w-full mb-2" style={{ height: '3.5px' }}>
+				<div
+					className="flex mb-2"
+					style={{ height: '3.5px', width: '95%' }}
+				>
 					<Line
 						percent={codemodExecutionProgress.progress}
 						strokeWidth={1.5}
@@ -116,6 +119,7 @@ export const useProgressBar = (
 					codemodExecutionProgress.codemodHash,
 				);
 			}}
+			style={{ marginLeft: '0px' }}
 			title="Stop Codemod Execution"
 		>
 			<i className="codicon codicon-debug-stop" />

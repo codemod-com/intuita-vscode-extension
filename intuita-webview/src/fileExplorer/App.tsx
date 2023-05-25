@@ -28,11 +28,13 @@ function App() {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'treeView') {
 					setView(message.value);
-					setStagedJobs(
-						message.value.viewProps?.fileNodes.map(
-							(node) => node.jobHash,
-						) ?? [],
-					);
+					if (message.value.viewProps?.fileNodes !== null) {
+						setStagedJobs(
+							message.value.viewProps?.fileNodes.map(
+								(node) => node.jobHash,
+							) ?? [],
+						);
+					}
 				}
 			}
 
@@ -73,7 +75,10 @@ function App() {
 	const { fileNodes, caseHash } = view.viewProps;
 
 	return (
-		<main className="App">
+		<main
+			className="App"
+			style={{ ...(fileNodes === null && { cursor: 'not-allowed' }) }}
+		>
 			{searchQuery.length === 0 && (
 				<ActionsHeader
 					stagedJobs={stagedJobs}
@@ -81,10 +86,12 @@ function App() {
 					caseHash={caseHash}
 				/>
 			)}
-			<SearchBar
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-			/>
+			{fileNodes !== null && (
+				<SearchBar
+					searchQuery={searchQuery}
+					setSearchQuery={setSearchQuery}
+				/>
+			)}
 			<TreeView
 				{...view.viewProps}
 				searchQuery={searchQuery}

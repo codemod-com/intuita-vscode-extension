@@ -59,7 +59,7 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 type Props = {
 	node: TreeNode;
 	nodeIds: string[];
-	fileNodes: FileTreeNode[];
+	fileNodes: FileTreeNode[] | null;
 	caseHash: CaseHash;
 	searchQuery: string;
 	focusedNodeId: string | null;
@@ -76,9 +76,10 @@ const TreeView = ({
 	setFocusedNodeId,
 	stagedJobs,
 }: Props) => {
+	const allFileNodesReady = fileNodes !== null;
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const fileNodeIds = useMemo(
-		() => new Set(fileNodes.map((node) => node.id)),
+		() => new Set(fileNodes?.map((node) => node.id) ?? []),
 		[fileNodes],
 	);
 
@@ -163,24 +164,31 @@ const TreeView = ({
 				open={open}
 				focused={focused}
 				onClick={() => {
+					if (!allFileNodesReady) {
+						return;
+					}
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={[enableCheckbox && <Checkbox />]}
+				actionButtons={[
+					enableCheckbox && allFileNodesReady && <Checkbox />,
+				]}
 				onPressChevron={() => {
+					if (!allFileNodesReady) {
+						return;
+					}
 					setIsOpen(!open);
 				}}
 				index={index}
 				inlineStyles={{
-					...(enableCheckbox && {
-						root: {
+					root: {
+						...(enableCheckbox && {
 							...(!focused && {
 								backgroundColor:
 									'var(--vscode-list-hoverBackground)',
 							}),
-
 							paddingRight: 4,
-						},
-					}),
+						}),
+					},
 					actions: { display: 'flex' },
 				}}
 			/>
@@ -220,7 +228,7 @@ const TreeView = ({
 	if (userSearchingFile) {
 		return (
 			<ReactTreeView nodeLabel="">
-				{fileNodes.map((node, index) => {
+				{fileNodes?.map((node, index) => {
 					if (node.kind !== 'fileElement') {
 						return null;
 					}
@@ -272,6 +280,7 @@ const TreeView = ({
 			index={0}
 			depth={0}
 			focusedNodeId={focusedNodeId}
+			allFileNodesReady={allFileNodesReady}
 		/>
 	);
 };
