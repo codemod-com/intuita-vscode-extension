@@ -15,7 +15,6 @@ type Props = JobDiffViewProps & {
 	visible: boolean;
 	toggleVisible: (jobHash: JobHash) => void;
 	expanded: boolean;
-	onToggle: (jobHash: JobHash, expanded: boolean) => void;
 	height: number;
 	diff: Diff | null;
 	onHeightSet: (jobHash: JobHash, height: number) => void;
@@ -42,7 +41,6 @@ export const JobDiffView = memo(
 				onDiffCalculated,
 				diff,
 				expanded,
-				onToggle,
 				theme,
 			}: Props,
 			ref,
@@ -58,13 +56,6 @@ export const JobDiffView = memo(
 			const handleToggleVisible = useCallback(() => {
 				toggleVisible(jobHash);
 			}, [jobHash, toggleVisible]);
-
-			const handleToggle = useCallback(
-				(expanded: boolean) => {
-					onToggle(jobHash, expanded);
-				},
-				[jobHash, onToggle],
-			);
 
 			const handleDiffCalculated = useCallback(
 				(diff: Diff) => {
@@ -103,7 +94,6 @@ export const JobDiffView = memo(
 				>
 					<Collapsable
 						defaultExpanded={expanded}
-						onToggle={handleToggle}
 						className="overflow-hidden rounded"
 						headerClassName="p-10"
 						contentClassName="p-10"

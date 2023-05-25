@@ -78,7 +78,7 @@ export const Header = ({
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
 						trigger={
-							<h4 className="my-0 ml-1 diff-title align-self-center">
+							<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
 								{title}
 							</h4>
 						}

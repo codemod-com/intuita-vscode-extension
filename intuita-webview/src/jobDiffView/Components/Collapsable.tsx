@@ -12,7 +12,7 @@ type CollapsableProps = Readonly<{
 	children: React.ReactNode;
 	contentClassName?: string;
 	className?: string;
-	onToggle: (expanded: boolean) => void;
+	onToggle?: (expanded: boolean) => void;
 }>;
 
 export const Collapsable = ({
@@ -33,17 +33,20 @@ export const Collapsable = ({
 					collapsable__header: true,
 					'collapsable__header--sticky': headerSticky,
 				})}
-				onClick={() => onToggle(!defaultCollapsed)}
+				onClick={() => onToggle?.(!defaultCollapsed)}
 			>
-				<ArrowDownIcon
-					className={cn(
-						'collapsable__arrow',
-						headerChevronClassName,
-						{
-							'collapsable__arrow--collapsed': !defaultCollapsed,
-						},
-					)}
-				/>
+				{onToggle && (
+					<ArrowDownIcon
+						className={cn(
+							'collapsable__arrow',
+							headerChevronClassName,
+							{
+								'collapsable__arrow--collapsed':
+									!defaultCollapsed,
+							},
+						)}
+					/>
+				)}
 				{headerComponent}
 			</div>
 			{defaultCollapsed && (
