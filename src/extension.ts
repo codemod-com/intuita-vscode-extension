@@ -1148,22 +1148,25 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const codemodList = await engineService.getCodemodList();
 
-					const top5RecentCodemodHashes = codemodListWebviewProvider
+					// order: least recent to most recent
+					const top3RecentCodemodHashes = codemodListWebviewProvider
 						.getRecentCodemodHashes()
-						.slice(0, 5);
+						.slice(-3);
 
-					const top5RecentCodemods = codemodList
-						.filter((codemod) =>
-							top5RecentCodemodHashes.includes(
-								codemod.hashDigest,
-							),
-						)
-						.reverse();
+					const top3RecentCodemods = codemodList.filter((codemod) =>
+						top3RecentCodemodHashes.includes(codemod.hashDigest),
+					);
+					top3RecentCodemods.sort((a, b) => {
+						return (
+							top3RecentCodemodHashes.indexOf(b.hashDigest) -
+							top3RecentCodemodHashes.indexOf(a.hashDigest)
+						);
+					});
 					const sortedCodemodList = [
-						...top5RecentCodemods,
+						...top3RecentCodemods,
 						...codemodList.filter(
 							(codemod) =>
-								!top5RecentCodemods
+								!top3RecentCodemods
 									.map((codemod) => codemod.hashDigest)
 									.includes(codemod.hashDigest),
 						),
@@ -1173,7 +1176,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						(
 							await vscode.window.showQuickPick(
 								sortedCodemodList.map(({ name, hashDigest }) =>
-									top5RecentCodemodHashes.includes(hashDigest)
+									top3RecentCodemodHashes.includes(hashDigest)
 										? `${name}${suffixForRecentCodemod}`
 										: name,
 								),
