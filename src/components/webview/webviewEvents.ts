@@ -175,6 +175,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.focusCodemodItem';
+			hash: CodemodHash;
 	  }>;
 
 export type WebviewResponse =
