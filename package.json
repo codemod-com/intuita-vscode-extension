@@ -247,7 +247,7 @@
 				},
 				{
 					"command": "intuita.executeMostRecentCodemodWithinPath",
-					"when": "true"
+					"when": "editorIsOpen"
 				},
 				{
 					"command": "intuita.executeCodemodWithinPath",
@@ -279,7 +279,7 @@
 				{
 					"command": "intuita.executeMostRecentCodemodWithinPath",
 					"group": "2_workspace",
-					"when": "explorerResourceIsFolder"
+					"when": "true"
 				},
 				{
 					"command": "intuita.executeCodemodWithinPath",

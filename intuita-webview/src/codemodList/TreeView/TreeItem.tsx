@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useState } from 'react';
+import { ReactNode, useCallback, useRef, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
@@ -56,6 +56,7 @@ const TreeItem = ({
 	executionPath,
 	autocompleteItems,
 }: Props) => {
+	const ref = useRef<HTMLDivElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
 
@@ -103,8 +104,12 @@ const TreeItem = ({
 	return (
 		<div
 			id={id}
+			ref={ref}
 			className={cn(styles.root, focused && styles.focused)}
-			onClick={onClick}
+			onClick={() => {
+				ref.current?.focus();
+				onClick();
+			}}
 		>
 			<div
 				style={{

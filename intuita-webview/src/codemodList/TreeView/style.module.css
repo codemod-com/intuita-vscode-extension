@@ -24,7 +24,9 @@
 }
 
 .root:hover .actions,
-.root:hover .directorySelector {
+.root:hover .directorySelector,
+.root:focus .actions,
+.root:focus .directorySelector {
 	display: flex;
 }
 
