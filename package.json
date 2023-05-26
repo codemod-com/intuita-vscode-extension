@@ -95,7 +95,7 @@
 			},
 			{
 				"command": "intuita.executeMostRecentCodemodWithinPath",
-				"title": "Intuita: Execute Most Recent Codemod On Path"
+				"title": "Intuita: Execute Most Recently Run Codemod On Path"
 			},
 			{
 				"command": "intuita.executeCodemodWithinPath",
