@@ -1126,6 +1126,50 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeMostRecentCodemodWithinPath',
+			async (uri: vscode.Uri) => {
+				try {
+					const { storageUri } = context;
+
+					if (!storageUri) {
+						throw new Error(
+							'No storage URI, aborting the command.',
+						);
+					}
+					const mostRecentCodemodHash =
+						codemodListWebviewProvider.getMostRecentCodemodHash();
+
+					if (mostRecentCodemodHash === null) {
+						return;
+					}
+
+					const rawPath = uri.path;
+					await codemodListWebviewProvider.updateExecutionPath({
+						newPath: rawPath,
+						codemodHash: mostRecentCodemodHash,
+						fromVSCodeCommand: true,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest: mostRecentCodemodHash,
+						});
+					}, 500);
+				} catch (error) {
+					vscode.window.showErrorMessage(
+						error instanceof Error ? error.message : String(error),
+					);
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
 			async (uri: vscode.Uri) => {
 				try {
@@ -1367,14 +1411,16 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} else if (codemodHashDigest !== null) {
-					messageBus.publish({
-						kind: MessageKind.focusCodemod,
-						codemodHashDigest: codemodHashDigest as CodemodHash,
-					});
-
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
+
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest: codemodHashDigest as CodemodHash,
+						});
+					}, 500);
 				}
 			},
 		}),

@@ -164,6 +164,64 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
+	public getMostRecentCodemodHash = (): CodemodHash | null => {
+		return this.__workspaceState.getMostRecentCodemodHash();
+	};
+
+	public updateExecutionPath = async ({
+		newPath,
+		codemodHash,
+		fromVSCodeCommand,
+	}: {
+		newPath: string;
+		codemodHash: CodemodHash;
+		fromVSCodeCommand?: boolean;
+	}) => {
+		if (this.__rootPath === null) {
+			window.showWarningMessage('No active workspace is found.');
+			return;
+		}
+
+		const oldExecution =
+			this.__workspaceState.getExecutionPath(codemodHash);
+		const oldExecutionPath = T.isLeft(oldExecution)
+			? null
+			: oldExecution.right;
+		try {
+			await workspace.fs.stat(Uri.file(newPath));
+			this.__workspaceState.setExecutionPath(
+				codemodHash,
+				T.right(newPath),
+			);
+
+			if (newPath !== oldExecutionPath && !fromVSCodeCommand) {
+				window.showInformationMessage(
+					'Updated the codemod execution path.',
+				);
+			}
+		} catch (e) {
+			window.showErrorMessage(
+				'The specified codemod execution path does not exist.',
+			);
+
+			if (oldExecutionPath === null) {
+				return;
+			}
+			this.__workspaceState.setExecutionPath(
+				codemodHash,
+				T.both<SyntheticError, string>(
+					{
+						kind: 'syntheticError',
+						message: `${newPath} does not exist.`,
+					},
+					oldExecutionPath,
+				),
+			);
+		}
+
+		await this.getCodemodTree();
+	};
+
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
 			return;
@@ -218,6 +276,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
+			this.__workspaceState.setMostRecentCodemodHash(hash);
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {
 				return;
@@ -229,49 +288,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
-			if (this.__rootPath === null) {
-				window.showWarningMessage('No active workspace is found.');
-				return;
-			}
-			const { newPath, codemodHash } = message.value;
-			const oldExecution =
-				this.__workspaceState.getExecutionPath(codemodHash);
-			const oldExecutionPath = T.isLeft(oldExecution)
-				? null
-				: oldExecution.right;
-			try {
-				await workspace.fs.stat(Uri.file(newPath));
-				this.__workspaceState.setExecutionPath(
-					codemodHash,
-					T.right(newPath),
-				);
-
-				if (newPath !== oldExecutionPath) {
-					window.showInformationMessage(
-						'Updated the codemod execution path.',
-					);
-				}
-			} catch (e) {
-				window.showErrorMessage(
-					'The specified codemod execution path does not exist.',
-				);
-
-				if (oldExecutionPath === null) {
-					return;
-				}
-				this.__workspaceState.setExecutionPath(
-					codemodHash,
-					T.both<SyntheticError, string>(
-						{
-							kind: 'syntheticError',
-							message: `${newPath} does not exist.`,
-						},
-						oldExecutionPath,
-					),
-				);
-			}
-
-			await this.getCodemodTree();
+			await this.updateExecutionPath(message.value);
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
