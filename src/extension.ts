@@ -1136,6 +1136,15 @@ export async function activate(context: vscode.ExtensionContext) {
 							'No storage URI, aborting the command.',
 						);
 					}
+
+					const rawPath =
+						(uri || vscode.window.activeTextEditor?.document.uri)
+							?.path ?? null;
+
+					if (rawPath === null) {
+						return;
+					}
+
 					const mostRecentCodemodHash =
 						codemodListWebviewProvider.getMostRecentCodemodHash();
 
@@ -1143,7 +1152,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					const rawPath = uri.path;
 					await codemodListWebviewProvider.updateExecutionPath({
 						newPath: rawPath,
 						codemodHash: mostRecentCodemodHash,
