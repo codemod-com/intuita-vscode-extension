@@ -30,8 +30,8 @@ export const DirectorySelector = ({
 	onEditCancel,
 	// onChange,
 	error,
-	// autocompleteItems,
-}: Props) => {
+}: // autocompleteItems,
+Props) => {
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
@@ -75,7 +75,7 @@ export const DirectorySelector = ({
 	// 	rootPath,
 	// 	repoName,
 	// );
-	
+
 	const onEditDone = (value: string) => {
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
