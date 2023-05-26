@@ -65,7 +65,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
 	__workspaceState: WorkspaceState;
-	_mostRecentCodemodHash: CodemodHash | null = null;
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -173,7 +172,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 
 	public getMostRecentCodemodHash = (): CodemodHash | null => {
-		return this._mostRecentCodemodHash;
+		return this.__workspaceState.getMostRecentCodemodHash();
 	};
 
 	public updateExecutionPath = async ({
@@ -284,7 +283,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-			this._mostRecentCodemodHash = hash;
+			this.__workspaceState.setMostRecentCodemodHash(hash);
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {
 				return;

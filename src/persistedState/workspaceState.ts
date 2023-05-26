@@ -10,10 +10,16 @@ export type WorkspaceStateKeyHash = string & {
 };
 
 const buildWorkspaceStateKeyHash = (
-	type: 'executionPath',
-	codemodHash: CodemodHash,
+	type: 'executionPath' | 'mostRecentCodemodHash',
+	codemodHash?: CodemodHash,
 ): WorkspaceStateKeyHash => {
-	return buildHash([type, codemodHash].join(',')) as WorkspaceStateKeyHash;
+	if (type === 'executionPath' && codemodHash) {
+		return buildHash(
+			[type, codemodHash].join(','),
+		) as WorkspaceStateKeyHash;
+	}
+
+	return buildHash(type) as WorkspaceStateKeyHash;
 };
 
 const ensureIsString = (value: unknown): string | null => {
@@ -31,6 +37,10 @@ export class WorkspaceState {
 		private readonly __memento: Memento,
 		private readonly __rootPath: string,
 	) {}
+
+	private __buildDefaultExecutionPath(): ExecutionPath {
+		return T.right(this.__rootPath);
+	}
 
 	public getExecutionPath(codemodHash: CodemodHash): ExecutionPath {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
@@ -63,10 +73,6 @@ export class WorkspaceState {
 		}
 	}
 
-	private __buildDefaultExecutionPath(): ExecutionPath {
-		return T.right(this.__rootPath);
-	}
-
 	public setExecutionPath(
 		codemodHash: CodemodHash,
 		executionPath: ExecutionPath,
@@ -74,5 +80,23 @@ export class WorkspaceState {
 		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
 
 		this.__memento.update(hash, JSON.stringify(executionPath));
+	}
+
+	public getMostRecentCodemodHash(): CodemodHash | null {
+		const hash = buildWorkspaceStateKeyHash('mostRecentCodemodHash');
+
+		const value = ensureIsString(this.__memento.get(hash));
+
+		if (value === null) {
+			return null;
+		}
+
+		return value as CodemodHash;
+	}
+
+	public setMostRecentCodemodHash(codemodHash: CodemodHash): void {
+		const hash = buildWorkspaceStateKeyHash('mostRecentCodemodHash');
+
+		this.__memento.update(hash, codemodHash);
 	}
 }
