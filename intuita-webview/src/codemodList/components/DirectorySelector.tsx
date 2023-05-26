@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -28,54 +28,54 @@ export const DirectorySelector = ({
 	onEditStart,
 	onEditEnd,
 	onEditCancel,
-	onChange,
+	// onChange,
 	error,
-	autocompleteItems,
+	// autocompleteItems,
 }: Props) => {
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
-	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
-	const hintRef = useRef<HTMLInputElement>(null);
+	// const [autocompleteIndex, setAutocompleteIndex] = useState(0);
+	// const hintRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		if (!editing) {
-			return;
-		}
+	// useEffect(() => {
+	// 	if (!editing) {
+	// 		return;
+	// 	}
 
-		const inputElement = document
-			.querySelector('vscode-text-field#directory-selector')
-			?.shadowRoot?.querySelector('input');
+	// 	const inputElement = document
+	// 		.querySelector('vscode-text-field#directory-selector')
+	// 		?.shadowRoot?.querySelector('input');
 
-		if (!inputElement) {
-			return;
-		}
+	// 	if (!inputElement) {
+	// 		return;
+	// 	}
 
-		const onInputScroll = (e: Event) => {
-			if (hintRef.current) {
-				// adjust hint position when scrolling the main input
-				// @ts-ignore
-				hintRef.current.scrollLeft = e.target?.scrollLeft;
-			}
-		};
+	// 	const onInputScroll = (e: Event) => {
+	// 		if (hintRef.current) {
+	// 			// adjust hint position when scrolling the main input
+	// 			// @ts-ignore
+	// 			hintRef.current.scrollLeft = e.target?.scrollLeft;
+	// 		}
+	// 	};
 
-		inputElement.addEventListener('scroll', onInputScroll);
+	// 	inputElement.addEventListener('scroll', onInputScroll);
 
-		return () => {
-			inputElement.removeEventListener('scroll', onInputScroll);
-		};
-	}, [editing]);
+	// 	return () => {
+	// 		inputElement.removeEventListener('scroll', onInputScroll);
+	// 	};
+	// }, [editing]);
 
-	useEffect(() => {
-		setAutocompleteIndex(0);
-	}, [autocompleteItems]);
+	// useEffect(() => {
+	// 	setAutocompleteIndex(0);
+	// }, [autocompleteItems]);
 
-	const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(
-		rootPath,
-		repoName,
-	);
-
+	// const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(
+	// 	rootPath,
+	// 	repoName,
+	// );
+	
 	const onEditDone = (value: string) => {
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
@@ -93,7 +93,7 @@ export const DirectorySelector = ({
 			return;
 		}
 		setValue(newValue);
-		onChange(newValue.replace(repoName, rootPath));
+		// onChange(newValue.replace(repoName, rootPath));
 	};
 
 	const handleCancel = () => {
@@ -136,33 +136,33 @@ export const DirectorySelector = ({
 		setShowErrorStyle(error !== null);
 	}, [error]);
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-		if (e.key !== 'Tab') {
-			return;
-		}
+	// const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+	// 	if (e.key !== 'Tab') {
+	// 		return;
+	// 	}
 
-		let nextAutocompleteIndex = autocompleteIndex;
-		const completed =
-			autocompleteItems[nextAutocompleteIndex]?.replace(
-				rootPath,
-				repoName,
-			) === value;
+	// 	let nextAutocompleteIndex = autocompleteIndex;
+	// 	const completed =
+	// 		autocompleteItems[nextAutocompleteIndex]?.replace(
+	// 			rootPath,
+	// 			repoName,
+	// 		) === value;
 
-		if (completed) {
-			nextAutocompleteIndex =
-				(autocompleteIndex + 1) % autocompleteItems.length;
-		}
+	// 	if (completed) {
+	// 		nextAutocompleteIndex =
+	// 			(autocompleteIndex + 1) % autocompleteItems.length;
+	// 	}
 
-		setValue(
-			(prevValue) =>
-				autocompleteItems[nextAutocompleteIndex]?.replace(
-					rootPath,
-					repoName,
-				) ?? prevValue,
-		);
-		setAutocompleteIndex(nextAutocompleteIndex);
-		e.preventDefault();
-	};
+	// 	setValue(
+	// 		(prevValue) =>
+	// 			autocompleteItems[nextAutocompleteIndex]?.replace(
+	// 				rootPath,
+	// 				repoName,
+	// 			) ?? prevValue,
+	// 	);
+	// 	setAutocompleteIndex(nextAutocompleteIndex);
+	// 	e.preventDefault();
+	// };
 
 	if (editing) {
 		return (
@@ -173,7 +173,7 @@ export const DirectorySelector = ({
 				}}
 			>
 				<div className="flex flex-col w-full overflow-hidden input-background relative">
-					{autocompleteContent ? (
+					{/* {autocompleteContent ? (
 						<input
 							ref={hintRef}
 							className="autocomplete"
@@ -181,7 +181,7 @@ export const DirectorySelector = ({
 							readOnly
 							value={autocompleteContent}
 						/>
-					) : null}
+					) : null} */}
 					<VSCodeTextField
 						id="directory-selector"
 						className={classNames(
@@ -191,7 +191,7 @@ export const DirectorySelector = ({
 						value={value}
 						onInput={handleChange}
 						onKeyUp={handleKeyUp}
-						onKeyDown={handleKeyDown}
+						// onKeyDown={handleKeyDown}
 						autoFocus
 					/>
 				</div>
