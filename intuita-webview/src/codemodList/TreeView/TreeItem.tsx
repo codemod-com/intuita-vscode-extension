@@ -108,9 +108,7 @@ const TreeItem = ({
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={() => {
 				onClick();
-				ref.current?.focus();
 			}}
-			tabIndex={1}
 		>
 			<div
 				style={{
