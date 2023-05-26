@@ -211,8 +211,11 @@ export const DirectorySelector = ({
 					className={styles.targetPathButton}
 				>
 					<span className={styles.label}>
-						<em>{repoName}</em>
-						{defaultValue.replace(repoName, '')}
+						{defaultValue === `${repoName}/` ? (
+							<em>{`${repoName}/`}</em>
+						) : (
+							defaultValue.split('/').slice(-1)[0]
+						)}
 					</span>
 				</VSCodeButton>
 			}
