@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import type { WebviewMessage, View } from '../shared/types';
+import { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
 import { Container, LoadingContainer } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';

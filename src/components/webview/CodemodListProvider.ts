@@ -164,13 +164,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
-	public focusCodemodItem(hash: CodemodHash) {
-		this.__postMessage({
-			kind: 'webview.codemodList.focusCodemodItem',
-			hash,
-		});
-	}
-
 	public getMostRecentCodemodHash = (): CodemodHash | null => {
 		return this.__workspaceState.getMostRecentCodemodHash();
 	};

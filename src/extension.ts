@@ -1149,9 +1149,16 @@ export async function activate(context: vscode.ExtensionContext) {
 						codemodHash: mostRecentCodemodHash,
 						fromVSCodeCommand: true,
 					});
-					codemodListWebviewProvider.focusCodemodItem(
-						mostRecentCodemodHash,
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
 					);
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest: mostRecentCodemodHash,
+						});
+					}, 500);
 				} catch (error) {
 					vscode.window.showErrorMessage(
 						error instanceof Error ? error.message : String(error),
@@ -1404,14 +1411,16 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} else if (codemodHashDigest !== null) {
-					messageBus.publish({
-						kind: MessageKind.focusCodemod,
-						codemodHashDigest: codemodHashDigest as CodemodHash,
-					});
-
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
+
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest: codemodHashDigest as CodemodHash,
+						});
+					}, 500);
 				}
 			},
 		}),
