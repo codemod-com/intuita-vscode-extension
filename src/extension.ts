@@ -1126,60 +1126,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeMostRecentCodemodWithinPath',
-			async (uri: vscode.Uri) => {
-				try {
-					const { storageUri } = context;
-
-					if (!storageUri) {
-						throw new Error(
-							'No storage URI, aborting the command.',
-						);
-					}
-
-					const rawPath =
-						(uri || vscode.window.activeTextEditor?.document.uri)
-							?.path ?? null;
-
-					if (rawPath === null) {
-						return;
-					}
-
-					const mostRecentCodemodHash =
-						codemodListWebviewProvider.getMostRecentCodemodHash();
-
-					if (mostRecentCodemodHash === null) {
-						return;
-					}
-
-					await codemodListWebviewProvider.updateExecutionPath({
-						newPath: rawPath,
-						codemodHash: mostRecentCodemodHash,
-						fromVSCodeCommand: true,
-					});
-
-					vscode.commands.executeCommand(
-						'workbench.view.extension.intuitaViewId',
-					);
-					setTimeout(() => {
-						messageBus.publish({
-							kind: MessageKind.focusCodemod,
-							codemodHashDigest: mostRecentCodemodHash,
-						});
-					}, 500);
-				} catch (error) {
-					vscode.window.showErrorMessage(
-						error instanceof Error ? error.message : String(error),
-					);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
-			async (uri: vscode.Uri) => {
+			async (uriArg: vscode.Uri) => {
 				try {
 					const { storageUri } = context;
 
@@ -1187,30 +1135,84 @@ export async function activate(context: vscode.ExtensionContext) {
 						throw new Error(
 							'No storage URI, aborting the command.',
 						);
+					}
+
+					const uri =
+						(uriArg ||
+							vscode.window.activeTextEditor?.document.uri) ??
+						null;
+
+					if (uri === null || !uri.path) {
+						return;
 					}
 
 					const codemodList = await engineService.getCodemodList();
 
+					const top5RecentCodemodHashes = codemodListWebviewProvider
+						.getRecentCodemodHashes()
+						.slice(0, 5);
+
+					const top5RecentCodemods = codemodList
+						.filter((codemod) =>
+							top5RecentCodemodHashes.includes(
+								codemod.hashDigest,
+							),
+						)
+						.reverse();
+					const sortedCodemodList = [
+						...top5RecentCodemods,
+						...codemodList.filter(
+							(codemod) =>
+								!top5RecentCodemods
+									.map((codemod) => codemod.hashDigest)
+									.includes(codemod.hashDigest),
+						),
+					];
+					const suffixForRecentCodemod = ' (recent)';
 					const codemodName =
-						(await vscode.window.showQuickPick(
-							codemodList.map(({ name }) => name),
-							{
-								placeHolder:
-									'Pick a codemod to execute over the selected path',
-							},
-						)) ?? null;
+						(
+							await vscode.window.showQuickPick(
+								sortedCodemodList.map(({ name, hashDigest }) =>
+									top5RecentCodemodHashes.includes(hashDigest)
+										? `${name}${suffixForRecentCodemod}`
+										: name,
+								),
+								{
+									placeHolder:
+										'Pick a codemod to execute over the selected path',
+								},
+							)
+						)?.replace(suffixForRecentCodemod, '') ?? null;
 
 					if (codemodName === null) {
 						return;
 					}
 
-					const selectedCodemod = codemodList.find(
+					const selectedCodemod = sortedCodemodList.find(
 						({ name }) => name === codemodName,
 					);
 
 					if (!selectedCodemod) {
 						throw new Error('Codemod is not selected');
 					}
+
+					await codemodListWebviewProvider.updateExecutionPath({
+						newPath: uri.path,
+						codemodHash: selectedCodemod.hashDigest as CodemodHash,
+						fromVSCodeCommand: true,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest:
+								selectedCodemod.hashDigest as CodemodHash,
+						});
+					}, 500);
 
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
@@ -1227,10 +1229,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						executionId,
 						happenedAt,
 					});
-
-					vscode.commands.executeCommand(
-						'workbench.view.extension.intuitaViewId',
-					);
 
 					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();

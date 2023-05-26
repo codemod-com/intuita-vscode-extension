@@ -64,3 +64,5 @@ export const workspaceStateCodec = t.union([
 		right: t.string,
 	}),
 ]);
+
+export const stringArrayCodec = t.readonlyArray(t.string);

@@ -90,10 +90,6 @@
 				"title": "Intuita: Execute Codemod"
 			},
 			{
-				"command": "intuita.executeMostRecentCodemodWithinPath",
-				"title": "Intuita: Execute Most Recently Run Codemod On Path"
-			},
-			{
 				"command": "intuita.executeCodemodWithinPath",
 				"title": "Intuita: Execute Codemod On Path"
 			},
@@ -246,12 +242,8 @@
 					"when": "false"
 				},
 				{
-					"command": "intuita.executeMostRecentCodemodWithinPath",
-					"when": "editorIsOpen"
-				},
-				{
 					"command": "intuita.executeCodemodWithinPath",
-					"when": "false"
+					"when": "editorIsOpen"
 				},
 				{
 					"command": "intuita.executeImportedModOnPath",
@@ -277,14 +269,9 @@
 					"when": "resourceExtname == .js || resourceExtname == .ts"
 				},
 				{
-					"command": "intuita.executeMostRecentCodemodWithinPath",
-					"group": "2_workspace",
-					"when": "true"
-				},
-				{
 					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
-					"when": "explorerResourceIsFolder"
+					"when": "true"
 				},
 				{
 					"command": "intuita.executeImportedModOnPath",
