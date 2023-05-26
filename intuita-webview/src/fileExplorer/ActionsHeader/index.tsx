@@ -13,8 +13,8 @@ import { ReactComponent as CheckboxBlank } from '../../assets/checkbox_blank.svg
 import { ReactComponent as CheckboxChecked } from '../../assets/checkbox_checked.svg';
 
 const POPOVER_TEXTS = {
-	discard: 'Discard the codemod in progress without saving changes.',
-	apply: 'Save changes to file, further tweak things if needed, and commit later.',
+	discard: 'Discard all the proposed changes for the highlighted codemod.',
+	apply: 'Save changes to file(s), further tweak things if needed, and commit later.',
 	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
