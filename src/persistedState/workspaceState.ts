@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import type { Memento } from 'vscode';
 import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
@@ -10,7 +11,7 @@ export type WorkspaceStateKeyHash = string & {
 };
 
 const buildWorkspaceStateKeyHash = (
-	type: 'executionPath' | 'mostRecentCodemodHash',
+	type: 'executionPath' | 'recentCodemodHashes',
 	codemodHash?: CodemodHash,
 ): WorkspaceStateKeyHash => {
 	if (type === 'executionPath' && codemodHash) {
@@ -82,21 +83,68 @@ export class WorkspaceState {
 		this.__memento.update(hash, JSON.stringify(executionPath));
 	}
 
-	public getMostRecentCodemodHash(): CodemodHash | null {
-		const hash = buildWorkspaceStateKeyHash('mostRecentCodemodHash');
+	// returns the most recently executed 3 codemods
+	public getRecentCodemodHashes(): Readonly<CodemodHash[]> {
+		const hash = buildWorkspaceStateKeyHash('recentCodemodHashes');
 
 		const value = ensureIsString(this.__memento.get(hash));
 
 		if (value === null) {
-			return null;
+			return [];
 		}
 
-		return value as CodemodHash;
+		try {
+			const json = JSON.parse(value);
+			const validation = t.readonlyArray(t.string).decode(json);
+
+			if (T.isLeft(validation)) {
+				throw new Error(
+					'The data for the recent codemod hashes is corrupted',
+				);
+			}
+
+			return validation.right as readonly CodemodHash[];
+		} catch (error) {
+			// the JSON.parse has likely failed (corrupt data)
+
+			console.error(error);
+
+			return [];
+		}
 	}
 
-	public setMostRecentCodemodHash(codemodHash: CodemodHash): void {
-		const hash = buildWorkspaceStateKeyHash('mostRecentCodemodHash');
+	public setRecentCodemodHashes(codemodHash: CodemodHash): void {
+		const hash = buildWorkspaceStateKeyHash('recentCodemodHashes');
 
-		this.__memento.update(hash, codemodHash);
+		const value = ensureIsString(this.__memento.get(hash));
+
+		if (value === null) {
+			this.__memento.update(hash, JSON.stringify([codemodHash]));
+			return;
+		}
+
+		try {
+			const json = JSON.parse(value);
+			const validation = t.readonlyArray(t.string).decode(json);
+
+			if (T.isLeft(validation)) {
+				throw new Error(
+					'The data for the recent codemod hashes is corrupted',
+				);
+			}
+
+			const newHashes = [
+				...validation.right.filter((hash) => hash !== codemodHash),
+				codemodHash,
+			].slice(-3);
+
+			this.__memento.update(hash, JSON.stringify(newHashes));
+		} catch (error) {
+			// the JSON.parse has likely failed (corrupt data)
+
+			console.error(error);
+
+			return;
+		}
 	}
 }

@@ -164,8 +164,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
-	public getMostRecentCodemodHash = (): CodemodHash | null => {
-		return this.__workspaceState.getMostRecentCodemodHash();
+	public getRecentCodemodHashes = (): Readonly<CodemodHash[]> => {
+		return this.__workspaceState.getRecentCodemodHashes();
 	};
 
 	public updateExecutionPath = async ({
@@ -276,7 +276,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-			this.__workspaceState.setMostRecentCodemodHash(hash);
+			this.__workspaceState.setRecentCodemodHashes(hash);
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {
 				return;
