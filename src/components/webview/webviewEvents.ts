@@ -336,5 +336,7 @@ export type View =
 			viewProps: {
 				codemodTree: CodemodTree;
 				autocompleteItems: string[];
+				openedIds: ReadonlySet<CodemodHash>;
+				focusedId: CodemodHash | null;
 			};
 	  }>;

@@ -4,14 +4,20 @@ import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
 import { SyntheticError } from '../errors/types';
 import * as T from 'fp-ts/These';
+import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
+import { pipe } from 'fp-ts/lib/function';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
 };
 
 const buildWorkspaceStateKeyHash = (
-	type: 'executionPath' | 'recentCodemodHashes',
+	type:
+		| 'executionPath'
+		| 'recentCodemodHashes'
+		| 'openedCodemodHashDigests'
+		| 'focusedCodemodHashDigest',
 	codemodHash?: CodemodHash,
 ): WorkspaceStateKeyHash => {
 	if (type === 'executionPath' && codemodHash) {
@@ -146,5 +152,65 @@ export class WorkspaceState {
 
 			return;
 		}
+	}
+
+	public getOpenedCodemodHashDigests(): ReadonlySet<CodemodHash> {
+		const hash = buildWorkspaceStateKeyHash('openedCodemodHashDigests');
+
+		const value = ensureIsString(this.__memento.get(hash));
+
+		if (value === null) {
+			return new Set();
+		}
+
+		const either = pipe(
+			E.tryCatch(
+				() => JSON.parse(value),
+				(e) => e,
+			),
+			E.flatMap((json) => t.readonlyArray(t.string).decode(json)),
+			E.map(
+				(hashDigests) =>
+					new Set(
+						hashDigests.map(
+							(hashDigest) => hashDigest as CodemodHash,
+						),
+					),
+			),
+		);
+
+		if (E.isLeft(either)) {
+			console.error(either.left);
+
+			return new Set();
+		}
+
+		return either.right;
+	}
+
+	public setOpenedCodemodHashDigests(set: ReadonlySet<CodemodHash>): void {
+		const hashDigest = buildWorkspaceStateKeyHash(
+			'openedCodemodHashDigests',
+		);
+
+		this.__memento.update(hashDigest, JSON.stringify(Array.from(set)));
+	}
+
+	public getFocusedCodemodHashDigest(): CodemodHash | null {
+		const hashDigest = buildWorkspaceStateKeyHash(
+			'focusedCodemodHashDigest',
+		);
+
+		return ensureIsString(
+			this.__memento.get(hashDigest),
+		) as CodemodHash | null;
+	}
+
+	public setFocusedCodemodHashDigest(codemodHash: CodemodHash | null): void {
+		const hashDigest = buildWorkspaceStateKeyHash(
+			'focusedCodemodHashDigest',
+		);
+
+		this.__memento.update(hashDigest, codemodHash);
 	}
 }
