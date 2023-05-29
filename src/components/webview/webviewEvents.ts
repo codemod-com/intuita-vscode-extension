@@ -268,6 +268,11 @@ export type WebviewResponse =
 			caseHash: CaseHash;
 	  }>
 	| Readonly<{
+			kind: 'webview.codemods.setState';
+			openedIds: ReadonlyArray<CodemodHash>;
+			focusedId: CodemodHash | null;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
 			value: CodemodHash;
 	  }>
@@ -336,7 +341,7 @@ export type View =
 			viewProps: {
 				codemodTree: CodemodTree;
 				autocompleteItems: string[];
-				openedIds: ReadonlySet<CodemodHash>;
+				openedIds: ReadonlyArray<CodemodHash>;
 				focusedId: CodemodHash | null;
 			};
 	  }>;

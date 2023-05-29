@@ -159,8 +159,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds:
+					openedIds: Array.from(
 						this.__workspaceState.getOpenedCodemodHashDigests(),
+					),
 					focusedId:
 						this.__workspaceState.getFocusedCodemodHashDigest(),
 				},
@@ -312,6 +313,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			);
 
 			this.setView();
+		}
+
+		if (message.kind === 'webview.codemods.setState') {
+			this.__workspaceState.setFocusedCodemodHashDigest(
+				message.focusedId,
+			);
+			this.__workspaceState.setOpenedCodemodHashDigests(
+				new Set(message.openedIds),
+			);
 		}
 	};
 

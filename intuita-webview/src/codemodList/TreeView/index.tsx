@@ -28,7 +28,8 @@ export const containsCodemodHashDigest = (
 	set: Set<CodemodHash>,
 ): boolean => {
 	if (node.id === codemodHashDigest) {
-		set.add(node.id);
+		// set.add(node.id);
+
 		return true;
 	}
 
@@ -107,16 +108,20 @@ const reducer = (state: State, action: Action): State => {
 	return state;
 };
 
-const initializer = ({ node, focusedId }: InitializerArgument): State => {
-	const openedIds = new Set([node.id]);
+const initializer = ({
+	node,
+	focusedId,
+	openedIds,
+}: InitializerArgument): State => {
+	const newOpenedIds = new Set([...openedIds, node.id]);
 
 	if (focusedId !== null) {
-		containsCodemodHashDigest(node, focusedId, openedIds);
+		containsCodemodHashDigest(node, focusedId, newOpenedIds);
 	}
 
 	return {
 		node,
-		openedIds,
+		openedIds: newOpenedIds,
 		focusedId,
 	};
 };
@@ -138,6 +143,14 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 	>([]);
 	const [runningRepomodHash, setRunningRepomodHash] =
 		useState<CodemodHash | null>(null);
+
+	useEffect(() => {
+		vscode.postMessage({
+			kind: 'webview.codemods.setState',
+			openedIds: Array.from(state.openedIds),
+			focusedId: state.focusedId,
+		});
+	}, [state]);
 
 	const onHalt = useCallback(() => {
 		setRunningRepomodHash(null);
