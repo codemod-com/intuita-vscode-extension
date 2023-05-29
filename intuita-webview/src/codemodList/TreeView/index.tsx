@@ -1,3 +1,4 @@
+import ReactTreeView from 'react-treeview';
 import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
@@ -14,12 +15,15 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
 	autocompleteItems: string[];
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
+	searchQuery: string;
+	codemodNodes: CodemodTreeNode[];
 }>;
 
 export const containsCodemodHashDigest = (
@@ -135,8 +139,16 @@ const initializer = ({
 	};
 };
 
-const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
+const TreeView = ({
+	node,
+	autocompleteItems,
+	openedIds,
+	focusedId,
+	searchQuery,
+	codemodNodes,
+}: Props) => {
 	const rootPath = node.label;
+	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -223,18 +235,8 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 		[executionStack, progress],
 	);
 
-	const renderItem = ({
-		node,
-		depth,
-	}: {
-		node: CodemodTreeNode;
-		depth: number;
-	}) => {
-		const opened = state.openedIds.has(node.id);
-
-		const icon = getIcon(node.iconName ?? null, opened);
-
-		const actionButtons = (node.actions ?? []).map((action) => {
+	const actionButtons = (node: CodemodTreeNode) => {
+		return (node.actions ?? []).map((action) => {
 			return (
 				<VSCodeButton
 					key={action.kind}
@@ -266,6 +268,18 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 				</VSCodeButton>
 			);
 		});
+	};
+
+	const renderItem = ({
+		node,
+		depth,
+	}: {
+		node: CodemodTreeNode;
+		depth: number;
+	}) => {
+		const opened = state.openedIds.has(node.id);
+
+		const icon = getIcon(node.iconName ?? null, opened);
 
 		const getActionButtons = () => {
 			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
@@ -279,7 +293,7 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 				return [stopProgress];
 			}
 
-			return actionButtons;
+			return actionButtons(node);
 		};
 
 		return (
@@ -312,6 +326,77 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 			/>
 		);
 	};
+
+	if (userSearchingCodemod) {
+		return (
+			<ReactTreeView nodeLabel="">
+				{codemodNodes?.map((node, index) => {
+					if (node.kind !== 'codemodItem') {
+						return null;
+					}
+					const searchingCodemodFound =
+						node.uri.toLowerCase().includes(searchQuery) ||
+						node.label.toLowerCase().includes(searchQuery);
+					if (!searchingCodemodFound) {
+						return null;
+					}
+
+					const icon = getIcon(node.iconName ?? null, false);
+
+					const getActionButtons = () => {
+						if (
+							node.modKind === 'repomod' &&
+							runningRepomodHash !== null
+						) {
+							return [];
+						}
+
+						if (
+							progress?.codemodHash === node.id &&
+							node.modKind === 'executeCodemod'
+						) {
+							return [stopProgress];
+						}
+
+						return actionButtons(node);
+					};
+
+					return (
+						<TreeItem
+							key={index}
+							progressBar={
+								progress?.codemodHash === node.id
+									? progressBar
+									: null
+							}
+							disabled={false}
+							hasChildren={(node.children?.length ?? 0) !== 0}
+							id={node.id}
+							executionPath={node.executionPath}
+							rootPath={rootPath}
+							description={node.description ?? ''}
+							label={node.label ?? ''}
+							icon={icon}
+							depth={0}
+							kind={node.kind}
+							open={false}
+							focused={node.id === state.focusedId}
+							autocompleteItems={autocompleteItems}
+							onClick={() => {
+								handleClick(node);
+
+								dispatch({
+									kind: 'flip',
+									id: node.id,
+								});
+							}}
+							actionButtons={getActionButtons()}
+						/>
+					);
+				})}
+			</ReactTreeView>
+		);
+	}
 
 	return (
 		<div>

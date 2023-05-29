@@ -55,6 +55,7 @@ export type RunCodemodsCommand = Readonly<{
 export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
+	uri: string;
 	label: string;
 	children: CodemodTreeNode[];
 	description?: string;
@@ -343,5 +344,6 @@ export type View =
 				autocompleteItems: string[];
 				openedIds: ReadonlyArray<CodemodHash>;
 				focusedId: CodemodHash | null;
+				codemodNodes: CodemodTreeNode[];
 			};
 	  }>;

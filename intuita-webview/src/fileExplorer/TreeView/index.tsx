@@ -234,10 +234,9 @@ const TreeView = ({
 					}
 					// e.g., cal.com/packages/file.tsx
 					const relativeFilePath = node.id ?? '';
-					const searchingFileFound =
-						userSearchingFile &&
-						node.kind === 'fileElement' &&
-						relativeFilePath.toLowerCase().includes(searchQuery);
+					const searchingFileFound = relativeFilePath
+						.toLowerCase()
+						.includes(searchQuery);
 					if (!searchingFileFound) {
 						return null;
 					}
@@ -269,6 +268,7 @@ const TreeView = ({
 			</ReactTreeView>
 		);
 	}
+
 	return (
 		<Tree
 			node={node}

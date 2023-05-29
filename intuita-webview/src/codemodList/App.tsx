@@ -8,6 +8,7 @@ import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import './index.css';
 import { pipe } from 'fp-ts/lib/function';
+import SearchBar from '../shared/SearchBar';
 
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
 
@@ -20,6 +21,7 @@ const loadingContainer = (
 
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
+	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -46,7 +48,7 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, autocompleteItems, openedIds, focusedId } =
+	const { codemodTree, autocompleteItems, openedIds, focusedId,codemodNodes } =
 		view.viewProps;
 
 	const component = pipe(
@@ -61,6 +63,8 @@ function App() {
 						autocompleteItems={autocompleteItems}
 						openedIds={new Set(openedIds)}
 						focusedId={focusedId}
+						searchQuery={searchQuery}
+						codemodNodes={codemodNodes}
 					/>
 				),
 			),
@@ -69,6 +73,11 @@ function App() {
 
 	return (
 		<main className="App">
+			<SearchBar
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				placeholder="Search codemods..."
+			/>
 			<Container
 				defaultExpanded
 				headerTitle="Public Codemods"

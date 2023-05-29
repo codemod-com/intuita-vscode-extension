@@ -20,7 +20,7 @@ export class CodemodService {
 		const hashlessPathItem = {
 			kind: 'path' as const,
 			label,
-			path: `${rootPath}${path}`,
+			path: `${rootPath}/${path}`,
 			children: [] as CodemodHash[],
 		};
 

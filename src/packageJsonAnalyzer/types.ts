@@ -13,6 +13,7 @@ export type CodemodItem = Readonly<{
 	kind: 'codemodItem';
 	label: string;
 	description: string;
+	name: string;
 }>;
 
 export type CodemodElement = CodemodItem | CodemodPath;
