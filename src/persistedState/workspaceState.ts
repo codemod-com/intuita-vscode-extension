@@ -94,7 +94,7 @@ export class WorkspaceState {
 		try {
 			const json = JSON.parse(value);
 			const validation = stringArrayCodec.decode(json);
-			console.log(value, json, validation);
+
 			if (T.isLeft(validation)) {
 				throw new Error(
 					'The data for the recent codemod hashes is corrupted',
@@ -135,7 +135,7 @@ export class WorkspaceState {
 				...validation.right.filter((hash) => hash !== hashDigest),
 				hashDigest,
 			];
-			console.log(newHashes);
+
 			this.__memento.update(hash, JSON.stringify(newHashes));
 		} catch (error) {
 			// the JSON.parse has likely failed (corrupt data)
