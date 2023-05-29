@@ -29,4 +29,5 @@
 	width: 100%;
 	cursor: pointer;
 	color: #a9a9a9;
+	height: inherit;
 }
