@@ -59,7 +59,7 @@ function App() {
 					<TreeView
 						node={node}
 						autocompleteItems={autocompleteItems}
-						openedIds={openedIds}
+						openedIds={new Set(openedIds)}
 						focusedId={focusedId}
 					/>
 				),
