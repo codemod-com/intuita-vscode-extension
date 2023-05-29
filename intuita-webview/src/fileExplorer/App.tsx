@@ -90,7 +90,7 @@ function App() {
 				<SearchBar
 					searchQuery={searchQuery}
 					setSearchQuery={setSearchQuery}
-					placeholder='Search files...'
+					placeholder="Search files..."
 				/>
 			)}
 			<TreeView

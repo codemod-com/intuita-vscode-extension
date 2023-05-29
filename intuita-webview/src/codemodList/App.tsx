@@ -48,8 +48,13 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, autocompleteItems, openedIds, focusedId,codemodNodes } =
-		view.viewProps;
+	const {
+		codemodTree,
+		autocompleteItems,
+		openedIds,
+		focusedId,
+		codemodNodes,
+	} = view.viewProps;
 
 	const component = pipe(
 		codemodTree,
