@@ -61,7 +61,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
 	__engineBootstrapped = false;
-	__focusedCodemodHashDigest: CodemodHash | null = null;
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
 	__workspaceState: WorkspaceState;
@@ -91,10 +90,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__workspaceState.setFocusedCodemodHashDigest(
-				message.codemodHashDigest,
-			);
-
 			this.__postMessage({
 				kind: 'webview.codemods.focusCodemod',
 				codemodHashDigest: message.codemodHashDigest,
