@@ -28,6 +28,8 @@ export const containsCodemodHashDigest = (
 	set: Set<CodemodHash>,
 ): boolean => {
 	if (node.id === codemodHashDigest) {
+		// set.add(node.id);
+
 		return true;
 	}
 
@@ -149,8 +151,6 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 			focusedId: state.focusedId,
 		});
 	}, [state]);
-
-	window.alert(Array.from(state.openedIds));
 
 	const onHalt = useCallback(() => {
 		setRunningRepomodHash(null);
