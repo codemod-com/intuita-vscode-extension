@@ -91,7 +91,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__focusedCodemodHashDigest = message.codemodHashDigest;
+			this.__workspaceState.setFocusedCodemodHashDigest(
+				message.codemodHashDigest,
+			);
 
 			this.__postMessage({
 				kind: 'webview.codemods.focusCodemod',
@@ -141,9 +143,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			this.__view.webview,
 			'codemodList',
-			JSON.stringify({
-				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
-			}),
+			JSON.stringify({}),
 		);
 	}
 
@@ -159,6 +159,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
+					openedIds:
+						this.__workspaceState.getOpenedCodemodHashDigests(),
+					focusedId:
+						this.__workspaceState.getFocusedCodemodHashDigest(),
 				},
 			},
 		});
@@ -230,9 +234,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__webviewResolver?.resolveWebview(
 			webviewView.webview,
 			'codemodList',
-			JSON.stringify({
-				focusedCodemodHashDigest: this.__focusedCodemodHashDigest,
-			}),
+			JSON.stringify({}),
 		);
 		this.__view = webviewView;
 

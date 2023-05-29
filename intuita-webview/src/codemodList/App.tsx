@@ -46,7 +46,8 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, autocompleteItems } = view.viewProps;
+	const { codemodTree, autocompleteItems, openedIds, focusedId } =
+		view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -58,6 +59,8 @@ function App() {
 					<TreeView
 						node={node}
 						autocompleteItems={autocompleteItems}
+						openedIds={openedIds}
+						focusedId={focusedId}
 					/>
 				),
 			),
