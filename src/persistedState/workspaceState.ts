@@ -1,9 +1,10 @@
+import * as t from 'io-ts';
 import type { Memento } from 'vscode';
 import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
 import { SyntheticError } from '../errors/types';
 import * as T from 'fp-ts/These';
-import { stringArrayCodec, workspaceStateCodec } from './codecs';
+import { workspaceStateCodec } from './codecs';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -82,7 +83,8 @@ export class WorkspaceState {
 		this.__memento.update(hash, JSON.stringify(executionPath));
 	}
 
-	public getRecentCodemodHashes(): Readonly<string[]> {
+	// returns the most recently executed 3 codemods
+	public getRecentCodemodHashes(): Readonly<CodemodHash[]> {
 		const hash = buildWorkspaceStateKeyHash('recentCodemodHashes');
 
 		const value = ensureIsString(this.__memento.get(hash));
@@ -93,7 +95,7 @@ export class WorkspaceState {
 
 		try {
 			const json = JSON.parse(value);
-			const validation = stringArrayCodec.decode(json);
+			const validation = t.readonlyArray(t.string).decode(json);
 
 			if (T.isLeft(validation)) {
 				throw new Error(
@@ -101,7 +103,7 @@ export class WorkspaceState {
 				);
 			}
 
-			return validation.right;
+			return validation.right as readonly CodemodHash[];
 		} catch (error) {
 			// the JSON.parse has likely failed (corrupt data)
 
@@ -111,19 +113,19 @@ export class WorkspaceState {
 		}
 	}
 
-	public setRecentCodemodHashes(hashDigest: string): void {
+	public setRecentCodemodHashes(codemodHash: CodemodHash): void {
 		const hash = buildWorkspaceStateKeyHash('recentCodemodHashes');
 
 		const value = ensureIsString(this.__memento.get(hash));
 
 		if (value === null) {
-			this.__memento.update(hash, JSON.stringify([hashDigest]));
+			this.__memento.update(hash, JSON.stringify([codemodHash]));
 			return;
 		}
 
 		try {
 			const json = JSON.parse(value);
-			const validation = stringArrayCodec.decode(json);
+			const validation = t.readonlyArray(t.string).decode(json);
 
 			if (T.isLeft(validation)) {
 				throw new Error(
@@ -132,9 +134,9 @@ export class WorkspaceState {
 			}
 
 			const newHashes = [
-				...validation.right.filter((hash) => hash !== hashDigest),
-				hashDigest,
-			];
+				...validation.right.filter((hash) => hash !== codemodHash),
+				codemodHash,
+			].slice(-3);
 
 			this.__memento.update(hash, JSON.stringify(newHashes));
 		} catch (error) {

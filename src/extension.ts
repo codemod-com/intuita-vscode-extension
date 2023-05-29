@@ -1142,57 +1142,63 @@ export async function activate(context: vscode.ExtensionContext) {
 							vscode.window.activeTextEditor?.document.uri) ??
 						null;
 
-					if (uri === null || !uri.path) {
+					if (uri === null) {
 						return;
 					}
 
 					const codemodList = await engineService.getCodemodList();
 
 					// order: least recent to most recent
-					const top3RecentCodemodHashes = codemodListWebviewProvider
-						.getRecentCodemodHashes()
-						.slice(-3);
+					const top3RecentCodemodHashes =
+						codemodListWebviewProvider.getRecentCodemodHashes();
 
 					const top3RecentCodemods = codemodList.filter((codemod) =>
-						top3RecentCodemodHashes.includes(codemod.hashDigest),
+						top3RecentCodemodHashes.includes(
+							codemod.hashDigest as CodemodHash,
+						),
 					);
+
+					// order: least recent to most recent
 					top3RecentCodemods.sort((a, b) => {
 						return (
-							top3RecentCodemodHashes.indexOf(b.hashDigest) -
-							top3RecentCodemodHashes.indexOf(a.hashDigest)
+							top3RecentCodemodHashes.indexOf(
+								a.hashDigest as CodemodHash,
+							) -
+							top3RecentCodemodHashes.indexOf(
+								b.hashDigest as CodemodHash,
+							)
 						);
 					});
 					const sortedCodemodList = [
-						...top3RecentCodemods,
+						...top3RecentCodemods.reverse(),
 						...codemodList.filter(
 							(codemod) =>
-								!top3RecentCodemods
-									.map((codemod) => codemod.hashDigest)
-									.includes(codemod.hashDigest),
+								!top3RecentCodemodHashes.includes(
+									codemod.hashDigest as CodemodHash,
+								),
 						),
 					];
-					const suffixForRecentCodemod = ' (recent)';
-					const codemodName =
-						(
-							await vscode.window.showQuickPick(
-								sortedCodemodList.map(({ name, hashDigest }) =>
-									top3RecentCodemodHashes.includes(hashDigest)
-										? `${name}${suffixForRecentCodemod}`
-										: name,
-								),
-								{
-									placeHolder:
-										'Pick a codemod to execute over the selected path',
-								},
-							)
-						)?.replace(suffixForRecentCodemod, '') ?? null;
 
-					if (codemodName === null) {
+					const quickPickItem =
+						(await vscode.window.showQuickPick(
+							sortedCodemodList.map(({ name, hashDigest }) => ({
+								label: name,
+								...(top3RecentCodemodHashes.includes(
+									hashDigest as CodemodHash,
+								) && { description: '(recent)' }),
+							})),
+							{
+								placeHolder:
+									'Pick a codemod to execute over the selected path',
+							},
+						)) ?? null;
+
+					if (quickPickItem === null) {
 						return;
 					}
 
 					const selectedCodemod = sortedCodemodList.find(
-						({ name }) => name === codemodName,
+						({ name }) => name === quickPickItem.label,
 					);
 
 					if (!selectedCodemod) {

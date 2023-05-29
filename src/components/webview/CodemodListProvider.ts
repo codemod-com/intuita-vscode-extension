@@ -164,7 +164,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		});
 	}
 
-	public getRecentCodemodHashes = (): Readonly<string[]> => {
+	public getRecentCodemodHashes = (): Readonly<CodemodHash[]> => {
 		return this.__workspaceState.getRecentCodemodHashes();
 	};
 
@@ -276,7 +276,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			}
 
 			const { hash } = codemod;
-			this.__workspaceState.setRecentCodemodHashes(hash as string);
+			this.__workspaceState.setRecentCodemodHashes(hash);
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {
 				return;
