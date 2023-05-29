@@ -232,7 +232,7 @@ export type WebviewResponse =
 			diffId: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.FstageJobs';
+			kind: 'webview.global.stageJobs';
 			jobHashes: JobHash[];
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
