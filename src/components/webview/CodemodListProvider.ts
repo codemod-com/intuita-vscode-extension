@@ -245,10 +245,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	}
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (message.value.command === 'openLink') {
+			if (message.value.command === 'intuita.showCodemodMetadata') {
 				commands.executeCommand(
-					'vscode.open',
-					Uri.parse(message.value.arguments?.[0] ?? ''),
+					'intuita.showCodemodMetadata',
+					message.value.arguments?.[0],
 				);
 				return;
 			}
@@ -388,6 +388,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				modKind: repomodHashes.includes(hash)
 					? 'repomod'
 					: 'executeCodemod',
+				command: {
+					title: 'Show codemod metadata',
+					command: 'intuita.showCodemodMetadata',
+					arguments: [hash],
+				},
 			};
 		}
 

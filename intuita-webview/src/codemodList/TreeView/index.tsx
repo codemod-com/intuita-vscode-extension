@@ -61,6 +61,17 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
+const handleClick = (node: CodemodTreeNode) => {
+	if (!node.command) {
+		return;
+	}
+
+	vscode.postMessage({
+		kind: 'webview.command',
+		value: node.command,
+	});
+};
+
 type State = Readonly<{
 	node: CodemodTreeNode;
 	openedIds: ReadonlySet<CodemodHash>;
@@ -193,17 +204,6 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 			window.removeEventListener('message', handler);
 		};
 	}, [node]);
-
-	const handleClick = useCallback((node: CodemodTreeNode) => {
-		if (!node.command) {
-			return;
-		}
-
-		vscode.postMessage({
-			kind: 'webview.command',
-			value: node.command,
-		});
-	}, []);
 
 	const handleActionButtonClick = useCallback(
 		(action: RunCodemodsCommand) => {

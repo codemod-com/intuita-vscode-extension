@@ -54,6 +54,9 @@ import { CodemodHash } from './packageJsonAnalyzer/types';
 import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
+import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
+
+const CODEMOD_METADATA_SCHEME = 'codemod';
 
 const messageBus = new MessageBus();
 
@@ -148,6 +151,45 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerWebviewViewProvider(
 			'intuita-available-codemod-tree-view',
 			codemodListWebviewProvider,
+		),
+	);
+
+	const textContentProvider = new TextDocumentContentProvider();
+
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(
+			CODEMOD_METADATA_SCHEME,
+			textContentProvider,
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.showCodemodMetadata',
+			async (arg0?: CodemodHash) => {
+				try {
+					const codemodHash = typeof arg0 === 'string' ? arg0 : null;
+
+					if (codemodHash === null) {
+						throw new Error(`Expected codemod hash, got ${arg0}`);
+					}
+
+					const uri = vscode.Uri.parse(
+						`${CODEMOD_METADATA_SCHEME}:${codemodHash}.md`,
+					);
+
+					const hasMetadata = textContentProvider.hasMetadata(uri);
+
+					if (!hasMetadata) {
+						return;
+					}
+
+					vscode.commands.executeCommand('markdown.showPreview', uri);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+				}
+			},
 		),
 	);
 
