@@ -61,7 +61,10 @@ export class DownloadService {
 	}
 
 	async #downloadFile(url: string, uri: Uri, chmod: Mode): Promise<void> {
-		const response = await Axios.get(url, { responseType: 'arraybuffer' });
+		const response = await Axios.get(url, { responseType: 'arraybuffer', onDownloadProgress: (progress) => {
+			console.log(progress, 'test');
+		} });
+		
 		const content = new Uint8Array(response.data);
 
 		await this.#fileSystem.writeFile(uri, content);
