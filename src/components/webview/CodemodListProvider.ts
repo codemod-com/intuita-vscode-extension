@@ -364,11 +364,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		codemodElement: CodemodElementWithChildren,
 	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
-			const { label, kind, description, hash } = codemodElement;
+			const { label, kind, description, hash, name } = codemodElement;
 
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 
-			return {
+			const node: CodemodTreeNode = {
 				kind,
 				label,
 				description: description,
@@ -393,15 +393,20 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					command: 'intuita.showCodemodMetadata',
 					arguments: [hash],
 				},
+				uri: name,
 			};
+
+			return node;
 		}
 
-		const { label, kind, hash, children } = codemodElement;
+		const { label, kind, hash, children, path } = codemodElement;
+
 		return {
 			kind,
 			iconName: 'folder.svg',
 			label: label,
 			id: hash,
+			uri: path,
 			actions: [],
 			children: children.map((child) => this.__getTreeNode(child)),
 		};

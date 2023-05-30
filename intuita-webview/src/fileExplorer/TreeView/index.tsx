@@ -17,7 +17,7 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
-import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
@@ -234,10 +234,9 @@ const TreeView = ({
 					}
 					// e.g., cal.com/packages/file.tsx
 					const relativeFilePath = node.id ?? '';
-					const searchingFileFound =
-						userSearchingFile &&
-						node.kind === 'fileElement' &&
-						relativeFilePath.toLowerCase().includes(searchQuery);
+					const searchingFileFound = relativeFilePath
+						.toLowerCase()
+						.includes(searchQuery);
 					if (!searchingFileFound) {
 						return null;
 					}
@@ -269,6 +268,7 @@ const TreeView = ({
 			</ReactTreeView>
 		);
 	}
+
 	return (
 		<Tree
 			node={node}

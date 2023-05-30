@@ -14,13 +14,44 @@ import styles from './style.module.css';
 import cn from 'classnames';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
 	autocompleteItems: string[];
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
+	searchQuery: string;
 }>;
+
+export const containsSearchedCodemod = (
+	node: CodemodTreeNode,
+	searchQuery: string,
+	set: Set<CodemodHash>,
+): boolean => {
+	const lowerCaseSearchQuery = searchQuery.toLowerCase().trim();
+	if (
+		node.kind === 'codemodItem' &&
+		(node.uri.toLowerCase().includes(lowerCaseSearchQuery) ||
+			node.label.toLowerCase().includes(lowerCaseSearchQuery))
+	) {
+		set.add(node.id);
+		return true;
+	}
+	let someChildContains = false;
+	node.children.forEach((childNode) => {
+		const result = containsSearchedCodemod(childNode, searchQuery, set);
+		if (result) {
+			someChildContains = true;
+		}
+	});
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
+};
 
 export const containsCodemodHashDigest = (
 	node: CodemodTreeNode,
@@ -135,8 +166,18 @@ const initializer = ({
 	};
 };
 
-const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
+const TreeView = ({
+	node,
+	autocompleteItems,
+	openedIds,
+	focusedId,
+	searchQuery,
+}: Props) => {
 	const rootPath = node.label;
+	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+	const [hashesForSearch, setHashesForSearch] = useState<Set<CodemodHash>>(
+		new Set(),
+	);
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -146,6 +187,17 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 		},
 		initializer,
 	);
+
+	useEffect(() => {
+		if (searchQuery.length < SEARCH_QUERY_MIN_LENGTH) {
+			setHashesForSearch(new Set());
+			return;
+		}
+		const set = new Set<CodemodHash>();
+		containsSearchedCodemod(node, searchQuery, set);
+
+		setHashesForSearch(set);
+	}, [node, searchQuery]);
 
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
@@ -223,18 +275,8 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 		[executionStack, progress],
 	);
 
-	const renderItem = ({
-		node,
-		depth,
-	}: {
-		node: CodemodTreeNode;
-		depth: number;
-	}) => {
-		const opened = state.openedIds.has(node.id);
-
-		const icon = getIcon(node.iconName ?? null, opened);
-
-		const actionButtons = (node.actions ?? []).map((action) => {
+	const actionButtons = (node: CodemodTreeNode) => {
+		return (node.actions ?? []).map((action) => {
 			return (
 				<VSCodeButton
 					key={action.kind}
@@ -266,6 +308,18 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 				</VSCodeButton>
 			);
 		});
+	};
+
+	const renderItem = ({
+		node,
+		depth,
+	}: {
+		node: CodemodTreeNode;
+		depth: number;
+	}) => {
+		const opened = state.openedIds.has(node.id);
+
+		const icon = getIcon(node.iconName ?? null, opened);
 
 		const getActionButtons = () => {
 			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
@@ -279,7 +333,7 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 				return [stopProgress];
 			}
 
-			return actionButtons;
+			return actionButtons(node);
 		};
 
 		return (
@@ -320,6 +374,8 @@ const TreeView = ({ node, autocompleteItems, openedIds, focusedId }: Props) => {
 				renderItem={renderItem}
 				depth={0}
 				openedIds={state.openedIds}
+				hashesForSearch={hashesForSearch}
+				searchingCodemod={userSearchingCodemod}
 			/>
 		</div>
 	);

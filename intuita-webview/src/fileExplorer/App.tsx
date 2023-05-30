@@ -8,7 +8,7 @@ import type {
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
-import SearchBar from './SearchBar';
+import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 
@@ -90,6 +90,7 @@ function App() {
 				<SearchBar
 					searchQuery={searchQuery}
 					setSearchQuery={setSearchQuery}
+					placeholder="Search files..."
 				/>
 			)}
 			<TreeView
