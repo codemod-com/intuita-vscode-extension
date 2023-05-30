@@ -46,9 +46,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
-	__elementMap = new Map<ElementHash, Element>();
-	__folderMap = new Map<string, TreeNode>();
-	// map between URIs to the File Tree Node and the job hash
+	// map between URIs and the Tree Node
+	__treeMap = new Map<string, TreeNode>();
+	// map between URIs and the File Tree Node & the job hash
 	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
@@ -148,7 +148,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__folderMap.clear();
+		this.__treeMap.clear();
 		this.__fileNodes.clear();
 
 		const tree = this.__getTreeByDirectory(caseElement);
@@ -158,7 +158,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
-					nodeIds: Array.from(this.__folderMap.keys()),
+					nodeIds: Array.from(this.__treeMap.keys()),
 					fileNodes: this.__codemodExecutionInProgress
 						? null
 						: Array.from(this.__fileNodes.values()).map(
@@ -187,7 +187,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				workspace.workspaceFolders?.[0]?.uri.fsPath
 					.split('/')
 					.slice(-1)[0] ?? '/';
-			this.__folderMap.set(repoName, {
+			this.__treeMap.set(repoName, {
 				id: repoName,
 				label: repoName,
 				kind: 'folderElement',
@@ -195,7 +195,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				children: [],
 			});
 			element.children.forEach(this.__getTreeByDirectory);
-			const treeNode = this.__folderMap.get(repoName) ?? undefined;
+			const treeNode = this.__treeMap.get(repoName) ?? undefined;
 
 			return treeNode;
 		}
@@ -230,14 +230,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 			let path = repoName;
 			for (const dir of directories) {
-				const parentNode = this.__folderMap.get(path) ?? null;
+				const parentNode = this.__treeMap.get(path) ?? null;
 
 				if (parentNode === null) {
 					return;
 				}
 
 				path += `/${dir}`;
-				if (!this.__folderMap.has(path)) {
+				if (!this.__treeMap.has(path)) {
 					const newTreeNode =
 						dir === fileName
 							? {
@@ -265,7 +265,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 							node: newTreeNode as FileTreeNode,
 						});
 					}
-					this.__folderMap.set(path, newTreeNode);
+					this.__treeMap.set(path, newTreeNode);
 
 					parentNode.children.push(newTreeNode);
 				}
@@ -405,7 +405,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	private __onClearStateMessage() {
-		this.__folderMap.clear();
+		this.__treeMap.clear();
 		this.__fileNodes.clear();
 		this.setView({
 			viewId: 'treeView',

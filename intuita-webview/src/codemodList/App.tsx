@@ -48,7 +48,7 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, autocompleteItems, openedIds, focusedId } =
+	const { codemodTree, autocompleteItems, openedIds, focusedId, nodeIds } =
 		view.viewProps;
 
 	const component = pipe(
@@ -64,6 +64,7 @@ function App() {
 						openedIds={new Set(openedIds)}
 						focusedId={focusedId}
 						searchQuery={searchQuery}
+						nodeIds={nodeIds}
 					/>
 				),
 			),
@@ -80,7 +81,7 @@ function App() {
 			<Container
 				defaultExpanded
 				headerTitle="Public Codemods"
-				className="content-border-top h-full"
+				className="publicCodemodsContainer content-border-top h-full"
 			>
 				<div>{component}</div>
 			</Container>

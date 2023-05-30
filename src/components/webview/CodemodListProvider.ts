@@ -64,6 +64,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
 	__workspaceState: WorkspaceState;
+	// map between hash and the Tree Node
+	__treeMap = new Map<CodemodHash, CodemodTreeNode>();
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -159,6 +161,9 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					),
 					focusedId:
 						this.__workspaceState.getFocusedCodemodHashDigest(),
+					nodeIds: Array.from(this.__treeMap.values())
+						.slice(1) // exclude the root node because we don't display it to users
+						.map((node) => node.id),
 				},
 			},
 		});
@@ -329,6 +334,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			await this.__codemodService.getDiscoveredCodemods();
 
 			const codemodList = this.__getCodemod();
+
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod),
 			);
@@ -396,20 +402,28 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				uri: name,
 			};
 
+			this.__treeMap.set(hash, node);
+
 			return node;
 		}
 
 		const { label, kind, hash, children, path } = codemodElement;
 
-		return {
+		const node: CodemodTreeNode = {
 			kind,
 			iconName: 'folder.svg',
-			label: label,
+			label,
 			id: hash,
 			uri: path,
 			actions: [],
-			children: children.map((child) => this.__getTreeNode(child)),
+			children: [],
 		};
+
+		this.__treeMap.set(hash, node);
+
+		node.children = children.map((child) => this.__getTreeNode(child));
+
+		return node;
 	}
 
 	private __getCodemod(
