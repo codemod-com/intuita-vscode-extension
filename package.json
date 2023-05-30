@@ -293,7 +293,7 @@
 		"vscode:prepublish": "pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"build": "pnpm install:webview && pnpm build:webview && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+		"build": "pnpm install:webview && pnpm build:webview && pnpm install && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
 		"spellcheck": "pnpm cspell-cli '**/*.{ts,tsx}'",
@@ -330,7 +330,7 @@
 	},
 	"dependencies": {
 		"axios": "^1.2.2",
-		"fp-ts": "^2.13.1",
+		"fp-ts": "^2.15.0",
 		"io-ts": "^2.2.20",
 		"io-ts-reporters": "^2.0.1",
 		"io-ts-types": "^0.5.19",
