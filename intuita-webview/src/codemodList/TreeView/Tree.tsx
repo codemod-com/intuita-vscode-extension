@@ -56,7 +56,7 @@ const Tree = ({
 		if (container === null) {
 			return;
 		}
-		container.scrollBy(0, -12);
+		container.scrollBy(0, -13.5);
 	});
 
 	useKey('ArrowDown', () => {
@@ -67,7 +67,7 @@ const Tree = ({
 		if (container === null) {
 			return;
 		}
-		container.scrollBy(0, 12);
+		container.scrollBy(0, 13.5);
 	});
 
 	if (!children || children.length === 0) {
