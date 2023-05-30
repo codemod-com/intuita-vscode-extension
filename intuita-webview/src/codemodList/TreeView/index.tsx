@@ -29,10 +29,11 @@ export const containsSearchedCodemod = (
 	searchQuery: string,
 	set: Set<CodemodHash>,
 ): boolean => {
+	const lowerCaseSearchQuery = searchQuery.toLowerCase().trim();
 	if (
 		node.kind === 'codemodItem' &&
-		(node.uri.toLowerCase().includes(searchQuery) ||
-			node.label.toLowerCase().includes(searchQuery))
+		(node.uri.toLowerCase().includes(lowerCaseSearchQuery) ||
+			node.label.toLowerCase().includes(lowerCaseSearchQuery))
 	) {
 		set.add(node.id);
 		return true;
