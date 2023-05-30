@@ -28,29 +28,28 @@ export const containsSearchedCodemod = (
 	node: CodemodTreeNode,
 	searchQuery: string,
 	set: Set<CodemodHash>,
-): Set<CodemodHash> | null => {
+): boolean => {
 	if (
 		node.kind === 'codemodItem' &&
 		(node.uri.toLowerCase().includes(searchQuery) ||
 			node.label.toLowerCase().includes(searchQuery))
 	) {
 		set.add(node.id);
-		return set;
+		return true;
 	}
 	let someChildContains = false;
 	node.children.forEach((childNode) => {
 		const result = containsSearchedCodemod(childNode, searchQuery, set);
-		if (result !== null) {
+		if (result) {
 			someChildContains = true;
 		}
 	});
 
 	if (someChildContains) {
 		set.add(node.id);
-		return set;
 	}
 
-	return null;
+	return someChildContains;
 };
 
 export const containsCodemodHashDigest = (
@@ -193,12 +192,10 @@ const TreeView = ({
 			setHashesForSearch(new Set());
 			return;
 		}
+		const set = new Set<CodemodHash>();
+		containsSearchedCodemod(node, searchQuery, set);
 
-		const result = containsSearchedCodemod(node, searchQuery, new Set());
-		if (result === null) {
-			return;
-		}
-		setHashesForSearch(result);
+		setHashesForSearch(set);
 	}, [node, searchQuery]);
 
 	const [executionStack, setExecutionStack] = useState<
@@ -368,21 +365,6 @@ const TreeView = ({
 			/>
 		);
 	};
-
-	if (userSearchingCodemod) {
-		return (
-			<div>
-				<Tree
-					node={node}
-					renderItem={renderItem}
-					depth={0}
-					hashesForSearch={hashesForSearch}
-					openedIds={state.openedIds}
-					searchingCodemod={userSearchingCodemod}
-				/>
-			</div>
-		);
-	}
 
 	return (
 		<div>
