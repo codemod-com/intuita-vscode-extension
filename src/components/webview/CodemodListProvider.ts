@@ -64,8 +64,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
 	__workspaceState: WorkspaceState;
-	// map between hash and its Codemod Tree Node
-	__codemodNodes = new Map<CodemodHash, CodemodTreeNode>();
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -161,7 +159,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					),
 					focusedId:
 						this.__workspaceState.getFocusedCodemodHashDigest(),
-					codemodNodes: Array.from(this.__codemodNodes.values()),
 				},
 			},
 		});
@@ -398,8 +395,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				},
 				uri: name,
 			};
-
-			this.__codemodNodes.set(hash, node);
 
 			return node;
 		}

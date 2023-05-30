@@ -48,13 +48,8 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const {
-		codemodTree,
-		autocompleteItems,
-		openedIds,
-		focusedId,
-		codemodNodes,
-	} = view.viewProps;
+	const { codemodTree, autocompleteItems, openedIds, focusedId } =
+		view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -69,7 +64,6 @@ function App() {
 						openedIds={new Set(openedIds)}
 						focusedId={focusedId}
 						searchQuery={searchQuery}
-						codemodNodes={codemodNodes}
 					/>
 				),
 			),

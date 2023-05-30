@@ -1,4 +1,3 @@
-import ReactTreeView from 'react-treeview';
 import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import Tree from './Tree';
 import TreeItem from './TreeItem';
@@ -23,8 +22,36 @@ type Props = Readonly<{
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
 	searchQuery: string;
-	codemodNodes: CodemodTreeNode[];
 }>;
+
+export const containsSearchedCodemod = (
+	node: CodemodTreeNode,
+	searchQuery: string,
+	set: Set<CodemodHash>,
+): Set<CodemodHash> | null => {
+	if (
+		node.kind === 'codemodItem' &&
+		(node.uri.toLowerCase().includes(searchQuery) ||
+			node.label.toLowerCase().includes(searchQuery))
+	) {
+		set.add(node.id);
+		return set;
+	}
+	let someChildContains = false;
+	node.children.forEach((childNode) => {
+		const result = containsSearchedCodemod(childNode, searchQuery, set);
+		if (result !== null) {
+			someChildContains = true;
+		}
+	});
+
+	if (someChildContains) {
+		set.add(node.id);
+		return set;
+	}
+
+	return null;
+};
 
 export const containsCodemodHashDigest = (
 	node: CodemodTreeNode,
@@ -145,10 +172,12 @@ const TreeView = ({
 	openedIds,
 	focusedId,
 	searchQuery,
-	codemodNodes,
 }: Props) => {
 	const rootPath = node.label;
 	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+	const [hashesForSearch, setHashesForSearch] = useState<Set<CodemodHash>>(
+		new Set(),
+	);
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
@@ -158,6 +187,19 @@ const TreeView = ({
 		},
 		initializer,
 	);
+
+	useEffect(() => {
+		if (searchQuery.length < SEARCH_QUERY_MIN_LENGTH) {
+			setHashesForSearch(new Set());
+			return;
+		}
+
+		const result = containsSearchedCodemod(node, searchQuery, new Set());
+		if (result === null) {
+			return;
+		}
+		setHashesForSearch(result);
+	}, [node, searchQuery]);
 
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
@@ -329,72 +371,16 @@ const TreeView = ({
 
 	if (userSearchingCodemod) {
 		return (
-			<ReactTreeView nodeLabel="">
-				{codemodNodes?.map((node, index) => {
-					if (node.kind !== 'codemodItem') {
-						return null;
-					}
-					const searchingCodemodFound =
-						node.uri.toLowerCase().includes(searchQuery) ||
-						node.label.toLowerCase().includes(searchQuery);
-					if (!searchingCodemodFound) {
-						return null;
-					}
-
-					const icon = getIcon(node.iconName ?? null, false);
-
-					const getActionButtons = () => {
-						if (
-							node.modKind === 'repomod' &&
-							runningRepomodHash !== null
-						) {
-							return [];
-						}
-
-						if (
-							progress?.codemodHash === node.id &&
-							node.modKind === 'executeCodemod'
-						) {
-							return [stopProgress];
-						}
-
-						return actionButtons(node);
-					};
-
-					return (
-						<TreeItem
-							key={index}
-							progressBar={
-								progress?.codemodHash === node.id
-									? progressBar
-									: null
-							}
-							disabled={false}
-							hasChildren={(node.children?.length ?? 0) !== 0}
-							id={node.id}
-							executionPath={node.executionPath}
-							rootPath={rootPath}
-							description={node.description ?? ''}
-							label={node.label ?? ''}
-							icon={icon}
-							depth={0}
-							kind={node.kind}
-							open={false}
-							focused={node.id === state.focusedId}
-							autocompleteItems={autocompleteItems}
-							onClick={() => {
-								handleClick(node);
-
-								dispatch({
-									kind: 'flip',
-									id: node.id,
-								});
-							}}
-							actionButtons={getActionButtons()}
-						/>
-					);
-				})}
-			</ReactTreeView>
+			<div>
+				<Tree
+					node={node}
+					renderItem={renderItem}
+					depth={0}
+					hashesForSearch={hashesForSearch}
+					openedIds={state.openedIds}
+					searchingCodemod={userSearchingCodemod}
+				/>
+			</div>
 		);
 	}
 
@@ -405,6 +391,8 @@ const TreeView = ({
 				renderItem={renderItem}
 				depth={0}
 				openedIds={state.openedIds}
+				hashesForSearch={hashesForSearch}
+				searchingCodemod={userSearchingCodemod}
 			/>
 		</div>
 	);

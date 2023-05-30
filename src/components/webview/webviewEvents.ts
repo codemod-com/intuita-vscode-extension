@@ -344,6 +344,5 @@ export type View =
 				autocompleteItems: string[];
 				openedIds: ReadonlyArray<CodemodHash>;
 				focusedId: CodemodHash | null;
-				codemodNodes: CodemodTreeNode[];
 			};
 	  }>;

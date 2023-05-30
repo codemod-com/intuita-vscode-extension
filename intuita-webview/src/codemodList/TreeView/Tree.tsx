@@ -13,20 +13,35 @@ type Props = {
 		node: CodemodTreeNode;
 		depth: number;
 	}): ReactNode;
+	hashesForSearch: ReadonlySet<CodemodHash>;
+	searchingCodemod: boolean;
 };
 
-const Tree = ({ node, openedIds, depth, renderItem }: Props) => {
+const Tree = ({
+	node,
+	openedIds,
+	depth,
+	renderItem,
+	hashesForSearch,
+	searchingCodemod,
+}: Props) => {
 	const treeItem = renderItem({ node, depth });
+	const children = !searchingCodemod
+		? node.children
+		: node.children.filter((child) => hashesForSearch.has(child.id));
 
-	if (!node.children || node.children.length === 0) {
+	if (!children || children.length === 0) {
 		return <>{treeItem}</>;
 	}
+
 	// don't show the root folder
 	if (depth === 0) {
 		return (
 			<>
-				{node.children.map((child) => (
+				{children.map((child) => (
 					<Tree
+						searchingCodemod={searchingCodemod}
+						hashesForSearch={hashesForSearch}
 						key={child.id}
 						node={child}
 						depth={depth + 1}
@@ -40,8 +55,10 @@ const Tree = ({ node, openedIds, depth, renderItem }: Props) => {
 
 	return (
 		<ReactTreeView collapsed={!openedIds.has(node.id)} nodeLabel={treeItem}>
-			{node.children.map((child) => (
+			{children.map((child) => (
 				<Tree
+					hashesForSearch={hashesForSearch}
+					searchingCodemod={searchingCodemod}
 					key={child.id}
 					node={child}
 					depth={depth + 1}
