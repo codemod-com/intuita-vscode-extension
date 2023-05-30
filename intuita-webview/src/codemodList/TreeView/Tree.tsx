@@ -1,6 +1,7 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode } from 'react';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
+import { useKey } from '../../jobDiffView/hooks/useKey';
 
 type Props = {
 	depth: number;
@@ -15,6 +16,9 @@ type Props = {
 	}): ReactNode;
 	hashesForSearch: ReadonlySet<CodemodHash>;
 	searchingCodemod: boolean;
+	nodeIds: ReadonlyArray<CodemodHash>;
+	onFocusNode(id: CodemodHash): void;
+	focusedId: CodemodHash | null;
 };
 
 const Tree = ({
@@ -24,11 +28,47 @@ const Tree = ({
 	renderItem,
 	hashesForSearch,
 	searchingCodemod,
+	nodeIds,
+	onFocusNode,
+	focusedId,
 }: Props) => {
 	const treeItem = renderItem({ node, depth });
 	const children = !searchingCodemod
 		? node.children
 		: node.children.filter((child) => hashesForSearch.has(child.id));
+
+	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
+		const currIndex = nodeIds.findIndex((val) => val === focusedId ?? 0);
+		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
+		const nodeIdToFocus = nodeIds[newIndex] ?? null;
+
+		if (nodeIdToFocus === null) {
+			return;
+		}
+		onFocusNode(nodeIdToFocus);
+	};
+
+	useKey('ArrowUp', () => {
+		handleArrowKeyDown('ArrowUp');
+		const container =
+			document.getElementsByClassName('publicCodemodsContainer')[0] ??
+			null;
+		if (container === null) {
+			return;
+		}
+		container.scrollBy(0, -13.2);
+	});
+
+	useKey('ArrowDown', () => {
+		handleArrowKeyDown('ArrowDown');
+		const container =
+			document.getElementsByClassName('publicCodemodsContainer')[0] ??
+			null;
+		if (container === null) {
+			return;
+		}
+		container.scrollBy(0, 13.2);
+	});
 
 	if (!children || children.length === 0) {
 		return <>{treeItem}</>;
@@ -40,6 +80,9 @@ const Tree = ({
 			<>
 				{children.map((child) => (
 					<Tree
+						focusedId={focusedId}
+						nodeIds={nodeIds}
+						onFocusNode={onFocusNode}
 						searchingCodemod={searchingCodemod}
 						hashesForSearch={hashesForSearch}
 						key={child.id}
@@ -57,6 +100,9 @@ const Tree = ({
 		<ReactTreeView collapsed={!openedIds.has(node.id)} nodeLabel={treeItem}>
 			{children.map((child) => (
 				<Tree
+					focusedId={focusedId}
+					nodeIds={nodeIds}
+					onFocusNode={onFocusNode}
 					hashesForSearch={hashesForSearch}
 					searchingCodemod={searchingCodemod}
 					key={child.id}
