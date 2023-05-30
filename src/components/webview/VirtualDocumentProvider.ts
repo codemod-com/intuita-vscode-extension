@@ -7,18 +7,25 @@ export class TextDocumentContentProvider
 	implements vscode.TextDocumentContentProvider
 {
 	private __codemodMetadata: Record<string, string> | null = null;
+	public onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+	public onDidChange = this.onDidChangeEmitter.event;
 
 	constructor() {
 		this.__fetchCodemodMetadata();
+	}
+
+	public hasMetadata(uri: vscode.Uri): boolean {
+		return this.__getCodemodMetadata(uri) !== null;
+	}
+
+	public provideTextDocumentContent(uri: vscode.Uri): string {
+		return this.__getCodemodMetadata(uri) ?? '';
 	}
 
 	private async __fetchCodemodMetadata(): Promise<void> {
 		// @TODO load metadata
 		this.__codemodMetadata = {};
 	}
-
-	onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
-	onDidChange = this.onDidChangeEmitter.event;
 
 	private __getCodemodMetadata(uri: vscode.Uri): string | null {
 		if (this.__codemodMetadata === null) {
@@ -29,13 +36,5 @@ export class TextDocumentContentProvider
 		const codemodHash = basename(path, extname(path));
 
 		return this.__codemodMetadata[codemodHash] ?? null;
-	}
-
-	public hasMetadata(uri: vscode.Uri): boolean {
-		return this.__getCodemodMetadata(uri) !== null;
-	}
-
-	public provideTextDocumentContent(uri: vscode.Uri): string {
-		return this.__getCodemodMetadata(uri) ?? '';
 	}
 }
