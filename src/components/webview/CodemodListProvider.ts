@@ -421,6 +421,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		this.__treeMap.set(hash, node);
 
+		// children is set after adding the node to the tree map
+		// in order to retain the ordering
 		node.children = children.map((child) => this.__getTreeNode(child));
 
 		return node;
