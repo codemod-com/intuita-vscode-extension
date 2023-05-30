@@ -61,8 +61,8 @@ export type CodemodTreeNode = {
 	iconName?: string;
 	command?:
 		| Command & {
-				command: 'intuita.openCaseDiff';
-				arguments?: ElementHash[];
+				command: 'intuita.showCodemodMetadata';
+				arguments: [CodemodHash];
 		  };
 	actions?: RunCodemodsCommand[];
 	executionPath?: ExecutionPath;
