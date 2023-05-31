@@ -19,10 +19,15 @@ const loadingContainer = (
 	</div>
 );
 
+const setPublicCodemodsExpanded = (publicCodemodsExpanded: boolean) =>
+	vscode.postMessage({
+		kind: 'webview.codemods.setPublicCodemodsExpanded',
+		publicCodemodsExpanded,
+	});
+
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
-	const [expanded, setExpanded] = useState(true);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -49,8 +54,14 @@ function App() {
 		return <main className="App">{loadingContainer}</main>;
 	}
 
-	const { codemodTree, autocompleteItems, openedIds, focusedId, nodeIds } =
-		view.viewProps;
+	const {
+		codemodTree,
+		autocompleteItems,
+		openedIds,
+		focusedId,
+		nodeIds,
+		publicCodemodsExpanded,
+	} = view.viewProps;
 
 	const component = pipe(
 		codemodTree,
@@ -82,8 +93,8 @@ function App() {
 			<Container
 				headerTitle="Public Codemods"
 				className="publicCodemodsContainer content-border-top h-full"
-				expanded={expanded}
-				setExpanded={setExpanded}
+				expanded={publicCodemodsExpanded}
+				setExpanded={setPublicCodemodsExpanded}
 			>
 				<div>{component}</div>
 			</Container>

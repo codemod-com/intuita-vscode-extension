@@ -7,7 +7,7 @@ type Props = Readonly<{
 	children: React.ReactNode;
 	headerTitle: string;
 	expanded: boolean;
-	setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+	setExpanded: (expanded: boolean) => void;
 }>;
 
 export const Container = ({
@@ -29,10 +29,8 @@ export const Container = ({
 				headerChevronClassName="codemodListCollapsableArrow"
 				headerClassName="collapsableHeader"
 				contentClassName="collapsableContent"
-				onToggle={(expanded) => {
-					setExpanded(expanded);
-				}}
-				defaultExpanded={true}
+				onToggle={setExpanded}
+				defaultExpanded={expanded}
 				headerComponent={
 					<div className="header">
 						<p>{headerTitle}</p>

@@ -17,7 +17,8 @@ const buildWorkspaceStateKeyHash = (
 		| 'executionPath'
 		| 'recentCodemodHashes'
 		| 'openedCodemodHashDigests'
-		| 'focusedCodemodHashDigest',
+		| 'focusedCodemodHashDigest'
+		| 'publicCodemodsExpanded',
 	codemodHash?: CodemodHash,
 ): WorkspaceStateKeyHash => {
 	if (type === 'executionPath' && codemodHash) {
@@ -212,5 +213,19 @@ export class WorkspaceState {
 		);
 
 		this.__memento.update(hashDigest, codemodHash);
+	}
+
+	public getPublicCodemodsExpanded(): boolean {
+		const hashDigest = buildWorkspaceStateKeyHash('publicCodemodsExpanded');
+
+		const value = ensureIsString(this.__memento.get(hashDigest));
+
+		return value !== null ? JSON.parse(value) : true;
+	}
+
+	public setPublicCodemodsExpanded(expanded: boolean): void {
+		const hashDigest = buildWorkspaceStateKeyHash('publicCodemodsExpanded');
+
+		this.__memento.update(hashDigest, JSON.stringify(expanded));
 	}
 }
