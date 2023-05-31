@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
@@ -18,6 +18,12 @@ const loadingContainer = (
 		<span aria-label="loading">Loading...</span>
 	</div>
 );
+
+const setPublicCodemodsExpanded = (publicCodemodsExpanded: boolean) =>
+	vscode.postMessage({
+		kind: 'webview.codemods.setPublicCodemodsExpanded',
+		publicCodemodsExpanded,
+	});
 
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
@@ -43,15 +49,6 @@ function App() {
 			window.removeEventListener('message', handler);
 		};
 	}, []);
-
-	const setPublicCodemodsExpanded = useCallback(
-		(publicCodemodsExpanded: boolean) =>
-			vscode.postMessage({
-				kind: 'webview.codemods.setPublicCodemodsExpanded',
-				publicCodemodsExpanded,
-			}),
-		[],
-	);
 
 	if (view === null) {
 		return <main className="App">{loadingContainer}</main>;
