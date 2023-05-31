@@ -1,9 +1,4 @@
-import React, {
-	forwardRef,
-	memo,
-	useImperativeHandle,
-	useRef,
-} from 'react';
+import React, { forwardRef, memo, useImperativeHandle, useRef } from 'react';
 import { ReactComponent as ArrowDownIcon } from '../../assets/arrow-down.svg';
 import './Collapsable.css';
 import cn from 'classnames';
@@ -46,7 +41,7 @@ export const Collapsable = memo(
 			ref,
 		) => {
 			const containerRef = useRef<HTMLDivElement>(null);
-			
+
 			useImperativeHandle(ref, () => ({
 				expanded,
 				collapse: () => onToggle(false),
