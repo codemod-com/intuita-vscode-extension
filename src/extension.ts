@@ -154,7 +154,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const textContentProvider = new TextDocumentContentProvider();
+	const textContentProvider = new TextDocumentContentProvider(
+		messageBus,
+		engineService,
+	);
 
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(
