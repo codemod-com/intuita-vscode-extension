@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
-import { Container, LoadingContainer } from './components/Container';
+import { Container } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
@@ -13,15 +13,16 @@ import SearchBar from '../shared/SearchBar';
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
 
 const loadingContainer = (
-	<LoadingContainer>
+	<div className="loadingContainer">
 		<VSCodeProgressRing className="progressBar" />
-		<span aria-label="loading">Loading ...</span>
-	</LoadingContainer>
+		<span aria-label="loading">Loading...</span>
+	</div>
 );
 
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
+	const [expanded, setExpanded] = useState(true);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -79,9 +80,10 @@ function App() {
 				placeholder="Search codemods..."
 			/>
 			<Container
-				defaultExpanded
 				headerTitle="Public Codemods"
 				className="publicCodemodsContainer content-border-top h-full"
+				expanded={expanded}
+				setExpanded={setExpanded}
 			>
 				<div>{component}</div>
 			</Container>
