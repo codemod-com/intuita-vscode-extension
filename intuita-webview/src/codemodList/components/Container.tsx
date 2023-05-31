@@ -30,7 +30,7 @@ export const Container = ({
 				headerClassName="collapsableHeader"
 				contentClassName="collapsableContent"
 				onToggle={setExpanded}
-				defaultExpanded={expanded}
+				expanded={expanded}
 				headerComponent={
 					<div className="header">
 						<p>{headerTitle}</p>
