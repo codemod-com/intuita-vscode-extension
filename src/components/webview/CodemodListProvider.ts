@@ -164,6 +164,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
 						.map((node) => node.id),
+					publicCodemodsExpanded:
+						this.__workspaceState.getPublicCodemodsExpanded(),
 				},
 			},
 		});
@@ -319,8 +321,17 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.__workspaceState.setFocusedCodemodHashDigest(
 				message.focusedId,
 			);
+
 			this.__workspaceState.setOpenedCodemodHashDigests(
 				new Set(message.openedIds),
+			);
+		}
+
+		if (message.kind === 'webview.codemods.setPublicCodemodsExpanded') {
+			console.log(message);
+
+			this.__workspaceState.setPublicCodemodsExpanded(
+				message.publicCodemodsExpanded,
 			);
 		}
 	};
