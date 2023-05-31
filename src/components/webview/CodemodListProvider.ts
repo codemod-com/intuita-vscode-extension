@@ -328,8 +328,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemods.setPublicCodemodsExpanded') {
-			console.log(message);
-
 			this.__workspaceState.setPublicCodemodsExpanded(
 				message.publicCodemodsExpanded,
 			);
