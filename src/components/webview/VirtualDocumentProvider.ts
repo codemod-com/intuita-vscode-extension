@@ -12,7 +12,7 @@ const BASE_URL = `https://intuita-public.s3.us-west-1.amazonaws.com`;
 export class TextDocumentContentProvider
 	implements vscode.TextDocumentContentProvider
 {
-	private __codemodMetadata: Record<string, string> | null = null;
+	private __codemodMetadata = new Map<CodemodHash, string>();
 	public onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
 	public onDidChange = this.onDidChangeEmitter.event;
 
@@ -65,27 +65,19 @@ export class TextDocumentContentProvider
 			metadataWithHashesPromises,
 		);
 
-		const codemodMetadata: Record<CodemodHash, string> = {};
-
 		metadataWithHashes.forEach(({ hash, metadata }) => {
 			if (metadata === null) {
 				return;
 			}
 
-			codemodMetadata[hash] = metadata;
+			this.__codemodMetadata.set(hash, metadata);
 		});
-
-		this.__codemodMetadata = codemodMetadata;
 	}
 
 	private __getCodemodMetadata(uri: vscode.Uri): string | null {
-		if (this.__codemodMetadata === null) {
-			return null;
-		}
-
 		const { path } = uri;
 		const codemodHash = basename(path, extname(path));
 
-		return this.__codemodMetadata[codemodHash] ?? null;
+		return this.__codemodMetadata.get(codemodHash as CodemodHash) ?? null;
 	}
 }
