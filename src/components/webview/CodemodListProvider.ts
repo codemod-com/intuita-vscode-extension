@@ -92,6 +92,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
+			this.__workspaceState.setPublicCodemodsExpanded(true);
+
+			this.setView();
+
 			this.__postMessage({
 				kind: 'webview.codemods.focusCodemod',
 				codemodHashDigest: message.codemodHashDigest,
@@ -331,6 +335,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.__workspaceState.setPublicCodemodsExpanded(
 				message.publicCodemodsExpanded,
 			);
+
+			this.setView();
 		}
 	};
 
