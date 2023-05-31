@@ -162,7 +162,9 @@ const TreeItem = ({
 							<DirectorySelector
 								defaultValue={targetPath}
 								rootPath={rootPath}
-								error={error}
+								error={
+									error === null ? null : { message: error }
+								}
 								codemodHash={id}
 								onEditStart={onEditStart}
 								onEditEnd={onEditEnd}

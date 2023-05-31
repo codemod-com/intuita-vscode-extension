@@ -262,6 +262,8 @@ export type WebviewResponse =
 			value: {
 				newPath: string;
 				codemodHash: CodemodHash;
+				errorMessage: string | null;
+				warningMessage: string | null;
 			};
 	  }>
 	| Readonly<{

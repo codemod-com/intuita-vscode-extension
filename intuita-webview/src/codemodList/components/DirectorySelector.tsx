@@ -13,7 +13,7 @@ type Props = {
 	defaultValue: string;
 	rootPath: string;
 	codemodHash: CodemodHash;
-	error: string | null;
+	error: { message: string } | null;
 	autocompleteItems: string[];
 	onEditStart(): void;
 	onEditEnd(): void;
@@ -36,6 +36,7 @@ Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
+
 	// const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	// const hintRef = useRef<HTMLInputElement>(null);
 
@@ -76,12 +77,18 @@ Props) => {
 	// 	repoName,
 	// );
 
-	const onEditDone = (value: string) => {
+	const updatePath = (
+		value: string,
+		errorMessage: string | null,
+		warningMessage: string | null,
+	) => {
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
 			value: {
 				newPath: value.replace(repoName, rootPath),
 				codemodHash,
+				errorMessage,
+				warningMessage,
 			},
 		});
 	};
@@ -97,7 +104,23 @@ Props) => {
 	};
 
 	const handleCancel = () => {
-		onEditDone(defaultValue);
+		updatePath(
+			defaultValue,
+			null,
+			value === defaultValue ? null : 'Change Reverted.',
+		);
+		onEditCancel();
+		setEditing(false);
+		setValue(defaultValue);
+		setShowErrorStyle(false);
+	};
+
+	const handleBlur = () => {
+		updatePath(
+			value,
+			null,
+			value === defaultValue ? null : 'Change Reverted.',
+		);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
@@ -110,15 +133,16 @@ Props) => {
 		}
 
 		if (event.key === 'Enter') {
-			if (!value.startsWith(repoName)) {
-				// path must start with repo name
+			if (value === defaultValue) {
 				handleCancel();
 				return;
 			}
-			if (value === defaultValue) {
-				handleCancel();
-			}
-			onEditDone(value);
+
+			updatePath(
+				value,
+				'The specified execution path does not exist.',
+				null,
+			);
 		}
 	};
 
@@ -193,6 +217,7 @@ Props) => {
 						onKeyUp={handleKeyUp}
 						// onKeyDown={handleKeyDown}
 						autoFocus
+						onBlur={handleBlur}
 					/>
 				</div>
 			</div>
@@ -207,6 +232,7 @@ Props) => {
 					onClick={() => {
 						setEditing(true);
 						onEditStart();
+						setValue(defaultValue);
 					}}
 					className={styles.targetPathButton}
 				>

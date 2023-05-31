@@ -182,10 +182,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	public updateExecutionPath = async ({
 		newPath,
 		codemodHash,
+		errorMessage,
+		warningMessage,
 		fromVSCodeCommand,
 	}: {
 		newPath: string;
 		codemodHash: CodemodHash;
+		errorMessage: string | null;
+		warningMessage: string | null;
 		fromVSCodeCommand?: boolean;
 	}) => {
 		if (this.__rootPath === null) {
@@ -195,11 +199,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		const oldExecution =
 			this.__workspaceState.getExecutionPath(codemodHash);
+
 		const oldExecutionPath = T.isLeft(oldExecution)
 			? null
 			: oldExecution.right;
+
 		try {
 			await workspace.fs.stat(Uri.file(newPath));
+
 			this.__workspaceState.setExecutionPath(
 				codemodHash,
 				T.right(newPath),
@@ -207,13 +214,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			if (newPath !== oldExecutionPath && !fromVSCodeCommand) {
 				window.showInformationMessage(
-					'Updated the codemod execution path.',
+					'Successfully updated the execution path.',
 				);
 			}
 		} catch (e) {
-			window.showErrorMessage(
-				'The specified codemod execution path does not exist.',
-			);
+			if (errorMessage !== null) {
+				window.showErrorMessage(errorMessage);
+			}
+			if (warningMessage !== null) {
+				window.showWarningMessage(warningMessage);
+			}
 
 			if (oldExecutionPath === null) {
 				return;
