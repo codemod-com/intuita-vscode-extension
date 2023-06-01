@@ -162,7 +162,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const textContentProvider = new TextDocumentContentProvider(messageBus);
+	const textContentProvider = new TextDocumentContentProvider(
+		downloadService,
+		vscode.workspace.fs,
+		context.globalStorageUri,
+		messageBus,
+	);
 
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(

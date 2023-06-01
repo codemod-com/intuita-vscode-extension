@@ -1,10 +1,9 @@
-import * as vscode from 'vscode';
+import { EventEmitter, FileSystem, Uri } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
-import axios from 'axios';
 import { buildCodemodMetadataHash, buildTypeCodec } from '../../utilities';
 import * as t from 'io-ts';
 import * as E from 'fp-ts/Either';
-
+import { DownloadService } from '../downloadService';
 export class MetadataNotFoundError extends Error {}
 
 const indexItemCodec = buildTypeCodec({
@@ -16,38 +15,59 @@ const indexItemCodec = buildTypeCodec({
 const BASE_URL = `https://intuita-public.s3.us-west-1.amazonaws.com`;
 
 export class TextDocumentContentProvider
-	implements vscode.TextDocumentContentProvider
+	implements TextDocumentContentProvider
 {
 	private __codemodMetadata = new Map<string, string>();
-	public onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+	public onDidChangeEmitter = new EventEmitter<Uri>();
 	public onDidChange = this.onDidChangeEmitter.event;
 
-	constructor(private readonly __messageBus: MessageBus) {
-		this.__messageBus.subscribe(
-			MessageKind.engineBootstrapped,
-			async () => {
-				this.__fetchCodemodRegistryIndex();
-			},
+	constructor(
+		private readonly __downloadService: DownloadService,
+		private readonly __fileSystem: FileSystem,
+		private readonly __globalStorageUri: Uri,
+		private readonly __messageBus: MessageBus,
+	) {
+		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () =>
+			this.__onEngineBootstrapped(),
 		);
 	}
 
-	public hasMetadata(uri: vscode.Uri): boolean {
+	public hasMetadata(uri: Uri): boolean {
 		return this.__getCodemodMetadata(uri) !== null;
 	}
 
-	public provideTextDocumentContent(uri: vscode.Uri): string {
+	public provideTextDocumentContent(uri: Uri): string {
 		return this.__getCodemodMetadata(uri) ?? '';
 	}
 
-	private async __fetchCodemodRegistryIndex() {
+	private async __onEngineBootstrapped() {
 		try {
+			await this.__fileSystem.createDirectory(this.__globalStorageUri);
+
+			const indexJsonUri = Uri.joinPath(
+				this.__globalStorageUri,
+				'index.json',
+			);
+
 			const url = `${BASE_URL}/codemod-registry/index.json`;
 
-			const response = await axios.get<string>(url);
+			const downloaded =
+				await this.__downloadService.downloadFileIfNeeded(
+					url,
+					indexJsonUri,
+					null,
+				);
+
+			if (downloaded) {
+				return;
+			}
+
+			const uint8array = await this.__fileSystem.readFile(indexJsonUri);
+			const data = uint8array.toString();
 
 			const validation = t
 				.readonlyArray(indexItemCodec)
-				.decode(response.data);
+				.decode(JSON.parse(data));
 
 			if (E.isLeft(validation)) {
 				throw new Error('Could not decode the response');
@@ -65,6 +85,10 @@ export class TextDocumentContentProvider
 				const hash = buildCodemodMetadataHash(indexItem.name);
 
 				this.__codemodMetadata.set(hash, metadata);
+
+				const uri = Uri.parse(`codemod:${indexItem.name}.md`);
+
+				this.onDidChangeEmitter.fire(uri);
 			}
 		} catch (error) {
 			console.error(error);
@@ -75,20 +99,45 @@ export class TextDocumentContentProvider
 		try {
 			const url = `${BASE_URL}/codemod-registry/${path}`;
 
-			const response = await axios.get<string>(url);
+			const uri = Uri.joinPath(this.__globalStorageUri, path);
 
-			return response.data;
+			await this.__downloadService.downloadFileIfNeeded(url, uri, null);
+
+			const uint8array = await this.__fileSystem.readFile(uri);
+			return uint8array.toString();
 		} catch (e) {
 			return null;
 		}
 	}
 
-	private __getCodemodMetadata(uri: vscode.Uri): string | null {
+	private __getCodemodMetadata(uri: Uri): string | null {
 		const { path } = uri;
 
 		const name = path.replace(/\.md$/, '');
 		const hash = buildCodemodMetadataHash(name);
 
-		return this.__codemodMetadata.get(hash) ?? null;
+		const data = this.__codemodMetadata.get(hash) ?? null;
+
+		if (data === null) {
+			this.__readDataFromFileSystem(hash)
+				.then((data) => {
+					this.__codemodMetadata.set(hash, data);
+
+					this.onDidChangeEmitter.fire(uri);
+				})
+				.catch((error) => {
+					console.error(error);
+				});
+		}
+
+		return data;
+	}
+
+	private async __readDataFromFileSystem(hash: string): Promise<string> {
+		const storageUri = Uri.joinPath(this.__globalStorageUri, `${hash}.md`);
+
+		const uint8array = await this.__fileSystem.readFile(storageUri);
+
+		return uint8array.toString();
 	}
 }
