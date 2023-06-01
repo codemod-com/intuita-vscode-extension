@@ -86,8 +86,6 @@ export class TextDocumentContentProvider
 	private __getCodemodMetadata(uri: vscode.Uri): string | null {
 		const { path } = uri;
 
-		console.log(path);
-
 		const name = path.replace(/\.md$/, '');
 		const hash = buildCodemodMetadataHash(name);
 
