@@ -1,32 +1,15 @@
 import { CaseTreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
-import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
-import { Dispatch, SetStateAction, useEffect } from 'react';
 
 type Props = {
 	nodes: CaseTreeNode[];
 	selectedCaseNode: CaseTreeNode | null;
-	setSelectedCaseNode: Dispatch<SetStateAction<CaseTreeNode | null>>;
+	onItemClick(node: CaseTreeNode): void;
 };
 
-const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
-	useEffect(() => {
-		if (selectedCaseNode === null) {
-			return;
-		}
-
-		selectedCaseNode.commands?.forEach((command) => {
-			vscode.postMessage({
-				kind: 'webview.command',
-				value: command,
-			});
-		});
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedCaseNode?.id]);
-
+const ListView = ({ nodes, selectedCaseNode, onItemClick }: Props) => {
 	return (
 		<div className={styles.container}>
 			{nodes.map((node, index) => {
@@ -49,7 +32,7 @@ const ListView = ({ nodes, selectedCaseNode, setSelectedCaseNode }: Props) => {
 						actionButtons={null}
 						index={index}
 						onClick={() => {
-							setSelectedCaseNode(node);
+							onItemClick(node);
 						}}
 					/>
 				);

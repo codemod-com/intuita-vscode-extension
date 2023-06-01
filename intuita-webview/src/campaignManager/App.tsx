@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import ListView from './ListView';
 import styles from './style.module.css';
@@ -15,6 +15,18 @@ function App() {
 	const [view, setView] = useState<MainViews | null>(null);
 	const [selectedCaseNode, setSelectedCaseNode] =
 		useState<CaseTreeNode | null>(null);
+
+	const handleItemClick = useCallback((node: CaseTreeNode) => {
+		setSelectedCaseNode(node);
+
+		node.commands?.forEach((command) => {
+			vscode.postMessage({
+				kind: 'webview.command',
+				value: command,
+			});
+		});
+	}, []);
+
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
@@ -53,7 +65,7 @@ function App() {
 			<ListView
 				nodes={view.viewProps.nodes}
 				selectedCaseNode={selectedCaseNode}
-				setSelectedCaseNode={setSelectedCaseNode}
+				onItemClick={handleItemClick}
 			/>
 		</main>
 	);
