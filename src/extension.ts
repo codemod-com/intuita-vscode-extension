@@ -156,7 +156,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const telemetryKey = '61406ec7-5d8d-48e0-bf19-0cb1650bfb2c';
+	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
 		messageBus);
