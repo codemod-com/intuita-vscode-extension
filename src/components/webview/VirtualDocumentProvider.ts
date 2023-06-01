@@ -1,33 +1,32 @@
 import * as vscode from 'vscode';
-import { basename, extname } from 'node:path';
 import { MessageBus, MessageKind } from '../messageBus';
-import { EngineService } from '../engineService';
-import { CodemodHash } from './webviewEvents';
 import axios from 'axios';
+import { buildCodemodMetadataHash, buildTypeCodec } from '../../utilities';
+import * as t from 'io-ts';
+import * as E from 'fp-ts/Either';
 
 export class MetadataNotFoundError extends Error {}
+
+const indexItemCodec = buildTypeCodec({
+	kind: t.literal('README'),
+	name: t.string,
+	path: t.string,
+});
 
 const BASE_URL = `https://intuita-public.s3.us-west-1.amazonaws.com`;
 
 export class TextDocumentContentProvider
 	implements vscode.TextDocumentContentProvider
 {
-	private __codemodMetadata = new Map<CodemodHash, string>();
+	private __codemodMetadata = new Map<string, string>();
 	public onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
 	public onDidChange = this.onDidChangeEmitter.event;
 
-	constructor(
-		private readonly __messageBus: MessageBus,
-		private readonly __engineService: EngineService,
-	) {
+	constructor(private readonly __messageBus: MessageBus) {
 		this.__messageBus.subscribe(
 			MessageKind.engineBootstrapped,
 			async () => {
-				const codemodList = await this.__engineService.getCodemodList();
-
-				const hashes = codemodList.map((c) => c.hashDigest);
-
-				this.__fetchCodemodsMetadata(hashes as CodemodHash[]);
+				this.__fetchCodemodRegistryIndex();
 			},
 		);
 	}
@@ -40,44 +39,58 @@ export class TextDocumentContentProvider
 		return this.__getCodemodMetadata(uri) ?? '';
 	}
 
-	private async __fetchCodemodMetadata(
-		hash: CodemodHash,
-	): Promise<string | null> {
+	private async __fetchCodemodRegistryIndex() {
 		try {
-			const res = await axios.get<string>(
-				`${BASE_URL}/codemod-registry/${hash}.md`,
-			);
-			return res.data;
+			const url = `${BASE_URL}/codemod-registry/index.json`;
+
+			const response = await axios.get<string>(url);
+
+			const validation = t
+				.readonlyArray(indexItemCodec)
+				.decode(response.data);
+
+			if (E.isLeft(validation)) {
+				throw new Error('Could not decode the response');
+			}
+
+			for (const indexItem of validation.right) {
+				const metadata = await this.__fetchCodemodMetadata(
+					indexItem.path,
+				);
+
+				if (metadata === null) {
+					continue;
+				}
+
+				const hash = buildCodemodMetadataHash(indexItem.name);
+
+				this.__codemodMetadata.set(hash, metadata);
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	private async __fetchCodemodMetadata(path: string): Promise<string | null> {
+		try {
+			const url = `${BASE_URL}/codemod-registry/${path}`;
+
+			const response = await axios.get<string>(url);
+
+			return response.data;
 		} catch (e) {
 			return null;
 		}
 	}
 
-	private async __fetchCodemodsMetadata(
-		codemodHashes: CodemodHash[],
-	): Promise<void> {
-		const metadataWithHashesPromises = codemodHashes.map(async (hash) => {
-			const metadata = await this.__fetchCodemodMetadata(hash);
-			return { hash, metadata };
-		});
-
-		const metadataWithHashes = await Promise.all(
-			metadataWithHashesPromises,
-		);
-
-		metadataWithHashes.forEach(({ hash, metadata }) => {
-			if (metadata === null) {
-				return;
-			}
-
-			this.__codemodMetadata.set(hash, metadata);
-		});
-	}
-
 	private __getCodemodMetadata(uri: vscode.Uri): string | null {
 		const { path } = uri;
-		const codemodHash = basename(path, extname(path));
 
-		return this.__codemodMetadata.get(codemodHash as CodemodHash) ?? null;
+		console.log(path);
+
+		const name = path.replace(/\.md$/, '');
+		const hash = buildCodemodMetadataHash(name);
+
+		return this.__codemodMetadata.get(hash) ?? null;
 	}
 }
