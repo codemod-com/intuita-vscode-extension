@@ -86,8 +86,6 @@ export const getElementIconBaseName = (
 				: 'file.svg';
 		case ElementKind.JOB:
 			return 'bluelightbulb.svg';
-		case ElementKind.ROOT:
-			return 'wrench.svg';
 		default:
 			return 'bluelightbulb.svg';
 	}
@@ -118,33 +116,6 @@ export const capitalize = (str: string): string => {
 	}
 
 	return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-export const buildTreeRootLabel = (caseLabel: string | null) => {
-	if (!caseLabel) {
-		return 'Recipe';
-	}
-
-	// this is based on the current phrase system in the Codemod Registry repo: https://github.com/intuita-inc/codemod-registry
-	const [framework, version] = caseLabel.split('/');
-	if (!framework || !version) {
-		return 'Recipe';
-	}
-
-	return `Upgrade ${capitalize(framework)} to v${version}`;
-};
-
-export const buildStackedBranchPRMessage = (
-	stackedBranches: readonly string[],
-): string => {
-	let message = `Current dependencies on/for this PR: \n`;
-
-	stackedBranches.forEach((branchName, i) => {
-		const ident = '   '.repeat(i);
-		message += ` \n ${ident} ${i !== 0 ? '\u{231E}' : ''} ${branchName}`;
-	});
-
-	return message;
 };
 
 // taken from https://stackoverflow.com/a/63361543

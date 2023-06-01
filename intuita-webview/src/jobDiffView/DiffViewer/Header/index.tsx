@@ -1,123 +1,72 @@
-import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
 import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
-import { vscode } from '../../../shared/utilities/vscode';
-import { CaseHash } from '../../../../../src/cases/types';
-import Popover from '../../../shared/Popover';
-import { JobHash } from '../../../../../src/jobs/types';
-import HooksCTA from './HooksCTA';
 
-const POPOVER_TEXTS = {
-	discard: 'Discard the codemod in progress without saving changes.',
-	apply: 'Save changes to file, further tweak things if needed, and commit later.',
-	commit: 'Commit or create pull requests for selected changes.',
-	cannotApply: 'At least one job should be staged to commit the changes.',
-};
+import HooksCTA from './HooksCTA';
+import cn from 'classnames';
+import Popover from '../../../shared/Popover';
+import { Dispatch, SetStateAction } from 'react';
 
 type Props = Readonly<{
 	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
-	diffId: string;
 	onViewChange(value: DiffViewType): void;
-	stagedJobsHashes: JobHash[];
+	totalJobsCount: number;
+	jobIndex: number;
+	setJobIndex: Dispatch<SetStateAction<number>>;
 }>;
 
 const Header = ({
 	viewType,
-	diffId,
-	jobs,
 	onViewChange,
-	stagedJobsHashes,
 	showHooksCTA,
+	totalJobsCount,
+	jobIndex,
+	setJobIndex,
 }: Props) => {
-	const handleDiscardChanges = () => {
-		vscode.postMessage({
-			kind: 'webview.global.discardChanges',
-			caseHash: diffId as CaseHash,
-		});
-
-		vscode.postMessage({
-			kind: 'webview.global.closeView',
-		});
-	};
-
-	const handleApplySelected = () => {
-		vscode.postMessage({
-			kind: 'webview.global.applySelected',
-			jobHashes: stagedJobsHashes,
-			diffId,
-		});
-
-		vscode.postMessage({
-			kind: 'webview.global.closeView',
-		});
-	};
-
-	const hasStagedJobs = stagedJobsHashes.length !== 0;
-	const allJobsStaged = stagedJobsHashes.length === jobs.length;
-
-	const setStagedJobs = (jobHashes: JobHash[]): void => {
-		vscode.postMessage({
-			kind: 'webview.global.stageJobs',
-			jobHashes,
-		});
-	};
-
 	return (
 		<div className={styles.root}>
-			<Popover
-				trigger={
-					<VSCodeCheckbox
-						onClick={(e) => {
-							e.stopPropagation();
-							const jobsToBeStaged = hasStagedJobs
-								? []
-								: jobs.map(({ jobHash }) => jobHash);
-							setStagedJobs(jobsToBeStaged);
-						}}
-						className={styles.checkbox}
-						checked={allJobsStaged}
-					/>
-				}
-				popoverText={allJobsStaged ? 'Unselect all' : 'Select all'}
-			/>
 			<div className={styles.actionsContainer}>
 				<Popover
 					trigger={
 						<VSCodeButton
-							appearance="primary"
-							onClick={handleApplySelected}
-							disabled={!hasStagedJobs}
+							disabled={jobIndex === 0}
+							appearance="icon"
+							onClick={() => {
+								setJobIndex((prev) => prev - 1);
+							}}
 						>
-							Apply Selected
+							<span
+								className={cn('codicon', 'codicon-arrow-left')}
+							/>
 						</VSCodeButton>
 					}
-					popoverText={
-						!hasStagedJobs
-							? POPOVER_TEXTS.cannotApply
-							: POPOVER_TEXTS.apply
-					}
+					popoverText="Move to the previous file"
 				/>
 				<Popover
 					trigger={
 						<VSCodeButton
-							appearance="secondary"
-							onClick={handleDiscardChanges}
+							disabled={jobIndex === totalJobsCount - 1}
+							appearance="icon"
+							onClick={() => {
+								setJobIndex((prev) => prev + 1);
+							}}
 						>
-							Discard All
+							<span
+								className={cn('codicon', 'codicon-arrow-right')}
+							/>
 						</VSCodeButton>
 					}
-					popoverText={POPOVER_TEXTS.discard}
+					popoverText="Move to the next file"
 				/>
 			</div>
 			<div className={styles.buttonGroup}>
-				{showHooksCTA ? (
-					<HooksCTA style={{ marginRight: '5px' }} />
-				) : null}
+				<h4>{`${jobIndex + 1} / ${totalJobsCount}`}</h4>
+				{showHooksCTA ? <HooksCTA /> : null}
 				{viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"

@@ -12,24 +12,54 @@ import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import cn from 'classnames';
-import { DirectorySelector } from '../components/DirectorySelector';
-import Popup from 'reactjs-popup';
-import E from 'fp-ts/Either';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 
 type Props = Readonly<{
-	node: CodemodTreeNode<string>;
-	response: E.Either<Error, string | null>;
+	node: CodemodTreeNode;
+	autocompleteItems: string[];
+	openedIds: ReadonlySet<CodemodHash>;
+	nodeIds: ReadonlyArray<CodemodHash>;
+	focusedId: CodemodHash | null;
+	searchQuery: string;
 }>;
 
+export const containsSearchedCodemod = (
+	node: CodemodTreeNode,
+	searchQuery: string,
+	set: Set<CodemodHash>,
+): boolean => {
+	const lowerCaseSearchQuery = searchQuery.toLowerCase().trim();
+	if (
+		node.kind === 'codemodItem' &&
+		(node.uri.toLowerCase().includes(lowerCaseSearchQuery) ||
+			node.label.toLowerCase().includes(lowerCaseSearchQuery))
+	) {
+		set.add(node.id);
+		return true;
+	}
+	let someChildContains = false;
+	node.children.forEach((childNode) => {
+		const result = containsSearchedCodemod(childNode, searchQuery, set);
+		if (result) {
+			someChildContains = true;
+		}
+	});
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
+};
+
 export const containsCodemodHashDigest = (
-	node: CodemodTreeNode<string>,
+	node: CodemodTreeNode,
 	codemodHashDigest: CodemodHash,
 	set: Set<CodemodHash>,
 ): boolean => {
 	if (node.id === codemodHashDigest) {
-		set.add(node.id);
 		return true;
 	}
 
@@ -63,16 +93,24 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
+const handleClick = (node: CodemodTreeNode) => {
+	if (!node.command) {
+		return;
+	}
+
+	vscode.postMessage({
+		kind: 'webview.command',
+		value: node.command,
+	});
+};
+
 type State = Readonly<{
-	node: CodemodTreeNode<string>;
+	node: CodemodTreeNode;
 	openedIds: ReadonlySet<CodemodHash>;
 	focusedId: CodemodHash | null;
 }>;
 
-type InitializerArgument = Readonly<{
-	node: CodemodTreeNode<string>;
-	focusedId: CodemodHash | null;
-}>;
+type InitializerArgument = State;
 
 type Action = Readonly<{
 	kind: 'focus' | 'flip';
@@ -111,37 +149,75 @@ const reducer = (state: State, action: Action): State => {
 	return state;
 };
 
-const initializer = ({ node, focusedId }: InitializerArgument): State => {
-	const openedIds = new Set([node.id]);
+const initializer = ({
+	node,
+	focusedId,
+	openedIds,
+}: InitializerArgument): State => {
+	const newOpenedIds = new Set([...openedIds, node.id]);
 
 	if (focusedId !== null) {
-		containsCodemodHashDigest(node, focusedId, openedIds);
+		containsCodemodHashDigest(node, focusedId, newOpenedIds);
 	}
 
 	return {
 		node,
-		openedIds,
+		openedIds: newOpenedIds,
 		focusedId,
 	};
 };
 
-const TreeView = ({ node, response }: Props) => {
+const TreeView = ({
+	node,
+	autocompleteItems,
+	openedIds,
+	focusedId,
+	searchQuery,
+	nodeIds,
+}: Props) => {
+	const rootPath = node.label;
+	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+	const [hashesForSearch, setHashesForSearch] = useState<Set<CodemodHash>>(
+		new Set(),
+	);
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
 			node,
-			focusedId: window.INITIAL_STATE.focusedCodemodHashDigest ?? null,
+			focusedId,
+			openedIds,
 		},
 		initializer,
 	);
 
-	const [editExecutionPath, setEditExecutionPath] =
-		useState<CodemodTreeNode<string> | null>(null);
+	useEffect(() => {
+		if (searchQuery.length < SEARCH_QUERY_MIN_LENGTH) {
+			setHashesForSearch(new Set());
+			return;
+		}
+		const set = new Set<CodemodHash>();
+		containsSearchedCodemod(node, searchQuery, set);
+
+		setHashesForSearch(set);
+	}, [node, searchQuery]);
+
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodHash>
 	>([]);
+	const [runningRepomodHash, setRunningRepomodHash] =
+		useState<CodemodHash | null>(null);
+
+	useEffect(() => {
+		vscode.postMessage({
+			kind: 'webview.codemods.setState',
+			openedIds: Array.from(state.openedIds),
+			focusedId: state.focusedId,
+		});
+	}, [state]);
 
 	const onHalt = useCallback(() => {
+		setRunningRepomodHash(null);
+
 		if (!executionStack.length) {
 			return;
 		}
@@ -153,20 +229,16 @@ const TreeView = ({ node, response }: Props) => {
 		}
 
 		setExecutionStack(stack);
-
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
 			value: hash,
 		});
 	}, [executionStack]);
 
-	const [progress, { progressBar, stopProgress }] = useProgressBar(onHalt);
-
-	useEffect(() => {
-		if (response._tag === 'Right') {
-			setEditExecutionPath(null);
-		}
-	}, [response]);
+	const [progress, { progressBar, stopProgress }] = useProgressBar(
+		onHalt,
+		runningRepomodHash,
+	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -187,17 +259,6 @@ const TreeView = ({ node, response }: Props) => {
 		};
 	}, [node]);
 
-	const handleClick = useCallback((node: CodemodTreeNode<string>) => {
-		if (!node.command) {
-			return;
-		}
-
-		vscode.postMessage({
-			kind: 'webview.command',
-			value: node.command,
-		});
-	}, []);
-
 	const handleActionButtonClick = useCallback(
 		(action: RunCodemodsCommand) => {
 			if (
@@ -216,77 +277,65 @@ const TreeView = ({ node, response }: Props) => {
 		[executionStack, progress],
 	);
 
-	const handleEditExecutionPath = useCallback(
-		(node: CodemodTreeNode<string>) => {
-			setEditExecutionPath(node);
-		},
-		[],
-	);
+	const actionButtons = (node: CodemodTreeNode) => {
+		return (node.actions ?? []).map((action) => {
+			return (
+				<VSCodeButton
+					key={action.kind}
+					className={styles.action}
+					appearance="icon"
+					title={`${
+						action.kind === 'webview.codemodList.dryRunCodemod' &&
+						executionStack.includes(action.value)
+							? 'Queued:'
+							: ''
+					} ${action.description}`}
+					onClick={(e) => {
+						e.stopPropagation();
+						handleActionButtonClick(action);
+						if (
+							action.kind ===
+								'webview.codemodList.dryRunCodemod' &&
+							node.modKind === 'repomod'
+						) {
+							setRunningRepomodHash(node.id);
+						}
+					}}
+				>
+					{action.kind === 'webview.codemodList.dryRunCodemod' &&
+						executionStack.includes(action.value) && (
+							<i className="codicon codicon-history mr-2" />
+						)}
+					{action.title}
+				</VSCodeButton>
+			);
+		});
+	};
 
 	const renderItem = ({
 		node,
 		depth,
 	}: {
-		node: CodemodTreeNode<string>;
+		node: CodemodTreeNode;
 		depth: number;
 	}) => {
 		const opened = state.openedIds.has(node.id);
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
-		const actionButtons = (node.actions ?? []).map((action) => (
-			<VSCodeButton
-				key={action.kind}
-				className={styles.action}
-				appearance="icon"
-				title={`${
-					action.kind === 'webview.codemodList.dryRunCodemod' &&
-					executionStack.includes(action.value)
-						? 'Queued:'
-						: ''
-				} ${action.description}`}
-				onClick={(e) => {
-					e.stopPropagation();
-					handleActionButtonClick(action);
-				}}
-			>
-				{action.kind === 'webview.codemodList.dryRunCodemod' &&
-					executionStack.includes(action.value) && (
-						<i className="codicon codicon-history mr-2" />
-					)}
-				{action.title}
-			</VSCodeButton>
-		));
-
-		const editExecutionPathAction = (
-			<VSCodeButton
-				key="executionOnPath"
-				className={styles.action}
-				appearance="icon"
-				onClick={(e) => {
-					e.stopPropagation();
-					handleEditExecutionPath(node);
-				}}
-				title="Edit Execution Path"
-			>
-				<i
-					className="codicon codicon-pencil"
-					style={{ alignSelf: 'center' }}
-				/>
-				Edit Path
-			</VSCodeButton>
-		);
-
 		const getActionButtons = () => {
-			if (progress?.codemodHash === node.id) {
+			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
+				return [];
+			}
+
+			if (
+				progress?.codemodHash === node.id &&
+				node.modKind === 'executeCodemod'
+			) {
 				return [stopProgress];
 			}
-			return [
-				...actionButtons,
-				...(node.kind === 'codemodItem'
-					? [editExecutionPathAction]
-					: []),
-			];
+
+			return actionButtons(node);
 		};
 
 		return (
@@ -297,14 +346,16 @@ const TreeView = ({ node, response }: Props) => {
 				disabled={false}
 				hasChildren={(node.children?.length ?? 0) !== 0}
 				id={node.id}
+				executionPath={node.executionPath}
+				rootPath={rootPath}
 				description={node.description ?? ''}
-				hoverDescription={`Target: ${node.extraData}`}
 				label={node.label ?? ''}
 				icon={icon}
 				depth={depth}
 				kind={node.kind}
 				open={opened}
 				focused={node.id === state.focusedId}
+				autocompleteItems={autocompleteItems}
 				onClick={() => {
 					handleClick(node);
 
@@ -318,57 +369,23 @@ const TreeView = ({ node, response }: Props) => {
 		);
 	};
 
-	const onEditDone = (value: string) => {
-		if (!editExecutionPath) {
-			return;
-		}
-		vscode.postMessage({
-			kind: 'webview.codemodList.updatePathToExecute',
-			value: {
-				newPath: value,
-				codemodHash: editExecutionPath.id,
-			},
-		});
-	};
-
 	return (
 		<div>
-			{editExecutionPath && (
-				<Popup
-					modal
-					open={!!editExecutionPath}
-					onClose={() => {
-						setEditExecutionPath(null);
-					}}
-					closeOnEscape
-				>
-					<span
-						className="codicon text-xl cursor-pointer absolute right-0 top-0 codicon-close p-3"
-						onClick={() => setEditExecutionPath(null)}
-					></span>
-					<p className="bold">Codemod: {editExecutionPath.label}</p>
-
-					<p> Current Path: {editExecutionPath.extraData}</p>
-					<DirectorySelector
-						defaultValue={editExecutionPath.extraData ?? ''}
-						onEditDone={onEditDone}
-						error={
-							response._tag === 'Left'
-								? {
-										value: response.left.message,
-										timestamp: Date.now(),
-								  }
-								: null
-						}
-					/>
-				</Popup>
-			)}
-
 			<Tree
 				node={node}
 				renderItem={renderItem}
 				depth={0}
 				openedIds={state.openedIds}
+				hashesForSearch={hashesForSearch}
+				searchingCodemod={userSearchingCodemod}
+				nodeIds={nodeIds}
+				focusedId={state.focusedId}
+				onFocusNode={(id: CodemodHash) => {
+					dispatch({
+						kind: 'focus',
+						id,
+					});
+				}}
 			/>
 		</div>
 	);

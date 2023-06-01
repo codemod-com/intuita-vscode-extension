@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Line } from 'rc-progress';
 import { CodemodHash, WebviewMessage } from '../shared/types';
 import styles from './TreeView/style.module.css';
@@ -11,6 +11,7 @@ type ProgressType = {
 
 export const useProgressBar = (
 	onHalt: () => void,
+	runningRepomodHash: CodemodHash | null,
 ): [
 	ProgressType | null,
 	{
@@ -18,16 +19,26 @@ export const useProgressBar = (
 		stopProgress: JSX.Element | null;
 	},
 ] => {
+	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const [codemodExecutionProgress, setCodemodExecutionProgress] =
 		useState<null | ProgressType>(null);
 
-	const handleStopCodemodExecution = () => {
-		if (!codemodExecutionProgress) {
+	const handleClearInterval = () => {
+		if (intervalRef.current !== null) {
+			clearInterval(intervalRef.current);
+			intervalRef.current = null;
+		}
+		setCodemodExecutionProgress(null);
+	};
+
+	const handleStopCodemodExecution = (hash: CodemodHash) => {
+		handleClearInterval();
+		if (!hash) {
 			return;
 		}
 		vscode.postMessage({
 			kind: 'webview.codemodList.haltCodemodExecution',
-			value: codemodExecutionProgress.codemodHash,
+			value: hash,
 		});
 	};
 
@@ -43,6 +54,7 @@ export const useProgressBar = (
 			}
 
 			if (message.kind === 'webview.global.codemodExecutionHalted') {
+				handleClearInterval();
 				setCodemodExecutionProgress(null);
 				onHalt();
 			}
@@ -55,10 +67,34 @@ export const useProgressBar = (
 		};
 	}, [codemodExecutionProgress?.codemodHash, onHalt]);
 
+	useEffect(() => {
+		if (runningRepomodHash === null) {
+			return;
+		}
+		intervalRef.current = setInterval(() => {
+			setCodemodExecutionProgress((prev) => {
+				return {
+					progress:
+						prev?.progress !== undefined
+							? (prev.progress + 25) % 125
+							: 0,
+					codemodHash: runningRepomodHash,
+				};
+			});
+		}, 400);
+
+		return () => {
+			handleClearInterval();
+		};
+	}, [runningRepomodHash]);
+
 	const progressBar =
 		codemodExecutionProgress !== null ? (
 			<>
-				<div className="flex w-full mb-2" style={{ height: '3.5px' }}>
+				<div
+					className="flex mb-2"
+					style={{ height: '3.5px', width: '95%' }}
+				>
 					<Line
 						percent={codemodExecutionProgress.progress}
 						strokeWidth={1.5}
@@ -78,14 +114,17 @@ export const useProgressBar = (
 			role="button"
 			onClick={(e) => {
 				e.stopPropagation();
-				handleStopCodemodExecution();
+				onHalt();
+				handleStopCodemodExecution(
+					codemodExecutionProgress.codemodHash,
+				);
 			}}
+			style={{ marginLeft: '0px' }}
 			title="Stop Codemod Execution"
 		>
 			<i className="codicon codicon-debug-stop" />
 		</a>
 	) : null;
-
 	return [
 		codemodExecutionProgress,
 		{

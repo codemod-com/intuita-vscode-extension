@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.23.0",
+	"version": "0.24.3",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -227,7 +227,7 @@
 				},
 				{
 					"command": "intuita.executeCodemodWithinPath",
-					"when": "false"
+					"when": "editorIsOpen"
 				},
 				{
 					"command": "intuita.executeImportedModOnPath",
@@ -255,7 +255,7 @@
 				{
 					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
-					"when": "explorerResourceIsFolder"
+					"when": "true"
 				},
 				{
 					"command": "intuita.executeImportedModOnPath",
@@ -277,10 +277,10 @@
 		"vscode:prepublish": "pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"build": "pnpm install:webview && pnpm build:webview && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+		"build": "pnpm install:webview && pnpm build:webview && pnpm install && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
-		"spellcheck": "pnpm cspell '**/*.{ts,tsx}'",
+		"spellcheck": "pnpm cspell-cli '**/*.{ts,tsx}'",
 		"install:webview": "cd intuita-webview && pnpm install",
 		"build:webview": "cd intuita-webview && pnpm build",
 		"watch:webview": "cd intuita-webview && pnpm start",
@@ -315,7 +315,7 @@
 	"dependencies": {
 		"@vscode/extension-telemetry": "^0.7.7",
 		"axios": "^1.2.2",
-		"fp-ts": "^2.13.1",
+		"fp-ts": "^2.15.0",
 		"io-ts": "^2.2.20",
 		"io-ts-reporters": "^2.0.1",
 		"io-ts-types": "^0.5.19",

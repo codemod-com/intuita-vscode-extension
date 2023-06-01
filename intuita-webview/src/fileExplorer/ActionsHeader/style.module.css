@@ -1,0 +1,36 @@
+.root {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	z-index: 1001;
+	position: sticky;
+	height: 35px;
+	top: 0;
+	padding: 4px 0px 4px 4px;
+	background-color: var(--vscode-tab-inactiveBackground);
+	gap: 8px;
+}
+
+.selectedFileCount {
+	user-select: none;
+	margin-right: auto;
+	font-size: var(--vscode-editor-font-size);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-left: 4px;
+}
+
+.icon {
+	width: 22px;
+	height: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.progressRing {
+	margin-right: auto;
+	width: 18px;
+	height: 18px;
+	padding: 0 4px;
+}

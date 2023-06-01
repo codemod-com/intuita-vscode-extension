@@ -1,25 +1,27 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+	Dispatch,
+	ReactNode,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useMemo,
+} from 'react';
 import Tree from '../../shared/Tree';
 import {
-	Command,
+	FileTreeNode,
+	JobHash,
 	TreeNode,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
-import { ReactComponent as WrenchIcon } from '../../assets/wrench.svg';
 import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
-import { SEARCH_QUERY_MIN_LENGTH } from '../SearchBar';
+import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { useKey } from '../../jobDiffView/hooks/useKey';
-
-type Props = {
-	node: TreeNode;
-	nodeIds: string[];
-	fileNodes: TreeNode[];
-	searchQuery: string;
-};
+import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { CaseHash } from '../../../../src/cases/types';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -40,9 +42,6 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 		case 'newFile.svg':
 			icon = <span className={cn('codicon', 'codicon-file-add')} />;
 			break;
-		case 'wrench.svg':
-			icon = <WrenchIcon />;
-			break;
 		case 'folder.svg':
 			icon = (
 				<span
@@ -57,13 +56,51 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
-const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
+type Props = {
+	node: TreeNode;
+	nodeIds: string[];
+	fileNodes: FileTreeNode[] | null;
+	caseHash: CaseHash;
+	searchQuery: string;
+	focusedNodeId: string | null;
+	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
+	stagedJobs: JobHash[];
+};
+
+const TreeView = ({
+	node,
+	nodeIds,
+	fileNodes,
+	searchQuery,
+	focusedNodeId,
+	setFocusedNodeId,
+	stagedJobs,
+}: Props) => {
+	const allFileNodesReady = fileNodes !== null;
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const fileNodeIds = useMemo(
-		() => new Set(fileNodes.map((node) => node.id)),
+		() => new Set(fileNodes?.map((node) => node.id) ?? []),
 		[fileNodes],
 	);
+
+	const onToggleJob = useCallback(
+		(jobHash: JobHash) => {
+			const stagedJobsSet = new Set(stagedJobs);
+
+			if (stagedJobsSet.has(jobHash)) {
+				stagedJobsSet.delete(jobHash);
+			} else {
+				stagedJobsSet.add(jobHash);
+			}
+
+			vscode.postMessage({
+				kind: 'webview.global.stageJobs',
+				jobHashes: Array.from(stagedJobsSet),
+			});
+		},
+		[stagedJobs],
+	);
+
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
 		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
 		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
@@ -72,15 +109,13 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 
 	useKey('ArrowUp', () => {
 		handleArrowKeyDown('ArrowUp');
+		window.scrollBy(0, -20); // height of 1 tree item is slightly bigger than 20px
 	});
 
 	useKey('ArrowDown', () => {
 		handleArrowKeyDown('ArrowDown');
+		window.scrollBy(0, 20); // height of 1 tree item is slightly bigger than 20px
 	});
-
-	const handleActionButtonClick = (action: Command) => {
-		vscode.postMessage({ kind: 'webview.command', value: action });
-	};
 
 	const renderItem = ({
 		node,
@@ -91,7 +126,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		setFocusedNodeId,
 		index,
 	}: {
-		node: TreeNode;
+		node: TreeNode | FileTreeNode;
 		depth: number;
 		open: boolean;
 		setIsOpen: (value: boolean) => void;
@@ -100,24 +135,26 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		index: number;
 	}) => {
 		const icon = getIcon(node.iconName ?? null, open);
+		const focused = node.id === focusedNodeId;
+		const hasChildren = node.children && node.children.length > 0;
+		const enableCheckbox = depth > 0 && !hasChildren;
+		const Checkbox = () => {
+			const checked = stagedJobs.includes((node as FileTreeNode).jobHash);
 
-		const actionButtons = (node.actions ?? []).map((action) => (
-			// eslint-disable-next-line jsx-a11y/anchor-is-valid
-			<a
-				title={action.title}
-				role="button"
-				onClick={(e) => {
-					e.stopPropagation();
-					handleActionButtonClick(action);
-				}}
-			>
-				{action.title}
-			</a>
-		));
+			return (
+				<VSCodeCheckbox
+					onClick={(event) => {
+						event.stopPropagation();
+						onToggleJob((node as FileTreeNode).jobHash);
+					}}
+					checked={checked}
+				/>
+			);
+		};
 
 		return (
 			<TreeItem
-				hasChildren={(node.children?.length ?? 0) !== 0}
+				hasChildren={hasChildren}
 				id={node.id}
 				label={node.label ?? ''}
 				subLabel=""
@@ -125,15 +162,35 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 				depth={depth}
 				kind={node.kind}
 				open={open}
-				focused={node.id === focusedNodeId}
+				focused={focused}
 				onClick={() => {
+					if (!allFileNodesReady) {
+						return;
+					}
 					setFocusedNodeId(node.id);
 				}}
-				actionButtons={actionButtons}
+				actionButtons={[
+					enableCheckbox && allFileNodesReady && <Checkbox />,
+				]}
 				onPressChevron={() => {
+					if (!allFileNodesReady) {
+						return;
+					}
 					setIsOpen(!open);
 				}}
 				index={index}
+				inlineStyles={{
+					root: {
+						...(enableCheckbox && {
+							...(!focused && {
+								backgroundColor:
+									'var(--vscode-list-hoverBackground)',
+							}),
+							paddingRight: 4,
+						}),
+					},
+					actions: { display: 'flex' },
+				}}
 			/>
 		);
 	};
@@ -148,7 +205,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 		return () => {
 			window.removeEventListener('blur', handler);
 		};
-	}, []);
+	}, [setFocusedNodeId]);
 
 	useEffect(() => {
 		if (focusedNodeId === null) {
@@ -171,14 +228,15 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 	if (userSearchingFile) {
 		return (
 			<ReactTreeView nodeLabel="">
-				{fileNodes.map((node, index) => {
+				{fileNodes?.map((node, index) => {
 					if (node.kind !== 'fileElement') {
 						return null;
 					}
-					const searchingFileFound =
-						userSearchingFile &&
-						node.kind === 'fileElement' &&
-						(node.label ?? '').toLowerCase().includes(searchQuery);
+					// e.g., cal.com/packages/file.tsx
+					const relativeFilePath = node.id ?? '';
+					const searchingFileFound = relativeFilePath
+						.toLowerCase()
+						.includes(searchQuery);
 					if (!searchingFileFound) {
 						return null;
 					}
@@ -210,6 +268,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 			</ReactTreeView>
 		);
 	}
+
 	return (
 		<Tree
 			node={node}
@@ -223,6 +282,7 @@ const TreeView = ({ node, nodeIds, fileNodes, searchQuery }: Props) => {
 			index={0}
 			depth={0}
 			focusedNodeId={focusedNodeId}
+			allFileNodesReady={allFileNodesReady}
 		/>
 	);
 };

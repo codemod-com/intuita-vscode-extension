@@ -75,6 +75,11 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				message.value.arguments,
 			);
 		}
+
+		if (message.kind === 'webview.global.focusView') {
+			commands.executeCommand('intuita.focusView', message.webviewName);
+		}
+
 		if (
 			message.kind === 'intuita.rejectJob' ||
 			message.kind === 'intuita.createIssue' ||
@@ -112,26 +117,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			);
 		}
 
-		if (message.kind === 'webview.global.applySelected') {
-			commands.executeCommand(
-				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
-				message,
-			);
-		}
-
-		if (message.kind === 'webview.global.closeView') {
-			this.dispose();
-		}
-
-		if (message.kind === 'webview.global.discardChanges') {
-			commands.executeCommand('intuita.rejectCase', message.caseHash);
-		}
-
-		if (message.kind === 'webview.global.stageJobs') {
-			this.__jobManager.setAppliedJobs(message.jobHashes);
-			this.__onUpdateStagedJobsMessage();
-		}
-
 		if (message.kind === 'webview.global.openConfiguration') {
 			commands.executeCommand(
 				'workbench.action.openSettings',
@@ -164,7 +149,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			return null;
 		}
 
-		const { oldUri, newUri, kind, oldContentUri, newContentUri } = job;
+		const { oldUri, newUri, kind, newContentUri } = job;
 
 		const newFileTitle = newUri
 			? newUri.fsPath.replace(this.__rootPath, '') ?? ''
@@ -175,8 +160,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		const newFileContent = newContentUri
 			? (await workspace.fs.readFile(newContentUri)).toString()
 			: null;
-		const oldFileContent = oldContentUri
-			? (await workspace.fs.readFile(oldContentUri)).toString()
+		const oldFileContent = oldUri
+			? (await workspace.fs.readFile(oldUri)).toString()
 			: null;
 
 		const jobStaged = this.__jobManager.isJobApplied(job.hash);
@@ -264,6 +249,12 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
+	public focusView() {
+		this._panel?.webview.postMessage({
+			kind: 'webview.global.focusView',
+		});
+	}
+
 	public focusFile(jobHash: JobHash) {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFile',
@@ -275,24 +266,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this._panel?.webview.postMessage({
 			kind: 'webview.diffView.focusFolder',
 			folderPath,
-		});
-	}
-
-	async __onUpdateStagedJobsMessage(): Promise<void> {
-		if (this.__openedCaseHash === null) {
-			return;
-		}
-
-		const viewData = await this.getViewDataForCase(this.__openedCaseHash);
-
-		if (viewData === null) {
-			return;
-		}
-
-		const { stagedJobs } = viewData;
-		this._postMessage({
-			kind: 'webview.diffView.updateStagedJobs',
-			value: stagedJobs,
 		});
 	}
 

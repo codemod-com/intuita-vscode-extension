@@ -1,7 +1,9 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, memo, useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, memo, useState } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { useKey } from '../../jobDiffView/hooks/useKey';
+import { vscode } from '../utilities/vscode';
+import styles from './style.module.css';
 
 type Props = {
 	index: number;
@@ -18,21 +20,39 @@ type Props = {
 		node: TreeNode;
 		depth: number;
 		open: boolean;
-		setIsOpen: (value: boolean) => void;
+		setIsOpen: Dispatch<SetStateAction<boolean>>;
 	}): ReactNode;
 	focusedNodeId: string | null;
+	allFileNodesReady: boolean;
 };
 
-const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
+const Tree = ({
+	node,
+	focusedNodeId,
+	depth,
+	renderItem,
+	index,
+	allFileNodesReady,
+}: Props) => {
 	const hasNoChildren = !node.children || node.children.length === 0;
 	const [open, setIsOpen] = useState(true);
+
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (node.id !== focusedNodeId) {
 			return;
 		}
 
+		if (key === 'ArrowRight') {
+			vscode.postMessage({
+				kind: 'webview.global.focusView',
+				webviewName: 'diffView',
+			});
+			return;
+		}
+
 		setIsOpen(key === 'ArrowLeft' ? false : true);
 	};
+
 	useKey('ArrowLeft', () => {
 		handleArrowKeyDown('ArrowLeft');
 	});
@@ -55,10 +75,17 @@ const Tree = ({ node, focusedNodeId, depth, renderItem, index }: Props) => {
 
 	return (
 		<>
-			<ReactTreeView collapsed={!open} nodeLabel={treeItem}>
+			<ReactTreeView
+				collapsed={!open}
+				nodeLabel={treeItem}
+				treeViewClassName={
+					!allFileNodesReady ? styles.disabled : undefined
+				}
+			>
 				{open
 					? node.children.map((child, index) => (
 							<Tree
+								allFileNodesReady={allFileNodesReady}
 								key={child.id}
 								node={child}
 								renderItem={renderItem}

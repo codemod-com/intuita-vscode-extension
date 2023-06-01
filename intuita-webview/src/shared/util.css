@@ -40,7 +40,7 @@
 	justify-content: space-between;
 }
 
-.items-center {
+.align-items-center {
 	align-items: center;
 }
 .align-self-center {
@@ -156,4 +156,7 @@
 
 .h-full {
 	height: 100%;
+}
+.user-select-none {
+	user-select: none;
 }

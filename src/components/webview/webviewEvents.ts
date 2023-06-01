@@ -3,8 +3,11 @@ import { JobHash, JobKind } from '../../jobs/types';
 import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
+import * as O from 'fp-ts/Option';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
+import { SyntheticError } from '../../errors/types';
+import { ExecutionPath } from '../../persistedState/workspaceState';
 
 export { JobHash };
 export { CodemodHash };
@@ -49,21 +52,25 @@ export type RunCodemodsCommand = Readonly<{
 	value: CodemodHash;
 }>;
 
-export type CodemodTreeNode<T = undefined> = {
+export type CodemodTreeNode = {
 	id: CodemodHash;
 	kind: 'codemodItem' | 'path';
+	uri: string;
 	label: string;
+	children: CodemodTreeNode[];
 	description?: string;
 	iconName?: string;
 	command?:
 		| Command & {
-				command: 'intuita.openCaseDiff';
-				arguments?: ElementHash[];
+				command: 'intuita.showCodemodMetadata';
+				arguments: [CodemodHash];
 		  };
 	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode<T>[];
-	extraData?: T;
+	executionPath?: ExecutionPath;
+	modKind?: 'repomod' | 'executeCodemod';
 };
+
+export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
 
 export type CaseTreeNode = {
 	id: CaseHash;
@@ -99,6 +106,10 @@ export type TreeNode = {
 	children: TreeNode[];
 };
 
+export type FileTreeNode = TreeNode & {
+	jobHash: JobHash;
+};
+
 export type ExternalLink = {
 	text: string;
 	icon: string;
@@ -113,6 +124,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.focusView';
+			nodeIdToFocus: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.diffView.focusFile';
@@ -135,16 +150,12 @@ export type WebviewMessage =
 			value: boolean;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemods.setPublicCodemods';
-			data: E.Either<Error, CodemodTreeNode<string> | null>;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.updatePathResponse';
-			data: E.Either<Error, string | null>;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
+			codemodHash: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodExecutionProgressLoop';
 			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
@@ -155,8 +166,16 @@ export type WebviewMessage =
 			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.updateStagedJobs';
+			kind: 'webview.fileExplorer.updateStagedJobs';
 			value: JobHash[];
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.focusNode';
+			id: string | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.setAutocompleteItems';
+			autocompleteItems: string[];
 	  }>;
 
 export type WebviewResponse =
@@ -219,6 +238,18 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{
+			kind: 'webview.global.focusView';
+			webviewName:
+				| 'changeExplorer'
+				| 'codemodRuns'
+				| 'codemodDiscovery'
+				| 'diffView';
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.disposeView';
+			webviewName: 'diffView';
+	  }>
+	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';
 			id: string;
 	  }>
@@ -229,8 +260,8 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
-				codemodHash: CodemodHash;
 				newPath: string;
+				codemodHash: CodemodHash;
 			};
 	  }>
 	| Readonly<{
@@ -238,8 +269,21 @@ export type WebviewResponse =
 			caseHash: CaseHash;
 	  }>
 	| Readonly<{
+			kind: 'webview.codemods.setState';
+			openedIds: ReadonlyArray<CodemodHash>;
+			focusedId: CodemodHash | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemods.setPublicCodemodsExpanded';
+			publicCodemodsExpanded: boolean;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
 			value: CodemodHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.codemodPathChange';
+			codemodPath: string;
 	  }>;
 
 export type View =
@@ -259,9 +303,10 @@ export type View =
 	| Readonly<{
 			viewId: 'treeView';
 			viewProps: {
+				caseHash: CaseHash;
 				node: TreeNode;
 				nodeIds: string[];
-				fileNodes: TreeNode[];
+				fileNodes: FileTreeNode[] | null;
 			} | null;
 	  }>
 	| Readonly<{
@@ -294,5 +339,16 @@ export type View =
 				error: string;
 				remoteOptions: string[];
 				initialFormData: Partial<CommitChangesFormData>;
+			};
+	  }>
+	| Readonly<{
+			viewId: 'codemods';
+			viewProps: {
+				codemodTree: CodemodTree;
+				autocompleteItems: string[];
+				openedIds: ReadonlyArray<CodemodHash>;
+				focusedId: CodemodHash | null;
+				nodeIds: ReadonlyArray<CodemodHash>;
+				publicCodemodsExpanded: boolean;
 			};
 	  }>;

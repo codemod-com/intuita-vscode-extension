@@ -35,10 +35,8 @@ type HeaderProps = Readonly<{
 	viewType: 'inline' | 'side-by-side';
 	viewed?: boolean;
 	children?: React.ReactNode;
-	jobStaged: boolean;
 	onViewedChange: () => void;
 	onReportIssue(): void;
-	onToggleJob(): void;
 }>;
 
 export const Header = ({
@@ -49,8 +47,6 @@ export const Header = ({
 	oldFileTitle,
 	children,
 	viewed,
-	jobStaged,
-	onToggleJob,
 	onViewedChange,
 	onReportIssue,
 }: HeaderProps) => {
@@ -66,20 +62,14 @@ export const Header = ({
 	};
 
 	return (
-		<div id={id} className="flex w-full items-center container-header">
+		<div
+			id={id}
+			className="flex w-full align-items-center container-header"
+		>
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<Popover
-					trigger={
-						<VSCodeCheckbox
-							checked={jobStaged}
-							onClick={onToggleJob}
-						/>
-					}
-					popoverText="Select / Unselect to include or exclude the change."
-				/>
-				<div className="flex items-center flex-1">
+				<div className="flex align-items-center flex-1">
 					{jobKindText ? (
-						<h4 className="my-0 ml-2 job-kind-text align-self-center">
+						<h4 className="my-0 ml-2 job-kind-text align-self-center user-select-none">
 							{jobKindText}
 						</h4>
 					) : null}
@@ -88,12 +78,11 @@ export const Header = ({
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
 						trigger={
-							<h4 className="my-0 ml-1 diff-title align-self-center">
+							<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
 								{title}
 							</h4>
 						}
 						popoverText={`Copied from ${oldFileTitle}`}
-						offsetY={0}
 					/>
 					<VSCodeButton
 						onClick={handleCopyFileName}
@@ -122,7 +111,7 @@ export const Header = ({
 						popoverText="Open a Github issue with a provided template to report a problem."
 					/>
 					{hasDiff ? (
-						<div className="ml-10 flex items-center justify-end diff-changes-container">
+						<div className="ml-10 flex align-items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
 								-
 								{[
@@ -142,14 +131,14 @@ export const Header = ({
 						</div>
 					) : null}
 					<div
-						className="viewed-button flex ml-10 justify-between checkbox-container items-center"
+						className="viewed-button flex ml-10 justify-between checkbox-container align-items-center"
 						onClick={(e) => {
 							e.stopPropagation();
 							onViewedChange();
 						}}
 					>
 						<VSCodeCheckbox checked={viewed} />
-						<p className="my-0 ml-10">Viewed</p>
+						<p className="my-0 ml-10 user-select-none">Viewed</p>
 					</div>
 				</div>
 			</div>

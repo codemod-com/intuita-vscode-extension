@@ -1,4 +1,12 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+	Dispatch,
+	FC,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
@@ -13,7 +21,6 @@ import {
 } from 'react-virtualized';
 
 import Header from './Header';
-import { vscode } from '../../shared/utilities/vscode';
 import { Diff } from './Diff';
 import { useElementSize } from '../hooks/useElementSize';
 import { useTheme } from '../../shared/Snippet/useTheme';
@@ -24,10 +31,10 @@ const CellMeasurerComponent = CellMeasurer as unknown as FC<CellMeasurerProps>;
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	jobs: JobDiffViewProps[];
-	diffId: string;
-	scrollIntoHash: JobHash | null;
-	stagedJobs: JobHash[];
 	showHooksCTA: boolean;
+	totalJobsCount: number;
+	jobIndex: number;
+	setJobIndex: Dispatch<SetStateAction<number>>;
 }>;
 
 type DiffItem = Readonly<{
@@ -37,26 +44,25 @@ type DiffItem = Readonly<{
 	containerHeight: number;
 	expanded: boolean;
 }>;
+
 type DiffData = Record<JobHash, DiffItem>;
 
 const defaultHeight = 1200;
 
 export const JobDiffViewContainer = ({
 	jobs,
-	diffId,
 	postMessage,
-	scrollIntoHash,
-	stagedJobs,
 	showHooksCTA,
+	totalJobsCount,
+	jobIndex,
+	setJobIndex,
 }: JobDiffViewContainerProps) => {
-	const reversedJobs = useMemo(() => jobs.reverse(), [jobs]);
-
 	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diffData, setDiffData] = useState<DiffData>(() =>
-		reversedJobs.reduce((acc, el) => {
+		jobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -78,21 +84,8 @@ export const JobDiffViewContainer = ({
 	);
 
 	useEffect(() => {
-		if (!scrollIntoHash) {
-			return;
-		}
-		const index = reversedJobs.findIndex(
-			(job) => job.jobHash === scrollIntoHash,
-		);
-		if (index === -1) {
-			return;
-		}
-		listRef.current?.scrollToRow(index);
-	}, [reversedJobs, scrollIntoHash]);
-
-	useEffect(() => {
 		cache.current.clearAll();
-		const diffData = reversedJobs.reduce((acc, el) => {
+		const diffData = jobs.reduce((acc, el) => {
 			acc[el.jobHash] = {
 				visible: true,
 				diff: null,
@@ -105,7 +98,7 @@ export const JobDiffViewContainer = ({
 		prevDiffData.current = diffData;
 		setDiffData(diffData);
 		listRef.current?.measureAllRows();
-	}, [reversedJobs]);
+	}, [jobs]);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
@@ -123,9 +116,7 @@ export const JobDiffViewContainer = ({
 				prevData.height !== data[1].height ||
 				prevData.expanded !== data[1].expanded
 			) {
-				const index = reversedJobs.findIndex(
-					(job) => job.jobHash === jobHash,
-				);
+				const index = jobs.findIndex((job) => job.jobHash === jobHash);
 				if (index === -1) {
 					return;
 				}
@@ -134,7 +125,7 @@ export const JobDiffViewContainer = ({
 			}
 		}
 		prevDiffData.current = diffData;
-	}, [diffData, reversedJobs]);
+	}, [diffData, jobs]);
 
 	const { width, height } = useElementSize(containerRef);
 
@@ -153,26 +144,6 @@ export const JobDiffViewContainer = ({
 						...diffItem,
 						visible: !diffItem?.visible,
 						expanded: !diffItem?.visible,
-					},
-				};
-			});
-		},
-		[setDiffData],
-	);
-
-	const onToggle = useCallback(
-		(jobHash: JobHash, expanded: boolean) => {
-			setDiffData((prevDiffData) => {
-				// @TODO fix code duplication
-				if (!prevDiffData[jobHash]) {
-					return prevDiffData;
-				}
-
-				return {
-					...prevDiffData,
-					[jobHash]: {
-						...prevDiffData[jobHash],
-						expanded,
 					},
 				};
 			});
@@ -218,33 +189,16 @@ export const JobDiffViewContainer = ({
 		[setDiffData],
 	);
 
-	const onToggleJob = useCallback(
-		(jobHash: JobHash) => {
-			const stagedJobsSet = new Set(stagedJobs);
-
-			if (stagedJobsSet.has(jobHash)) {
-				stagedJobsSet.delete(jobHash);
-			} else {
-				stagedJobsSet.add(jobHash);
-			}
-
-			vscode.postMessage({
-				kind: 'webview.global.stageJobs',
-				jobHashes: Array.from(stagedJobsSet),
-			});
-		},
-		[stagedJobs],
-	);
-
 	return (
 		<div className="w-full h-full flex flex-col">
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobs={reversedJobs}
-				diffId={diffId}
-				stagedJobsHashes={stagedJobs}
+				jobs={jobs}
 				showHooksCTA={showHooksCTA}
+				totalJobsCount={totalJobsCount}
+				jobIndex={jobIndex}
+				setJobIndex={setJobIndex}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<ListComponent
@@ -255,10 +209,10 @@ export const JobDiffViewContainer = ({
 					deferredMeasurementCache={cache.current}
 					width={width}
 					rowHeight={cache.current.rowHeight}
-					overscanRowCount={6}
-					rowCount={reversedJobs.length}
+					overscanRowCount={10}
+					rowCount={jobs.length}
 					rowRenderer={({ index, style, parent, key }) => {
-						const el = reversedJobs[index];
+						const el = jobs[index];
 						if (!el) {
 							return null;
 						}
@@ -281,11 +235,7 @@ export const JobDiffViewContainer = ({
 										diffItem;
 
 									return (
-										<div
-											style={style}
-											id={el.newFileTitle ?? ''}
-											key={el.jobHash}
-										>
+										<div style={style} key={el.jobHash}>
 											<JobDiffView
 												ref={registerChild}
 												theme={theme}
@@ -293,14 +243,9 @@ export const JobDiffViewContainer = ({
 												diff={diff}
 												visible={visible}
 												viewType={viewType}
-												jobStaged={stagedJobs.includes(
-													el.jobHash,
-												)}
 												height={height ?? defaultHeight}
-												onToggle={onToggle}
 												toggleVisible={toggleVisible}
 												postMessage={postMessage}
-												onToggleJob={onToggleJob}
 												onHeightSet={onHeightSet}
 												onDiffCalculated={
 													onDiffCalculated

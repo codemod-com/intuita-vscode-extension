@@ -1,34 +1,22 @@
 import cn from 'classnames';
 import { Collapsable } from '../../shared/Collapsable/Collapsable';
 import './Container.css';
-import { ReactNode, useState } from 'react';
 
-type HeaderProps = {
-	title: string;
-};
-export const Header = ({ title }: HeaderProps) => {
-	return (
-		<div className="header">
-			<p>{title}</p>
-		</div>
-	);
-};
+type Props = Readonly<{
+	className?: string;
+	children: React.ReactNode;
+	headerTitle: string;
+	expanded: boolean;
+	setExpanded: (expanded: boolean) => void;
+}>;
 
 export const Container = ({
 	className,
 	children,
 	headerTitle,
-	onToggle,
-	defaultExpanded,
-}: {
-	className?: string;
-	children: React.ReactNode;
-	headerTitle: string;
-	defaultExpanded: boolean;
-	onToggle?: (toggle: boolean) => void;
-}) => {
-	const [expanded, setExpanded] = useState(true);
-
+	expanded,
+	setExpanded,
+}: Props) => {
 	return (
 		<div
 			className={cn('container', className, {
@@ -41,21 +29,16 @@ export const Container = ({
 				headerChevronClassName="codemodListCollapsableArrow"
 				headerClassName="collapsableHeader"
 				contentClassName="collapsableContent"
-				onToggle={(expanded) => {
-					setExpanded(expanded);
-					onToggle?.(expanded);
-				}}
-				defaultExpanded={defaultExpanded}
+				onToggle={setExpanded}
+				expanded={expanded}
 				headerComponent={
-					headerTitle ? <Header title={headerTitle} /> : null
+					<div className="header">
+						<p>{headerTitle}</p>
+					</div>
 				}
 			>
 				{children}
 			</Collapsable>
 		</div>
 	);
-};
-
-export const LoadingContainer = ({ children }: { children: ReactNode }) => {
-	return <div className="loadingContainer">{children}</div>;
 };

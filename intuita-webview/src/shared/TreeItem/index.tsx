@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties, ReactNode, useEffect } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
@@ -15,7 +15,13 @@ type Props = Readonly<{
 	onClick(): void;
 	depth: number;
 	index: number;
-	style?: CSSProperties;
+	inlineStyles?: {
+		root?: CSSProperties;
+		icon?: CSSProperties;
+		label?: CSSProperties;
+		subLabel?: CSSProperties;
+		actions?: CSSProperties;
+	};
 	onPressChevron?(): void;
 }>;
 
@@ -30,15 +36,22 @@ const TreeItem = ({
 	hasChildren,
 	onClick,
 	depth,
-	style,
+	inlineStyles,
 	onPressChevron,
 }: Props) => {
+	useEffect(() => {
+		if (focused) {
+			document.getElementById(id)?.focus();
+		}
+	}, [id, focused]);
+
 	return (
 		<div
 			id={id}
+			tabIndex={0}
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
-			style={style}
+			style={inlineStyles?.root}
 		>
 			<div
 				style={{
@@ -56,12 +69,23 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
-			<div className={styles.icon}>{icon}</div>
-			<span className={styles.label}>{label}</span>
+			<div className={styles.icon} style={inlineStyles?.icon}>
+				{icon}
+			</div>
+			<span className={styles.label} style={inlineStyles?.label}>
+				{label}
+			</span>
 			{subLabel.length > 0 ? (
-				<span className={styles.subLabel}>{subLabel}</span>
+				<span
+					className={styles.subLabel}
+					style={inlineStyles?.subLabel}
+				>
+					{subLabel}
+				</span>
 			) : null}
-			<div className={styles.actions}>{actionButtons}</div>
+			<div className={styles.actions} style={inlineStyles?.actions}>
+				{actionButtons}
+			</div>
 		</div>
 	);
 };

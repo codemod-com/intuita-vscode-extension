@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
-import { MessageBus, MessageKind } from './components/messageBus';
+import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
@@ -13,14 +13,12 @@ import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
-import { StatusBarItemManager } from './components/statusBarItemManager';
 import { PersistedStateService } from './persistedState/persistedStateService';
 import { getPersistedState } from './persistedState/getPersistedState';
 import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import { InformationMessageService } from './components/informationMessageService';
 import {
 	branchNameFromStr,
 	buildTypeCodec,
@@ -58,6 +56,9 @@ import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
+import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
+
+const CODEMOD_METADATA_SCHEME = 'codemod';
 
 const messageBus = new MessageBus();
 
@@ -101,23 +102,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
-	const statusBarItem = vscode.window.createStatusBarItem(
-		'intuita.statusBarItem',
-		vscode.StatusBarAlignment.Right,
-		100,
-	);
-
-	statusBarItem.command = 'intuita.shutdownEngines';
-
-	context.subscriptions.push(statusBarItem);
-
-	const statusBarItemManager = new StatusBarItemManager(statusBarItem);
-
 	const engineService = new EngineService(
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
-		statusBarItemManager,
 	);
 
 	new BootstrapExecutablesService(
@@ -125,7 +113,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
-		statusBarItemManager,
 	);
 
 	const gitExtension =
@@ -154,6 +141,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		new IntuitaTextDocumentContentProvider();
 
 	const codemodService = new CodemodService(rootPath, engineService);
+
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
 		context,
 		messageBus,
@@ -171,8 +159,49 @@ export async function activate(context: vscode.ExtensionContext) {
 	const telemetryKey = '61406ec7-5d8d-48e0-bf19-0cb1650bfb2c';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
+		messageBus);
+		
+	const textContentProvider = new TextDocumentContentProvider(
 		messageBus,
+		engineService,
 	);
+
+	context.subscriptions.push(
+		vscode.workspace.registerTextDocumentContentProvider(
+			CODEMOD_METADATA_SCHEME,
+			textContentProvider,
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.showCodemodMetadata',
+			async (arg0?: CodemodHash) => {
+				try {
+					const codemodHash = typeof arg0 === 'string' ? arg0 : null;
+
+					if (codemodHash === null) {
+						throw new Error(`Expected codemod hash, got ${arg0}`);
+					}
+
+					const uri = vscode.Uri.parse(
+						`${CODEMOD_METADATA_SCHEME}:${codemodHash}.md`,
+					);
+
+					const hasMetadata = textContentProvider.hasMetadata(uri);
+
+					if (!hasMetadata) {
+						return;
+					}
+
+					vscode.commands.executeCommand('markdown.showPreview', uri);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+				}
+			},
+		));
+
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -347,6 +376,70 @@ export async function activate(context: vscode.ExtensionContext) {
 				});
 			}
 		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.focusView',
+			(arg0: unknown) => {
+				const webviewName = typeof arg0 === 'string' ? arg0 : null;
+				if (webviewName === null) {
+					return;
+				}
+
+				if (webviewName === 'changeExplorer') {
+					fileExplorerProvider.focusNode();
+				}
+
+				if (webviewName === 'diffView' && rootPath !== null) {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					panelInstance.focusView();
+				}
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.disposeView',
+			(arg0: unknown) => {
+				const webviewName = typeof arg0 === 'string' ? arg0 : null;
+				if (webviewName === null) {
+					return;
+				}
+
+				if (webviewName === 'diffView' && rootPath !== null) {
+					const panelInstance = DiffWebviewPanel.getInstance(
+						{
+							type: 'intuitaPanel',
+							title: 'Diff',
+							extensionUri: context.extensionUri,
+							initialData: {},
+							viewColumn: vscode.ViewColumn.One,
+							webviewName: 'jobDiffView',
+						},
+						messageBus,
+						jobManager,
+						caseManager,
+						rootPath,
+					);
+					panelInstance.dispose();
+				}
+			},
+		),
 	);
 
 	context.subscriptions.push(
@@ -834,20 +927,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
+				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.openTopLevelNodeKindOrderSetting',
-			() => {
-				return vscode.commands.executeCommand(
-					'workbench.action.openSettings',
-					'intuita.topLevelNodeKindOrder',
-				);
 			},
 		),
 	);
@@ -914,14 +996,27 @@ export async function activate(context: vscode.ExtensionContext) {
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
 
-					messageBus.publish({
-						kind: MessageKind.executeCodemodSet,
-						command: {
+					let command: Command;
+
+					if (hashDigest === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
+						command = {
+							kind: 'repomod',
+							inputPath: uri,
+							storageUri,
+							repomodFilePath: hashDigest,
+						};
+					} else {
+						command = {
 							kind: 'executeCodemod',
 							storageUri,
 							codemodHash: hashDigest,
 							uri,
-						},
+						};
+					}
+
+					messageBus.publish({
+						kind: MessageKind.executeCodemodSet,
+						command,
 						executionId,
 						happenedAt,
 					});
@@ -949,7 +1044,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
-			async (uri: vscode.Uri) => {
+			async (uriArg: vscode.Uri) => {
 				try {
 					const { storageUri } = context;
 
@@ -959,28 +1054,91 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
+					const uri =
+						(uriArg ||
+							vscode.window.activeTextEditor?.document.uri) ??
+						null;
+
+					if (uri === null) {
+						return;
+					}
+
 					const codemodList = await engineService.getCodemodList();
 
-					const codemodName =
+					// order: least recent to most recent
+					const top3RecentCodemodHashes =
+						codemodListWebviewProvider.getRecentCodemodHashes();
+
+					const top3RecentCodemods = codemodList.filter((codemod) =>
+						top3RecentCodemodHashes.includes(
+							codemod.hashDigest as CodemodHash,
+						),
+					);
+
+					// order: least recent to most recent
+					top3RecentCodemods.sort((a, b) => {
+						return (
+							top3RecentCodemodHashes.indexOf(
+								a.hashDigest as CodemodHash,
+							) -
+							top3RecentCodemodHashes.indexOf(
+								b.hashDigest as CodemodHash,
+							)
+						);
+					});
+					const sortedCodemodList = [
+						...top3RecentCodemods.reverse(),
+						...codemodList.filter(
+							(codemod) =>
+								!top3RecentCodemodHashes.includes(
+									codemod.hashDigest as CodemodHash,
+								),
+						),
+					];
+
+					const quickPickItem =
 						(await vscode.window.showQuickPick(
-							codemodList.map(({ name }) => name),
+							sortedCodemodList.map(({ name, hashDigest }) => ({
+								label: name,
+								...(top3RecentCodemodHashes.includes(
+									hashDigest as CodemodHash,
+								) && { description: '(recent)' }),
+							})),
 							{
 								placeHolder:
 									'Pick a codemod to execute over the selected path',
 							},
 						)) ?? null;
 
-					if (codemodName === null) {
+					if (quickPickItem === null) {
 						return;
 					}
 
-					const selectedCodemod = codemodList.find(
-						({ name }) => name === codemodName,
+					const selectedCodemod = sortedCodemodList.find(
+						({ name }) => name === quickPickItem.label,
 					);
 
 					if (!selectedCodemod) {
 						throw new Error('Codemod is not selected');
 					}
+
+					await codemodListWebviewProvider.updateExecutionPath({
+						newPath: uri.path,
+						codemodHash: selectedCodemod.hashDigest as CodemodHash,
+						fromVSCodeCommand: true,
+					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest:
+								selectedCodemod.hashDigest as CodemodHash,
+						});
+					}, 500);
 
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
@@ -997,10 +1155,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						executionId,
 						happenedAt,
 					});
-
-					vscode.commands.executeCommand(
-						'workbench.view.extension.intuitaViewId',
-					);
 
 					// opens "Codemod Runs" panel if not opened
 					campaignManagerProvider.showView();
@@ -1209,14 +1363,16 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 				} else if (codemodHashDigest !== null) {
-					messageBus.publish({
-						kind: MessageKind.focusCodemod,
-						codemodHashDigest: codemodHashDigest as CodemodHash,
-					});
-
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
+
+					setTimeout(() => {
+						messageBus.publish({
+							kind: MessageKind.focusCodemod,
+							codemodHashDigest: codemodHashDigest as CodemodHash,
+						});
+					}, 500);
 				}
 			},
 		}),
@@ -1229,8 +1385,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// const dependencyService = new DependencyService(messageBus);
 
 	// dependencyService.showInformationMessagesAboutUpgrades();
-
-	new InformationMessageService(messageBus, () => context.storageUri ?? null);
 
 	{
 		const codec = buildTypeCodec({ version: t.string });

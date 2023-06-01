@@ -9,6 +9,7 @@ import {
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
+	FileTreeNode,
 	TreeNode,
 	View,
 	WebviewMessage,
@@ -45,12 +46,15 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver | null = null;
-	__elementMap = new Map<ElementHash, Element>();
-	__folderMap = new Map<string, TreeNode>();
-	// map between URIs to the File Tree Node and the job hash
-	__fileNodes = new Map<string, { jobHash: JobHash; node: TreeNode }>();
+	// map between URIs and the Tree Node
+	__treeMap = new Map<string, TreeNode>();
+	// map between URIs and the File Tree Node & the job hash
+	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
+	__lastSelectedNodeId: string | null = null;
+	__codemodExecutionInProgress = false;
+	__lastData: Extract<View, { viewId: 'treeView' }> | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -99,7 +103,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(data: View) {
+	public setView(data: Extract<View, { viewId: 'treeView' }>) {
+		this.__lastData = data;
 		this.__postMessage({
 			kind: 'webview.global.setView',
 			value: data,
@@ -108,6 +113,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__view?.show();
+	}
+
+	public setCaseHash(caseHash: CaseHash) {
+		this.__lastSelectedCaseHash = caseHash;
 	}
 
 	public updateExplorerView(caseHash: CaseHash) {
@@ -134,11 +143,12 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		const caseElement = caseElements.find(
 			(kase) => kase.hash === (caseHash as unknown as ElementHash),
 		);
+
 		if (!caseElement) {
 			return;
 		}
 
-		this.__folderMap.clear();
+		this.__treeMap.clear();
 		this.__fileNodes.clear();
 
 		const tree = this.__getTreeByDirectory(caseElement);
@@ -148,13 +158,23 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				viewId: 'treeView',
 				viewProps: {
 					node: tree,
-					nodeIds: Array.from(this.__folderMap.keys()),
-					fileNodes: Array.from(this.__fileNodes.values()).map(
-						(obj) => obj.node,
-					),
+					nodeIds: Array.from(this.__treeMap.keys()),
+					fileNodes: this.__codemodExecutionInProgress
+						? null
+						: Array.from(this.__fileNodes.values()).map(
+								(obj) => obj.node,
+						  ),
+					caseHash,
 				},
 			});
 		}
+	}
+
+	public focusNode() {
+		this.__postMessage({
+			kind: 'webview.fileExplorer.focusNode',
+			id: this.__lastSelectedNodeId ?? null,
+		});
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -167,20 +187,15 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				workspace.workspaceFolders?.[0]?.uri.fsPath
 					.split('/')
 					.slice(-1)[0] ?? '/';
-			this.__folderMap.set(repoName, {
+			this.__treeMap.set(repoName, {
 				id: repoName,
 				label: repoName,
 				kind: 'folderElement',
 				iconName: 'folder.svg',
 				children: [],
-				command: {
-					title: 'Diff View',
-					command: 'intuita.openCaseDiff',
-					arguments: [element.hash],
-				},
 			});
 			element.children.forEach(this.__getTreeByDirectory);
-			const treeNode = this.__folderMap.get(repoName) ?? undefined;
+			const treeNode = this.__treeMap.get(repoName) ?? undefined;
 
 			return treeNode;
 		}
@@ -215,15 +230,15 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 			let path = repoName;
 			for (const dir of directories) {
-				const parentNode = this.__folderMap.get(path) ?? null;
+				const parentNode = this.__treeMap.get(path) ?? null;
 
 				if (parentNode === null) {
 					return;
 				}
 
 				path += `/${dir}`;
-				if (!this.__folderMap.has(path)) {
-					const newTreeNode: TreeNode =
+				if (!this.__treeMap.has(path)) {
+					const newTreeNode =
 						dir === fileName
 							? {
 									id: path,
@@ -234,6 +249,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 										jobKind ?? null,
 									),
 									children: [],
+									jobHash,
 							  }
 							: {
 									id: path,
@@ -246,10 +262,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					if (dir === fileName) {
 						this.__fileNodes.set(path, {
 							jobHash,
-							node: newTreeNode,
+							node: newTreeNode as FileTreeNode,
 						});
 					}
-					this.__folderMap.set(path, newTreeNode);
+					this.__treeMap.set(path, newTreeNode);
 
 					parentNode.children.push(newTreeNode);
 				}
@@ -389,7 +405,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	private __onClearStateMessage() {
-		this.__folderMap.clear();
+		this.__treeMap.clear();
 		this.__fileNodes.clear();
 		this.setView({
 			viewId: 'treeView',
@@ -401,6 +417,28 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__addHook(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
+
+		this.__addHook(MessageKind.executeCodemodSet, () => {
+			this.__codemodExecutionInProgress = true;
+		});
+
+		this.__addHook(MessageKind.codemodSetExecuted, () => {
+			this.__codemodExecutionInProgress = false;
+			if (
+				this.__lastData !== null &&
+				this.__lastData.viewProps !== null
+			) {
+				this.setView({
+					...this.__lastData,
+					viewProps: {
+						...this.__lastData.viewProps,
+						fileNodes: Array.from(this.__fileNodes.values()).map(
+							(obj) => obj.node,
+						),
+					},
+				});
+			}
+		});
 
 		this.__addHook(MessageKind.updateElements, () => {
 			if (this.__lastSelectedCaseHash === null) {
@@ -434,6 +472,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
+			this.__lastSelectedNodeId = fileNodeObj.node.id;
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -479,7 +518,43 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 			const folderPath = message.id;
+			this.__lastSelectedNodeId = folderPath;
 			panelInstance.focusFolder(folderPath);
+		}
+
+		if (message.kind === 'webview.global.focusView') {
+			commands.executeCommand('intuita.focusView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.fileExplorer.disposeView') {
+			commands.executeCommand('intuita.disposeView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.global.discardChanges') {
+			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		}
+
+		if (message.kind === 'webview.global.applySelected') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message,
+			);
+		}
+
+		if (message.kind === 'webview.global.stageJobs') {
+			this.__jobManager.setAppliedJobs(message.jobHashes);
+			this.__postMessage({
+				kind: 'webview.fileExplorer.updateStagedJobs',
+				value: message.jobHashes,
+			});
+		}
+
+		if (message.kind === 'webview.global.afterWebviewMounted') {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+			this.showView();
+			this.updateExplorerView(this.__lastSelectedCaseHash);
 		}
 	};
 

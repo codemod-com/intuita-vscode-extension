@@ -1,0 +1,33 @@
+.textField {
+	flex-grow: 1;
+}
+
+.textFieldError::part(root):focus,
+.textFieldError::part(root):focus-within {
+	border-color: var(--vscode-inputValidation-errorBorder);
+}
+
+.textField::part(root) {
+	background: none;
+}
+
+.textField::part(control) {
+	font-size: 12px;
+	opacity: 0.75;
+	background: none;
+}
+
+.targetPathButton {
+	padding: 0px 2px;
+	margin-left: 4px;
+	display: flex;
+	align-items: center;
+}
+
+.label {
+	font-size: 12px;
+	width: 100%;
+	cursor: pointer;
+	opacity: 0.75;
+	height: inherit;
+}

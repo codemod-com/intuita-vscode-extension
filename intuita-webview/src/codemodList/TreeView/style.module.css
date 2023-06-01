@@ -6,18 +6,27 @@
 	overflow: hidden;
 	flex-wrap: nowrap;
 	padding-left: 3px;
-	padding-right: 12px;
+	align-items: center;
+	height: 28px;
 }
 
 .root:hover {
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.root .actions {
+.root .actions,
+.root .directorySelector {
 	display: none;
 }
 
-.root:hover .actions {
+.directorySelector {
+	width: 100%;
+}
+
+.root:hover .actions,
+.root:hover .directorySelector,
+.root:focus .actions,
+.root:focus .directorySelector {
 	display: flex;
 }
 
@@ -55,6 +64,8 @@
 	overflow: hidden;
 	white-space: nowrap;
 	width: 100%;
+	display: flex;
+	align-items: center;
 }
 
 .description {
@@ -68,7 +79,7 @@
 .actions {
 	display: flex;
 	margin: 0 auto;
-	padding: 0;
+	padding: 0 3px 0px 0px;
 	height: 100%;
 	align-items: center;
 	min-width: fit-content;
@@ -103,8 +114,4 @@
 	margin-left: 3px;
 	display: flex;
 	align-items: center;
-}
-
-.action > * {
-	font-size: 12px;
 }

@@ -15,7 +15,6 @@ import {
 	streamToString,
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
-import { StatusBarItemManager } from './statusBarItemManager';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 
@@ -106,6 +105,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
+	case: CaseWithJobHashes;
 };
 
 const codemodEntryCodec = buildTypeCodec({
@@ -113,6 +113,12 @@ const codemodEntryCodec = buildTypeCodec({
 	hashDigest: t.string,
 	name: t.string,
 	description: t.string,
+	engine: t.union([
+		t.literal('jscodeshift'),
+		t.literal('ts-morph'),
+		t.literal('repomod-engine'),
+		t.literal('filemod-engine'),
+	]),
 });
 
 type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
@@ -123,7 +129,6 @@ export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
 	readonly #messageBus: MessageBus;
-	readonly #statusBarItemManager: StatusBarItemManager;
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
@@ -132,12 +137,10 @@ export class EngineService {
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
-		statusBarItemManager: StatusBarItemManager,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
 		this.#fileSystem = fileSystem;
-		this.#statusBarItemManager = statusBarItemManager;
 
 		messageBus.subscribe(MessageKind.engineBootstrapped, (message) =>
 			this.#onEnginesBootstrappedMessage(message),
@@ -342,16 +345,13 @@ export class EngineService {
 				args.push('-p', '!**/node_modules');
 			}
 
-			if ('recipeName' in message.command) {
-				args.push('-g', message.command.recipeName);
-			}
-
 			args.push('-o', singleQuotify(outputUri.fsPath));
 
 			return args;
 		};
 
 		const args = buildArguments();
+
 		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 
 		const childProcess = spawn(
@@ -377,8 +377,8 @@ export class EngineService {
 
 		const executionId = message.executionId;
 
-		const codemodSetName =
-			'recipeName' in message.command ? message.command.recipeName : '';
+		// TODO remove the codemod set name
+		const codemodSetName = '';
 
 		this.#execution = {
 			childProcess,
@@ -388,6 +388,7 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
+			case: {} as CaseWithJobHashes,
 		};
 		if (
 			'kind' in message.command &&
@@ -428,7 +429,6 @@ export class EngineService {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
-				this.#statusBarItemManager.moveToProgress(message.p, message.t);
 				this.#messageBus.publish({
 					kind: MessageKind.showProgress,
 					totalFiles: message.t,
@@ -575,6 +575,8 @@ export class EngineService {
 				codemodName: job.codemodName,
 			};
 
+			this.#execution.case = caseWithJobHashes;
+
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],
@@ -585,8 +587,6 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			this.#statusBarItemManager.moveToStandby();
-
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
@@ -595,6 +595,7 @@ export class EngineService {
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
+					case: this.#execution.case,
 				});
 
 				if (!errorMessages.size && !this.#execution.affectedAnyFile) {

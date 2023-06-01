@@ -4,16 +4,21 @@ import TreeView from './TreeView';
 import styles from './style.module.css';
 
 import type {
+	JobHash,
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
-import SearchBar from './SearchBar';
+import SearchBar from '../shared/SearchBar';
+import ActionsHeader from './ActionsHeader';
+import { vscode } from '../shared/utilities/vscode';
 
 type MainViews = Extract<View, { viewId: 'treeView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
+	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
+	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -23,16 +28,41 @@ function App() {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'treeView') {
 					setView(message.value);
+					if (message.value.viewProps?.fileNodes !== null) {
+						setStagedJobs(
+							message.value.viewProps?.fileNodes.map(
+								(node) => node.jobHash,
+							) ?? [],
+						);
+					}
 				}
+			}
+
+			if (
+				message.kind === 'webview.fileExplorer.focusNode' &&
+				message.id !== null
+			) {
+				setFocusedNodeId(message.id);
+			}
+
+			if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
+				setStagedJobs(message.value);
 			}
 		};
 
 		window.addEventListener('message', handler);
+		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
 		};
 	}, []);
+
+	useEffect(() => {
+		if (searchQuery.length > 0) {
+			setFocusedNodeId(null);
+		}
+	}, [searchQuery]);
 
 	if (!view || view.viewProps === null) {
 		return (
@@ -42,13 +72,34 @@ function App() {
 		);
 	}
 
+	const { fileNodes, caseHash } = view.viewProps;
+
 	return (
-		<main className="App">
-			<SearchBar
+		<main
+			className="App"
+			style={{ ...(fileNodes === null && { cursor: 'not-allowed' }) }}
+		>
+			{searchQuery.length === 0 && (
+				<ActionsHeader
+					stagedJobs={stagedJobs}
+					fileNodes={fileNodes}
+					caseHash={caseHash}
+				/>
+			)}
+			{fileNodes !== null && (
+				<SearchBar
+					searchQuery={searchQuery}
+					setSearchQuery={setSearchQuery}
+					placeholder="Search files..."
+				/>
+			)}
+			<TreeView
+				{...view.viewProps}
 				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
+				focusedNodeId={focusedNodeId}
+				setFocusedNodeId={setFocusedNodeId}
+				stagedJobs={stagedJobs}
 			/>
-			<TreeView {...view.viewProps} searchQuery={searchQuery} />
 		</main>
 	);
 }
