@@ -15,6 +15,7 @@ import cn from 'classnames';
 import { useProgressBar } from '../useProgressBar';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
+import Popover from '../../shared/Popover';
 
 type Props = Readonly<{
 	node: CodemodTreeNode;
@@ -280,34 +281,39 @@ const TreeView = ({
 	const actionButtons = (node: CodemodTreeNode) => {
 		return (node.actions ?? []).map((action) => {
 			return (
-				<VSCodeButton
-					key={action.kind}
-					className={styles.action}
-					appearance="icon"
-					title={`${
+				<Popover
+					trigger={
+						<VSCodeButton
+							key={action.kind}
+							className={styles.action}
+							appearance="icon"
+							onClick={(e) => {
+								e.stopPropagation();
+								handleActionButtonClick(action);
+								if (
+									action.kind ===
+										'webview.codemodList.dryRunCodemod' &&
+									node.modKind === 'repomod'
+								) {
+									setRunningRepomodHash(node.id);
+								}
+							}}
+						>
+							{action.kind ===
+								'webview.codemodList.dryRunCodemod' &&
+								executionStack.includes(action.value) && (
+									<i className="codicon codicon-history mr-2" />
+								)}
+							{action.title}
+						</VSCodeButton>
+					}
+					popoverText={`${
 						action.kind === 'webview.codemodList.dryRunCodemod' &&
 						executionStack.includes(action.value)
 							? 'Queued:'
 							: ''
 					} ${action.description}`}
-					onClick={(e) => {
-						e.stopPropagation();
-						handleActionButtonClick(action);
-						if (
-							action.kind ===
-								'webview.codemodList.dryRunCodemod' &&
-							node.modKind === 'repomod'
-						) {
-							setRunningRepomodHash(node.id);
-						}
-					}}
-				>
-					{action.kind === 'webview.codemodList.dryRunCodemod' &&
-						executionStack.includes(action.value) && (
-							<i className="codicon codicon-history mr-2" />
-						)}
-					{action.title}
-				</VSCodeButton>
+				/>
 			);
 		});
 	};
