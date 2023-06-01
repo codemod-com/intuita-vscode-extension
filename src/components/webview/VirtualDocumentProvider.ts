@@ -129,7 +129,7 @@ export class TextDocumentContentProvider
 					console.error(error);
 				});
 
-			return 'Wait until the Intuita VSCode Extension loads the codemod description';
+			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
 		}
 
 		return data;
