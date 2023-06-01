@@ -21,8 +21,8 @@ export class DownloadService {
 	async downloadFileIfNeeded(
 		url: string,
 		uri: Uri,
-		chmod: Mode,
-	): Promise<void> {
+		chmod: Mode | null,
+	): Promise<boolean> {
 		const localModificationTime =
 			await this.#fileSystemUtilities.getModificationTime(uri);
 
@@ -32,7 +32,7 @@ export class DownloadService {
 			response = await Axios.head(url, { timeout: 5000 });
 		} catch (error) {
 			if (localModificationTime > 0) {
-				return;
+				return false;
 			}
 
 			if (!Axios.isAxiosError(error)) {
@@ -57,15 +57,25 @@ export class DownloadService {
 
 		if (localModificationTime < remoteModificationTime) {
 			await this.#downloadFile(url, uri, chmod);
+
+			return true;
 		}
+
+		return false;
 	}
 
-	async #downloadFile(url: string, uri: Uri, chmod: Mode): Promise<void> {
+	async #downloadFile(
+		url: string,
+		uri: Uri,
+		chmod: Mode | null,
+	): Promise<void> {
 		const response = await Axios.get(url, { responseType: 'arraybuffer' });
 		const content = new Uint8Array(response.data);
 
 		await this.#fileSystem.writeFile(uri, content);
 
-		await this.#fileSystemUtilities.setChmod(uri, chmod);
+		if (chmod !== null) {
+			await this.#fileSystemUtilities.setChmod(uri, chmod);
+		}
 	}
 }
