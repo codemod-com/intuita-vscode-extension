@@ -265,6 +265,7 @@ export type WebviewResponse =
 				codemodHash: CodemodHash;
 				errorMessage: string | null;
 				warningMessage: string | null;
+				setError: boolean;
 			};
 	  }>
 	| Readonly<{

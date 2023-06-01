@@ -81,6 +81,7 @@ Props) => {
 		value: string,
 		errorMessage: string | null,
 		warningMessage: string | null,
+		setError: boolean,
 	) => {
 		vscode.postMessage({
 			kind: 'webview.codemodList.updatePathToExecute',
@@ -89,6 +90,7 @@ Props) => {
 				codemodHash,
 				errorMessage,
 				warningMessage,
+				setError,
 			},
 		});
 	};
@@ -104,7 +106,7 @@ Props) => {
 	};
 
 	const handleCancel = () => {
-		updatePath(defaultValue, null, null);
+		updatePath(defaultValue, null, null, false);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
@@ -126,6 +128,7 @@ Props) => {
 			value,
 			null,
 			value === defaultValue ? null : 'Change Reverted.',
+			false,
 		);
 		onEditCancel();
 		setEditing(false);
@@ -151,6 +154,7 @@ Props) => {
 				value,
 				'The specified execution path does not exist.',
 				null,
+				true,
 			);
 		}
 	};
