@@ -36,7 +36,7 @@ Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
-	const escapeOrEnterKeyExecuted = useRef(false);
+	const ignoreBlurEvent = useRef(false);
 	// const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	// const hintRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +96,7 @@ Props) => {
 	};
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
+		ignoreBlurEvent.current = false;
 		const newValue = (e.target as HTMLInputElement).value;
 		if (!newValue.startsWith(repoName)) {
 			setValue(`${repoName}/`);
@@ -121,7 +122,7 @@ Props) => {
 	};
 
 	const handleBlur = () => {
-		if (escapeOrEnterKeyExecuted.current) {
+		if (ignoreBlurEvent.current) {
 			return;
 		}
 		updatePath(
@@ -139,12 +140,12 @@ Props) => {
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === 'Escape') {
-			escapeOrEnterKeyExecuted.current = true;
+			ignoreBlurEvent.current = true;
 			handleCancel();
 		}
 
 		if (event.key === 'Enter') {
-			escapeOrEnterKeyExecuted.current = true;
+			ignoreBlurEvent.current = true;
 			if (value === defaultValue) {
 				handleCancel();
 				return;
@@ -170,7 +171,7 @@ Props) => {
 	}, [defaultValue, onEditEnd]);
 
 	useEffect(() => {
-		escapeOrEnterKeyExecuted.current = false;
+		ignoreBlurEvent.current = false;
 		setShowErrorStyle(error !== null);
 	}, [error]);
 
@@ -246,7 +247,7 @@ Props) => {
 					onClick={() => {
 						setEditing(true);
 						onEditStart();
-						escapeOrEnterKeyExecuted.current = false;
+						ignoreBlurEvent.current = false;
 						setValue(defaultValue);
 					}}
 					className={styles.targetPathButton}
