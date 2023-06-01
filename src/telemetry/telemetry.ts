@@ -1,7 +1,6 @@
 export type ErrorEvent = Readonly<{
 	kind: 'failedToExecuteCommand';
 	commandName: string;
-	errorMessage: string;
 }>;
 
 export type Event =

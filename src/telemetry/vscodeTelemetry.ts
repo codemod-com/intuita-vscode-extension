@@ -130,8 +130,6 @@ export class VscodeTelemetry implements Telemetry {
 		const { name, properties, measurements } =
 			this.__rawEventToTelemetryEvent(event);
 
-		console.log('sendEvent', name, properties, measurements);
-
 		this.__telemetryReporter.sendTelemetryEvent(
 			name,
 			properties,

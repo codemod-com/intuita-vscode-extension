@@ -255,12 +255,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						},
 					});
 				} catch (err) {
-					const message =
-						err instanceof Error ? err.message : String(err);
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.openCaseDiff',
-						errorMessage: message,
 					});
 					console.error(err);
 				}
@@ -369,11 +366,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					},
 				});
 			} catch (e) {
-				const message = e instanceof Error ? e.message : String(e);
 				vscodeTelemetry.sendError({
 					kind: 'failedToExecuteCommand',
 					commandName: 'intuita.createIssue',
-					errorMessage: message,
 				});
 			}
 		}),
@@ -525,7 +520,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.sourceControl.commitChanges',
-						errorMessage: message,
 					});
 					vscode.window.showErrorMessage(message);
 				}
@@ -635,7 +629,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.sourceControl.createPR',
-						errorMessage: message,
 					});
 					vscode.window.showErrorMessage(message);
 				}
@@ -700,7 +693,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.sourceControl.submitIssue',
-						errorMessage: message,
 					});
 					vscode.window.showErrorMessage(message);
 				}
@@ -761,7 +753,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: 'failedToExecuteCommand',
 						commandName:
 							'intuita.sourceControl.saveStagedJobsToTheFileSystem',
-						errorMessage: message,
 					});
 					vscode.window.showErrorMessage(message);
 				}
@@ -876,7 +867,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.sourceControl.commitStagedJobs',
-						errorMessage: message,
 					});
 				}
 			},
@@ -915,7 +905,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				vscodeTelemetry.sendError({
 					kind: 'failedToExecuteCommand',
 					commandName: 'intuita.rejectCase',
-					errorMessage: message,
 				});
 			}
 		}),
@@ -974,7 +963,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.executeAsCodemod',
-						errorMessage: message,
 					});
 				}
 			},
@@ -1035,7 +1023,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.executeCodemod',
-						errorMessage: message,
 					});
 				}
 			},
@@ -1166,7 +1153,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.executeCodemodWithinPath',
-						errorMessage: message,
 					});
 				}
 			},
@@ -1229,7 +1215,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
 						commandName: 'intuita.executeImportedModOnPath',
-						errorMessage: message,
 					});
 				}
 			},
