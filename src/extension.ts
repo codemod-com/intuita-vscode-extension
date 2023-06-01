@@ -159,8 +159,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
-		messageBus);
-		
+		messageBus,
+	);
+
 	const textContentProvider = new TextDocumentContentProvider(
 		messageBus,
 		engineService,
@@ -200,8 +201,8 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.window.showErrorMessage(message);
 				}
 			},
-		));
-
+		),
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
