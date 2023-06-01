@@ -123,7 +123,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsRejected;
-			deletedJobHashes: ReadonlySet<JobHash>;
+			deletedJobs: ReadonlySet<Job>;
 			codemodSetName: string;
 			codemodName: string;
 	  }>
@@ -137,7 +137,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
-			deletedJobHashes: ReadonlySet<JobHash>;
+			deletedJobs: ReadonlySet<Job>;
 			codemodSetName: string;
 			codemodName: string;
 	  }>

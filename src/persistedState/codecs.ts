@@ -20,6 +20,7 @@ export const persistedJobCodec = buildTypeCodec({
 	hash: t.string,
 	codemodSetName: t.string,
 	codemodName: t.string,
+	executionId: t.string,
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
