@@ -3,6 +3,7 @@ import { Line } from 'rc-progress';
 import { CodemodHash, WebviewMessage } from '../shared/types';
 import styles from './TreeView/style.module.css';
 import { vscode } from '../shared/utilities/vscode';
+import Popover from '../shared/Popover';
 
 type ProgressType = {
 	progress: number;
@@ -108,22 +109,26 @@ export const useProgressBar = (
 		) : null;
 
 	const stopProgress = codemodExecutionProgress ? (
-		// eslint-disable-next-line jsx-a11y/anchor-is-valid
-		<a
-			className={styles.action}
-			role="button"
-			onClick={(e) => {
-				e.stopPropagation();
-				onHalt();
-				handleStopCodemodExecution(
-					codemodExecutionProgress.codemodHash,
-				);
-			}}
-			style={{ marginLeft: '0px' }}
-			title="Stop Codemod Execution"
-		>
-			<i className="codicon codicon-debug-stop" />
-		</a>
+		<Popover
+			trigger={
+				// eslint-disable-next-line jsx-a11y/anchor-is-valid
+				<a
+					className={styles.action}
+					role="button"
+					onClick={(e) => {
+						e.stopPropagation();
+						onHalt();
+						handleStopCodemodExecution(
+							codemodExecutionProgress.codemodHash,
+						);
+					}}
+					style={{ marginLeft: '0px' }}
+				>
+					<i className="codicon codicon-debug-stop" />
+				</a>
+			}
+			popoverText="Stop Codemod Execution"
+		/>
 	) : null;
 	return [
 		codemodExecutionProgress,
