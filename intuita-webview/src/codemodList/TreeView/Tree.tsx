@@ -52,24 +52,10 @@ const Tree = ({
 
 	useKey('ArrowUp', () => {
 		handleArrowKeyDown('ArrowUp');
-		const container =
-			document.getElementsByClassName('publicCodemodsContainer')[0] ??
-			null;
-		if (container === null) {
-			return;
-		}
-		container.scrollBy(0, -13.2);
 	});
 
 	useKey('ArrowDown', () => {
 		handleArrowKeyDown('ArrowDown');
-		const container =
-			document.getElementsByClassName('publicCodemodsContainer')[0] ??
-			null;
-		if (container === null) {
-			return;
-		}
-		container.scrollBy(0, 13.2);
 	});
 
 	if (!children || children.length === 0) {

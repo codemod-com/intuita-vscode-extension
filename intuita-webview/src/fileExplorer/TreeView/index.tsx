@@ -109,12 +109,10 @@ const TreeView = ({
 
 	useKey('ArrowUp', () => {
 		handleArrowKeyDown('ArrowUp');
-		window.scrollBy(0, -20); // height of 1 tree item is slightly bigger than 20px
 	});
 
 	useKey('ArrowDown', () => {
 		handleArrowKeyDown('ArrowDown');
-		window.scrollBy(0, 20); // height of 1 tree item is slightly bigger than 20px
 	});
 
 	const renderItem = ({
