@@ -372,6 +372,7 @@ const TreeView = ({
 	return (
 		<div>
 			<Tree
+				rootPath={rootPath}
 				node={node}
 				renderItem={renderItem}
 				depth={0}
