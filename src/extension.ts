@@ -162,10 +162,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const textContentProvider = new TextDocumentContentProvider(
-		messageBus,
-		engineService,
-	);
+	const textContentProvider = new TextDocumentContentProvider(messageBus);
 
 	context.subscriptions.push(
 		vscode.workspace.registerTextDocumentContentProvider(
@@ -177,21 +174,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.showCodemodMetadata',
-			async (arg0?: CodemodHash) => {
+			async (arg0?: unknown) => {
 				try {
-					const codemodHash = typeof arg0 === 'string' ? arg0 : null;
+					const name = typeof arg0 === 'string' ? arg0 : null;
 
-					if (codemodHash === null) {
-						throw new Error(`Expected codemod hash, got ${arg0}`);
+					if (name === null) {
+						throw new Error(`Expected codemod name, got ${arg0}`);
 					}
 
 					const uri = vscode.Uri.parse(
-						`${CODEMOD_METADATA_SCHEME}:${codemodHash}.md`,
+						`${CODEMOD_METADATA_SCHEME}:${name}.md`,
 					);
 
-					const hasMetadata = textContentProvider.hasMetadata(uri);
+					const metadataExist = textContentProvider.hasMetadata(uri);
 
-					if (!hasMetadata) {
+					if (!metadataExist) {
 						return;
 					}
 

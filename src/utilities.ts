@@ -133,3 +133,9 @@ export const streamToString = async (stream: NodeJS.ReadableStream) => {
 
 	return Buffer.concat(chunks).toString('utf-8');
 };
+
+export const buildCodemodMetadataHash = (name: string) =>
+	createHash('ripemd160')
+		.update('README.md')
+		.update(name)
+		.digest('base64url');

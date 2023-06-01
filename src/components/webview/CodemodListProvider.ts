@@ -412,7 +412,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				command: {
 					title: 'Show codemod metadata',
 					command: 'intuita.showCodemodMetadata',
-					arguments: [hash],
+					arguments: [name],
 				},
 				uri: name,
 			};

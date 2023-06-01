@@ -63,7 +63,7 @@ export type CodemodTreeNode = {
 	command?:
 		| Command & {
 				command: 'intuita.showCodemodMetadata';
-				arguments: [CodemodHash];
+				arguments: [string];
 		  };
 	actions?: RunCodemodsCommand[];
 	executionPath?: ExecutionPath;
