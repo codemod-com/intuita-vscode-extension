@@ -210,11 +210,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.openCaseDiff',
 			async (caseHash?: ElementHash) => {
-				console.log('intuita.openCaseDiff1', caseHash);
 				if (!caseHash || !rootPath) {
 					return;
 				}
-				console.log('intuita.openCaseDiff2', caseHash, rootPath);
 				try {
 					const panelInstance = DiffWebviewPanel.getInstance(
 						{
@@ -235,7 +233,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						caseHash,
 					);
 
-					console.log('intuita.openCaseDiff3', viewProps);
 					if (!viewProps) {
 						return;
 					}
@@ -247,8 +244,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const { onDryRunCompleted } = getConfiguration();
 					const showHooksCTA = onDryRunCompleted === null;
-
-					console.log('intuita.openCaseDiff4', viewProps);
 
 					panelInstance.setView({
 						viewId: 'jobDiffView',
