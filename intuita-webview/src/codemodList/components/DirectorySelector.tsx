@@ -9,6 +9,27 @@ import { CodemodHash } from '../../shared/types';
 import Popover from '../../shared/Popover';
 import classNames from 'classnames';
 
+const updatePath = (
+	value: string,
+	errorMessage: string | null,
+	warningMessage: string | null,
+	setError: boolean,
+	rootPath: string,
+	codemodHash: CodemodHash,
+) => {
+	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+	vscode.postMessage({
+		kind: 'webview.codemodList.updatePathToExecute',
+		value: {
+			newPath: value.replace(repoName, rootPath),
+			codemodHash,
+			errorMessage,
+			warningMessage,
+			setError,
+		},
+	});
+};
+
 type Props = {
 	defaultValue: string;
 	rootPath: string;
@@ -77,24 +98,6 @@ Props) => {
 	// 	repoName,
 	// );
 
-	const updatePath = (
-		value: string,
-		errorMessage: string | null,
-		warningMessage: string | null,
-		setError: boolean,
-	) => {
-		vscode.postMessage({
-			kind: 'webview.codemodList.updatePathToExecute',
-			value: {
-				newPath: value.replace(repoName, rootPath),
-				codemodHash,
-				errorMessage,
-				warningMessage,
-				setError,
-			},
-		});
-	};
-
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		ignoreBlurEvent.current = false;
 		const newValue = (e.target as HTMLInputElement).value;
@@ -107,7 +110,7 @@ Props) => {
 	};
 
 	const handleCancel = () => {
-		updatePath(defaultValue, null, null, false);
+		updatePath(defaultValue, null, null, false, rootPath, codemodHash);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
@@ -130,6 +133,8 @@ Props) => {
 			null,
 			value === defaultValue ? null : 'Change Reverted.',
 			false,
+			rootPath,
+			codemodHash,
 		);
 		onEditCancel();
 		setEditing(false);
@@ -156,6 +161,8 @@ Props) => {
 				'The specified execution path does not exist.',
 				null,
 				true,
+				rootPath,
+				codemodHash,
 			);
 		}
 	};
