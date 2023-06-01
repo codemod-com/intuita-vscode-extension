@@ -13,7 +13,7 @@ const updatePath = (
 	value: string,
 	errorMessage: string | null,
 	warningMessage: string | null,
-	setError: boolean,
+	revertToPrevExecutionIfInvalid: boolean,
 	rootPath: string,
 	codemodHash: CodemodHash,
 ) => {
@@ -25,7 +25,7 @@ const updatePath = (
 			codemodHash,
 			errorMessage,
 			warningMessage,
-			setError,
+			revertToPrevExecutionIfInvalid,
 		},
 	});
 };
@@ -114,7 +114,6 @@ Props) => {
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
-		setShowErrorStyle(false);
 
 		if (value !== defaultValue) {
 			vscode.postMessage({
@@ -132,15 +131,13 @@ Props) => {
 			value,
 			null,
 			value === defaultValue ? null : 'Change Reverted.',
-			false,
+			true,
 			rootPath,
 			codemodHash,
 		);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
-		setShowErrorStyle(false);
-		console.log('blur done');
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -160,7 +157,7 @@ Props) => {
 				value,
 				'The specified execution path does not exist.',
 				null,
-				true,
+				false,
 				rootPath,
 				codemodHash,
 			);

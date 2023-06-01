@@ -184,14 +184,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		codemodHash,
 		errorMessage,
 		warningMessage,
-		setError,
+		revertToPrevExecutionIfInvalid,
 		fromVSCodeCommand,
 	}: {
 		newPath: string;
 		codemodHash: CodemodHash;
 		errorMessage: string | null;
 		warningMessage: string | null;
-		setError: boolean;
+		revertToPrevExecutionIfInvalid: boolean;
 		fromVSCodeCommand?: boolean;
 	}) => {
 		if (this.__rootPath === null) {
@@ -231,7 +231,12 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				return;
 			}
 
-			if (setError) {
+			if (revertToPrevExecutionIfInvalid) {
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(oldExecutionPath),
+				);
+			} else {
 				this.__workspaceState.setExecutionPath(
 					codemodHash,
 					T.both<SyntheticError, string>(

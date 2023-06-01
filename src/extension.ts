@@ -1253,7 +1253,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						fromVSCodeCommand: true,
 						errorMessage: null,
 						warningMessage: null,
-						setError: false,
+						revertToPrevExecutionIfInvalid: false,
 					});
 
 					vscode.commands.executeCommand(
