@@ -42,7 +42,7 @@ const Tree = ({
 			return;
 		}
 
-		if (key === 'ArrowRight') {
+		if (key === 'ArrowRight' && (hasNoChildren || open)) {
 			vscode.postMessage({
 				kind: 'webview.global.focusView',
 				webviewName: 'diffView',
@@ -50,7 +50,9 @@ const Tree = ({
 			return;
 		}
 
-		setIsOpen(key === 'ArrowLeft' ? false : true);
+		if (!hasNoChildren) {
+			setIsOpen(key === 'ArrowLeft' ? false : true);
+		}
 	};
 
 	useKey('ArrowLeft', () => {
