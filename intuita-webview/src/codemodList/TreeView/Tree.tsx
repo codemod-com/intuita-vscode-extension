@@ -4,6 +4,7 @@ import { CodemodHash, CodemodTreeNode } from '../../shared/types';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 
 type Props = {
+	rootPath: string;
 	depth: number;
 	openedIds: ReadonlySet<CodemodHash>;
 	node: CodemodTreeNode;
@@ -22,6 +23,7 @@ type Props = {
 };
 
 const Tree = ({
+	rootPath,
 	node,
 	openedIds,
 	depth,
@@ -71,7 +73,7 @@ const Tree = ({
 	});
 
 	if (!children || children.length === 0) {
-		return <>{treeItem}</>;
+		return node.label === rootPath ? null : <>{treeItem}</>;
 	}
 
 	// don't show the root folder
@@ -80,6 +82,7 @@ const Tree = ({
 			<>
 				{children.map((child) => (
 					<Tree
+						rootPath={rootPath}
 						focusedId={focusedId}
 						nodeIds={nodeIds}
 						onFocusNode={onFocusNode}
@@ -100,6 +103,7 @@ const Tree = ({
 		<ReactTreeView collapsed={!openedIds.has(node.id)} nodeLabel={treeItem}>
 			{children.map((child) => (
 				<Tree
+					rootPath={rootPath}
 					focusedId={focusedId}
 					nodeIds={nodeIds}
 					onFocusNode={onFocusNode}
