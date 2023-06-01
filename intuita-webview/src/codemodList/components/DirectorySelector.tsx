@@ -244,7 +244,8 @@ Props) => {
 			trigger={
 				<VSCodeButton
 					appearance="icon"
-					onClick={() => {
+					onClick={(e) => {
+						e.stopPropagation();
 						setEditing(true);
 						onEditStart();
 						ignoreBlurEvent.current = false;
