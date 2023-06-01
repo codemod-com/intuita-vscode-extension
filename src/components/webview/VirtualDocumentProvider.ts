@@ -128,6 +128,8 @@ export class TextDocumentContentProvider
 				.catch((error) => {
 					console.error(error);
 				});
+
+			return 'Wait until the Intuita VSCode Extension loads the codemod description';
 		}
 
 		return data;
