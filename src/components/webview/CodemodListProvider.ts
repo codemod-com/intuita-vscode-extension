@@ -314,6 +314,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			this.getCodemodTree();
 		}
 
+		if (message.kind === 'webview.global.showWarningMessage') {
+			window.showWarningMessage(message.value);
+		}
+
 		if (message.kind === 'webview.codemodList.codemodPathChange') {
 			const completionItemsOrError = await getCompletionItems(
 				message.codemodPath,

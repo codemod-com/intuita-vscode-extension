@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -36,7 +36,7 @@ Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
-
+	const escapeOrEnterKeyExecuted = useRef(false);
 	// const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	// const hintRef = useRef<HTMLInputElement>(null);
 
@@ -104,18 +104,24 @@ Props) => {
 	};
 
 	const handleCancel = () => {
-		updatePath(
-			defaultValue,
-			null,
-			value === defaultValue ? null : 'Change Reverted.',
-		);
+		updatePath(defaultValue, null, null);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
 		setShowErrorStyle(false);
+
+		if (value !== defaultValue) {
+			vscode.postMessage({
+				kind: 'webview.global.showWarningMessage',
+				value: 'Change Reverted.',
+			});
+		}
 	};
 
 	const handleBlur = () => {
+		if (escapeOrEnterKeyExecuted.current) {
+			return;
+		}
 		updatePath(
 			value,
 			null,
@@ -125,14 +131,17 @@ Props) => {
 		setEditing(false);
 		setValue(defaultValue);
 		setShowErrorStyle(false);
+		console.log('blur done');
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === 'Escape') {
+			escapeOrEnterKeyExecuted.current = true;
 			handleCancel();
 		}
 
 		if (event.key === 'Enter') {
+			escapeOrEnterKeyExecuted.current = true;
 			if (value === defaultValue) {
 				handleCancel();
 				return;
@@ -157,6 +166,7 @@ Props) => {
 	}, [defaultValue, onEditEnd]);
 
 	useEffect(() => {
+		escapeOrEnterKeyExecuted.current = false;
 		setShowErrorStyle(error !== null);
 	}, [error]);
 
@@ -232,6 +242,7 @@ Props) => {
 					onClick={() => {
 						setEditing(true);
 						onEditStart();
+						escapeOrEnterKeyExecuted.current = false;
 						setValue(defaultValue);
 					}}
 					className={styles.targetPathButton}
