@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -9,11 +9,32 @@ import { CodemodHash } from '../../shared/types';
 import Popover from '../../shared/Popover';
 import classNames from 'classnames';
 
+const updatePath = (
+	value: string,
+	errorMessage: string | null,
+	warningMessage: string | null,
+	revertToPrevExecutionIfInvalid: boolean,
+	rootPath: string,
+	codemodHash: CodemodHash,
+) => {
+	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+	vscode.postMessage({
+		kind: 'webview.codemodList.updatePathToExecute',
+		value: {
+			newPath: value.replace(repoName, rootPath),
+			codemodHash,
+			errorMessage,
+			warningMessage,
+			revertToPrevExecutionIfInvalid,
+		},
+	});
+};
+
 type Props = {
 	defaultValue: string;
 	rootPath: string;
 	codemodHash: CodemodHash;
-	error: string | null;
+	error: { message: string } | null;
 	autocompleteItems: string[];
 	onEditStart(): void;
 	onEditEnd(): void;
@@ -36,6 +57,7 @@ Props) => {
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
+	const ignoreBlurEvent = useRef(false);
 	// const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	// const hintRef = useRef<HTMLInputElement>(null);
 
@@ -76,17 +98,8 @@ Props) => {
 	// 	repoName,
 	// );
 
-	const onEditDone = (value: string) => {
-		vscode.postMessage({
-			kind: 'webview.codemodList.updatePathToExecute',
-			value: {
-				newPath: value.replace(repoName, rootPath),
-				codemodHash,
-			},
-		});
-	};
-
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
+		ignoreBlurEvent.current = false;
 		const newValue = (e.target as HTMLInputElement).value;
 		if (!newValue.startsWith(repoName)) {
 			setValue(`${repoName}/`);
@@ -97,28 +110,57 @@ Props) => {
 	};
 
 	const handleCancel = () => {
-		onEditDone(defaultValue);
+		updatePath(defaultValue, null, null, false, rootPath, codemodHash);
 		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
-		setShowErrorStyle(false);
+
+		if (value !== defaultValue) {
+			vscode.postMessage({
+				kind: 'webview.global.showWarningMessage',
+				value: 'Change Reverted.',
+			});
+		}
+	};
+
+	const handleBlur = () => {
+		if (ignoreBlurEvent.current) {
+			return;
+		}
+		updatePath(
+			value,
+			null,
+			value === defaultValue ? null : 'Change Reverted.',
+			true,
+			rootPath,
+			codemodHash,
+		);
+		onEditCancel();
+		setEditing(false);
+		setValue(defaultValue);
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === 'Escape') {
+			ignoreBlurEvent.current = true;
 			handleCancel();
 		}
 
 		if (event.key === 'Enter') {
-			if (!value.startsWith(repoName)) {
-				// path must start with repo name
+			ignoreBlurEvent.current = true;
+			if (value === defaultValue) {
 				handleCancel();
 				return;
 			}
-			if (value === defaultValue) {
-				handleCancel();
-			}
-			onEditDone(value);
+
+			updatePath(
+				value,
+				'The specified execution path does not exist.',
+				null,
+				false,
+				rootPath,
+				codemodHash,
+			);
 		}
 	};
 
@@ -133,6 +175,7 @@ Props) => {
 	}, [defaultValue, onEditEnd]);
 
 	useEffect(() => {
+		ignoreBlurEvent.current = false;
 		setShowErrorStyle(error !== null);
 	}, [error]);
 
@@ -193,6 +236,7 @@ Props) => {
 						onKeyUp={handleKeyUp}
 						// onKeyDown={handleKeyDown}
 						autoFocus
+						onBlur={handleBlur}
 					/>
 				</div>
 			</div>
@@ -204,9 +248,12 @@ Props) => {
 			trigger={
 				<VSCodeButton
 					appearance="icon"
-					onClick={() => {
+					onClick={(e) => {
+						e.stopPropagation();
 						setEditing(true);
 						onEditStart();
+						ignoreBlurEvent.current = false;
+						setValue(defaultValue);
 					}}
 					className={styles.targetPathButton}
 				>

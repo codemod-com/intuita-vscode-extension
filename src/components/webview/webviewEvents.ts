@@ -237,6 +237,7 @@ export type WebviewResponse =
 			jobHashes: JobHash[];
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
+	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
 	| Readonly<{
 			kind: 'webview.global.focusView';
 			webviewName:
@@ -262,6 +263,9 @@ export type WebviewResponse =
 			value: {
 				newPath: string;
 				codemodHash: CodemodHash;
+				errorMessage: string | null;
+				warningMessage: string | null;
+				revertToPrevExecutionIfInvalid: boolean;
 			};
 	  }>
 	| Readonly<{

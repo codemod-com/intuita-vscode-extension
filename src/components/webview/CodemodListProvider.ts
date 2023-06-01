@@ -182,10 +182,16 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	public updateExecutionPath = async ({
 		newPath,
 		codemodHash,
+		errorMessage,
+		warningMessage,
+		revertToPrevExecutionIfInvalid,
 		fromVSCodeCommand,
 	}: {
 		newPath: string;
 		codemodHash: CodemodHash;
+		errorMessage: string | null;
+		warningMessage: string | null;
+		revertToPrevExecutionIfInvalid: boolean;
 		fromVSCodeCommand?: boolean;
 	}) => {
 		if (this.__rootPath === null) {
@@ -195,11 +201,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		const oldExecution =
 			this.__workspaceState.getExecutionPath(codemodHash);
+
 		const oldExecutionPath = T.isLeft(oldExecution)
 			? null
 			: oldExecution.right;
+
 		try {
 			await workspace.fs.stat(Uri.file(newPath));
+
 			this.__workspaceState.setExecutionPath(
 				codemodHash,
 				T.right(newPath),
@@ -207,27 +216,38 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			if (newPath !== oldExecutionPath && !fromVSCodeCommand) {
 				window.showInformationMessage(
-					'Updated the codemod execution path.',
+					'Successfully updated the execution path.',
 				);
 			}
 		} catch (e) {
-			window.showErrorMessage(
-				'The specified codemod execution path does not exist.',
-			);
+			if (errorMessage !== null) {
+				window.showErrorMessage(errorMessage);
+			}
+			if (warningMessage !== null) {
+				window.showWarningMessage(warningMessage);
+			}
 
 			if (oldExecutionPath === null) {
 				return;
 			}
-			this.__workspaceState.setExecutionPath(
-				codemodHash,
-				T.both<SyntheticError, string>(
-					{
-						kind: 'syntheticError',
-						message: `${newPath} does not exist.`,
-					},
-					oldExecutionPath,
-				),
-			);
+
+			if (revertToPrevExecutionIfInvalid) {
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(oldExecutionPath),
+				);
+			} else {
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.both<SyntheticError, string>(
+						{
+							kind: 'syntheticError',
+							message: `${newPath} does not exist.`,
+						},
+						oldExecutionPath,
+					),
+				);
+			}
 		}
 
 		await this.getCodemodTree();
@@ -302,6 +322,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
 			this.getCodemodTree();
+		}
+
+		if (message.kind === 'webview.global.showWarningMessage') {
+			window.showWarningMessage(message.value);
 		}
 
 		if (message.kind === 'webview.codemodList.codemodPathChange') {

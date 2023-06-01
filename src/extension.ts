@@ -1111,6 +1111,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						newPath: uri.path,
 						codemodHash: selectedCodemod.hashDigest as CodemodHash,
 						fromVSCodeCommand: true,
+						errorMessage: null,
+						warningMessage: null,
+						revertToPrevExecutionIfInvalid: false,
 					});
 
 					vscode.commands.executeCommand(
