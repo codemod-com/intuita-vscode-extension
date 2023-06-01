@@ -58,7 +58,7 @@ export class TextDocumentContentProvider
 					null,
 				);
 
-			if (downloaded) {
+			if (!downloaded) {
 				return;
 			}
 
