@@ -9,6 +9,15 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
+const executeNodeCommands = (node: CaseTreeNode) => {
+	node.commands?.forEach((command) => {
+		vscode.postMessage({
+			kind: 'webview.command',
+			value: command,
+		});
+	});
+};
+
 type MainViews = Extract<View, { viewId: 'campaignManagerView' }>;
 
 function App() {
@@ -18,13 +27,7 @@ function App() {
 
 	const handleItemClick = useCallback((node: CaseTreeNode) => {
 		setSelectedCaseNode(node);
-
-		node.commands?.forEach((command) => {
-			vscode.postMessage({
-				kind: 'webview.command',
-				value: command,
-			});
-		});
+		executeNodeCommands(node);
 	}, []);
 
 	useEffect(() => {
@@ -39,7 +42,9 @@ function App() {
 			}
 
 			if (message.kind === 'webview.campaignManager.selectCase') {
-				setSelectedCaseNode(message.node);
+				const { node } = message;
+				setSelectedCaseNode(node);
+				executeNodeCommands(node);
 			}
 		};
 
