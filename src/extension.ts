@@ -18,18 +18,10 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import { branchNameFromStr, isNeitherNullNorUndefined } from './utilities';
-import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
-import {
-	NotFoundIntuitaAccount,
-	SourceControlService,
-} from './components/sourceControl';
-import { SourceControlWebviewPanel } from './components/webview/SourceControlWebviewPanel';
-import { isAxiosError } from 'axios';
 import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
 
@@ -37,20 +29,15 @@ import type { GitExtension } from './types/git';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
 import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-import {
-	createIssueParamsCodec,
-	createPullRequestParamsCodec,
-	applyChangesCoded,
-} from './components/sourceControl/codecs';
-import { buildJobElementLabel } from './elements/buildJobElement';
 import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
-import { randomBytes } from 'crypto';
 import { CommunityProvider } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
+import { applyChangesCoded } from './components/sourceControl/codecs';
+import prettyReporter from 'io-ts-reporters';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -122,7 +109,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		persistedState?.remoteUrl ?? null,
 	);
 
-	const persistedStateService = new PersistedStateService(
+	new PersistedStateService(
 		caseManager,
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
@@ -270,12 +257,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const userService = new UserService(globalStateAccountStorage, messageBus);
 
-	const sourceControl = new SourceControlService(
-		globalStateAccountStorage,
-		messageBus,
-		repositoryService,
-	);
-
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
@@ -316,59 +297,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (rootPath) {
 		new UserHooksService(messageBus, { getConfiguration }, rootPath);
 	}
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.createIssue', async () => {
-			try {
-				const initialData = {
-					userId: globalStateAccountStorage.getUserAccount(),
-				};
-
-				// @TODO
-				const title = 'Label';
-
-				const panelInstance = SourceControlWebviewPanel.getInstance(
-					{
-						type: 'intuitaPanel',
-						title,
-						extensionUri: context.extensionUri,
-						initialData,
-						viewColumn: vscode.ViewColumn.One,
-						webviewName: 'sourceControl',
-					},
-					messageBus,
-				);
-
-				await panelInstance.render();
-
-				const remoteUrl = repositoryService.getRemoteUrl();
-
-				if (remoteUrl === null) {
-					throw new Error('Unable to detect the git remote URI');
-				}
-
-				const remotes = repositoryService.getRemotes();
-				const remoteOptions = remotes
-					.map(({ pushUrl }) => pushUrl)
-					.filter(isNeitherNullNorUndefined);
-
-				panelInstance.setView({
-					viewId: 'createIssue',
-					viewProps: {
-						initialFormData: { title, body: '', remoteUrl },
-						loading: false,
-						error: '',
-						remoteOptions,
-					},
-				});
-			} catch (e) {
-				vscodeTelemetry.sendError({
-					kind: 'failedToExecuteCommand',
-					commandName: 'intuita.createIssue',
-				});
-			}
-		}),
-	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -453,249 +381,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	// @TODO reuse this in createPR
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.sourceControl.commitChanges',
-			async (arg0) => {
-				try {
-					const decoded = createPullRequestParamsCodec.decode(arg0);
-
-					if (decoded._tag === 'Left') {
-						throw new Error(
-							prettyReporter.report(decoded).join('\n'),
-						);
-					}
-
-					const { newBranchName, createNewBranch, commitMessage } =
-						decoded.right;
-
-					const remotes = repositoryService.getRemotes();
-					const remote = (remotes ?? []).find(
-						(remote) => remote.pushUrl === decoded.right.remoteUrl,
-					);
-
-					if (!remote || !remote.pushUrl) {
-						throw new Error('Remote not found');
-					}
-
-					const currentBranch = repositoryService.getCurrentBranch();
-
-					const currentBranchName = currentBranch?.name ?? null;
-
-					if (currentBranchName === null) {
-						throw new Error('Unable to get current branch');
-					}
-
-					await repositoryService.commitChanges(
-						createNewBranch ? newBranchName : currentBranchName,
-						commitMessage,
-					);
-
-					vscode.window.showInformationMessage(
-						`Committed on branch ${currentBranchName}`,
-					);
-
-					messageBus.publish({
-						kind: MessageKind.updateElements,
-					});
-
-					if (remote.pushUrl) {
-						repositoryService.setRemoteUrl(remote.pushUrl);
-						persistedStateService.saveExtensionState();
-					}
-				} catch (e) {
-					const message =
-						isAxiosError<{ message?: string }>(e) &&
-						e.response?.data.message
-							? e.response.data.message
-							: e instanceof Error
-							? e.message
-							: String(e);
-
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.sourceControl.commitChanges',
-					});
-					vscode.window.showErrorMessage(message);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.sourceControl.createPR',
-			async (arg0) => {
-				try {
-					const decoded = createPullRequestParamsCodec.decode(arg0);
-
-					if (decoded._tag === 'Left') {
-						throw new Error(
-							prettyReporter.report(decoded).join('\n'),
-						);
-					}
-
-					const {
-						newBranchName,
-						createNewBranch,
-						commitMessage,
-						pullRequestBody,
-						pullRequestTitle,
-					} = decoded.right;
-
-					const remotes = repositoryService.getRemotes();
-					const remote = (remotes ?? []).find(
-						(remote) => remote.pushUrl === decoded.right.remoteUrl,
-					);
-
-					if (!remote || !remote.pushUrl) {
-						throw new Error('Remote not found');
-					}
-
-					const currentBranch = repositoryService.getCurrentBranch();
-
-					const currentBranchName = currentBranch?.name ?? null;
-
-					if (currentBranchName === null) {
-						throw new Error('Unable to get current branch');
-					}
-
-					if (!createNewBranch) {
-						await repositoryService.submitChanges(
-							currentBranchName,
-							remote.name,
-							commitMessage,
-						);
-
-						const branchUrl = `${remote.pushUrl}/tree/${currentBranchName}`;
-						const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Changes successfully pushed to the ${currentBranchName} branch: ${branchUrl}`,
-								'View on GitHub',
-							);
-
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(
-								vscode.Uri.parse(branchUrl),
-							);
-						}
-					} else {
-						await repositoryService.submitChanges(
-							newBranchName,
-							remote.name,
-							commitMessage,
-						);
-						const { html_url } = await sourceControl.createPR({
-							title: pullRequestTitle,
-							body: pullRequestBody,
-							baseBranch: currentBranchName,
-							targetBranch: newBranchName,
-							remoteUrl: remote.pushUrl,
-						});
-
-						const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Pull request successfully created: ${html_url}`,
-								'View on GitHub',
-							);
-
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(vscode.Uri.parse(html_url));
-						}
-					}
-
-					messageBus.publish({
-						kind: MessageKind.updateElements,
-					});
-
-					if (remote.pushUrl) {
-						repositoryService.setRemoteUrl(remote.pushUrl);
-						persistedStateService.saveExtensionState();
-					}
-				} catch (e) {
-					const message =
-						isAxiosError<{ message?: string }>(e) &&
-						e.response?.data.message
-							? e.response.data.message
-							: e instanceof Error
-							? e.message
-							: String(e);
-
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.sourceControl.createPR',
-					});
-					vscode.window.showErrorMessage(message);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.sourceControl.submitIssue',
-			async (arg0) => {
-				try {
-					const decoded = createIssueParamsCodec.decode(arg0);
-
-					if (decoded._tag === 'Right') {
-						const params = decoded.right;
-
-						const { html_url } = await sourceControl.createIssue(
-							params,
-						);
-						const { remoteUrl } = params;
-
-						repositoryService.setRemoteUrl(remoteUrl);
-
-						persistedStateService.saveExtensionState();
-
-						const messageSelection =
-							await vscode.window.showInformationMessage(
-								`Successfully created issue: ${html_url}`,
-								'View on GitHub',
-							);
-
-						if (messageSelection === 'View on GitHub') {
-							vscode.env.openExternal(vscode.Uri.parse(html_url));
-						}
-					}
-				} catch (e) {
-					if (e instanceof NotFoundIntuitaAccount) {
-						const result =
-							await vscode.window.showInformationMessage(
-								'Your extension is not currently connected to your Intuita account. Please sign in and connect your account to the extension to unlock additional features.',
-								{ modal: true },
-								'Sign In',
-							);
-
-						if (result === 'Sign In') {
-							vscode.env.openExternal(
-								vscode.Uri.parse('https://codemod.studio/'),
-							);
-						}
-					}
-
-					// @TODO create parseError helper or something like that
-					const message =
-						isAxiosError<{ message?: string }>(e) &&
-						e.response?.data.message
-							? e.response.data.message
-							: e instanceof Error
-							? e.message
-							: String(e);
-
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.sourceControl.submitIssue',
-					});
-					vscode.window.showErrorMessage(message);
-				}
-			},
-		),
-	);
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.shutdownEngines', () => {
 			engineService.shutdownEngines();
@@ -751,119 +436,6 @@ export async function activate(context: vscode.ExtensionContext) {
 							'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 					});
 					vscode.window.showErrorMessage(message);
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.sourceControl.commitStagedJobs',
-			async (arg0: unknown) => {
-				try {
-					const decoded = applyChangesCoded.decode(arg0);
-
-					if (decoded._tag === 'Left') {
-						throw new Error(
-							prettyReporter.report(decoded).join('\n'),
-						);
-					}
-
-					const currentBranch = repositoryService.getCurrentBranch();
-
-					if (
-						currentBranch === null ||
-						currentBranch.name === undefined
-					) {
-						throw new Error('Unable to get current branch');
-					}
-
-					const { jobHashes: appliedJobsHashes } = decoded.right;
-					const stagedJobs = [];
-
-					for (const jobHash of appliedJobsHashes) {
-						const job = jobManager.getJob(jobHash as JobHash);
-
-						if (job === null) {
-							continue;
-						}
-
-						stagedJobs.push({
-							hash: job.hash.toString(),
-							label: buildJobElementLabel(
-								job,
-								vscode.workspace.workspaceFolders?.[0]?.uri
-									.path ?? '',
-							),
-							codemodName: job.codemodName,
-						});
-					}
-
-					if (stagedJobs[0] === undefined) {
-						throw new Error('Staged jobs not found');
-					}
-
-					const firstJobCodemodName = stagedJobs[0].codemodName;
-
-					const newBranchName = branchNameFromStr(
-						firstJobCodemodName + randomBytes(16).toString('hex'),
-					);
-
-					const initialData = {
-						userId: globalStateAccountStorage.getUserAccount(),
-					};
-
-					const panelInstance = SourceControlWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: firstJobCodemodName,
-							extensionUri: context.extensionUri,
-							initialData,
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'sourceControl',
-						},
-						messageBus,
-					);
-
-					await panelInstance.render();
-
-					const remotes = repositoryService.getRemotes();
-					const remoteOptions = (remotes ?? [])
-						.map((remote) => remote.pushUrl)
-						.filter(isNeitherNullNorUndefined);
-
-					const defaultRemoteUrl = repositoryService.getRemoteUrl();
-
-					if (!defaultRemoteUrl) {
-						throw new Error('Remote not found');
-					}
-
-					panelInstance.setView({
-						viewId: 'commitView',
-						viewProps: {
-							remoteOptions,
-							initialFormData: {
-								currentBranchName: currentBranch.name,
-								newBranchName,
-								remoteUrl: defaultRemoteUrl,
-								commitMessage: `Codemod: ${firstJobCodemodName}`,
-								createNewBranch: true,
-								stagedJobs,
-								pullRequestBody: '',
-								pullRequestTitle: `[Codemod] ${firstJobCodemodName}`,
-							},
-							loading: false,
-							error: '',
-						},
-					});
-				} catch (e) {
-					const message = e instanceof Error ? e.message : String(e);
-					vscode.window.showErrorMessage(message);
-
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.sourceControl.commitStagedJobs',
-					});
 				}
 			},
 		),

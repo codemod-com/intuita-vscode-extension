@@ -13,8 +13,6 @@ export { JobHash };
 export { CodemodHash };
 export type JobActionCommands =
 	| 'intuita.rejectJob'
-	| 'intuita.createIssue'
-	| 'intuita.createPR'
 	| 'intuita.acceptJob'
 	| 'intuita.unapplyJob'
 	| 'intuita.applyJob';
@@ -146,10 +144,6 @@ export type WebviewMessage =
 			value: boolean;
 	  }>
 	| Readonly<{
-			kind: 'webview.createPR.setPullRequestSubmitting';
-			value: boolean;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
 			codemodHash: CodemodHash;
@@ -197,14 +191,6 @@ export type WebviewResponse =
 			kind: 'webview.global.afterWebviewMounted';
 	  }>
 	| Readonly<{
-			kind: 'webview.createPR.submitPR';
-			value: CommitChangesFormData;
-	  }>
-	| Readonly<{
-			kind: 'webview.createPR.commitChanges';
-			value: CommitChangesFormData;
-	  }>
-	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
 	  }>
@@ -222,11 +208,6 @@ export type WebviewResponse =
 			newFileContent: string;
 	  }>
 	| Omit<RunCodemodsCommand, 'title' | 'description'>
-	| Readonly<{
-			kind: 'webview.global.navigateToCommitView';
-			jobHashes: JobHash[];
-			diffId: string;
-	  }>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
 			jobHashes: JobHash[];

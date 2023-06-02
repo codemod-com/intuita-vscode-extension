@@ -45,10 +45,6 @@
 		],
 		"commands": [
 			{
-				"command": "intuita.createPR",
-				"title": "Intuita: Create a Pull Request"
-			},
-			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: clear output files"
 			},
@@ -59,10 +55,6 @@
 			},
 			{
 				"command": "intuita.acceptJob",
-				"title": "✓ Apply"
-			},
-			{
-				"command": "intuita.sourceControl.commitStagedJobs",
 				"title": "✓ Apply"
 			},
 			{
@@ -104,16 +96,6 @@
 			{
 				"command": "intuita.sendAsAfterSnippet",
 				"title": "Intuita: Send as After Snippet to the Codemod Studio"
-			},
-			{
-				"command": "intuita.createIssue",
-				"title": "Issue",
-				"icon": "$(issues)"
-			},
-			{
-				"command": "intuita.createPR",
-				"title": "Pull Request",
-				"icon": "$(git-pull-request)"
 			}
 		],
 		"configuration": {
@@ -201,10 +183,6 @@
 			"commandPalette": [
 				{
 					"command": "intuita.clearState",
-					"when": "false"
-				},
-				{
-					"command": "intuita.sourceControl.commitStagedJobs",
 					"when": "false"
 				},
 				{
