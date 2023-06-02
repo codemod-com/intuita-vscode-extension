@@ -1,4 +1,3 @@
-import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
@@ -19,14 +18,9 @@ import {
 	mapPersistedCaseToCase,
 	mapPersistedJobToJob,
 } from './persistedState/mappers';
-import {
-	branchNameFromStr,
-	buildTypeCodec,
-	isNeitherNullNorUndefined,
-} from './utilities';
+import { branchNameFromStr, isNeitherNullNorUndefined } from './utilities';
 import prettyReporter from 'io-ts-reporters';
 import { buildExecutionId } from './telemetry/hashes';
-import { TelemetryService } from './telemetry/telemetryService';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
@@ -1400,16 +1394,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// const dependencyService = new DependencyService(messageBus);
 
 	// dependencyService.showInformationMessagesAboutUpgrades();
-
-	{
-		const codec = buildTypeCodec({ version: t.string });
-
-		const validation = codec.decode(context.extension.packageJSON);
-		const version =
-			validation._tag === 'Right' ? validation.right.version : null;
-
-		new TelemetryService(configurationContainer, messageBus, version);
-	}
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
