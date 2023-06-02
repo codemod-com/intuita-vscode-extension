@@ -324,22 +324,29 @@ export class EngineService {
 			}
 
 			const commandUri = message.command.uri;
+			const { directory } = message.command;
 
-			includePatterns.forEach((includePattern) => {
-				const { fsPath } = Uri.joinPath(commandUri, includePattern);
+			if (directory) {
+				includePatterns.forEach((includePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, includePattern);
 
-				const path = singleQuotify(fsPath);
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', path);
+				});
+
+				excludePatterns.forEach((excludePattern) => {
+					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
+
+					const path = singleQuotify(fsPath);
+
+					args.push('-p', `!${path}`);
+				});
+			} else {
+				const path = singleQuotify(commandUri.fsPath);
 
 				args.push('-p', path);
-			});
-			
-			excludePatterns.forEach((excludePattern) => {
-				const { fsPath } = Uri.joinPath(commandUri, excludePattern);
-
-				const path = singleQuotify(fsPath);
-
-				args.push('-p', `!${path}`);
-			});
+			}
 
 			args.push(
 				'-w',

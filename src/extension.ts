@@ -929,7 +929,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
-			(uri: vscode.Uri) => {
+			async (uri: vscode.Uri) => {
 				try {
 					const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
 
@@ -948,12 +948,18 @@ export async function activate(context: vscode.ExtensionContext) {
 					const happenedAt = String(Date.now());
 					const executionId = buildExecutionId();
 
+					const fileStat = await vscode.workspace.fs.stat(uri);
+					const directory = Boolean(
+						fileStat.type & vscode.FileType.Directory,
+					);
+
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							uri: rootUri,
 							storageUri,
 							fileUri: uri,
+							directory,
 						},
 						happenedAt,
 						executionId,
@@ -1215,12 +1221,18 @@ export async function activate(context: vscode.ExtensionContext) {
 					const happenedAt = String(Date.now());
 					const executionId = buildExecutionId();
 
+					const fileStat = await vscode.workspace.fs.stat(uri);
+					const directory = Boolean(
+						fileStat.type & vscode.FileType.Directory,
+					);
+
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							uri,
 							storageUri,
 							fileUri: modUri,
+							directory,
 						},
 						happenedAt,
 						executionId,

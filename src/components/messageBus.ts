@@ -89,6 +89,7 @@ export type Command =
 			fileUri: Uri;
 			storageUri: Uri;
 			uri: Uri;
+			directory: boolean;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
