@@ -1,4 +1,3 @@
-import * as t from 'io-ts';
 import * as vscode from 'vscode';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
