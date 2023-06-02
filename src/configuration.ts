@@ -8,17 +8,6 @@ export const getConfiguration = () => {
 
 	const fileLimit = configuration.get<number>('fileLimit') ?? 100;
 
-	const telemetryConfiguration =
-		vscode.workspace.getConfiguration('telemetry');
-
-	const telemetryLevel =
-		telemetryConfiguration.get<string>('telemetryLevel') ?? 'all';
-
-	const telemetryEnabled =
-		telemetryLevel !== 'off'
-			? configuration.get<boolean>('telemetryEnabled') ?? true
-			: false;
-
 	const workerThreadCount =
 		configuration.get<number>('workerThreadCount') ?? 4;
 	const includePatterns = configuration.get<string[]>('includePatterns') ?? [
@@ -34,7 +23,6 @@ export const getConfiguration = () => {
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
-		telemetryEnabled,
 		workerThreadCount,
 		includePatterns,
 		excludePatterns,

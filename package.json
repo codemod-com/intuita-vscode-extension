@@ -131,12 +131,6 @@
 					"default": 2000,
 					"description": "The maximum number of files to execute any codemod over"
 				},
-				"intuita.telemetryEnabled": {
-					"order": 2,
-					"type": "boolean",
-					"default": "true",
-					"description": "Send [telemetry data](https://intuita.quip.com/ntdTAusXcdUJ/Telemetry-Compliance) to Intuita. "
-				},
 				"intuita.workerThreadCount": {
 					"order": 3,
 					"type": "number",
