@@ -89,12 +89,14 @@ export type Command =
 			fileUri: Uri;
 			storageUri: Uri;
 			uri: Uri;
+			directory: boolean;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			storageUri: Uri;
 			uri: Uri;
+			directory: boolean;
 	  }>;
 
 export type Message =
