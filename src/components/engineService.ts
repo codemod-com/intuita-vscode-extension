@@ -276,22 +276,35 @@ export class EngineService {
 				);
 
 				const commandUri = message.command.uri;
+				const { directory } = message.command;
 
-				includePatterns.forEach((includePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, includePattern);
+				if (directory) {
+					includePatterns.forEach((includePattern) => {
+						const { fsPath } = Uri.joinPath(
+							commandUri,
+							includePattern,
+						);
 
-					const path = singleQuotify(fsPath);
+						const path = singleQuotify(fsPath);
+
+						args.push('-p', path);
+					});
+
+					excludePatterns.forEach((excludePattern) => {
+						const { fsPath } = Uri.joinPath(
+							commandUri,
+							excludePattern,
+						);
+
+						const path = singleQuotify(fsPath);
+
+						args.push('-p', `!${path}`);
+					});
+				} else {
+					const path = singleQuotify(commandUri.fsPath);
 
 					args.push('-p', path);
-				});
-
-				excludePatterns.forEach((excludePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
-
-					const path = singleQuotify(fsPath);
-
-					args.push('-p', `!${path}`);
-				});
+				}
 
 				args.push(
 					'-w',
@@ -319,6 +332,7 @@ export class EngineService {
 
 				args.push('-p', path);
 			});
+			
 			excludePatterns.forEach((excludePattern) => {
 				const { fsPath } = Uri.joinPath(commandUri, excludePattern);
 
@@ -326,6 +340,7 @@ export class EngineService {
 
 				args.push('-p', `!${path}`);
 			});
+
 			args.push(
 				'-w',
 				String(this.#configurationContainer.get().workerThreadCount),
@@ -351,6 +366,8 @@ export class EngineService {
 		};
 
 		const args = buildArguments();
+
+		console.log(args);
 
 		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
 

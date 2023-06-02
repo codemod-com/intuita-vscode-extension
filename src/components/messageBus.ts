@@ -95,6 +95,7 @@ export type Command =
 			codemodHash: CodemodHash;
 			storageUri: Uri;
 			uri: Uri;
+			directory: boolean;
 	  }>;
 
 export type Message =
