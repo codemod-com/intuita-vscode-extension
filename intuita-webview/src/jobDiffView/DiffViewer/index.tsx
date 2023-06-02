@@ -49,6 +49,14 @@ type DiffData = Record<JobHash, DiffItem>;
 
 const defaultHeight = 1200;
 
+const jobDiffViewDefaultState = {
+	visible: true,
+	diff: null,
+	height: defaultHeight,
+	expanded: true,
+	containerHeight: 50,
+};
+
 export const JobDiffViewContainer = ({
 	jobs,
 	postMessage,
@@ -63,17 +71,10 @@ export const JobDiffViewContainer = ({
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diffData, setDiffData] = useState<DiffData>(() =>
 		jobs.reduce((acc, el) => {
-			acc[el.jobHash] = {
-				visible: true,
-				diff: null,
-				height: defaultHeight,
-				expanded: true,
-				containerHeight: 50,
-			};
+			acc[el.jobHash] = jobDiffViewDefaultState;
 			return acc;
 		}, {} as DiffData),
 	);
-	const prevDiffData = useRef<DiffData>(diffData);
 
 	const cache = useRef(
 		new CellMeasurerCache({
@@ -85,18 +86,16 @@ export const JobDiffViewContainer = ({
 
 	useEffect(() => {
 		cache.current.clearAll();
-		const diffData = jobs.reduce((acc, el) => {
-			acc[el.jobHash] = {
-				visible: true,
-				diff: null,
-				height: defaultHeight,
-				expanded: true,
-				containerHeight: 50,
-			};
-			return acc;
-		}, {} as DiffData);
-		prevDiffData.current = diffData;
-		setDiffData(diffData);
+		setDiffData((prevDiffData) => {
+			const data = { ...prevDiffData };
+			jobs.forEach((job) => {
+				const hash = job.jobHash;
+				if (!data[hash]) {
+					data[hash] = jobDiffViewDefaultState;
+				}
+			});
+			return data;
+		});
 		listRef.current?.measureAllRows();
 	}, [jobs]);
 
@@ -104,28 +103,6 @@ export const JobDiffViewContainer = ({
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
 	const theme = useTheme();
-
-	useEffect(() => {
-		for (const data of Object.entries(diffData)) {
-			const jobHash = data[0] as JobHash;
-			const prevData = prevDiffData.current?.[jobHash];
-			if (!prevData) {
-				continue;
-			}
-			if (
-				prevData.height !== data[1].height ||
-				prevData.expanded !== data[1].expanded
-			) {
-				const index = jobs.findIndex((job) => job.jobHash === jobHash);
-				if (index === -1) {
-					return;
-				}
-				cache.current?.clear(index, 0);
-				listRef.current?.recomputeRowHeights(index);
-			}
-		}
-		prevDiffData.current = diffData;
-	}, [diffData, jobs]);
 
 	const { width, height } = useElementSize(containerRef);
 
