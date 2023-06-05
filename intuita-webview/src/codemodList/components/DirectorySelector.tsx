@@ -100,13 +100,14 @@ export const DirectorySelector = ({
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		ignoreBlurEvent.current = false;
-		const newValue = (e.target as HTMLInputElement).value;
-		if (!newValue.startsWith(repoName)) {
-			setValue(`${repoName}/`);
-			return;
-		}
-		setValue(newValue);
-		onChange(newValue.replace(repoName, rootPath));
+		const newValue = (e.target as HTMLInputElement).value.trim();
+		// path must start with repo name + slash
+		// e.g., "cal.com/"
+		const validString = !newValue.startsWith(`${repoName}/`)
+			? `${repoName}/`
+			: newValue;
+		setValue(validString);
+		onChange(validString.replace(repoName, rootPath));
 	};
 
 	const handleCancel = () => {
