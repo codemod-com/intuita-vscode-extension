@@ -82,8 +82,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		if (
 			message.kind === 'intuita.rejectJob' ||
-			message.kind === 'intuita.createIssue' ||
-			message.kind === 'intuita.createPR' ||
 			message.kind === 'intuita.acceptJob'
 		) {
 			commands.executeCommand(message.kind, message.value[0]);
@@ -107,13 +105,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			commands.executeCommand(
 				'intuita.redirect',
 				`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
-			);
-		}
-
-		if (message.kind === 'webview.global.navigateToCommitView') {
-			commands.executeCommand(
-				'intuita.sourceControl.commitStagedJobs',
-				message,
 			);
 		}
 

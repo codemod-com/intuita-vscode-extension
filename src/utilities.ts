@@ -91,25 +91,6 @@ export const getElementIconBaseName = (
 	}
 };
 
-export const branchNameFromStr = (str: string): string => {
-	let branchName = str
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9-]/g, '-')
-		.replace(/--+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	if (branchName.length > 63) {
-		branchName = branchName.substr(0, 63);
-	}
-
-	if (!/^[a-z0-9]/.test(branchName)) {
-		branchName = 'x-' + branchName;
-	}
-
-	return branchName;
-};
-
 export const capitalize = (str: string): string => {
 	if (!str) {
 		return '';
