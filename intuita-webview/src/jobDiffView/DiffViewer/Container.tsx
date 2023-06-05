@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
 import { JobDiffViewProps } from '../../shared/types';
@@ -7,23 +7,6 @@ import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
-
-type ContainerProps = Readonly<{
-	children?: React.ReactNode;
-}>;
-
-export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	({ children }: ContainerProps, ref) => {
-		return (
-			<div
-				className="flex  flex-wrap w-full container flex-col"
-				ref={ref}
-			>
-				<div className="flex flex-wrap flex-col w-full">{children}</div>
-			</div>
-		);
-	},
-);
 
 type HeaderProps = Readonly<{
 	id: string;
