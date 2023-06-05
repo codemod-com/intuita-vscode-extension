@@ -306,6 +306,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		new UserHooksService(messageBus, { getConfiguration }, rootPath);
 	}
 
+	const errorWebviewProvider = new ErrorWebviewProvider(
+		context,
+		messageBus,
+		workspaceState,
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.focusView',
@@ -493,9 +499,13 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
+				workspaceState.setSelectedCaseHash(caseHash);
+				
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
+
+				errorWebviewProvider.setView();
 			},
 		),
 	);
@@ -970,7 +980,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuitaErrorViewId',
-			new ErrorWebviewProvider(context, messageBus, workspaceState),
+			errorWebviewProvider,
 		),
 	);
 

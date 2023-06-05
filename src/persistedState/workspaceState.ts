@@ -313,15 +313,9 @@ export class WorkspaceState {
 		return value as CaseHash;
 	}
 
-	public setSelectedCaseHash(): CaseHash | null {
+	public setSelectedCaseHash(caseHash: CaseHash): void {
 		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
 
-		const value = ensureIsString(this.__memento.get(hashDigest));
-
-		if (value === null) {
-			return null;
-		}
-
-		return value as CaseHash;
+		this.__memento.update(hashDigest, JSON.stringify(caseHash));
 	}
 }
