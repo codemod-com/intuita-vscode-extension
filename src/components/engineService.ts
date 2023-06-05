@@ -643,23 +643,6 @@ export class EngineService {
 				) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
-
-				executionErrors.forEach((executionError) => {
-					if (typeof executionError === 'string') {
-						window.showErrorMessage(`Error: ${executionError}`);
-					} else {
-						const kind =
-							executionError.kind ?? 'errorRunningCodemod';
-						const kindTitle =
-							kind === 'unrecognizedCodemod'
-								? Messages.codemodUnrecognized
-								: Messages.errorRunningCodemod;
-
-						window.showErrorMessage(
-							`${kindTitle}. Error: ${executionError.message}`,
-						);
-					}
-				});
 			}
 
 			this.#execution = null;
