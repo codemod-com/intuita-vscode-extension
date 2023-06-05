@@ -21,11 +21,15 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			MessageKind.codemodSetExecuted,
 			({ case: kase, executionErrors }) => {
 				__workspaceState.setExecutionErrors(kase.hash, executionErrors);
+
+				this.setView();
 			},
 		);
 	}
 
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+		this.__webviewView = webviewView;
+
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'errors',
@@ -48,14 +52,10 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	private __buildViewProps(): ViewProps {
 		const cashHash = this.__workspaceState.getSelectedCaseHash();
 
-		if (cashHash === null) {
-			return {
-				executionErrors: [],
-			};
-		}
-
 		const executionErrors =
-			this.__workspaceState.getExecutionErrors(cashHash);
+			cashHash !== null
+				? this.__workspaceState.getExecutionErrors(cashHash)
+				: [];
 
 		return {
 			executionErrors,

@@ -46,9 +46,13 @@ const buildWorkspaceStateKeyHash = (
 		) as WorkspaceStateKeyHash;
 	}
 
-	return buildHash(
-		[envelope.kind, envelope.caseHash].join(','),
-	) as WorkspaceStateKeyHash;
+	if (envelope.kind === 'executionErrors') {
+		return buildHash(
+			[envelope.kind, envelope.caseHash].join(','),
+		) as WorkspaceStateKeyHash;
+	}
+
+	throw new Error('Unsupported type of the envelope');
 };
 
 const ensureIsString = (value: unknown): string | null => {
@@ -316,6 +320,6 @@ export class WorkspaceState {
 	public setSelectedCaseHash(caseHash: CaseHash): void {
 		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
 
-		this.__memento.update(hashDigest, JSON.stringify(caseHash));
+		this.__memento.update(hashDigest, caseHash);
 	}
 }

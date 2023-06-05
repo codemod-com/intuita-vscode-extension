@@ -500,11 +500,12 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 				workspaceState.setSelectedCaseHash(caseHash);
-				
+
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
 
+				
 				errorWebviewProvider.setView();
 			},
 		),
