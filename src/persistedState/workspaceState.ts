@@ -12,6 +12,7 @@ import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
 import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
+import { MessageBus, MessageKind } from '../components/messageBus';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -69,7 +70,16 @@ export class WorkspaceState {
 	public constructor(
 		private readonly __memento: Memento,
 		private readonly __rootPath: string,
-	) {}
+		messageBus: MessageBus,
+	) {
+		messageBus.subscribe(MessageKind.clearState, () => {
+			const keys = this.__memento.keys();
+
+			for (const key of keys) {
+				this.__memento.update(key, undefined);
+			}
+		});
+	}
 
 	private __buildDefaultExecutionPath(): ExecutionPath {
 		return T.right(this.__rootPath);
@@ -317,8 +327,13 @@ export class WorkspaceState {
 		return value as CaseHash;
 	}
 
-	public setSelectedCaseHash(caseHash: CaseHash): void {
+	public setSelectedCaseHash(caseHash: CaseHash | null): void {
 		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
+
+		if (caseHash === null) {
+			this.__memento.update(hashDigest, undefined);
+			return;
+		}
 
 		this.__memento.update(hashDigest, caseHash);
 	}

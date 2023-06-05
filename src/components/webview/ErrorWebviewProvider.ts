@@ -25,6 +25,12 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 				this.setView();
 			},
 		);
+
+		messageBus.subscribe(MessageKind.clearState, () => {
+			__workspaceState.setSelectedCaseHash(null);
+
+			this.setView();
+		});
 	}
 
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
