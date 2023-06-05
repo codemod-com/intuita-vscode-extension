@@ -28,8 +28,6 @@ export const Messages = {
 	noAffectedFiles:
 		'The codemod has run successfully but didn’t do anything' as const,
 	noImportedMod: 'No imported codemod was found' as const,
-	errorRunningCodemod: 'An error occurred while running the codemod' as const,
-	codemodUnrecognized: 'The codemod is invalid / unsupported' as const,
 };
 
 const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;

@@ -37,6 +37,9 @@ const buildExecutionErrorRow = (
 			? executionError.kind ?? 'errorRunningCodemod'
 			: 'errorRunningCodemod';
 
+	const humanKind =
+		kind === 'errorRunningCodemod' ? 'Execution Error' : 'Invalid Codemod';
+
 	const message =
 		typeof executionError !== 'string'
 			? executionError.message
@@ -47,7 +50,7 @@ const buildExecutionErrorRow = (
 
 	return (
 		<VSCodeDataGridRow key={index}>
-			<VSCodeDataGridCell grid-column="1">{kind}</VSCodeDataGridCell>
+			<VSCodeDataGridCell grid-column="1">{humanKind}</VSCodeDataGridCell>
 			<VSCodeDataGridCell grid-column="2">{message}</VSCodeDataGridCell>
 			<VSCodeDataGridCell grid-column="3">{filePath}</VSCodeDataGridCell>
 		</VSCodeDataGridRow>
