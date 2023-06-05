@@ -2,32 +2,52 @@ import * as t from 'io-ts';
 import type { Memento } from 'vscode';
 import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
-import { SyntheticError } from '../errors/types';
+import {
+	ExecutionError,
+	executionErrorCodec,
+	SyntheticError,
+} from '../errors/types';
 import * as T from 'fp-ts/These';
 import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
 import { pipe } from 'fp-ts/lib/function';
+import { CaseHash } from '../cases/types';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
 };
 
+type WorkspaceStateKeyEnvelope = Readonly<
+	| 'recentCodemodHashes'
+	| 'openedCodemodHashDigests'
+	| 'focusedCodemodHashDigest'
+	| 'publicCodemodsExpanded'
+	| {
+			kind: 'executionPath';
+			codemodHash: string;
+	  }
+	| {
+			kind: 'executionErrors';
+			caseHash: CaseHash;
+	  }
+>;
+
 const buildWorkspaceStateKeyHash = (
-	type:
-		| 'executionPath'
-		| 'recentCodemodHashes'
-		| 'openedCodemodHashDigests'
-		| 'focusedCodemodHashDigest'
-		| 'publicCodemodsExpanded',
-	codemodHash?: CodemodHash,
+	envelope: WorkspaceStateKeyEnvelope,
 ): WorkspaceStateKeyHash => {
-	if (type === 'executionPath' && codemodHash) {
+	if (typeof envelope === 'string') {
+		return buildHash(envelope) as WorkspaceStateKeyHash;
+	}
+
+	if (envelope.kind === 'executionPath') {
 		return buildHash(
-			[type, codemodHash].join(','),
+			[envelope.kind, envelope.codemodHash].join(','),
 		) as WorkspaceStateKeyHash;
 	}
 
-	return buildHash(type) as WorkspaceStateKeyHash;
+	return buildHash(
+		[envelope.kind, envelope.caseHash].join(','),
+	) as WorkspaceStateKeyHash;
 };
 
 const ensureIsString = (value: unknown): string | null => {
@@ -51,7 +71,10 @@ export class WorkspaceState {
 	}
 
 	public getExecutionPath(codemodHash: CodemodHash): ExecutionPath {
-		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
+		const hash = buildWorkspaceStateKeyHash({
+			kind: 'executionPath',
+			codemodHash,
+		});
 
 		const value = ensureIsString(this.__memento.get(hash));
 
@@ -85,7 +108,10 @@ export class WorkspaceState {
 		codemodHash: CodemodHash,
 		executionPath: ExecutionPath,
 	): void {
-		const hash = buildWorkspaceStateKeyHash('executionPath', codemodHash);
+		const hash = buildWorkspaceStateKeyHash({
+			kind: 'executionPath',
+			codemodHash,
+		});
 
 		this.__memento.update(hash, JSON.stringify(executionPath));
 	}
@@ -227,5 +253,50 @@ export class WorkspaceState {
 		const hashDigest = buildWorkspaceStateKeyHash('publicCodemodsExpanded');
 
 		this.__memento.update(hashDigest, JSON.stringify(expanded));
+	}
+
+	public getExecutionErrors(
+		caseHash: CaseHash,
+	): ReadonlyArray<ExecutionError> {
+		const hashDigest = buildWorkspaceStateKeyHash({
+			kind: 'executionErrors',
+			caseHash,
+		});
+
+		const value = ensureIsString(this.__memento.get(hashDigest));
+
+		if (value === null) {
+			return [];
+		}
+
+		const validation = pipe(
+			E.tryCatch(
+				() => JSON.parse(value),
+				(e) => e,
+			),
+			E.flatMap((json) =>
+				t.readonlyArray(executionErrorCodec).decode(json),
+			),
+		);
+
+		if (E.isLeft(validation)) {
+			console.error(validation.left);
+
+			return [];
+		}
+
+		return validation.right;
+	}
+
+	public setExecutionErrors(
+		caseHash: CaseHash,
+		executionErrors: ReadonlyArray<ExecutionError>,
+	): void {
+		const hashDigest = buildWorkspaceStateKeyHash({
+			kind: 'executionErrors',
+			caseHash,
+		});
+
+		this.__memento.update(hashDigest, JSON.stringify(executionErrors));
 	}
 }
