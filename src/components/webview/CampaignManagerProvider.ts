@@ -36,7 +36,7 @@ import { CaseManager } from '../../cases/caseManager';
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver | null = null;
+	__webviewResolver: WebviewResolver;
 	__treeMap = new Map<CaseHash, CaseTreeNode>();
 
 	constructor(
@@ -54,7 +54,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			this.__view.webview,
 			'campaignManager',
 			'{}',
@@ -66,7 +66,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'campaignManager',
 			'{}',

@@ -59,7 +59,7 @@ const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
 export class CodemodListPanelProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver | null = null;
+	__webviewResolver: WebviewResolver;
 	__engineBootstrapped = false;
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
@@ -141,7 +141,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			this.__view.webview,
 			'codemodList',
 			JSON.stringify({}),
@@ -258,7 +258,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'codemodList',
 			JSON.stringify({}),

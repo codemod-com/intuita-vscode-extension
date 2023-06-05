@@ -43,12 +43,10 @@ const EXTERNAL_LINKS: ExternalLink[] = [
 
 export class CommunityProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
-	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver | null = null;
+	__webviewResolver: WebviewResolver;
 
 	constructor(context: ExtensionContext) {
-		this.__extensionPath = context.extensionUri;
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
+		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 	}
 
 	refresh(): void {
@@ -56,7 +54,7 @@ export class CommunityProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			this.__view.webview,
 			'communityView',
 			'{}',
@@ -68,7 +66,7 @@ export class CommunityProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'communityView',
 			'{}',

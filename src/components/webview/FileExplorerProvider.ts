@@ -45,7 +45,7 @@ import { DiffWebviewPanel } from './DiffWebviewPanel';
 export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver | null = null;
+	__webviewResolver: WebviewResolver;
 	// map between URIs and the Tree Node
 	__treeMap = new Map<string, TreeNode>();
 	// map between URIs and the File Tree Node & the job hash
@@ -72,7 +72,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			this.__view.webview,
 			'fileExplorer',
 			'{}',
@@ -84,7 +84,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__webviewResolver?.resolveWebview(
+		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'fileExplorer',
 			'{}',
