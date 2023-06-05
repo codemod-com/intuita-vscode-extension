@@ -39,6 +39,7 @@ import { TextDocumentContentProvider } from './components/webview/VirtualDocumen
 import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
+import { WorkspaceState } from './persistedState/workspaceState';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -124,11 +125,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const codemodService = new CodemodService(rootPath, engineService);
 
+	const workspaceState = new WorkspaceState(
+		context.workspaceState,
+		rootPath ?? '/',
+	);
+
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
 		context,
 		messageBus,
 		rootPath,
 		codemodService,
+		workspaceState,
 	);
 
 	context.subscriptions.push(
@@ -963,7 +970,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuitaErrorViewId',
-			new ErrorWebviewProvider(context),
+			new ErrorWebviewProvider(context, messageBus, workspaceState),
 		),
 	);
 

@@ -634,6 +634,7 @@ export class EngineService {
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
 					case: this.#execution.case,
+					executionErrors,
 				});
 
 				if (

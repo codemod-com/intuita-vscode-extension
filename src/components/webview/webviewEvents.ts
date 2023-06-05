@@ -6,7 +6,7 @@ import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
-import { SyntheticError } from '../../errors/types';
+import { ExecutionError, SyntheticError } from '../../errors/types';
 import { ExecutionPath } from '../../persistedState/workspaceState';
 
 export { JobHash };
@@ -339,5 +339,7 @@ export type View =
 	  }>
 	| Readonly<{
 			viewId: 'errors';
-			viewProps: null;
+			viewProps: Readonly<{
+				executionErrors: ReadonlyArray<ExecutionError>;
+			}>;
 	  }>;

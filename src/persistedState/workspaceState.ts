@@ -22,6 +22,7 @@ type WorkspaceStateKeyEnvelope = Readonly<
 	| 'openedCodemodHashDigests'
 	| 'focusedCodemodHashDigest'
 	| 'publicCodemodsExpanded'
+	| 'selectedCaseHash'
 	| {
 			kind: 'executionPath';
 			codemodHash: string;
@@ -298,5 +299,29 @@ export class WorkspaceState {
 		});
 
 		this.__memento.update(hashDigest, JSON.stringify(executionErrors));
+	}
+
+	public getSelectedCaseHash(): CaseHash | null {
+		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
+
+		const value = ensureIsString(this.__memento.get(hashDigest));
+
+		if (value === null) {
+			return null;
+		}
+
+		return value as CaseHash;
+	}
+
+	public setSelectedCaseHash(): CaseHash | null {
+		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
+
+		const value = ensureIsString(this.__memento.get(hashDigest));
+
+		if (value === null) {
+			return null;
+		}
+
+		return value as CaseHash;
 	}
 }
