@@ -57,9 +57,17 @@ const buildExecutionErrorRow = (
 	);
 };
 
+declare global {
+	interface Window {
+		INITIAL_STATE: {
+			viewProps: ViewProps;
+		};
+	}
+}
+
 export const App = () => {
 	const [viewProps, setViewProps] = useState<ViewProps>(
-		(window as any).INITIAL_STATE.viewProps, // TODO fix types
+		window.INITIAL_STATE.viewProps,
 	);
 
 	useEffect(() => {
