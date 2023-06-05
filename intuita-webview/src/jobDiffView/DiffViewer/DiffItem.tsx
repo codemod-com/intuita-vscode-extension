@@ -1,7 +1,6 @@
-import { Container, Header } from './Container';
+import { Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { Collapsable } from '../Components/Collapsable';
-import { JobHash } from '../../shared/types';
 import { Diff, DiffComponent } from './Diff';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { reportIssue } from '../util';
@@ -13,12 +12,10 @@ type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
 	viewType: 'inline' | 'side-by-side';
 	visible: boolean;
-	toggleVisible: (jobHash: JobHash) => void;
+	toggleVisible: () => void;
 	expanded: boolean;
-	height: number;
 	diff: Diff | null;
-	onHeightSet: (jobHash: JobHash, height: number) => void;
-	onDiffCalculated: (jobHash: JobHash, diff: Diff) => void;
+	onDiffCalculated: (diff: Diff) => void;
 	theme: string;
 };
 
@@ -36,8 +33,6 @@ export const JobDiffView = memo(
 				title,
 				visible,
 				toggleVisible,
-				height,
-				onHeightSet,
 				onDiffCalculated,
 				diff,
 				expanded,
@@ -54,21 +49,14 @@ export const JobDiffView = memo(
 			}, [jobHash, oldFileContent, newFileContent]);
 
 			const handleToggleVisible = useCallback(() => {
-				toggleVisible(jobHash);
-			}, [jobHash, toggleVisible]);
+				toggleVisible();
+			}, [toggleVisible]);
 
 			const handleDiffCalculated = useCallback(
 				(diff: Diff) => {
-					onDiffCalculated(jobHash, diff);
+					onDiffCalculated(diff);
 				},
-				[jobHash, onDiffCalculated],
-			);
-
-			const handleSetHeight = useCallback(
-				(height: number) => {
-					onHeightSet(jobHash, height);
-				},
-				[jobHash, onHeightSet],
+				[onDiffCalculated],
 			);
 
 			return (
@@ -78,7 +66,7 @@ export const JobDiffView = memo(
 							ref(r ?? undefined);
 						}
 					}}
-					className="px-5 pb-2-5 diff-view-container"
+					className="px-5 pb-2-5 diff-view-container h-full"
 					id="diffViewContainer"
 					tabIndex={0}
 					onKeyDown={(event: KeyboardEvent) => {
@@ -94,9 +82,9 @@ export const JobDiffView = memo(
 				>
 					<Collapsable
 						defaultExpanded={expanded}
-						className="overflow-hidden rounded"
+						className="overflow-hidden rounded h-full"
 						headerClassName="p-10"
-						contentClassName="p-10"
+						contentClassName="p-10 h-full"
 						headerSticky
 						headerComponent={
 							<Header
@@ -113,17 +101,13 @@ export const JobDiffView = memo(
 							/>
 						}
 					>
-						<Container>
-							<DiffComponent
-								theme={theme}
-								height={height}
-								viewType={viewType}
-								oldFileContent={oldFileContent}
-								newFileContent={newFileContent}
-								onDiffCalculated={handleDiffCalculated}
-								onHeightSet={handleSetHeight}
-							/>
-						</Container>
+						<DiffComponent
+							theme={theme}
+							viewType={viewType}
+							oldFileContent={oldFileContent}
+							newFileContent={newFileContent}
+							onDiffCalculated={handleDiffCalculated}
+						/>
 					</Collapsable>
 				</div>
 			);

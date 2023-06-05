@@ -101,10 +101,14 @@ function App() {
 	const { data, showHooksCTA } = view.viewProps;
 	const job = data[jobIndex];
 
+	if (!job) {
+		return null;
+	}
+
 	return (
 		<main className="App">
 			<JobDiffViewContainer
-				jobs={job ? [job] : []}
+				job={job}
 				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
 				totalJobsCount={data.length}

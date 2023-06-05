@@ -1,36 +1,17 @@
-import {
-	Dispatch,
-	FC,
-	SetStateAction,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
+import { Dispatch, SetStateAction, useCallback, useRef, useState } from 'react';
 import { JobDiffViewProps } from '../App';
 import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { JobDiffView } from './DiffItem';
-import { DiffViewType, JobHash } from '../../shared/types';
+import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
-import {
-	List,
-	CellMeasurerCache,
-	CellMeasurer,
-	ListProps,
-	CellMeasurerProps,
-} from 'react-virtualized';
 
 import Header from './Header';
 import { Diff } from './Diff';
-import { useElementSize } from '../hooks/useElementSize';
 import { useTheme } from '../../shared/Snippet/useTheme';
-
-const ListComponent = List as unknown as FC<ListProps>;
-const CellMeasurerComponent = CellMeasurer as unknown as FC<CellMeasurerProps>;
 
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
-	jobs: JobDiffViewProps[];
+	job: JobDiffViewProps;
 	showHooksCTA: boolean;
 	totalJobsCount: number;
 	jobIndex: number;
@@ -40,201 +21,80 @@ type JobDiffViewContainerProps = Readonly<{
 type DiffItem = Readonly<{
 	visible: boolean;
 	diff: Diff | null;
-	height: number | null;
-	containerHeight: number;
 	expanded: boolean;
 }>;
-
-type DiffData = Record<JobHash, DiffItem>;
-
-const defaultHeight = 1200;
 
 const jobDiffViewDefaultState = {
 	visible: true,
 	diff: null,
-	height: defaultHeight,
 	expanded: true,
-	containerHeight: 50,
 };
 
 export const JobDiffViewContainer = ({
-	jobs,
+	job,
 	postMessage,
 	showHooksCTA,
 	totalJobsCount,
 	jobIndex,
 	setJobIndex,
 }: JobDiffViewContainerProps) => {
-	const listRef = useRef<List>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
-	const [diffData, setDiffData] = useState<DiffData>(() =>
-		jobs.reduce((acc, el) => {
-			acc[el.jobHash] = jobDiffViewDefaultState;
-			return acc;
-		}, {} as DiffData),
-	);
-
-	const cache = useRef(
-		new CellMeasurerCache({
-			fixedWidth: true,
-			fixedHeight: false,
-			defaultHeight: 50,
-		}),
-	);
-
-	useEffect(() => {
-		cache.current.clearAll();
-		setDiffData((prevDiffData) => {
-			const data = { ...prevDiffData };
-			jobs.forEach((job) => {
-				const hash = job.jobHash;
-				if (!data[hash]) {
-					data[hash] = jobDiffViewDefaultState;
-				}
-			});
-			return data;
-		});
-		listRef.current?.measureAllRows();
-	}, [jobs]);
+	const [diffData, setDiffData] = useState<DiffItem>(jobDiffViewDefaultState);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
+
 	const theme = useTheme();
 
-	const { width, height } = useElementSize(containerRef);
-
-	const toggleVisible = useCallback(
-		(jobHash: JobHash) => {
-			setDiffData((prevDiffData) => {
-				const diffItem = prevDiffData[jobHash];
-
-				if (diffItem === undefined) {
-					return prevDiffData;
-				}
-
-				return {
-					...prevDiffData,
-					[jobHash]: {
-						...diffItem,
-						visible: !diffItem?.visible,
-						expanded: !diffItem?.visible,
-					},
-				};
-			});
-		},
-		[setDiffData],
-	);
-
-	const onHeightSet = useCallback(
-		(jobHash: JobHash, height: number) => {
-			setDiffData((prevDiffData) => {
-				if (!prevDiffData[jobHash]) {
-					return prevDiffData;
-				}
-
-				return {
-					...prevDiffData,
-					[jobHash]: {
-						...prevDiffData[jobHash],
-						height,
-					},
-				};
-			});
-		},
-		[setDiffData],
-	);
+	const toggleVisible = useCallback(() => {
+		setDiffData((diffItem) => {
+			return {
+				...diffItem,
+				visible: !diffItem?.visible,
+				expanded: !diffItem?.visible,
+			};
+		});
+	}, [setDiffData]);
 
 	const onDiffCalculated = useCallback(
-		(jobHash: JobHash, diff: Diff) => {
-			setDiffData((prevDiffData) => {
-				if (!prevDiffData[jobHash]) {
-					return prevDiffData;
-				}
-
+		(diff: Diff) => {
+			setDiffData((diffItem) => {
 				return {
-					...prevDiffData,
-					[jobHash]: {
-						...prevDiffData[jobHash],
-						diff,
-					},
+					...diffItem,
+					diff,
 				};
 			});
 		},
 		[setDiffData],
 	);
+
+	const { expanded, diff, visible } = diffData;
 
 	return (
 		<div className="w-full h-full flex flex-col">
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobs={jobs}
+				jobs={[job]}
 				showHooksCTA={showHooksCTA}
 				totalJobsCount={totalJobsCount}
 				jobIndex={jobIndex}
 				setJobIndex={setJobIndex}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
-				<ListComponent
-					scrollToAlignment="start"
-					height={height}
-					ref={listRef}
-					columnWidth={cache.current.columnWidth}
-					deferredMeasurementCache={cache.current}
-					width={width}
-					rowHeight={cache.current.rowHeight}
-					overscanRowCount={10}
-					rowCount={jobs.length}
-					rowRenderer={({ index, style, parent, key }) => {
-						const el = jobs[index];
-						if (!el) {
-							return null;
-						}
-						return (
-							<CellMeasurerComponent
-								cache={cache.current}
-								columnIndex={0}
-								key={key}
-								parent={parent}
-								rowIndex={index}
-							>
-								{({ registerChild }) => {
-									const diffItem = diffData[el.jobHash];
-
-									if (diffItem === undefined) {
-										return null;
-									}
-
-									const { expanded, diff, visible, height } =
-										diffItem;
-
-									return (
-										<div style={style} key={el.jobHash}>
-											<JobDiffView
-												ref={registerChild}
-												theme={theme}
-												expanded={expanded}
-												diff={diff}
-												visible={visible}
-												viewType={viewType}
-												height={height ?? defaultHeight}
-												toggleVisible={toggleVisible}
-												postMessage={postMessage}
-												onHeightSet={onHeightSet}
-												onDiffCalculated={
-													onDiffCalculated
-												}
-												{...el}
-											/>
-										</div>
-									);
-								}}
-							</CellMeasurerComponent>
-						);
-					}}
+				<JobDiffView
+					theme={theme}
+					expanded={expanded}
+					diff={diff}
+					visible={visible}
+					viewType={viewType}
+					toggleVisible={toggleVisible}
+					postMessage={postMessage}
+					onDiffCalculated={onDiffCalculated}
+					{...job}
 				/>
 			</div>
 		</div>
