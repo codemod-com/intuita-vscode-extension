@@ -66,7 +66,7 @@ const TreeItem = ({
 	const [editingPath, setEditingPath] = useState(false);
 
 	const handleEnterKeyDown = () => {
-		if (!focused) {
+		if (!focused || hasChildren) {
 			return;
 		}
 
@@ -76,13 +76,10 @@ const TreeItem = ({
 	useKey('Enter', handleEnterKeyDown);
 
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
-		if (!focused) {
+		if (!focused || !hasChildren) {
 			return;
 		}
 
-		if (!hasChildren) {
-			return;
-		}
 		if (key === 'ArrowLeft') {
 			collapse();
 		} else {
