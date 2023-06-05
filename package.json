@@ -37,12 +37,6 @@
 		"codeActionProvider": "true"
 	},
 	"contributes": {
-		"viewsWelcome": [
-			{
-				"view": "intuitaViewId",
-				"contents": "No change to review! Run some codemods via VS Code Command & check back later!\n To run a codemod you can right-click on a folder and select \"Intuita: Execute Codemod On Path\" and select a codemod you want to execute."
-			}
-		],
 		"commands": [
 			{
 				"command": "intuita.clearOutputFiles",
@@ -149,6 +143,13 @@
 					"title": "Intuita",
 					"icon": "img/intuita.svg"
 				}
+			],
+			"panel": [
+				{
+					"id": "intuitaPanelViewContainerId",
+					"title": "Intuita",
+					"icon": "img/intuita.svg"
+				}
 			]
 		},
 		"views": {
@@ -176,6 +177,14 @@
 					"id": "intuitaCommunityView",
 					"name": "Community",
 					"contextualTitle": "Community"
+				}
+			],
+			"intuitaPanelViewContainerId": [
+				{
+					"type": "webview",
+					"id": "intuitaErrorViewId",
+					"name": "Errors",
+					"contextualTitle": "Errors"
 				}
 			]
 		},
