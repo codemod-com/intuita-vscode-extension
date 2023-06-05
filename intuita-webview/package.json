@@ -20,12 +20,13 @@
 	},
 	"scripts": {
 		"start": "vite -c 'vite.config.dev.ts'",
-		"build:campaignManager": "TARGET_APP='campaignManager' vite build",
-		"build:fileExplorer": "TARGET_APP='fileExplorer' vite build",
-		"build:codemodList": "TARGET_APP='codemodList' vite build",
-		"build:jobDiffView": "TARGET_APP='jobDiffView' vite build",
-		"build:communityView": "TARGET_APP='communityView' vite build",
-		"build": "NODE_ENV='production' pnpm build:campaignManager && pnpm build:fileExplorer && pnpm build:codemodList && pnpm build:jobDiffView && pnpm build:communityView"
+		"build:campaignManager": "NODE_ENV='production' TARGET_APP='campaignManager' vite build",
+		"build:fileExplorer": "NODE_ENV='production' TARGET_APP='fileExplorer' vite build",
+		"build:codemodList": "NODE_ENV='production' TARGET_APP='codemodList' vite build",
+		"build:jobDiffView": "NODE_ENV='production' TARGET_APP='jobDiffView' vite build",
+		"build:communityView": "NODE_ENV='production' TARGET_APP='communityView' vite build",
+		"build:errors": "NODE_ENV='production' TARGET_APP='errors' vite build",
+		"build": "pnpm build:campaignManager && pnpm build:fileExplorer && pnpm build:codemodList && pnpm build:jobDiffView && pnpm build:communityView && pnpm build:errors"
 	},
 	"eslintConfig": {
 		"extends": [

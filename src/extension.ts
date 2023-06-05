@@ -38,6 +38,7 @@ import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
 import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
+import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -957,6 +958,13 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			},
 		}),
+	);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'intuitaErrorViewId',
+			new ErrorWebviewProvider(context),
+		),
 	);
 
 	messageBus.publish({

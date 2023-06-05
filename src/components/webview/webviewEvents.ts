@@ -336,4 +336,8 @@ export type View =
 				nodeIds: ReadonlyArray<CodemodHash>;
 				publicCodemodsExpanded: boolean;
 			};
+	  }>
+	| Readonly<{
+			viewId: 'errors';
+			viewProps: null;
 	  }>;
