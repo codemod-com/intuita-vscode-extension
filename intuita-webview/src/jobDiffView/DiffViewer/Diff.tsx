@@ -1,4 +1,4 @@
-import { createRef, memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
@@ -19,7 +19,18 @@ export const DiffComponent = memo(
 		onDiffCalculated: (diff: Diff) => void;
 		theme: string;
 	}) => {
-		const editorRef = createRef<editor.IStandaloneDiffEditor>();
+		const editorRef = useRef<editor.IStandaloneDiffEditor>(null);
+
+		useEffect(() => {
+			const editorInstance =
+				editorRef.current?.getModifiedEditor() ?? null;
+
+			if (editorInstance === null) {
+				return;
+			}
+
+			editorInstance.setScrollTop(0);
+		}, [oldFileContent, newFileContent]);
 
 		const getDiffChanges = (
 			editor: editor.IStandaloneDiffEditor,
