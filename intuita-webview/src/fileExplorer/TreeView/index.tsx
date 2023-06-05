@@ -77,7 +77,11 @@ const TreeView = ({
 	stagedJobs,
 }: Props) => {
 	const allFileNodesReady = fileNodes !== null;
+
+	// @TODO  @UX Need to show info message to users.
+	// I typed "App" search term, and saw empty results and i had no idea that i need to type more then 3 chars
 	const userSearchingFile = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+
 	const fileNodeIds = useMemo(
 		() => new Set(fileNodes?.map((node) => node.id) ?? []),
 		[fileNodes],
@@ -223,22 +227,22 @@ const TreeView = ({
 		}
 	}, [focusedNodeId, fileNodeIds]);
 
+	if (fileNodes === null || fileNodes.length === 0) {
+		return null;
+	}
+
 	if (userSearchingFile) {
+		const filteredFiles = fileNodes.filter(
+			(node) =>
+				node.kind === 'fileElement' &&
+				node.id
+					.toLowerCase()
+					.includes(searchQuery.trim().toLocaleLowerCase()),
+		);
+
 		return (
 			<ReactTreeView nodeLabel="">
-				{fileNodes?.map((node, index) => {
-					if (node.kind !== 'fileElement') {
-						return null;
-					}
-					// e.g., cal.com/packages/file.tsx
-					const relativeFilePath = node.id ?? '';
-					const searchingFileFound = relativeFilePath
-						.toLowerCase()
-						.includes(searchQuery);
-					if (!searchingFileFound) {
-						return null;
-					}
-
+				{filteredFiles?.map((node, index) => {
 					const icon = getIcon(node.iconName ?? null, false);
 
 					return (
