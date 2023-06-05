@@ -10,6 +10,7 @@ import * as O from 'fp-ts/Option';
 import { SyntheticError } from '../../../../src/errors/types';
 import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
+import { useKey } from '../../jobDiffView/hooks/useKey';
 
 type Props = {
 	id: CodemodHash;
@@ -28,6 +29,8 @@ type Props = {
 	rootPath: string;
 	executionPath?: T.These<SyntheticError, string>;
 	autocompleteItems: string[];
+	collapse(): void;
+	expand(): void;
 };
 
 const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
@@ -55,10 +58,44 @@ const TreeItem = ({
 	depth,
 	executionPath,
 	autocompleteItems,
+	collapse,
+	expand,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
+
+	const handleEnterKeyDown = () => {
+		if (!focused) {
+			return;
+		}
+
+		onClick();
+	};
+
+	useKey('Enter', handleEnterKeyDown);
+
+	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
+		if (!focused) {
+			return;
+		}
+
+		if (!hasChildren) {
+			return;
+		}
+		if (key === 'ArrowLeft') {
+			collapse();
+		} else {
+			expand();
+		}
+	};
+
+	useKey('ArrowLeft', () => {
+		handleArrowKeyDown('ArrowLeft');
+	});
+	useKey('ArrowRight', () => {
+		handleArrowKeyDown('ArrowRight');
+	});
 
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),
