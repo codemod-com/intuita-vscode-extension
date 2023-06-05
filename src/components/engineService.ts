@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import * as E from 'fp-ts/Either';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
@@ -17,16 +18,18 @@ import {
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
+import { ExecutionError, executionErrorCodec } from '../errors/types';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
 export class InvalidEngineResponseFormatError extends Error {}
 
 export const Messages = {
-	noAffectedFiles: 'The codemod has run successfully but didn’t do anything',
-	noImportedMod: 'No imported codemod was found',
-	errorRunningCodemod: 'An error occurred while running the codemod',
-	codemodUnrecognized: 'The codemod is invalid / unsupported',
+	noAffectedFiles:
+		'The codemod has run successfully but didn’t do anything' as const,
+	noImportedMod: 'No imported codemod was found' as const,
+	errorRunningCodemod: 'An error occurred while running the codemod' as const,
+	codemodUnrecognized: 'The codemod is invalid / unsupported' as const,
 };
 
 const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
@@ -385,15 +388,28 @@ export class EngineService {
 			},
 		);
 
-		const errorMessages = new Set<string>();
+		const executionErrors: ExecutionError[] = [];
 
-		childProcess.stderr.on('data', function (err: unknown) {
-			if (!(err instanceof Buffer)) return;
+		childProcess.stderr.on('data', function (chunk: unknown) {
+			if (!(chunk instanceof Buffer)) {
+				return;
+			}
+
 			try {
-				const error = err.toString();
-				errorMessages.add(error);
-			} catch (err) {
-				console.error(err);
+				const stringifiedChunk = chunk.toString();
+				const json = JSON.parse(stringifiedChunk);
+
+				const validation = executionErrorCodec.decode(json);
+
+				if (E.isLeft(validation)) {
+					throw new Error(
+						`Could not validate the message error: ${stringifiedChunk}`,
+					);
+				}
+
+				executionErrors.push(validation.right);
+			} catch (error) {
+				console.error(error);
 			}
 		});
 
@@ -620,24 +636,27 @@ export class EngineService {
 					case: this.#execution.case,
 				});
 
-				if (!errorMessages.size && !this.#execution.affectedAnyFile) {
+				if (
+					!executionErrors.length &&
+					!this.#execution.affectedAnyFile
+				) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
 
-				errorMessages.forEach((error) => {
-					try {
-						const parsedError = JSON.parse(error);
+				executionErrors.forEach((executionError) => {
+					if (typeof executionError === 'string') {
+						window.showErrorMessage(`Error: ${executionError}`);
+					} else {
+						const kind =
+							executionError.kind ?? 'errorRunningCodemod';
+						const kindTitle =
+							kind === 'unrecognizedCodemod'
+								? Messages.codemodUnrecognized
+								: Messages.errorRunningCodemod;
+
 						window.showErrorMessage(
-							`${
-								'kind' in parsedError &&
-								parsedError.kind === 'unrecognizedCodemod'
-									? Messages.codemodUnrecognized
-									: Messages.errorRunningCodemod
-							}. Error: ${error}`,
+							`${kindTitle}. Error: ${executionError.message}`,
 						);
-					} catch (err) {
-						window.showErrorMessage(`Error: ${error}`);
-						console.error(err);
 					}
 				});
 			}
