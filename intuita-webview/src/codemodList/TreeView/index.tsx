@@ -114,14 +114,14 @@ type State = Readonly<{
 type InitializerArgument = State;
 
 type Action = Readonly<{
-	kind: 'focus' | 'flip';
+	kind: 'focus' | 'flip' | 'open' | 'close';
 	id: CodemodHash;
 }>;
 
 const reducer = (state: State, action: Action): State => {
-	if (action.kind === 'focus') {
-		const openedIds = new Set(state.openedIds);
+	const openedIds = new Set(state.openedIds);
 
+	if (action.kind === 'focus') {
 		containsCodemodHashDigest(state.node, action.id, openedIds);
 
 		return {
@@ -132,12 +132,32 @@ const reducer = (state: State, action: Action): State => {
 	}
 
 	if (action.kind === 'flip') {
-		const openedIds = new Set(state.openedIds);
-
 		if (openedIds.has(action.id)) {
 			openedIds.delete(action.id);
 		} else {
 			openedIds.add(action.id);
+		}
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'open') {
+		openedIds.add(action.id);
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'close') {
+		if (openedIds.has(action.id)) {
+			openedIds.delete(action.id);
 		}
 
 		return {
@@ -371,6 +391,18 @@ const TreeView = ({
 					});
 				}}
 				actionButtons={getActionButtons()}
+				collapse={() => {
+					dispatch({
+						kind: 'close',
+						id: node.id,
+					});
+				}}
+				expand={() => {
+					dispatch({
+						kind: 'open',
+						id: node.id,
+					});
+				}}
 			/>
 		);
 	};
