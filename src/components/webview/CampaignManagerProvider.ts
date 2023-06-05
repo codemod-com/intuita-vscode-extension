@@ -93,12 +93,12 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __selectCase(hash: CaseHash) {
-		// where does that come from?
 		const node = this.__treeMap.get(hash) ?? null;
 
 		if (node === null) {
 			return;
 		}
+
 		this.__postMessage({
 			kind: 'webview.campaignManager.selectCase',
 			node,

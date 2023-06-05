@@ -505,7 +505,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
 
-				
+				vscode.commands.executeCommand(
+					'workbench.view.extension.intuitaErrorViewId',
+				);
+				errorWebviewProvider.showView();
 				errorWebviewProvider.setView();
 			},
 		),

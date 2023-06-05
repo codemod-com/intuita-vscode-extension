@@ -37,6 +37,10 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		);
 	}
 
+	public showView() {
+		this.__webviewView?.show();
+	}
+
 	public setView() {
 		const viewProps = this.__buildViewProps();
 
