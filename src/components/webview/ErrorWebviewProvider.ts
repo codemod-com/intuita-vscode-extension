@@ -36,11 +36,17 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
 
+		const viewProps = this.__buildViewProps();
+
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'errors',
-			JSON.stringify({}),
+			JSON.stringify({
+				viewProps,
+			}),
 		);
+
+		this.setView();
 	}
 
 	public showView() {
@@ -60,14 +66,15 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	}
 
 	private __buildViewProps(): ViewProps {
-		const cashHash = this.__workspaceState.getSelectedCaseHash();
+		const caseHash = this.__workspaceState.getSelectedCaseHash();
 
 		const executionErrors =
-			cashHash !== null
-				? this.__workspaceState.getExecutionErrors(cashHash)
+			caseHash !== null
+				? this.__workspaceState.getExecutionErrors(caseHash)
 				: [];
 
 		return {
+			caseHash,
 			executionErrors,
 		};
 	}

@@ -340,6 +340,7 @@ export type View =
 	| Readonly<{
 			viewId: 'errors';
 			viewProps: Readonly<{
+				caseHash: CaseHash | null;
 				executionErrors: ReadonlyArray<ExecutionError>;
 			}>;
 	  }>;

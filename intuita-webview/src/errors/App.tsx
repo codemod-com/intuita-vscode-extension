@@ -12,10 +12,10 @@ import type {
 import { vscode } from '../shared/utilities/vscode';
 import { ExecutionError } from '../../../src/errors/types';
 
-type ErrorView = Extract<View, { viewId: 'errors' }>;
+type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
 const header = (
-	<VSCodeDataGridRow row-type="header">
+	<VSCodeDataGridRow row-type="sticky-header">
 		<VSCodeDataGridCell cell-type="columnheader" grid-column="1">
 			Kind
 		</VSCodeDataGridCell>
@@ -58,7 +58,9 @@ const buildExecutionErrorRow = (
 };
 
 export const App = () => {
-	const [view, setView] = useState<ErrorView | null>(null);
+	const [viewProps, setViewProps] = useState<ViewProps>(
+		(window as any).INITIAL_STATE.viewProps, // TODO fix types
+	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -66,7 +68,7 @@ export const App = () => {
 
 			if (message.kind === 'webview.global.setView') {
 				if (message.value.viewId === 'errors') {
-					setView(message.value);
+					setViewProps(message.value.viewProps);
 				}
 			}
 		};
@@ -79,7 +81,9 @@ export const App = () => {
 		};
 	}, []);
 
-	if (!view) {
+	const { caseHash, executionErrors } = viewProps;
+
+	if (caseHash === null) {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
@@ -88,8 +92,6 @@ export const App = () => {
 			</main>
 		);
 	}
-
-	const { executionErrors } = view.viewProps;
 
 	if (executionErrors.length === 0) {
 		return (
@@ -105,7 +107,7 @@ export const App = () => {
 
 	return (
 		<main>
-			<VSCodeDataGrid>
+			<VSCodeDataGrid gridTemplateColumns="10% 45% 45%">
 				{header}
 				{rows}
 			</VSCodeDataGrid>
