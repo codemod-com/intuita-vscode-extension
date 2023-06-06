@@ -3,6 +3,13 @@ import { ReactNode } from 'react';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 
+const getIndex = (
+	nodes: ReadonlyArray<CodemodTreeNode>,
+	hash: CodemodHash | null,
+): number => {
+	return nodes.findIndex((_node) => hash === _node.id);
+};
+
 type Props = {
 	rootPath: string;
 	depth: number;
@@ -18,6 +25,7 @@ type Props = {
 	hashesForSearch: ReadonlySet<CodemodHash>;
 	searchingCodemod: boolean;
 	nodeIds: ReadonlyArray<CodemodHash>;
+	nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
 	onFocusNode(id: CodemodHash): void;
 	focusedId: CodemodHash | null;
 };
@@ -31,6 +39,7 @@ const Tree = ({
 	hashesForSearch,
 	searchingCodemod,
 	nodeIds,
+	nodesByDepth,
 	onFocusNode,
 	focusedId,
 }: Props) => {
@@ -40,8 +49,102 @@ const Tree = ({
 		: node.children.filter((child) => hashesForSearch.has(child.id));
 
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
-		const currIndex = nodeIds.findIndex((val) => val === focusedId ?? 0);
-		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
+		if (node.id !== focusedId) {
+			return;
+		}
+
+		const nodesAtCurrentDepth = nodesByDepth[depth] ?? [];
+		const indexAmongNodesAtCurrentDepth = getIndex(
+			nodesAtCurrentDepth,
+			node.id,
+		);
+		if (indexAmongNodesAtCurrentDepth === -1) {
+			return;
+		}
+
+		if (
+			key === 'ArrowDown' &&
+			node.kind === 'path' &&
+			!openedIds.has(node.id)
+		) {
+			// if exists, shift to the next sibling
+			const nextNodeAtCurrentDepth =
+				nodesAtCurrentDepth[indexAmongNodesAtCurrentDepth + 1] ?? null;
+			if (
+				nextNodeAtCurrentDepth !== null &&
+				nextNodeAtCurrentDepth.parentId === node.parentId
+			) {
+				onFocusNode(nextNodeAtCurrentDepth.id);
+				return;
+			}
+
+			// since the next sibling doesn't exist,
+			// shift to the parent's next sibling
+			const nodesAtPrevDepth: ReadonlyArray<CodemodTreeNode> =
+				nodesByDepth[depth - 1] ?? [];
+			const parentIndexInNodesByDepth = getIndex(
+				nodesAtPrevDepth,
+				node.parentId,
+			);
+
+			if (parentIndexInNodesByDepth === -1) {
+				return;
+			}
+
+			const parentNextSiblingNode =
+				nodesAtPrevDepth[parentIndexInNodesByDepth + 1] ?? null;
+
+			if (parentNextSiblingNode === null) {
+				return;
+			}
+
+			onFocusNode(parentNextSiblingNode.id);
+			return;
+		}
+
+		const prevNodeAtCurrentDepth =
+			nodesAtCurrentDepth[indexAmongNodesAtCurrentDepth - 1] ?? null;
+
+		if (
+			key === 'ArrowUp' &&
+			node.kind === 'path' &&
+			prevNodeAtCurrentDepth !== null &&
+			prevNodeAtCurrentDepth.parentId === node.parentId
+		) {
+			// if exists and collapsed, shift to the previous sibling
+			if (!openedIds.has(prevNodeAtCurrentDepth.id)) {
+				onFocusNode(prevNodeAtCurrentDepth.id);
+				return;
+			}
+
+			// since the previous sibling is expanded,
+			// if collapsed, shift to the child's last sibling
+			const nodesAtNextDepth: ReadonlyArray<CodemodTreeNode> =
+				nodesByDepth[depth + 1] ?? [];
+			const lastChildInNodesByDepth =
+				nodesAtNextDepth
+					.slice()
+					.reverse()
+					.find(
+						(node) => node.parentId === prevNodeAtCurrentDepth.id,
+					) ?? null;
+
+			if (
+				lastChildInNodesByDepth !== null &&
+				!openedIds.has(lastChildInNodesByDepth.id)
+			) {
+				onFocusNode(lastChildInNodesByDepth.id);
+				return;
+			}
+		}
+
+		const currIndexInAllNodes = nodeIds.findIndex(
+			(val) => val === focusedId ?? 0,
+		);
+		const newIndex =
+			key === 'ArrowUp'
+				? currIndexInAllNodes - 1
+				: currIndexInAllNodes + 1;
 		const nodeIdToFocus = nodeIds[newIndex] ?? null;
 
 		if (nodeIdToFocus === null) {
@@ -71,6 +174,7 @@ const Tree = ({
 						rootPath={rootPath}
 						focusedId={focusedId}
 						nodeIds={nodeIds}
+						nodesByDepth={nodesByDepth}
 						onFocusNode={onFocusNode}
 						searchingCodemod={searchingCodemod}
 						hashesForSearch={hashesForSearch}
@@ -92,6 +196,7 @@ const Tree = ({
 					rootPath={rootPath}
 					focusedId={focusedId}
 					nodeIds={nodeIds}
+					nodesByDepth={nodesByDepth}
 					onFocusNode={onFocusNode}
 					hashesForSearch={hashesForSearch}
 					searchingCodemod={searchingCodemod}

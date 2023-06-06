@@ -22,6 +22,7 @@ type Props = Readonly<{
 	autocompleteItems: string[];
 	openedIds: ReadonlySet<CodemodHash>;
 	nodeIds: ReadonlyArray<CodemodHash>;
+	nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
 	focusedId: CodemodHash | null;
 	searchQuery: string;
 }>;
@@ -195,6 +196,7 @@ const TreeView = ({
 	focusedId,
 	searchQuery,
 	nodeIds,
+	nodesByDepth,
 }: Props) => {
 	const rootPath = node.label;
 	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
@@ -418,6 +420,7 @@ const TreeView = ({
 				hashesForSearch={hashesForSearch}
 				searchingCodemod={userSearchingCodemod}
 				nodeIds={nodeIds}
+				nodesByDepth={nodesByDepth}
 				focusedId={state.focusedId}
 				onFocusNode={(id: CodemodHash) => {
 					dispatch({

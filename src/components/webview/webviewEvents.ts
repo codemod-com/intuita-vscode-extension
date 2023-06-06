@@ -56,7 +56,9 @@ export type CodemodTreeNode = {
 	uri: string;
 	label: string;
 	children: CodemodTreeNode[];
+	depth: number;
 	description?: string;
+	parentId: CodemodHash | null;
 	iconName?: string;
 	command?:
 		| Command & {
@@ -334,6 +336,7 @@ export type View =
 				openedIds: ReadonlyArray<CodemodHash>;
 				focusedId: CodemodHash | null;
 				nodeIds: ReadonlyArray<CodemodHash>;
+				nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
 				publicCodemodsExpanded: boolean;
 			};
 	  }>
