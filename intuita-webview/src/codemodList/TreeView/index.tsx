@@ -95,7 +95,7 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return <BlueLightBulbIcon />;
 };
 
-const handleClick = (node: CodemodTreeNode) => {
+const handleDoubleClick = (node: CodemodTreeNode) => {
 	if (!node.command) {
 		return;
 	}
@@ -391,7 +391,7 @@ const TreeView = ({
 					});
 				}}
 				onDoubleClick={() => {
-					handleClick(node);
+					handleDoubleClick(node);
 				}}
 				actionButtons={getActionButtons()}
 				collapse={() => {
