@@ -464,7 +464,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (hash !== null) {
 				this.__lastSelectedCaseHash = hash;
 
-				this.updateExplorerView(this.__lastSelectedCaseHash);
+				// this.updateExplorerView(this.__lastSelectedCaseHash);
 			}
 		});
 	}
