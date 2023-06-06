@@ -105,7 +105,7 @@ export const App = () => {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
-					No execution errors found for the selected codemon run.
+					No execution errors found for the selected codemod run.
 				</p>
 			</main>
 		);
