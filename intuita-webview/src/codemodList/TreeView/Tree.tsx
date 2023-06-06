@@ -128,16 +128,17 @@ const Tree = ({
 			const nodesAtNextDepth: ReadonlyArray<CodemodTreeNode> =
 				nodesByDepth[depth + 1] ?? [];
 			const lastChildInNodesByDepth =
-				nodesAtNextDepth.slice().reverse().find(
-					(node) => node.parentId === prevNodeAtCurrentDepth.id,
-				) ?? null;
+				nodesAtNextDepth
+					.slice()
+					.reverse()
+					.find(
+						(node) => node.parentId === prevNodeAtCurrentDepth.id,
+					) ?? null;
 
-			if (lastChildInNodesByDepth === null) {
-				onFocusNode(prevNodeAtCurrentDepth.id);
-				return;
-			}
-
-			if (!openedIds.has(lastChildInNodesByDepth.id)) {
+			if (
+				lastChildInNodesByDepth !== null &&
+				!openedIds.has(lastChildInNodesByDepth.id)
+			) {
 				onFocusNode(lastChildInNodesByDepth.id);
 				return;
 			}
