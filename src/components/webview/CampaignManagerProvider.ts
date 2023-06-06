@@ -148,18 +148,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 	}
 
-	refresh(): void {
-		if (!this.__webviewView) {
-			return;
-		}
-
-		this.__webviewResolver.resolveWebview(
-			this.__webviewView.webview,
-			'campaignManager',
-			'{}',
-		);
-	}
-
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
 
@@ -183,10 +171,15 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(data: View) {
+	public setView() {
+		const viewProps = this.__buildViewProps();
+
 		this.__postMessage({
 			kind: 'webview.global.setView',
-			value: data,
+			value: {
+				viewId: 'campaignManagerView',
+				viewProps,
+			},
 		});
 	}
 
@@ -226,36 +219,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __onClearStateMessage() {
-		this.setView({
-			viewId: 'campaignManagerView',
-			viewProps: {
-				selectedCaseHash: null,
-				nodes: [],
-			},
-		});
+		this.setView();
 	}
 
 	private __onUpdateElementsMessage() {
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
-		const jobMap = this.__buildJobMap(casesWithJobHashes);
-
-		const [caseElements] = buildCaseElementsAndLatestJob(
-			rootPath,
-			casesWithJobHashes,
-			jobMap,
-		);
-
-		const caseNodes = caseElements.map(this.__buildCaseTree);
-
-		this.setView({
-			viewId: 'campaignManagerView',
-			viewProps: {
-				selectedCaseHash: this.__workspaceState.getSelectedCaseHash(),
-				nodes: caseNodes,
-			},
-		});
+		this.setView();
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {

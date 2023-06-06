@@ -21,7 +21,9 @@ const executeNodeCommands = (node: CaseTreeNode) => {
 type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
 function App() {
-	const [viewProps, setViewProps] = useState<ViewProps | null>(null);
+	const [viewProps, setViewProps] = useState<ViewProps>(
+		window.INITIAL_STATE.viewProps as ViewProps,
+	);
 
 	const handleItemClick = useCallback((node: CaseTreeNode) => {
 		vscode.postMessage({
