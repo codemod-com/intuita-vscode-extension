@@ -9,7 +9,7 @@ type Props = {
 	placeholder: string;
 };
 
-export const SEARCH_QUERY_MIN_LENGTH = 3;
+export const SEARCH_QUERY_MIN_LENGTH = 0;
 
 const SearchBar = ({ searchQuery, setSearchQuery, placeholder }: Props) => {
 	return (
