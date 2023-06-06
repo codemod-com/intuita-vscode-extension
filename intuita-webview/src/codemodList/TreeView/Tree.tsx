@@ -6,14 +6,8 @@ import { useKey } from '../../jobDiffView/hooks/useKey';
 const getIndex = (
 	nodes: ReadonlyArray<CodemodTreeNode>,
 	hash: CodemodHash | null,
-): number | null => {
-	if (hash === null) {
-		return null;
-	}
-
-	const indexInNodesByDepth =
-		nodes.findIndex((_node) => hash === _node.id) ?? null;
-	return indexInNodesByDepth;
+): number => {
+	return nodes.findIndex((_node) => hash === _node.id) ?? null;
 };
 
 type Props = {
@@ -64,7 +58,7 @@ const Tree = ({
 			nodesAtCurrentDepth,
 			node.id,
 		);
-		if (indexAmongNodesAtCurrentDepth === null) {
+		if (indexAmongNodesAtCurrentDepth === -1) {
 			return;
 		}
 
@@ -93,7 +87,7 @@ const Tree = ({
 				node.parentId,
 			);
 
-			if (parentIndexInNodesByDepth === null) {
+			if (parentIndexInNodesByDepth === -1) {
 				return;
 			}
 
