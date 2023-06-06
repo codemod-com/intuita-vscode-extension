@@ -457,6 +457,16 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			// when job elements are updated, refresh the view
 			this.updateExplorerView(this.__lastSelectedCaseHash);
 		});
+
+		this.__addHook(MessageKind.upsertCases, (message) => {
+			const hash = message.casesWithJobHashes[0]?.hash ?? null;
+
+			if (hash !== null) {
+				this.__lastSelectedCaseHash = hash;
+
+				this.updateExplorerView(this.__lastSelectedCaseHash);
+			}
+		});
 	}
 
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
