@@ -105,7 +105,8 @@ export const App = () => {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
-					No execution errors found for the selected codemod run.
+					No execution errors found for the selected codemod run. $
+					{caseHash}
 				</p>
 			</main>
 		);

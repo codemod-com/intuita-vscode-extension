@@ -502,7 +502,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
-				workspaceState.setSelectedCaseHash(caseHash);
 
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();

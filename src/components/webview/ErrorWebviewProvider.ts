@@ -44,7 +44,21 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			JSON.stringify({
 				viewProps,
 			}),
+			false,
 		);
+
+		this.__webviewView.onDidChangeVisibility(() => {
+			const viewProps = this.__buildViewProps();
+
+			this.__webviewResolver.resolveWebview(
+				webviewView.webview,
+				'errors',
+				JSON.stringify({
+					viewProps,
+				}),
+				false,
+			);
+		});
 	}
 
 	public showView() {
