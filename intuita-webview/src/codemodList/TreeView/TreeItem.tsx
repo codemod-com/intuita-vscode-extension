@@ -68,9 +68,21 @@ const TreeItem = ({
 	const [editingPath, setEditingPath] = useState(false);
 
 	useEffect(() => {
-		if (focused) {
-			ref.current?.scrollIntoView(false);
+		if (!focused) {
+			return;
 		}
+
+		const timeout = setTimeout(() => {
+			ref.current?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'center',
+				inline: 'center',
+			});
+		}, 500);
+
+		return () => {
+			clearTimeout(timeout);
+		};
 	}, [focused]);
 
 	const handleEnterKeyDown = () => {
