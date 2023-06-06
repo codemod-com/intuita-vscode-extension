@@ -434,7 +434,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 				modKind: repomodHashes.includes(hash)
 					? 'repomod'
 					: 'executeCodemod',
-				command: {
+				doubleClickCommand: {
 					title: 'Show codemod metadata',
 					command: 'intuita.showCodemodMetadata',
 					arguments: [name],

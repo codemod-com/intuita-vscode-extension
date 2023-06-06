@@ -24,6 +24,7 @@ type Props = {
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
+	onDoubleClick(): void;
 	depth: number;
 	disabled: boolean;
 	rootPath: string;
@@ -55,6 +56,7 @@ const TreeItem = ({
 	actionButtons,
 	hasChildren,
 	onClick,
+	onDoubleClick,
 	depth,
 	executionPath,
 	autocompleteItems,
@@ -66,9 +68,21 @@ const TreeItem = ({
 	const [editingPath, setEditingPath] = useState(false);
 
 	useEffect(() => {
-		if (focused) {
-			ref.current?.scrollIntoView(false);
+		if (!focused) {
+			return;
 		}
+
+		const timeout = setTimeout(() => {
+			ref.current?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'center',
+				inline: 'center',
+			});
+		}, 500);
+
+		return () => {
+			clearTimeout(timeout);
+		};
 	}, [focused]);
 
 	const handleEnterKeyDown = () => {
@@ -76,7 +90,7 @@ const TreeItem = ({
 			return;
 		}
 
-		onClick();
+		onDoubleClick();
 	};
 
 	useKey('Enter', handleEnterKeyDown);
@@ -146,9 +160,8 @@ const TreeItem = ({
 			id={id}
 			ref={ref}
 			className={cn(styles.root, focused && styles.focused)}
-			onClick={() => {
-				onClick();
-			}}
+			onClick={onClick}
+			onDoubleClick={onDoubleClick}
 		>
 			<div
 				style={{
@@ -189,7 +202,22 @@ const TreeItem = ({
 			)}
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
-					{!editingPath && <span>{label}</span>}
+					<Popover
+						trigger={
+							<span
+								style={{
+									...(editingPath && {
+										display: 'none',
+									}),
+									userSelect: 'none',
+								}}
+							>
+								{label}
+							</span>
+						}
+						popoverText="Double-click to open the documentation."
+						disabled={editingPath}
+					/>
 					<span
 						className={styles.directorySelector}
 						style={{

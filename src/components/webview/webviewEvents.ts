@@ -60,7 +60,8 @@ export type CodemodTreeNode = {
 	description?: string;
 	parentId: CodemodHash | null;
 	iconName?: string;
-	command?:
+	command?: Command;
+	doubleClickCommand?:
 		| Command & {
 				command: 'intuita.showCodemodMetadata';
 				arguments: [string];
