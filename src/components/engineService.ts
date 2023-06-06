@@ -19,6 +19,7 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
+import { WorkspaceState } from '../persistedState/workspaceState';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -138,6 +139,7 @@ export class EngineService {
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
+		private readonly __workspaceState: WorkspaceState,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
@@ -612,6 +614,8 @@ export class EngineService {
 			};
 
 			this.#execution.case = caseWithJobHashes;
+
+			this.__workspaceState.setSelectedCaseHash(caseWithJobHashes.hash);
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
