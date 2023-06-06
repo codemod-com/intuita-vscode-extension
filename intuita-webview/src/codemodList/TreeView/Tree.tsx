@@ -7,7 +7,7 @@ const getIndex = (
 	nodes: ReadonlyArray<CodemodTreeNode>,
 	hash: CodemodHash | null,
 ): number => {
-	return nodes.findIndex((_node) => hash === _node.id) ?? null;
+	return nodes.findIndex((_node) => hash === _node.id);
 };
 
 type Props = {
