@@ -34,6 +34,8 @@ import {
 import { CaseManager } from '../../cases/caseManager';
 import { WorkspaceState } from '../../persistedState/workspaceState';
 
+type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
+
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -329,5 +331,27 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	private __attachWebviewEventListeners() {
 		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+	}
+
+	private __buildViewProps(): ViewProps {
+		const selectedCaseHash = this.__workspaceState.getSelectedCaseHash();
+
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
+		const jobMap = this.__buildJobMap(casesWithJobHashes);
+
+		const [caseElements] = this.__buildCaseElementsAndLatestJob(
+			rootPath,
+			casesWithJobHashes,
+			jobMap,
+		);
+
+		const nodes = caseElements.map(this.__buildCaseTree);
+
+		return {
+			selectedCaseHash,
+			nodes,
+		};
 	}
 }
