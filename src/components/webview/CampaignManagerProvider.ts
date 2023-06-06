@@ -7,12 +7,7 @@ import {
 	commands,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
-import {
-	CaseTreeNode,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { CaseTreeNode, View, WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { CaseElement, FileElement } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
@@ -32,81 +27,154 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
+import { WorkspaceState } from '../../persistedState/workspaceState';
+
+type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
+
+const buildCaseElementsAndLatestJob = (
+	rootPath: string,
+	casesWithJobHashes: Iterable<CaseWithJobHashes>,
+	jobMap: ReadonlyMap<JobHash, Job>,
+): [ReadonlyArray<CaseElement>, Job | null] => {
+	let latestJob: Job | null = null;
+
+	const unsortedCaseElements: CaseElement[] = [];
+
+	for (const caseWithJobHashes of casesWithJobHashes) {
+		const jobs: Job[] = [];
+
+		for (const jobHash of caseWithJobHashes.jobHashes) {
+			const job = jobMap.get(jobHash);
+
+			if (job === undefined) {
+				continue;
+			}
+
+			jobs.push(job);
+
+			if (latestJob === null || latestJob.createdAt < job.createdAt) {
+				latestJob = job;
+			}
+		}
+
+		const uriSet = new Set<Uri>();
+		for (const job of jobs) {
+			if (
+				[
+					JobKind.createFile,
+					JobKind.moveFile,
+					JobKind.moveAndRewriteFile,
+					JobKind.copyFile,
+				].includes(job.kind) &&
+				job.newUri
+			) {
+				uriSet.add(job.newUri);
+			}
+
+			if (
+				[JobKind.rewriteFile, JobKind.deleteFile].includes(job.kind) &&
+				job.oldUri
+			) {
+				uriSet.add(job.oldUri);
+			}
+		}
+
+		const uris = Array.from(uriSet);
+
+		const children = uris.map((uri): FileElement => {
+			const label = uri.fsPath.replace(rootPath, '');
+
+			const children = jobs
+				.filter(
+					(job) =>
+						job.newUri?.toString() === uri.toString() ||
+						job.oldUri?.toString() === uri.toString(),
+				)
+				.map((job) => buildJobElement(job, rootPath));
+
+			return buildFileElement(caseWithJobHashes.hash, label, children);
+		});
+
+		unsortedCaseElements.push(
+			buildCaseElement(caseWithJobHashes, children),
+		);
+	}
+
+	const sortedCaseElements = unsortedCaseElements
+		.sort(compareCaseElements)
+		.map((caseElement) => {
+			const children = caseElement.children
+				.slice()
+				.sort(compareFileElements)
+				.map((fileElement) => {
+					const children = fileElement.children
+						.slice()
+						.sort(compareJobElements);
+
+					return {
+						...fileElement,
+						children,
+					};
+				});
+
+			return {
+				...caseElement,
+				children,
+			};
+		});
+
+	return [sortedCaseElements, latestJob];
+};
 
 export class CampaignManagerProvider implements WebviewViewProvider {
-	__view: WebviewView | null = null;
-	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver;
-	__treeMap = new Map<CaseHash, CaseTreeNode>();
+	private __webviewView: WebviewView | null = null;
+	private readonly __webviewResolver: WebviewResolver;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __workspaceState: WorkspaceState,
 	) {
-		this.__extensionPath = context.extensionUri;
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
-	}
-
-	refresh(): void {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__webviewResolver.resolveWebview(
-			this.__view.webview,
-			'campaignManager',
-			'{}',
-		);
+		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
-		if (!webviewView.webview) {
-			return;
-		}
+		this.__webviewView = webviewView;
+
+		const viewProps = this.__buildViewProps();
 
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'campaignManager',
-			'{}',
+			JSON.stringify({
+				viewProps,
+			}),
 		);
-		this.__view = webviewView;
-
-		this.__view.onDidChangeVisibility(() => {
-			this.__onUpdateElementsMessage();
-		});
 
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(data: View) {
+	public setView() {
+		const viewProps = this.__buildViewProps();
+
 		this.__postMessage({
 			kind: 'webview.global.setView',
-			value: data,
+			value: {
+				viewId: 'campaignManagerView',
+				viewProps,
+			},
 		});
 	}
 
 	public showView() {
-		this.__view?.show();
-	}
-
-	private __selectCase(hash: CaseHash) {
-		const node = this.__treeMap.get(hash) ?? null;
-
-		if (node === null) {
-			return;
-		}
-
-		this.__postMessage({
-			kind: 'webview.campaignManager.selectCase',
-			node,
-		});
+		this.__webviewView?.show();
 	}
 
 	private __postMessage(message: WebviewMessage) {
-		this.__view?.webview.postMessage(message);
+		this.__webviewView?.webview.postMessage(message);
 	}
 
 	private __addHook<T extends MessageKind>(
@@ -136,147 +204,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		return map;
 	}
 
-	__buildCaseElementsAndLatestJob(
-		rootPath: string,
-		casesWithJobHashes: Iterable<CaseWithJobHashes>,
-		jobMap: ReadonlyMap<JobHash, Job>,
-	): [ReadonlyArray<CaseElement>, Job | null] {
-		let latestJob: Job | null = null;
-
-		const unsortedCaseElements: CaseElement[] = [];
-
-		for (const caseWithJobHashes of casesWithJobHashes) {
-			const jobs: Job[] = [];
-
-			for (const jobHash of caseWithJobHashes.jobHashes) {
-				const job = jobMap.get(jobHash);
-
-				if (job === undefined) {
-					continue;
-				}
-
-				jobs.push(job);
-
-				if (latestJob === null || latestJob.createdAt < job.createdAt) {
-					latestJob = job;
-				}
-			}
-
-			const uriSet = new Set<Uri>();
-			for (const job of jobs) {
-				if (
-					[
-						JobKind.createFile,
-						JobKind.moveFile,
-						JobKind.moveAndRewriteFile,
-						JobKind.copyFile,
-					].includes(job.kind) &&
-					job.newUri
-				) {
-					uriSet.add(job.newUri);
-				}
-
-				if (
-					[JobKind.rewriteFile, JobKind.deleteFile].includes(
-						job.kind,
-					) &&
-					job.oldUri
-				) {
-					uriSet.add(job.oldUri);
-				}
-			}
-
-			const uris = Array.from(uriSet);
-
-			const children = uris.map((uri): FileElement => {
-				const label = uri.fsPath.replace(rootPath, '');
-
-				const children = jobs
-					.filter(
-						(job) =>
-							job.newUri?.toString() === uri.toString() ||
-							job.oldUri?.toString() === uri.toString(),
-					)
-					.map((job) => buildJobElement(job, rootPath));
-
-				return buildFileElement(
-					caseWithJobHashes.hash,
-					label,
-					children,
-				);
-			});
-
-			unsortedCaseElements.push(
-				buildCaseElement(caseWithJobHashes, children),
-			);
-		}
-
-		const sortedCaseElements = unsortedCaseElements
-			.sort(compareCaseElements)
-			.map((caseElement) => {
-				const children = caseElement.children
-					.slice()
-					.sort(compareFileElements)
-					.map((fileElement) => {
-						const children = fileElement.children
-							.slice()
-							.sort(compareJobElements);
-
-						return {
-							...fileElement,
-							children,
-						};
-					});
-
-				return {
-					...caseElement,
-					children,
-				};
-			});
-
-		return [sortedCaseElements, latestJob];
-	}
-
-	private __onClearStateMessage() {
-		this.setView({
-			viewId: 'campaignManagerView',
-			viewProps: null,
-		});
-	}
-
-	private __onUpdateElementsMessage() {
-		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
-
-		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
-		const jobMap = this.__buildJobMap(casesWithJobHashes);
-
-		const [caseElements] = this.__buildCaseElementsAndLatestJob(
-			rootPath,
-			casesWithJobHashes,
-			jobMap,
-		);
-
-		const caseNodes = caseElements.map(this.__buildCaseTree);
-
-		this.setView({
-			viewId: 'campaignManagerView',
-			viewProps:
-				caseNodes.length > 0
-					? {
-							nodes: caseNodes,
-					  }
-					: null,
-		});
-
-		const newCaseHash = this.__caseManager.getNewCaseHash();
-		if (newCaseHash !== null) {
-			this.__selectCase(newCaseHash);
-		}
-	}
-
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
 		const caseHash = element.hash as unknown as CaseHash;
-		const mappedNode: CaseTreeNode = {
+
+		return {
 			id: caseHash,
 			iconName: 'case.svg',
 			label: element.label,
@@ -296,47 +227,73 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			],
 			caseApplied: false,
 		};
-
-		this.__treeMap.set(caseHash, mappedNode);
-
-		return mappedNode;
 	};
 
 	private __attachExtensionEventListeners() {
 		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.__onUpdateElementsMessage();
+			this.setView();
 		}, 100);
 
-		this.__addHook(MessageKind.updateElements, (message) => {
-			debouncedOnUpdateElementsMessage(message);
-		});
-
-		this.__addHook(MessageKind.clearState, () =>
-			this.__onClearStateMessage(),
+		this.__addHook(
+			MessageKind.updateElements,
+			debouncedOnUpdateElementsMessage,
 		);
 
-		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
-			if (!message.case.hash) {
-				return;
+		this.__addHook(MessageKind.clearState, () => {
+			this.setView();
+		});
+
+		this.__addHook(MessageKind.upsertCases, (message) => {
+			const hash = message.casesWithJobHashes[0]?.hash ?? null;
+
+			if (hash !== null) {
+				commands.executeCommand('intuita.openCaseDiff', hash);
 			}
+		});
+
+		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
 			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
 		});
 	}
 
-	private __onDidReceiveMessage = (message: WebviewResponse) => {
-		if (message.kind === 'webview.command') {
-			commands.executeCommand(
-				message.value.command,
-				...(message.value.arguments ?? []),
-			);
-		}
-
-		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.__onUpdateElementsMessage();
-		}
-	};
-
 	private __attachWebviewEventListeners() {
-		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this.__webviewView?.webview.onDidReceiveMessage((message) => {
+			if (message.kind === 'webview.command') {
+				commands.executeCommand(
+					message.value.command,
+					...(message.value.arguments ?? []),
+				);
+			}
+
+			if (
+				message.kind === 'webview.campaignManager.setSelectedCaseHash'
+			) {
+				this.__workspaceState.setSelectedCaseHash(message.caseHash);
+
+				this.setView();
+			}
+		});
+	}
+
+	private __buildViewProps(): ViewProps {
+		const selectedCaseHash = this.__workspaceState.getSelectedCaseHash();
+
+		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
+
+		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
+		const jobMap = this.__buildJobMap(casesWithJobHashes);
+
+		const [caseElements] = buildCaseElementsAndLatestJob(
+			rootPath,
+			casesWithJobHashes,
+			jobMap,
+		);
+
+		const nodes = caseElements.map(this.__buildCaseTree);
+
+		return {
+			selectedCaseHash,
+			nodes,
+		};
 	}
 }

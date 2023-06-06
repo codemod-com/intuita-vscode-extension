@@ -2,21 +2,22 @@ import { CaseTreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import styles from './style.module.css';
 import TreeItem from '../../shared/TreeItem';
+import { CaseHash } from '../../../../src/cases/types';
 
 type Props = {
 	nodes: CaseTreeNode[];
-	selectedCaseNode: CaseTreeNode | null;
+	selectedCaseHash: CaseHash | null;
 	onItemClick(node: CaseTreeNode): void;
 };
 
-const ListView = ({ nodes, selectedCaseNode, onItemClick }: Props) => {
+const ListView = ({ nodes, selectedCaseHash, onItemClick }: Props) => {
 	return (
 		<div className={styles.container}>
 			{nodes.map((node, index) => {
 				return (
 					<TreeItem
 						key={node.id}
-						hasChildren={(node.children?.length ?? 0) !== 0}
+						hasChildren={node.children.length !== 0}
 						id={node.id}
 						label={node.label ?? ''}
 						subLabel=""
@@ -24,11 +25,7 @@ const ListView = ({ nodes, selectedCaseNode, onItemClick }: Props) => {
 						depth={0}
 						kind={node.kind}
 						open={false}
-						focused={
-							selectedCaseNode !== null
-								? node.id === selectedCaseNode.id
-								: false
-						}
+						focused={node.id === selectedCaseHash}
 						actionButtons={null}
 						index={index}
 						onClick={() => {

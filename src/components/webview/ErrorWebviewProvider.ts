@@ -46,7 +46,17 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			}),
 		);
 
-		this.setView();
+		this.__webviewView.onDidChangeVisibility(() => {
+			const viewProps = this.__buildViewProps();
+
+			this.__webviewResolver.resolveWebview(
+				webviewView.webview,
+				'errors',
+				JSON.stringify({
+					viewProps,
+				}),
+			);
+		});
 	}
 
 	public showView() {

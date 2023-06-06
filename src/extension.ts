@@ -85,10 +85,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		fileSystemUtilities,
 	);
 
+	const workspaceState = new WorkspaceState(
+		context.workspaceState,
+		rootPath ?? '/',
+		messageBus,
+	);
+
 	const engineService = new EngineService(
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
+		workspaceState,
 	);
 
 	new BootstrapExecutablesService(
@@ -124,12 +131,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		new IntuitaTextDocumentContentProvider();
 
 	const codemodService = new CodemodService(rootPath, engineService);
-
-	const workspaceState = new WorkspaceState(
-		context.workspaceState,
-		rootPath ?? '/',
-		messageBus,
-	);
 
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
 		context,
@@ -285,6 +286,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
+		workspaceState,
 	);
 
 	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
@@ -500,7 +502,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
-				workspaceState.setSelectedCaseHash(caseHash);
 
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();

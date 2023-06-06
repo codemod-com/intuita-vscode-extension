@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import ListView from './ListView';
 import styles from './style.module.css';
@@ -9,7 +9,12 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
-const executeNodeCommands = (node: CaseTreeNode) => {
+const handleItemClick = (node: CaseTreeNode) => {
+	vscode.postMessage({
+		kind: 'webview.campaignManager.setSelectedCaseHash',
+		caseHash: node.id,
+	});
+
 	node.commands?.forEach((command) => {
 		vscode.postMessage({
 			kind: 'webview.command',
@@ -18,17 +23,12 @@ const executeNodeCommands = (node: CaseTreeNode) => {
 	});
 };
 
-type MainViews = Extract<View, { viewId: 'campaignManagerView' }>;
+type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
 function App() {
-	const [view, setView] = useState<MainViews | null>(null);
-	const [selectedCaseNode, setSelectedCaseNode] =
-		useState<CaseTreeNode | null>(null);
-
-	const handleItemClick = useCallback((node: CaseTreeNode) => {
-		setSelectedCaseNode(node);
-		executeNodeCommands(node);
-	}, []);
+	const [viewProps, setViewProps] = useState<ViewProps>(
+		window.INITIAL_STATE.viewProps as ViewProps,
+	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -37,26 +37,21 @@ function App() {
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'campaignManagerView') {
-					setView(message.value);
+					setViewProps(message.value.viewProps);
 				}
-			}
-
-			if (message.kind === 'webview.campaignManager.selectCase') {
-				const { node } = message;
-				setSelectedCaseNode(node);
-				executeNodeCommands(node);
 			}
 		};
 
 		window.addEventListener('message', handler);
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
 		};
 	}, []);
 
-	if (!view || view.viewProps === null) {
+	const { selectedCaseHash, nodes } = viewProps;
+
+	if (nodes.length === 0) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via Codemod Discovery or
@@ -68,8 +63,8 @@ function App() {
 	return (
 		<main className="App">
 			<ListView
-				nodes={view.viewProps.nodes}
-				selectedCaseNode={selectedCaseNode}
+				nodes={nodes}
+				selectedCaseHash={selectedCaseHash}
 				onItemClick={handleItemClick}
 			/>
 		</main>

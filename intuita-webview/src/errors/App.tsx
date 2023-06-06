@@ -60,14 +60,14 @@ const buildExecutionErrorRow = (
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			viewProps: ViewProps;
+			viewProps: View['viewProps'];
 		};
 	}
 }
 
 export const App = () => {
 	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.viewProps,
+		window.INITIAL_STATE.viewProps as ViewProps,
 	);
 
 	useEffect(() => {
