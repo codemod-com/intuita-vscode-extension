@@ -65,6 +65,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__autocompleteItems: string[] = [];
 	// map between hash and the Tree Node
 	__treeMap = new Map<CodemodHash, CodemodTreeNode>();
+	__treeNodesByDepth: CodemodTreeNode[][] = [];
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -162,6 +163,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					),
 					focusedId:
 						this.__workspaceState.getFocusedCodemodHashDigest(),
+					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
 						.map((node) => node.id),
@@ -372,7 +374,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			const codemodList = this.__getCodemod();
 
 			const treeNodes = codemodList.map((codemod) =>
-				this.__getTreeNode(codemod),
+				this.__getTreeNode(codemod, 0, null),
 			);
 
 			if (!treeNodes[0]) {
@@ -404,6 +406,8 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 	private __getTreeNode(
 		codemodElement: CodemodElementWithChildren,
+		depth: number,
+		parentId: CodemodHash | null,
 	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash, name } = codemodElement;
@@ -436,9 +440,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					arguments: [name],
 				},
 				uri: name,
+				depth: depth + 1,
+				parentId,
 			};
 
 			this.__treeMap.set(hash, node);
+
+			const nodesAtCurrDepth = this.__treeNodesByDepth[depth + 1] ?? [];
+			nodesAtCurrDepth.push(node);
+			this.__treeNodesByDepth[depth + 1] = nodesAtCurrDepth;
 
 			return node;
 		}
@@ -453,13 +463,21 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			uri: path,
 			actions: [],
 			children: [],
+			depth,
+			parentId,
 		};
 
 		this.__treeMap.set(hash, node);
 
+		const nodesAtCurrDepth = this.__treeNodesByDepth[depth] ?? [];
+		nodesAtCurrDepth.push(node);
+		this.__treeNodesByDepth[depth] = nodesAtCurrDepth;
+
 		// children is set after adding the node to the tree map
 		// in order to retain the ordering
-		node.children = children.map((child) => this.__getTreeNode(child));
+		node.children = children.map((child) =>
+			this.__getTreeNode(child, depth + 1, node.id),
+		);
 
 		return node;
 	}

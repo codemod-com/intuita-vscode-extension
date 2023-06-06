@@ -60,6 +60,7 @@ function App() {
 		openedIds,
 		focusedId,
 		nodeIds,
+		nodesByDepth,
 		publicCodemodsExpanded,
 	} = view.viewProps;
 
@@ -77,6 +78,7 @@ function App() {
 						focusedId={focusedId}
 						searchQuery={searchQuery}
 						nodeIds={nodeIds}
+						nodesByDepth={nodesByDepth}
 					/>
 				),
 			),
