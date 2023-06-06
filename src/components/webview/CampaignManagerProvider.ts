@@ -158,12 +158,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			}),
 		);
 
-		// TODO custom
-
-		this.__webviewView.onDidChangeVisibility(() => {
-			this.__onUpdateElementsMessage();
-		});
-
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
@@ -215,14 +209,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		return map;
 	}
 
-	private __onClearStateMessage() {
-		this.setView();
-	}
-
-	private __onUpdateElementsMessage() {
-		this.setView();
-	}
-
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
 		const caseHash = element.hash as unknown as CaseHash;
 		const mappedNode: CaseTreeNode = {
@@ -251,16 +237,16 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	private __attachExtensionEventListeners() {
 		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.__onUpdateElementsMessage();
+			this.setView();
 		}, 100);
 
 		this.__addHook(MessageKind.updateElements, (message) => {
 			debouncedOnUpdateElementsMessage(message);
 		});
 
-		this.__addHook(MessageKind.clearState, () =>
-			this.__onClearStateMessage(),
-		);
+		this.__addHook(MessageKind.clearState, () => {
+			this.setView();
+		});
 
 		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
 			if (!message.case.hash) {
@@ -270,29 +256,23 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __onDidReceiveMessage = (message: WebviewResponse) => {
-		if (message.kind === 'webview.command') {
-			commands.executeCommand(
-				message.value.command,
-				...(message.value.arguments ?? []),
-			);
-		}
-
-		if (message.kind === 'webview.global.afterWebviewMounted') {
-			this.__onUpdateElementsMessage();
-		}
-
-		if (message.kind === 'webview.campaignManager.setSelectedCaseHash') {
-			this.__workspaceState.setSelectedCaseHash(message.caseHash);
-
-			this.__onUpdateElementsMessage();
-		}
-	};
-
 	private __attachWebviewEventListeners() {
-		this.__webviewView?.webview.onDidReceiveMessage(
-			this.__onDidReceiveMessage,
-		);
+		this.__webviewView?.webview.onDidReceiveMessage((message) => {
+			if (message.kind === 'webview.command') {
+				commands.executeCommand(
+					message.value.command,
+					...(message.value.arguments ?? []),
+				);
+			}
+
+			if (
+				message.kind === 'webview.campaignManager.setSelectedCaseHash'
+			) {
+				this.__workspaceState.setSelectedCaseHash(message.caseHash);
+
+				this.setView();
+			}
+		});
 	}
 
 	private __buildViewProps(): ViewProps {

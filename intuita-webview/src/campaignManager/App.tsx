@@ -47,7 +47,6 @@ function App() {
 		};
 
 		window.addEventListener('message', handler);
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
