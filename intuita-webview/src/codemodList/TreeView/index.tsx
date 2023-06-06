@@ -385,12 +385,13 @@ const TreeView = ({
 				focused={node.id === state.focusedId}
 				autocompleteItems={autocompleteItems}
 				onClick={() => {
-					handleClick(node);
-
 					dispatch({
 						kind: 'flip',
 						id: node.id,
 					});
+				}}
+				onDoubleClick={() => {
+					handleClick(node);
 				}}
 				actionButtons={getActionButtons()}
 				collapse={() => {

@@ -24,6 +24,7 @@ type Props = {
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
+	onDoubleClick(): void;
 	depth: number;
 	disabled: boolean;
 	rootPath: string;
@@ -55,6 +56,7 @@ const TreeItem = ({
 	actionButtons,
 	hasChildren,
 	onClick,
+	onDoubleClick,
 	depth,
 	executionPath,
 	autocompleteItems,
@@ -146,9 +148,8 @@ const TreeItem = ({
 			id={id}
 			ref={ref}
 			className={cn(styles.root, focused && styles.focused)}
-			onClick={() => {
-				onClick();
-			}}
+			onClick={onClick}
+			onDoubleClick={onDoubleClick}
 		>
 			<div
 				style={{
@@ -189,7 +190,22 @@ const TreeItem = ({
 			)}
 			<div className="flex w-full flex-col">
 				<span className={styles.label}>
-					{!editingPath && <span>{label}</span>}
+					<Popover
+						trigger={
+							<span
+								style={{
+									...(editingPath && {
+										display: 'none',
+									}),
+									userSelect: 'none',
+								}}
+							>
+								{label}
+							</span>
+						}
+						popoverText="Double-click to open the documentation."
+						disabled={editingPath}
+					/>
 					<span
 						className={styles.directorySelector}
 						style={{
