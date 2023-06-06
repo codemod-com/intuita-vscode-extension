@@ -78,7 +78,7 @@ const TreeItem = ({
 			return;
 		}
 
-		onClick();
+		onDoubleClick();
 	};
 
 	useKey('Enter', handleEnterKeyDown);
