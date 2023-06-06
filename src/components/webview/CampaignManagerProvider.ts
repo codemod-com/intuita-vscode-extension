@@ -92,18 +92,18 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__view?.show();
 	}
 
-	private __selectCase(hash: CaseHash) {
-		const node = this.__treeMap.get(hash) ?? null;
+	// private __selectCase(hash: CaseHash) {
+	// 	const node = this.__treeMap.get(hash) ?? null;
 
-		if (node === null) {
-			return;
-		}
+	// 	if (node === null) {
+	// 		return;
+	// 	}
 
-		this.__postMessage({
-			kind: 'webview.campaignManager.selectCase',
-			node,
-		});
-	}
+	// 	this.__postMessage({
+	// 		kind: 'webview.campaignManager.selectCase',
+	// 		node,
+	// 	});
+	// }
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
@@ -267,11 +267,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 					  }
 					: null,
 		});
-
-		const newCaseHash = this.__caseManager.getNewCaseHash();
-		if (newCaseHash !== null) {
-			this.__selectCase(newCaseHash);
-		}
 	}
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {

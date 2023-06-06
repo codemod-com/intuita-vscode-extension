@@ -137,10 +137,10 @@ export type WebviewMessage =
 			kind: 'webview.diffView.focusFolder';
 			folderPath: string;
 	  }>
-	| Readonly<{
-			kind: 'webview.campaignManager.selectCase';
-			node: CaseTreeNode;
-	  }>
+	// | Readonly<{
+	// 		kind: 'webview.campaignManager.selectCase';
+	// 		node: CaseTreeNode;
+	//   }>
 	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;

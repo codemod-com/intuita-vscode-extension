@@ -41,11 +41,11 @@ function App() {
 				}
 			}
 
-			if (message.kind === 'webview.campaignManager.selectCase') {
-				const { node } = message;
-				setSelectedCaseNode(node);
-				executeNodeCommands(node);
-			}
+			// if (message.kind === 'webview.campaignManager.selectCase') {
+			// 	const { node } = message;
+			// 	setSelectedCaseNode(node);
+			// 	executeNodeCommands(node);
+			// }
 		};
 
 		window.addEventListener('message', handler);
