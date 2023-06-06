@@ -1,4 +1,9 @@
-import { ExtensionContext, WebviewView, WebviewViewProvider } from 'vscode';
+import {
+	ExtensionContext,
+	WebviewView,
+	WebviewViewProvider,
+	commands,
+} from 'vscode';
 import { WorkspaceState } from '../../persistedState/workspaceState';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage } from './webviewEvents';
@@ -19,10 +24,16 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		messageBus.subscribe(
 			MessageKind.codemodSetExecuted,
-			({ case: kase, executionErrors }) => {
+			async ({ case: kase, executionErrors }) => {
 				__workspaceState.setExecutionErrors(kase.hash, executionErrors);
 
 				this.setView();
+
+				if (executionErrors.length) {
+					this.showView();
+
+					await commands.executeCommand('intuitaErrorViewId.focus');
+				}
 			},
 		);
 
