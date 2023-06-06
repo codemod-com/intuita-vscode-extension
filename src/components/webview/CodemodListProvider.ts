@@ -440,15 +440,15 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 					arguments: [name],
 				},
 				uri: name,
-				depth: depth + 1,
+				depth,
 				parentId,
 			};
 
 			this.__treeMap.set(hash, node);
 
-			const nodesAtCurrDepth = this.__treeNodesByDepth[depth + 1] ?? [];
+			const nodesAtCurrDepth = this.__treeNodesByDepth[depth] ?? [];
 			nodesAtCurrDepth.push(node);
-			this.__treeNodesByDepth[depth + 1] = nodesAtCurrDepth;
+			this.__treeNodesByDepth[depth] = nodesAtCurrDepth;
 
 			return node;
 		}
