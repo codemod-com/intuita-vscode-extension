@@ -3,6 +3,7 @@ import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import type { Configuration } from '../configuration';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
+import { ExecutionError } from '../errors/types';
 
 export const enum MessageKind {
 	/** the elements are tree entries */
@@ -174,6 +175,7 @@ export type Message =
 			fileCount: number;
 			jobs: Job[];
 			case: CaseWithJobHashes;
+			executionErrors: ReadonlyArray<ExecutionError>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.extensionActivated;

@@ -98,6 +98,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		if (node === null) {
 			return;
 		}
+
 		this.__postMessage({
 			kind: 'webview.campaignManager.selectCase',
 			node,

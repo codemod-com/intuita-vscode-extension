@@ -12,6 +12,7 @@ import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
 import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
+import { MessageBus, MessageKind } from '../components/messageBus';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -22,6 +23,7 @@ type WorkspaceStateKeyEnvelope = Readonly<
 	| 'openedCodemodHashDigests'
 	| 'focusedCodemodHashDigest'
 	| 'publicCodemodsExpanded'
+	| 'selectedCaseHash'
 	| {
 			kind: 'executionPath';
 			codemodHash: string;
@@ -45,9 +47,13 @@ const buildWorkspaceStateKeyHash = (
 		) as WorkspaceStateKeyHash;
 	}
 
-	return buildHash(
-		[envelope.kind, envelope.caseHash].join(','),
-	) as WorkspaceStateKeyHash;
+	if (envelope.kind === 'executionErrors') {
+		return buildHash(
+			[envelope.kind, envelope.caseHash].join(','),
+		) as WorkspaceStateKeyHash;
+	}
+
+	throw new Error('Unsupported type of the envelope');
 };
 
 const ensureIsString = (value: unknown): string | null => {
@@ -64,7 +70,16 @@ export class WorkspaceState {
 	public constructor(
 		private readonly __memento: Memento,
 		private readonly __rootPath: string,
-	) {}
+		messageBus: MessageBus,
+	) {
+		messageBus.subscribe(MessageKind.clearState, () => {
+			const keys = this.__memento.keys();
+
+			for (const key of keys) {
+				this.__memento.update(key, undefined);
+			}
+		});
+	}
 
 	private __buildDefaultExecutionPath(): ExecutionPath {
 		return T.right(this.__rootPath);
@@ -298,5 +313,28 @@ export class WorkspaceState {
 		});
 
 		this.__memento.update(hashDigest, JSON.stringify(executionErrors));
+	}
+
+	public getSelectedCaseHash(): CaseHash | null {
+		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
+
+		const value = ensureIsString(this.__memento.get(hashDigest));
+
+		if (value === null) {
+			return null;
+		}
+
+		return value as CaseHash;
+	}
+
+	public setSelectedCaseHash(caseHash: CaseHash | null): void {
+		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
+
+		if (caseHash === null) {
+			this.__memento.update(hashDigest, undefined);
+			return;
+		}
+
+		this.__memento.update(hashDigest, caseHash);
 	}
 }

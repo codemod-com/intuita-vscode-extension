@@ -39,6 +39,7 @@ import { TextDocumentContentProvider } from './components/webview/VirtualDocumen
 import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
+import { WorkspaceState } from './persistedState/workspaceState';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -124,11 +125,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const codemodService = new CodemodService(rootPath, engineService);
 
+	const workspaceState = new WorkspaceState(
+		context.workspaceState,
+		rootPath ?? '/',
+		messageBus,
+	);
+
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
 		context,
 		messageBus,
 		rootPath,
 		codemodService,
+		workspaceState,
 	);
 
 	context.subscriptions.push(
@@ -298,6 +306,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (rootPath) {
 		new UserHooksService(messageBus, { getConfiguration }, rootPath);
 	}
+
+	const errorWebviewProvider = new ErrorWebviewProvider(
+		context,
+		messageBus,
+		workspaceState,
+	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -486,9 +500,14 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (caseHash === null) {
 					return;
 				}
+				workspaceState.setSelectedCaseHash(caseHash);
+
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.updateExplorerView(caseHash);
+
+				errorWebviewProvider.showView();
+				errorWebviewProvider.setView();
 			},
 		),
 	);
@@ -963,7 +982,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuitaErrorViewId',
-			new ErrorWebviewProvider(context),
+			errorWebviewProvider,
 		),
 	);
 

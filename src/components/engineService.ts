@@ -28,8 +28,6 @@ export const Messages = {
 	noAffectedFiles:
 		'The codemod has run successfully but didn’t do anything' as const,
 	noImportedMod: 'No imported codemod was found' as const,
-	errorRunningCodemod: 'An error occurred while running the codemod' as const,
-	codemodUnrecognized: 'The codemod is invalid / unsupported' as const,
 };
 
 const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
@@ -634,6 +632,7 @@ export class EngineService {
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
 					case: this.#execution.case,
+					executionErrors,
 				});
 
 				if (
@@ -642,23 +641,6 @@ export class EngineService {
 				) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
-
-				executionErrors.forEach((executionError) => {
-					if (typeof executionError === 'string') {
-						window.showErrorMessage(`Error: ${executionError}`);
-					} else {
-						const kind =
-							executionError.kind ?? 'errorRunningCodemod';
-						const kindTitle =
-							kind === 'unrecognizedCodemod'
-								? Messages.codemodUnrecognized
-								: Messages.errorRunningCodemod;
-
-						window.showErrorMessage(
-							`${kindTitle}. Error: ${executionError.message}`,
-						);
-					}
-				});
 			}
 
 			this.#execution = null;

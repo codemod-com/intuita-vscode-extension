@@ -63,7 +63,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	__engineBootstrapped = false;
 	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
-	__workspaceState: WorkspaceState;
 	// map between hash and the Tree Node
 	__treeMap = new Map<CodemodHash, CodemodTreeNode>();
 
@@ -74,12 +73,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		private readonly __messageBus: MessageBus,
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
+		private readonly __workspaceState: WorkspaceState,
 	) {
 		this.__extensionPath = context.extensionUri;
-		this.__workspaceState = new WorkspaceState(
-			context.workspaceState,
-			__rootPath ?? '/',
-		);
+
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
