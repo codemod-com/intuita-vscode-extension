@@ -443,7 +443,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				});
 
 				fileExplorerProvider.setView({
-					viewId: 'treeView',
+					viewId: 'fileExplorer',
 					viewProps: null,
 				});
 			} catch (e) {

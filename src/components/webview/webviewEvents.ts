@@ -105,6 +105,8 @@ export type TreeNode = {
 		  };
 	actions?: Command[];
 	children: TreeNode[];
+	depth: number;
+	parentId: string | null;
 };
 
 export type FileTreeNode = TreeNode & {
@@ -289,12 +291,13 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'treeView';
+			viewId: 'fileExplorer';
 			viewProps: {
 				caseHash: CaseHash;
 				node: TreeNode;
 				nodeIds: string[];
 				fileNodes: FileTreeNode[] | null;
+				nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
 			} | null;
 	  }>
 	| Readonly<{

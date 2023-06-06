@@ -7,7 +7,7 @@ import {
 	useEffect,
 	useMemo,
 } from 'react';
-import Tree from '../../shared/Tree';
+import Tree from '../Tree';
 import {
 	FileTreeNode,
 	JobHash,
@@ -19,7 +19,6 @@ import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
-import { useKey } from '../../jobDiffView/hooks/useKey';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { CaseHash } from '../../../../src/cases/types';
 
@@ -56,9 +55,30 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
+export const containsNodeId = (
+	node: TreeNode,
+	id: string,
+	set: Set<string>,
+): boolean => {
+	if (node.id === id) {
+		return true;
+	}
+
+	const someChildContains = node.children.some((childNode) =>
+		containsNodeId(childNode, id, set),
+	);
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
+};
+
 type Props = {
 	node: TreeNode;
 	nodeIds: string[];
+	nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
 	fileNodes: FileTreeNode[] | null;
 	caseHash: CaseHash;
 	searchQuery: string;
@@ -70,6 +90,7 @@ type Props = {
 const TreeView = ({
 	node,
 	nodeIds,
+	nodesByDepth,
 	fileNodes,
 	searchQuery,
 	focusedNodeId,
@@ -104,20 +125,6 @@ const TreeView = ({
 		},
 		[stagedJobs],
 	);
-
-	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
-		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
-		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
-		setFocusedNodeId((prev) => nodeIds[newIndex] ?? prev);
-	};
-
-	useKey('ArrowUp', () => {
-		handleArrowKeyDown('ArrowUp');
-	});
-
-	useKey('ArrowDown', () => {
-		handleArrowKeyDown('ArrowDown');
-	});
 
 	const renderItem = ({
 		node,
@@ -285,6 +292,11 @@ const TreeView = ({
 			depth={0}
 			focusedNodeId={focusedNodeId}
 			allFileNodesReady={allFileNodesReady}
+			nodeIds={nodeIds}
+			nodesByDepth={nodesByDepth}
+			onFocusNode={(id: string) => {
+				setFocusedNodeId(id);
+			}}
 		/>
 	);
 };

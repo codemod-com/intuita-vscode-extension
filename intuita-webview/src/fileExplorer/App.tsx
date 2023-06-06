@@ -12,7 +12,7 @@ import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 
-type MainViews = Extract<View, { viewId: 'treeView' }>;
+type MainViews = Extract<View, { viewId: 'fileExplorer' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
@@ -26,7 +26,7 @@ function App() {
 
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
-				if (message.value.viewId === 'treeView') {
+				if (message.value.viewId === 'fileExplorer') {
 					setView(message.value);
 					if (message.value.viewProps?.fileNodes !== null) {
 						setStagedJobs(
