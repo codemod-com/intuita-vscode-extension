@@ -54,7 +54,9 @@ function App() {
 		};
 	}, []);
 
-	if (!viewProps || viewProps.nodes.length === 0) {
+	const { selectedCaseHash, nodes } = viewProps;
+
+	if (selectedCaseHash === null || nodes.length === 0) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via Codemod Discovery or
@@ -66,8 +68,8 @@ function App() {
 	return (
 		<main className="App">
 			<ListView
-				nodes={viewProps.nodes}
-				selectedCaseHash={viewProps.selectedCaseHash}
+				nodes={nodes}
+				selectedCaseHash={selectedCaseHash}
 				onItemClick={handleItemClick}
 			/>
 		</main>
