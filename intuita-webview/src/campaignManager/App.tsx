@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import ListView from './ListView';
 import styles from './style.module.css';
@@ -9,7 +9,12 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
-const executeNodeCommands = (node: CaseTreeNode) => {
+const handleItemClick = (node: CaseTreeNode) => {
+	vscode.postMessage({
+		kind: 'webview.campaignManager.setSelectedCaseHash',
+		caseHash: node.id,
+	});
+
 	node.commands?.forEach((command) => {
 		vscode.postMessage({
 			kind: 'webview.command',
@@ -24,15 +29,6 @@ function App() {
 	const [viewProps, setViewProps] = useState<ViewProps>(
 		window.INITIAL_STATE.viewProps as ViewProps,
 	);
-
-	const handleItemClick = useCallback((node: CaseTreeNode) => {
-		vscode.postMessage({
-			kind: 'webview.campaignManager.setSelectedCaseHash',
-			caseHash: node.id,
-		});
-
-		executeNodeCommands(node);
-	}, []);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -55,7 +51,7 @@ function App() {
 
 	const { selectedCaseHash, nodes } = viewProps;
 
-	if (selectedCaseHash === null || nodes.length === 0) {
+	if (nodes.length === 0) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via Codemod Discovery or
