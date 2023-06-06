@@ -36,6 +36,101 @@ import { WorkspaceState } from '../../persistedState/workspaceState';
 
 type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
+const buildCaseElementsAndLatestJob = (
+	rootPath: string,
+	casesWithJobHashes: Iterable<CaseWithJobHashes>,
+	jobMap: ReadonlyMap<JobHash, Job>,
+): [ReadonlyArray<CaseElement>, Job | null] => {
+	let latestJob: Job | null = null;
+
+	const unsortedCaseElements: CaseElement[] = [];
+
+	for (const caseWithJobHashes of casesWithJobHashes) {
+		const jobs: Job[] = [];
+
+		for (const jobHash of caseWithJobHashes.jobHashes) {
+			const job = jobMap.get(jobHash);
+
+			if (job === undefined) {
+				continue;
+			}
+
+			jobs.push(job);
+
+			if (latestJob === null || latestJob.createdAt < job.createdAt) {
+				latestJob = job;
+			}
+		}
+
+		const uriSet = new Set<Uri>();
+		for (const job of jobs) {
+			if (
+				[
+					JobKind.createFile,
+					JobKind.moveFile,
+					JobKind.moveAndRewriteFile,
+					JobKind.copyFile,
+				].includes(job.kind) &&
+				job.newUri
+			) {
+				uriSet.add(job.newUri);
+			}
+
+			if (
+				[JobKind.rewriteFile, JobKind.deleteFile].includes(job.kind) &&
+				job.oldUri
+			) {
+				uriSet.add(job.oldUri);
+			}
+		}
+
+		const uris = Array.from(uriSet);
+
+		const children = uris.map((uri): FileElement => {
+			const label = uri.fsPath.replace(rootPath, '');
+
+			const children = jobs
+				.filter(
+					(job) =>
+						job.newUri?.toString() === uri.toString() ||
+						job.oldUri?.toString() === uri.toString(),
+				)
+				.map((job) => buildJobElement(job, rootPath));
+
+			return buildFileElement(caseWithJobHashes.hash, label, children);
+		});
+
+		unsortedCaseElements.push(
+			buildCaseElement(caseWithJobHashes, children),
+		);
+	}
+
+	const sortedCaseElements = unsortedCaseElements
+		.sort(compareCaseElements)
+		.map((caseElement) => {
+			const children = caseElement.children
+				.slice()
+				.sort(compareFileElements)
+				.map((fileElement) => {
+					const children = fileElement.children
+						.slice()
+						.sort(compareJobElements);
+
+					return {
+						...fileElement,
+						children,
+					};
+				});
+
+			return {
+				...caseElement,
+				children,
+			};
+		});
+
+	return [sortedCaseElements, latestJob];
+};
+
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -127,107 +222,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		return map;
 	}
 
-	__buildCaseElementsAndLatestJob(
-		rootPath: string,
-		casesWithJobHashes: Iterable<CaseWithJobHashes>,
-		jobMap: ReadonlyMap<JobHash, Job>,
-	): [ReadonlyArray<CaseElement>, Job | null] {
-		let latestJob: Job | null = null;
-
-		const unsortedCaseElements: CaseElement[] = [];
-
-		for (const caseWithJobHashes of casesWithJobHashes) {
-			const jobs: Job[] = [];
-
-			for (const jobHash of caseWithJobHashes.jobHashes) {
-				const job = jobMap.get(jobHash);
-
-				if (job === undefined) {
-					continue;
-				}
-
-				jobs.push(job);
-
-				if (latestJob === null || latestJob.createdAt < job.createdAt) {
-					latestJob = job;
-				}
-			}
-
-			const uriSet = new Set<Uri>();
-			for (const job of jobs) {
-				if (
-					[
-						JobKind.createFile,
-						JobKind.moveFile,
-						JobKind.moveAndRewriteFile,
-						JobKind.copyFile,
-					].includes(job.kind) &&
-					job.newUri
-				) {
-					uriSet.add(job.newUri);
-				}
-
-				if (
-					[JobKind.rewriteFile, JobKind.deleteFile].includes(
-						job.kind,
-					) &&
-					job.oldUri
-				) {
-					uriSet.add(job.oldUri);
-				}
-			}
-
-			const uris = Array.from(uriSet);
-
-			const children = uris.map((uri): FileElement => {
-				const label = uri.fsPath.replace(rootPath, '');
-
-				const children = jobs
-					.filter(
-						(job) =>
-							job.newUri?.toString() === uri.toString() ||
-							job.oldUri?.toString() === uri.toString(),
-					)
-					.map((job) => buildJobElement(job, rootPath));
-
-				return buildFileElement(
-					caseWithJobHashes.hash,
-					label,
-					children,
-				);
-			});
-
-			unsortedCaseElements.push(
-				buildCaseElement(caseWithJobHashes, children),
-			);
-		}
-
-		const sortedCaseElements = unsortedCaseElements
-			.sort(compareCaseElements)
-			.map((caseElement) => {
-				const children = caseElement.children
-					.slice()
-					.sort(compareFileElements)
-					.map((fileElement) => {
-						const children = fileElement.children
-							.slice()
-							.sort(compareJobElements);
-
-						return {
-							...fileElement,
-							children,
-						};
-					});
-
-				return {
-					...caseElement,
-					children,
-				};
-			});
-
-		return [sortedCaseElements, latestJob];
-	}
-
 	private __onClearStateMessage() {
 		this.setView({
 			viewId: 'campaignManagerView',
@@ -244,7 +238,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
 		const jobMap = this.__buildJobMap(casesWithJobHashes);
 
-		const [caseElements] = this.__buildCaseElementsAndLatestJob(
+		const [caseElements] = buildCaseElementsAndLatestJob(
 			rootPath,
 			casesWithJobHashes,
 			jobMap,
@@ -341,7 +335,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
 		const jobMap = this.__buildJobMap(casesWithJobHashes);
 
-		const [caseElements] = this.__buildCaseElementsAndLatestJob(
+		const [caseElements] = buildCaseElementsAndLatestJob(
 			rootPath,
 			casesWithJobHashes,
 			jobMap,
