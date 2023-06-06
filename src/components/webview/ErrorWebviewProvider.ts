@@ -44,7 +44,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			JSON.stringify({
 				viewProps,
 			}),
-			false,
 		);
 
 		this.__webviewView.onDidChangeVisibility(() => {
@@ -56,7 +55,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 				JSON.stringify({
 					viewProps,
 				}),
-				false,
 			);
 		});
 	}

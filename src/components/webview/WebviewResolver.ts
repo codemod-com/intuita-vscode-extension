@@ -4,14 +4,14 @@ import { getUri } from '../../utilities';
 export class WebviewResolver {
 	constructor(private readonly __extensionPath: Uri) {}
 
-	public getWebviewOptions(retainContextWhenHidden?: boolean) {
+	public getWebviewOptions() {
 		return {
 			enableScripts: true,
 			localResourceRoots: [
 				Uri.joinPath(this.__extensionPath, 'intuita-webview/build'),
 				Uri.joinPath(this.__extensionPath, 'resources'),
 			],
-			retainContextWhenHidden: retainContextWhenHidden ?? true,
+			retainContextWhenHidden: true,
 		};
 	}
 
@@ -19,9 +19,8 @@ export class WebviewResolver {
 		webview: Webview,
 		webviewName: string,
 		initialData: string,
-		retainContextWhenHidden?: boolean,
 	) {
-		webview.options = this.getWebviewOptions(retainContextWhenHidden);
+		webview.options = this.getWebviewOptions();
 		webview.html = this.__getHtmlForWebview(
 			webview,
 			webviewName,
