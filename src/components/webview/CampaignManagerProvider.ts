@@ -132,7 +132,7 @@ const buildCaseElementsAndLatestJob = (
 };
 
 export class CampaignManagerProvider implements WebviewViewProvider {
-	__view: WebviewView | null = null;
+	private __webviewView: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
 	__treeMap = new Map<CaseHash, CaseTreeNode>();
@@ -149,30 +149,26 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	refresh(): void {
-		if (!this.__view) {
+		if (!this.__webviewView) {
 			return;
 		}
 
 		this.__webviewResolver.resolveWebview(
-			this.__view.webview,
+			this.__webviewView.webview,
 			'campaignManager',
 			'{}',
 		);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
-		if (!webviewView.webview) {
-			return;
-		}
-
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'campaignManager',
 			'{}',
 		);
-		this.__view = webviewView;
+		this.__webviewView = webviewView;
 
-		this.__view.onDidChangeVisibility(() => {
+		this.__webviewView.onDidChangeVisibility(() => {
 			this.__onUpdateElementsMessage();
 		});
 
@@ -188,11 +184,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	public showView() {
-		this.__view?.show();
+		this.__webviewView?.show();
 	}
 
 	private __postMessage(message: WebviewMessage) {
-		this.__view?.webview.postMessage(message);
+		this.__webviewView?.webview.postMessage(message);
 	}
 
 	private __addHook<T extends MessageKind>(
@@ -324,7 +320,9 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	};
 
 	private __attachWebviewEventListeners() {
-		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+		this.__webviewView?.webview.onDidReceiveMessage(
+			this.__onDidReceiveMessage,
+		);
 	}
 
 	private __buildViewProps(): ViewProps {
