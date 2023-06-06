@@ -45,8 +45,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 				viewProps,
 			}),
 		);
-
-		this.setView();
 	}
 
 	public showView() {

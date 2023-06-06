@@ -161,12 +161,19 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+		this.__webviewView = webviewView;
+
+		const viewProps = this.__buildViewProps();
+
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'campaignManager',
-			'{}',
+			JSON.stringify({
+				viewProps,
+			}),
 		);
-		this.__webviewView = webviewView;
+
+		// TODO custom
 
 		this.__webviewView.onDidChangeVisibility(() => {
 			this.__onUpdateElementsMessage();
