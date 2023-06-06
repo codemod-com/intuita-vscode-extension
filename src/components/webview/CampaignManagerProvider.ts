@@ -133,9 +133,7 @@ const buildCaseElementsAndLatestJob = (
 
 export class CampaignManagerProvider implements WebviewViewProvider {
 	private __webviewView: WebviewView | null = null;
-	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver;
-	__treeMap = new Map<CaseHash, CaseTreeNode>();
+	private readonly __webviewResolver: WebviewResolver;
 
 	constructor(
 		context: ExtensionContext,
@@ -144,8 +142,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
 	) {
-		this.__extensionPath = context.extensionUri;
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
+		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 	}
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -248,8 +245,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			],
 			caseApplied: false,
 		};
-
-		this.__treeMap.set(caseHash, mappedNode);
 
 		return mappedNode;
 	};
