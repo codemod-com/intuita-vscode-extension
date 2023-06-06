@@ -7,12 +7,7 @@ import {
 	commands,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
-import {
-	CaseTreeNode,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { CaseTreeNode, View, WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { CaseElement, FileElement } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
@@ -211,7 +206,8 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	private __buildCaseTree = (element: CaseElement): CaseTreeNode => {
 		const caseHash = element.hash as unknown as CaseHash;
-		const mappedNode: CaseTreeNode = {
+
+		return {
 			id: caseHash,
 			iconName: 'case.svg',
 			label: element.label,
@@ -231,8 +227,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			],
 			caseApplied: false,
 		};
-
-		return mappedNode;
 	};
 
 	private __attachExtensionEventListeners() {
@@ -240,18 +234,16 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			this.setView();
 		}, 100);
 
-		this.__addHook(MessageKind.updateElements, (message) => {
-			debouncedOnUpdateElementsMessage(message);
-		});
+		this.__addHook(
+			MessageKind.updateElements,
+			debouncedOnUpdateElementsMessage,
+		);
 
 		this.__addHook(MessageKind.clearState, () => {
 			this.setView();
 		});
 
 		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
-			if (!message.case.hash) {
-				return;
-			}
 			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
 		});
 	}
