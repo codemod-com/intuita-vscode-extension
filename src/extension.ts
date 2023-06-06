@@ -285,6 +285,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
+		workspaceState,
 	);
 
 	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(

@@ -22,11 +22,13 @@ type MainViews = Extract<View, { viewId: 'campaignManagerView' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-	const [selectedCaseNode, setSelectedCaseNode] =
-		useState<CaseTreeNode | null>(null);
 
 	const handleItemClick = useCallback((node: CaseTreeNode) => {
-		setSelectedCaseNode(node);
+		vscode.postMessage({
+			kind: 'webview.campaignManager.setSelectedCaseHash',
+			caseHash: node.id,
+		});
+
 		executeNodeCommands(node);
 	}, []);
 
@@ -40,12 +42,6 @@ function App() {
 					setView(message.value);
 				}
 			}
-
-			// if (message.kind === 'webview.campaignManager.selectCase') {
-			// 	const { node } = message;
-			// 	setSelectedCaseNode(node);
-			// 	executeNodeCommands(node);
-			// }
 		};
 
 		window.addEventListener('message', handler);
@@ -69,7 +65,7 @@ function App() {
 		<main className="App">
 			<ListView
 				nodes={view.viewProps.nodes}
-				selectedCaseNode={selectedCaseNode}
+				selectedCaseHash={view.viewProps.selectedCaseHash}
 				onItemClick={handleItemClick}
 			/>
 		</main>

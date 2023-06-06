@@ -271,6 +271,10 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.codemodList.codemodPathChange';
 			codemodPath: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.campaignManager.setSelectedCaseHash';
+			caseHash: CaseHash;
 	  }>;
 
 export type View =
@@ -305,8 +309,9 @@ export type View =
 	| Readonly<{
 			viewId: 'campaignManagerView';
 			viewProps: {
+				selectedCaseHash: CaseHash | null;
 				nodes: CaseTreeNode[];
-			} | null;
+			};
 	  }>
 	| Readonly<{
 			viewId: 'jobDiffView';

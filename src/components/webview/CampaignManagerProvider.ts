@@ -32,6 +32,7 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 export class CampaignManagerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -44,6 +45,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __workspaceState: WorkspaceState,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -91,19 +93,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	public showView() {
 		this.__view?.show();
 	}
-
-	// private __selectCase(hash: CaseHash) {
-	// 	const node = this.__treeMap.get(hash) ?? null;
-
-	// 	if (node === null) {
-	// 		return;
-	// 	}
-
-	// 	this.__postMessage({
-	// 		kind: 'webview.campaignManager.selectCase',
-	// 		node,
-	// 	});
-	// }
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
@@ -240,7 +229,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	private __onClearStateMessage() {
 		this.setView({
 			viewId: 'campaignManagerView',
-			viewProps: null,
+			viewProps: {
+				selectedCaseHash: null,
+				nodes: [],
+			},
 		});
 	}
 
@@ -260,12 +252,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 		this.setView({
 			viewId: 'campaignManagerView',
-			viewProps:
-				caseNodes.length > 0
-					? {
-							nodes: caseNodes,
-					  }
-					: null,
+			viewProps: {
+				selectedCaseHash: this.__workspaceState.getSelectedCaseHash(),
+				nodes: caseNodes,
+			},
 		});
 	}
 
@@ -327,6 +317,12 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.global.afterWebviewMounted') {
+			this.__onUpdateElementsMessage();
+		}
+
+		if (message.kind === 'webview.campaignManager.setSelectedCaseHash') {
+			this.__workspaceState.setSelectedCaseHash(message.caseHash);
+
 			this.__onUpdateElementsMessage();
 		}
 	};
