@@ -18,10 +18,10 @@ const executeNodeCommands = (node: CaseTreeNode) => {
 	});
 };
 
-type MainViews = Extract<View, { viewId: 'campaignManagerView' }>;
+type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
 function App() {
-	const [view, setView] = useState<MainViews | null>(null);
+	const [viewProps, setViewProps] = useState<ViewProps | null>(null);
 
 	const handleItemClick = useCallback((node: CaseTreeNode) => {
 		vscode.postMessage({
@@ -39,7 +39,7 @@ function App() {
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'campaignManagerView') {
-					setView(message.value);
+					setViewProps(message.value.viewProps);
 				}
 			}
 		};
@@ -52,7 +52,7 @@ function App() {
 		};
 	}, []);
 
-	if (!view || view.viewProps === null) {
+	if (!viewProps || viewProps.nodes.length === 0) {
 		return (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via Codemod Discovery or
@@ -64,8 +64,8 @@ function App() {
 	return (
 		<main className="App">
 			<ListView
-				nodes={view.viewProps.nodes}
-				selectedCaseHash={view.viewProps.selectedCaseHash}
+				nodes={viewProps.nodes}
+				selectedCaseHash={viewProps.selectedCaseHash}
 				onItemClick={handleItemClick}
 			/>
 		</main>
