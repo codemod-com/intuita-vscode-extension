@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import { CodemodHash, CodemodTreeNode } from '../../shared/types';
@@ -64,6 +64,12 @@ const TreeItem = ({
 	const ref = useRef<HTMLDivElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
+
+	useEffect(() => {
+		if (focused) {
+			ref.current?.scrollIntoView(false);
+		}
+	}, [focused]);
 
 	const handleEnterKeyDown = () => {
 		if (!focused || hasChildren) {
