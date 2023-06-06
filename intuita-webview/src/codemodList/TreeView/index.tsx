@@ -96,6 +96,17 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 };
 
 const handleDoubleClick = (node: CodemodTreeNode) => {
+	if (!node.doubleClickCommand) {
+		return;
+	}
+
+	vscode.postMessage({
+		kind: 'webview.command',
+		value: node.doubleClickCommand,
+	});
+};
+
+const handleClick = (node: CodemodTreeNode) => {
 	if (!node.command) {
 		return;
 	}
@@ -385,6 +396,8 @@ const TreeView = ({
 				focused={node.id === state.focusedId}
 				autocompleteItems={autocompleteItems}
 				onClick={() => {
+					handleClick(node);
+
 					dispatch({
 						kind: 'flip',
 						id: node.id,
