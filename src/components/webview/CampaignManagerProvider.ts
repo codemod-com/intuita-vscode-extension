@@ -243,6 +243,14 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			this.setView();
 		});
 
+		this.__addHook(MessageKind.upsertCases, (message) => {
+			const hash = message.casesWithJobHashes[0]?.hash;
+
+			if (hash) {
+				commands.executeCommand('intuita.openCaseDiff', hash);
+			}
+		});
+
 		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
 			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
 		});
