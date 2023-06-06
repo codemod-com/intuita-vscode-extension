@@ -29,7 +29,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 				this.setView();
 
-				if (executionErrors.length) {
+				if (executionErrors.length !== 0) {
 					this.showView();
 
 					await commands.executeCommand('intuitaErrorViewId.focus');
