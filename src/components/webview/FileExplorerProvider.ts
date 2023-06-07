@@ -56,6 +56,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__lastSelectedCaseHash: CaseHash | null = null;
 	__codemodExecutionInProgress = false;
 	__lastData: Extract<View, { viewId: 'fileExplorer' }> | null = null;
+	__lastFocusedNodeId: string | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -115,6 +116,16 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__view?.show();
+	}
+
+	public focusMostRecentNode() {
+		if (this.__lastFocusedNodeId === null) {
+			return;
+		}
+		this.__postMessage({
+			kind: 'webview.fileExplorer.focusNode',
+			id: this.__lastFocusedNodeId,
+		});
 	}
 
 	public setCaseHash(caseHash: CaseHash) {
@@ -560,6 +571,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			this.__workspaceState.setFocusedFileExplorerNodeId(
 				message.focusedId,
 			);
+
+			if (message.focusedId) {
+				this.__lastFocusedNodeId = message.focusedId;
+			}
 
 			this.__workspaceState.setOpenedFileExplorerNodeIds(
 				new Set(message.openedIds),

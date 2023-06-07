@@ -5,6 +5,7 @@ import {
 	FileTreeNode,
 	JobHash,
 	TreeNode,
+	WebviewMessage,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
@@ -291,6 +292,22 @@ const TreeView = ({
 			/>
 		);
 	};
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+
+			if (message.kind === 'webview.fileExplorer.focusNode') {
+				dispatch({ kind: 'focus', id: message.id });
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (searchQuery.length > 0) {

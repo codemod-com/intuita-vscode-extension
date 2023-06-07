@@ -165,6 +165,10 @@ export type WebviewMessage =
 			value: JobHash[];
 	  }>
 	| Readonly<{
+			kind: 'webview.fileExplorer.focusNode';
+			id: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
 	  }>;
