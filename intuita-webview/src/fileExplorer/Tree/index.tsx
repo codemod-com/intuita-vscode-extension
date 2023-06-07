@@ -94,7 +94,7 @@ const Tree = ({
 
 		if (
 			key === 'ArrowDown' &&
-			node.kind === 'path' &&
+			node.kind === 'folderElement' &&
 			!openedIds.has(node.id)
 		) {
 			// if exists, shift to the next sibling
@@ -137,7 +137,7 @@ const Tree = ({
 
 		if (
 			key === 'ArrowUp' &&
-			node.kind === 'path' &&
+			node.kind === 'folderElement' &&
 			prevNodeAtCurrentDepth !== null &&
 			prevNodeAtCurrentDepth.parentId === node.parentId
 		) {
