@@ -35,21 +35,11 @@ export const enum MessageKind {
 	executeCodemodSet = 18,
 	codemodSetExecuted = 19,
 
-	/** extension states */
-	extensionActivated = 20,
-	extensionDeactivated = 21,
-
 	/** file system operations */
 	updateFile = 22,
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
-
-	/**
-	 * account events
-	 */
-	accountLinked = 26,
-	accountUnlinked = 27,
 
 	/**
 	 * config events
@@ -58,21 +48,12 @@ export const enum MessageKind {
 	configurationChanged = 28,
 
 	/**
-	 * create issue
-	 */
-
-	beforeIssueCreated = 29,
-	afterIssueCreated = 30,
-	/**
 	 * show progress
 	 */
 	showProgress = 31,
 	/**
 	 * create PR
 	 */
-
-	beforePRCreated = 33,
-	afterPRCreated = 34,
 
 	focusCodemod = 35,
 
@@ -155,13 +136,6 @@ export type Message =
 			kind: MessageKind.clearState;
 	  }>
 	| Readonly<{
-			kind: MessageKind.showInformationMessage;
-			packageSettingsUri: Uri;
-			dependencyName: string;
-			dependencyOldVersion: string;
-			dependencyNewVersion: string | null;
-	  }>
-	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 			happenedAt: string;
@@ -176,12 +150,6 @@ export type Message =
 			jobs: Job[];
 			case: CaseWithJobHashes;
 			executionErrors: ReadonlyArray<ExecutionError>;
-	  }>
-	| Readonly<{
-			kind: MessageKind.extensionActivated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.extensionDeactivated;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateFile;
@@ -205,36 +173,14 @@ export type Message =
 			newContentUri: Uri;
 	  }>
 	| Readonly<{
-			kind: MessageKind.accountUnlinked;
-	  }>
-	| Readonly<{
-			kind: MessageKind.accountLinked;
-			account: string;
-	  }>
-	| Readonly<{
 			kind: MessageKind.configurationChanged;
 			nextConfiguration: Configuration;
-	  }>
-	| Readonly<{
-			kind: MessageKind.beforeIssueCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.beforeIssueCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.afterIssueCreated;
 	  }>
 	| Readonly<{
 			kind: MessageKind.showProgress;
 			processedFiles: number;
 			codemodHash?: CodemodHash;
 			totalFiles: number;
-	  }>
-	| Readonly<{
-			kind: MessageKind.beforePRCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.afterPRCreated;
 	  }>
 	| Readonly<{
 			kind: MessageKind.focusCodemod;

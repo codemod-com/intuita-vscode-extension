@@ -20,8 +20,6 @@ import {
 } from './persistedState/mappers';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
-import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
-import { AlreadyLinkedError, UserService } from './components/user/userService';
 import { ElementHash } from './elements/types';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
 import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
@@ -241,15 +239,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	/**
-	 * User
-	 */
-	const globalStateAccountStorage = new GlobalStateAccountStorage(
-		context.globalState,
-	);
-
-	const userService = new UserService(globalStateAccountStorage, messageBus);
-
 	const fileExplorerProvider = new FileExplorerProvider(
 		context,
 		messageBus,
@@ -358,15 +347,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					panelInstance.dispose();
 				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.user.unlinkIntuitaAccount',
-			() => {
-				userService.unlinkUserIntuitaAccount();
 			},
 		),
 	);
@@ -911,7 +891,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			handleUri: async (uri) => {
 				const searchParams = new URLSearchParams(uri.query);
 				const base64UrlEncodedContent = searchParams.get('c');
-				const userId = searchParams.get('userId');
 				const codemodHashDigest = searchParams.get('chd');
 
 				if (base64UrlEncodedContent) {
@@ -929,24 +908,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 
 					vscode.window.showTextDocument(document);
-				} else if (userId) {
-					try {
-						userService.linkUsersIntuitaAccount(userId);
-					} catch (e) {
-						if (e instanceof AlreadyLinkedError) {
-							const result =
-								await vscode.window.showInformationMessage(
-									'It seems like your extension is already linked to another Intuita account. Would you like to link it to your new Intuita account instead?',
-									{ modal: true },
-									'Link account',
-								);
-
-							if (result === 'Link account') {
-								userService.unlinkUserIntuitaAccount();
-								userService.linkUsersIntuitaAccount(userId);
-							}
-						}
-					}
 				} else if (codemodHashDigest !== null) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
@@ -981,10 +942,4 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
 	});
-
-	messageBus.publish({ kind: MessageKind.extensionActivated });
-}
-
-export function deactivate() {
-	messageBus.publish({ kind: MessageKind.extensionDeactivated });
 }
