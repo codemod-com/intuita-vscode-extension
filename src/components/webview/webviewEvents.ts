@@ -93,8 +93,10 @@ export type CaseTreeNode = {
 	caseApplied: boolean;
 };
 
+export type TreeNodeId = string & { __TreeNodeId: '__TreeNodeId' };
+
 export type TreeNode = {
-	id: string;
+	id: TreeNodeId;
 	kind: string;
 	label?: string;
 	iconName?: string;
@@ -105,6 +107,8 @@ export type TreeNode = {
 		  };
 	actions?: Command[];
 	children: TreeNode[];
+	depth: number;
+	parentId: TreeNodeId | null;
 };
 
 export type FileTreeNode = TreeNode & {
@@ -164,7 +168,7 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.focusNode';
-			id: string | null;
+			id: TreeNodeId;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
@@ -232,11 +236,16 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.folderSelected';
-			id: string;
+			id: TreeNodeId;
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
-			id: string;
+			id: TreeNodeId;
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.setState';
+			openedIds: ReadonlyArray<TreeNodeId>;
+			focusedId: TreeNodeId | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
@@ -289,12 +298,15 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'treeView';
+			viewId: 'fileExplorer';
 			viewProps: {
 				caseHash: CaseHash;
 				node: TreeNode;
-				nodeIds: string[];
+				nodeIds: TreeNodeId[];
 				fileNodes: FileTreeNode[] | null;
+				nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
+				openedIds: ReadonlyArray<TreeNodeId>;
+				focusedId: TreeNodeId | null;
 			} | null;
 	  }>
 	| Readonly<{

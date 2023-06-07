@@ -1,17 +1,12 @@
 import ReactTreeView from 'react-treeview';
-import {
-	Dispatch,
-	ReactNode,
-	SetStateAction,
-	useCallback,
-	useEffect,
-	useMemo,
-} from 'react';
-import Tree from '../../shared/Tree';
+import { ReactNode, useCallback, useEffect, useMemo, useReducer } from 'react';
+import Tree from '../Tree';
 import {
 	FileTreeNode,
 	JobHash,
 	TreeNode,
+	TreeNodeId,
+	WebviewMessage,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
@@ -19,7 +14,6 @@ import { vscode } from '../../shared/utilities/vscode';
 import cn from 'classnames';
 import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
-import { useKey } from '../../jobDiffView/hooks/useKey';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { CaseHash } from '../../../../src/cases/types';
 
@@ -56,27 +50,149 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	return icon;
 };
 
+export const containsNodeId = (
+	node: TreeNode,
+	id: TreeNodeId,
+	set: Set<TreeNodeId>,
+): boolean => {
+	if (node.id === id) {
+		return true;
+	}
+
+	const someChildContains = node.children.some((childNode) =>
+		containsNodeId(childNode, id, set),
+	);
+
+	if (someChildContains) {
+		set.add(node.id);
+	}
+
+	return someChildContains;
+};
+
+type State = Readonly<{
+	node: TreeNode;
+	openedIds: ReadonlySet<TreeNodeId>;
+	focusedId: TreeNodeId | null;
+}>;
+
+type InitializerArgument = State;
+
+type Action = Readonly<{
+	kind: 'focus' | 'blur' | 'flip' | 'open' | 'close';
+	id: TreeNodeId | null;
+}>;
+
+const reducer = (state: State, action: Action): State => {
+	const openedIds = new Set(state.openedIds);
+
+	if (action.kind === 'blur') {
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: null,
+		};
+	}
+
+	if (action.kind === 'focus' && action.id !== null) {
+		containsNodeId(state.node, action.id, openedIds);
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'flip' && action.id !== null) {
+		if (openedIds.has(action.id)) {
+			openedIds.delete(action.id);
+		} else {
+			openedIds.add(action.id);
+		}
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'open' && action.id !== null) {
+		openedIds.add(action.id);
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	if (action.kind === 'close' && action.id !== null) {
+		if (openedIds.has(action.id)) {
+			openedIds.delete(action.id);
+		}
+
+		return {
+			node: state.node,
+			openedIds,
+			focusedId: action.id,
+		};
+	}
+
+	return state;
+};
+
+const initializer = ({
+	node,
+	focusedId,
+	openedIds,
+}: InitializerArgument): State => {
+	const newOpenedIds = new Set([...openedIds, node.id]);
+
+	if (focusedId !== null) {
+		containsNodeId(node, focusedId, newOpenedIds);
+	}
+
+	return {
+		node,
+		openedIds: newOpenedIds,
+		focusedId,
+	};
+};
+
 type Props = {
 	node: TreeNode;
-	nodeIds: string[];
+	nodeIds: TreeNodeId[];
+	nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
 	fileNodes: FileTreeNode[] | null;
 	caseHash: CaseHash;
 	searchQuery: string;
-	focusedNodeId: string | null;
-	setFocusedNodeId: Dispatch<SetStateAction<string | null>>;
+	focusedNodeId: TreeNodeId | null;
 	stagedJobs: JobHash[];
+	openedIds: ReadonlySet<TreeNodeId>;
 };
 
 const TreeView = ({
 	node,
 	nodeIds,
+	nodesByDepth,
 	fileNodes,
 	searchQuery,
 	focusedNodeId,
-	setFocusedNodeId,
 	stagedJobs,
+	openedIds,
 }: Props) => {
 	const allFileNodesReady = fileNodes !== null;
+	const [state, dispatch] = useReducer(
+		reducer,
+		{
+			node,
+			focusedId: focusedNodeId,
+			openedIds,
+		},
+		initializer,
+	);
 
 	// @TODO  @UX Need to show info message to users.
 	// I typed "App" search term, and saw empty results and i had no idea that i need to type more then 3 chars
@@ -105,39 +221,18 @@ const TreeView = ({
 		[stagedJobs],
 	);
 
-	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
-		const currIndex = nodeIds.findIndex((val) => val === focusedNodeId);
-		const newIndex = key === 'ArrowUp' ? currIndex - 1 : currIndex + 1;
-		setFocusedNodeId((prev) => nodeIds[newIndex] ?? prev);
-	};
-
-	useKey('ArrowUp', () => {
-		handleArrowKeyDown('ArrowUp');
-	});
-
-	useKey('ArrowDown', () => {
-		handleArrowKeyDown('ArrowDown');
-	});
-
 	const renderItem = ({
 		node,
 		depth,
-		open,
-		setIsOpen,
-		focusedNodeId,
-		setFocusedNodeId,
 		index,
 	}: {
 		node: TreeNode | FileTreeNode;
 		depth: number;
-		open: boolean;
-		setIsOpen: (value: boolean) => void;
-		focusedNodeId: string | null;
-		setFocusedNodeId: (value: string) => void;
 		index: number;
 	}) => {
+		const open = state.openedIds.has(node.id);
 		const icon = getIcon(node.iconName ?? null, open);
-		const focused = node.id === focusedNodeId;
+		const focused = node.id === state.focusedId;
 		const hasChildren = node.children && node.children.length > 0;
 		const enableCheckbox = depth > 0 && !hasChildren;
 		const Checkbox = () => {
@@ -169,7 +264,8 @@ const TreeView = ({
 					if (!allFileNodesReady) {
 						return;
 					}
-					setFocusedNodeId(node.id);
+
+					dispatch({ kind: 'focus', id: node.id });
 				}}
 				actionButtons={[
 					enableCheckbox && allFileNodesReady && <Checkbox />,
@@ -178,7 +274,8 @@ const TreeView = ({
 					if (!allFileNodesReady) {
 						return;
 					}
-					setIsOpen(!open);
+
+					dispatch({ kind: 'flip', id: node.id });
 				}}
 				index={index}
 				inlineStyles={{
@@ -198,8 +295,44 @@ const TreeView = ({
 	};
 
 	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+
+			if (message.kind === 'webview.fileExplorer.focusNode') {
+				dispatch({ kind: 'focus', id: message.id });
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (searchQuery.length > 0) {
+			dispatch({
+				kind: 'blur',
+				id: null,
+			});
+		}
+	}, [searchQuery]);
+
+	useEffect(() => {
+		vscode.postMessage({
+			kind: 'webview.fileExplorer.setState',
+			openedIds: Array.from(state.openedIds),
+			focusedId: state.focusedId,
+		});
+	}, [state]);
+
+	useEffect(() => {
 		const handler = () => {
-			setFocusedNodeId(null);
+			dispatch({
+				kind: 'blur',
+				id: null,
+			});
 		};
 
 		window.addEventListener('blur', handler);
@@ -207,25 +340,25 @@ const TreeView = ({
 		return () => {
 			window.removeEventListener('blur', handler);
 		};
-	}, [setFocusedNodeId]);
+	}, []);
 
 	useEffect(() => {
-		if (focusedNodeId === null) {
+		if (state.focusedId === null) {
 			return;
 		}
 
-		if (fileNodeIds.has(focusedNodeId)) {
+		if (fileNodeIds.has(state.focusedId)) {
 			vscode.postMessage({
 				kind: 'webview.fileExplorer.fileSelected',
-				id: focusedNodeId,
+				id: state.focusedId,
 			});
 		} else {
 			vscode.postMessage({
 				kind: 'webview.fileExplorer.folderSelected',
-				id: focusedNodeId,
+				id: state.focusedId,
 			});
 		}
-	}, [focusedNodeId, fileNodeIds]);
+	}, [fileNodeIds, state.focusedId]);
 
 	if (fileNodes === null || fileNodes.length === 0) {
 		return null;
@@ -258,9 +391,12 @@ const TreeView = ({
 							depth={0}
 							kind={node.kind}
 							open={false}
-							focused={node.id === focusedNodeId}
+							focused={node.id === state.focusedId}
 							onClick={() => {
-								setFocusedNodeId(node.id);
+								dispatch({
+									kind: 'focus',
+									id: node.id,
+								});
 							}}
 							actionButtons={[]}
 							index={index}
@@ -273,18 +409,33 @@ const TreeView = ({
 
 	return (
 		<Tree
+			openedIds={state.openedIds}
 			node={node}
-			renderItem={(props) =>
-				renderItem({
-					...props,
-					focusedNodeId,
-					setFocusedNodeId,
-				})
-			}
+			renderItem={renderItem}
 			index={0}
 			depth={0}
-			focusedNodeId={focusedNodeId}
+			focusedNodeId={state.focusedId}
 			allFileNodesReady={allFileNodesReady}
+			nodeIds={nodeIds}
+			nodesByDepth={nodesByDepth}
+			focus={(id: TreeNodeId) => {
+				dispatch({
+					kind: 'focus',
+					id,
+				});
+			}}
+			collapse={(id: TreeNodeId) => {
+				dispatch({
+					kind: 'close',
+					id,
+				});
+			}}
+			expand={(id: TreeNodeId) => {
+				dispatch({
+					kind: 'open',
+					id,
+				});
+			}}
 		/>
 	);
 };

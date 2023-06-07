@@ -11,6 +11,7 @@ import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
 	FileTreeNode,
 	TreeNode,
+	TreeNodeId,
 	View,
 	WebviewMessage,
 	WebviewResponse,
@@ -41,26 +42,32 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { DiffWebviewPanel } from './DiffWebviewPanel';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
 	// map between URIs and the Tree Node
-	__treeMap = new Map<string, TreeNode>();
+	__treeMap = new Map<TreeNodeId, TreeNode>();
 	// map between URIs and the File Tree Node & the job hash
-	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
+	__fileNodes = new Map<
+		TreeNodeId,
+		{ jobHash: JobHash; node: FileTreeNode }
+	>();
+	__treeNodesByDepth: TreeNode[][] = [];
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
-	__lastSelectedNodeId: string | null = null;
 	__codemodExecutionInProgress = false;
-	__lastData: Extract<View, { viewId: 'treeView' }> | null = null;
+	__lastData: Extract<View, { viewId: 'fileExplorer' }> | null = null;
+	__lastFocusedNodeId: TreeNodeId | null = null;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __workspaceState: WorkspaceState,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -103,7 +110,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(data: Extract<View, { viewId: 'treeView' }>) {
+	public setView(data: Extract<View, { viewId: 'fileExplorer' }>) {
 		this.__lastData = data;
 		this.__postMessage({
 			kind: 'webview.global.setView',
@@ -113,6 +120,16 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__view?.show();
+	}
+
+	public focusMostRecentNode() {
+		if (this.__lastFocusedNodeId === null) {
+			return;
+		}
+		this.__postMessage({
+			kind: 'webview.fileExplorer.focusNode',
+			id: this.__lastFocusedNodeId,
+		});
 	}
 
 	public setCaseHash(caseHash: CaseHash) {
@@ -155,7 +172,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		if (tree) {
 			this.setView({
-				viewId: 'treeView',
+				viewId: 'fileExplorer',
 				viewProps: {
 					node: tree,
 					nodeIds: Array.from(this.__treeMap.keys()),
@@ -165,16 +182,15 @@ export class FileExplorerProvider implements WebviewViewProvider {
 								(obj) => obj.node,
 						  ),
 					caseHash,
+					nodesByDepth: this.__treeNodesByDepth,
+					openedIds: Array.from(
+						this.__workspaceState.getOpenedFileExplorerNodeIds(),
+					),
+					focusedId:
+						this.__workspaceState.getFocusedFileExplorerNodeId(),
 				},
 			});
 		}
-	}
-
-	public focusNode() {
-		this.__postMessage({
-			kind: 'webview.fileExplorer.focusNode',
-			id: this.__lastSelectedNodeId ?? null,
-		});
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -183,18 +199,24 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
 		if (element.kind === ElementKind.CASE) {
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
-			this.__treeMap.set(repoName, {
+			const repoName = (workspace.workspaceFolders?.[0]?.uri.fsPath
+				.split('/')
+				.slice(-1)[0] ?? '/') as TreeNodeId;
+			const node: TreeNode = {
 				id: repoName,
 				label: repoName,
 				kind: 'folderElement',
 				iconName: 'folder.svg',
 				children: [],
+				depth: 0,
+				parentId: null,
+			};
+			this.__treeMap.set(repoName, node);
+			this.__treeNodesByDepth[0] = [node];
+
+			element.children.forEach((child) => {
+				this.__getTreeByDirectory(child);
 			});
-			element.children.forEach(this.__getTreeByDirectory);
 			const treeNode = this.__treeMap.get(repoName) ?? undefined;
 
 			return treeNode;
@@ -222,10 +244,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				.split('/')
 				.filter((item) => item !== '');
 			const fileName = directories[directories.length - 1];
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
+			const repoName = (workspace.workspaceFolders?.[0]?.uri.fsPath
+				.split('/')
+				.slice(-1)[0] ?? '/') as TreeNodeId;
 			const jobKind = element.children[0]?.job.kind;
 
 			let path = repoName;
@@ -236,7 +257,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					return;
 				}
 
-				path += `/${dir}`;
+				path = (path + `/${dir}`) as TreeNodeId;
 				if (!this.__treeMap.has(path)) {
 					const newTreeNode =
 						dir === fileName
@@ -250,6 +271,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									),
 									children: [],
 									jobHash,
+									depth: parentNode.depth + 1,
+									parentId: parentNode.id,
 							  }
 							: {
 									id: path,
@@ -257,6 +280,8 @@ export class FileExplorerProvider implements WebviewViewProvider {
 									label: dir,
 									iconName: 'folder.svg',
 									children: [],
+									depth: parentNode.depth + 1,
+									parentId: parentNode.id,
 							  };
 
 					if (dir === fileName) {
@@ -266,6 +291,12 @@ export class FileExplorerProvider implements WebviewViewProvider {
 						});
 					}
 					this.__treeMap.set(path, newTreeNode);
+
+					const nodesAtCurrDepth =
+						this.__treeNodesByDepth[newTreeNode.depth] ?? [];
+					nodesAtCurrDepth.push(newTreeNode);
+					this.__treeNodesByDepth[newTreeNode.depth] =
+						nodesAtCurrDepth;
 
 					parentNode.children.push(newTreeNode);
 				}
@@ -408,7 +439,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		this.__treeMap.clear();
 		this.__fileNodes.clear();
 		this.setView({
-			viewId: 'treeView',
+			viewId: 'fileExplorer',
 			viewProps: null,
 		});
 	}
@@ -463,8 +494,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 			if (hash !== null) {
 				this.__lastSelectedCaseHash = hash;
-
-				// this.updateExplorerView(this.__lastSelectedCaseHash);
 			}
 		});
 	}
@@ -482,7 +511,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
-			this.__lastSelectedNodeId = fileNodeObj.node.id;
+
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -528,7 +557,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 			const folderPath = message.id;
-			this.__lastSelectedNodeId = folderPath;
+
 			panelInstance.focusFolder(folderPath);
 		}
 
@@ -538,6 +567,20 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.fileExplorer.disposeView') {
 			commands.executeCommand('intuita.disposeView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.fileExplorer.setState') {
+			this.__workspaceState.setFocusedFileExplorerNodeId(
+				message.focusedId,
+			);
+
+			if (message.focusedId) {
+				this.__lastFocusedNodeId = message.focusedId;
+			}
+
+			this.__workspaceState.setOpenedFileExplorerNodeIds(
+				new Set(message.openedIds),
+			);
 		}
 
 		if (message.kind === 'webview.global.discardChanges') {

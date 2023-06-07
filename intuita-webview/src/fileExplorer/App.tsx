@@ -12,11 +12,10 @@ import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 
-type MainViews = Extract<View, { viewId: 'treeView' }>;
+type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 function App() {
-	const [view, setView] = useState<MainViews | null>(null);
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+	const [viewProps, setViewProps] = useState<ViewProps>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
@@ -26,8 +25,8 @@ function App() {
 
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
-				if (message.value.viewId === 'treeView') {
-					setView(message.value);
+				if (message.value.viewId === 'fileExplorer') {
+					setViewProps(message.value.viewProps);
 					if (message.value.viewProps?.fileNodes !== null) {
 						setStagedJobs(
 							message.value.viewProps?.fileNodes.map(
@@ -36,13 +35,6 @@ function App() {
 						);
 					}
 				}
-			}
-
-			if (
-				message.kind === 'webview.fileExplorer.focusNode' &&
-				message.id !== null
-			) {
-				setFocusedNodeId(message.id);
 			}
 
 			if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
@@ -58,13 +50,7 @@ function App() {
 		};
 	}, []);
 
-	useEffect(() => {
-		if (searchQuery.length > 0) {
-			setFocusedNodeId(null);
-		}
-	}, [searchQuery]);
-
-	if (!view || view.viewProps === null) {
+	if (viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -72,7 +58,7 @@ function App() {
 		);
 	}
 
-	const { fileNodes, caseHash } = view.viewProps;
+	const { fileNodes, caseHash, openedIds, focusedId } = viewProps;
 
 	return (
 		<main
@@ -94,11 +80,11 @@ function App() {
 				/>
 			)}
 			<TreeView
-				{...view.viewProps}
+				{...viewProps}
 				searchQuery={searchQuery}
-				focusedNodeId={focusedNodeId}
-				setFocusedNodeId={setFocusedNodeId}
 				stagedJobs={stagedJobs}
+				openedIds={new Set(openedIds)}
+				focusedNodeId={focusedId}
 			/>
 		</main>
 	);
