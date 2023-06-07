@@ -22,10 +22,7 @@ import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { GlobalStateAccountStorage } from './components/user/userAccountStorage';
 import { AlreadyLinkedError, UserService } from './components/user/userService';
-import { RepositoryService } from './components/webview/repository';
 import { ElementHash } from './elements/types';
-
-import type { GitExtension } from './types/git';
 import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
 import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
@@ -105,26 +102,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const gitExtension =
-		vscode.extensions.getExtension<GitExtension>('vscode.git');
-	const activeGitExtension = gitExtension?.isActive
-		? gitExtension.exports
-		: await gitExtension?.activate();
-
-	const git = activeGitExtension?.getAPI(1) ?? null;
-
-	const repositoryService = new RepositoryService(
-		git,
-		persistedState?.remoteUrl ?? null,
-	);
-
 	new PersistedStateService(
 		caseManager,
 		vscode.workspace.fs,
 		() => context.storageUri ?? null,
 		jobManager,
 		messageBus,
-		repositoryService,
 	);
 
 	const intuitaTextDocumentContentProvider =
