@@ -5,7 +5,6 @@ import { MessageBus, MessageKind } from '../components/messageBus';
 import { debounce } from '../utilities';
 import { PersistedState } from './codecs';
 import { mapCaseToPersistedCase, mapJobToPersistedJob } from './mappers';
-import { RepositoryService } from '../components/webview/repository';
 
 export class PersistedStateService {
 	constructor(
@@ -14,7 +13,6 @@ export class PersistedStateService {
 		private readonly getStorageUri: () => Uri | null,
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
-		private readonly __repositoryService: RepositoryService,
 	) {
 		const debouncedOnUpdateElementsMessage = debounce(
 			() => this.saveExtensionState(),
@@ -66,14 +64,11 @@ export class PersistedStateService {
 			this.jobManager.getAppliedJobsHashes(),
 		);
 
-		const remoteUrl = this.__repositoryService.getRemoteUrl();
-
 		return {
 			cases,
 			caseHashJobHashes,
 			jobs,
 			appliedJobsHashes,
-			remoteUrl,
 		};
 	}
 
@@ -96,7 +91,6 @@ export class PersistedStateService {
 			caseHashJobHashes: [],
 			jobs: [],
 			appliedJobsHashes: [],
-			remoteUrl: this.__repositoryService.getRemoteUrl(),
 		};
 
 		const buffer = Buffer.from(JSON.stringify(persistedState));
