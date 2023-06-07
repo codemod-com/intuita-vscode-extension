@@ -15,9 +15,7 @@ import { vscode } from '../shared/utilities/vscode';
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 function App() {
-	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.viewProps as ViewProps,
-	);
+	const [viewProps, setViewProps] = useState<ViewProps>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
