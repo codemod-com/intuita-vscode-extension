@@ -11,6 +11,7 @@ import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
 	FileTreeNode,
 	TreeNode,
+	TreeNodeId,
 	View,
 	WebviewMessage,
 	WebviewResponse,
@@ -48,15 +49,18 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
 	// map between URIs and the Tree Node
-	__treeMap = new Map<string, TreeNode>();
+	__treeMap = new Map<TreeNodeId, TreeNode>();
 	// map between URIs and the File Tree Node & the job hash
-	__fileNodes = new Map<string, { jobHash: JobHash; node: FileTreeNode }>();
+	__fileNodes = new Map<
+		TreeNodeId,
+		{ jobHash: JobHash; node: FileTreeNode }
+	>();
 	__treeNodesByDepth: TreeNode[][] = [];
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
 	__codemodExecutionInProgress = false;
 	__lastData: Extract<View, { viewId: 'fileExplorer' }> | null = null;
-	__lastFocusedNodeId: string | null = null;
+	__lastFocusedNodeId: TreeNodeId | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -195,10 +199,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	private __getTreeByDirectory = (element: Element): TreeNode | undefined => {
 		if (element.kind === ElementKind.CASE) {
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
+			const repoName = (workspace.workspaceFolders?.[0]?.uri.fsPath
+				.split('/')
+				.slice(-1)[0] ?? '/') as TreeNodeId;
 			const node: TreeNode = {
 				id: repoName,
 				label: repoName,
@@ -241,10 +244,9 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				.split('/')
 				.filter((item) => item !== '');
 			const fileName = directories[directories.length - 1];
-			const repoName =
-				workspace.workspaceFolders?.[0]?.uri.fsPath
-					.split('/')
-					.slice(-1)[0] ?? '/';
+			const repoName = (workspace.workspaceFolders?.[0]?.uri.fsPath
+				.split('/')
+				.slice(-1)[0] ?? '/') as TreeNodeId;
 			const jobKind = element.children[0]?.job.kind;
 
 			let path = repoName;
@@ -255,7 +257,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					return;
 				}
 
-				path += `/${dir}`;
+				path = (path + `/${dir}`) as TreeNodeId;
 				if (!this.__treeMap.has(path)) {
 					const newTreeNode =
 						dir === fileName

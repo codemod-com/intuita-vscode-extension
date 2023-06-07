@@ -5,6 +5,7 @@ import {
 	FileTreeNode,
 	JobHash,
 	TreeNode,
+	TreeNodeId,
 	WebviewMessage,
 } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -51,8 +52,8 @@ const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 
 export const containsNodeId = (
 	node: TreeNode,
-	id: string,
-	set: Set<string>,
+	id: TreeNodeId,
+	set: Set<TreeNodeId>,
 ): boolean => {
 	if (node.id === id) {
 		return true;
@@ -71,15 +72,15 @@ export const containsNodeId = (
 
 type State = Readonly<{
 	node: TreeNode;
-	openedIds: ReadonlySet<string>;
-	focusedId: string | null;
+	openedIds: ReadonlySet<TreeNodeId>;
+	focusedId: TreeNodeId | null;
 }>;
 
 type InitializerArgument = State;
 
 type Action = Readonly<{
 	kind: 'focus' | 'blur' | 'flip' | 'open' | 'close';
-	id: string;
+	id: TreeNodeId | null;
 }>;
 
 const reducer = (state: State, action: Action): State => {
@@ -93,7 +94,7 @@ const reducer = (state: State, action: Action): State => {
 		};
 	}
 
-	if (action.kind === 'focus') {
+	if (action.kind === 'focus' && action.id !== null) {
 		containsNodeId(state.node, action.id, openedIds);
 
 		return {
@@ -103,7 +104,7 @@ const reducer = (state: State, action: Action): State => {
 		};
 	}
 
-	if (action.kind === 'flip') {
+	if (action.kind === 'flip' && action.id !== null) {
 		if (openedIds.has(action.id)) {
 			openedIds.delete(action.id);
 		} else {
@@ -117,7 +118,7 @@ const reducer = (state: State, action: Action): State => {
 		};
 	}
 
-	if (action.kind === 'open') {
+	if (action.kind === 'open' && action.id !== null) {
 		openedIds.add(action.id);
 
 		return {
@@ -127,7 +128,7 @@ const reducer = (state: State, action: Action): State => {
 		};
 	}
 
-	if (action.kind === 'close') {
+	if (action.kind === 'close' && action.id !== null) {
 		if (openedIds.has(action.id)) {
 			openedIds.delete(action.id);
 		}
@@ -162,14 +163,14 @@ const initializer = ({
 
 type Props = {
 	node: TreeNode;
-	nodeIds: string[];
+	nodeIds: TreeNodeId[];
 	nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
 	fileNodes: FileTreeNode[] | null;
 	caseHash: CaseHash;
 	searchQuery: string;
-	focusedNodeId: string | null;
+	focusedNodeId: TreeNodeId | null;
 	stagedJobs: JobHash[];
-	openedIds: ReadonlySet<string>;
+	openedIds: ReadonlySet<TreeNodeId>;
 };
 
 const TreeView = ({
@@ -313,7 +314,7 @@ const TreeView = ({
 		if (searchQuery.length > 0) {
 			dispatch({
 				kind: 'blur',
-				id: '',
+				id: null,
 			});
 		}
 	}, [searchQuery]);
@@ -330,7 +331,7 @@ const TreeView = ({
 		const handler = () => {
 			dispatch({
 				kind: 'blur',
-				id: '',
+				id: null,
 			});
 		};
 
@@ -417,19 +418,19 @@ const TreeView = ({
 			allFileNodesReady={allFileNodesReady}
 			nodeIds={nodeIds}
 			nodesByDepth={nodesByDepth}
-			focus={(id: string) => {
+			focus={(id: TreeNodeId) => {
 				dispatch({
 					kind: 'focus',
 					id,
 				});
 			}}
-			collapse={(id: string) => {
+			collapse={(id: TreeNodeId) => {
 				dispatch({
 					kind: 'close',
 					id,
 				});
 			}}
-			expand={(id: string) => {
+			expand={(id: TreeNodeId) => {
 				dispatch({
 					kind: 'open',
 					id,

@@ -1,13 +1,16 @@
 import ReactTreeView from 'react-treeview';
 import { ReactNode, memo } from 'react';
-import { TreeNode } from '../../../../src/components/webview/webviewEvents';
+import {
+	TreeNode,
+	TreeNodeId,
+} from '../../../../src/components/webview/webviewEvents';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 
 const getIndex = (
 	nodes: ReadonlyArray<TreeNode>,
-	id: string | null,
+	id: TreeNodeId | null,
 ): number => {
 	return nodes.findIndex((_node) => id === _node.id);
 };
@@ -25,14 +28,14 @@ type Props = {
 		node: TreeNode;
 		depth: number;
 	}): ReactNode;
-	focusedNodeId: string | null;
+	focusedNodeId: TreeNodeId | null;
 	allFileNodesReady: boolean;
-	nodeIds: string[];
+	nodeIds: TreeNodeId[];
 	nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
-	focus(id: string): void;
-	collapse(id: string): void;
-	expand(id: string): void;
-	openedIds: ReadonlySet<string>;
+	focus(id: TreeNodeId): void;
+	collapse(id: TreeNodeId): void;
+	expand(id: TreeNodeId): void;
+	openedIds: ReadonlySet<TreeNodeId>;
 };
 
 const Tree = ({

@@ -13,6 +13,7 @@ import { workspaceStateCodec } from './codecs';
 import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
 import { MessageBus, MessageKind } from '../components/messageBus';
+import { TreeNodeId } from '../components/webview/webviewEvents';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -240,7 +241,7 @@ export class WorkspaceState {
 		this.__memento.update(hashDigest, JSON.stringify(Array.from(set)));
 	}
 
-	public getOpenedFileExplorerNodeIds(): ReadonlySet<string> {
+	public getOpenedFileExplorerNodeIds(): ReadonlySet<TreeNodeId> {
 		const hash = buildWorkspaceStateKeyHash('openedFileExplorerNodeIds');
 
 		const value = ensureIsString(this.__memento.get(hash));
@@ -255,7 +256,7 @@ export class WorkspaceState {
 				(e) => e,
 			),
 			E.flatMap((json) => t.readonlyArray(t.string).decode(json)),
-			E.map((id) => new Set(id)),
+			E.map((id) => new Set(id as TreeNodeId[])),
 		);
 
 		if (E.isLeft(either)) {
@@ -267,7 +268,7 @@ export class WorkspaceState {
 		return either.right;
 	}
 
-	public setOpenedFileExplorerNodeIds(set: ReadonlySet<string>): void {
+	public setOpenedFileExplorerNodeIds(set: ReadonlySet<TreeNodeId>): void {
 		const hashDigest = buildWorkspaceStateKeyHash(
 			'openedFileExplorerNodeIds',
 		);
@@ -275,17 +276,17 @@ export class WorkspaceState {
 		this.__memento.update(hashDigest, JSON.stringify(Array.from(set)));
 	}
 
-	public getFocusedFileExplorerNodeId(): string | null {
+	public getFocusedFileExplorerNodeId(): TreeNodeId | null {
 		const hashDigest = buildWorkspaceStateKeyHash(
 			'focusedFileExplorerNodeId',
 		);
 
 		return ensureIsString(
 			this.__memento.get(hashDigest),
-		) as CodemodHash | null;
+		) as TreeNodeId | null;
 	}
 
-	public setFocusedFileExplorerNodeId(id: string | null): void {
+	public setFocusedFileExplorerNodeId(id: TreeNodeId | null): void {
 		const hashDigest = buildWorkspaceStateKeyHash(
 			'focusedFileExplorerNodeId',
 		);
