@@ -47,17 +47,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
 
-		const viewProps = this.__buildViewProps();
-
-		this.__webviewResolver.resolveWebview(
-			webviewView.webview,
-			'errors',
-			JSON.stringify({
-				viewProps,
-			}),
-		);
-
-		this.__webviewView.onDidChangeVisibility(() => {
+		const resolve = () => {
 			const viewProps = this.__buildViewProps();
 
 			this.__webviewResolver.resolveWebview(
@@ -67,7 +57,11 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 					viewProps,
 				}),
 			);
-		});
+		};
+
+		resolve();
+
+		this.__webviewView.onDidChangeVisibility(resolve);
 	}
 
 	public showView() {
