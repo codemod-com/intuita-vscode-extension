@@ -165,10 +165,6 @@ export type WebviewMessage =
 			value: JobHash[];
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.focusNode';
-			id: string | null;
-	  }>
-	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
 	  }>;
@@ -241,6 +237,11 @@ export type WebviewResponse =
 			id: string;
 	  }>
 	| Readonly<{
+			kind: 'webview.fileExplorer.setState';
+			openedIds: ReadonlyArray<string>;
+			focusedId: string | null;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
 				newPath: string;
@@ -298,6 +299,8 @@ export type View =
 				nodeIds: string[];
 				fileNodes: FileTreeNode[] | null;
 				nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
+				openedIds: ReadonlyArray<string>;
+				focusedId: string | null;
 			} | null;
 	  }>
 	| Readonly<{

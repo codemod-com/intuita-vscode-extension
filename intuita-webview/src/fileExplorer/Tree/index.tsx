@@ -1,5 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import { Dispatch, ReactNode, SetStateAction, memo, useState } from 'react';
+import { ReactNode, memo } from 'react';
 import { TreeNode } from '../../../../src/components/webview/webviewEvents';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 import { vscode } from '../../shared/utilities/vscode';
@@ -20,20 +20,19 @@ type Props = {
 		index,
 		node,
 		depth,
-		open,
-		setIsOpen,
 	}: {
 		index: number;
 		node: TreeNode;
 		depth: number;
-		open: boolean;
-		setIsOpen: Dispatch<SetStateAction<boolean>>;
 	}): ReactNode;
 	focusedNodeId: string | null;
 	allFileNodesReady: boolean;
 	nodeIds: string[];
 	nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
-	onFocusNode(id: string): void;
+	focus(id: string): void;
+	collapse(id: string): void;
+	expand(id: string): void;
+	openedIds: ReadonlySet<string>;
 };
 
 const Tree = ({
@@ -45,10 +44,13 @@ const Tree = ({
 	allFileNodesReady,
 	nodeIds,
 	nodesByDepth,
-	onFocusNode,
+	focus,
+	collapse,
+	expand,
+	openedIds,
 }: Props) => {
+	const open = openedIds.has(node.id);
 	const hasNoChildren = !node.children || node.children.length === 0;
-	const [open, setIsOpen] = useState(true);
 
 	const handleArrowKeyDownHorizontal = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (node.id !== focusedNodeId) {
@@ -64,7 +66,7 @@ const Tree = ({
 		}
 
 		if (!hasNoChildren) {
-			setIsOpen(key === 'ArrowLeft' ? false : true);
+			key === 'ArrowLeft' ? collapse(node.id) : expand(node.id);
 		}
 	};
 
@@ -102,7 +104,7 @@ const Tree = ({
 				nextNodeAtCurrentDepth !== null &&
 				nextNodeAtCurrentDepth.parentId === node.parentId
 			) {
-				onFocusNode(nextNodeAtCurrentDepth.id);
+				focus(nextNodeAtCurrentDepth.id);
 				return;
 			}
 
@@ -126,7 +128,7 @@ const Tree = ({
 				return;
 			}
 
-			onFocusNode(parentNextSiblingNode.id);
+			focus(parentNextSiblingNode.id);
 			return;
 		}
 
@@ -141,7 +143,7 @@ const Tree = ({
 		) {
 			// if exists and collapsed, shift to the previous sibling
 			if (!openedIds.has(prevNodeAtCurrentDepth.id)) {
-				onFocusNode(prevNodeAtCurrentDepth.id);
+				focus(prevNodeAtCurrentDepth.id);
 				return;
 			}
 
@@ -161,7 +163,7 @@ const Tree = ({
 				lastChildInNodesByDepth !== null &&
 				!openedIds.has(lastChildInNodesByDepth.id)
 			) {
-				onFocusNode(lastChildInNodesByDepth.id);
+				focus(lastChildInNodesByDepth.id);
 				return;
 			}
 		}
@@ -178,7 +180,7 @@ const Tree = ({
 		if (nodeIdToFocus === null) {
 			return;
 		}
-		onFocusNode(nodeIdToFocus);
+		focus(nodeIdToFocus);
 	};
 
 	useKey('ArrowUp', () => {
@@ -192,8 +194,6 @@ const Tree = ({
 		index,
 		node,
 		depth,
-		open,
-		setIsOpen,
 	});
 
 	if (hasNoChildren) {
@@ -221,7 +221,10 @@ const Tree = ({
 								focusedNodeId={focusedNodeId}
 								nodesByDepth={nodesByDepth}
 								nodeIds={nodeIds}
-								onFocusNode={onFocusNode}
+								openedIds={openedIds}
+								focus={focus}
+								collapse={collapse}
+								expand={expand}
 							/>
 					  ))
 					: null}

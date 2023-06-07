@@ -243,7 +243,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		jobManager,
-		caseManager,
+		caseManager,workspaceState
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
@@ -297,7 +297,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				if (webviewName === 'changeExplorer') {
-					fileExplorerProvider.focusNode();
+					// TODO: Handle this
+					// fileExplorerProvider.focusNode();
 				}
 
 				if (webviewName === 'diffView' && rootPath !== null) {

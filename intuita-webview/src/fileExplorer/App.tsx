@@ -16,7 +16,6 @@ type MainViews = Extract<View, { viewId: 'fileExplorer' }>;
 
 function App() {
 	const [view, setView] = useState<MainViews | null>(null);
-	const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
@@ -38,13 +37,6 @@ function App() {
 				}
 			}
 
-			if (
-				message.kind === 'webview.fileExplorer.focusNode' &&
-				message.id !== null
-			) {
-				setFocusedNodeId(message.id);
-			}
-
 			if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
 				setStagedJobs(message.value);
 			}
@@ -58,12 +50,6 @@ function App() {
 		};
 	}, []);
 
-	useEffect(() => {
-		if (searchQuery.length > 0) {
-			setFocusedNodeId(null);
-		}
-	}, [searchQuery]);
-
 	if (!view || view.viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
@@ -72,7 +58,7 @@ function App() {
 		);
 	}
 
-	const { fileNodes, caseHash } = view.viewProps;
+	const { fileNodes, caseHash, openedIds, focusedId } = view.viewProps;
 
 	return (
 		<main
@@ -96,9 +82,9 @@ function App() {
 			<TreeView
 				{...view.viewProps}
 				searchQuery={searchQuery}
-				focusedNodeId={focusedNodeId}
-				setFocusedNodeId={setFocusedNodeId}
 				stagedJobs={stagedJobs}
+				openedIds={new Set(openedIds)}
+				focusedNodeId={focusedId}
 			/>
 		</main>
 	);

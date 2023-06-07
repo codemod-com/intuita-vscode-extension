@@ -41,6 +41,7 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { DiffWebviewPanel } from './DiffWebviewPanel';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 export class FileExplorerProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -53,7 +54,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	__treeNodesByDepth: TreeNode[][] = [];
 	__unsavedChanges = false;
 	__lastSelectedCaseHash: CaseHash | null = null;
-	__lastSelectedNodeId: string | null = null;
 	__codemodExecutionInProgress = false;
 	__lastData: Extract<View, { viewId: 'fileExplorer' }> | null = null;
 
@@ -62,6 +62,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
+		private readonly __workspaceState: WorkspaceState,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -167,16 +168,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 						  ),
 					caseHash,
 					nodesByDepth: this.__treeNodesByDepth,
+					openedIds: Array.from(
+						this.__workspaceState.getOpenedFileExplorerNodeIds(),
+					),
+					focusedId:
+						this.__workspaceState.getFocusedFileExplorerNodeId(),
 				},
 			});
 		}
-	}
-
-	public focusNode() {
-		this.__postMessage({
-			kind: 'webview.fileExplorer.focusNode',
-			id: this.__lastSelectedNodeId ?? null,
-		});
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -501,7 +500,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			if (fileNodeObj === null) {
 				return;
 			}
-			this.__lastSelectedNodeId = fileNodeObj.node.id;
+
 			const { jobHash } = fileNodeObj;
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
@@ -547,7 +546,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 			const folderPath = message.id;
-			this.__lastSelectedNodeId = folderPath;
+
 			panelInstance.focusFolder(folderPath);
 		}
 
@@ -557,6 +556,16 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.fileExplorer.disposeView') {
 			commands.executeCommand('intuita.disposeView', message.webviewName);
+		}
+
+		if (message.kind === 'webview.fileExplorer.setState') {
+			this.__workspaceState.setFocusedFileExplorerNodeId(
+				message.focusedId,
+			);
+
+			this.__workspaceState.setOpenedFileExplorerNodeIds(
+				new Set(message.openedIds),
+			);
 		}
 
 		if (message.kind === 'webview.global.discardChanges') {
