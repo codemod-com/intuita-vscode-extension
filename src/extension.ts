@@ -443,10 +443,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					kind: MessageKind.updateElements,
 				});
 
-				fileExplorerProvider.setView({
-					viewId: 'fileExplorer',
-					viewProps: null,
-				});
+				fileExplorerProvider.clearView();
 			} catch (e) {
 				const message = e instanceof Error ? e.message : String(e);
 				vscode.window.showErrorMessage(message);
@@ -469,7 +466,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
-				fileExplorerProvider.updateExplorerView(caseHash);
+				fileExplorerProvider.setView(caseHash);
 
 				errorWebviewProvider.showView();
 				errorWebviewProvider.setView();
