@@ -243,7 +243,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		jobManager,
-		caseManager,workspaceState
+		caseManager,
+		workspaceState,
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
