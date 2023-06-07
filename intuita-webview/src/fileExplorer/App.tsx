@@ -12,10 +12,12 @@ import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 
-type MainViews = Extract<View, { viewId: 'fileExplorer' }>;
+type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 function App() {
-	const [view, setView] = useState<MainViews | null>(null);
+	const [viewProps, setViewProps] = useState<ViewProps>(
+		window.INITIAL_STATE.viewProps as ViewProps,
+	);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
 
@@ -26,7 +28,7 @@ function App() {
 			if (message.kind === 'webview.global.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'fileExplorer') {
-					setView(message.value);
+					setViewProps(message.value.viewProps);
 					if (message.value.viewProps?.fileNodes !== null) {
 						setStagedJobs(
 							message.value.viewProps?.fileNodes.map(
@@ -50,7 +52,7 @@ function App() {
 		};
 	}, []);
 
-	if (!view || view.viewProps === null) {
+	if (viewProps === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -58,7 +60,7 @@ function App() {
 		);
 	}
 
-	const { fileNodes, caseHash, openedIds, focusedId } = view.viewProps;
+	const { fileNodes, caseHash, openedIds, focusedId } = viewProps;
 
 	return (
 		<main
@@ -80,7 +82,7 @@ function App() {
 				/>
 			)}
 			<TreeView
-				{...view.viewProps}
+				{...viewProps}
 				searchQuery={searchQuery}
 				stagedJobs={stagedJobs}
 				openedIds={new Set(openedIds)}
