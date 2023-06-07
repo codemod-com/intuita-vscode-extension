@@ -51,9 +51,6 @@ export const enum MessageKind {
 	 * show progress
 	 */
 	showProgress = 31,
-	/**
-	 * create PR
-	 */
 
 	focusCodemod = 35,
 
