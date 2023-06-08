@@ -20,7 +20,7 @@ import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { WorkspaceState } from '../persistedState/workspaceState';
-import { CodemodEntry, codemodListCodec } from '../codemods/types';
+import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -170,9 +170,9 @@ export class EngineService {
 		const codemodListJSON = await streamToString(childProcess.stdout);
 
 		try {
-			const codemodListOrError = codemodListCodec.decode(
-				JSON.parse(codemodListJSON),
-			);
+			const codemodListOrError = t
+				.readonlyArray(codemodEntryCodec)
+				.decode(JSON.parse(codemodListJSON));
 
 			if (codemodListOrError._tag === 'Left') {
 				const report = prettyReporter.report(codemodListOrError);

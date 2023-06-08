@@ -15,5 +15,3 @@ export const codemodEntryCodec = buildTypeCodec({
 		t.literal('filemod-engine'),
 	]),
 });
-
-export const codemodListCodec = t.readonlyArray(codemodEntryCodec);

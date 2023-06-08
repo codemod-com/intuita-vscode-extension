@@ -14,7 +14,7 @@ import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { TreeNodeId } from '../components/webview/webviewEvents';
-import { CodemodEntry, codemodListCodec } from '../codemods/types';
+import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -409,7 +409,9 @@ export class WorkspaceState {
 				() => JSON.parse(serializedCodemods),
 				(e) => e,
 			),
-			E.flatMap((json) => codemodListCodec.decode(json)),
+			E.flatMap((json) =>
+				t.readonlyArray(codemodEntryCodec).decode(json),
+			),
 		);
 
 		if (E.isLeft(validation)) {
