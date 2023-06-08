@@ -20,6 +20,7 @@ import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { WorkspaceState } from '../persistedState/workspaceState';
+import { CodemodEntry, codemodListCodec } from '../codemods/types';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -110,23 +111,6 @@ type Execution = {
 	case: CaseWithJobHashes;
 };
 
-const codemodEntryCodec = buildTypeCodec({
-	kind: t.literal('codemod'),
-	hashDigest: t.string,
-	name: t.string,
-	description: t.string,
-	engine: t.union([
-		t.literal('jscodeshift'),
-		t.literal('ts-morph'),
-		t.literal('repomod-engine'),
-		t.literal('filemod-engine'),
-	]),
-});
-
-type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
-
-const codemodListCodec = t.readonlyArray(codemodEntryCodec);
-
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
@@ -158,6 +142,10 @@ export class EngineService {
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
+	}
+
+	public isEngineBootstrapped() {
+		return this.#noraNodeEngineExecutableUri !== null;
 	}
 
 	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
