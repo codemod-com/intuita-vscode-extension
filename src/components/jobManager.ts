@@ -102,4 +102,19 @@ export class JobManager {
 			this.__messageBus.publish(message);
 		}
 	}
+
+	public async modifyJobContent(jobHash: JobHash, newJobContent: string) {
+		const job = { newContentUri: null };
+		const newContentUri = job?.newContentUri ?? null;
+
+		if (newContentUri === null) {
+			return;
+		}
+
+		await this.__fileService.updateFileContent({
+			uri: newContentUri,
+			content: newJobContent,
+		});
+		// this.#jobMap.set(jobHash, { ...job, modifiedByUser: true } as Job);
+	}
 }

@@ -162,4 +162,9 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.global.flipCodemodHashDigest';
 			codemodNodeHashDigest: CodemodNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind: 'webview.jobDiffView.contentModified';
+			jobHash: JobHash;
+			newContent: string;
 	  }>;
