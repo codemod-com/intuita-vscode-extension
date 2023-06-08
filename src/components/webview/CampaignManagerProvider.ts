@@ -142,17 +142,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
-
-		const viewProps = this.__buildViewProps();
-
-		this.__webviewResolver.resolveWebview(
-			webviewView.webview,
-			'campaignManager',
-			JSON.stringify({
-				viewProps,
-			}),
-		);
-
+		this.__resolveWebview();
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
@@ -171,6 +161,22 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__webviewView?.show();
+	}
+
+	__resolveWebview() {
+		if (this.__webviewView === null) {
+			return;
+		}
+
+		const viewProps = this.__buildViewProps();
+
+		this.__webviewResolver.resolveWebview(
+			this.__webviewView.webview,
+			'campaignManager',
+			JSON.stringify({
+				viewProps,
+			}),
+		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -271,6 +277,12 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				this.__workspaceState.setSelectedCaseHash(message.caseHash);
 
 				this.setView();
+			}
+		});
+
+		this.__webviewView?.onDidChangeVisibility(() => {
+			if (this.__webviewView?.visible) {
+				this.__resolveWebview();
 			}
 		});
 	}
