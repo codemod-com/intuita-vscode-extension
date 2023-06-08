@@ -263,7 +263,11 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	private __attachWebviewEventListeners() {
-		this.__webviewView?.webview.onDidReceiveMessage((message) => {
+		if (this.__webviewView === null) {
+			return;
+		}
+
+		this.__webviewView.webview.onDidReceiveMessage((message) => {
 			if (message.kind === 'webview.command') {
 				commands.executeCommand(
 					message.value.command,
@@ -280,7 +284,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			}
 		});
 
-		this.__webviewView?.onDidChangeVisibility(() => {
+		this.__webviewView.onDidChangeVisibility(() => {
 			if (this.__webviewView?.visible) {
 				this.__resolveWebview();
 			}
