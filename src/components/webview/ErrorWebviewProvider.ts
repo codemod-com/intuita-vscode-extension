@@ -61,7 +61,11 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		resolve();
 
-		this.__webviewView.onDidChangeVisibility(resolve);
+		this.__webviewView.onDidChangeVisibility(() => {
+			if (this.__webviewView?.visible) {
+				resolve();
+			}
+		});
 	}
 
 	public showView() {
