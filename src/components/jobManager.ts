@@ -236,6 +236,21 @@ export class JobManager {
 		this.#appliedJobsHashes.delete(jobHash);
 	}
 
+	public async modifyJobContent(jobHash: JobHash, newJobContent: string) {
+		const job = this.getJob(jobHash);
+		const newContentUri = job?.newContentUri ?? null;
+
+		if (newContentUri === null) {
+			return;
+		}
+
+		await this.__fileService.updateFileContent({
+			uri: newContentUri,
+			content: newJobContent,
+		});
+		this.#jobMap.set(jobHash, { ...job, modifiedByUser: true } as Job);
+	}
+
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {
 		const { codemodHashJobHashSetManager, codemods } =
 			this.#buildCodemodObjects(message.jobHashes);

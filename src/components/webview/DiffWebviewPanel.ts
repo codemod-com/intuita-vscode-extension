@@ -68,7 +68,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		);
 	}
 
-	private __onDidReceiveMessage(message: WebviewResponse) {
+	private async __onDidReceiveMessage(message: WebviewResponse) {
 		if (message.kind === 'webview.command') {
 			commands.executeCommand(
 				message.value.command,
@@ -117,6 +117,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		if (message.kind === 'webview.global.showInformationMessage') {
 			window.showInformationMessage(message.value);
+		}
+
+		if (message.kind === 'webview.jobDiffView.contentModified') {
+			await this.__jobManager.modifyJobContent(
+				message.jobHash,
+				message.newContent,
+			);
+			this.__refreshView();
 		}
 	}
 

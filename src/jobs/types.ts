@@ -22,4 +22,5 @@ export type Job = Readonly<{
 	codemodName: string;
 	createdAt: number;
 	executionId: string;
+	modifiedByUser?: boolean;
 }>;

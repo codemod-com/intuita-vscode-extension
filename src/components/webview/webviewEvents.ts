@@ -281,6 +281,11 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.campaignManager.setSelectedCaseHash';
 			caseHash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.jobDiffView.contentModified';
+			jobHash: JobHash;
+			newContent: string;
 	  }>;
 
 export type View =

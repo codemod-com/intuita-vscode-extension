@@ -4,6 +4,14 @@ import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
 
 export type { Diff };
+type Props = {
+	oldFileContent: string | null;
+	newFileContent: string | null;
+	viewType: 'inline' | 'side-by-side';
+	theme: string;
+	onDiffCalculated: (diff: Diff) => void;
+	onChange(content: string): void;
+};
 
 export const DiffComponent = memo(
 	({
@@ -11,16 +19,11 @@ export const DiffComponent = memo(
 		newFileContent,
 		viewType,
 		onDiffCalculated,
+		onChange,
 		theme,
-	}: {
-		oldFileContent: string | null;
-		newFileContent: string | null;
-		viewType: 'inline' | 'side-by-side';
-		onDiffCalculated: (diff: Diff) => void;
-		theme: string;
-	}) => {
+	}: Props) => {
 		const editorRef = useRef<editor.IStandaloneDiffEditor>(null);
-
+		console.log('renderDiff', newFileContent);
 		useEffect(() => {
 			const editorInstance =
 				editorRef.current?.getModifiedEditor() ?? null;
@@ -49,6 +52,22 @@ export const DiffComponent = memo(
 					onDiffCalculated(diffChanges);
 				}
 			});
+
+			const modifiedEditor = editor.getModifiedEditor();
+
+			if (modifiedEditor === null) {
+				return;
+			}
+
+			modifiedEditor.onDidChangeModelContent((e) => {
+				const content = modifiedEditor.getModel()?.getValue() ?? null;
+
+				if (content === null || content === newFileContent) {
+					return;
+				}
+
+				onChange(content);
+			});
 		};
 
 		return (
@@ -57,7 +76,7 @@ export const DiffComponent = memo(
 				theme={theme}
 				ref={editorRef}
 				options={{
-					readOnly: false, 
+					readOnly: false,
 					originalEditable: false,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',

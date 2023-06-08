@@ -7,6 +7,7 @@ import { reportIssue } from '../util';
 import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
+import debounce from '../../shared/utilities/debounce';
 
 type Props = JobDiffViewProps & {
 	postMessage: (arg: JobAction) => void;
@@ -59,6 +60,14 @@ export const JobDiffView = memo(
 				[onDiffCalculated],
 			);
 
+			const handleContentChange = debounce((newContent: string) => {
+				vscode.postMessage({
+					kind: 'webview.jobDiffView.contentModified',
+					newContent,
+					jobHash,
+				});
+			}, 350);
+
 			return (
 				<div
 					ref={(r) => {
@@ -107,6 +116,7 @@ export const JobDiffView = memo(
 							oldFileContent={oldFileContent}
 							newFileContent={newFileContent}
 							onDiffCalculated={handleDiffCalculated}
+							onChange={handleContentChange}
 						/>
 					</Collapsable>
 				</div>
