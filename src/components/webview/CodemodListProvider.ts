@@ -80,10 +80,14 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 
-		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () => {
-			this.__engineBootstrapped = true;
-			this.getCodemodTree();
-		});
+		this.__messageBus.subscribe(
+			MessageKind.engineBootstrapped,
+			async () => {
+				this.__engineBootstrapped = true;
+				this.getCodemodTree();
+			},
+		);
+
 		this.__messageBus.subscribe(
 			MessageKind.showProgress,
 			this.handleCodemodExecutionProgress.bind(this),
@@ -364,10 +368,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	};
 
 	private async __getCodemodTree(): Promise<CodemodTree> {
-		if (!this.__engineBootstrapped) {
-			return E.right(O.none);
-		}
-
 		try {
 			await this.__codemodService.getDiscoveredCodemods();
 
@@ -400,7 +400,6 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 	// TODO change to private & separate calculation from sending
 	public async getCodemodTree() {
 		this.__codemodTree = await this.__getCodemodTree();
-
 		this.setView();
 	}
 

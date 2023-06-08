@@ -14,6 +14,7 @@ import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { TreeNodeId } from '../components/webview/webviewEvents';
+import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';
@@ -27,6 +28,7 @@ type WorkspaceStateKeyEnvelope = Readonly<
 	| 'focusedFileExplorerNodeId'
 	| 'publicCodemodsExpanded'
 	| 'selectedCaseHash'
+	| 'publicCodemods'
 	| {
 			kind: 'executionPath';
 			codemodHash: string;
@@ -352,7 +354,6 @@ export class WorkspaceState {
 
 		if (E.isLeft(validation)) {
 			console.error(validation.left);
-
 			return [];
 		}
 
@@ -392,5 +393,38 @@ export class WorkspaceState {
 		}
 
 		this.__memento.update(hashDigest, caseHash);
+	}
+
+	public getPublicCodemods(): ReadonlyArray<CodemodEntry> {
+		const hash = buildWorkspaceStateKeyHash('publicCodemods');
+
+		const serializedCodemods = ensureIsString(this.__memento.get(hash));
+
+		if (serializedCodemods === null) {
+			return [];
+		}
+
+		const validation = pipe(
+			E.tryCatch(
+				() => JSON.parse(serializedCodemods),
+				(e) => e,
+			),
+			E.flatMap((json) =>
+				t.readonlyArray(codemodEntryCodec).decode(json),
+			),
+		);
+
+		if (E.isLeft(validation)) {
+			console.error(validation.left);
+
+			return [];
+		}
+
+		return validation.right;
+	}
+
+	public setPublicCodemods(codemods: ReadonlyArray<CodemodEntry>) {
+		const hash = buildWorkspaceStateKeyHash('publicCodemods');
+		this.__memento.update(hash, JSON.stringify(codemods));
 	}
 }
