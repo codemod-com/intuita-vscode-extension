@@ -216,7 +216,7 @@ const TreeItem = ({
 							</span>
 						}
 						popoverText="Double-click to open the documentation."
-						disabled={editingPath}
+						disabled={editingPath || kind === 'path'}
 					/>
 					<span
 						className={styles.directorySelector}
