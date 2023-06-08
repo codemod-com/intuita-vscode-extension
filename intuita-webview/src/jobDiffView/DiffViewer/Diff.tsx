@@ -57,7 +57,8 @@ export const DiffComponent = memo(
 				theme={theme}
 				ref={editorRef}
 				options={{
-					readOnly: true,
+					readOnly: false, 
+					originalEditable: false,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
