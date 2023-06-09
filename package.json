@@ -133,7 +133,7 @@
 					"order": 7,
 					"type": "string",
 					"description": "Specify a command that will be executed when dry run is completed"
-				}, 
+				},
 				"intuita.useFormatting": {
 					"order": 8,
 					"type": "boolean",
