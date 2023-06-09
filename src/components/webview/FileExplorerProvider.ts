@@ -492,7 +492,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __onDidReceiveMessage = (message: WebviewResponse) => {
+	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
 			commands.executeCommand(
 				message.value.command,
@@ -501,6 +501,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.fileExplorer.fileSelected') {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+
 			const fileNodeObj = this.__fileNodes.get(message.id) ?? null;
 			if (fileNodeObj === null) {
 				return;
@@ -527,10 +531,19 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				rootPath,
 			);
 
+			await panelInstance.render();
+
+			await panelInstance.openCase(
+				this.__lastSelectedCaseHash as unknown as ElementHash,
+			);
 			panelInstance.focusFile(jobHash);
 		}
 
 		if (message.kind === 'webview.fileExplorer.folderSelected') {
+			if (this.__lastSelectedCaseHash === null) {
+				return;
+			}
+
 			const rootPath =
 				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 			if (rootPath === null) {
@@ -552,6 +565,10 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			);
 			const folderPath = message.id;
 
+			await panelInstance.render();
+			await panelInstance.openCase(
+				this.__lastSelectedCaseHash as unknown as ElementHash,
+			);
 			panelInstance.focusFolder(folderPath);
 		}
 
