@@ -133,6 +133,11 @@
 					"order": 7,
 					"type": "string",
 					"description": "Specify a command that will be executed when dry run is completed"
+				}, 
+				"intuita.useFormatting": {
+					"order": 8,
+					"type": "boolean",
+					"description": "Use Prettier formatter localized based on the file in question; if the config cannot be found, use the Intuita's Prettier config"
 				}
 			}
 		},

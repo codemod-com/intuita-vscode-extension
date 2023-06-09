@@ -19,6 +19,8 @@ export const getConfiguration = () => {
 
 	const onDryRunCompleted =
 		configuration.get<string>('onDryRunCompleted') || null;
+		
+	const useFormatting = configuration.get<boolean>('useFormatting') ??  false;
 
 	return {
 		saveDocumentOnJobAccept,
@@ -27,6 +29,7 @@ export const getConfiguration = () => {
 		includePatterns,
 		excludePatterns,
 		onDryRunCompleted,
+		useFormatting,
 	};
 };
 
