@@ -2,9 +2,11 @@ import { memo, useEffect, useRef } from 'react';
 import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
+import { Disposable } from 'vscode';
 
 export type { Diff };
 type Props = {
+	jobHash: string;
 	oldFileContent: string | null;
 	newFileContent: string | null;
 	viewType: 'inline' | 'side-by-side';
@@ -21,9 +23,12 @@ export const DiffComponent = memo(
 		onDiffCalculated,
 		onChange,
 		theme,
+		jobHash,
 	}: Props) => {
-		const editorRef = useRef<editor.IStandaloneDiffEditor>(null);
-		console.log('renderDiff', newFileContent);
+		const editorRef = useRef<editor.IStandaloneDiffEditor | null>(null);
+		const handlerRef = useRef<Disposable | null>(null);
+		const jobHashRef = useRef<string | null>(null);
+
 		useEffect(() => {
 			const editorInstance =
 				editorRef.current?.getModifiedEditor() ?? null;
@@ -34,6 +39,36 @@ export const DiffComponent = memo(
 
 			editorInstance.setScrollTop(0);
 		}, [oldFileContent, newFileContent]);
+
+		const reattachHandler = (editor?: editor.IStandaloneDiffEditor) => {
+			if (jobHashRef.current === jobHash) {
+				return;
+			}
+
+			const modifiedEditor =
+				(editor ?? editorRef.current)?.getModifiedEditor() ?? null;
+
+			if (modifiedEditor === null) {
+				return;
+			}
+
+			if (handlerRef.current !== null) {
+				handlerRef.current.dispose();
+			}
+
+			handlerRef.current = modifiedEditor.onDidChangeModelContent(() => {
+				const content = modifiedEditor.getModel()?.getValue() ?? null;
+				if (content === null) {
+					return;
+				}
+
+				onChange(content);
+			});
+
+			jobHashRef.current = jobHash;
+		};
+
+		reattachHandler();
 
 		const getDiffChanges = (
 			editor: editor.IStandaloneDiffEditor,
@@ -53,27 +88,13 @@ export const DiffComponent = memo(
 				}
 			});
 
-			const modifiedEditor = editor.getModifiedEditor();
-
-			if (modifiedEditor === null) {
-				return;
-			}
-
-			modifiedEditor.onDidChangeModelContent((e) => {
-				const content = modifiedEditor.getModel()?.getValue() ?? null;
-
-				if (content === null || content === newFileContent) {
-					return;
-				}
-
-				onChange(content);
-			});
+			reattachHandler(editor);
 		};
 
 		return (
 			<MonacoDiffEditor
-				onRefSet={handleRefSet}
 				theme={theme}
+				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
 					readOnly: false,
