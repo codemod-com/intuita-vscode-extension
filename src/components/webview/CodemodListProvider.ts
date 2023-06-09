@@ -373,6 +373,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 
 			const codemodList = this.__getCodemod();
 
+			if (codemodList.length === 0 && !this.__engineBootstrapped) {
+				return E.right(O.none);
+			}
+
 			const treeNodes = codemodList.map((codemod) =>
 				this.__getTreeNode(codemod, 0, null),
 			);
