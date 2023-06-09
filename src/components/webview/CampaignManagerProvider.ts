@@ -160,7 +160,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 	}
 
 	public showView() {
-		this.__webviewView?.show();
+		this.__webviewView?.show(true);
 	}
 
 	__resolveWebview() {

@@ -69,7 +69,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	}
 
 	public showView() {
-		this.__webviewView?.show();
+		this.__webviewView?.show(true);
 	}
 
 	public setView() {

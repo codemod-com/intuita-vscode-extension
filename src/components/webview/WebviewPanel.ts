@@ -89,7 +89,7 @@ export abstract class IntuitaWebviewPanel {
 
 	public render() {
 		const initWebviewPromise = new Promise((resolve) => {
-			this._panel?.reveal();
+			this._panel?.reveal(undefined, true);
 
 			if (this._webviewMounted) {
 				resolve(null);
