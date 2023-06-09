@@ -101,7 +101,7 @@ function App() {
 		return <LoadingProgress />;
 	}
 
-	const { data, showHooksCTA } = view.viewProps;
+	const { data } = view.viewProps;
 	const job = data[jobIndex];
 
 	if (!job) {
@@ -112,7 +112,6 @@ function App() {
 		<main className="App">
 			<JobDiffViewContainer
 				job={job}
-				showHooksCTA={showHooksCTA}
 				postMessage={postMessage}
 				totalJobsCount={data.length}
 				jobIndex={jobIndex}

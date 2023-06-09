@@ -5,13 +5,11 @@ import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
 
 import styles from './style.module.css';
 
-import HooksCTA from './HooksCTA';
 import cn from 'classnames';
 import Popover from '../../../shared/Popover';
 import { Dispatch, SetStateAction } from 'react';
 
 type Props = Readonly<{
-	showHooksCTA: boolean;
 	viewType: DiffViewType;
 	jobs: JobDiffViewProps[];
 	onViewChange(value: DiffViewType): void;
@@ -23,7 +21,6 @@ type Props = Readonly<{
 const Header = ({
 	viewType,
 	onViewChange,
-	showHooksCTA,
 	totalJobsCount,
 	jobIndex,
 	setJobIndex,
@@ -66,7 +63,6 @@ const Header = ({
 			</div>
 			<div className={styles.buttonGroup}>
 				<h4>{`${jobIndex + 1} / ${totalJobsCount}`}</h4>
-				{showHooksCTA ? <HooksCTA /> : null}
 				{viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"

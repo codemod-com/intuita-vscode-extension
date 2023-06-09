@@ -12,7 +12,6 @@ import { useTheme } from '../../shared/Snippet/useTheme';
 type JobDiffViewContainerProps = Readonly<{
 	postMessage: (arg: JobAction) => void;
 	job: JobDiffViewProps;
-	showHooksCTA: boolean;
 	totalJobsCount: number;
 	jobIndex: number;
 	setJobIndex: Dispatch<SetStateAction<number>>;
@@ -33,7 +32,6 @@ const jobDiffViewDefaultState = {
 export const JobDiffViewContainer = ({
 	job,
 	postMessage,
-	showHooksCTA,
 	totalJobsCount,
 	jobIndex,
 	setJobIndex,
@@ -79,7 +77,6 @@ export const JobDiffViewContainer = ({
 				onViewChange={setViewType}
 				viewType={viewType}
 				jobs={[job]}
-				showHooksCTA={showHooksCTA}
 				totalJobsCount={totalJobsCount}
 				jobIndex={jobIndex}
 				setJobIndex={setJobIndex}

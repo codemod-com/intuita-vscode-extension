@@ -219,13 +219,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const isExecutionInProgress =
 						engineService.isExecutionInProgress();
 
-					const { onDryRunCompleted } = getConfiguration();
-					const showHooksCTA = onDryRunCompleted === null;
-
 					panelInstance.setView({
 						viewId: 'jobDiffView',
 						viewProps: {
-							showHooksCTA,
 							loading: isExecutionInProgress,
 							diffId: String(caseHash) as CaseHash,
 							title,
