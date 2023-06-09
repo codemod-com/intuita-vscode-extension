@@ -70,17 +70,23 @@ function App() {
 			(error) => <p>{error.message}</p>,
 			O.fold(
 				() => loadingContainer,
-				(node) => (
-					<TreeView
-						node={node}
-						autocompleteItems={autocompleteItems}
-						openedIds={new Set(openedIds)}
-						focusedId={focusedId}
-						searchQuery={searchQuery}
-						nodeIds={nodeIds}
-						nodesByDepth={nodesByDepth}
-					/>
-				),
+				(node) => {
+					if (node.children.length === 0) {
+						return loadingContainer;
+					}
+
+					return (
+						<TreeView
+							node={node}
+							autocompleteItems={autocompleteItems}
+							openedIds={new Set(openedIds)}
+							focusedId={focusedId}
+							searchQuery={searchQuery}
+							nodeIds={nodeIds}
+							nodesByDepth={nodesByDepth}
+						/>
+					);
+				},
 			),
 		),
 	);
