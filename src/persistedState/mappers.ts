@@ -13,7 +13,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => ({
 	codemodSetName: job.codemodSetName,
 	codemodName: job.codemodName,
 	executionId: job.executionId,
-	modifiedByUser: job.modifiedByUser, 
+	modifiedByUser: job.modifiedByUser,
 });
 
 export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
@@ -31,7 +31,7 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => ({
 	codemodName: persistedJob.codemodName,
 	createdAt: Date.now(),
 	executionId: persistedJob.executionId,
-	modifiedByUser: persistedJob.modifiedByUser, 
+	modifiedByUser: persistedJob.modifiedByUser,
 });
 
 export const mapCaseToPersistedCase = (kase: Case): PersistedCase => ({

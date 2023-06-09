@@ -491,7 +491,7 @@ export class EngineService {
 					codemodName,
 					createdAt: Date.now(),
 					executionId,
-					modifiedByUser: false, 
+					modifiedByUser: false,
 				};
 
 				job = {
@@ -533,7 +533,7 @@ export class EngineService {
 					codemodName,
 					createdAt: Date.now(),
 					executionId,
-					modifiedByUser: false, 
+					modifiedByUser: false,
 				};
 
 				job = {
@@ -554,7 +554,7 @@ export class EngineService {
 					codemodName,
 					createdAt: Date.now(),
 					executionId,
-					modifiedByUser: false, 
+					modifiedByUser: false,
 				};
 
 				job = {
@@ -575,7 +575,7 @@ export class EngineService {
 					codemodName,
 					createdAt: Date.now(),
 					executionId,
-					modifiedByUser: false, 
+					modifiedByUser: false,
 				};
 
 				job = {

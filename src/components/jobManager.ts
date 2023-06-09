@@ -236,9 +236,14 @@ export class JobManager {
 		this.#appliedJobsHashes.delete(jobHash);
 	}
 
-	public async modifyJobContent(jobHash: JobHash, newJobContent: string) {
+	public async changeJobContent(jobHash: JobHash, newJobContent: string) {
 		const job = this.getJob(jobHash);
-		const newContentUri = job?.newContentUri ?? null;
+
+		if (job === null) {
+			return;
+		}
+
+		const newContentUri = job.newContentUri;
 
 		if (newContentUri === null) {
 			return;
@@ -248,7 +253,8 @@ export class JobManager {
 			uri: newContentUri,
 			content: newJobContent,
 		});
-		this.#jobMap.set(jobHash, { ...job, modifiedByUser: true } as Job);
+
+		this.#jobMap.set(jobHash, { ...job, modifiedByUser: true });
 	}
 
 	#onRejectJobsMessage(message: Message & { kind: MessageKind.rejectJobs }) {

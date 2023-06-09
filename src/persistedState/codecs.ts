@@ -21,7 +21,7 @@ export const persistedJobCodec = buildTypeCodec({
 	codemodSetName: t.string,
 	codemodName: t.string,
 	executionId: t.string,
-	modifiedByUser: withFallback(t.boolean, false)
+	modifiedByUser: withFallback(t.boolean, false),
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;

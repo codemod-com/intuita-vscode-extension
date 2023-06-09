@@ -120,7 +120,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 
 		if (message.kind === 'webview.jobDiffView.contentModified') {
-			await this.__jobManager.modifyJobContent(
+			await this.__jobManager.changeJobContent(
 				message.jobHash,
 				message.newContent,
 			);
