@@ -13,5 +13,3 @@ export const reportIssue = (
 		newFileContent,
 	});
 };
-
-
