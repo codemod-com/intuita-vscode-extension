@@ -474,9 +474,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.setView(caseHash);
-
-				errorWebviewProvider.showView();
-				errorWebviewProvider.setView();
 			},
 		),
 	);
