@@ -140,7 +140,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	public showView() {
-		this.__view?.show();
+		this.__view?.show(true);
 	}
 
 	public focusMostRecentNode() {
@@ -524,6 +524,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					initialData: {},
 					viewColumn: ViewColumn.One,
 					webviewName: 'jobDiffView',
+					preserveFocus: true,
 				},
 				this.__messageBus,
 				this.__jobManager,
@@ -557,6 +558,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 					initialData: {},
 					viewColumn: ViewColumn.One,
 					webviewName: 'jobDiffView',
+					preserveFocus: true,
 				},
 				this.__messageBus,
 				this.__jobManager,
