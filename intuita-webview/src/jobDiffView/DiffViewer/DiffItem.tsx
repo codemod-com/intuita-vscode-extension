@@ -66,7 +66,7 @@ export const JobDiffView = memo(
 					newContent,
 					jobHash,
 				});
-			}, 350);
+			}, 1000);
 
 			return (
 				<div
@@ -117,6 +117,7 @@ export const JobDiffView = memo(
 							newFileContent={newFileContent}
 							onDiffCalculated={handleDiffCalculated}
 							onChange={handleContentChange}
+							jobHash={jobHash}
 						/>
 					</Collapsable>
 				</div>
