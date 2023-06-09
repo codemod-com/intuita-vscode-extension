@@ -9,7 +9,6 @@ import {
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 import LoadingProgress from './Components/LoadingProgress';
-import { makeid } from './util';
 
 type MainViews = Extract<View, { viewId: 'jobDiffView' }>;
 
@@ -31,7 +30,7 @@ function App() {
 				});
 
 				viewRef.current = message.value;
-				forceUpdate(makeid(16));
+				forceUpdate(crypto.randomUUID());
 			}
 		}
 
