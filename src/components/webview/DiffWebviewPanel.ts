@@ -28,7 +28,7 @@ Codemod: ${codemodName}
 **Additional context**`;
 };
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
-	private __openedCaseHash: ElementHash | null = null;
+	private __selectedCaseHash: ElementHash | null = null;
 
 	static instance: DiffWebviewPanel | null = null;
 
@@ -120,10 +120,38 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	}
 
+	public async openCase(caseHash: ElementHash) {
+		this.__selectedCaseHash = caseHash;
+		const viewData = await this.getViewDataForCase(this.__selectedCaseHash);
+
+		if (viewData === null) {
+			return;
+		}
+
+		const { title, data, stagedJobs } = viewData;
+		const { onDryRunCompleted } = getConfiguration();
+		const showHooksCTA = onDryRunCompleted === null;
+
+		const view: View = {
+			viewId: 'jobDiffView' as const,
+			viewProps: {
+				showHooksCTA,
+				loading: false,
+				diffId: this.__selectedCaseHash as string,
+				title,
+				data,
+				stagedJobs,
+			},
+		};
+
+		this.setTitle(title);
+		this.setView(view);
+	}
+
 	public override dispose() {
 		super.dispose();
 		DiffWebviewPanel.instance = null;
-		this.__openedCaseHash = null;
+		this.__selectedCaseHash = null;
 	}
 
 	public async getViewDataForJob(
@@ -207,7 +235,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
 
-		this.__openedCaseHash = caseHash;
+		this.__selectedCaseHash = caseHash;
 
 		const data = viewDataArray.filter(isNeitherNullNorUndefined);
 		const stagedJobs = data
@@ -261,11 +289,11 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	async __refreshView(): Promise<void> {
-		if (this.__openedCaseHash === null) {
+		if (this.__selectedCaseHash === null) {
 			return;
 		}
 
-		const viewData = await this.getViewDataForCase(this.__openedCaseHash);
+		const viewData = await this.getViewDataForCase(this.__selectedCaseHash);
 
 		if (viewData === null) {
 			return;
@@ -280,7 +308,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			viewProps: {
 				showHooksCTA,
 				loading: false,
-				diffId: this.__openedCaseHash as string,
+				diffId: this.__selectedCaseHash as string,
 				title,
 				data,
 				stagedJobs,
