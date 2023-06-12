@@ -1,13 +1,15 @@
+import type { WebStorage } from 'redux-persist';
 import { Memento } from 'vscode';
 
 // redux-persists storage impl for vscode memento
-class MementoStorage {
+class MementoStorage implements WebStorage {
 	constructor(private readonly __memento: Memento) {}
 
-	public getItem(key: string): Promise<unknown> {
-		return new Promise((resolve) => {
+	public getItem(key: string): Promise<string | null> {
+		return new Promise<string | null>((resolve) => {
 			const storedValue = this.__memento.get(key);
-			resolve(storedValue);
+
+			resolve(typeof storedValue !== 'string' ? null : storedValue);
 		});
 	}
 
