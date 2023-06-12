@@ -36,6 +36,7 @@ import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { WorkspaceState } from './persistedState/workspaceState';
 import { buildStore } from './data';
+import { actions } from './data/slice';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -87,13 +88,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	buildStore(context.workspaceState);
+	const { store } = buildStore(context.workspaceState);
 
 	const engineService = new EngineService(
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
 		workspaceState,
+		store,
 	);
 
 	new BootstrapExecutablesService(
@@ -827,6 +829,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus.publish({
 				kind: MessageKind.clearState,
 			});
+
+			store.dispatch(actions.clearState());
 		}),
 	);
 
