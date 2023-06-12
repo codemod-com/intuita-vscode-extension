@@ -90,14 +90,8 @@ const rootSlice = createSlice({
 			jobAdapter.removeAll(state.job);
 			state.codemodRuns.selectedCaseHash = null;
 		},
-		removeJob(state, action) {
-			jobAdapter.removeOne(state.job, action.payload);
-		},
-		updateJob(state, action) {
-			jobAdapter.updateOne(state.job, action.payload);
-		},
-		addCodemod(state, action) {
-			codemodAdapter.addOne(state.codemod, action.payload);
+		upsertCodemods(state, action: PayloadAction<ReadonlyArray<CodemodEntry>>) {
+			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
 		removeCodemod(state, action) {
 			codemodAdapter.removeOne(state.codemod, action.payload);

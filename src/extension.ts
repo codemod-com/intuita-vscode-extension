@@ -120,6 +120,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		engineService,
 		workspaceState,
+		store, 
 	);
 
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
