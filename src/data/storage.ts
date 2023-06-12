@@ -1,7 +1,7 @@
 import { Memento } from 'vscode';
 
 // redux-persits storage impl for vscode memento
-class MemontoStorage {
+class MementoStorage {
 	constructor(private readonly __memento: Memento) {}
 
 	public getItem(key: string): Promise<unknown> {
@@ -36,4 +36,4 @@ class MemontoStorage {
 	}
 }
 
-export default MemontoStorage;
+export default MementoStorage;

@@ -1,7 +1,7 @@
 import { configureStore, Dispatch } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 
-import MemontoStorage from './storage';
+import MementoStorage from './storage';
 
 import rootReducer from './slice';
 import { Memento } from 'vscode';
@@ -9,7 +9,7 @@ import { Memento } from 'vscode';
 const buildStore = (workspaceState: Memento) => {
 	const persistConfig = {
 		key: 'root',
-		storage: new MemontoStorage(workspaceState),
+		storage: new MementoStorage(workspaceState),
 		debugger: console.log,
 	};
 
