@@ -35,6 +35,7 @@ import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { WorkspaceState } from './persistedState/workspaceState';
+import { buildStore } from './data';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -85,6 +86,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath ?? '/',
 		messageBus,
 	);
+
+	buildStore(context.workspaceState);
 
 	const engineService = new EngineService(
 		configurationContainer,
