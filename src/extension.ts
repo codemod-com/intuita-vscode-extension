@@ -111,6 +111,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		() => context.storageUri ?? null,
 		jobManager,
 		messageBus,
+		store, 
 	);
 
 	const intuitaTextDocumentContentProvider =

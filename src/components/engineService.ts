@@ -606,9 +606,12 @@ export class EngineService {
 
 			this.#execution.case = caseWithJobHashes;
 
-			// @TODO to be removed
 			this.__workspaceState.setSelectedCaseHash(caseWithJobHashes.hash);
 
+			this.__store.dispatch(
+				actions.setSelectedCaseHash(caseWithJobHashes.hash),
+			);
+			
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],
@@ -616,12 +619,6 @@ export class EngineService {
 				inactiveJobHashes: new Set(),
 				executionId,
 			});
-
-			this.__store.dispatch(actions.upsertCases([caseWithJobHashes]));
-			this.__store.dispatch(
-				actions.setSelectedCaseHash(caseWithJobHashes.hash),
-			);
-			this.__store.dispatch(actions.upsertJobs([job]));
 		});
 
 		interfase.on('close', async () => {

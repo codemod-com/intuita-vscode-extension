@@ -3,10 +3,10 @@ import {
 	createEntityAdapter,
 	PayloadAction,
 } from '@reduxjs/toolkit';
-import { Case } from '../cases/types';
-import { Job } from '../jobs/types';
+
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
+import { PersistedCase, PersistedJob } from '../persistedState/codecs';
 
 const SLICE_KEY = 'root';
 
@@ -38,6 +38,7 @@ type State = {
 	changeExplorer: ChangeExplorerState;
 	community: CommunityState;
 	lastCodemodHashDigests: ReadonlyArray<string>;
+	caseHashJobHashes: ReadonlyArray<string>;
 	executionErrors: Record<string, ReadonlyArray<ExecutionError>>;
 	codemod: ReturnType<typeof codemodAdapter.getInitialState>;
 	case: ReturnType<typeof caseAdapter.getInitialState>;
@@ -48,11 +49,11 @@ const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
-const caseAdapter = createEntityAdapter<Case>({
+const caseAdapter = createEntityAdapter<PersistedCase>({
 	selectId: (kase) => kase.hash,
 });
 
-const jobAdapter = createEntityAdapter<Job>({
+const jobAdapter = createEntityAdapter<PersistedJob>({
 	selectId: (job) => job.hash,
 });
 
@@ -63,6 +64,7 @@ const getInitialState = (): State => {
 		job: jobAdapter.getInitialState(),
 		lastCodemodHashDigests: [],
 		executionErrors: {},
+		caseHashJobHashes: [], 
 		codemodRuns: {
 			selectedCaseHash: null,
 			visible: true,
@@ -74,6 +76,8 @@ const getInitialState = (): State => {
 			visible: true,
 		},
 		changeExplorer: {
+			focusedFileExplorerNodeId: null, 
+			openedFileExplorerNodeIds: [], 
 			visible: false,
 		},
 		community: {
@@ -86,16 +90,23 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
-		upsertCases(state, action: PayloadAction<Case[]>) {
+		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
+			caseAdapter.setAll(state.case, action.payload);
+		},
+		upsertCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.upsertMany(state.case, action.payload);
 		},
-		upsertJobs(state, action: PayloadAction<Job[]>) {
+		setJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
+			jobAdapter.setAll(state.job, action.payload);
+		},
+		upsertJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
 			jobAdapter.upsertMany(state.job, action.payload);
 		},
 		clearState(state) {
 			caseAdapter.removeAll(state.case);
 			jobAdapter.removeAll(state.job);
 			state.codemodRuns.selectedCaseHash = null;
+			state.caseHashJobHashes = [];
 		},
 		upsertCodemods(
 			state,
@@ -103,11 +114,8 @@ const rootSlice = createSlice({
 		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
-		removeCodemod(state, action) {
-			codemodAdapter.removeOne(state.codemod, action.payload);
-		},
-		updateCodemod(state, action) {
-			codemodAdapter.updateOne(state.codemod, action.payload);
+		setCaseHashJobHashes(state, action: PayloadAction<ReadonlyArray<string>>) {
+			state.caseHashJobHashes = [...action.payload];
 		},
 		/**
 		 * Codemod runs
@@ -146,7 +154,13 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
 			state.codemodDiscovery.visible = true;
-			state.codemodDiscovery.openedCodemodHashDigests = action.payload;
+			
+			if(action.payload === null) {
+				state.codemodDiscovery.openedCodemodHashDigests = action.payload;
+				return;
+			}
+			
+			state.codemodDiscovery.openedCodemodHashDigests = [...action.payload];
 		},
 		/**
 		 * Errors
@@ -159,7 +173,7 @@ const rootSlice = createSlice({
 			}>,
 		) {
 			const { caseHash, errors } = action.payload;
-			state.executionErrors[caseHash] = errors;
+			state.executionErrors[caseHash] = [...errors];
 		},
 		/**
 		 * Change explorer
@@ -176,7 +190,13 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
 			state.changeExplorer.visible = true;
-			state.changeExplorer.openedFileExplorerNodeIds = action.payload;
+			
+			if(action.payload === null) {
+				state.changeExplorer.openedFileExplorerNodeIds = null;
+				return;
+			}
+			
+			state.changeExplorer.openedFileExplorerNodeIds = [...action.payload];
 		},
 	},
 });

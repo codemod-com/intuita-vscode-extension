@@ -5,6 +5,8 @@ import { MessageBus, MessageKind } from '../components/messageBus';
 import { debounce } from '../utilities';
 import { PersistedState } from './codecs';
 import { mapCaseToPersistedCase, mapJobToPersistedJob } from './mappers';
+import { Store } from '../data';
+import { actions } from '../data/slice';
 
 export class PersistedStateService {
 	constructor(
@@ -13,6 +15,7 @@ export class PersistedStateService {
 		private readonly getStorageUri: () => Uri | null,
 		private readonly jobManager: JobManager,
 		private readonly messageBus: MessageBus,
+		private readonly __store: Store,
 	) {
 		const debouncedOnUpdateElementsMessage = debounce(
 			() => this.saveExtensionState(),
@@ -46,6 +49,18 @@ export class PersistedStateService {
 
 		const localStateUri = Uri.joinPath(uri, 'localState.json');
 		this.fileSystem.writeFile(localStateUri, buffer);
+		
+		this.__store.dispatch(
+			actions.setCases(persistedState.cases)
+		)
+		
+		this.__store.dispatch(
+			actions.setJobs(persistedState.jobs)
+		)
+		
+		this.__store.dispatch(
+			actions.setCaseHashJobHashes(persistedState.caseHashJobHashes)
+		)
 	}
 
 	#buildPersistedState(): PersistedState {
@@ -96,5 +111,7 @@ export class PersistedStateService {
 		const buffer = Buffer.from(JSON.stringify(persistedState));
 
 		this.fileSystem.writeFile(localStateUri, buffer);
+		
+		this.__store.dispatch(actions.clearState());
 	}
 }
