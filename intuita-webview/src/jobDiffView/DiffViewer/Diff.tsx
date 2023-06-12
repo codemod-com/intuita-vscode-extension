@@ -15,6 +15,16 @@ type Props = {
 	onChange(content: string): void;
 };
 
+const getDiffChanges = (
+	editor: editor.IStandaloneDiffEditor,
+): Diff | undefined => {
+	const lineChanges = editor.getLineChanges();
+	if (!lineChanges) {
+		return;
+	}
+	return getDiff(lineChanges);
+};
+
 export const DiffComponent = memo(
 	({
 		oldFileContent,
@@ -30,17 +40,12 @@ export const DiffComponent = memo(
 		const jobHashRef = useRef<string | null>(null);
 
 		useEffect(() => {
-			const editorInstance =
-				editorRef.current?.getModifiedEditor() ?? null;
-
-			if (editorInstance === null) {
-				return;
-			}
-
-			editorInstance.setScrollTop(0);
+			editorRef.current?.getModifiedEditor().setScrollTop(0);
 		}, [oldFileContent, newFileContent]);
 
-		const reattachHandler = (editor?: editor.IStandaloneDiffEditor) => {
+		const reattachHandler = (
+			editor?: editor.IStandaloneDiffEditor,
+		) => {
 			if (jobHashRef.current === jobHash) {
 				return;
 			}
@@ -69,16 +74,6 @@ export const DiffComponent = memo(
 		};
 
 		reattachHandler();
-
-		const getDiffChanges = (
-			editor: editor.IStandaloneDiffEditor,
-		): Diff | undefined => {
-			const lineChanges = editor.getLineChanges();
-			if (!lineChanges) {
-				return;
-			}
-			return getDiff(lineChanges);
-		};
 
 		const handleRefSet = (editor: editor.IStandaloneDiffEditor) => {
 			editor.onDidUpdateDiff(() => {
