@@ -294,6 +294,7 @@
 		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
+		"@reduxjs/toolkit": "^1.9.5",
 		"@vscode/extension-telemetry": "^0.7.7",
 		"axios": "^1.2.2",
 		"fp-ts": "^2.15.0",
@@ -302,6 +303,7 @@
 		"io-ts-types": "^0.5.19",
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
+		"redux-persist": "^6.0.0",
 		"semver": "^7.3.8"
 	},
 	"extensionDependencies": [
