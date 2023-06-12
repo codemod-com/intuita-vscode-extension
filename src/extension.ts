@@ -120,7 +120,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		engineService,
 		workspaceState,
-		store, 
+		store,
 	);
 
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
@@ -129,6 +129,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		codemodService,
 		workspaceState,
+		store,
 	);
 
 	context.subscriptions.push(
@@ -256,6 +257,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		caseManager,
 		workspaceState,
+		store,
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
@@ -271,6 +273,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		caseManager,
 		workspaceState,
+		store,
 	);
 
 	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
@@ -297,6 +300,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		workspaceState,
+		store,
 	);
 
 	context.subscriptions.push(

@@ -8,6 +8,8 @@ import { WorkspaceState } from '../../persistedState/workspaceState';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
+import { Store } from '../../data';
+import { actions } from '../../data/slice';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -19,6 +21,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
@@ -26,7 +29,12 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			MessageKind.codemodSetExecuted,
 			async ({ case: kase, executionErrors }) => {
 				__workspaceState.setExecutionErrors(kase.hash, executionErrors);
-
+				__store.dispatch(
+					actions.setExecutionErrors({
+						caseHash: kase.hash,
+						errors: executionErrors,
+					}),
+				);
 				this.setView();
 
 				if (executionErrors.length !== 0) {
@@ -39,7 +47,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		messageBus.subscribe(MessageKind.clearState, () => {
 			__workspaceState.setSelectedCaseHash(null);
-
+			__store.dispatch(actions.setSelectedCaseHash(null));
 			this.setView();
 		});
 	}

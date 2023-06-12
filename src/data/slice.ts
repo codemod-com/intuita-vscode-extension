@@ -6,38 +6,43 @@ import {
 import { Case } from '../cases/types';
 import { Job } from '../jobs/types';
 import { CodemodEntry } from '../codemods/types';
+import { ExecutionError } from '../errors/types';
 
 const SLICE_KEY = 'root';
 
-type CodemodDiscoveryState = {
-	openedCodemodHashDigests: string | null;
+type CodemodDiscoveryState = Readonly<{
+	openedCodemodHashDigests: ReadonlyArray<string> | null;
 	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
-};
+}>;
 
-type CodemodRunsState = {
+type CodemodRunsState = Readonly<{
 	selectedCaseHash: string | null;
 	visible: boolean;
-};
+}>;
 
-type ChangeExplorerState = {
+type ChangeExplorerState = Readonly<{
 	visible: boolean;
-};
+	focusedFileExplorerNodeId: string | null;
+	openedFileExplorerNodeIds: ReadonlyArray<string> | null;
+}>;
 
-type CommunityState = {
+type CommunityState = Readonly<{
 	visible: boolean;
-};
+}>;
 
-type State = Readonly<{
+type State = {
 	codemodDiscovery: CodemodDiscoveryState;
 	codemodRuns: CodemodRunsState;
 	changeExplorer: ChangeExplorerState;
 	community: CommunityState;
+	lastCodemodHashDigests: ReadonlyArray<string>;
+	executionErrors: Record<string, ReadonlyArray<ExecutionError>>;
 	codemod: ReturnType<typeof codemodAdapter.getInitialState>;
 	case: ReturnType<typeof caseAdapter.getInitialState>;
 	job: ReturnType<typeof jobAdapter.getInitialState>;
-}>;
+};
 
 const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
@@ -56,6 +61,8 @@ const getInitialState = (): State => {
 		codemod: codemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
 		job: jobAdapter.getInitialState(),
+		lastCodemodHashDigests: [],
+		executionErrors: {},
 		codemodRuns: {
 			selectedCaseHash: null,
 			visible: true,
@@ -90,7 +97,10 @@ const rootSlice = createSlice({
 			jobAdapter.removeAll(state.job);
 			state.codemodRuns.selectedCaseHash = null;
 		},
-		upsertCodemods(state, action: PayloadAction<ReadonlyArray<CodemodEntry>>) {
+		upsertCodemods(
+			state,
+			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
+		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
 		removeCodemod(state, action) {
@@ -99,8 +109,74 @@ const rootSlice = createSlice({
 		updateCodemod(state, action) {
 			codemodAdapter.updateOne(state.codemod, action.payload);
 		},
-		setSelectedCaseHash(state, action: PayloadAction<string>) {
+		/**
+		 * Codemod runs
+		 */
+		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
 			state.codemodRuns.selectedCaseHash = action.payload;
+		},
+		setCodemodRunsVisible(state, action: PayloadAction<boolean>) {
+			state.codemodRuns.visible = action.payload;
+		},
+		/**
+		 * Codemod list
+		 */
+		setPublicCodemodsExpanded(state, action: PayloadAction<boolean>) {
+			state.codemodDiscovery.visible = action.payload;
+		},
+		setExecutionPath(
+			state,
+			action: PayloadAction<{ codemodHash: string; path: string }>,
+		) {
+			const { codemodHash, path } = action.payload;
+			state.codemodDiscovery.executionPaths[codemodHash] = path;
+		},
+		setRecentCodemodHashes(state, action: PayloadAction<string>) {
+			state.lastCodemodHashDigests.push(action.payload);
+		},
+		setFocusedCodemodHashDigest(
+			state,
+			action: PayloadAction<string | null>,
+		) {
+			state.codemodDiscovery.visible = true;
+			state.codemodDiscovery.focusedCodemodHashDigest = action.payload;
+		},
+		setOpenedCodemodHashDigests(
+			state,
+			action: PayloadAction<ReadonlyArray<string> | null>,
+		) {
+			state.codemodDiscovery.visible = true;
+			state.codemodDiscovery.openedCodemodHashDigests = action.payload;
+		},
+		/**
+		 * Errors
+		 */
+		setExecutionErrors(
+			state,
+			action: PayloadAction<{
+				caseHash: string;
+				errors: ReadonlyArray<ExecutionError>;
+			}>,
+		) {
+			const { caseHash, errors } = action.payload;
+			state.executionErrors[caseHash] = errors;
+		},
+		/**
+		 * Change explorer
+		 */
+		setFocusedFileExplorerNodeId(
+			state,
+			action: PayloadAction<string | null>,
+		) {
+			state.changeExplorer.visible = true;
+			state.changeExplorer.focusedFileExplorerNodeId = action.payload;
+		},
+		setOpenedFileExplorerNodeIds(
+			state,
+			action: PayloadAction<ReadonlyArray<string> | null>,
+		) {
+			state.changeExplorer.visible = true;
+			state.changeExplorer.openedFileExplorerNodeIds = action.payload;
 		},
 	},
 });

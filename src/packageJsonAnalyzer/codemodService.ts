@@ -14,7 +14,7 @@ export class CodemodService {
 		rootPath: string | null,
 		private __engineService: EngineService,
 		private __workspaceState: WorkspaceState,
-		private readonly __store: Store
+		private readonly __store: Store,
 	) {
 		this.#rootPath = rootPath;
 	}

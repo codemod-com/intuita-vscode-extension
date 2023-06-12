@@ -43,6 +43,8 @@ import {
 import { CaseManager } from '../../cases/caseManager';
 import { DiffWebviewPanel } from './DiffWebviewPanel';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+import { Store } from '../../data';
+import { actions } from '../../data/slice';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
@@ -69,6 +71,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -587,12 +590,20 @@ export class FileExplorerProvider implements WebviewViewProvider {
 				message.focusedId,
 			);
 
+			this.__store.dispatch(
+				actions.setFocusedFileExplorerNodeId(message.focusedId),
+			);
+
 			if (message.focusedId) {
 				this.__lastFocusedNodeId = message.focusedId;
 			}
 
 			this.__workspaceState.setOpenedFileExplorerNodeIds(
 				new Set(message.openedIds),
+			);
+
+			this.__store.dispatch(
+				actions.setOpenedFileExplorerNodeIds(message.openedIds),
 			);
 		}
 
