@@ -611,7 +611,7 @@ export class EngineService {
 			this.__store.dispatch(
 				actions.setSelectedCaseHash(caseWithJobHashes.hash),
 			);
-			
+
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],

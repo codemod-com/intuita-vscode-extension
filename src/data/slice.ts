@@ -64,7 +64,7 @@ const getInitialState = (): State => {
 		job: jobAdapter.getInitialState(),
 		lastCodemodHashDigests: [],
 		executionErrors: {},
-		caseHashJobHashes: [], 
+		caseHashJobHashes: [],
 		codemodRuns: {
 			selectedCaseHash: null,
 			visible: true,
@@ -76,8 +76,8 @@ const getInitialState = (): State => {
 			visible: true,
 		},
 		changeExplorer: {
-			focusedFileExplorerNodeId: null, 
-			openedFileExplorerNodeIds: [], 
+			focusedFileExplorerNodeId: null,
+			openedFileExplorerNodeIds: [],
 			visible: false,
 		},
 		community: {
@@ -93,7 +93,10 @@ const rootSlice = createSlice({
 		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
-		upsertCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
+		upsertCases(
+			state,
+			action: PayloadAction<ReadonlyArray<PersistedCase>>,
+		) {
 			caseAdapter.upsertMany(state.case, action.payload);
 		},
 		setJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
@@ -114,7 +117,10 @@ const rootSlice = createSlice({
 		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
-		setCaseHashJobHashes(state, action: PayloadAction<ReadonlyArray<string>>) {
+		setCaseHashJobHashes(
+			state,
+			action: PayloadAction<ReadonlyArray<string>>,
+		) {
 			state.caseHashJobHashes = [...action.payload];
 		},
 		/**
@@ -154,13 +160,16 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
 			state.codemodDiscovery.visible = true;
-			
-			if(action.payload === null) {
-				state.codemodDiscovery.openedCodemodHashDigests = action.payload;
+
+			if (action.payload === null) {
+				state.codemodDiscovery.openedCodemodHashDigests =
+					action.payload;
 				return;
 			}
-			
-			state.codemodDiscovery.openedCodemodHashDigests = [...action.payload];
+
+			state.codemodDiscovery.openedCodemodHashDigests = [
+				...action.payload,
+			];
 		},
 		/**
 		 * Errors
@@ -190,13 +199,15 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
 			state.changeExplorer.visible = true;
-			
-			if(action.payload === null) {
+
+			if (action.payload === null) {
 				state.changeExplorer.openedFileExplorerNodeIds = null;
 				return;
 			}
-			
-			state.changeExplorer.openedFileExplorerNodeIds = [...action.payload];
+
+			state.changeExplorer.openedFileExplorerNodeIds = [
+				...action.payload,
+			];
 		},
 	},
 });

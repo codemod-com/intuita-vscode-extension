@@ -49,18 +49,14 @@ export class PersistedStateService {
 
 		const localStateUri = Uri.joinPath(uri, 'localState.json');
 		this.fileSystem.writeFile(localStateUri, buffer);
-		
+
+		this.__store.dispatch(actions.setCases(persistedState.cases));
+
+		this.__store.dispatch(actions.setJobs(persistedState.jobs));
+
 		this.__store.dispatch(
-			actions.setCases(persistedState.cases)
-		)
-		
-		this.__store.dispatch(
-			actions.setJobs(persistedState.jobs)
-		)
-		
-		this.__store.dispatch(
-			actions.setCaseHashJobHashes(persistedState.caseHashJobHashes)
-		)
+			actions.setCaseHashJobHashes(persistedState.caseHashJobHashes),
+		);
 	}
 
 	#buildPersistedState(): PersistedState {
@@ -111,7 +107,7 @@ export class PersistedStateService {
 		const buffer = Buffer.from(JSON.stringify(persistedState));
 
 		this.fileSystem.writeFile(localStateUri, buffer);
-		
+
 		this.__store.dispatch(actions.clearState());
 	}
 }
