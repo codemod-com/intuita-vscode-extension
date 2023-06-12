@@ -15,7 +15,7 @@ const buildStore = (workspaceState: Memento) => {
 
 	const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-	// @TODO ensure that builing with NODE_ENV=production var, otherwise default dev middleware will be included
+	// @TODO ensure that building with NODE_ENV=production var, otherwise default dev middleware will be included
 	const store = configureStore({
 		reducer: persistedReducer,
 	});

@@ -1,6 +1,6 @@
 import { Memento } from 'vscode';
 
-// redux-persits storage impl for vscode memento
+// redux-persists storage impl for vscode memento
 class MementoStorage {
 	constructor(private readonly __memento: Memento) {}
 
