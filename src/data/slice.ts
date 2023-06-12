@@ -1,4 +1,8 @@
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
+import {
+	createSlice,
+	createEntityAdapter,
+	PayloadAction,
+} from '@reduxjs/toolkit';
 import { Case } from '../cases/types';
 import { Job } from '../jobs/types';
 import { CodemodEntry } from '../codemods/types';
@@ -6,14 +10,14 @@ import { CodemodEntry } from '../codemods/types';
 const SLICE_KEY = 'root';
 
 type CodemodDiscoveryState = {
-	openedCodemodHashDigests: string;
-	focusedCodemodHashDigest: string;
+	openedCodemodHashDigests: string | null;
+	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
 };
 
 type CodemodRunsState = {
-	selectedCaseHash: string;
+	selectedCaseHash: string | null;
 	visible: boolean;
 };
 
@@ -26,12 +30,13 @@ type CommunityState = {
 };
 
 type State = Readonly<{
-	case: Record<string, Case>;
-	job: Record<string, Job>;
 	codemodDiscovery: CodemodDiscoveryState;
 	codemodRuns: CodemodRunsState;
 	changeExplorer: ChangeExplorerState;
 	community: CommunityState;
+	codemod: ReturnType<typeof codemodAdapter.getInitialState>;
+	case: ReturnType<typeof caseAdapter.getInitialState>;
+	job: ReturnType<typeof jobAdapter.getInitialState>;
 }>;
 
 const codemodAdapter = createEntityAdapter<CodemodEntry>({
@@ -46,11 +51,27 @@ const jobAdapter = createEntityAdapter<Job>({
 	selectId: (job) => job.hash,
 });
 
-const getInitialState = () => {
+const getInitialState = (): State => {
 	return {
 		codemod: codemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
 		job: jobAdapter.getInitialState(),
+		codemodRuns: {
+			selectedCaseHash: null,
+			visible: true,
+		},
+		codemodDiscovery: {
+			executionPaths: {},
+			focusedCodemodHashDigest: null,
+			openedCodemodHashDigests: null,
+			visible: true,
+		},
+		changeExplorer: {
+			visible: false,
+		},
+		community: {
+			visible: true,
+		},
 	};
 };
 
@@ -58,17 +79,16 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
-		addCase(state, action) {
-			caseAdapter.addOne(state.case, action.payload);
+		upsertCases(state, action: PayloadAction<Case[]>) {
+			caseAdapter.upsertMany(state.case, action.payload);
 		},
-		removeCase(state, action) {
-			caseAdapter.removeOne(state.case, action.payload);
+		upsertJobs(state, action: PayloadAction<Job[]>) {
+			jobAdapter.upsertMany(state.job, action.payload);
 		},
-		updateCase(state, action) {
-			caseAdapter.updateOne(state.case, action.payload);
-		},
-		addJob(state, action) {
-			jobAdapter.addOne(state.job, action.payload);
+		clearState(state) {
+			caseAdapter.removeAll(state.case);
+			jobAdapter.removeAll(state.job);
+			state.codemodRuns.selectedCaseHash = null;
 		},
 		removeJob(state, action) {
 			jobAdapter.removeOne(state.job, action.payload);
@@ -84,6 +104,9 @@ const rootSlice = createSlice({
 		},
 		updateCodemod(state, action) {
 			codemodAdapter.updateOne(state.codemod, action.payload);
+		},
+		setSelectedCaseHash(state, action: PayloadAction<string>) {
+			state.codemodRuns.selectedCaseHash = action.payload;
 		},
 	},
 });

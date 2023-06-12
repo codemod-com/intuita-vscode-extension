@@ -21,6 +21,8 @@ import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { WorkspaceState } from '../persistedState/workspaceState';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
+import { actions } from '../data/slice';
+import { Store } from '../data';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -124,6 +126,7 @@ export class EngineService {
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.#configurationContainer = configurationContainer;
 		this.#messageBus = messageBus;
@@ -603,6 +606,7 @@ export class EngineService {
 
 			this.#execution.case = caseWithJobHashes;
 
+			// @TODO to be removed
 			this.__workspaceState.setSelectedCaseHash(caseWithJobHashes.hash);
 
 			this.#messageBus.publish({
@@ -612,6 +616,12 @@ export class EngineService {
 				inactiveJobHashes: new Set(),
 				executionId,
 			});
+
+			this.__store.dispatch(actions.upsertCases([caseWithJobHashes]));
+			this.__store.dispatch(
+				actions.setSelectedCaseHash(caseWithJobHashes.hash),
+			);
+			this.__store.dispatch(actions.upsertJobs([job]));
 		});
 
 		interfase.on('close', async () => {
