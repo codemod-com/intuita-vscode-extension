@@ -20,7 +20,8 @@ export const getConfiguration = () => {
 	const onDryRunCompleted =
 		configuration.get<string>('onDryRunCompleted') || null;
 
-	const formatWithPrettier = configuration.get<boolean>('formatWithPrettier') ?? false;
+	const formatWithPrettier =
+		configuration.get<boolean>('formatWithPrettier') ?? false;
 
 	return {
 		saveDocumentOnJobAccept,
