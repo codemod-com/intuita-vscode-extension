@@ -262,7 +262,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		community,
 		campaignManagerProvider,
+		fileExplorerProvider,
 	);
+
 	const mainView = vscode.window.registerWebviewViewProvider(
 		'intuitaMainView',
 		mainViewProvider,
@@ -458,6 +460,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
+				console.log('openChangeExplorer', caseHash);
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.setView(caseHash);

@@ -21,6 +21,10 @@ type CodemodRunsViewProps = Extract<
 	View,
 	{ viewId: 'campaignManagerView' }
 >['viewProps'];
+type FileExplorerViewProps = Extract<
+	View,
+	{ viewId: 'fileExplorer' }
+>['viewProps'];
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
@@ -71,6 +75,7 @@ declare global {
 			communityProps: CommunityViewProps;
 			errorsViewProps: ErrorsViewProps;
 			codemodRunsProps: CodemodRunsViewProps;
+			fileExplorerProps: FileExplorerViewProps;
 		};
 	}
 }

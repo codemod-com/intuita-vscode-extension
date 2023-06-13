@@ -12,10 +12,10 @@ function App() {
 			</div>
 			{/*<div className='block'>
 					<CodemodList />
-				</div>
-				<div className='block'>
-					<FileExplorer />
-				</div> */}
+	</div> */}
+			<div className="block">
+				<FileExplorer />
+			</div>
 			<div className="block">
 				<CommunityView />
 			</div>

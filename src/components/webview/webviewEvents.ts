@@ -139,6 +139,10 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
+			kind: 'webview.fileExplorer.setView';
+			value: View;
+	  }>
+	| Readonly<{
 			kind: 'webview.global.focusView';
 			nodeIdToFocus: string | null;
 	  }>
@@ -203,6 +207,9 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.community.afterWebviewMounted';
+	  }>
+	| Readonly<{
+			kind: 'webview.fileExplorer.afterWebviewMounted';
 	  }>
 	| Readonly<{
 			kind: 'webview.command';

@@ -16,7 +16,7 @@ type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 function App() {
 	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.viewProps as ViewProps,
+		window.INITIAL_STATE.fileExplorerProps as ViewProps,
 	);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
@@ -24,8 +24,8 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
-			if (message.kind === 'webview.global.setView') {
+			console.log(message);
+			if (message.kind === 'webview.fileExplorer.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'fileExplorer') {
 					setViewProps(message.value.viewProps);
@@ -45,7 +45,9 @@ function App() {
 		};
 
 		window.addEventListener('message', handler);
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+		vscode.postMessage({
+			kind: 'webview.fileExplorer.afterWebviewMounted',
+		});
 
 		return () => {
 			window.removeEventListener('message', handler);

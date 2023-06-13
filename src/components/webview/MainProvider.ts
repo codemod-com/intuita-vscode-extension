@@ -8,6 +8,7 @@ import {
 import { WebviewResolver } from './WebviewResolver';
 import { CommunityProvider } from './CommunityProvider';
 import { CampaignManagerProvider } from './CampaignManagerProvider';
+import { FileExplorerProvider } from './FileExplorerProvider';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -18,6 +19,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		private readonly __community: CommunityProvider,
 		private readonly __codemodRuns: CampaignManagerProvider,
+		private readonly __fileExplorer: FileExplorerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -29,12 +31,14 @@ export class MainViewProvider implements WebviewViewProvider {
 		}
 
 		const codemodRunsProps = this.__codemodRuns.getInitialProps();
+		const fileExplorerProps = this.__fileExplorer.getInitialProps();
 
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
 			JSON.stringify({
 				codemodRunsProps,
+				fileExplorerProps,
 			}),
 		);
 
@@ -42,6 +46,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		this.__community.resolveWebviewView(webviewView);
 		this.__codemodRuns.resolveWebviewView(webviewView);
+		this.__fileExplorer.resolveWebviewView(webviewView);
 	}
 
 	public getView(): WebviewView | null {
