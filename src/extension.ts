@@ -126,13 +126,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		workspaceState,
 	);
 
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			'intuita-available-codemod-tree-view',
-			codemodListWebviewProvider,
-		),
-	);
-
 	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
@@ -263,6 +256,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		community,
 		campaignManagerProvider,
 		fileExplorerProvider,
+		codemodListWebviewProvider,
 	);
 
 	const mainView = vscode.window.registerWebviewViewProvider(
@@ -460,7 +454,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				console.log('openChangeExplorer', caseHash);
 				fileExplorerProvider.setCaseHash(caseHash);
 				fileExplorerProvider.showView();
 				fileExplorerProvider.setView(caseHash);

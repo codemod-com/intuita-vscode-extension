@@ -138,25 +138,13 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		return this.__engineBootstrapped;
 	}
 
-	refresh(): void {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__webviewResolver.resolveWebview(
-			this.__view.webview,
-			'codemodList',
-			JSON.stringify({}),
-		);
-	}
-
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
 
 	public setView() {
 		this.__postMessage({
-			kind: 'webview.global.setView',
+			kind: 'webview.codemodList.setView',
 			value: {
 				viewId: 'codemods',
 				viewProps: {
@@ -260,12 +248,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		if (!webviewView.webview) {
 			return;
 		}
-
-		this.__webviewResolver.resolveWebview(
-			webviewView.webview,
-			'codemodList',
-			JSON.stringify({}),
-		);
+	
 		this.__view = webviewView;
 
 		this.__attachWebviewEventListeners();
@@ -323,7 +306,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			await this.updateExecutionPath(message.value);
 		}
 
-		if (message.kind === 'webview.global.afterWebviewMounted') {
+		if (message.kind === 'webview.codemodList.afterWebviewMounted') {
 			this.getCodemodTree();
 		}
 
