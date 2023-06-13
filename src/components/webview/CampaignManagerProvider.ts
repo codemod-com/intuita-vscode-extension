@@ -260,7 +260,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				this.setView();
 			}
 		});
-
 	}
 
 	public getInitialProps(): ViewProps {

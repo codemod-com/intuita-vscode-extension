@@ -40,7 +40,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__codemodRuns.resolveWebviewView(webviewView);
 		this.__fileExplorer.resolveWebviewView(webviewView);
 		this.__codemodList.resolveWebviewView(webviewView);
-		
+
 		this.__view.onDidChangeVisibility(() => {
 			if (this.__view?.visible) {
 				this.__resolveWebview(this.__view);
@@ -61,7 +61,7 @@ export class MainViewProvider implements WebviewViewProvider {
 			}),
 		);
 	}
-	
+
 	public getView(): WebviewView | null {
 		return this.__view;
 	}
