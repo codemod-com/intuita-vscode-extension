@@ -35,6 +35,7 @@ import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { WorkspaceState } from './persistedState/workspaceState';
+import { MainViewProvider } from './components/webview/MainProvider';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -248,13 +249,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		workspaceState,
 	);
 
-	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
-		'intuitaFileExplorer',
-		fileExplorerProvider,
-	);
-
-	context.subscriptions.push(intuitaFileExplorer);
-
 	const campaignManagerProvider = new CampaignManagerProvider(
 		context,
 		messageBus,
@@ -263,21 +257,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		workspaceState,
 	);
 
-	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
-		'intuitaCampaignManager',
-		campaignManagerProvider,
+	const community = new CommunityProvider(context);
+
+	const mainViewProvider = new MainViewProvider(context, community);
+	const mainView = vscode.window.registerWebviewViewProvider(
+		'intuitaMainView',
+		mainViewProvider,
 	);
 
-	context.subscriptions.push(intuitaCampaignManager);
-
-	const communityProvider = new CommunityProvider(context);
-
-	const intuitaCommunityView = vscode.window.registerWebviewViewProvider(
-		'intuitaCommunityView',
-		communityProvider,
-	);
-
-	context.subscriptions.push(intuitaCommunityView);
+	context.subscriptions.push(mainView);
 
 	if (rootPath) {
 		new UserHooksService(messageBus, { getConfiguration }, rootPath);

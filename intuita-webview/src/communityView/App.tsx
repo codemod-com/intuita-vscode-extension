@@ -49,8 +49,7 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
-			if (message.kind === 'webview.global.setView') {
+			if (message.kind === 'webview.community.setView') {
 				if (message.value.viewId === 'communityView') {
 					setView(message.value);
 				}
@@ -59,7 +58,7 @@ function App() {
 
 		window.addEventListener('message', handler);
 
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+		vscode.postMessage({ kind: 'webview.community.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
