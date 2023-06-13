@@ -61,7 +61,7 @@ function App() {
 	}
 
 	return (
-		<main className="App">
+		<main>
 			<ListView
 				nodes={nodes}
 				selectedCaseHash={selectedCaseHash}

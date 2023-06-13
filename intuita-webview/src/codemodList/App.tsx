@@ -92,7 +92,7 @@ function App() {
 	);
 
 	return (
-		<main className="App">
+		<>
 			<SearchBar
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
@@ -106,7 +106,7 @@ function App() {
 			>
 				<div>{component}</div>
 			</Container>
-		</main>
+		</>
 	);
 }
 

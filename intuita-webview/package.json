@@ -13,6 +13,7 @@
 		"rc-progress": "^3.4.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"react-resizable-panels": "^0.0.51",
 		"react-treeview": "^0.4.7",
 		"react-virtualized": "^9.22.5",
 		"reactjs-popup": "^2.0.5",
