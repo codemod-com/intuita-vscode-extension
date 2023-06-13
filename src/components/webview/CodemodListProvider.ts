@@ -248,7 +248,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		if (!webviewView.webview) {
 			return;
 		}
-	
+
 		this.__view = webviewView;
 
 		this.__attachWebviewEventListeners();

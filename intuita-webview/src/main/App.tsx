@@ -7,8 +7,8 @@ function App() {
 	return (
 		<main className="App">
 			{/* @TODO add resizable pane instead of block */}
-			<div className='block'>
-					<CodemodList />
+			<div className="block">
+				<CodemodList />
 			</div>
 			<div className="block">
 				<CampaignManager />
