@@ -17,7 +17,7 @@ class MementoStorage implements WebStorage {
 		return new Promise((resolve) => {
 			this.__memento.update(key, value);
 
-			resolve(void 0);
+			resolve();
 		});
 	}
 
@@ -25,7 +25,7 @@ class MementoStorage implements WebStorage {
 		return new Promise((resolve) => {
 			this.__memento.update(key, void 0);
 
-			resolve(void 0);
+			resolve();
 		});
 	}
 
