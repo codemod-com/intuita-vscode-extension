@@ -135,6 +135,10 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
+			kind: 'webview.codemodRuns.setView';
+			value: View;
+	  }>
+	| Readonly<{
 			kind: 'webview.global.focusView';
 			nodeIdToFocus: string | null;
 	  }>

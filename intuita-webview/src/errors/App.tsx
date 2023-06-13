@@ -12,7 +12,15 @@ import type {
 import { vscode } from '../shared/utilities/vscode';
 import { ExecutionError } from '../../../src/errors/types';
 
-type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
+type ErrorsViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
+type CommunityViewProps = Extract<
+	View,
+	{ viewId: 'communityView' }
+>['viewProps'];
+type CodemodRunsViewProps = Extract<
+	View,
+	{ viewId: 'campaignManagerView' }
+>['viewProps'];
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
@@ -60,14 +68,16 @@ const buildExecutionErrorRow = (
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			viewProps: View['viewProps'];
+			communityProps: CommunityViewProps;
+			errorsViewProps: ErrorsViewProps;
+			codemodRunsProps: CodemodRunsViewProps;
 		};
 	}
 }
 
 export const App = () => {
-	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.viewProps as ViewProps,
+	const [viewProps, setViewProps] = useState<ErrorsViewProps>(
+		window.INITIAL_STATE.errorsViewProps as ErrorsViewProps,
 	);
 
 	useEffect(() => {

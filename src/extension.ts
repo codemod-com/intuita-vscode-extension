@@ -250,7 +250,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const campaignManagerProvider = new CampaignManagerProvider(
-		context,
 		messageBus,
 		jobManager,
 		caseManager,
@@ -259,7 +258,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const community = new CommunityProvider(context);
 
-	const mainViewProvider = new MainViewProvider(context, community);
+	const mainViewProvider = new MainViewProvider(
+		context,
+		community,
+		campaignManagerProvider,
+	);
 	const mainView = vscode.window.registerWebviewViewProvider(
 		'intuitaMainView',
 		mainViewProvider,

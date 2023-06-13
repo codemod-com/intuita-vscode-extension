@@ -7,6 +7,7 @@ import {
 
 import { WebviewResolver } from './WebviewResolver';
 import { CommunityProvider } from './CommunityProvider';
+import { CampaignManagerProvider } from './CampaignManagerProvider';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -16,6 +17,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	constructor(
 		context: ExtensionContext,
 		private readonly __community: CommunityProvider,
+		private readonly __codemodRuns: CampaignManagerProvider,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -26,15 +28,20 @@ export class MainViewProvider implements WebviewViewProvider {
 			return;
 		}
 
+		const codemodRunsProps = this.__codemodRuns.getInitialProps();
+
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
-			JSON.stringify({}),
+			JSON.stringify({
+				codemodRunsProps,
+			}),
 		);
 
 		this.__view = webviewView;
 
 		this.__community.resolveWebviewView(webviewView);
+		this.__codemodRuns.resolveWebviewView(webviewView);
 	}
 
 	public getView(): WebviewView | null {

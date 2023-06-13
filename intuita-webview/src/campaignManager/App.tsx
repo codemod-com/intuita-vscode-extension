@@ -27,14 +27,14 @@ type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
 function App() {
 	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.viewProps as ViewProps,
+		window.INITIAL_STATE.codemodRunsProps as ViewProps,
 	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
 
-			if (message.kind === 'webview.global.setView') {
+			if (message.kind === 'webview.codemodRuns.setView') {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'campaignManagerView') {
 					setViewProps(message.value.viewProps);
