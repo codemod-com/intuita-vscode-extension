@@ -156,23 +156,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		this.__webviewView?.show(true);
 	}
 
-	__resolveWebview() {
-		if (this.__webviewView === null) {
-			return;
-		}
-
-		// @TODO
-		// const viewProps = this.__buildViewProps();
-
-		// this.__webviewResolver.resolveWebview(
-		// 	this.__webviewView.webview,
-		// 	'campaignManager',
-		// 	JSON.stringify({
-		// 		viewProps,
-		// 	}),
-		// );
-	}
-
 	private __postMessage(message: WebviewMessage) {
 		this.__webviewView?.webview.postMessage(message);
 	}
@@ -278,11 +261,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 			}
 		});
 
-		this.__webviewView.onDidChangeVisibility(() => {
-			if (this.__webviewView?.visible) {
-				this.__resolveWebview();
-			}
-		});
 	}
 
 	public getInitialProps(): ViewProps {

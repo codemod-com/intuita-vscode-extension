@@ -78,19 +78,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		this.__view = webviewView;
 
-		this.__view.onDidChangeVisibility(() => {
-			// display folders/files for the lastly selected case when panel is collapsed and re-opened
-			// @TODO
-			// this.setView(this.__lastSelectedCaseHash);
-			// this.__webviewResolver.resolveWebview(
-			// 	webviewView.webview,
-			// 	'fileExplorer',
-			// 	JSON.stringify({
-			// 		viewProps,
-			// 	}),
-			// );
-		});
-
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}

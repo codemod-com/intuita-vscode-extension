@@ -32,6 +32,23 @@ export class MainViewProvider implements WebviewViewProvider {
 			return;
 		}
 
+		this.__resolveWebview(webviewView);
+
+		this.__view = webviewView;
+
+		this.__community.resolveWebviewView(webviewView);
+		this.__codemodRuns.resolveWebviewView(webviewView);
+		this.__fileExplorer.resolveWebviewView(webviewView);
+		this.__codemodList.resolveWebviewView(webviewView);
+		
+		this.__view.onDidChangeVisibility(() => {
+			if (this.__view?.visible) {
+				this.__resolveWebview(this.__view);
+			}
+		});
+	}
+
+	private __resolveWebview(webviewView: WebviewView) {
 		const codemodRunsProps = this.__codemodRuns.getInitialProps();
 		const fileExplorerProps = this.__fileExplorer.getInitialProps();
 
@@ -43,15 +60,8 @@ export class MainViewProvider implements WebviewViewProvider {
 				fileExplorerProps,
 			}),
 		);
-
-		this.__view = webviewView;
-
-		this.__community.resolveWebviewView(webviewView);
-		this.__codemodRuns.resolveWebviewView(webviewView);
-		this.__fileExplorer.resolveWebviewView(webviewView);
-		this.__codemodList.resolveWebviewView(webviewView);
 	}
-
+	
 	public getView(): WebviewView | null {
 		return this.__view;
 	}
