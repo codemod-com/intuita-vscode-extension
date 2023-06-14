@@ -53,15 +53,15 @@ export class MainViewProvider implements WebviewViewProvider {
 		const fileExplorerProps = this.__fileExplorer.getInitialProps();
 		const codemodListProps = this.__codemodList.getInitialProps();
 		const communityProps = this.__community.getInitialProps();
-		
+
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
 			JSON.stringify({
 				codemodRunsProps,
 				fileExplorerProps,
-				codemodListProps, 
-				communityProps, 
+				codemodListProps,
+				communityProps,
 			}),
 		);
 	}

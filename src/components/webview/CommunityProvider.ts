@@ -62,9 +62,9 @@ export class CommunityProvider implements WebviewViewProvider {
 	public getInitialProps() {
 		return {
 			externalLinks: EXTERNAL_LINKS,
-		}
+		};
 	}
-	
+
 	public setView(data: View) {
 		this.__postMessage({
 			kind: 'webview.community.setView',

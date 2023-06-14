@@ -1,4 +1,4 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeLink } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as SlackIcon } from '../assets/slack.svg';
 import { ReactComponent as YoutubeIcon } from '../assets/youtube.svg';
 import { ReactElement, useEffect, useState } from 'react';
@@ -74,35 +74,11 @@ function App() {
 			<div className={styles.container}>
 				{view.viewProps.externalLinks.map(
 					({ text, url, icon }: ExternalLink) => {
-						const handleButtonClick = (
-							event: Event | React.FormEvent<HTMLElement>,
-						) => {
-							event.stopPropagation();
-							vscode.postMessage({
-								kind: 'webview.command',
-								value: {
-									command: 'openLink',
-									arguments: [url],
-									title: text,
-								},
-							});
-						};
 						return (
-							<VSCodeButton
-								type="button"
-								className={styles.button}
-								appearance="secondary"
-								onClick={handleButtonClick}
-							>
-								<span
-									slot="start"
-									/* to override left margin created due to slot="start" */
-									style={{ marginLeft: '-10px' }}
-								>
-									{getIcon(icon)}
-								</span>
-								<span className={styles.text}>{text}</span>
-							</VSCodeButton>
+							<VSCodeLink className={styles.link} href={url}>
+								<span slot="start">{getIcon(icon)}</span>
+								<span>{text}</span>
+							</VSCodeLink>
 						);
 					},
 				)}

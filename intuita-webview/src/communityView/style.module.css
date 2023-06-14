@@ -2,25 +2,21 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+	padding: 4px;
 }
 
-.button {
+.link {
 	width: 100%;
 	height: 24px;
-	display: block;
-	border-radius: 0px;
-	background-color: var(--vscode-list-background);
+	display: flex;
+	align-items: center;
 	color: var(--vscode-foreground);
 }
 
-.button:hover {
-	background-color: var(--vscode-list-hoverBackground);
-}
-
-/* VSCodeButton creates a shadow <button /> element with part='control' */
-.button::part(control) {
-	width: 100%;
-	justify-content: flex-start;
+.link::part(control) {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .button::part(control):focus {
@@ -30,11 +26,4 @@
 .icon {
 	width: 10px;
 	height: 10px;
-}
-
-.text {
-	width: 100%;
-	display: flex;
-	align-items: center;
-	font-size: 10px;
 }
