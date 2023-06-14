@@ -59,6 +59,12 @@ export class CommunityProvider implements WebviewViewProvider {
 		this.__attachWebviewEventListeners();
 	}
 
+	public getInitialProps() {
+		return {
+			externalLinks: EXTERNAL_LINKS,
+		}
+	}
+	
 	public setView(data: View) {
 		this.__postMessage({
 			kind: 'webview.community.setView',

@@ -142,6 +142,10 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		this.__view?.webview.postMessage(message);
 	}
 
+	public getInitialProps() {
+		return {}
+	}
+	
 	public setView() {
 		this.__postMessage({
 			kind: 'webview.codemodList.setView',
