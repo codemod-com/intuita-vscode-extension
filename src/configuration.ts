@@ -20,6 +20,9 @@ export const getConfiguration = () => {
 	const onDryRunCompleted =
 		configuration.get<string>('onDryRunCompleted') || null;
 
+	const formatWithPrettier =
+		configuration.get<boolean>('formatWithPrettier') ?? false;
+
 	return {
 		saveDocumentOnJobAccept,
 		fileLimit,
@@ -27,6 +30,7 @@ export const getConfiguration = () => {
 		includePatterns,
 		excludePatterns,
 		onDryRunCompleted,
+		formatWithPrettier,
 	};
 };
 

@@ -133,6 +133,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
+	const diffWebviewPanel = new DiffWebviewPanel(
+		{
+			type: 'intuitaPanel',
+			title: 'Diff',
+			extensionUri: context.extensionUri,
+			initialData: {},
+			viewColumn: vscode.ViewColumn.One,
+			webviewName: 'jobDiffView',
+			preserveFocus: true,
+		},
+		messageBus,
+		jobManager,
+		caseManager,
+		rootPath,
+	);
+
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'intuita-available-codemod-tree-view',
@@ -198,49 +214,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 				try {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-							preserveFocus: true,
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					await panelInstance.render();
-					const viewProps = await panelInstance.getViewDataForCase(
-						caseHash,
-					);
-
-					if (!viewProps) {
-						return;
-					}
-					const { title, data, stagedJobs } = viewProps;
-					panelInstance.setTitle(title);
-
-					const isExecutionInProgress =
-						engineService.isExecutionInProgress();
-
-					const { onDryRunCompleted } = getConfiguration();
-					const showHooksCTA = onDryRunCompleted === null;
-
-					panelInstance.setView({
-						viewId: 'jobDiffView',
-						viewProps: {
-							showHooksCTA,
-							loading: isExecutionInProgress,
-							diffId: String(caseHash) as CaseHash,
-							title,
-							data,
-							stagedJobs,
-						},
-					});
+					await diffWebviewPanel.openCase(caseHash);
 				} catch (err) {
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
@@ -318,22 +292,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				if (webviewName === 'diffView' && rootPath !== null) {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-							preserveFocus: true,
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					panelInstance.focusView();
+					diffWebviewPanel.focusView();
 				}
 			},
 		),
@@ -349,22 +308,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				if (webviewName === 'diffView' && rootPath !== null) {
-					const panelInstance = DiffWebviewPanel.getInstance(
-						{
-							type: 'intuitaPanel',
-							title: 'Diff',
-							extensionUri: context.extensionUri,
-							initialData: {},
-							viewColumn: vscode.ViewColumn.One,
-							webviewName: 'jobDiffView',
-							preserveFocus: true,
-						},
-						messageBus,
-						jobManager,
-						caseManager,
-						rootPath,
-					);
-					panelInstance.dispose();
+					diffWebviewPanel.dispose();
 				}
 			},
 		),
