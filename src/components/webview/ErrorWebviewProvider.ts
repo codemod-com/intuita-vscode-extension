@@ -21,7 +21,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		private readonly __workspaceState: WorkspaceState,
-		private readonly __store: Store,
+		store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
@@ -29,7 +29,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			MessageKind.codemodSetExecuted,
 			async ({ case: kase, executionErrors }) => {
 				__workspaceState.setExecutionErrors(kase.hash, executionErrors);
-				__store.dispatch(
+				store.dispatch(
 					actions.setExecutionErrors({
 						caseHash: kase.hash,
 						errors: executionErrors,
@@ -47,7 +47,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		messageBus.subscribe(MessageKind.clearState, () => {
 			__workspaceState.setSelectedCaseHash(null);
-			__store.dispatch(actions.setSelectedCaseHash(null));
+			store.dispatch(actions.setSelectedCaseHash(null));
 			this.setView();
 		});
 	}

@@ -33,10 +33,10 @@ type CommunityState = Readonly<{
 }>;
 
 type State = {
-	codemodDiscovery: CodemodDiscoveryState;
-	codemodRuns: CodemodRunsState;
-	changeExplorer: ChangeExplorerState;
-	community: CommunityState;
+	codemodDiscoveryView: CodemodDiscoveryState;
+	codemodRunsView: CodemodRunsState;
+	changeExplorerView: ChangeExplorerState;
+	communityView: CommunityState;
 	lastCodemodHashDigests: ReadonlyArray<string>;
 	caseHashJobHashes: ReadonlyArray<string>;
 	executionErrors: Record<string, ReadonlyArray<ExecutionError>>;
@@ -65,22 +65,22 @@ const getInitialState = (): State => {
 		lastCodemodHashDigests: [],
 		executionErrors: {},
 		caseHashJobHashes: [],
-		codemodRuns: {
+		codemodRunsView: {
 			selectedCaseHash: null,
 			visible: true,
 		},
-		codemodDiscovery: {
+		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			openedCodemodHashDigests: null,
 			visible: true,
 		},
-		changeExplorer: {
+		changeExplorerView: {
 			focusedFileExplorerNodeId: null,
 			openedFileExplorerNodeIds: [],
 			visible: false,
 		},
-		community: {
+		communityView: {
 			visible: true,
 		},
 	};
@@ -108,7 +108,7 @@ const rootSlice = createSlice({
 		clearState(state) {
 			caseAdapter.removeAll(state.case);
 			jobAdapter.removeAll(state.job);
-			state.codemodRuns.selectedCaseHash = null;
+			state.codemodRunsView.selectedCaseHash = null;
 			state.caseHashJobHashes = [];
 		},
 		upsertCodemods(
@@ -127,23 +127,23 @@ const rootSlice = createSlice({
 		 * Codemod runs
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
-			state.codemodRuns.selectedCaseHash = action.payload;
+			state.codemodRunsView.selectedCaseHash = action.payload;
 		},
 		setCodemodRunsVisible(state, action: PayloadAction<boolean>) {
-			state.codemodRuns.visible = action.payload;
+			state.codemodRunsView.visible = action.payload;
 		},
 		/**
 		 * Codemod list
 		 */
 		setPublicCodemodsExpanded(state, action: PayloadAction<boolean>) {
-			state.codemodDiscovery.visible = action.payload;
+			state.codemodDiscoveryView.visible = action.payload;
 		},
 		setExecutionPath(
 			state,
 			action: PayloadAction<{ codemodHash: string; path: string }>,
 		) {
 			const { codemodHash, path } = action.payload;
-			state.codemodDiscovery.executionPaths[codemodHash] = path;
+			state.codemodDiscoveryView.executionPaths[codemodHash] = path;
 		},
 		setRecentCodemodHashes(state, action: PayloadAction<string>) {
 			state.lastCodemodHashDigests.push(action.payload);
@@ -152,22 +152,23 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<string | null>,
 		) {
-			state.codemodDiscovery.visible = true;
-			state.codemodDiscovery.focusedCodemodHashDigest = action.payload;
+			state.codemodDiscoveryView.visible = true;
+			state.codemodDiscoveryView.focusedCodemodHashDigest =
+				action.payload;
 		},
 		setOpenedCodemodHashDigests(
 			state,
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
-			state.codemodDiscovery.visible = true;
+			state.codemodDiscoveryView.visible = true;
 
 			if (action.payload === null) {
-				state.codemodDiscovery.openedCodemodHashDigests =
+				state.codemodDiscoveryView.openedCodemodHashDigests =
 					action.payload;
 				return;
 			}
 
-			state.codemodDiscovery.openedCodemodHashDigests = [
+			state.codemodDiscoveryView.openedCodemodHashDigests = [
 				...action.payload,
 			];
 		},
@@ -191,21 +192,21 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<string | null>,
 		) {
-			state.changeExplorer.visible = true;
-			state.changeExplorer.focusedFileExplorerNodeId = action.payload;
+			state.changeExplorerView.visible = true;
+			state.changeExplorerView.focusedFileExplorerNodeId = action.payload;
 		},
 		setOpenedFileExplorerNodeIds(
 			state,
 			action: PayloadAction<ReadonlyArray<string> | null>,
 		) {
-			state.changeExplorer.visible = true;
+			state.changeExplorerView.visible = true;
 
 			if (action.payload === null) {
-				state.changeExplorer.openedFileExplorerNodeIds = null;
+				state.changeExplorerView.openedFileExplorerNodeIds = null;
 				return;
 			}
 
-			state.changeExplorer.openedFileExplorerNodeIds = [
+			state.changeExplorerView.openedFileExplorerNodeIds = [
 				...action.payload,
 			];
 		},

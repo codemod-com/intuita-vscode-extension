@@ -255,7 +255,7 @@
 	},
 	"main": "./dist/extension.js",
 	"scripts": {
-		"vscode:prepublish": "pnpm run build",
+		"vscode:prepublish": "NODE_ENV='production' pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
 		"build": "pnpm install:webview && pnpm build:webview && pnpm install && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
