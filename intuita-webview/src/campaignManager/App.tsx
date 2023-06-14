@@ -22,7 +22,6 @@ const handleItemClick = (node: CaseTreeNode) => {
 	});
 };
 
-
 function App() {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.codemodRunsProps,

@@ -11,7 +11,6 @@ import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import { vscode } from '../shared/utilities/vscode';
 
-
 function App() {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.fileExplorerProps,
