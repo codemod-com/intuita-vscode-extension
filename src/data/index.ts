@@ -1,9 +1,12 @@
-import { configureStore, Dispatch } from '@reduxjs/toolkit';
+import { configureStore, Dispatch, Reducer } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 import MementoStorage from './storage';
 
 import rootReducer, { actions } from './slice';
 import { Memento } from 'vscode';
+import { PersistPartial } from 'redux-persist/es/persistReducer';
+import { persistedStateCodecNew } from '../persistedState/codecs';
+import prettyReporter from 'io-ts-reporters';
 
 const buildStore = (workspaceState: Memento) => {
 	const persistConfig = {
@@ -13,8 +16,30 @@ const buildStore = (workspaceState: Memento) => {
 
 	const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+	const validatedReducer: Reducer<
+		(RootState & PersistPartial) | undefined
+	> = (state, action) => {
+		if (action.type === 'persist/REHYDRATE') {
+			const decoded = persistedStateCodecNew.decode(action.payload);
+
+			// cancel hydration
+			// @TODO think how to handle such case
+			if (decoded._tag !== 'Right') {
+				prettyReporter.report(decoded).join('\n');
+				return state;
+			}
+
+			return persistedReducer(state, {
+				type: action.type,
+				payload: decoded,
+			});
+		}
+
+		return persistedReducer(state, action);
+	};
+
 	const store = configureStore({
-		reducer: persistedReducer,
+		reducer: validatedReducer,
 	});
 
 	const persistor = persistStore(store);
