@@ -24,9 +24,30 @@ export abstract class IntuitaWebviewPanel {
 	protected _webviewMounted = false;
 
 	constructor(
-		protected readonly _options: Options,
+		private readonly __options: Options,
 		protected readonly _messageBus: MessageBus,
-	) {
+	) {}
+
+	setTitle = (title: string) => {
+		if (this._panel === null) {
+			return;
+		}
+
+		this._panel.title = title;
+	};
+
+	protected _attachExtensionEventListeners?(): void;
+	protected _attachWebviewEventListeners?(): void;
+
+	protected _postMessage(message: WebviewMessage) {
+		this._panel?.webview.postMessage(message);
+	}
+
+	public async createOrShowPanel() {
+		if (this._panel !== null) {
+			return this.render();
+		}
+
 		const {
 			extensionUri,
 			type,
@@ -35,9 +56,9 @@ export abstract class IntuitaWebviewPanel {
 			preserveFocus,
 			webviewName,
 			initialData,
-		} = _options;
-		const webviewResolver = new WebviewResolver(extensionUri);
+		} = this.__options;
 
+		const webviewResolver = new WebviewResolver(extensionUri);
 		this._panel = window.createWebviewPanel(
 			type,
 			title,
@@ -58,33 +79,15 @@ export abstract class IntuitaWebviewPanel {
 
 		this._attachExtensionEventListeners?.();
 		this._attachWebviewEventListeners?.();
-	}
 
-	setTitle = (title: string) => {
-		if (!this._panel) {
-			return;
-		}
-
-		this._panel.title = title;
-	};
-
-	protected _attachExtensionEventListeners?(): void;
-	protected _attachWebviewEventListeners?(): void;
-
-	protected _postMessage(message: WebviewMessage) {
-		if (!this._panel) {
-			return;
-		}
-
-		this._panel.webview.postMessage(message);
+		return this.render();
 	}
 
 	protected _addHook<T extends MessageKind>(
 		kind: T,
 		handler: (message: Message & { kind: T }) => void,
 	) {
-		const disposable = this._messageBus.subscribe<T>(kind, handler);
-		this._disposables.push(disposable);
+		this._messageBus.subscribe<T>(kind, handler);
 	}
 
 	public render() {
@@ -110,10 +113,13 @@ export abstract class IntuitaWebviewPanel {
 	}
 
 	public dispose() {
-		if (!this._panel) {
+		if (this._panel === null) {
 			return;
 		}
+
 		this._panel.dispose();
+		this._panel = null;
+		this._webviewMounted = false;
 
 		this._disposables.forEach((disposable) => {
 			disposable.dispose();
