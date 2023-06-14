@@ -83,7 +83,6 @@ export class FileExplorerProvider implements WebviewViewProvider {
 	}
 
 	public setView(caseHash: CaseHash | null): void {
-		console.log('setView', caseHash);
 		if (caseHash === null) {
 			return;
 		}

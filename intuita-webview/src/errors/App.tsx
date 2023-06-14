@@ -81,8 +81,8 @@ declare global {
 }
 
 export const App = () => {
-	const [viewProps, setViewProps] = useState<ErrorsViewProps>(
-		window.INITIAL_STATE.errorsViewProps as ErrorsViewProps,
+	const [viewProps, setViewProps] = useState(
+		window.INITIAL_STATE.errorsViewProps,
 	);
 
 	useEffect(() => {

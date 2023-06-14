@@ -5,7 +5,6 @@ import styles from './style.module.css';
 import '../shared/util.css';
 import type {
 	CaseTreeNode,
-	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 
@@ -23,11 +22,10 @@ const handleItemClick = (node: CaseTreeNode) => {
 	});
 };
 
-type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
 function App() {
-	const [viewProps, setViewProps] = useState<ViewProps>(
-		window.INITIAL_STATE.codemodRunsProps as ViewProps,
+	const [viewProps, setViewProps] = useState(
+		window.INITIAL_STATE.codemodRunsProps,
 	);
 
 	useEffect(() => {
