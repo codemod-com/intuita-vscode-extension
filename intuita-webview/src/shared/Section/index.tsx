@@ -9,6 +9,7 @@ type Props = {
 	open: boolean;
 	commands?: ReadonlyArray<Command & { icon: string }>;
 	children?: ReactNode;
+	onHeaderClick?(): void;
 };
 
 const handleCommand = (c: Command) => {
@@ -18,10 +19,10 @@ const handleCommand = (c: Command) => {
 	});
 };
 
-const Section = ({ open, title, commands, children }: Props) => {
+const Section = ({ open, title, commands, children, onHeaderClick }: Props) => {
 	return (
 		<div className={s.root}>
-			<div className={s.sectionHeader}>
+			<div className={s.sectionHeader} onClick={onHeaderClick}>
 				<span
 					className={cn(
 						s.icon,

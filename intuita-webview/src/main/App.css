@@ -13,5 +13,9 @@
 
 .resize-handle {
 	height: 2px;
+	background-color: transparent;
+}
+
+.resize-handle:hover {
 	background-color: blue;
 }
