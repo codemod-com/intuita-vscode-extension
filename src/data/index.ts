@@ -6,12 +6,14 @@ import rootReducer, { actions } from './slice';
 import { Memento } from 'vscode';
 
 const buildStore = (workspaceState: Memento) => {
-	const persistConfig = {
-		key: 'root',
-		storage: new MementoStorage(workspaceState),
-	};
-
-	const persistedReducer = persistReducer(persistConfig, rootReducer);
+	const persistedReducer = persistReducer(
+		{
+			key: 'root',
+			storage: new MementoStorage(workspaceState),
+			throttle: 1000,
+		},
+		rootReducer,
+	);
 
 	const store = configureStore({
 		reducer: persistedReducer,
