@@ -85,7 +85,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const workspaceState = new WorkspaceState(
 		context.workspaceState,
-		rootPath ?? '/',
 		messageBus,
 	);
 
@@ -125,7 +124,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		rootPath,
 		codemodService,
-		workspaceState,
 		store,
 	);
 

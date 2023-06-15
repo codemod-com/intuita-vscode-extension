@@ -31,7 +31,7 @@ import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
-import { WorkspaceState } from '../../persistedState/workspaceState';
+import { ExecutionPath } from '../../persistedState/workspaceState';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
 
@@ -75,7 +75,6 @@ export class CodemodListPanel {
 		private readonly __messageBus: MessageBus,
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
-		private readonly __workspaceState: WorkspaceState,
 		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
@@ -147,6 +146,9 @@ export class CodemodListPanel {
 	}
 
 	public setView() {
+		const state = this.__store.getState().codemodDiscoveryView;
+
+		const { openedCodemodHashDigests, focusedCodemodHashDigest } = state;
 		this.__postMessage({
 			kind: 'webview.codemodList.setView',
 			value: {
@@ -154,11 +156,8 @@ export class CodemodListPanel {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds: Array.from(
-						this.__workspaceState.getOpenedCodemodHashDigests(),
-					),
-					focusedId:
-						this.__workspaceState.getFocusedCodemodHashDigest(),
+					openedIds: openedCodemodHashDigests as CodemodHash[],
+					focusedId: focusedCodemodHashDigest as CodemodHash,
 					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
@@ -188,20 +187,13 @@ export class CodemodListPanel {
 			return;
 		}
 
-		const oldExecution =
-			this.__workspaceState.getExecutionPath(codemodHash);
+		const state = this.__store.getState().codemodDiscoveryView;
+		const persistedExecutionPath = state.executionPaths[codemodHash];
 
-		const oldExecutionPath = T.isLeft(oldExecution)
-			? null
-			: oldExecution.right;
+		const oldExecutionPath = persistedExecutionPath ?? null;
 
 		try {
 			await workspace.fs.stat(Uri.file(newPath));
-
-			this.__workspaceState.setExecutionPath(
-				codemodHash,
-				T.right(newPath),
-			);
 
 			this.__store.dispatch(
 				actions.setExecutionPath({ codemodHash, path: newPath }),
@@ -225,11 +217,6 @@ export class CodemodListPanel {
 			}
 
 			if (revertToPrevExecutionIfInvalid) {
-				this.__workspaceState.setExecutionPath(
-					codemodHash,
-					T.right(oldExecutionPath),
-				);
-
 				this.__store.dispatch(
 					actions.setExecutionPath({
 						codemodHash,
@@ -237,17 +224,6 @@ export class CodemodListPanel {
 					}),
 				);
 			} else {
-				this.__workspaceState.setExecutionPath(
-					codemodHash,
-					T.both<SyntheticError, string>(
-						{
-							kind: 'syntheticError',
-							message: `${newPath} does not exist.`,
-						},
-						oldExecutionPath,
-					),
-				);
-
 				this.__store.dispatch(
 					actions.setExecutionPath({
 						codemodHash,
@@ -309,12 +285,15 @@ export class CodemodListPanel {
 			const { hash } = codemod;
 
 			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
-			const executionPath = this.__workspaceState.getExecutionPath(hash);
-			if (T.isLeft(executionPath)) {
+
+			const state = this.__store.getState().codemodDiscoveryView;
+			const executionPath = state.executionPaths[hash] ?? null;
+
+			if (executionPath === null) {
 				return;
 			}
 
-			const uri = Uri.file(executionPath.right);
+			const uri = Uri.file(executionPath);
 
 			commands.executeCommand('intuita.executeCodemod', uri, hash);
 		}
@@ -349,16 +328,8 @@ export class CodemodListPanel {
 		}
 
 		if (message.kind === 'webview.codemods.setState') {
-			this.__workspaceState.setFocusedCodemodHashDigest(
-				message.focusedId,
-			);
-
 			this.__store.dispatch(
 				actions.setFocusedCodemodHashDigest(message.focusedId),
-			);
-
-			this.__workspaceState.setOpenedCodemodHashDigests(
-				new Set(message.openedIds),
 			);
 
 			this.__store.dispatch(
@@ -414,8 +385,11 @@ export class CodemodListPanel {
 	): CodemodTreeNode {
 		if (codemodElement.kind === 'codemodItem') {
 			const { label, kind, description, hash, name } = codemodElement;
+			const state = this.__store.getState().codemodDiscoveryView;
 
-			const executionPath = this.__workspaceState.getExecutionPath(hash);
+			const executionPath = state.executionPaths[hash] as
+				| ExecutionPath
+				| undefined;
 
 			const node: CodemodTreeNode = {
 				kind,
