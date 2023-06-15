@@ -135,9 +135,6 @@ const rootSlice = createSlice({
 		/**
 		 * Codemod list
 		 */
-		setPublicCodemodsExpanded(state, action: PayloadAction<boolean>) {
-			state.codemodDiscoveryView.visible = action.payload;
-		},
 		setExecutionPath(
 			state,
 			action: PayloadAction<{ codemodHash: string; path: string }>,
