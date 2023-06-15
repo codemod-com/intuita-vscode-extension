@@ -96,8 +96,6 @@ export class CodemodListPanel {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__workspaceState.setPublicCodemodsExpanded(true);
-			this.__store.dispatch(actions.setPublicCodemodsExpanded(true));
 			this.setView();
 
 			this.__postMessage({
@@ -165,8 +163,6 @@ export class CodemodListPanel {
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
 						.map((node) => node.id),
-					publicCodemodsExpanded:
-						this.__workspaceState.getPublicCodemodsExpanded(),
 				},
 			},
 		});
@@ -372,20 +368,6 @@ export class CodemodListPanel {
 			this.__store.dispatch(
 				actions.setOpenedCodemodHashDigests(message.openedIds),
 			);
-		}
-
-		if (message.kind === 'webview.codemods.setPublicCodemodsExpanded') {
-			this.__workspaceState.setPublicCodemodsExpanded(
-				message.publicCodemodsExpanded,
-			);
-
-			this.__store.dispatch(
-				actions.setPublicCodemodsExpanded(
-					message.publicCodemodsExpanded,
-				),
-			);
-
-			this.setView();
 		}
 	};
 

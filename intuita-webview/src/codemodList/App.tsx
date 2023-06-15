@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
-import { Container } from './components/Container';
 import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
@@ -18,12 +17,6 @@ const loadingContainer = (
 		<span aria-label="loading">Loading...</span>
 	</div>
 );
-
-const setPublicCodemodsExpanded = (publicCodemodsExpanded: boolean) =>
-	vscode.postMessage({
-		kind: 'webview.codemods.setPublicCodemodsExpanded',
-		publicCodemodsExpanded,
-	});
 
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
@@ -61,7 +54,6 @@ function App() {
 		focusedId,
 		nodeIds,
 		nodesByDepth,
-		publicCodemodsExpanded,
 	} = view.viewProps;
 
 	const component = pipe(
@@ -76,38 +68,29 @@ function App() {
 					}
 
 					return (
-						<TreeView
-							node={node}
-							autocompleteItems={autocompleteItems}
-							openedIds={new Set(openedIds)}
-							focusedId={focusedId}
-							searchQuery={searchQuery}
-							nodeIds={nodeIds}
-							nodesByDepth={nodesByDepth}
-						/>
+						<>
+							<SearchBar
+								searchQuery={searchQuery}
+								setSearchQuery={setSearchQuery}
+								placeholder="Search codemods..."
+							/>
+							<TreeView
+								node={node}
+								autocompleteItems={autocompleteItems}
+								openedIds={new Set(openedIds)}
+								focusedId={focusedId}
+								searchQuery={searchQuery}
+								nodeIds={nodeIds}
+								nodesByDepth={nodesByDepth}
+							/>
+						</>
 					);
 				},
 			),
 		),
 	);
 
-	return (
-		<>
-			<SearchBar
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-				placeholder="Search codemods..."
-			/>
-			<Container
-				headerTitle="Public Codemods"
-				className="publicCodemodsContainer content-border-top h-full"
-				expanded={publicCodemodsExpanded}
-				setExpanded={setPublicCodemodsExpanded}
-			>
-				<div>{component}</div>
-			</Container>
-		</>
-	);
+	return <main className="App">{component}</main>;
 }
 
 export default App;
