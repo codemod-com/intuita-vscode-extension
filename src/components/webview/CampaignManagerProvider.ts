@@ -28,6 +28,8 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+import { actions } from '../../data/slice';
+import { Store } from '../../data';
 
 type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
@@ -136,6 +138,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 	}
@@ -279,7 +282,9 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				message.kind === 'webview.campaignManager.setSelectedCaseHash'
 			) {
 				this.__workspaceState.setSelectedCaseHash(message.caseHash);
-
+				this.__store.dispatch(
+					actions.setSelectedCaseHash(message.caseHash),
+				);
 				this.setView();
 			}
 		});

@@ -35,6 +35,8 @@ import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { WorkspaceState } from './persistedState/workspaceState';
+import { buildStore } from './data';
+import { actions } from './data/slice';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -86,11 +88,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
+	const { store } = buildStore(context.workspaceState);
+
 	const engineService = new EngineService(
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
 		workspaceState,
+		store,
 	);
 
 	new BootstrapExecutablesService(
@@ -106,6 +111,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		() => context.storageUri ?? null,
 		jobManager,
 		messageBus,
+		store,
 	);
 
 	const intuitaTextDocumentContentProvider =
@@ -115,6 +121,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		engineService,
 		workspaceState,
+		store,
 	);
 
 	const codemodListWebviewProvider = new CodemodListPanelProvider(
@@ -123,6 +130,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		codemodService,
 		workspaceState,
+		store,
 	);
 
 	const diffWebviewPanel = new DiffWebviewPanel(
@@ -224,6 +232,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		caseManager,
 		workspaceState,
+		store,
 	);
 
 	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
@@ -239,6 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		caseManager,
 		workspaceState,
+		store,
 	);
 
 	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
@@ -265,6 +275,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		workspaceState,
+		store,
 	);
 
 	context.subscriptions.push(
@@ -768,6 +779,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			messageBus.publish({
 				kind: MessageKind.clearState,
 			});
+
+			store.dispatch(actions.clearState());
 		}),
 	);
 
