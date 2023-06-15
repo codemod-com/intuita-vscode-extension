@@ -287,7 +287,7 @@ export class CodemodListPanel {
 			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
 
 			const state = this.__store.getState().codemodDiscoveryView;
-			const executionPath = state.executionPaths[hash] ?? null;
+			const executionPath = state.executionPaths[hash] ?? this.__rootPath;
 
 			if (executionPath === null) {
 				return;
@@ -387,9 +387,8 @@ export class CodemodListPanel {
 			const { label, kind, description, hash, name } = codemodElement;
 			const state = this.__store.getState().codemodDiscoveryView;
 
-			const executionPath = state.executionPaths[hash] as
-				| ExecutionPath
-				| undefined;
+			const persistedExecutionPath = state.executionPaths[hash] ?? this.__rootPath;
+			const executionPath = persistedExecutionPath ? T.right(persistedExecutionPath) : undefined;
 
 			const node: CodemodTreeNode = {
 				kind,
