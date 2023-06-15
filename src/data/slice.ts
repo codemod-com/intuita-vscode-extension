@@ -194,18 +194,16 @@ const rootSlice = createSlice({
 		},
 		setOpenedFileExplorerNodeIds(
 			state,
-			action: PayloadAction<ReadonlyArray<string> | null>,
+			action: PayloadAction<ReadonlyArray<string>>,
 		) {
 			state.changeExplorerView.visible = true;
-
-			if (action.payload === null) {
-				state.changeExplorerView.openedFileExplorerNodeIds = [];
-				return;
-			}
 
 			state.changeExplorerView.openedFileExplorerNodeIds = [
 				...action.payload,
 			];
+		},
+		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
+			state.changeExplorerView.visible = action.payload;
 		},
 	},
 });

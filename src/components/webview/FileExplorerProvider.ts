@@ -5,6 +5,7 @@ import {
 	workspace,
 	commands,
 } from 'vscode';
+import areEqual from 'fast-deep-equal';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
 	FileTreeNode,
@@ -56,7 +57,6 @@ export class FileExplorer {
 	>();
 	__treeNodesByDepth: TreeNode[][] = [];
 	__unsavedChanges = false;
-	__lastSelectedCaseHash: CaseHash | null = null;
 	__codemodExecutionInProgress = false;
 	__lastFocusedNodeId: TreeNodeId | null = null;
 
@@ -72,7 +72,7 @@ export class FileExplorer {
 	}
 
 	public getInitialProps(): ViewProps {
-		return this.__buildViewProps(this.__lastSelectedCaseHash);
+		return this.__buildViewProps();
 	}
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
@@ -82,16 +82,11 @@ export class FileExplorer {
 		this.__attachWebviewEventListeners();
 	}
 
-	public setView(caseHash: CaseHash | null): void {
-		if (caseHash === null) {
-			return;
-		}
-		this.__lastSelectedCaseHash = caseHash;
-
+	public setView(): void {
 		this.__treeMap.clear();
 		this.__fileNodes.clear();
 
-		const viewProps = this.__buildViewProps(caseHash);
+		const viewProps = this.__buildViewProps();
 
 		if (viewProps === null) {
 			return;
@@ -130,14 +125,17 @@ export class FileExplorer {
 		});
 	}
 
-	public setCaseHash(caseHash: CaseHash) {
-		this.__lastSelectedCaseHash = caseHash;
-	}
+	private __buildViewProps(): ViewProps {
+		const state = this.__store.getState();
+		const caseHash = state.codemodRunsView
+			.selectedCaseHash as CaseHash | null;
 
-	private __buildViewProps(caseHash: CaseHash | null): ViewProps {
 		if (caseHash === null) {
 			return null;
 		}
+		this.__treeMap.clear();
+		this.__fileNodes.clear();
+
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 		const casesWithJobHashes = this.__caseManager.getCasesWithJobHashes();
 		const jobMap = this.__buildJobMap(casesWithJobHashes);
@@ -159,11 +157,15 @@ export class FileExplorer {
 			return null;
 		}
 
+		console.log(caseElement, this.__treeMap, this.__fileNodes, 'tree test');
 		const tree = this.__getTreeByDirectory(caseElement);
 
 		if (!tree) {
 			return null;
 		}
+
+		const { focusedFileExplorerNodeId, openedFileExplorerNodeIds } =
+			state.changeExplorerView;
 
 		return {
 			node: tree,
@@ -173,10 +175,8 @@ export class FileExplorer {
 				: Array.from(this.__fileNodes.values()).map((obj) => obj.node),
 			caseHash: caseElement.hash as unknown as CaseHash,
 			nodesByDepth: this.__treeNodesByDepth,
-			openedIds: Array.from(
-				this.__workspaceState.getOpenedFileExplorerNodeIds(),
-			),
-			focusedId: this.__workspaceState.getFocusedFileExplorerNodeId(),
+			openedIds: openedFileExplorerNodeIds as TreeNodeId[],
+			focusedId: focusedFileExplorerNodeId as TreeNodeId | null,
 		};
 	}
 
@@ -245,6 +245,7 @@ export class FileExplorer {
 				}
 
 				path = (path + `/${dir}`) as TreeNodeId;
+				console.log(path, this.__treeMap.has(path), 'test123');
 				if (!this.__treeMap.has(path)) {
 					const newTreeNode =
 						dir === fileName
@@ -429,9 +430,29 @@ export class FileExplorer {
 	}
 
 	private __attachExtensionEventListeners() {
-		this.__addHook(MessageKind.clearState, () =>
-			this.__onClearStateMessage(),
-		);
+		let prevProps = this.__buildViewProps();
+
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildViewProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.fileExplorer.setView',
+				value: {
+					viewId: 'fileExplorer',
+					viewProps: nextProps,
+				},
+			});
+		});
+
+		this.__addHook(MessageKind.clearState, () => {
+			this.__onClearStateMessage();
+		});
 
 		this.__addHook(MessageKind.executeCodemodSet, () => {
 			this.__codemodExecutionInProgress = true;
@@ -439,33 +460,6 @@ export class FileExplorer {
 
 		this.__addHook(MessageKind.codemodSetExecuted, () => {
 			this.__codemodExecutionInProgress = false;
-			this.setView(this.__lastSelectedCaseHash);
-		});
-
-		this.__addHook(MessageKind.updateElements, () => {
-			if (this.__lastSelectedCaseHash === null) {
-				return;
-			}
-
-			// when "last selected case" was removed, clear the state
-			if (
-				this.__caseManager.getCase(this.__lastSelectedCaseHash) ===
-				undefined
-			) {
-				this.__onClearStateMessage();
-				return;
-			}
-
-			// when job elements are updated, refresh the view
-			this.setView(this.__lastSelectedCaseHash);
-		});
-
-		this.__addHook(MessageKind.upsertCases, (message) => {
-			const hash = message.casesWithJobHashes[0]?.hash ?? null;
-
-			if (hash !== null) {
-				this.__lastSelectedCaseHash = hash;
-			}
 		});
 	}
 
@@ -478,7 +472,10 @@ export class FileExplorer {
 		}
 
 		if (message.kind === 'webview.fileExplorer.fileSelected') {
-			if (this.__lastSelectedCaseHash === null) {
+			const caseHash = this.__store.getState().codemodRunsView
+				.selectedCaseHash as CaseHash | null;
+
+			if (caseHash === null) {
 				return;
 			}
 
@@ -496,13 +493,16 @@ export class FileExplorer {
 
 			this.__messageBus.publish({
 				kind: MessageKind.focusFile,
-				caseHash: this.__lastSelectedCaseHash,
+				caseHash,
 				jobHash,
 			});
 		}
 
 		if (message.kind === 'webview.fileExplorer.folderSelected') {
-			if (this.__lastSelectedCaseHash === null) {
+			const caseHash = this.__store.getState().codemodRunsView
+				.selectedCaseHash as CaseHash | null;
+
+			if (caseHash === null) {
 				return;
 			}
 
@@ -516,7 +516,7 @@ export class FileExplorer {
 
 			this.__messageBus.publish({
 				kind: MessageKind.focusFolder,
-				caseHash: this.__lastSelectedCaseHash,
+				caseHash,
 				folderPath,
 			});
 		}
@@ -572,7 +572,7 @@ export class FileExplorer {
 
 		if (message.kind === 'webview.fileExplorer.afterWebviewMounted') {
 			this.showView();
-			this.setView(this.__lastSelectedCaseHash);
+			this.setView();
 		}
 	};
 
