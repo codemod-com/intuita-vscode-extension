@@ -73,7 +73,7 @@ declare global {
 	interface Window {
 		INITIAL_STATE: {
 			communityProps: CommunityViewProps;
-			errorsViewProps: ErrorsViewProps;
+			errorProps: ErrorsViewProps;
 			codemodRunsProps: CodemodRunsViewProps;
 			fileExplorerProps: FileExplorerViewProps;
 		};
@@ -81,9 +81,7 @@ declare global {
 }
 
 export const App = () => {
-	const [viewProps, setViewProps] = useState(
-		window.INITIAL_STATE.errorsViewProps,
-	);
+	const [viewProps, setViewProps] = useState(window.INITIAL_STATE.errorProps);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
