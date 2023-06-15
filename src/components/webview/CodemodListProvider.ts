@@ -1,5 +1,4 @@
 import {
-	WebviewViewProvider,
 	WebviewView,
 	Uri,
 	EventEmitter,
@@ -56,7 +55,7 @@ const getCompletionItems = (path: string) =>
 
 const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
 
-export class CodemodListPanelProvider implements WebviewViewProvider {
+export class CodemodListPanel {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
@@ -248,7 +247,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		await this.getCodemodTree();
 	};
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
 			return;
 		}

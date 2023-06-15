@@ -8,7 +8,7 @@ import CodemodList from '../codemodList/App';
 import FileExplorer from '../fileExplorer/App';
 import CommunityView from '../communityView/App';
 import { ResizablePanel } from '../shared/Panel';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import SectionHeader from '../shared/Section/Header';
 
 const PANELS = [
@@ -43,7 +43,6 @@ const PANELS = [
 
 function App() {
 	const panelRefs = useRef<Record<string, ImperativePanelHandle>>({});
-	const [, forceRerender] = useState('');
 
 	const togglePanel = (id: string) => {
 		const ref = panelRefs.current[id];
@@ -57,8 +56,6 @@ function App() {
 		} else {
 			ref.collapse();
 		}
-
-		forceRerender(crypto.randomUUID());
 	};
 
 	return (

@@ -1,10 +1,4 @@
-import {
-	WebviewViewProvider,
-	WebviewView,
-	Uri,
-	workspace,
-	commands,
-} from 'vscode';
+import { WebviewView, Uri, workspace, commands } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { CaseTreeNode, View, WebviewMessage } from './webviewEvents';
 import { CaseElement, FileElement } from '../../elements/types';
@@ -124,7 +118,7 @@ const buildCaseElementsAndLatestJob = (
 	return [sortedCaseElements, latestJob];
 };
 
-export class CampaignManagerProvider implements WebviewViewProvider {
+export class CampaignManager {
 	private __webviewView: WebviewView | null = null;
 
 	constructor(
@@ -134,7 +128,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		private readonly __workspaceState: WorkspaceState,
 	) {}
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();

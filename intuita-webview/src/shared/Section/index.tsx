@@ -7,7 +7,7 @@ import { vscode } from '../utilities/vscode';
 type Props = {
 	title: string;
 	open: boolean;
-	commands?: ReadonlyArray<Command & { icon: string }>;
+	commands: ReadonlyArray<Command & { icon: string }>;
 	children?: ReactNode;
 	onHeaderClick?(): void;
 };

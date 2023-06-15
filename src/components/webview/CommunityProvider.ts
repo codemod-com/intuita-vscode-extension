@@ -1,10 +1,4 @@
-import {
-	WebviewViewProvider,
-	WebviewView,
-	Uri,
-	ExtensionContext,
-	commands,
-} from 'vscode';
+import { WebviewView, Uri, ExtensionContext, commands } from 'vscode';
 import {
 	ExternalLink,
 	View,
@@ -41,7 +35,7 @@ const EXTERNAL_LINKS: ExternalLink[] = [
 	},
 ];
 
-export class CommunityProvider implements WebviewViewProvider {
+export class Community {
 	__view: WebviewView | null = null;
 	__webviewResolver: WebviewResolver;
 
@@ -49,7 +43,7 @@ export class CommunityProvider implements WebviewViewProvider {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 	}
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
 			return;
 		}

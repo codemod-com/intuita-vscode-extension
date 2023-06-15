@@ -6,10 +6,10 @@ import {
 } from 'vscode';
 
 import { WebviewResolver } from './WebviewResolver';
-import { CommunityProvider } from './CommunityProvider';
-import { CampaignManagerProvider } from './CampaignManagerProvider';
-import { FileExplorerProvider } from './FileExplorerProvider';
-import { CodemodListPanelProvider } from './CodemodListProvider';
+import { Community } from './CommunityProvider';
+import { CampaignManager } from './CampaignManagerProvider';
+import { FileExplorer } from './FileExplorerProvider';
+import { CodemodListPanel } from './CodemodListProvider';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -18,10 +18,10 @@ export class MainViewProvider implements WebviewViewProvider {
 
 	constructor(
 		context: ExtensionContext,
-		private readonly __community: CommunityProvider,
-		private readonly __codemodRuns: CampaignManagerProvider,
-		private readonly __fileExplorer: FileExplorerProvider,
-		private readonly __codemodList: CodemodListPanelProvider,
+		private readonly __community: Community,
+		private readonly __codemodRuns: CampaignManager,
+		private readonly __fileExplorer: FileExplorer,
+		private readonly __codemodList: CodemodListPanel,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -36,10 +36,10 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		this.__view = webviewView;
 
-		this.__community.resolveWebviewView(webviewView);
-		this.__codemodRuns.resolveWebviewView(webviewView);
-		this.__fileExplorer.resolveWebviewView(webviewView);
-		this.__codemodList.resolveWebviewView(webviewView);
+		this.__community.setWebview(webviewView);
+		this.__codemodRuns.setWebview(webviewView);
+		this.__fileExplorer.setWebview(webviewView);
+		this.__codemodList.setWebview(webviewView);
 
 		this.__view.onDidChangeVisibility(() => {
 			if (this.__view?.visible) {

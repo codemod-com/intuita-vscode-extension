@@ -1,5 +1,4 @@
 import {
-	WebviewViewProvider,
 	WebviewView,
 	Uri,
 	ExtensionContext,
@@ -45,7 +44,7 @@ import { WorkspaceState } from '../../persistedState/workspaceState';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
-export class FileExplorerProvider implements WebviewViewProvider {
+export class FileExplorer {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	// map between URIs and the Tree Node
@@ -75,7 +74,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		return this.__buildViewProps(this.__lastSelectedCaseHash);
 	}
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__view = webviewView;
 
 		this.__attachExtensionEventListeners();

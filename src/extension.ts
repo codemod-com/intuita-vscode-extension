@@ -21,13 +21,13 @@ import {
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { ElementHash } from './elements/types';
-import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
-import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
+import { FileExplorer } from './components/webview/FileExplorerProvider';
+import { CampaignManager } from './components/webview/CampaignManagerProvider';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
+import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
-import { CommunityProvider } from './components/webview/CommunityProvider';
+import { Community } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
@@ -118,7 +118,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		workspaceState,
 	);
 
-	const codemodListWebviewProvider = new CodemodListPanelProvider(
+	const codemodListWebviewProvider = new CodemodListPanel(
 		context,
 		messageBus,
 		rootPath,
@@ -234,7 +234,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const fileExplorerProvider = new FileExplorerProvider(
+	const fileExplorerProvider = new FileExplorer(
 		context,
 		messageBus,
 		jobManager,
@@ -242,14 +242,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		workspaceState,
 	);
 
-	const campaignManagerProvider = new CampaignManagerProvider(
+	const campaignManagerProvider = new CampaignManager(
 		messageBus,
 		jobManager,
 		caseManager,
 		workspaceState,
 	);
 
-	const community = new CommunityProvider(context);
+	const community = new Community(context);
 
 	const mainViewProvider = new MainViewProvider(
 		context,
