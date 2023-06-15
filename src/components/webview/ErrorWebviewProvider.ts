@@ -36,12 +36,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 						errors: executionErrors,
 					}),
 				);
-
-				if (executionErrors.length !== 0) {
-					this.showView();
-
-					await commands.executeCommand('intuitaErrorViewId.focus');
-				}
 			},
 		);
 
@@ -54,7 +48,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		let prevProps = this.__buildViewProps();
 
-		this.__store.subscribe(() => {
+		this.__store.subscribe(async () => {
 			const nextProps = this.__buildViewProps();
 
 			if (areEqual(prevProps, nextProps)) {
@@ -70,6 +64,12 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 					viewProps: nextProps,
 				},
 			});
+
+			if (prevProps.executionErrors.length !== 0) {
+				this.showView();
+
+				await commands.executeCommand('intuitaErrorViewId.focus');
+			}
 		});
 	}
 
