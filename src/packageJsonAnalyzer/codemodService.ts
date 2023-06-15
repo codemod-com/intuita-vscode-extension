@@ -3,6 +3,8 @@ import { CodemodHash, CodemodElement } from './types';
 import { buildCodemodElementHash } from './utils';
 import { EngineService } from '../components/engineService';
 import { WorkspaceState } from '../persistedState/workspaceState';
+import { Store } from '../data';
+import { actions } from '../data/slice';
 
 export class CodemodService {
 	#rootPath: string | null;
@@ -12,6 +14,7 @@ export class CodemodService {
 		rootPath: string | null,
 		private __engineService: EngineService,
 		private __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.#rootPath = rootPath;
 	}
@@ -58,6 +61,7 @@ export class CodemodService {
 		const path = this.#rootPath ?? '';
 		const publicCodemods = await this.getCodemods();
 		this.__workspaceState.setPublicCodemods(publicCodemods);
+		this.__store.dispatch(actions.upsertCodemods(publicCodemods));
 
 		const discoveredCodemods = new Map<CodemodHash, CodemodElement>();
 		const keys = new Set<CodemodHash>();

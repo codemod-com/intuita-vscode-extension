@@ -20,6 +20,8 @@ import {
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+import { actions } from '../../data/slice';
+import { Store } from '../../data';
 
 type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
@@ -126,7 +128,8 @@ export class CampaignManager {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
-	) {}
+		private readonly __store: Store,
+	) {	}
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
@@ -250,7 +253,9 @@ export class CampaignManager {
 				message.kind === 'webview.campaignManager.setSelectedCaseHash'
 			) {
 				this.__workspaceState.setSelectedCaseHash(message.caseHash);
-
+				this.__store.dispatch(
+					actions.setSelectedCaseHash(message.caseHash),
+				);
 				this.setView();
 			}
 		});

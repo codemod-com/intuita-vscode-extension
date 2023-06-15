@@ -245,7 +245,7 @@
 		"vscode:prepublish": "pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"build": "pnpm install:webview && pnpm build:webview && pnpm install && esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+		"build": "pnpm install:webview && pnpm build:webview && pnpm install && NODE_ENV='production' esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
 		"spellcheck": "pnpm cspell-cli '**/*.{ts,tsx}'",
@@ -259,6 +259,7 @@
 		"@types/glob": "^8.0.0",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "18.11.18",
+		"@types/prettier": "^2.7.3",
 		"@types/semver": "^7.3.13",
 		"@types/vscode": "^1.74.0",
 		"@typescript-eslint/eslint-plugin": "^5.48.1",
@@ -280,6 +281,7 @@
 		"webpack-cli": "^5.0.1"
 	},
 	"dependencies": {
+		"@reduxjs/toolkit": "^1.9.5",
 		"@vscode/extension-telemetry": "^0.7.7",
 		"axios": "^1.2.2",
 		"fp-ts": "^2.15.0",
@@ -289,6 +291,8 @@
 		"monocle-ts": "^2.3.13",
 		"newtype-ts": "^0.3.5",
 		"prettier": "^2.8.8",
+		"redux-logger": "^3.0.6",
+		"redux-persist": "^6.0.0",
 		"semver": "^7.3.8"
 	},
 	"extensionDependencies": [

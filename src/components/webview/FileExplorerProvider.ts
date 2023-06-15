@@ -4,7 +4,6 @@ import {
 	ExtensionContext,
 	workspace,
 	commands,
-	ViewColumn,
 } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import {
@@ -39,8 +38,9 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
-import { DiffWebviewPanel } from './DiffWebviewPanel';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+import { Store } from '../../data';
+import { actions } from '../../data/slice';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
@@ -66,6 +66,7 @@ export class FileExplorer {
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
 	}
@@ -492,28 +493,12 @@ export class FileExplorer {
 			if (rootPath === null) {
 				return;
 			}
-			const panelInstance = DiffWebviewPanel.getInstance(
-				{
-					type: 'intuitaPanel',
-					title: 'Diff',
-					extensionUri: this.__extensionPath,
-					initialData: {},
-					viewColumn: ViewColumn.One,
-					webviewName: 'jobDiffView',
-					preserveFocus: true,
-				},
-				this.__messageBus,
-				this.__jobManager,
-				this.__caseManager,
-				rootPath,
-			);
 
-			await panelInstance.render();
-
-			await panelInstance.openCase(
-				this.__lastSelectedCaseHash as unknown as ElementHash,
-			);
-			panelInstance.focusFile(jobHash);
+			this.__messageBus.publish({
+				kind: MessageKind.focusFile,
+				caseHash: this.__lastSelectedCaseHash,
+				jobHash,
+			});
 		}
 
 		if (message.kind === 'webview.fileExplorer.folderSelected') {
@@ -526,28 +511,14 @@ export class FileExplorer {
 			if (rootPath === null) {
 				return;
 			}
-			const panelInstance = DiffWebviewPanel.getInstance(
-				{
-					type: 'intuitaPanel',
-					title: 'Diff',
-					extensionUri: this.__extensionPath,
-					initialData: {},
-					viewColumn: ViewColumn.One,
-					webviewName: 'jobDiffView',
-					preserveFocus: true,
-				},
-				this.__messageBus,
-				this.__jobManager,
-				this.__caseManager,
-				rootPath,
-			);
+
 			const folderPath = message.id;
 
-			await panelInstance.render();
-			await panelInstance.openCase(
-				this.__lastSelectedCaseHash as unknown as ElementHash,
-			);
-			panelInstance.focusFolder(folderPath);
+			this.__messageBus.publish({
+				kind: MessageKind.focusFolder,
+				caseHash: this.__lastSelectedCaseHash,
+				folderPath,
+			});
 		}
 
 		if (message.kind === 'webview.global.focusView') {
@@ -563,12 +534,20 @@ export class FileExplorer {
 				message.focusedId,
 			);
 
+			this.__store.dispatch(
+				actions.setFocusedFileExplorerNodeId(message.focusedId),
+			);
+
 			if (message.focusedId) {
 				this.__lastFocusedNodeId = message.focusedId;
 			}
 
 			this.__workspaceState.setOpenedFileExplorerNodeIds(
 				new Set(message.openedIds),
+			);
+
+			this.__store.dispatch(
+				actions.setOpenedFileExplorerNodeIds(message.openedIds),
 			);
 		}
 

@@ -32,6 +32,8 @@ import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
 import { WorkspaceState } from '../../persistedState/workspaceState';
+import { actions } from '../../data/slice';
+import { Store } from '../../data';
 
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
@@ -74,6 +76,7 @@ export class CodemodListPanel {
 		public readonly __rootPath: string | null,
 		public readonly __codemodService: CodemodService,
 		private readonly __workspaceState: WorkspaceState,
+		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
 
@@ -94,7 +97,7 @@ export class CodemodListPanel {
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
 			this.__workspaceState.setPublicCodemodsExpanded(true);
-
+			this.__store.dispatch(actions.setPublicCodemodsExpanded(true));
 			this.setView();
 
 			this.__postMessage({
@@ -208,6 +211,10 @@ export class CodemodListPanel {
 				T.right(newPath),
 			);
 
+			this.__store.dispatch(
+				actions.setExecutionPath({ codemodHash, path: newPath }),
+			);
+
 			if (newPath !== oldExecutionPath && !fromVSCodeCommand) {
 				window.showInformationMessage(
 					'Successfully updated the execution path.',
@@ -230,6 +237,13 @@ export class CodemodListPanel {
 					codemodHash,
 					T.right(oldExecutionPath),
 				);
+
+				this.__store.dispatch(
+					actions.setExecutionPath({
+						codemodHash,
+						path: oldExecutionPath,
+					}),
+				);
 			} else {
 				this.__workspaceState.setExecutionPath(
 					codemodHash,
@@ -240,6 +254,13 @@ export class CodemodListPanel {
 						},
 						oldExecutionPath,
 					),
+				);
+
+				this.__store.dispatch(
+					actions.setExecutionPath({
+						codemodHash,
+						path: oldExecutionPath,
+					}),
 				);
 			}
 		}
@@ -295,6 +316,7 @@ export class CodemodListPanel {
 
 			const { hash } = codemod;
 			this.__workspaceState.setRecentCodemodHashes(hash);
+			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {
 				return;
@@ -339,14 +361,28 @@ export class CodemodListPanel {
 				message.focusedId,
 			);
 
+			this.__store.dispatch(
+				actions.setFocusedCodemodHashDigest(message.focusedId),
+			);
+
 			this.__workspaceState.setOpenedCodemodHashDigests(
 				new Set(message.openedIds),
+			);
+
+			this.__store.dispatch(
+				actions.setOpenedCodemodHashDigests(message.openedIds),
 			);
 		}
 
 		if (message.kind === 'webview.codemods.setPublicCodemodsExpanded') {
 			this.__workspaceState.setPublicCodemodsExpanded(
 				message.publicCodemodsExpanded,
+			);
+
+			this.__store.dispatch(
+				actions.setPublicCodemodsExpanded(
+					message.publicCodemodsExpanded,
+				),
 			);
 
 			this.setView();

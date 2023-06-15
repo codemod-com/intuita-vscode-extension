@@ -29,34 +29,12 @@ Codemod: ${codemodName}
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	private __selectedCaseHash: ElementHash | null = null;
 
-	static instance: DiffWebviewPanel | null = null;
-
-	static getInstance(
-		options: Options,
-		messageBus: MessageBus,
-		jobManager: JobManager,
-		caseManager: CaseManager,
-		rootPath: string,
-	) {
-		if (!DiffWebviewPanel.instance) {
-			DiffWebviewPanel.instance = new DiffWebviewPanel(
-				options,
-				messageBus,
-				jobManager,
-				caseManager,
-				rootPath,
-			);
-		}
-
-		return DiffWebviewPanel.instance;
-	}
-
-	private constructor(
+	constructor(
 		options: Options,
 		messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
-		public readonly __rootPath: string,
+		public readonly __rootPath: string | null,
 	) {
 		super(options, messageBus);
 	}
@@ -119,34 +97,13 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	}
 
-	public async openCase(caseHash: ElementHash) {
+	public async openCase(caseHash: ElementHash): Promise<void> {
 		this.__selectedCaseHash = caseHash;
-		const viewData = await this.getViewDataForCase(this.__selectedCaseHash);
-
-		if (viewData === null) {
-			return;
-		}
-
-		const { title, data, stagedJobs } = viewData;
-
-		const view: View = {
-			viewId: 'jobDiffView' as const,
-			viewProps: {
-				loading: false,
-				diffId: this.__selectedCaseHash as string,
-				title,
-				data,
-				stagedJobs,
-			},
-		};
-
-		this.setTitle(title);
-		this.setView(view);
+		await this.__refreshView();
 	}
 
 	public override dispose() {
 		super.dispose();
-		DiffWebviewPanel.instance = null;
 		this.__selectedCaseHash = null;
 	}
 
@@ -245,18 +202,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		};
 	}
 
-	public async getViewDataForJobsArray(
-		jobHashes: JobHash[],
-	): Promise<Readonly<JobDiffViewProps>[]> {
-		if (jobHashes.length === 0) {
-			return [];
-		}
-		const viewDataArray = await Promise.all(
-			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
-		);
-		return viewDataArray.filter(isNeitherNullNorUndefined);
-	}
-
 	public setView(data: View) {
 		this._panel?.webview.postMessage({
 			kind: 'webview.global.setView',
@@ -288,6 +233,8 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (this.__selectedCaseHash === null) {
 			return;
 		}
+
+		await this.createOrShowPanel();
 
 		const viewData = await this.getViewDataForCase(this.__selectedCaseHash);
 
@@ -328,5 +275,18 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this._addHook(MessageKind.clearState, () => {
 			this.dispose();
 		});
+
+		this._addHook(MessageKind.focusFile, async ({ caseHash, jobHash }) => {
+			await this.openCase(caseHash as unknown as ElementHash);
+			await this.focusFile(jobHash);
+		});
+
+		this._addHook(
+			MessageKind.focusFolder,
+			async ({ caseHash, folderPath }) => {
+				await this.openCase(caseHash as unknown as ElementHash);
+				await this.focusFolder(folderPath);
+			},
+		);
 	}
 }
