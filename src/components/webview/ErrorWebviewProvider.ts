@@ -10,6 +10,7 @@ import { WebviewResolver } from './WebviewResolver';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
 import { CaseHash } from '../../cases/types';
+import areEqual from 'fast-deep-equal';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -33,7 +34,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 						errors: executionErrors,
 					}),
 				);
-				this.setView();
 
 				if (executionErrors.length !== 0) {
 					this.showView();
@@ -45,7 +45,24 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		messageBus.subscribe(MessageKind.clearState, () => {
 			this.__store.dispatch(actions.setSelectedCaseHash(null));
-			this.setView();
+		});
+
+		let prevProps = this.__buildViewProps();
+
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildViewProps();
+
+			if (!areEqual(prevProps, nextProps)) {
+				prevProps = nextProps;
+
+				this.__postMessage({
+					kind: 'webview.global.setView',
+					value: {
+						viewId: 'errors',
+						viewProps: nextProps,
+					},
+				});
+			}
 		});
 	}
 
@@ -75,18 +92,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__webviewView?.show(true);
-	}
-
-	public setView() {
-		const viewProps = this.__buildViewProps();
-
-		this.__postMessage({
-			kind: 'webview.global.setView',
-			value: {
-				viewId: 'errors',
-				viewProps,
-			},
-		});
 	}
 
 	private __buildViewProps(): ViewProps {
