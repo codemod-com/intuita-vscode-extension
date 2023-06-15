@@ -129,7 +129,7 @@ export class CampaignManager {
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
 		private readonly __store: Store,
-	) {	}
+	) {}
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
