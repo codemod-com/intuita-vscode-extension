@@ -25,7 +25,7 @@ type CodemodRunsState = Readonly<{
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
 	focusedFileExplorerNodeId: string | null;
-	openedFileExplorerNodeIds: ReadonlyArray<string> | null;
+	openedFileExplorerNodeIds: ReadonlyArray<string>;
 }>;
 
 type CommunityState = Readonly<{
@@ -202,7 +202,7 @@ const rootSlice = createSlice({
 			state.changeExplorerView.visible = true;
 
 			if (action.payload === null) {
-				state.changeExplorerView.openedFileExplorerNodeIds = null;
+				state.changeExplorerView.openedFileExplorerNodeIds = [];
 				return;
 			}
 
