@@ -119,48 +119,6 @@ export class WorkspaceState {
 		this.__memento.update(hash, JSON.stringify(executionPath));
 	}
 
-	public getOpenedCodemodHashDigests(): ReadonlySet<CodemodHash> {
-		const hash = buildWorkspaceStateKeyHash('openedCodemodHashDigests');
-
-		const value = ensureIsString(this.__memento.get(hash));
-
-		if (value === null) {
-			return new Set();
-		}
-
-		const either = pipe(
-			E.tryCatch(
-				() => JSON.parse(value),
-				(e) => e,
-			),
-			E.flatMap((json) => t.readonlyArray(t.string).decode(json)),
-			E.map(
-				(hashDigests) =>
-					new Set(
-						hashDigests.map(
-							(hashDigest) => hashDigest as CodemodHash,
-						),
-					),
-			),
-		);
-
-		if (E.isLeft(either)) {
-			console.error(either.left);
-
-			return new Set();
-		}
-
-		return either.right;
-	}
-
-	public setOpenedCodemodHashDigests(set: ReadonlySet<CodemodHash>): void {
-		const hashDigest = buildWorkspaceStateKeyHash(
-			'openedCodemodHashDigests',
-		);
-
-		this.__memento.update(hashDigest, JSON.stringify(Array.from(set)));
-	}
-
 	public getOpenedFileExplorerNodeIds(): ReadonlySet<TreeNodeId> {
 		const hash = buildWorkspaceStateKeyHash('openedFileExplorerNodeIds');
 

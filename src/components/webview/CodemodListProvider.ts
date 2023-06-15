@@ -354,10 +354,6 @@ export class CodemodListPanel {
 				actions.setFocusedCodemodHashDigest(message.focusedId),
 			);
 
-			this.__workspaceState.setOpenedCodemodHashDigests(
-				new Set(message.openedIds),
-			);
-
 			this.__store.dispatch(
 				actions.setOpenedCodemodHashDigests(message.openedIds),
 			);
