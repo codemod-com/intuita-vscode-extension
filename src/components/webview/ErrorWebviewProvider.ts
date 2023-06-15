@@ -47,6 +47,8 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			this.__store.dispatch(actions.setSelectedCaseHash(null));
 		});
 
+		// store subscription
+
 		let prevProps = this.__buildViewProps();
 
 		this.__store.subscribe(() => {
@@ -57,8 +59,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			}
 
 			prevProps = nextProps;
-
-			console.log(nextProps);
 
 			this.__postMessage({
 				kind: 'webview.global.setView',
@@ -74,13 +74,13 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView = webviewView;
 
 		const resolve = () => {
-			const errorsViewProps = this.__buildViewProps();
+			const errorProps = this.__buildViewProps();
 
 			this.__webviewResolver.resolveWebview(
 				webviewView.webview,
 				'errors',
 				JSON.stringify({
-					errorsViewProps,
+					errorProps,
 				}),
 			);
 		};
