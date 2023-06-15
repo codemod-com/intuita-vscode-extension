@@ -124,6 +124,18 @@ export class WorkspaceState {
 		}
 	}
 
+	public setExecutionPath(
+		codemodHash: CodemodHash,
+		executionPath: ExecutionPath,
+	): void {
+		const hash = buildWorkspaceStateKeyHash({
+			kind: 'executionPath',
+			codemodHash,
+		});
+
+		this.__memento.update(hash, JSON.stringify(executionPath));
+	}
+
 	// returns the most recently executed 3 codemods
 	public getRecentCodemodHashes(): Readonly<CodemodHash[]> {
 		const hash = buildWorkspaceStateKeyHash('recentCodemodHashes');

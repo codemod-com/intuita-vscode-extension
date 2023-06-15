@@ -206,6 +206,11 @@ export class CodemodListPanel {
 		try {
 			await workspace.fs.stat(Uri.file(newPath));
 
+			this.__workspaceState.setExecutionPath(
+				codemodHash,
+				T.right(newPath),
+			);
+
 			this.__store.dispatch(
 				actions.setExecutionPath({ codemodHash, path: newPath }),
 			);
@@ -228,6 +233,11 @@ export class CodemodListPanel {
 			}
 
 			if (revertToPrevExecutionIfInvalid) {
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.right(oldExecutionPath),
+				);
+
 				this.__store.dispatch(
 					actions.setExecutionPath({
 						codemodHash,
@@ -235,6 +245,17 @@ export class CodemodListPanel {
 					}),
 				);
 			} else {
+				this.__workspaceState.setExecutionPath(
+					codemodHash,
+					T.both<SyntheticError, string>(
+						{
+							kind: 'syntheticError',
+							message: `${newPath} does not exist.`,
+						},
+						oldExecutionPath,
+					),
+				);
+
 				this.__store.dispatch(
 					actions.setExecutionPath({
 						codemodHash,
