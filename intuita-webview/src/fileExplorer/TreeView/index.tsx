@@ -203,14 +203,13 @@ const TreeView = ({
 	);
 	const debouncedOnFileOrFolderSelectedRef = useRef(
 		debounce((id: TreeNodeId) => {
-			console.log('HELLO');
 			vscode.postMessage({
 				kind: fileNodeIds.has(id)
 					? 'webview.fileExplorer.fileSelected'
 					: 'webview.fileExplorer.folderSelected',
 				id,
 			});
-		}, 300),
+		}, 200),
 	);
 
 	// @TODO  @UX Need to show info message to users.
