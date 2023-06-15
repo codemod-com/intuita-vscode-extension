@@ -95,7 +95,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
-		workspaceState,
 		store,
 	);
 
@@ -228,7 +227,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		workspaceState,
 		store,
 	);
 
@@ -258,7 +256,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		store,
-		workspaceState,
 	);
 
 	context.subscriptions.push(

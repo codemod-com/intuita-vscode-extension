@@ -19,7 +19,6 @@ import {
 	compareCaseElements,
 } from '../../elements/buildCaseElement';
 import { CaseManager } from '../../cases/caseManager';
-import { WorkspaceState } from '../../persistedState/workspaceState';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
 import areEqual from 'fast-deep-equal';
@@ -128,7 +127,6 @@ export class CampaignManager {
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
-		private readonly __workspaceState: WorkspaceState,
 		private readonly __store: Store,
 	) {}
 
@@ -260,7 +258,6 @@ export class CampaignManager {
 			if (
 				message.kind === 'webview.campaignManager.setSelectedCaseHash'
 			) {
-				this.__workspaceState.setSelectedCaseHash(message.caseHash);
 				this.__store.dispatch(
 					actions.setSelectedCaseHash(message.caseHash),
 				);
