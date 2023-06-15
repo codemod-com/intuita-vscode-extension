@@ -168,10 +168,6 @@ export class CodemodListPanel {
 		});
 	}
 
-	public getRecentCodemodHashes = (): Readonly<CodemodHash[]> => {
-		return this.__workspaceState.getRecentCodemodHashes();
-	};
-
 	public updateExecutionPath = async ({
 		newPath,
 		codemodHash,
@@ -311,7 +307,7 @@ export class CodemodListPanel {
 			}
 
 			const { hash } = codemod;
-			this.__workspaceState.setRecentCodemodHashes(hash);
+
 			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
 			const executionPath = this.__workspaceState.getExecutionPath(hash);
 			if (T.isLeft(executionPath)) {

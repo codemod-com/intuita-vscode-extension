@@ -563,7 +563,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					// order: least recent to most recent
 					const top3RecentCodemodHashes =
-						codemodListWebviewProvider.getRecentCodemodHashes();
+						store.getState().lastCodemodHashDigests;
 
 					const top3RecentCodemods = codemodList.filter((codemod) =>
 						top3RecentCodemodHashes.includes(
