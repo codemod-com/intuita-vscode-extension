@@ -58,6 +58,8 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 			prevProps = nextProps;
 
+			console.log(nextProps);
+
 			this.__postMessage({
 				kind: 'webview.global.setView',
 				value: {
@@ -72,13 +74,13 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView = webviewView;
 
 		const resolve = () => {
-			const viewProps = this.__buildViewProps();
+			const errorsViewProps = this.__buildViewProps();
 
 			this.__webviewResolver.resolveWebview(
 				webviewView.webview,
 				'errors',
 				JSON.stringify({
-					viewProps,
+					errorsViewProps,
 				}),
 			);
 		};
