@@ -1,12 +1,5 @@
 import ReactTreeView from 'react-treeview';
-import {
-	ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useReducer,
-	useRef,
-} from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useReducer } from 'react';
 import Tree from '../Tree';
 import {
 	FileTreeNode,
@@ -169,6 +162,18 @@ const initializer = ({
 	};
 };
 
+const debouncedOnFileOrFolderSelected = debounce(
+	(id: TreeNodeId, fileNodeIds: Set<TreeNodeId>) => {
+		vscode.postMessage({
+			kind: fileNodeIds.has(id)
+				? 'webview.fileExplorer.fileSelected'
+				: 'webview.fileExplorer.folderSelected',
+			id,
+		});
+	},
+	200,
+);
+
 type Props = {
 	node: TreeNode;
 	nodeIds: TreeNodeId[];
@@ -200,16 +205,6 @@ const TreeView = ({
 			openedIds,
 		},
 		initializer,
-	);
-	const debouncedOnFileOrFolderSelectedRef = useRef(
-		debounce((id: TreeNodeId) => {
-			vscode.postMessage({
-				kind: fileNodeIds.has(id)
-					? 'webview.fileExplorer.fileSelected'
-					: 'webview.fileExplorer.folderSelected',
-				id,
-			});
-		}, 200),
 	);
 
 	// @TODO  @UX Need to show info message to users.
@@ -365,7 +360,7 @@ const TreeView = ({
 			return;
 		}
 
-		debouncedOnFileOrFolderSelectedRef.current(state.focusedId);
+		debouncedOnFileOrFolderSelected(state.focusedId, fileNodeIds);
 	}, [fileNodeIds, state.focusedId]);
 
 	if (fileNodes === null || fileNodes.length === 0) {
