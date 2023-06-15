@@ -156,9 +156,8 @@ export class CodemodListPanel {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds: Array.from(
-						this.__workspaceState.getOpenedCodemodHashDigests(),
-					),
+					openedIds: state.codemodDiscoveryView
+						.openedCodemodHashDigests as ReadonlyArray<CodemodHash>,
 					focusedId: state.codemodDiscoveryView
 						.focusedCodemodHashDigest as CodemodHash | null,
 					nodesByDepth: this.__treeNodesByDepth,

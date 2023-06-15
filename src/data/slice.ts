@@ -11,7 +11,7 @@ import { PersistedCase, PersistedJob } from '../persistedState/codecs';
 const SLICE_KEY = 'root';
 
 type CodemodDiscoveryState = Readonly<{
-	openedCodemodHashDigests: ReadonlyArray<string> | null;
+	openedCodemodHashDigests: ReadonlyArray<string>;
 	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
@@ -72,7 +72,7 @@ const getInitialState = (): State => {
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			openedCodemodHashDigests: null,
+			openedCodemodHashDigests: [],
 			visible: true,
 		},
 		changeExplorerView: {
@@ -155,19 +155,11 @@ const rootSlice = createSlice({
 		},
 		setOpenedCodemodHashDigests(
 			state,
-			action: PayloadAction<ReadonlyArray<string> | null>,
+			action: PayloadAction<ReadonlyArray<string>>,
 		) {
 			state.codemodDiscoveryView.visible = true;
-
-			if (action.payload === null) {
-				state.codemodDiscoveryView.openedCodemodHashDigests =
-					action.payload;
-				return;
-			}
-
-			state.codemodDiscoveryView.openedCodemodHashDigests = [
-				...action.payload,
-			];
+			state.codemodDiscoveryView.openedCodemodHashDigests =
+				action.payload.slice();
 		},
 		/**
 		 * Errors
