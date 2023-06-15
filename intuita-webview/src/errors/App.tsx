@@ -102,8 +102,6 @@ export const App = () => {
 		};
 	}, []);
 
-	console.log(viewProps);
-
 	const { caseHash, executionErrors } = viewProps;
 
 	if (caseHash === null) {
