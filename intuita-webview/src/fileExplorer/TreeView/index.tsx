@@ -171,7 +171,7 @@ const debouncedOnFileOrFolderSelected = debounce(
 			id,
 		});
 	},
-	200,
+	250,
 );
 
 type Props = {
