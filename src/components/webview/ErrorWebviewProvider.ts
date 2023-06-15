@@ -11,6 +11,7 @@ import { Store } from '../../data';
 import { actions } from '../../data/slice';
 import { CaseHash } from '../../cases/types';
 import areEqual from 'fast-deep-equal';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -22,6 +23,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		private readonly __store: Store,
+		workspaceState: WorkspaceState,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
@@ -44,6 +46,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		);
 
 		messageBus.subscribe(MessageKind.clearState, () => {
+			workspaceState.setSelectedCaseHash(null);
 			this.__store.dispatch(actions.setSelectedCaseHash(null));
 		});
 
