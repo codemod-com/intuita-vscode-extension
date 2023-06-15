@@ -386,8 +386,11 @@ export class CodemodListPanel {
 			const { label, kind, description, hash, name } = codemodElement;
 			const state = this.__store.getState().codemodDiscoveryView;
 
-			const persistedExecutionPath = state.executionPaths[hash] ?? this.__rootPath;
-			const executionPath = persistedExecutionPath ? T.right(persistedExecutionPath) : undefined;
+			const persistedExecutionPath =
+				state.executionPaths[hash] ?? this.__rootPath;
+			const executionPath = persistedExecutionPath
+				? T.right(persistedExecutionPath)
+				: undefined;
 
 			const node: CodemodTreeNode = {
 				kind,
