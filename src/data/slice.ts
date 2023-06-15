@@ -7,6 +7,7 @@ import {
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
 import { PersistedCase, PersistedJob } from '../persistedState/codecs';
+import { CollapsibleWebviews } from '../components/webview/webviewEvents';
 
 const SLICE_KEY = 'root';
 
@@ -24,6 +25,7 @@ type CodemodRunsState = Readonly<{
 
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
+
 	focusedFileExplorerNodeId: string | null;
 	openedFileExplorerNodeIds: ReadonlyArray<string>;
 }>;
@@ -90,6 +92,16 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
+		setVisible(
+			state,
+			action: PayloadAction<{
+				visible: boolean;
+				viewName: CollapsibleWebviews;
+			}>,
+		) {
+			const { visible, viewName } = action.payload;
+			state[viewName].visible = visible;
+		},
 		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
@@ -128,9 +140,6 @@ const rootSlice = createSlice({
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
-		},
-		setCodemodRunsVisible(state, action: PayloadAction<boolean>) {
-			state.codemodRunsView.visible = action.payload;
 		},
 		/**
 		 * Codemod list

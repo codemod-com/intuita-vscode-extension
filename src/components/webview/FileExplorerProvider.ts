@@ -292,13 +292,6 @@ export class FileExplorer {
 		return;
 	};
 
-	private __addHook<T extends MessageKind>(
-		kind: T,
-		handler: (message: Message & { kind: T }) => void,
-	) {
-		this.__messageBus.subscribe<T>(kind, handler);
-	}
-
 	private __buildJobMap(
 		casesWithJobHashes: Iterable<CaseWithJobHashes>,
 	): ReadonlyMap<JobHash, Job> {
@@ -425,6 +418,13 @@ export class FileExplorer {
 		this.__treeMap.clear();
 		this.__fileNodes.clear();
 		this.clearView();
+	}
+
+	private __addHook<T extends MessageKind>(
+		kind: T,
+		handler: (message: Message & { kind: T }) => void,
+	) {
+		this.__messageBus.subscribe<T>(kind, handler);
 	}
 
 	private __attachExtensionEventListeners() {
