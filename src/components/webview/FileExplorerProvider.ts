@@ -157,7 +157,6 @@ export class FileExplorer {
 			return null;
 		}
 
-		console.log(caseElement, this.__treeMap, this.__fileNodes, 'tree test');
 		const tree = this.__getTreeByDirectory(caseElement);
 
 		if (!tree) {
@@ -245,7 +244,6 @@ export class FileExplorer {
 				}
 
 				path = (path + `/${dir}`) as TreeNodeId;
-				console.log(path, this.__treeMap.has(path), 'test123');
 				if (!this.__treeMap.has(path)) {
 					const newTreeNode =
 						dir === fileName
