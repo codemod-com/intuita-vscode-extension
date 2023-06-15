@@ -74,18 +74,14 @@ export class MainViewProvider implements WebviewViewProvider {
 
 	private __attachExtensionEventListeners() {
 		this.__addHook(MessageKind.executeCodemodSet, () => {
-			setTimeout(() => {
-				this.__setCollapsed({
-					collapsed: false,
-					viewName: 'codemodRunsView',
-				});
-				this.__setCollapsed({
-					collapsed: false,
-					viewName: 'changeExplorerView',
-				});
-				// arbitrary number; it takes a few seconds until
-				// components in these 2 panels get rendered after dry-run is clicked
-			}, 4500);
+			this.__setCollapsed({
+				collapsed: false,
+				viewName: 'codemodRunsView',
+			});
+			this.__setCollapsed({
+				collapsed: false,
+				viewName: 'changeExplorerView',
+			});
 		});
 	}
 
