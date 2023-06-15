@@ -1,5 +1,12 @@
 import ReactTreeView from 'react-treeview';
-import { ReactNode, useCallback, useEffect, useMemo, useReducer } from 'react';
+import {
+	ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+} from 'react';
 import Tree from '../Tree';
 import {
 	FileTreeNode,
@@ -16,6 +23,7 @@ import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { CaseHash } from '../../../../src/cases/types';
+import debounce from '../../shared/utilities/debounce';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -193,6 +201,17 @@ const TreeView = ({
 		},
 		initializer,
 	);
+	const debouncedOnFileOrFolderSelectedRef = useRef(
+		debounce((id: TreeNodeId) => {
+			console.log('HELLO');
+			vscode.postMessage({
+				kind: fileNodeIds.has(id)
+					? 'webview.fileExplorer.fileSelected'
+					: 'webview.fileExplorer.folderSelected',
+				id,
+			});
+		}, 300),
+	);
 
 	// @TODO  @UX Need to show info message to users.
 	// I typed "App" search term, and saw empty results and i had no idea that i need to type more then 3 chars
@@ -347,17 +366,7 @@ const TreeView = ({
 			return;
 		}
 
-		if (fileNodeIds.has(state.focusedId)) {
-			vscode.postMessage({
-				kind: 'webview.fileExplorer.fileSelected',
-				id: state.focusedId,
-			});
-		} else {
-			vscode.postMessage({
-				kind: 'webview.fileExplorer.folderSelected',
-				id: state.focusedId,
-			});
-		}
+		debouncedOnFileOrFolderSelectedRef.current(state.focusedId);
 	}, [fileNodeIds, state.focusedId]);
 
 	if (fileNodes === null || fileNodes.length === 0) {
