@@ -121,10 +121,21 @@ export type ExternalLink = {
 	url: string;
 };
 
+export type CollapsibleWebviews =
+	| 'codemodRunsView'
+	| 'codemodDiscoveryView'
+	| 'changeExplorerView'
+	| 'communityView';
+
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setUserAccount';
 			value: string | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.main.setCollapsed';
+			collapsed: boolean;
+			viewName: CollapsibleWebviews;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setView';

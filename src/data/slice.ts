@@ -7,6 +7,7 @@ import {
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
 import { PersistedCase, PersistedJob } from '../persistedState/codecs';
+import { CollapsibleWebviews } from '../components/webview/webviewEvents';
 
 const SLICE_KEY = 'root';
 
@@ -15,25 +16,22 @@ type CodemodDiscoveryState = Readonly<{
 	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
-	collapsed: boolean;
 }>;
 
 type CodemodRunsState = Readonly<{
 	selectedCaseHash: string | null;
 	visible: boolean;
-	collapsed: boolean;
 }>;
 
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
-	collapsed: boolean;
+
 	focusedFileExplorerNodeId: string | null;
 	openedFileExplorerNodeIds: ReadonlyArray<string>;
 }>;
 
 type CommunityState = Readonly<{
 	visible: boolean;
-	collapsed: boolean;
 }>;
 
 type State = {
@@ -72,24 +70,20 @@ const getInitialState = (): State => {
 		codemodRunsView: {
 			selectedCaseHash: null,
 			visible: true,
-			collapsed: false,
 		},
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			openedCodemodHashDigests: null,
 			visible: true,
-			collapsed: false,
 		},
 		changeExplorerView: {
 			focusedFileExplorerNodeId: null,
 			openedFileExplorerNodeIds: [],
 			visible: false,
-			collapsed: false,
 		},
 		communityView: {
 			visible: true,
-			collapsed: false,
 		},
 	};
 };
@@ -102,29 +96,11 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<{
 				visible: boolean;
-				viewName:
-					| 'codemodRunsView'
-					| 'codemodDiscoveryView'
-					| 'changeExplorerView'
-					| 'communityView';
+				viewName: CollapsibleWebviews;
 			}>,
 		) {
 			const { visible, viewName } = action.payload;
 			state[viewName].visible = visible;
-		},
-		setCollapsed(
-			state,
-			action: PayloadAction<{
-				collapsed: boolean;
-				viewName:
-					| 'codemodRunsView'
-					| 'codemodDiscoveryView'
-					| 'changeExplorerView'
-					| 'communityView';
-			}>,
-		) {
-			const { collapsed, viewName } = action.payload;
-			state[viewName].collapsed = collapsed;
 		},
 		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.setAll(state.case, action.payload);
