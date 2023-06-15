@@ -147,6 +147,8 @@ export class CodemodListPanel {
 	}
 
 	public setView() {
+		const state = this.__store.getState();
+
 		this.__postMessage({
 			kind: 'webview.codemodList.setView',
 			value: {
@@ -157,8 +159,8 @@ export class CodemodListPanel {
 					openedIds: Array.from(
 						this.__workspaceState.getOpenedCodemodHashDigests(),
 					),
-					focusedId:
-						this.__workspaceState.getFocusedCodemodHashDigest(),
+					focusedId: state.codemodDiscoveryView
+						.focusedCodemodHashDigest as CodemodHash | null,
 					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
@@ -349,10 +351,6 @@ export class CodemodListPanel {
 		}
 
 		if (message.kind === 'webview.codemods.setState') {
-			this.__workspaceState.setFocusedCodemodHashDigest(
-				message.focusedId,
-			);
-
 			this.__store.dispatch(
 				actions.setFocusedCodemodHashDigest(message.focusedId),
 			);

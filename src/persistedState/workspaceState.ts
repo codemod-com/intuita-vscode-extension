@@ -215,24 +215,6 @@ export class WorkspaceState {
 		this.__memento.update(hashDigest, id);
 	}
 
-	public getFocusedCodemodHashDigest(): CodemodHash | null {
-		const hashDigest = buildWorkspaceStateKeyHash(
-			'focusedCodemodHashDigest',
-		);
-
-		return ensureIsString(
-			this.__memento.get(hashDigest),
-		) as CodemodHash | null;
-	}
-
-	public setFocusedCodemodHashDigest(codemodHash: CodemodHash | null): void {
-		const hashDigest = buildWorkspaceStateKeyHash(
-			'focusedCodemodHashDigest',
-		);
-
-		this.__memento.update(hashDigest, codemodHash);
-	}
-
 	public getSelectedCaseHash(): CaseHash | null {
 		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
 
