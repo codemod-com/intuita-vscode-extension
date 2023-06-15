@@ -261,7 +261,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const errorWebviewProvider = new ErrorWebviewProvider(
 		context,
 		messageBus,
-		workspaceState,
 		store,
 	);
 

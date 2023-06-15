@@ -4,12 +4,14 @@ import {
 	WebviewViewProvider,
 	commands,
 } from 'vscode';
-import { WorkspaceState } from '../../persistedState/workspaceState';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
+import { CaseHash } from '../../cases/types';
+import areEqual from 'fast-deep-equal';
+import { WorkspaceState } from '../../persistedState/workspaceState';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -20,22 +22,20 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	public constructor(
 		context: ExtensionContext,
 		messageBus: MessageBus,
-		private readonly __workspaceState: WorkspaceState,
-		store: Store,
+		private readonly __store: Store,
+		workspaceState: WorkspaceState,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
 		messageBus.subscribe(
 			MessageKind.codemodSetExecuted,
 			async ({ case: kase, executionErrors }) => {
-				__workspaceState.setExecutionErrors(kase.hash, executionErrors);
-				store.dispatch(
+				this.__store.dispatch(
 					actions.setExecutionErrors({
 						caseHash: kase.hash,
 						errors: executionErrors,
 					}),
 				);
-				this.setView();
 
 				if (executionErrors.length !== 0) {
 					this.showView();
@@ -46,9 +46,30 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		);
 
 		messageBus.subscribe(MessageKind.clearState, () => {
-			__workspaceState.setSelectedCaseHash(null);
-			store.dispatch(actions.setSelectedCaseHash(null));
-			this.setView();
+			workspaceState.setSelectedCaseHash(null);
+			this.__store.dispatch(actions.setSelectedCaseHash(null));
+		});
+
+		// store subscription
+
+		let prevProps = this.__buildViewProps();
+
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildViewProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.global.setView',
+				value: {
+					viewId: 'errors',
+					viewProps: nextProps,
+				},
+			});
 		});
 	}
 
@@ -56,13 +77,13 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView = webviewView;
 
 		const resolve = () => {
-			const viewProps = this.__buildViewProps();
+			const errorProps = this.__buildViewProps();
 
 			this.__webviewResolver.resolveWebview(
 				webviewView.webview,
 				'errors',
 				JSON.stringify({
-					viewProps,
+					errorProps,
 				}),
 			);
 		};
@@ -80,25 +101,14 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView?.show(true);
 	}
 
-	public setView() {
-		const viewProps = this.__buildViewProps();
-
-		this.__postMessage({
-			kind: 'webview.global.setView',
-			value: {
-				viewId: 'errors',
-				viewProps,
-			},
-		});
-	}
-
 	private __buildViewProps(): ViewProps {
-		const caseHash = this.__workspaceState.getSelectedCaseHash();
+		const state = this.__store.getState();
+
+		const caseHash = state.codemodRunsView
+			.selectedCaseHash as CaseHash | null;
 
 		const executionErrors =
-			caseHash !== null
-				? this.__workspaceState.getExecutionErrors(caseHash)
-				: [];
+			caseHash !== null ? state.executionErrors[caseHash] ?? [] : [];
 
 		return {
 			caseHash,

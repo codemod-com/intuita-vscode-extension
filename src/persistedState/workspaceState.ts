@@ -2,11 +2,7 @@ import * as t from 'io-ts';
 import type { Memento } from 'vscode';
 import type { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildHash } from '../utilities';
-import {
-	ExecutionError,
-	executionErrorCodec,
-	SyntheticError,
-} from '../errors/types';
+import { SyntheticError } from '../errors/types';
 import * as T from 'fp-ts/These';
 import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
@@ -26,16 +22,11 @@ type WorkspaceStateKeyEnvelope = Readonly<
 	| 'focusedCodemodHashDigest'
 	| 'openedFileExplorerNodeIds'
 	| 'focusedFileExplorerNodeId'
-	| 'publicCodemodsExpanded'
 	| 'selectedCaseHash'
 	| 'publicCodemods'
 	| {
 			kind: 'executionPath';
 			codemodHash: string;
-	  }
-	| {
-			kind: 'executionErrors';
-			caseHash: CaseHash;
 	  }
 >;
 
@@ -49,12 +40,6 @@ const buildWorkspaceStateKeyHash = (
 	if (envelope.kind === 'executionPath') {
 		return buildHash(
 			[envelope.kind, envelope.codemodHash].join(','),
-		) as WorkspaceStateKeyHash;
-	}
-
-	if (envelope.kind === 'executionErrors') {
-		return buildHash(
-			[envelope.kind, envelope.caseHash].join(','),
 		) as WorkspaceStateKeyHash;
 	}
 
@@ -312,64 +297,6 @@ export class WorkspaceState {
 		);
 
 		this.__memento.update(hashDigest, codemodHash);
-	}
-
-	public getPublicCodemodsExpanded(): boolean {
-		const hashDigest = buildWorkspaceStateKeyHash('publicCodemodsExpanded');
-
-		const value = ensureIsString(this.__memento.get(hashDigest));
-
-		return value !== null ? JSON.parse(value) : true;
-	}
-
-	public setPublicCodemodsExpanded(expanded: boolean): void {
-		const hashDigest = buildWorkspaceStateKeyHash('publicCodemodsExpanded');
-
-		this.__memento.update(hashDigest, JSON.stringify(expanded));
-	}
-
-	public getExecutionErrors(
-		caseHash: CaseHash,
-	): ReadonlyArray<ExecutionError> {
-		const hashDigest = buildWorkspaceStateKeyHash({
-			kind: 'executionErrors',
-			caseHash,
-		});
-
-		const value = ensureIsString(this.__memento.get(hashDigest));
-
-		if (value === null) {
-			return [];
-		}
-
-		const validation = pipe(
-			E.tryCatch(
-				() => JSON.parse(value),
-				(e) => e,
-			),
-			E.flatMap((json) =>
-				t.readonlyArray(executionErrorCodec).decode(json),
-			),
-		);
-
-		if (E.isLeft(validation)) {
-			console.error(validation.left);
-			return [];
-		}
-
-		return validation.right;
-	}
-
-	public setExecutionErrors(
-		caseHash: CaseHash,
-		executionErrors: ReadonlyArray<ExecutionError>,
-	): void {
-		const hashDigest = buildWorkspaceStateKeyHash({
-			kind: 'executionErrors',
-			caseHash,
-		});
-
-		this.__memento.update(hashDigest, JSON.stringify(executionErrors));
 	}
 
 	public getSelectedCaseHash(): CaseHash | null {

@@ -292,10 +292,6 @@ export type WebviewResponse =
 			focusedId: CodemodHash | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemods.setPublicCodemodsExpanded';
-			publicCodemodsExpanded: boolean;
-	  }>
-	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
 			value: CodemodHash;
 	  }>
@@ -375,7 +371,6 @@ export type View =
 				focusedId: CodemodHash | null;
 				nodeIds: ReadonlyArray<CodemodHash>;
 				nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
-				publicCodemodsExpanded: boolean;
 			};
 	  }>
 	| Readonly<{
