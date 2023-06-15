@@ -3,7 +3,7 @@ import { Message, MessageBus, MessageKind } from '../messageBus';
 import { CaseTreeNode, View, WebviewMessage } from './webviewEvents';
 import { CaseElement, FileElement } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
-import { debounce } from '../../utilities';
+
 import { JobManager } from '../jobManager';
 import { CaseHash, CaseWithJobHashes } from '../../cases/types';
 import {
@@ -22,6 +22,7 @@ import { CaseManager } from '../../cases/caseManager';
 import { WorkspaceState } from '../../persistedState/workspaceState';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
+import areEqual from 'fast-deep-equal';
 
 type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 
@@ -210,17 +211,24 @@ export class CampaignManager {
 	};
 
 	private __attachExtensionEventListeners() {
-		const debouncedOnUpdateElementsMessage = debounce(async () => {
-			this.setView();
-		}, 100);
+		let prevProps = this.__buildViewProps();
 
-		this.__addHook(
-			MessageKind.updateElements,
-			debouncedOnUpdateElementsMessage,
-		);
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildViewProps();
 
-		this.__addHook(MessageKind.clearState, () => {
-			this.setView();
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.codemodRuns.setView',
+				value: {
+					viewId: 'campaignManagerView',
+					viewProps: nextProps,
+				},
+			});
 		});
 
 		this.__addHook(MessageKind.upsertCases, (message) => {
@@ -256,7 +264,6 @@ export class CampaignManager {
 				this.__store.dispatch(
 					actions.setSelectedCaseHash(message.caseHash),
 				);
-				this.setView();
 			}
 		});
 	}
@@ -266,7 +273,8 @@ export class CampaignManager {
 	}
 
 	private __buildViewProps(): ViewProps {
-		const selectedCaseHash = this.__workspaceState.getSelectedCaseHash();
+		const selectedCaseHash = this.__store.getState().codemodRunsView
+			.selectedCaseHash as CaseHash | null;
 
 		const rootPath = workspace.workspaceFolders?.[0]?.uri.path ?? '';
 

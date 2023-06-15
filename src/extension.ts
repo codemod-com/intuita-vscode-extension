@@ -262,6 +262,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		store,
+		workspaceState,
 	);
 
 	context.subscriptions.push(
@@ -521,8 +522,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					// opens "Codemod Runs" panel if not opened
-					campaignManagerProvider.showView();
+					store.dispatch(actions.setCodemodRunsVisible(true));
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
@@ -660,8 +660,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						happenedAt,
 					});
 
-					// opens "Codemod Runs" panel if not opened
-					campaignManagerProvider.showView();
+					store.dispatch(actions.setCodemodRunsVisible(true));
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
