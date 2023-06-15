@@ -321,37 +321,4 @@ export class WorkspaceState {
 
 		this.__memento.update(hashDigest, caseHash);
 	}
-
-	public getPublicCodemods(): ReadonlyArray<CodemodEntry> {
-		const hash = buildWorkspaceStateKeyHash('publicCodemods');
-
-		const serializedCodemods = ensureIsString(this.__memento.get(hash));
-
-		if (serializedCodemods === null) {
-			return [];
-		}
-
-		const validation = pipe(
-			E.tryCatch(
-				() => JSON.parse(serializedCodemods),
-				(e) => e,
-			),
-			E.flatMap((json) =>
-				t.readonlyArray(codemodEntryCodec).decode(json),
-			),
-		);
-
-		if (E.isLeft(validation)) {
-			console.error(validation.left);
-
-			return [];
-		}
-
-		return validation.right;
-	}
-
-	public setPublicCodemods(codemods: ReadonlyArray<CodemodEntry>) {
-		const hash = buildWorkspaceStateKeyHash('publicCodemods');
-		this.__memento.update(hash, JSON.stringify(codemods));
-	}
 }
