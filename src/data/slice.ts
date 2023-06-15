@@ -15,21 +15,25 @@ type CodemodDiscoveryState = Readonly<{
 	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
+	collapsed: boolean;
 }>;
 
 type CodemodRunsState = Readonly<{
 	selectedCaseHash: string | null;
 	visible: boolean;
+	collapsed: boolean;
 }>;
 
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
+	collapsed: boolean;
 	focusedFileExplorerNodeId: string | null;
 	openedFileExplorerNodeIds: ReadonlyArray<string>;
 }>;
 
 type CommunityState = Readonly<{
 	visible: boolean;
+	collapsed: boolean;
 }>;
 
 type State = {
@@ -68,20 +72,24 @@ const getInitialState = (): State => {
 		codemodRunsView: {
 			selectedCaseHash: null,
 			visible: true,
+			collapsed: false,
 		},
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			openedCodemodHashDigests: null,
 			visible: true,
+			collapsed: false,
 		},
 		changeExplorerView: {
 			focusedFileExplorerNodeId: null,
 			openedFileExplorerNodeIds: [],
 			visible: false,
+			collapsed: false,
 		},
 		communityView: {
 			visible: true,
+			collapsed: false,
 		},
 	};
 };
@@ -90,6 +98,34 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
+		setVisible(
+			state,
+			action: PayloadAction<{
+				visible: boolean;
+				viewName:
+					| 'codemodRunsView'
+					| 'codemodDiscoveryView'
+					| 'changeExplorerView'
+					| 'communityView';
+			}>,
+		) {
+			const { visible, viewName } = action.payload;
+			state[viewName].visible = visible;
+		},
+		setCollapsed(
+			state,
+			action: PayloadAction<{
+				collapsed: boolean;
+				viewName:
+					| 'codemodRunsView'
+					| 'codemodDiscoveryView'
+					| 'changeExplorerView'
+					| 'communityView';
+			}>,
+		) {
+			const { collapsed, viewName } = action.payload;
+			state[viewName].collapsed = collapsed;
+		},
 		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
@@ -128,9 +164,6 @@ const rootSlice = createSlice({
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
-		},
-		setCodemodRunsVisible(state, action: PayloadAction<boolean>) {
-			state.codemodRunsView.visible = action.payload;
 		},
 		/**
 		 * Codemod list

@@ -517,7 +517,18 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					store.dispatch(actions.setCodemodRunsVisible(true));
+					store.dispatch(
+						actions.setVisible({
+							visible: true,
+							viewName: 'codemodRunsView',
+						}),
+					);
+					store.dispatch(
+						actions.setVisible({
+							visible: true,
+							viewName: 'changeExplorerView',
+						}),
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
@@ -655,7 +666,18 @@ export async function activate(context: vscode.ExtensionContext) {
 						happenedAt,
 					});
 
-					store.dispatch(actions.setCodemodRunsVisible(true));
+					store.dispatch(
+						actions.setVisible({
+							visible: true,
+							viewName: 'codemodRunsView',
+						}),
+					);
+					store.dispatch(
+						actions.setVisible({
+							visible: true,
+							viewName: 'changeExplorerView',
+						}),
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
