@@ -31,7 +31,6 @@ import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
-import { ExecutionPath } from '../../persistedState/workspaceState';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
 
