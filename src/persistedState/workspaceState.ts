@@ -10,7 +10,6 @@ import { pipe } from 'fp-ts/lib/function';
 import { CaseHash } from '../cases/types';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { TreeNodeId } from '../components/webview/webviewEvents';
-import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 
 export type WorkspaceStateKeyHash = string & {
 	__type: 'WorkspaceStateKeyHash';

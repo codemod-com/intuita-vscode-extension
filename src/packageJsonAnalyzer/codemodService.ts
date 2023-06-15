@@ -2,7 +2,6 @@ import { capitalize, isNeitherNullNorUndefined } from '../utilities';
 import { CodemodHash, CodemodElement } from './types';
 import { buildCodemodElementHash } from './utils';
 import { EngineService } from '../components/engineService';
-import { WorkspaceState } from '../persistedState/workspaceState';
 import { Store } from '../data';
 import { actions } from '../data/slice';
 
@@ -13,7 +12,6 @@ export class CodemodService {
 	constructor(
 		rootPath: string | null,
 		private __engineService: EngineService,
-		private __workspaceState: WorkspaceState,
 		private readonly __store: Store,
 	) {
 		this.#rootPath = rootPath;
