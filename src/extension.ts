@@ -262,6 +262,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		store,
+		workspaceState,
 	);
 
 	context.subscriptions.push(

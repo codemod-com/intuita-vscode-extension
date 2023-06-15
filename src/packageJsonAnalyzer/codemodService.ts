@@ -49,18 +49,19 @@ export class CodemodService {
 			.join(' ');
 	}
 
-	getCodemods = async () => {
+	async getCodemods() {
 		if (!this.__engineService.isEngineBootstrapped()) {
-			return this.__workspaceState.getPublicCodemods();
+			return Object.values(
+				this.__store.getState().codemod.entities,
+			).filter(isNeitherNullNorUndefined);
 		}
 
 		return this.__engineService.getCodemodList();
-	};
+	}
 
 	getDiscoveredCodemods = async () => {
 		const path = this.#rootPath ?? '';
 		const publicCodemods = await this.getCodemods();
-		this.__workspaceState.setPublicCodemods(publicCodemods);
 		this.__store.dispatch(actions.upsertCodemods(publicCodemods));
 
 		const discoveredCodemods = new Map<CodemodHash, CodemodElement>();
