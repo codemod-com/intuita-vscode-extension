@@ -612,7 +612,6 @@ export class EngineService {
 				kind: MessageKind.upsertCases,
 				casesWithJobHashes: [caseWithJobHashes],
 				jobs: [job],
-				inactiveJobHashes: new Set(),
 				executionId,
 			});
 		});

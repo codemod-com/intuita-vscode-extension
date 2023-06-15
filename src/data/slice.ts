@@ -6,8 +6,12 @@ import {
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
-import { PersistedCase, PersistedJob } from '../persistedState/codecs';
-import { CollapsibleWebviews } from '../components/webview/webviewEvents';
+import {
+	CollapsibleWebviews,
+	JobHash,
+} from '../components/webview/webviewEvents';
+import { Case, CaseHash } from '../cases/types';
+import { PersistedJob } from '../jobs/types';
 
 const SLICE_KEY = 'root';
 
@@ -41,6 +45,7 @@ type State = {
 	communityView: CommunityState;
 	lastCodemodHashDigests: ReadonlyArray<string>;
 	caseHashJobHashes: ReadonlyArray<string>;
+	appliedJobHashes: ReadonlyArray<JobHash>;
 	executionErrors: Record<string, ReadonlyArray<ExecutionError>>;
 	codemod: ReturnType<typeof codemodAdapter.getInitialState>;
 	case: ReturnType<typeof caseAdapter.getInitialState>;
@@ -51,11 +56,11 @@ const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
-const caseAdapter = createEntityAdapter<PersistedCase>({
+const caseAdapter = createEntityAdapter<Case>({
 	selectId: (kase) => kase.hash,
 });
 
-const jobAdapter = createEntityAdapter<PersistedJob>({
+export const jobAdapter = createEntityAdapter<PersistedJob>({
 	selectId: (job) => job.hash,
 });
 
@@ -85,6 +90,7 @@ const getInitialState = (): State => {
 		communityView: {
 			visible: true,
 		},
+		appliedJobHashes: [],
 	};
 };
 
@@ -102,17 +108,14 @@ const rootSlice = createSlice({
 			const { visible, viewName } = action.payload;
 			state[viewName].visible = visible;
 		},
-		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
+		setCases(state, action: PayloadAction<ReadonlyArray<Case>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
-		upsertCases(
-			state,
-			action: PayloadAction<ReadonlyArray<PersistedCase>>,
-		) {
+		upsertCases(state, action: PayloadAction<ReadonlyArray<Case>>) {
 			caseAdapter.upsertMany(state.case, action.payload);
 		},
-		setJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
-			jobAdapter.setAll(state.job, action.payload);
+		removeCases(state, action: PayloadAction<ReadonlyArray<CaseHash>>) {
+			caseAdapter.removeMany(state.case, action.payload);
 		},
 		upsertJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
 			jobAdapter.upsertMany(state.job, action.payload);
@@ -129,11 +132,19 @@ const rootSlice = createSlice({
 		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
-		setCaseHashJobHashes(
+		deleteCaseHashJobHashes(state) {
+			state.caseHashJobHashes = [];
+		},
+		upsertCaseHashJobHashes(
 			state,
 			action: PayloadAction<ReadonlyArray<string>>,
 		) {
-			state.caseHashJobHashes = [...action.payload];
+			const set = new Set([
+				...state.caseHashJobHashes,
+				...action.payload,
+			]);
+
+			state.caseHashJobHashes = Array.from(set);
 		},
 		/**
 		 * Codemod runs
@@ -205,6 +216,33 @@ const rootSlice = createSlice({
 		},
 		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
 			state.changeExplorerView.visible = action.payload;
+		},
+		clearJobs(state) {
+			jobAdapter.removeAll(state.job);
+			state.appliedJobHashes = [];
+		},
+		upsertAppliedJobHashes(
+			state,
+			action: PayloadAction<ReadonlyArray<JobHash>>,
+		) {
+			state.appliedJobHashes = Array.from(
+				new Set([...state.appliedJobHashes, ...action.payload]),
+			);
+		},
+		setAppliedJobHashes(
+			state,
+			action: PayloadAction<ReadonlyArray<JobHash>>,
+		) {
+			state.appliedJobHashes = Array.from(
+				new Set(action.payload.slice()),
+			);
+		},
+		deleteJobs(state, action: PayloadAction<ReadonlyArray<JobHash>>) {
+			jobAdapter.removeMany(state.job, action.payload);
+
+			state.appliedJobHashes = state.appliedJobHashes.filter(
+				(jobHash) => !action.payload.includes(jobHash),
+			);
 		},
 	},
 });

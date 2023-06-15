@@ -12,12 +12,6 @@ import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
-import { PersistedStateService } from './persistedState/persistedStateService';
-import { getPersistedState } from './persistedState/getPersistedState';
-import {
-	mapPersistedCaseToCase,
-	mapPersistedJobToJob,
-} from './persistedState/mappers';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { ElementHash } from './elements/types';
@@ -45,6 +39,8 @@ const messageBus = new MessageBus();
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
 
+	const { store } = buildStore(context.workspaceState);
+
 	const configurationContainer = buildContainer(getConfiguration());
 
 	context.subscriptions.push(
@@ -53,25 +49,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
-	const persistedState = await getPersistedState(
-		vscode.workspace.fs,
-		() => context.storageUri ?? null,
-	);
-
 	const fileService = new FileService(messageBus);
 
-	const jobManager = new JobManager(
-		persistedState?.jobs.map((job) => mapPersistedJobToJob(job)) ?? [],
-		(persistedState?.appliedJobsHashes ?? []) as JobHash[],
-		messageBus,
-		fileService,
-	);
+	const jobManager = new JobManager(fileService, messageBus, store);
 
-	const caseManager = new CaseManager(
-		persistedState?.cases.map((kase) => mapPersistedCaseToCase(kase)) ?? [],
-		new Set(persistedState?.caseHashJobHashes),
-		messageBus,
-	);
+	const caseManager = new CaseManager(messageBus, store);
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
@@ -81,8 +63,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		fileSystemUtilities,
 	);
-
-	const { store } = buildStore(context.workspaceState);
 
 	const engineService = new EngineService(
 		configurationContainer,
@@ -96,15 +76,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
-	);
-
-	new PersistedStateService(
-		caseManager,
-		vscode.workspace.fs,
-		() => context.storageUri ?? null,
-		jobManager,
-		messageBus,
-		store,
 	);
 
 	const intuitaTextDocumentContentProvider =

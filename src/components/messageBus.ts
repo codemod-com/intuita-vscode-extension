@@ -89,13 +89,11 @@ export type Message =
 			kind: MessageKind.upsertCases;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
 			jobs: ReadonlyArray<Job>;
-			inactiveJobHashes: ReadonlySet<JobHash>;
 			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
 			jobs: ReadonlyArray<Job>;
-			inactiveJobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.rejectCase;
@@ -108,8 +106,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsRejected;
 			deletedJobs: ReadonlySet<Job>;
-			codemodSetName: string;
-			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptCase;
@@ -122,8 +118,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
 			deletedJobs: ReadonlySet<Job>;
-			codemodSetName: string;
-			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.bootstrapEngine;
