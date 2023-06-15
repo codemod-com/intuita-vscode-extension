@@ -52,17 +52,19 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__store.subscribe(() => {
 			const nextProps = this.__buildViewProps();
 
-			if (!areEqual(prevProps, nextProps)) {
-				prevProps = nextProps;
-
-				this.__postMessage({
-					kind: 'webview.global.setView',
-					value: {
-						viewId: 'errors',
-						viewProps: nextProps,
-					},
-				});
+			if (areEqual(prevProps, nextProps)) {
+				return;
 			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.global.setView',
+				value: {
+					viewId: 'errors',
+					viewProps: nextProps,
+				},
+			});
 		});
 	}
 
