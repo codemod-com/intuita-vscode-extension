@@ -7,7 +7,6 @@ import * as T from 'fp-ts/These';
 import * as E from 'fp-ts/Either';
 import { workspaceStateCodec } from './codecs';
 import { pipe } from 'fp-ts/lib/function';
-import { CaseHash } from '../cases/types';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { TreeNodeId } from '../components/webview/webviewEvents';
 
@@ -213,28 +212,5 @@ export class WorkspaceState {
 		);
 
 		this.__memento.update(hashDigest, id);
-	}
-
-	public getSelectedCaseHash(): CaseHash | null {
-		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
-
-		const value = ensureIsString(this.__memento.get(hashDigest));
-
-		if (value === null) {
-			return null;
-		}
-
-		return value as CaseHash;
-	}
-
-	public setSelectedCaseHash(caseHash: CaseHash | null): void {
-		const hashDigest = buildWorkspaceStateKeyHash('selectedCaseHash');
-
-		if (caseHash === null) {
-			this.__memento.update(hashDigest, undefined);
-			return;
-		}
-
-		this.__memento.update(hashDigest, caseHash);
 	}
 }
