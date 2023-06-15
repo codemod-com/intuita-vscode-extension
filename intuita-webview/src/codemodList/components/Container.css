@@ -19,7 +19,6 @@
 }
 .container {
 	height: 50%;
-	overflow: auto;
 	transition: 0.1s ease-in-out all;
 }
 

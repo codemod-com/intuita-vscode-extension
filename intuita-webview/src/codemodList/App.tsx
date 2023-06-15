@@ -34,7 +34,7 @@ function App() {
 			const message = e.data;
 
 			if (
-				message.kind === 'webview.global.setView' &&
+				message.kind === 'webview.codemodList.setView' &&
 				message.value.viewId === 'codemods'
 			) {
 				setView(message.value);
@@ -43,7 +43,7 @@ function App() {
 
 		window.addEventListener('message', handler);
 
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+		vscode.postMessage({ kind: 'webview.codemodList.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
@@ -92,7 +92,7 @@ function App() {
 	);
 
 	return (
-		<main className="App">
+		<>
 			<SearchBar
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
@@ -106,7 +106,7 @@ function App() {
 			>
 				<div>{component}</div>
 			</Container>
-		</main>
+		</>
 	);
 }
 

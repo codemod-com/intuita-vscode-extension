@@ -1,14 +1,6 @@
-import {
-	WebviewViewProvider,
-	WebviewView,
-	Uri,
-	ExtensionContext,
-	workspace,
-	commands,
-} from 'vscode';
+import { WebviewView, Uri, workspace, commands } from 'vscode';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { CaseTreeNode, View, WebviewMessage } from './webviewEvents';
-import { WebviewResolver } from './WebviewResolver';
 import { CaseElement, FileElement } from '../../elements/types';
 import { Job, JobHash, JobKind } from '../../jobs/types';
 import { debounce } from '../../utilities';
@@ -128,24 +120,19 @@ const buildCaseElementsAndLatestJob = (
 	return [sortedCaseElements, latestJob];
 };
 
-export class CampaignManagerProvider implements WebviewViewProvider {
+export class CampaignManager {
 	private __webviewView: WebviewView | null = null;
-	private readonly __webviewResolver: WebviewResolver;
 
 	constructor(
-		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		private readonly __jobManager: JobManager,
 		private readonly __caseManager: CaseManager,
 		private readonly __workspaceState: WorkspaceState,
 		private readonly __store: Store,
-	) {
-		this.__webviewResolver = new WebviewResolver(context.extensionUri);
-	}
+	) {}
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
-		this.__resolveWebview();
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
 	}
@@ -154,7 +141,7 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 		const viewProps = this.__buildViewProps();
 
 		this.__postMessage({
-			kind: 'webview.global.setView',
+			kind: 'webview.codemodRuns.setView',
 			value: {
 				viewId: 'campaignManagerView',
 				viewProps,
@@ -164,22 +151,6 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 
 	public showView() {
 		this.__webviewView?.show(true);
-	}
-
-	__resolveWebview() {
-		if (this.__webviewView === null) {
-			return;
-		}
-
-		const viewProps = this.__buildViewProps();
-
-		this.__webviewResolver.resolveWebview(
-			this.__webviewView.webview,
-			'campaignManager',
-			JSON.stringify({
-				viewProps,
-			}),
-		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -288,12 +259,10 @@ export class CampaignManagerProvider implements WebviewViewProvider {
 				this.setView();
 			}
 		});
+	}
 
-		this.__webviewView.onDidChangeVisibility(() => {
-			if (this.__webviewView?.visible) {
-				this.__resolveWebview();
-			}
-		});
+	public getInitialProps(): ViewProps {
+		return this.__buildViewProps();
 	}
 
 	private __buildViewProps(): ViewProps {

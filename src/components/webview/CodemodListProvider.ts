@@ -1,5 +1,4 @@
 import {
-	WebviewViewProvider,
 	WebviewView,
 	Uri,
 	EventEmitter,
@@ -58,7 +57,7 @@ const getCompletionItems = (path: string) =>
 
 const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
 
-export class CodemodListPanelProvider implements WebviewViewProvider {
+export class CodemodListPanel {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
@@ -141,25 +140,17 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		return this.__engineBootstrapped;
 	}
 
-	refresh(): void {
-		if (!this.__view) {
-			return;
-		}
-
-		this.__webviewResolver.resolveWebview(
-			this.__view.webview,
-			'codemodList',
-			JSON.stringify({}),
-		);
-	}
-
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
 
+	public getInitialProps() {
+		return {};
+	}
+
 	public setView() {
 		this.__postMessage({
-			kind: 'webview.global.setView',
+			kind: 'webview.codemodList.setView',
 			value: {
 				viewId: 'codemods',
 				viewProps: {
@@ -277,16 +268,11 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 		await this.getCodemodTree();
 	};
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
 			return;
 		}
 
-		this.__webviewResolver.resolveWebview(
-			webviewView.webview,
-			'codemodList',
-			JSON.stringify({}),
-		);
 		this.__view = webviewView;
 
 		this.__attachWebviewEventListeners();
@@ -345,7 +331,7 @@ export class CodemodListPanelProvider implements WebviewViewProvider {
 			await this.updateExecutionPath(message.value);
 		}
 
-		if (message.kind === 'webview.global.afterWebviewMounted') {
+		if (message.kind === 'webview.codemodList.afterWebviewMounted') {
 			this.getCodemodTree();
 		}
 

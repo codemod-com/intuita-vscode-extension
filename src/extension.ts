@@ -21,13 +21,13 @@ import {
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { ElementHash } from './elements/types';
-import { FileExplorerProvider } from './components/webview/FileExplorerProvider';
-import { CampaignManagerProvider } from './components/webview/CampaignManagerProvider';
+import { FileExplorer } from './components/webview/FileExplorerProvider';
+import { CampaignManager } from './components/webview/CampaignManagerProvider';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
-import { CodemodListPanelProvider } from './components/webview/CodemodListProvider';
+import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
-import { CommunityProvider } from './components/webview/CommunityProvider';
+import { Community } from './components/webview/CommunityProvider';
 import { UserHooksService } from './components/hooks';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
@@ -35,6 +35,7 @@ import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { WorkspaceState } from './persistedState/workspaceState';
+import { MainViewProvider } from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
 
@@ -124,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const codemodListWebviewProvider = new CodemodListPanelProvider(
+	const codemodListWebviewProvider = new CodemodListPanel(
 		context,
 		messageBus,
 		rootPath,
@@ -147,13 +148,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		jobManager,
 		caseManager,
 		rootPath,
-	);
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			'intuita-available-codemod-tree-view',
-			codemodListWebviewProvider,
-		),
 	);
 
 	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
@@ -226,7 +220,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const fileExplorerProvider = new FileExplorerProvider(
+	const fileExplorerProvider = new FileExplorer(
 		context,
 		messageBus,
 		jobManager,
@@ -235,15 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const intuitaFileExplorer = vscode.window.registerWebviewViewProvider(
-		'intuitaFileExplorer',
-		fileExplorerProvider,
-	);
-
-	context.subscriptions.push(intuitaFileExplorer);
-
-	const campaignManagerProvider = new CampaignManagerProvider(
-		context,
+	const campaignManagerProvider = new CampaignManager(
 		messageBus,
 		jobManager,
 		caseManager,
@@ -251,21 +237,22 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const intuitaCampaignManager = vscode.window.registerWebviewViewProvider(
-		'intuitaCampaignManager',
+	const community = new Community(context);
+
+	const mainViewProvider = new MainViewProvider(
+		context,
+		community,
 		campaignManagerProvider,
+		fileExplorerProvider,
+		codemodListWebviewProvider,
 	);
 
-	context.subscriptions.push(intuitaCampaignManager);
-
-	const communityProvider = new CommunityProvider(context);
-
-	const intuitaCommunityView = vscode.window.registerWebviewViewProvider(
-		'intuitaCommunityView',
-		communityProvider,
+	const mainView = vscode.window.registerWebviewViewProvider(
+		'intuitaMainView',
+		mainViewProvider,
 	);
 
-	context.subscriptions.push(intuitaCommunityView);
+	context.subscriptions.push(mainView);
 
 	if (rootPath) {
 		new UserHooksService(messageBus, { getConfiguration }, rootPath);

@@ -1,5 +1,4 @@
 import {
-	WebviewViewProvider,
 	WebviewView,
 	Uri,
 	ExtensionContext,
@@ -15,7 +14,6 @@ import {
 	WebviewMessage,
 	WebviewResponse,
 } from './webviewEvents';
-import { WebviewResolver } from './WebviewResolver';
 import {
 	CaseElement,
 	Element,
@@ -46,10 +44,9 @@ import { actions } from '../../data/slice';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
-export class FileExplorerProvider implements WebviewViewProvider {
+export class FileExplorer {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver;
 	// map between URIs and the Tree Node
 	__treeMap = new Map<TreeNodeId, TreeNode>();
 	// map between URIs and the File Tree Node & the job hash
@@ -72,35 +69,14 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
-
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 	}
 
-	resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+	public getInitialProps(): ViewProps {
+		return this.__buildViewProps(this.__lastSelectedCaseHash);
+	}
+
+	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__view = webviewView;
-
-		const viewProps = this.__buildViewProps(this.__lastSelectedCaseHash);
-
-		this.__webviewResolver.resolveWebview(
-			webviewView.webview,
-			'fileExplorer',
-			JSON.stringify({
-				viewProps,
-			}),
-		);
-
-		this.__view.onDidChangeVisibility(() => {
-			// display folders/files for the lastly selected case when panel is collapsed and re-opened
-			this.setView(this.__lastSelectedCaseHash);
-
-			this.__webviewResolver.resolveWebview(
-				webviewView.webview,
-				'fileExplorer',
-				JSON.stringify({
-					viewProps,
-				}),
-			);
-		});
 
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
@@ -122,7 +98,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 		}
 
 		this.__postMessage({
-			kind: 'webview.global.setView',
+			kind: 'webview.fileExplorer.setView',
 			value: {
 				viewId: 'fileExplorer',
 				viewProps,
@@ -132,7 +108,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 
 	public clearView() {
 		this.__postMessage({
-			kind: 'webview.global.setView',
+			kind: 'webview.fileExplorer.setView',
 			value: {
 				viewId: 'fileExplorer',
 				viewProps: null,
@@ -594,7 +570,7 @@ export class FileExplorerProvider implements WebviewViewProvider {
 			});
 		}
 
-		if (message.kind === 'webview.global.afterWebviewMounted') {
+		if (message.kind === 'webview.fileExplorer.afterWebviewMounted') {
 			this.showView();
 			this.setView(this.__lastSelectedCaseHash);
 		}

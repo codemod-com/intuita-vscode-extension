@@ -161,27 +161,9 @@
 			"intuitaViewId": [
 				{
 					"type": "webview",
-					"id": "intuita-available-codemod-tree-view",
-					"name": "Codemod Discovery",
-					"contextualTitle": "Codemod Discovery"
-				},
-				{
-					"type": "webview",
-					"id": "intuitaCampaignManager",
-					"name": "Codemod Runs",
-					"contextualTitle": "Codemod Runs"
-				},
-				{
-					"type": "webview",
-					"id": "intuitaFileExplorer",
-					"name": "Change Explorer",
-					"contextualTitle": "Change Explorer"
-				},
-				{
-					"type": "webview",
-					"id": "intuitaCommunityView",
-					"name": "Community",
-					"contextualTitle": "Community"
+					"id": "intuitaMainView",
+					"name": "Main View",
+					"contextualTitle": "Main View"
 				}
 			],
 			"intuitaPanelViewContainerId": [
