@@ -200,8 +200,7 @@ const Tree = ({
 
 	return (
 		<ReactTreeView collapsed={!openedIds.has(node.id)} nodeLabel={treeItem}>
-			{children.map((child, idx) => (
-				<div tabIndex={idx}>
+			{children.map((child) => (
 				<Tree
 					rootPath={rootPath}
 					focusedId={focusedId}
@@ -216,7 +215,6 @@ const Tree = ({
 					renderItem={renderItem}
 					openedIds={openedIds}
 				/>
-				</div>
 			))}
 		</ReactTreeView>
 	);
