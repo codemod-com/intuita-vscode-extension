@@ -24,7 +24,6 @@ export const workspaceStateCodec = t.union([
 	}),
 ]);
 
-
 const emptyCollection = { ids: [], entities: {} };
 const buildCollectionCodec = <T extends t.Props>(
 	entityCodec: t.ReadonlyC<t.ExactC<t.TypeC<T>>>,

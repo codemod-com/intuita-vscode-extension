@@ -8,8 +8,6 @@ import prettyReporter from 'io-ts-reporters';
 import { PersistPartial } from 'redux-persist/es/persistReducer';
 import { persistedStateCodecNew } from '../persistedState/codecs';
 
-
-
 const buildStore = (workspaceState: Memento) => {
 	const persistedReducer = persistReducer(
 		{
@@ -19,8 +17,7 @@ const buildStore = (workspaceState: Memento) => {
 		},
 		rootReducer,
 	);
-	
-	
+
 	const validatedReducer: Reducer<
 		(RootState & PersistPartial) | undefined
 	> = (state, action) => {
@@ -35,11 +32,10 @@ const buildStore = (workspaceState: Memento) => {
 
 		return persistedReducer(state, action);
 	};
-	
+
 	const store = configureStore({
 		reducer: validatedReducer,
 	});
-	
 
 	const persistor = persistStore(store);
 
