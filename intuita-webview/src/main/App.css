@@ -12,10 +12,11 @@
 }
 
 .resize-handle {
-	height: 2px;
+	height: 3px;
 	background-color: transparent;
 }
 
-.resize-handle:hover {
-	background-color: blue;
+.resize-handle:hover,
+.resize-handle:active {
+	background-color: var(--vscode-focusBorder);
 }
