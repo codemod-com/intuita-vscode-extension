@@ -73,13 +73,21 @@ const Tree = ({
 		}
 	};
 
-	useKey('ArrowLeft', () => {
-		handleArrowKeyDownHorizontal('ArrowLeft');
-	});
+	useKey(
+		document.getElementById('changeExplorerView-treeContainer'),
+		'ArrowLeft',
+		() => {
+			handleArrowKeyDownHorizontal('ArrowLeft');
+		},
+	);
 
-	useKey('ArrowRight', () => {
-		handleArrowKeyDownHorizontal('ArrowRight');
-	});
+	useKey(
+		document.getElementById('changeExplorerView-treeContainer'),
+		'ArrowRight',
+		() => {
+			handleArrowKeyDownHorizontal('ArrowRight');
+		},
+	);
 
 	const handleArrowKeyDownVertical = (key: 'ArrowUp' | 'ArrowDown') => {
 		if (node.id !== focusedNodeId) {
@@ -140,7 +148,6 @@ const Tree = ({
 
 		if (
 			key === 'ArrowUp' &&
-			node.kind === 'folderElement' &&
 			prevNodeAtCurrentDepth !== null &&
 			prevNodeAtCurrentDepth.parentId === node.parentId
 		) {
@@ -186,12 +193,20 @@ const Tree = ({
 		focus(nodeIdToFocus);
 	};
 
-	useKey('ArrowUp', () => {
-		handleArrowKeyDownVertical('ArrowUp');
-	});
-	useKey('ArrowDown', () => {
-		handleArrowKeyDownVertical('ArrowDown');
-	});
+	useKey(
+		document.getElementById('changeExplorerView-treeContainer'),
+		'ArrowUp',
+		() => {
+			handleArrowKeyDownVertical('ArrowUp');
+		},
+	);
+	useKey(
+		document.getElementById('changeExplorerView-treeContainer'),
+		'ArrowDown',
+		() => {
+			handleArrowKeyDownVertical('ArrowDown');
+		},
+	);
 
 	const treeItem = renderItem({
 		index,
