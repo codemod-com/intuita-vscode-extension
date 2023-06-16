@@ -6,9 +6,6 @@ import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError } from '../errors/types';
 
 export const enum MessageKind {
-	/** the elements are tree entries */
-	updateElements = 2,
-
 	/** cases and jobs */
 	upsertCases = 3,
 	upsertJobs = 4,
@@ -82,9 +79,6 @@ export type Command =
 	  }>;
 
 export type Message =
-	| Readonly<{
-			kind: MessageKind.updateElements;
-	  }>
 	| Readonly<{
 			kind: MessageKind.upsertCases;
 			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;

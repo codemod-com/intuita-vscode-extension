@@ -179,10 +179,6 @@ export class CaseManager {
 		}
 
 		this.__store.dispatch(actions.removeCases(removableCaseHashes));
-
-		this.__messageBus.publish({
-			kind: MessageKind.updateElements,
-		});
 	}
 
 	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {

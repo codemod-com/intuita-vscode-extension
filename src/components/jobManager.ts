@@ -52,10 +52,6 @@ export class JobManager {
 				message.jobs.map(({ hash }) => hash),
 			),
 		);
-
-		this.__messageBus.publish({
-			kind: MessageKind.updateElements,
-		});
 	}
 
 	private async __onAcceptJobsMessage(
@@ -78,7 +74,6 @@ export class JobManager {
 
 		this.deleteJobs(Array.from(jobHashes));
 
-		this.__messageBus.publish({ kind: MessageKind.updateElements });
 		this.__messageBus.publish({
 			kind: MessageKind.jobsAccepted,
 			deletedJobs: new Set(deletedJobs),
@@ -128,8 +123,6 @@ export class JobManager {
 		}
 
 		this.deleteJobs(deletedJobs.map(({ hash }) => hash));
-
-		messages.push({ kind: MessageKind.updateElements });
 
 		for (const message of messages) {
 			this.__messageBus.publish(message);

@@ -342,10 +342,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					kind: MessageKind.rejectCase,
 					caseHash: caseHash as CaseHash,
 				});
-
-				messageBus.publish({
-					kind: MessageKind.updateElements,
-				});
 			} catch (e) {
 				const message = e instanceof Error ? e.message : String(e);
 				vscode.window.showErrorMessage(message);
@@ -699,10 +695,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.configurationChanged,
 				nextConfiguration: getConfiguration(),
 			});
-
-			messageBus.publish({
-				kind: MessageKind.updateElements,
-			});
 		}),
 	);
 
@@ -821,14 +813,6 @@ export async function activate(context: vscode.ExtensionContext) {
 			errorWebviewProvider,
 		),
 	);
-
-	messageBus.publish({
-		kind: MessageKind.updateElements,
-	});
-
-	// const dependencyService = new DependencyService(messageBus);
-
-	// dependencyService.showInformationMessagesAboutUpgrades();
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
