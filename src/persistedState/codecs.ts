@@ -2,6 +2,9 @@ import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
 import { codemodEntryCodec } from '../codemods/types';
 import { executionErrorCodec } from '../errors/types';
+import { withFallback } from 'io-ts-types';
+import { persistedJobCodec } from '../jobs/types';
+import { caseCodec } from '../cases/types';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -30,19 +33,22 @@ const buildCollectionCodec = <T extends t.Props>(
 ) => {
 	return withFallback(
 		buildTypeCodec({
-			ids: t.readonlyArray(t.string),
-			entities: t.record(t.string, entityCodec),
+			ids: t.readonlyArray(t.union([t.string, t.number])),
+			entities: t.record(t.string, t.union([entityCodec, t.undefined])),
 		}),
 		emptyCollection,
 	);
 };
 
 export const persistedStateCodecNew = buildTypeCodec({
-	case: buildCollectionCodec(persistedCaseCodec),
+	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
 	job: buildCollectionCodec(persistedJobCodec),
 	lastCodemodHashDigests: withFallback(t.readonlyArray(t.string), []),
-	executionErrors: withFallback(t.record(t.string, executionErrorCodec), {}),
+	executionErrors: withFallback(
+		t.record(t.string, t.readonlyArray(executionErrorCodec)),
+		{},
+	),
 	communityView: withFallback(buildTypeCodec({ visible: t.boolean }), {
 		visible: true,
 	}),
@@ -83,4 +89,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		},
 	),
 	caseHashJobHashes: t.readonlyArray(t.string),
+	appliedJobHashes: t.readonlyArray(t.string),
 });
+
+export type RootState = t.TypeOf<typeof persistedStateCodecNew>;

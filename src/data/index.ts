@@ -4,7 +4,6 @@ import MementoStorage from './storage';
 
 import rootReducer, { actions } from './slice';
 import { Memento } from 'vscode';
-import prettyReporter from 'io-ts-reporters';
 import { PersistPartial } from 'redux-persist/es/persistReducer';
 import { persistedStateCodecNew } from '../persistedState/codecs';
 
