@@ -11,7 +11,7 @@ import {
 import { FileService } from './fileService';
 import { acceptJobs } from '../jobs/acceptJobs';
 import { Store } from '../data';
-import { actions, jobAdapter } from '../data/slice';
+import { actions } from '../data/slice';
 
 export class JobManager {
 	public constructor(
@@ -64,9 +64,7 @@ export class JobManager {
 		const state = this.__store.getState();
 
 		const deletedJobs = Array.from(jobHashes)
-			.map((jobHash) => {
-				return jobAdapter.getSelectors().selectById(state.job, jobHash);
-			})
+			.map((jobHash) => state.job.entities[jobHash])
 			.filter(isNeitherNullNorUndefined)
 			.map(mapPersistedJobToJob);
 
@@ -94,9 +92,7 @@ export class JobManager {
 		const state = this.__store.getState();
 
 		const deletedJobs = Array.from(message.jobHashes)
-			.map((jobHash) => {
-				return jobAdapter.getSelectors().selectById(state.job, jobHash);
-			})
+			.map((jobHash) => state.job.entities[jobHash])
 			.filter(isNeitherNullNorUndefined)
 			.map(mapPersistedJobToJob);
 
