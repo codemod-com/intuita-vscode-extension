@@ -102,7 +102,7 @@ function App() {
 							<SectionHeader
 								title={title}
 								commands={commands}
-								open={!collapsed}
+								defaultOpen={!collapsed}
 								onHeaderClick={() => togglePanel(id)}
 							/>
 							<ResizablePanel
