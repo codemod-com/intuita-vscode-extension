@@ -94,7 +94,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		configurationContainer,
 		messageBus,
 		vscode.workspace.fs,
-		workspaceState,
 		store,
 	);
 
@@ -226,7 +225,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		workspaceState,
 		store,
 	);
 
@@ -234,6 +232,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const mainViewProvider = new MainViewProvider(
 		context,
+		messageBus,
 		community,
 		campaignManagerProvider,
 		fileExplorerProvider,
@@ -255,7 +254,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		store,
-		workspaceState,
 	);
 
 	context.subscriptions.push(
@@ -384,8 +382,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				messageBus.publish({
 					kind: MessageKind.updateElements,
 				});
-
-				fileExplorerProvider.clearView();
 			} catch (e) {
 				const message = e instanceof Error ? e.message : String(e);
 				vscode.window.showErrorMessage(message);
@@ -406,9 +402,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				fileExplorerProvider.setCaseHash(caseHash);
-				fileExplorerProvider.showView();
-				fileExplorerProvider.setView(caseHash);
+				store.dispatch(actions.setChangeExplorerVisible(true));
 			},
 		),
 	);
@@ -514,8 +508,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
-
-					store.dispatch(actions.setCodemodRunsVisible(true));
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
@@ -652,8 +644,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						executionId,
 						happenedAt,
 					});
-
-					store.dispatch(actions.setCodemodRunsVisible(true));
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);

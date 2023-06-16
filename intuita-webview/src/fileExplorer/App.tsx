@@ -59,7 +59,6 @@ function App() {
 	}
 
 	const { fileNodes, caseHash, openedIds, focusedId } = viewProps;
-
 	return (
 		<main
 			className="App"

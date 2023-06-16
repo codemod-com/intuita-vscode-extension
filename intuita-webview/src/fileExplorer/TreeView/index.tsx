@@ -16,6 +16,7 @@ import { SEARCH_QUERY_MIN_LENGTH } from '../../shared/SearchBar';
 import TreeItem from '../../shared/TreeItem';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import { CaseHash } from '../../../../src/cases/types';
+import debounce from '../../shared/utilities/debounce';
 
 const getIcon = (iconName: string | null, open: boolean): ReactNode => {
 	if (iconName === null) {
@@ -160,6 +161,18 @@ const initializer = ({
 		focusedId,
 	};
 };
+
+const debouncedOnFileOrFolderSelected = debounce(
+	(id: TreeNodeId, fileNodeIds: Set<TreeNodeId>) => {
+		vscode.postMessage({
+			kind: fileNodeIds.has(id)
+				? 'webview.fileExplorer.fileSelected'
+				: 'webview.fileExplorer.folderSelected',
+			id,
+		});
+	},
+	250,
+);
 
 type Props = {
 	node: TreeNode;
@@ -347,17 +360,7 @@ const TreeView = ({
 			return;
 		}
 
-		if (fileNodeIds.has(state.focusedId)) {
-			vscode.postMessage({
-				kind: 'webview.fileExplorer.fileSelected',
-				id: state.focusedId,
-			});
-		} else {
-			vscode.postMessage({
-				kind: 'webview.fileExplorer.folderSelected',
-				id: state.focusedId,
-			});
-		}
+		debouncedOnFileOrFolderSelected(state.focusedId, fileNodeIds);
 	}, [fileNodeIds, state.focusedId]);
 
 	if (fileNodes === null || fileNodes.length === 0) {

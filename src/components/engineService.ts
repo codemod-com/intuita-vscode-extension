@@ -19,7 +19,6 @@ import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
-import { WorkspaceState } from '../persistedState/workspaceState';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
@@ -125,7 +124,6 @@ export class EngineService {
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
 		fileSystem: FileSystem,
-		private readonly __workspaceState: WorkspaceState,
 		private readonly __store: Store,
 	) {
 		this.#configurationContainer = configurationContainer;
@@ -605,8 +603,6 @@ export class EngineService {
 			};
 
 			this.#execution.case = caseWithJobHashes;
-
-			this.__workspaceState.setSelectedCaseHash(caseWithJobHashes.hash);
 
 			this.__store.dispatch(
 				actions.setSelectedCaseHash(caseWithJobHashes.hash),

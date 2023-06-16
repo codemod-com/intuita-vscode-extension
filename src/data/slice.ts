@@ -7,11 +7,12 @@ import {
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
 import { PersistedCase, PersistedJob } from '../persistedState/codecs';
+import { CollapsibleWebviews } from '../components/webview/webviewEvents';
 
 const SLICE_KEY = 'root';
 
 type CodemodDiscoveryState = Readonly<{
-	openedCodemodHashDigests: ReadonlyArray<string> | null;
+	openedCodemodHashDigests: ReadonlyArray<string>;
 	focusedCodemodHashDigest: string | null;
 	executionPaths: Record<string, string>;
 	visible: boolean;
@@ -24,6 +25,7 @@ type CodemodRunsState = Readonly<{
 
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
+
 	focusedFileExplorerNodeId: string | null;
 	openedFileExplorerNodeIds: ReadonlyArray<string>;
 }>;
@@ -72,7 +74,7 @@ const getInitialState = (): State => {
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			openedCodemodHashDigests: null,
+			openedCodemodHashDigests: [],
 			visible: true,
 		},
 		changeExplorerView: {
@@ -90,6 +92,16 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
+		setVisible(
+			state,
+			action: PayloadAction<{
+				visible: boolean;
+				viewName: CollapsibleWebviews;
+			}>,
+		) {
+			const { visible, viewName } = action.payload;
+			state[viewName].visible = visible;
+		},
 		setCases(state, action: PayloadAction<ReadonlyArray<PersistedCase>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
@@ -129,9 +141,6 @@ const rootSlice = createSlice({
 		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
 		},
-		setCodemodRunsVisible(state, action: PayloadAction<boolean>) {
-			state.codemodRunsView.visible = action.payload;
-		},
 		/**
 		 * Codemod list
 		 */
@@ -155,19 +164,11 @@ const rootSlice = createSlice({
 		},
 		setOpenedCodemodHashDigests(
 			state,
-			action: PayloadAction<ReadonlyArray<string> | null>,
+			action: PayloadAction<ReadonlyArray<string>>,
 		) {
 			state.codemodDiscoveryView.visible = true;
-
-			if (action.payload === null) {
-				state.codemodDiscoveryView.openedCodemodHashDigests =
-					action.payload;
-				return;
-			}
-
-			state.codemodDiscoveryView.openedCodemodHashDigests = [
-				...action.payload,
-			];
+			state.codemodDiscoveryView.openedCodemodHashDigests =
+				action.payload.slice();
 		},
 		/**
 		 * Errors
@@ -194,18 +195,16 @@ const rootSlice = createSlice({
 		},
 		setOpenedFileExplorerNodeIds(
 			state,
-			action: PayloadAction<ReadonlyArray<string> | null>,
+			action: PayloadAction<ReadonlyArray<string>>,
 		) {
 			state.changeExplorerView.visible = true;
-
-			if (action.payload === null) {
-				state.changeExplorerView.openedFileExplorerNodeIds = [];
-				return;
-			}
 
 			state.changeExplorerView.openedFileExplorerNodeIds = [
 				...action.payload,
 			];
+		},
+		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
+			state.changeExplorerView.visible = action.payload;
 		},
 	},
 });

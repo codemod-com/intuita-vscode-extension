@@ -10,6 +10,8 @@ import { Community } from './CommunityProvider';
 import { CampaignManager } from './CampaignManagerProvider';
 import { FileExplorer } from './FileExplorerProvider';
 import { CodemodListPanel } from './CodemodListProvider';
+import { CollapsibleWebviews, WebviewMessage } from './webviewEvents';
+import { Message, MessageBus, MessageKind } from '../messageBus';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -18,6 +20,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 	constructor(
 		context: ExtensionContext,
+		private readonly __messageBus: MessageBus,
 		private readonly __community: Community,
 		private readonly __codemodRuns: CampaignManager,
 		private readonly __fileExplorer: FileExplorer,
@@ -35,7 +38,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__resolveWebview(webviewView);
 
 		this.__view = webviewView;
-
+		this.__attachExtensionEventListeners();
 		this.__community.setWebview(webviewView);
 		this.__codemodRuns.setWebview(webviewView);
 		this.__fileExplorer.setWebview(webviewView);
@@ -46,6 +49,44 @@ export class MainViewProvider implements WebviewViewProvider {
 				this.__resolveWebview(this.__view);
 			}
 		});
+	}
+
+	private __setCollapsed({
+		collapsed,
+		viewName,
+	}: {
+		collapsed: boolean;
+		viewName: CollapsibleWebviews;
+	}): void {
+		this.__postMessage({
+			kind: 'webview.main.setCollapsed',
+			collapsed,
+			viewName,
+		});
+	}
+
+	private __addHook<T extends MessageKind>(
+		kind: T,
+		handler: (message: Message & { kind: T }) => void,
+	) {
+		this.__messageBus.subscribe<T>(kind, handler);
+	}
+
+	private __attachExtensionEventListeners() {
+		this.__addHook(MessageKind.executeCodemodSet, () => {
+			this.__setCollapsed({
+				collapsed: false,
+				viewName: 'codemodRunsView',
+			});
+			this.__setCollapsed({
+				collapsed: false,
+				viewName: 'changeExplorerView',
+			});
+		});
+	}
+
+	private __postMessage(message: WebviewMessage) {
+		this.__view?.webview.postMessage(message);
 	}
 
 	private __resolveWebview(webviewView: WebviewView) {

@@ -8,17 +8,24 @@ import CodemodList from '../codemodList/App';
 import FileExplorer from '../fileExplorer/App';
 import CommunityView from '../communityView/App';
 import { ResizablePanel } from '../shared/Panel';
-import { useRef } from 'react';
+import { ReactElement, useEffect, useRef } from 'react';
 import SectionHeader from '../shared/Section/Header';
+import { WebviewMessage } from '../shared/types';
+import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
 
-const PANELS = [
+const PANELS: {
+	id: CollapsibleWebviews;
+	title: string;
+	Component: () => ReactElement | null;
+	commands?: any[];
+}[] = [
 	{
-		id: 'codemodDiscovery',
+		id: 'codemodDiscoveryView',
 		title: 'Codemod Discovery',
 		Component: CodemodList,
 	},
 	{
-		id: 'codemodRuns',
+		id: 'codemodRunsView',
 		title: 'Codemod Runs',
 		commands: [
 			{
@@ -30,12 +37,12 @@ const PANELS = [
 		Component: CampaignManager,
 	},
 	{
-		id: 'changesExplorer',
+		id: 'changeExplorerView',
 		title: 'Changes Explorer',
 		Component: FileExplorer,
 	},
 	{
-		id: 'community',
+		id: 'communityView',
 		title: 'Community',
 		Component: CommunityView,
 	},
@@ -50,13 +57,36 @@ function App() {
 		if (!ref) {
 			return;
 		}
-
-		if (ref.getCollapsed()) {
+		const collapsed = ref.getCollapsed();
+		if (collapsed) {
 			ref.expand();
 		} else {
 			ref.collapse();
 		}
 	};
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+			if (message.kind === 'webview.main.setCollapsed') {
+				const ref = panelRefs.current[message.viewName];
+				if (!ref) {
+					return;
+				}
+				if (message.collapsed) {
+					ref.collapse();
+				} else {
+					ref.expand();
+				}
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, []);
 
 	return (
 		<main className="App">

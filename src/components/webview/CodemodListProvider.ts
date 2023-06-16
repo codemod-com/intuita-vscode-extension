@@ -147,7 +147,6 @@ export class CodemodListPanel {
 	public setView() {
 		const state = this.__store.getState().codemodDiscoveryView;
 
-		const { openedCodemodHashDigests, focusedCodemodHashDigest } = state;
 		this.__postMessage({
 			kind: 'webview.codemodList.setView',
 			value: {
@@ -155,8 +154,10 @@ export class CodemodListPanel {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds: openedCodemodHashDigests as CodemodHash[],
-					focusedId: focusedCodemodHashDigest as CodemodHash,
+					openedIds: state
+						.openedCodemodHashDigests as ReadonlyArray<CodemodHash>,
+					focusedId: state
+						.focusedCodemodHashDigest as CodemodHash | null,
 					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users

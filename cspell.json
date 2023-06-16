@@ -60,6 +60,7 @@
 		"immutablejsv",
 		"reactrouterv",
 		"reduxjs",
-		"persistor"
+		"persistor",
+		"webviews"
 	]
 }
