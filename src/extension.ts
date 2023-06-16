@@ -217,7 +217,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		jobManager,
 		caseManager,
-		workspaceState,
 		store,
 	);
 
