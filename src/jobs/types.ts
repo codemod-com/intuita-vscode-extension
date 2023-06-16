@@ -1,5 +1,6 @@
 import { Uri } from 'vscode';
-
+import * as t from 'io-ts';
+import { buildTypeCodec } from '../utilities';
 export type JobHash = string & { __type: 'JobHash' };
 
 export const enum JobKind {
@@ -24,18 +25,27 @@ export type Job = Readonly<{
 	executionId: string;
 }>;
 
-export type PersistedJob = Readonly<{
-	hash: JobHash;
-	kind: JobKind;
-	oldUri: string | null;
-	newUri: string | null;
-	oldContentUri: string | null;
-	newContentUri: string | null;
-	codemodSetName: string;
-	codemodName: string;
-	createdAt: number;
-	executionId: string;
-}>;
+export const persistedJobCodec = buildTypeCodec({
+	hash: t.string,
+	kind: t.union([
+		t.literal(JobKind.rewriteFile),
+		t.literal(JobKind.createFile),
+		t.literal(JobKind.deleteFile),
+		t.literal(JobKind.moveAndRewriteFile),
+		t.literal(JobKind.moveFile),
+		t.literal(JobKind.copyFile),
+	]),
+	oldUri: t.union([t.string, t.null]),
+	newUri: t.union([t.string, t.null]),
+	oldContentUri: t.union([t.string, t.null]),
+	newContentUri: t.union([t.string, t.null]),
+	codemodSetName: t.string,
+	codemodName: t.string,
+	executionId: t.string,
+	createdAt: t.number,
+});
+
+export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
 
 export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 	return {
@@ -50,6 +60,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 	return {
 		...persistedJob,
+		hash: persistedJob.hash as JobHash,
 		oldUri: persistedJob.oldUri ? Uri.parse(persistedJob.oldUri) : null,
 		newUri: persistedJob.newUri ? Uri.parse(persistedJob.newUri) : null,
 		oldContentUri: persistedJob.oldContentUri

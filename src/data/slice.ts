@@ -12,6 +12,7 @@ import {
 } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
+import { RootState } from '../persistedState/codecs';
 
 const SLICE_KEY = 'root';
 
@@ -64,7 +65,7 @@ export const jobAdapter = createEntityAdapter<PersistedJob>({
 	selectId: (job) => job.hash,
 });
 
-const getInitialState = (): State => {
+const getInitialState = (): RootState => {
 	return {
 		codemod: codemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
@@ -241,7 +242,7 @@ const rootSlice = createSlice({
 			jobAdapter.removeMany(state.job, action.payload);
 
 			state.appliedJobHashes = state.appliedJobHashes.filter(
-				(jobHash) => !action.payload.includes(jobHash),
+				(jobHash) => !action.payload.includes(jobHash as JobHash),
 			);
 		},
 	},
