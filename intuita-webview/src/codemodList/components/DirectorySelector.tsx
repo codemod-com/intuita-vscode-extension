@@ -53,7 +53,11 @@ export const DirectorySelector = ({
 	error,
 	autocompleteItems,
 }: Props) => {
-	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+	const repoName =
+		rootPath
+			.split('/')
+			.filter((part) => part.length !== 0)
+			.slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
@@ -265,7 +269,10 @@ export const DirectorySelector = ({
 						{defaultValue === `${repoName}/` ? (
 							<em>{`${repoName}/`}</em>
 						) : (
-							defaultValue.split('/').slice(-1)[0]
+							defaultValue
+								.split('/')
+								.filter((part) => part.length !== 0)
+								.slice(-1)[0]
 						)}
 					</span>
 				</VSCodeButton>
