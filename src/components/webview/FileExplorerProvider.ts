@@ -526,7 +526,6 @@ export class FileExplorer {
 		}
 
 		if (message.kind === 'webview.fileExplorer.setState') {
-		
 			this.__store.dispatch(
 				actions.setFocusedFileExplorerNodeId(message.focusedId),
 			);

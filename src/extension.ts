@@ -34,7 +34,6 @@ import { TextDocumentContentProvider } from './components/webview/VirtualDocumen
 import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
-import { WorkspaceState } from './persistedState/workspaceState';
 import { MainViewProvider } from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
@@ -81,11 +80,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const downloadService = new DownloadService(
 		vscode.workspace.fs,
 		fileSystemUtilities,
-	);
-
-	const workspaceState = new WorkspaceState(
-		context.workspaceState,
-		messageBus,
 	);
 
 	const { store } = buildStore(context.workspaceState);

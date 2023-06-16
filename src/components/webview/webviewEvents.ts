@@ -4,10 +4,12 @@ import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
+import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
-import { ExecutionPath } from '../../persistedState/workspaceState';
+
+export type ExecutionPath = T.These<SyntheticError, string>;
 
 export { JobHash };
 export { CodemodHash };
