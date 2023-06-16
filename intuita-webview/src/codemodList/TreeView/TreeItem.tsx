@@ -93,7 +93,11 @@ const TreeItem = ({
 		onDoubleClick();
 	};
 
-	useKey('Enter', handleEnterKeyDown);
+	useKey(
+		document.getElementById('codemodDiscoveryView-treeContainer'),
+		'Enter',
+		handleEnterKeyDown,
+	);
 
 	const handleArrowKeyDown = (key: 'ArrowLeft' | 'ArrowRight') => {
 		if (!focused || !hasChildren) {
@@ -107,12 +111,20 @@ const TreeItem = ({
 		}
 	};
 
-	useKey('ArrowLeft', () => {
-		handleArrowKeyDown('ArrowLeft');
-	});
-	useKey('ArrowRight', () => {
-		handleArrowKeyDown('ArrowRight');
-	});
+	useKey(
+		document.getElementById('codemodDiscoveryView-treeContainer'),
+		'ArrowLeft',
+		() => {
+			handleArrowKeyDown('ArrowLeft');
+		},
+	);
+	useKey(
+		document.getElementById('codemodDiscoveryView-treeContainer'),
+		'ArrowRight',
+		() => {
+			handleArrowKeyDown('ArrowRight');
+		},
+	);
 
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),

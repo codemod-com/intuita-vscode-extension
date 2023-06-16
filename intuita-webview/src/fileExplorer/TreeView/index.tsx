@@ -411,35 +411,37 @@ const TreeView = ({
 	}
 
 	return (
-		<Tree
-			openedIds={state.openedIds}
-			node={node}
-			renderItem={renderItem}
-			index={0}
-			depth={0}
-			focusedNodeId={state.focusedId}
-			allFileNodesReady={allFileNodesReady}
-			nodeIds={nodeIds}
-			nodesByDepth={nodesByDepth}
-			focus={(id: TreeNodeId) => {
-				dispatch({
-					kind: 'focus',
-					id,
-				});
-			}}
-			collapse={(id: TreeNodeId) => {
-				dispatch({
-					kind: 'close',
-					id,
-				});
-			}}
-			expand={(id: TreeNodeId) => {
-				dispatch({
-					kind: 'open',
-					id,
-				});
-			}}
-		/>
+		<div id="changeExplorerView-treeContainer">
+			<Tree
+				openedIds={state.openedIds}
+				node={node}
+				renderItem={renderItem}
+				index={0}
+				depth={0}
+				focusedNodeId={state.focusedId}
+				allFileNodesReady={allFileNodesReady}
+				nodeIds={nodeIds}
+				nodesByDepth={nodesByDepth}
+				focus={(id: TreeNodeId) => {
+					dispatch({
+						kind: 'focus',
+						id,
+					});
+				}}
+				collapse={(id: TreeNodeId) => {
+					dispatch({
+						kind: 'close',
+						id,
+					});
+				}}
+				expand={(id: TreeNodeId) => {
+					dispatch({
+						kind: 'open',
+						id,
+					});
+				}}
+			/>
+		</div>
 	);
 };
 

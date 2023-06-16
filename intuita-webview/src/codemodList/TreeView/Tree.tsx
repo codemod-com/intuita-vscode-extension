@@ -49,6 +49,7 @@ const Tree = ({
 		: node.children.filter((child) => hashesForSearch.has(child.id));
 
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
+		console.log(node.id, focusedId);
 		if (node.id !== focusedId) {
 			return;
 		}
@@ -153,13 +154,21 @@ const Tree = ({
 		onFocusNode(nodeIdToFocus);
 	};
 
-	useKey('ArrowUp', () => {
-		handleArrowKeyDown('ArrowUp');
-	});
+	useKey(
+		document.getElementById('codemodDiscoveryView-treeContainer'),
+		'ArrowUp',
+		() => {
+			handleArrowKeyDown('ArrowUp');
+		},
+	);
 
-	useKey('ArrowDown', () => {
-		handleArrowKeyDown('ArrowDown');
-	});
+	useKey(
+		document.getElementById('codemodDiscoveryView-treeContainer'),
+		'ArrowDown',
+		() => {
+			handleArrowKeyDown('ArrowDown');
+		},
+	);
 
 	if (!children || children.length === 0) {
 		return node.label === rootPath ? null : <>{treeItem}</>;

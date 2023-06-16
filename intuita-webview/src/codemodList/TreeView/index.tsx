@@ -424,7 +424,7 @@ const TreeView = ({
 	};
 
 	return (
-		<div>
+		<div id="codemodDiscoveryView-treeContainer" tabIndex={0}>
 			<Tree
 				rootPath={rootPath}
 				node={node}
