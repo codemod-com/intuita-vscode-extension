@@ -32,7 +32,7 @@ const ResizablePanel = forwardRef<ImperativePanelHandle, ResizablePanelProps>(
 				minSize={minSize}
 				ref={ref}
 			>
-				<div className="w-full h-full overflow-y-auto">{children}</div>
+				<div className="w-full h-full">{children}</div>
 			</RResizablePanel>
 		);
 	},
