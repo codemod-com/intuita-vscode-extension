@@ -49,7 +49,7 @@ const Tree = ({
 		: node.children.filter((child) => hashesForSearch.has(child.id));
 
 	const handleArrowKeyDown = (key: 'ArrowUp' | 'ArrowDown') => {
-		console.log(node.id, focusedId)
+		console.log(node.id, focusedId);
 		if (node.id !== focusedId) {
 			return;
 		}
