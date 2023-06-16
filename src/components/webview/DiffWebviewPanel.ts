@@ -278,14 +278,14 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 		this._addHook(MessageKind.focusFile, async ({ caseHash, jobHash }) => {
 			await this.openCase(caseHash as unknown as ElementHash);
-			await this.focusFile(jobHash);
+			this.focusFile(jobHash);
 		});
 
 		this._addHook(
 			MessageKind.focusFolder,
 			async ({ caseHash, folderPath }) => {
 				await this.openCase(caseHash as unknown as ElementHash);
-				await this.focusFolder(folderPath);
+				this.focusFolder(folderPath);
 			},
 		);
 	}

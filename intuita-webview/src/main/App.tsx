@@ -114,6 +114,10 @@ function App() {
 										panelRefs.current[id] = ref;
 									}
 								}}
+								style={{
+									overflowY: 'scroll',
+									overflowX: 'hidden',
+								}}
 							>
 								<Component />
 							</ResizablePanel>
