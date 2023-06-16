@@ -154,10 +154,10 @@ export class CodemodListPanel {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds: state
-						.openedCodemodHashDigests as ReadonlyArray<CodemodHash>,
-					focusedId: state
-						.focusedCodemodHashDigest as CodemodHash | null,
+					openedIds:
+						state.openedCodemodHashDigests as ReadonlyArray<CodemodHash>,
+					focusedId:
+						state.focusedCodemodHashDigest as CodemodHash | null,
 					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users

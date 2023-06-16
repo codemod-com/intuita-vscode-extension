@@ -66,7 +66,6 @@ export class WorkspaceState {
 		});
 	}
 
-
 	public getOpenedFileExplorerNodeIds(): ReadonlySet<TreeNodeId> {
 		const hash = buildWorkspaceStateKeyHash('openedFileExplorerNodeIds');
 
