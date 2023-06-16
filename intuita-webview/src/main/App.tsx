@@ -9,7 +9,7 @@ import FileExplorer from '../fileExplorer/App';
 import CommunityView from '../communityView/App';
 import { ResizablePanel } from '../shared/Panel';
 import { ReactElement, useEffect, useRef } from 'react';
-import SectionHeader from '../shared/Section/Header';
+import SectionHeader from '../shared/SectionHeader';
 import { WebviewMessage } from '../shared/types';
 import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
 
