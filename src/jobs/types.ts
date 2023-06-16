@@ -1,7 +1,10 @@
 import { Uri } from 'vscode';
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
-export type JobHash = string & { __type: 'JobHash' };
+
+interface JobHashBrand {
+	readonly __JobHash: unique symbol;
+}
 
 export const enum JobKind {
 	rewriteFile = 1,
@@ -26,7 +29,12 @@ export type Job = Readonly<{
 }>;
 
 export const persistedJobCodec = buildTypeCodec({
-	hash: t.string,
+	hash: t.brand(
+		t.string,
+		(hashDigest): hashDigest is t.Branded<string, JobHashBrand> =>
+			hashDigest.length > 0,
+		'__JobHash',
+	),
 	kind: t.union([
 		t.literal(JobKind.rewriteFile),
 		t.literal(JobKind.createFile),
@@ -46,6 +54,8 @@ export const persistedJobCodec = buildTypeCodec({
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
+
+export type JobHash = PersistedJob['hash'];
 
 export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 	return {
