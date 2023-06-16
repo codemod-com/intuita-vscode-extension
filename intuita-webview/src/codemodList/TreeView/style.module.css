@@ -30,6 +30,13 @@
 	display: flex;
 }
 
+.root .codemodItemActions,
+.root .directorySelector {
+	@media (max-width: 250px) {
+		display: flex;
+	}
+}
+
 .root:hover .description {
 	display: inline;
 }
@@ -54,7 +61,7 @@
 	height: 16px;
 }
 
-.label {
+.labelContainer {
 	line-height: 22px;
 	font-size: 13px;
 	cursor: pointer;
@@ -66,6 +73,12 @@
 	width: 100%;
 	display: flex;
 	align-items: center;
+}
+
+.codemodItemLabel {
+	@media (max-width: 250px) {
+		display: none;
+	}
 }
 
 .description {

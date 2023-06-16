@@ -213,7 +213,7 @@ const TreeItem = ({
 				</>
 			)}
 			<div className="flex w-full flex-col">
-				<span className={styles.label}>
+				<span className={styles.labelContainer}>
 					<Popover
 						trigger={
 							<span
@@ -223,6 +223,10 @@ const TreeItem = ({
 									}),
 									userSelect: 'none',
 								}}
+								className={cn(
+									kind === 'codemodItem' &&
+										styles.codemodItemLabel,
+								)}
 							>
 								{label}
 							</span>
@@ -255,11 +259,15 @@ const TreeItem = ({
 						)}
 					</span>
 				</span>
-
 				{progressBar}
 			</div>
 			{!editingPath && (
-				<div className={styles.actions}>
+				<div
+					className={cn(
+						styles.actions,
+						kind === 'codemodItem' && styles.codemodItemActions,
+					)}
+				>
 					{actionButtons.map((el) => el)}
 				</div>
 			)}
