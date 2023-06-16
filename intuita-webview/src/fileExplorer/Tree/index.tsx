@@ -140,7 +140,6 @@ const Tree = ({
 
 		if (
 			key === 'ArrowUp' &&
-			node.kind === 'folderElement' &&
 			prevNodeAtCurrentDepth !== null &&
 			prevNodeAtCurrentDepth.parentId === node.parentId
 		) {
