@@ -42,7 +42,7 @@ export const persistedJobCodec = buildTypeCodec({
 	codemodSetName: t.string,
 	codemodName: t.string,
 	executionId: t.string,
-	createdAt: t.number, 
+	createdAt: t.number,
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
@@ -60,7 +60,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 	return {
 		...persistedJob,
-		hash: persistedJob.hash as JobHash, 
+		hash: persistedJob.hash as JobHash,
 		oldUri: persistedJob.oldUri ? Uri.parse(persistedJob.oldUri) : null,
 		newUri: persistedJob.newUri ? Uri.parse(persistedJob.newUri) : null,
 		oldContentUri: persistedJob.oldContentUri

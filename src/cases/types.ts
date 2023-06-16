@@ -8,7 +8,7 @@ export const enum CaseKind {
 	REWRITE_FILE_BY_NORA_NODE_ENGINE = 2,
 }
 
-export const caseCodec =  buildTypeCodec({
+export const caseCodec = buildTypeCodec({
 	kind: t.literal(CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE),
 	subKind: t.string,
 	hash: t.string,

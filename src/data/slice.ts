@@ -12,9 +12,7 @@ import {
 } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
-import {
-	RootState,
-} from '../persistedState/codecs';
+import { RootState } from '../persistedState/codecs';
 
 const SLICE_KEY = 'root';
 

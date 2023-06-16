@@ -22,8 +22,8 @@ const buildStore = (workspaceState: Memento) => {
 	> = (state, action) => {
 		if (action.type === 'persist/REHYDRATE') {
 			const decoded = persistedStateCodecNew.decode(action.payload);
-		
-			if(decoded._tag === 'Right') {
+
+			if (decoded._tag === 'Right') {
 				return persistedReducer(state, {
 					type: action.type,
 					payload: decoded.right,
