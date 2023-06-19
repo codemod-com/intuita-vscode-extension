@@ -50,7 +50,6 @@ const PanelGroup = (props: PanelGroupProps) => {
 
 		containerRef.current.addEventListener('mouseup', onEndResizing);
 		containerRef.current.addEventListener('contextmenu', onEndResizing);
-		containerRef.current.addEventListener('touchend', onEndResizing);
 
 		containerRef.current.addEventListener('mousemove', onResize);
 
@@ -69,7 +68,6 @@ const PanelGroup = (props: PanelGroupProps) => {
 				'contextmenu',
 				onEndResizing,
 			);
-			containerRef.current.removeEventListener('touchend', onEndResizing);
 
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 			containerRef.current.removeEventListener('mousemove', onResize);
