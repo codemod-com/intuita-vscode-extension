@@ -10,7 +10,7 @@ import { persistedStateCodecNew } from '../persistedState/codecs';
 const buildStore = (workspaceState: Memento) => {
 	const persistedReducer = persistReducer(
 		{
-			key: 'root',
+			key: 'compressedRoot',
 			storage: new MementoStorage(workspaceState),
 			// throttle: 1000,
 		},
