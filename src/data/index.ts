@@ -2,7 +2,7 @@ import { configureStore, Dispatch, Reducer } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 import MementoStorage from './storage';
 
-import rootReducer, { actions } from './slice';
+import rootReducer, { actions, getInitialState } from './slice';
 import { Memento } from 'vscode';
 import { PersistPartial } from 'redux-persist/es/persistReducer';
 import { persistedStateCodecNew } from '../persistedState/codecs';
@@ -10,7 +10,7 @@ import { persistedStateCodecNew } from '../persistedState/codecs';
 const buildStore = (workspaceState: Memento) => {
 	const persistedReducer = persistReducer(
 		{
-			key: 'compressedRoot',
+			key: 'root',
 			storage: new MementoStorage(workspaceState),
 			throttle: 1000,
 		},
@@ -23,14 +23,13 @@ const buildStore = (workspaceState: Memento) => {
 		if (action.type === 'persist/REHYDRATE') {
 			const decoded = persistedStateCodecNew.decode(action.payload);
 
-			if (decoded._tag === 'Right') {
-				return persistedReducer(state, {
-					type: action.type,
-					payload: decoded.right,
-				});
-			} else {
-				return state;
-			}
+			const validatedPayload =
+				decoded._tag === 'Right' ? decoded.right : getInitialState();
+
+			return persistedReducer(state, {
+				...action,
+				payload: validatedPayload,
+			});
 		}
 
 		return persistedReducer(state, action);

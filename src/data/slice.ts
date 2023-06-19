@@ -65,7 +65,7 @@ export const jobAdapter = createEntityAdapter<PersistedJob>({
 	selectId: (job) => job.hash,
 });
 
-const getInitialState = (): RootState => {
+export const getInitialState = (): RootState => {
 	return {
 		codemod: codemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
