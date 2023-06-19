@@ -1,5 +1,4 @@
 import {
-	PanelGroup,
 	PanelResizeHandle,
 	ImperativePanelHandle,
 } from 'react-resizable-panels';
@@ -7,7 +6,7 @@ import CampaignManager from '../campaignManager/App';
 import CodemodList from '../codemodList/App';
 import FileExplorer from '../fileExplorer/App';
 import CommunityView from '../communityView/App';
-import { ResizablePanel } from '../shared/Panel';
+import { ResizablePanel, PanelGroup } from '../shared/Panel';
 import { CSSProperties, ReactElement, useEffect, useRef } from 'react';
 import SectionHeader from '../shared/SectionHeader';
 import { WebviewMessage } from '../shared/types';
