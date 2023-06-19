@@ -19,7 +19,6 @@ class MementoStorage implements WebStorage {
 
 		const oldBuffer = Buffer.from(storedValue, 'base64url');
 		const newBuffer = await asyncUnzip(oldBuffer);
-
 		return newBuffer.toString('utf8');
 	}
 
