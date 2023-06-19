@@ -61,7 +61,7 @@ function App() {
 	const { fileNodes, caseHash, openedIds, focusedId } = viewProps;
 	return (
 		<main
-			className="App"
+			className={styles.container}
 			style={{ ...(fileNodes === null && { cursor: 'not-allowed' }) }}
 		>
 			{searchQuery.length === 0 && (
@@ -78,13 +78,15 @@ function App() {
 					placeholder="Search files..."
 				/>
 			)}
-			<TreeView
-				{...viewProps}
-				searchQuery={searchQuery}
-				stagedJobs={stagedJobs}
-				openedIds={new Set(openedIds)}
-				focusedNodeId={focusedId}
-			/>
+			<div className={styles.treeContainer}>
+				<TreeView
+					{...viewProps}
+					searchQuery={searchQuery}
+					stagedJobs={stagedJobs}
+					openedIds={new Set(openedIds)}
+					focusedNodeId={focusedId}
+				/>
+			</div>
 		</main>
 	);
 }

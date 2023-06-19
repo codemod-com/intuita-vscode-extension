@@ -127,7 +127,7 @@ function App() {
 										}
 									}}
 									style={{
-										overflowY: 'scroll',
+										overflowY: 'auto',
 										overflowX: 'hidden',
 										...inlineStyle,
 									}}
