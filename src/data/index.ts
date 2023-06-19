@@ -12,7 +12,7 @@ const buildStore = (workspaceState: Memento) => {
 		{
 			key: 'root',
 			storage: new MementoStorage(workspaceState),
-			throttle: 1000,
+			// throttle: 1000,
 		},
 		rootReducer,
 	);
