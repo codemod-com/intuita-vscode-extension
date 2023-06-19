@@ -377,6 +377,8 @@ export class EngineService {
 			},
 		);
 
+		this.__store.dispatch(actions.setCodemodExecutionInProgress(true));
+
 		const executionErrors: ExecutionError[] = [];
 
 		childProcess.stderr.on('data', function (chunk: unknown) {
@@ -628,6 +630,10 @@ export class EngineService {
 					case: this.#execution.case,
 					executionErrors,
 				});
+
+				this.__store.dispatch(
+					actions.setCodemodExecutionInProgress(false),
+				);
 
 				if (
 					!executionErrors.length &&

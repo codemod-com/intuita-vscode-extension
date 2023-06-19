@@ -162,7 +162,7 @@
 				{
 					"type": "webview",
 					"id": "intuitaMainView",
-					"name": "Main View",
+					"name": "",
 					"contextualTitle": "Main View"
 				}
 			],

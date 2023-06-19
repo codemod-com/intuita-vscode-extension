@@ -75,6 +75,8 @@ export type CodemodTreeNode = {
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
 
+export type ChangeExplorerTree = O.Option<TreeNode>;
+
 export type CaseTreeNode = {
 	id: CaseHash;
 	kind: 'caseElement';
@@ -334,8 +336,8 @@ export type View =
 	| Readonly<{
 			viewId: 'fileExplorer';
 			viewProps: {
-				caseHash: CaseHash;
-				node: TreeNode;
+				caseHash: CaseHash | null;
+				node: ChangeExplorerTree;
 				nodeIds: TreeNodeId[];
 				fileNodes: FileTreeNode[] | null;
 				nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;

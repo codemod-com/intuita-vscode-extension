@@ -2,21 +2,14 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage, View } from '../shared/types';
 import TreeView from './TreeView';
-import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import './index.css';
 import { pipe } from 'fp-ts/lib/function';
 import SearchBar from '../shared/SearchBar';
+import Progress from '../shared/Progress';
 
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
-
-const loadingContainer = (
-	<div className="loadingContainer">
-		<VSCodeProgressRing className="progressBar" />
-		<span aria-label="loading">Loading...</span>
-	</div>
-);
 
 function App() {
 	const [view, setView] = useState<CodemodView | null>(null);
@@ -44,7 +37,11 @@ function App() {
 	}, []);
 
 	if (view === null) {
-		return <main className="App">{loadingContainer}</main>;
+		return (
+			<main className="App">
+				<Progress />
+			</main>
+		);
 	}
 
 	const {
@@ -61,10 +58,10 @@ function App() {
 		E.fold(
 			(error) => <p>{error.message}</p>,
 			O.fold(
-				() => loadingContainer,
+				() => <Progress />,
 				(node) => {
 					if (node.children.length === 0) {
-						return loadingContainer;
+						return <Progress />;
 					}
 
 					return (

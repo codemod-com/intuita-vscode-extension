@@ -41,6 +41,7 @@ import {
 import { CaseManager } from '../../cases/caseManager';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
+import * as O from 'fp-ts/lib/Option';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
@@ -56,7 +57,6 @@ export class FileExplorer {
 	>();
 	__treeNodesByDepth: TreeNode[][] = [];
 	__unsavedChanges = false;
-	__codemodExecutionInProgress = false;
 	__lastFocusedNodeId: TreeNodeId | null = null;
 
 	constructor(
@@ -127,10 +127,20 @@ export class FileExplorer {
 		const state = this.__store.getState();
 		const caseHash = state.codemodRunsView
 			.selectedCaseHash as CaseHash | null;
+		const { codemodExecutionInProgress } = state;
 
-		if (caseHash === null) {
-			return null;
+		if (codemodExecutionInProgress) {
+			return {
+				node: O.none,
+				nodeIds: [],
+				fileNodes: [],
+				caseHash,
+				nodesByDepth: this.__treeNodesByDepth,
+				openedIds: [],
+				focusedId: null,
+			};
 		}
+
 		this.__treeMap.clear();
 		this.__fileNodes.clear();
 
@@ -165,9 +175,9 @@ export class FileExplorer {
 			state.changeExplorerView;
 
 		return {
-			node: tree,
+			node: O.some(tree),
 			nodeIds: Array.from(this.__treeMap.keys()),
-			fileNodes: this.__codemodExecutionInProgress
+			fileNodes: codemodExecutionInProgress
 				? null
 				: Array.from(this.__fileNodes.values()).map((obj) => obj.node),
 			caseHash: caseElement.hash as unknown as CaseHash,
@@ -448,14 +458,6 @@ export class FileExplorer {
 
 		this.__addHook(MessageKind.clearState, () => {
 			this.__onClearStateMessage();
-		});
-
-		this.__addHook(MessageKind.executeCodemodSet, () => {
-			this.__codemodExecutionInProgress = true;
-		});
-
-		this.__addHook(MessageKind.codemodSetExecuted, () => {
-			this.__codemodExecutionInProgress = false;
 		});
 	}
 

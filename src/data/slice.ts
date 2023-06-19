@@ -92,6 +92,7 @@ const getInitialState = (): RootState => {
 			visible: true,
 		},
 		appliedJobHashes: [],
+		codemodExecutionInProgress: false,
 	};
 };
 
@@ -244,6 +245,9 @@ const rootSlice = createSlice({
 			state.appliedJobHashes = state.appliedJobHashes.filter(
 				(jobHash) => !action.payload.includes(jobHash as JobHash),
 			);
+		},
+		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
+			state.codemodExecutionInProgress = action.payload;
 		},
 	},
 });
