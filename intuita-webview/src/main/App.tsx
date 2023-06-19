@@ -46,7 +46,6 @@ const PANELS: {
 		id: 'communityView',
 		title: 'Community',
 		Component: CommunityView,
-		inlineStyle: { flex: 'auto' },
 	},
 ];
 
