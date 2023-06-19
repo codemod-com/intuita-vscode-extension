@@ -25,7 +25,7 @@ export const useCTLKey = (key: string, callback: () => void) => {
  */
 export const useKey = (
 	container: HTMLElement | null,
-	key: string,
+	key: KeyboardEvent['key'],
 	callback: () => void,
 ) => {
 	const keyPressCallback = useCallback(

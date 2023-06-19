@@ -13,6 +13,7 @@ import {
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { RootState, TabKind } from '../persistedState/codecs';
+import { ExplorerNodeHashDigest } from '../selectors/selectExplorerTree';
 
 const SLICE_KEY = 'root';
 
@@ -40,6 +41,7 @@ type CommunityState = Readonly<{
 }>;
 
 export type State = {
+	codemodExecutionInProgress: boolean;
 	codemodDiscoveryView: CodemodDiscoveryState;
 	codemodRunsView: CodemodRunsState;
 	changeExplorerView: ChangeExplorerState;
@@ -129,6 +131,9 @@ const rootSlice = createSlice({
 			jobAdapter.removeAll(state.job);
 			state.codemodRunsView.selectedCaseHash = null;
 			state.caseHashJobHashes = [];
+			state.changeExplorerView.focusedFileExplorerNodeId = null;
+			state.changeExplorerView.openedFileExplorerNodeIds = [];
+			state.changeExplorerView.searchPhrase = '';
 		},
 		upsertCodemods(
 			state,
@@ -203,20 +208,27 @@ const rootSlice = createSlice({
 		 */
 		setFocusedFileExplorerNodeId(
 			state,
-			action: PayloadAction<string | null>,
+			action: PayloadAction<ExplorerNodeHashDigest | null>,
 		) {
 			state.changeExplorerView.visible = true;
 			state.changeExplorerView.focusedFileExplorerNodeId = action.payload;
 		},
-		setOpenedFileExplorerNodeIds(
+		flipChangeExplorerNodeIds(
 			state,
-			action: PayloadAction<ReadonlyArray<string>>,
+			action: PayloadAction<ExplorerNodeHashDigest>,
 		) {
-			state.changeExplorerView.visible = true;
+			const set = new Set<ExplorerNodeHashDigest>(
+				state.changeExplorerView.openedFileExplorerNodeIds as any[],
+			);
 
-			state.changeExplorerView.openedFileExplorerNodeIds = [
-				...action.payload,
-			];
+			if (set.has(action.payload)) {
+				set.delete(action.payload);
+			} else {
+				set.add(action.payload);
+			}
+
+			state.changeExplorerView.openedFileExplorerNodeIds =
+				Array.from(set);
 		},
 		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
 			state.changeExplorerView.visible = action.payload;

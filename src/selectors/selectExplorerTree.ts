@@ -131,7 +131,11 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 
 	const jobs = Array.from(caseJobManager.getRightHashesByLeftHash(kase.hash))
 		.map((jobHash) => state.job.entities[jobHash])
-		.filter(isNeitherNullNorUndefined)
+		.filter(isNeitherNullNorUndefined);
+
+	const jobHashes = jobs.map(({ hash }) => hash);
+
+	const filteredJobs = jobs
 		.filter((job) => {
 			if (properSearchPhrase === '') {
 				return true;
@@ -158,7 +162,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 			return aUri.fsPath.localeCompare(bUri.fsPath);
 		});
 
-	for (const job of jobs) {
+	for (const job of filteredJobs) {
 		const uri = getJobUri(job);
 
 		if (uri === null) {
@@ -244,6 +248,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 	appendNodeData(rootNode.hashDigest, -1);
 
 	return {
+		caseHash,
 		nodeData,
 		selectedNodeHashDigest: state.changeExplorerView
 			.focusedFileExplorerNodeId as ExplorerNodeHashDigest | null,
@@ -251,6 +256,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 			.openedFileExplorerNodeIds as ExplorerNodeHashDigest[],
 		appliedJobHashes: state.appliedJobHashes,
 		searchPhrase: properSearchPhrase,
+		jobHashes,
 	};
 };
 

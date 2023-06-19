@@ -329,14 +329,6 @@ const TreeView = ({
 	}, [searchQuery]);
 
 	useEffect(() => {
-		vscode.postMessage({
-			kind: 'webview.fileExplorer.setState',
-			openedIds: Array.from(state.openedIds),
-			focusedId: state.focusedId,
-		});
-	}, [state]);
-
-	useEffect(() => {
 		const handler = () => {
 			dispatch({
 				kind: 'blur',
@@ -438,5 +430,3 @@ const TreeView = ({
 		</div>
 	);
 };
-
-export default TreeView;

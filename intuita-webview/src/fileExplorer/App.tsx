@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-
-import TreeView from './TreeView';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './style.module.css';
 
 import type {
@@ -12,8 +10,35 @@ import ActionsHeader from './ActionsHeader';
 import Progress from '../shared/Progress';
 
 import { vscode } from '../shared/utilities/vscode';
-import * as O from 'fp-ts/lib/Option';
-import { pipe } from 'fp-ts/lib/function';
+import { IntuitaTreeView } from '../intuitaTreeView';
+import { explorerNodeRenderer } from './explorerNodeRenderer';
+import {
+	ExplorerNode,
+	ExplorerNodeHashDigest,
+} from '../../../src/selectors/selectExplorerTree';
+
+export function isNeitherNullNorUndefined<T>(
+	value: T,
+	// eslint-disable-next-line @typescript-eslint/ban-types
+): value is T & {} {
+	return value !== null && value !== undefined;
+}
+
+const onFocus = (hashDigest: ExplorerNodeHashDigest) => {
+	vscode.postMessage({
+		kind: 'webview.global.selectExplorerNodeHashDigest',
+		selectedExplorerNodeHashDigest: hashDigest,
+	});
+};
+
+const onFlip = (hashDigest: ExplorerNodeHashDigest) => {
+	vscode.postMessage({
+		kind: 'webview.global.flipChangeExplorerNodeIds',
+		hashDigest,
+	});
+
+	onFocus(hashDigest);
+};
 
 type Props = { screenWidth: number | null };
 
@@ -21,8 +46,6 @@ function App({ screenWidth }: Props) {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.fileExplorerProps,
 	);
-	const [searchQuery, setSearchQuery] = useState<string>('');
-	const [stagedJobs, setStagedJobs] = useState<ReadonlyArray<JobHash>>([]);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -31,22 +54,18 @@ function App({ screenWidth }: Props) {
 				// @TODO separate View type to MainViews and SourceControlViews
 				if (message.value.viewId === 'fileExplorer') {
 					setViewProps(message.value.viewProps);
-					if (message.value.viewProps?.fileNodes !== null) {
-						setStagedJobs(
-							message.value.viewProps?.fileNodes.map(
-								(node) => node.jobHash,
-							) ?? [],
-						);
-					}
 				}
 			}
 
-			if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
-				setStagedJobs(message.value);
-			}
+			// TODO remove updateStagedJobs
+			// if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
+			// 	setStagedJobs(message.value);
+			// }
 		};
 
 		window.addEventListener('message', handler);
+
+		// TODO is afterWebviewMounted needed?
 		vscode.postMessage({
 			kind: 'webview.fileExplorer.afterWebviewMounted',
 		});
@@ -56,7 +75,37 @@ function App({ screenWidth }: Props) {
 		};
 	}, []);
 
-	if (viewProps === null || viewProps.caseHash === null) {
+	const appliedJobHashes = useMemo(
+		() => viewProps?.appliedJobHashes ?? [],
+		[viewProps],
+	);
+
+	const onToggleJob = useCallback(
+		(jobHash: JobHash) => {
+			const stagedJobsSet = new Set(appliedJobHashes);
+
+			if (stagedJobsSet.has(jobHash)) {
+				stagedJobsSet.delete(jobHash);
+			} else {
+				stagedJobsSet.add(jobHash);
+			}
+
+			vscode.postMessage({
+				kind: 'webview.global.stageJobs',
+				jobHashes: Array.from(stagedJobsSet),
+			});
+		},
+		[appliedJobHashes],
+	);
+
+	const setSearchPhrase = useCallback((searchPhrase: string) => {
+		vscode.postMessage({
+			kind: 'webview.global.setChangeExplorerSearchPhrase',
+			searchPhrase,
+		});
+	}, []);
+
+	if ((viewProps?.caseHash ?? null) === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -64,49 +113,41 @@ function App({ screenWidth }: Props) {
 		);
 	}
 
-	const { fileNodes, caseHash, openedIds, focusedId, node } = viewProps;
-
-	const TreeOrProgress = pipe(
-		node,
-		O.fold(
-			() => <Progress />,
-			(node) => {
-				return (
-					<TreeView
-						{...viewProps}
-						caseHash={caseHash}
-						node={node}
-						searchQuery={searchQuery}
-						stagedJobs={stagedJobs.slice()}
-						openedIds={new Set(openedIds)}
-						focusedNodeId={focusedId}
-					/>
-				);
-			},
-		),
-	);
-
 	return (
 		<main
 			className={styles.container}
-			style={{ ...(fileNodes === null && { cursor: 'not-allowed' }) }}
+			style={{ ...(viewProps === null && { cursor: 'not-allowed' }) }}
 		>
-			{searchQuery.length === 0 && (
+			{viewProps !== null && (
 				<ActionsHeader
-					selectedJobHashes={stagedJobs}
-					jobHashes={fileNodes?.map(({ jobHash }) => jobHash) ?? []}
-					caseHash={caseHash}
+					selectedJobHashes={viewProps.appliedJobHashes}
+					jobHashes={viewProps.jobHashes}
+					caseHash={viewProps.caseHash}
 					screenWidth={screenWidth}
 				/>
 			)}
-			{fileNodes !== null && (
+			{viewProps !== null && (
 				<SearchBar
-					searchPhrase={searchQuery}
-					setSearchPhrase={setSearchQuery}
+					searchPhrase={viewProps.searchPhrase}
+					setSearchPhrase={setSearchPhrase}
 					placeholder="Search files..."
 				/>
 			)}
-			<div className={styles.treeContainer}>{TreeOrProgress}</div>
+			<div className={styles.treeContainer}>
+				{viewProps !== null ? (
+					<IntuitaTreeView<ExplorerNodeHashDigest, ExplorerNode>
+						{...viewProps}
+						nodeRenderer={explorerNodeRenderer(
+							viewProps,
+							onToggleJob,
+						)}
+						onFlip={onFlip}
+						onFocus={onFocus}
+					/>
+				) : (
+					<Progress />
+				)}
+			</div>
 		</main>
 	);
 }
