@@ -88,8 +88,9 @@ export const persistedStateCodecNew = buildTypeCodec({
 			visible: true,
 		},
 	),
-	caseHashJobHashes: t.readonlyArray(t.string),
-	appliedJobHashes: t.readonlyArray(t.string),
+	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
+	appliedJobHashes: withFallback(t.readonlyArray(t.string), []),
+	codemodExecutionInProgress: withFallback(t.boolean, false),
 });
 
 export type RootState = t.TypeOf<typeof persistedStateCodecNew>;

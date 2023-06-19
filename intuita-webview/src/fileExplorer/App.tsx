@@ -9,7 +9,11 @@ import type {
 } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
+import Progress from '../shared/Progress';
+
 import { vscode } from '../shared/utilities/vscode';
+import * as O from 'fp-ts/lib/Option';
+import { pipe } from 'fp-ts/lib/function';
 
 function App() {
 	const [viewProps, setViewProps] = useState(
@@ -50,7 +54,7 @@ function App() {
 		};
 	}, []);
 
-	if (viewProps === null) {
+	if (viewProps === null || viewProps.caseHash === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -58,7 +62,28 @@ function App() {
 		);
 	}
 
-	const { fileNodes, caseHash, openedIds, focusedId } = viewProps;
+	const { fileNodes, caseHash, openedIds, focusedId, node } = viewProps;
+
+	const TreeOrProgress = pipe(
+		node,
+		O.fold(
+			() => <Progress />,
+			(node) => {
+				return (
+					<TreeView
+						{...viewProps}
+						caseHash={caseHash}
+						node={node}
+						searchQuery={searchQuery}
+						stagedJobs={stagedJobs}
+						openedIds={new Set(openedIds)}
+						focusedNodeId={focusedId}
+					/>
+				);
+			},
+		),
+	);
+
 	return (
 		<main
 			className={styles.container}
@@ -78,15 +103,7 @@ function App() {
 					placeholder="Search files..."
 				/>
 			)}
-			<div className={styles.treeContainer}>
-				<TreeView
-					{...viewProps}
-					searchQuery={searchQuery}
-					stagedJobs={stagedJobs}
-					openedIds={new Set(openedIds)}
-					focusedNodeId={focusedId}
-				/>
-			</div>
+			<div className={styles.treeContainer}>{TreeOrProgress}</div>
 		</main>
 	);
 }
