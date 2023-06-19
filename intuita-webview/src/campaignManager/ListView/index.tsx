@@ -13,7 +13,7 @@ type Props = {
 const ListView = ({ nodes, selectedCaseHash, onItemClick }: Props) => {
 	return (
 		<div className={styles.container}>
-			{nodes.map((node, index) => {
+			{nodes.map((node) => {
 				return (
 					<TreeItem
 						key={node.id}
@@ -23,11 +23,9 @@ const ListView = ({ nodes, selectedCaseHash, onItemClick }: Props) => {
 						subLabel=""
 						icon={<CaseIcon />}
 						depth={0}
-						kind={node.kind}
 						open={false}
 						focused={node.id === selectedCaseHash}
 						actionButtons={null}
-						index={index}
 						onClick={() => {
 							onItemClick(node);
 						}}
