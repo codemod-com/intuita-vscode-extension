@@ -77,8 +77,8 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 		oldContentUri: persistedJob.oldContentUri
 			? Uri.parse(persistedJob.oldContentUri)
 			: null,
-		newContentUri: persistedJob.oldContentUri
-			? Uri.parse(persistedJob.oldContentUri)
+		newContentUri: persistedJob.newContentUri
+			? Uri.parse(persistedJob.newContentUri)
 			: null,
 	};
 };
