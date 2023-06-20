@@ -4,7 +4,6 @@ import {
 	VSCodePanels,
 	VSCodePanelTab,
 	VSCodePanelView,
-	VSCodeBadge,
 } from '@vscode/webview-ui-toolkit/react';
 
 import CodemodList from '../codemodList/App';
