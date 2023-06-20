@@ -39,7 +39,7 @@ type CommunityState = Readonly<{
 	visible: boolean;
 }>;
 
-type State = {
+export type State = {
 	codemodDiscoveryView: CodemodDiscoveryState;
 	codemodRunsView: CodemodRunsState;
 	changeExplorerView: ChangeExplorerState;
@@ -57,7 +57,7 @@ const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
-const caseAdapter = createEntityAdapter<Case>({
+export const caseAdapter = createEntityAdapter<Case>({
 	selectId: (kase) => kase.hash,
 });
 
