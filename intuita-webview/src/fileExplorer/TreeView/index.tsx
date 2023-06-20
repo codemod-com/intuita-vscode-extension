@@ -237,11 +237,9 @@ const TreeView = ({
 	const renderItem = ({
 		node,
 		depth,
-		index,
 	}: {
 		node: TreeNode | FileTreeNode;
 		depth: number;
-		index: number;
 	}) => {
 		const open = state.openedIds.has(node.id);
 		const icon = getIcon(node.iconName ?? null, open);
@@ -270,7 +268,6 @@ const TreeView = ({
 				subLabel=""
 				icon={icon}
 				depth={depth}
-				kind={node.kind}
 				open={open}
 				focused={focused}
 				onClick={() => {
@@ -290,7 +287,6 @@ const TreeView = ({
 
 					dispatch({ kind: 'flip', id: node.id });
 				}}
-				index={index}
 				inlineStyles={{
 					root: {
 						...(enableCheckbox && {
@@ -378,7 +374,7 @@ const TreeView = ({
 
 		return (
 			<ReactTreeView nodeLabel="">
-				{filteredFiles?.map((node, index) => {
+				{filteredFiles?.map((node) => {
 					const icon = getIcon(node.iconName ?? null, false);
 
 					return (
@@ -392,7 +388,6 @@ const TreeView = ({
 							}
 							icon={icon}
 							depth={0}
-							kind={node.kind}
 							open={false}
 							focused={node.id === state.focusedId}
 							onClick={() => {
@@ -402,7 +397,6 @@ const TreeView = ({
 								});
 							}}
 							actionButtons={[]}
-							index={index}
 						/>
 					);
 				})}

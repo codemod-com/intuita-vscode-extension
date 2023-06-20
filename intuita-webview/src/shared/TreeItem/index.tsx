@@ -11,10 +11,8 @@ type Props = Readonly<{
 	icon: ReactNode;
 	actionButtons: ReactNode;
 	hasChildren: boolean;
-	kind: string;
-	onClick(): void;
+	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
-	index: number;
 	inlineStyles?: {
 		root?: CSSProperties;
 		icon?: CSSProperties;
@@ -22,7 +20,7 @@ type Props = Readonly<{
 		subLabel?: CSSProperties;
 		actions?: CSSProperties;
 	};
-	onPressChevron?(): void;
+	onPressChevron?(event: React.MouseEvent<HTMLSpanElement>): void;
 }>;
 
 const TreeItem = ({
