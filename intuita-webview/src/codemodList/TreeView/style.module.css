@@ -30,13 +30,6 @@
 	display: flex;
 }
 
-.root .codemodItemActions,
-.root .directorySelector {
-	@media (max-width: 250px) {
-		display: flex;
-	}
-}
-
 .root:hover .description {
 	display: inline;
 }
@@ -73,12 +66,6 @@
 	width: 100%;
 	display: flex;
 	align-items: center;
-}
-
-.codemodItemLabel {
-	@media (max-width: 250px) {
-		display: none;
-	}
 }
 
 .description {

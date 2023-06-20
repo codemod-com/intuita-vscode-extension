@@ -402,6 +402,7 @@ export class CodemodListPanel {
 				actions: [
 					{
 						title: '✓ Dry Run',
+						shortenedTitle: '✓',
 						description:
 							'Run this codemod without making change to file system',
 						kind: 'webview.codemodList.dryRunCodemod',

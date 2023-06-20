@@ -32,6 +32,7 @@ const updatePath = (
 
 type Props = {
 	defaultValue: string;
+	displayValue: string | null;
 	rootPath: string;
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
@@ -44,6 +45,7 @@ type Props = {
 
 export const DirectorySelector = ({
 	defaultValue,
+	displayValue: displayValueProp,
 	rootPath,
 	codemodHash,
 	onEditStart,
@@ -53,6 +55,7 @@ export const DirectorySelector = ({
 	error,
 	autocompleteItems,
 }: Props) => {
+	const displayValue = displayValueProp || defaultValue;
 	const repoName =
 		rootPath
 			.split('/')
@@ -266,10 +269,10 @@ export const DirectorySelector = ({
 					className={styles.targetPathButton}
 				>
 					<span className={styles.label}>
-						{defaultValue === `${repoName}/` ? (
+						{displayValue === `${repoName}/` ? (
 							<em>{`${repoName}/`}</em>
 						) : (
-							defaultValue
+							displayValue
 								.split('/')
 								.filter((part) => part.length !== 0)
 								.slice(-1)[0]
