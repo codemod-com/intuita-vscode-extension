@@ -32,6 +32,9 @@ dependencies:
   react:
     specifier: ^18.2.0
     version: 18.2.0
+  react-accessible-treeview:
+    specifier: ^2.6.1
+    version: 2.6.1(classnames@2.3.2)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
   react-dom:
     specifier: ^18.2.0
     version: 18.2.0(react@18.2.0)
@@ -8939,6 +8942,20 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-is: 16.13.1
+    dev: false
+
+  /react-accessible-treeview@2.6.1(classnames@2.3.2)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-VspZS7OEDlMWMvuJ450CMEjo9n6r7gNJ2eZYqCi6MTFKQGyJR7unqKITFmw7bbtvspbANdoqoC8+AsI7H3PaGA==}
+    peerDependencies:
+      classnames: ^2.2.6
+      prop-types: ^15.7.2
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      classnames: 2.3.2
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /react-app-polyfill@3.0.0:
