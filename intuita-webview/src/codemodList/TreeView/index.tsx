@@ -25,6 +25,7 @@ type Props = Readonly<{
 	nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
 	focusedId: CodemodHash | null;
 	searchQuery: string;
+	screenWidth: number | null;
 }>;
 
 export const containsSearchedCodemod = (
@@ -208,12 +209,10 @@ const TreeView = ({
 	searchQuery,
 	nodeIds,
 	nodesByDepth,
+	screenWidth,
 }: Props) => {
 	const rootPath = node.label;
 	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
-	const [treeContainerWidth, setTreeContainerWidth] = useState<null | number>(
-		null,
-	);
 	const [hashesForSearch, setHashesForSearch] = useState<Set<CodemodHash>>(
 		new Set(),
 	);
@@ -251,38 +250,6 @@ const TreeView = ({
 			focusedId: state.focusedId,
 		});
 	}, [state]);
-
-	useEffect(() => {
-		if (ResizeObserver === undefined) {
-			return undefined;
-		}
-
-		const discoveryViewContainer =
-			document.getElementById('codemodDiscoveryView-treeContainer') ??
-			null;
-
-		if (discoveryViewContainer === null) {
-			return;
-		}
-
-		const resizeObserver = new ResizeObserver((entries) => {
-			const container = entries[0] ?? null;
-			if (container === null) {
-				return;
-			}
-			const {
-				contentRect: { width },
-			} = container;
-
-			setTreeContainerWidth(width);
-		});
-
-		resizeObserver.observe(discoveryViewContainer);
-
-		return () => {
-			resizeObserver.disconnect();
-		};
-	}, []);
 
 	const onHalt = useCallback(() => {
 		setRunningRepomodHash(null);
@@ -372,8 +339,7 @@ const TreeView = ({
 								executionStack.includes(action.value) && (
 									<i className="codicon codicon-history mr-2" />
 								)}
-							{treeContainerWidth !== null &&
-							treeContainerWidth < 320
+							{screenWidth !== null && screenWidth < 320
 								? action.shortenedTitle
 								: action.title}
 						</VSCodeButton>
@@ -429,9 +395,7 @@ const TreeView = ({
 				label={node.label ?? ''}
 				icon={icon}
 				pathDisplayValue={
-					treeContainerWidth !== null && treeContainerWidth < 320
-						? '🎯'
-						: null
+					screenWidth !== null && screenWidth < 320 ? '🎯' : null
 				}
 				depth={depth}
 				kind={node.kind}

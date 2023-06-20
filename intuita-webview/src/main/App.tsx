@@ -7,7 +7,13 @@ import CodemodList from '../codemodList/App';
 import FileExplorer from '../fileExplorer/App';
 import CommunityView from '../communityView/App';
 import { ResizablePanel, PanelGroup } from '../shared/Panel';
-import { CSSProperties, ReactElement, useEffect, useRef } from 'react';
+import {
+	CSSProperties,
+	ReactElement,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import SectionHeader from '../shared/SectionHeader';
 import { WebviewMessage } from '../shared/types';
 import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
@@ -15,14 +21,14 @@ import { CollapsibleWebviews } from '../../../src/components/webview/webviewEven
 const PANELS: {
 	id: CollapsibleWebviews;
 	title: string;
-	Component: () => ReactElement | null;
+	Component: (props: any) => ReactElement | null;
 	commands?: any[];
 	inlineStyle?: CSSProperties;
 }[] = [
 	{
 		id: 'codemodDiscoveryView',
 		title: 'Codemod Discovery',
-		Component: CodemodList,
+		Component: (props) => CodemodList(props),
 	},
 	{
 		id: 'codemodRunsView',
@@ -34,24 +40,25 @@ const PANELS: {
 				command: 'intuita.clearState',
 			},
 		],
-		Component: CampaignManager,
+		Component: (props) => CampaignManager(props),
 	},
 	{
 		id: 'changeExplorerView',
 		title: 'Changes Explorer',
-		Component: FileExplorer,
+		Component: (props) => FileExplorer(props),
 	},
 	{
 		id: 'communityView',
 		title: 'Community',
-		Component: CommunityView,
+		Component: (props) => CommunityView(props),
 		inlineStyle: { flex: 'auto' },
 	},
 ];
 
 function App() {
 	const panelRefs = useRef<Record<string, ImperativePanelHandle>>({});
-
+	const ref = useRef(null);
+	const [screenWidth, setScreenWidth] = useState<number | null>(null);
 	const togglePanel = (id: string) => {
 		const ref = panelRefs.current[id];
 
@@ -89,8 +96,36 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (ResizeObserver === undefined) {
+			return undefined;
+		}
+
+		if (ref.current === null) {
+			return;
+		}
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			const container = entries[0] ?? null;
+			if (container === null) {
+				return;
+			}
+			const {
+				contentRect: { width },
+			} = container;
+
+			setScreenWidth(width);
+		});
+
+		resizeObserver.observe(ref.current);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, []);
+
 	return (
-		<main className="App">
+		<main className="App" ref={ref}>
 			<PanelGroup direction="vertical">
 				{PANELS.map(
 					(
@@ -131,7 +166,7 @@ function App() {
 										...inlineStyle,
 									}}
 								>
-									<Component />
+									<Component screenWidth={screenWidth} />
 								</ResizablePanel>
 							</>
 						);
