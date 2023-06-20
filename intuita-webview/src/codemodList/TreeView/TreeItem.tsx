@@ -223,10 +223,6 @@ const TreeItem = ({
 									}),
 									userSelect: 'none',
 								}}
-								className={cn(
-									kind === 'codemodItem' &&
-										styles.codemodItemLabel,
-								)}
 							>
 								{label}
 							</span>

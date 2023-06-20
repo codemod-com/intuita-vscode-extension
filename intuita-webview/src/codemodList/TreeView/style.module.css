@@ -75,12 +75,6 @@
 	align-items: center;
 }
 
-.codemodItemLabel {
-	@media (max-width: 250px) {
-		display: none;
-	}
-}
-
 .description {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
