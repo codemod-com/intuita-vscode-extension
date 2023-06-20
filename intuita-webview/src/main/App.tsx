@@ -1,20 +1,20 @@
-import {
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { VSCodePanels, VSCodePanelTab, VSCodePanelView, VSCodeBadge }  from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodePanels,
+	VSCodePanelTab,
+	VSCodePanelView,
+	VSCodeBadge,
+} from '@vscode/webview-ui-toolkit/react';
 
 import CodemodList from '../codemodList/App';
 import CommunityView from '../communityView/App';
 import CodemodRuns from './CodemodRuns';
 
-
 function App() {
 	const ref = useRef(null);
 	const [screenWidth, setScreenWidth] = useState<number | null>(null);
-	
+
 	useEffect(() => {
 		if (ResizeObserver === undefined) {
 			return undefined;
@@ -45,20 +45,23 @@ function App() {
 
 	return (
 		<main className="App" ref={ref}>
-			<VSCodePanels>
-				<VSCodePanelTab id='tab-1'>Codemods Discovery</VSCodePanelTab>
-				<VSCodePanelTab id='tab-2'>
+			<VSCodePanels className="h-full w-full vscode-panels">
+				<VSCodePanelTab className="vscode-tab" id="tab-1">
+					Codemods Discovery
+				</VSCodePanelTab>
+				<VSCodePanelTab className="vscode-tab" id="tab-2">
 					Codemod Runs
-					<VSCodeBadge>34</VSCodeBadge>
-					</VSCodePanelTab>
-				<VSCodePanelTab id='tab-3'>Community</VSCodePanelTab>
-				<VSCodePanelView>
+				</VSCodePanelTab>
+				<VSCodePanelTab className="vscode-tab" id="tab-3">
+					Community
+				</VSCodePanelTab>
+				<VSCodePanelView className="h-full w-full">
 					<CodemodList screenWidth={screenWidth} />
 				</VSCodePanelView>
-				<VSCodePanelView>
-					<CodemodRuns  screenWidth={screenWidth} />
+				<VSCodePanelView className="h-full w-full">
+					<CodemodRuns screenWidth={screenWidth} />
 				</VSCodePanelView>
-				<VSCodePanelView>
+				<VSCodePanelView className="h-full w-full">
 					<CommunityView screenWidth={screenWidth} />
 				</VSCodePanelView>
 			</VSCodePanels>

@@ -1,9 +1,4 @@
-import {
-	CSSProperties,
-	ReactElement,
-	useEffect,
-	useRef,
-} from 'react';
+import { CSSProperties, ReactElement, useEffect, useRef } from 'react';
 
 import {
 	PanelResizeHandle,
@@ -19,9 +14,9 @@ import FileExplorer from '../fileExplorer/App';
 
 import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
 
-type Props  = {
+type Props = {
 	screenWidth: number | null;
-}
+};
 
 const RESIZABLE_PANELS: {
 	id: CollapsibleWebviews;
@@ -50,8 +45,8 @@ const RESIZABLE_PANELS: {
 ];
 
 const CodemodRuns = ({ screenWidth }: Props) => {
-  const panelRefs = useRef<Record<string, ImperativePanelHandle>>({});
-	
+	const panelRefs = useRef<Record<string, ImperativePanelHandle>>({});
+
 	const togglePanel = (id: string) => {
 		const ref = panelRefs.current[id];
 
@@ -89,54 +84,57 @@ const CodemodRuns = ({ screenWidth }: Props) => {
 		};
 	}, []);
 
-  return (<div className='w-full h-full'><PanelGroup direction="vertical">
-    {RESIZABLE_PANELS.map(
-      (
-        {
-          id,
-          title,
-          commands = [],
-          Component,
-          inlineStyle = {},
-        },
-        idx,
-      ) => {
-        const collapsed = panelRefs.current[id]?.getCollapsed();
+	return (
+		<div className="w-full h-full">
+			<PanelGroup direction="vertical">
+				{RESIZABLE_PANELS.map(
+					(
+						{
+							id,
+							title,
+							commands = [],
+							Component,
+							inlineStyle = {},
+						},
+						idx,
+					) => {
+						const collapsed = panelRefs.current[id]?.getCollapsed();
 
-        return (
-          <>
-            {idx !== 0 ? (
-              <PanelResizeHandle className="resize-handle" />
-            ) : null}
-            <SectionHeader
-              title={title}
-              commands={commands}
-              defaultOpen={!collapsed}
-              onHeaderClick={() => togglePanel(id)}
-            />
-            <ResizablePanel
-              collapsible
-              minSize={0}
-              defaultSize={50}
-              ref={(ref) => {
-                if (ref) {
-                  panelRefs.current[id] = ref;
-                }
-              }}
-              style={{
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                ...inlineStyle,
-              }}
-            >
-              <Component screenWidth={screenWidth} />
-            </ResizablePanel>
-          </>
-        );
-      },
-    )}
-  </PanelGroup>
-  </div>)
-}
+						return (
+							<>
+								{idx !== 0 ? (
+									<PanelResizeHandle className="resize-handle" />
+								) : null}
+								<SectionHeader
+									title={title}
+									commands={commands}
+									defaultOpen={!collapsed}
+									onHeaderClick={() => togglePanel(id)}
+								/>
+								<ResizablePanel
+									collapsible
+									minSize={0}
+									defaultSize={50}
+									ref={(ref) => {
+										if (ref) {
+											panelRefs.current[id] = ref;
+										}
+									}}
+									style={{
+										overflowY: 'auto',
+										overflowX: 'hidden',
+										...inlineStyle,
+									}}
+								>
+									<Component screenWidth={screenWidth} />
+								</ResizablePanel>
+							</>
+						);
+					},
+				)}
+			</PanelGroup>
+		</div>
+	);
+};
 
-export default CodemodRuns
+export default CodemodRuns;
