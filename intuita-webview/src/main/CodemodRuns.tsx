@@ -14,9 +14,9 @@ import FileExplorer from '../fileExplorer/App';
 
 import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
 
-type Props = {
+type Props = Readonly<{
 	screenWidth: number | null;
-};
+}>;
 
 const RESIZABLE_PANELS: {
 	id: CollapsibleWebviews;
