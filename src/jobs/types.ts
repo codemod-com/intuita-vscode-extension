@@ -6,7 +6,7 @@ interface JobHashBrand {
 	readonly __JobHash: unique symbol;
 }
 
-const jobHashCodec = t.brand(
+export const jobHashCodec = t.brand(
 	t.string,
 	(hashDigest): hashDigest is t.Branded<string, JobHashBrand> =>
 		hashDigest.length > 0,

@@ -19,84 +19,48 @@ export type ExplorerNodeHashDigest = string & {
 	__ExplorerNodeHashDigest: 'ExplorerNodeHashDigest';
 };
 
-export type ExplorerNode =
-	| Readonly<{
-			hashDigest: ExplorerNodeHashDigest;
-			kind: 'ROOT';
-			label: string;
-	  }>
-	| Readonly<{
-			hashDigest: ExplorerNodeHashDigest;
-			kind: 'TOP';
-			label: string;
-	  }>
-	| Readonly<{
-			hashDigest: ExplorerNodeHashDigest;
-			kind: 'DIRECTORY';
-			label: string;
-	  }>
-	| Readonly<{
-			hashDigest: ExplorerNodeHashDigest;
-			kind: 'FILE';
-			label: string;
-			jobHash: string;
-			fileAdded: boolean;
-	  }>;
+export const buildRootNode = () =>
+	({
+		hashDigest: buildHash('ROOT') as ExplorerNodeHashDigest,
+		kind: 'ROOT' as const,
+		label: '',
+	} as const);
 
-export const buildRootNode = (): ExplorerNode & { kind: 'ROOT' } => ({
-	hashDigest: buildHash('ROOT') as ExplorerNodeHashDigest,
-	kind: 'ROOT',
-	label: '',
-});
+export const buildTopNode = (label: string) =>
+	({
+		hashDigest: buildHash('TOP') as ExplorerNodeHashDigest,
+		kind: 'TOP' as const,
+		label,
+	} as const);
 
-export const buildTopNode = (
-	label: string,
-): ExplorerNode & { kind: 'TOP' } => ({
-	hashDigest: buildHash('TOP') as ExplorerNodeHashDigest,
-	kind: 'TOP',
-	label,
-});
+export const buildDirectoryNode = (path: string, label: string) =>
+	({
+		hashDigest: buildHash(
+			['DIRECTORY', path, label].join(''),
+		) as ExplorerNodeHashDigest,
+		kind: 'DIRECTORY' as const,
+		label,
+	} as const);
 
-export const buildDirectoryNode = (
-	path: string,
-	label: string,
-): ExplorerNode & { kind: 'DIRECTORY' } => ({
-	hashDigest: buildHash(
-		['DIRECTORY', path, label].join(''),
-	) as ExplorerNodeHashDigest,
-	kind: 'DIRECTORY',
-	label,
-});
-
-export const buildFileNode = (
-	job: PersistedJob,
-	label: string,
-): ExplorerNode & { kind: 'FILE' } => {
+export const buildFileNode = (job: PersistedJob, label: string) => {
 	const fileAdded = doesJobAddNewFile(job.kind);
 
 	return {
-		kind: 'FILE',
+		kind: 'FILE' as const,
 		hashDigest: buildHash(
 			['FILE', job.hash, label].join(''),
 		) as ExplorerNodeHashDigest,
 		label,
 		jobHash: job.hash,
 		fileAdded,
-	};
+	} as const;
 };
 
-export type ExplorerTree = Readonly<{
-	rootNodeHashDigest: ExplorerNodeHashDigest;
-	nodes: Record<ExplorerNodeHashDigest, ExplorerNode>;
-	children: Record<
-		ExplorerNodeHashDigest,
-		ReadonlyArray<ExplorerNodeHashDigest>
-	>;
-	parents: Record<ExplorerNodeHashDigest, ExplorerNodeHashDigest>;
-	selectedNodeHashDigest: ExplorerNodeHashDigest | null;
-	expandedNodeHashDigests: ReadonlyArray<ExplorerNodeHashDigest>;
-	appliedJobHashes: ReadonlyArray<JobHash>;
-}>;
+export type ExplorerNode =
+	| ReturnType<typeof buildRootNode>
+	| ReturnType<typeof buildTopNode>
+	| ReturnType<typeof buildDirectoryNode>
+	| ReturnType<typeof buildFileNode>;
 
 const getJobUri = (job: PersistedJob): Uri | null => {
 	if (doesJobAddNewFile(job.kind) && job.newUri !== null) {
@@ -110,10 +74,7 @@ const getJobUri = (job: PersistedJob): Uri | null => {
 	return null;
 };
 
-export const selectExplorerTree = (
-	state: State,
-	rootPath: Uri | null,
-): ExplorerTree | null => {
+export const selectExplorerTree = (state: State, rootPath: Uri | null) => {
 	if (rootPath === null) {
 		return null;
 	}
@@ -131,11 +92,11 @@ export const selectExplorerTree = (
 		return null;
 	}
 
-	const rootNode = buildRootNode();
+	const properSearchPhrase = state.changeExplorerView.searchPhrase
+		.trim()
+		.toLocaleLowerCase();
 
-	const nodes: Record<ExplorerNodeHashDigest, ExplorerNode> = {
-		[rootNode.hashDigest]: rootNode,
-	};
+	const nodes: Record<ExplorerNodeHashDigest, ExplorerNode> = {};
 	const children: Record<
 		ExplorerNodeHashDigest,
 		Set<ExplorerNodeHashDigest>
@@ -146,14 +107,22 @@ export const selectExplorerTree = (
 		new Set(state.caseHashJobHashes),
 	);
 
+	// rootNode
+	const rootNode = buildRootNode();
+	nodes[rootNode.hashDigest] = rootNode;
+	children[rootNode.hashDigest] = new Set();
+
+	// topNode
 	const topPath = platformPath.basename(rootPath.fsPath);
 	const topNode = buildTopNode(topPath);
 
-	children[rootNode.hashDigest] = new Set([topNode.hashDigest]);
-	parents[topNode.hashDigest] = rootNode.hashDigest;
-	nodes[topNode.hashDigest] = topNode;
+	if (properSearchPhrase === '') {
+		children[rootNode.hashDigest]?.add(topNode.hashDigest);
+		parents[topNode.hashDigest] = rootNode.hashDigest;
+		nodes[topNode.hashDigest] = topNode;
 
-	children[topNode.hashDigest] = new Set();
+		children[topNode.hashDigest] = new Set();
+	}
 
 	const jobs = Array.from(caseJobManager.getRightHashesByLeftHash(kase.hash))
 		.map((jobHash) => {
@@ -162,6 +131,21 @@ export const selectExplorerTree = (
 			);
 		})
 		.filter(isNeitherNullNorUndefined)
+		.filter((job) => {
+			if (properSearchPhrase === '') {
+				return true;
+			}
+
+			const jobUri = getJobUri(job);
+
+			if (jobUri === null) {
+				return false;
+			}
+
+			return jobUri.fsPath
+				.toLocaleLowerCase()
+				.includes(properSearchPhrase);
+		})
 		.sort((a, b) => {
 			const aUri = getJobUri(a);
 			const bUri = getJobUri(b);
@@ -176,33 +160,48 @@ export const selectExplorerTree = (
 	for (const job of jobs) {
 		const uri = getJobUri(job);
 
-		uri?.fsPath
-			.replace(rootPath.fsPath, '')
-			.split(platformPath.sep)
-			.filter((name) => name !== '')
-			.map((name, i, names) => {
-				if (names.length - 1 === i) {
-					return buildFileNode(job, name);
-				}
+		if (uri === null) {
+			continue;
+		}
 
-				return buildDirectoryNode(
-					names.slice(0, i + 1).join(platformPath.sep),
-					name,
-				);
-			})
-			.forEach((node, i, fileNodes) => {
-				const parentNodeHash =
-					i === 0
-						? topNode.hashDigest
-						: fileNodes[i - 1]?.hashDigest ?? topNode.hashDigest;
+		const path = uri.fsPath.replace(rootPath.fsPath, '');
 
-				parents[node.hashDigest] = parentNodeHash;
-				children[parentNodeHash]?.add(node.hashDigest);
+		if (properSearchPhrase !== '') {
+			const node = buildFileNode(job, path);
 
-				nodes[node.hashDigest] = node;
-				children[node.hashDigest] =
-					children[node.hashDigest] ?? new Set();
-			});
+			parents[node.hashDigest] = rootNode.hashDigest;
+			children[rootNode.hashDigest]?.add(node.hashDigest);
+
+			nodes[node.hashDigest] = node;
+			children[node.hashDigest] = new Set();
+		} else {
+			path.split(platformPath.sep)
+				.filter((name) => name !== '')
+				.map((name, i, names) => {
+					if (names.length - 1 === i) {
+						return buildFileNode(job, name);
+					}
+
+					return buildDirectoryNode(
+						names.slice(0, i + 1).join(platformPath.sep),
+						name,
+					);
+				})
+				.forEach((node, i, pathNodes) => {
+					const parentNodeHash =
+						i === 0
+							? topNode.hashDigest
+							: pathNodes[i - 1]?.hashDigest ??
+							  topNode.hashDigest;
+
+					parents[node.hashDigest] = parentNodeHash;
+					children[parentNodeHash]?.add(node.hashDigest);
+
+					nodes[node.hashDigest] = node;
+					children[node.hashDigest] =
+						children[node.hashDigest] ?? new Set();
+				});
+		}
 	}
 
 	return {
@@ -212,12 +211,19 @@ export const selectExplorerTree = (
 			acc[key as ExplorerNodeHashDigest] = Array.from(value);
 
 			return acc;
-		}, {} as ExplorerTree['children']),
+		}, {} as Record<ExplorerNodeHashDigest, ReadonlyArray<ExplorerNodeHashDigest>>),
 		parents,
-		selectedNodeHashDigest: state.changeExplorerView
-			.focusedFileExplorerNodeId as ExplorerNodeHashDigest | null,
-		expandedNodeHashDigests: state.changeExplorerView
-			.openedFileExplorerNodeIds as ExplorerNodeHashDigest[],
+		selectedNodeHashDigest: null,
+		expandedNodeHashDigests: [],
+		// commented out because right now we have different hash digests because of the old
+		// and the new views
+		// selectedNodeHashDigest: state.changeExplorerView
+		// 	.focusedFileExplorerNodeId as ExplorerNodeHashDigest | null,
+		// expandedNodeHashDigests: state.changeExplorerView
+		// 	.openedFileExplorerNodeIds as ExplorerNodeHashDigest[],
 		appliedJobHashes: state.appliedJobHashes,
+		searchPhrase: properSearchPhrase,
 	};
 };
+
+export type ExplorerTree = ReturnType<typeof selectExplorerTree>;
