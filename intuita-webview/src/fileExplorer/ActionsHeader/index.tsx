@@ -83,6 +83,17 @@ const ActionsHeader = ({
 		});
 	};
 
+	let discardText = 'Discard All';
+	let applyText = 'Apply Selected';
+
+	if (screenWidth !== null && screenWidth < 335) {
+		discardText = 'X';
+		applyText = '✔️';
+	} else if (screenWidth !== null && screenWidth < 420) {
+		discardText = 'Discard';
+		applyText = 'Apply';
+	}
+
 	return (
 		<div className={styles.root}>
 			{allFileNodesReady ? (
@@ -100,9 +111,7 @@ const ActionsHeader = ({
 						className={styles.vscodeButton}
 						disabled={!allFileNodesReady}
 					>
-						{screenWidth !== null && screenWidth < 400
-							? 'X'
-							: 'Discard All'}
+						{discardText}
 					</VSCodeButton>
 				}
 				popoverText={POPOVER_TEXTS.discard}
@@ -119,9 +128,7 @@ const ActionsHeader = ({
 						disabled={!allFileNodesReady || !hasStagedJobs}
 						className={styles.vscodeButton}
 					>
-						{screenWidth !== null && screenWidth < 400
-							? '✔️'
-							: 'Apply Selected'}
+						{applyText}
 					</VSCodeButton>
 				}
 				popoverText={
