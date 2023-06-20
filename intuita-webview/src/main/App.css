@@ -5,6 +5,7 @@
 
 .App {
 	height: 100%;
+	width: 100%;
 }
 
 #root {
@@ -19,4 +20,17 @@
 .resize-handle:hover,
 .resize-handle:active {
 	background-color: var(--vscode-focusBorder);
+}
+
+.vscode-panels::part(tablist) {
+	width: 100%;
+	overflow: hidden;
+}
+
+.vscode-tab {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	display: block;
 }
