@@ -8,6 +8,7 @@ import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
+import { TabKind } from '../../persistedState/codecs';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -205,6 +206,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
+	  }>
+	| Readonly<{
+			kind: 'webview.main.setActiveTabId';
+			activeTabId: TabKind;
 	  }>;
 
 export type WebviewResponse =

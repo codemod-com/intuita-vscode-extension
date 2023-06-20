@@ -201,6 +201,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		campaignManagerProvider,
 		fileExplorerProvider,
 		codemodListWebviewProvider,
+		store,
 	);
 
 	const mainView = vscode.window.registerWebviewViewProvider(

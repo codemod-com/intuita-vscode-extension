@@ -22,6 +22,7 @@ import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
+import { TabKind } from '../persistedState/codecs';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -633,6 +634,10 @@ export class EngineService {
 
 				this.__store.dispatch(
 					actions.setCodemodExecutionInProgress(false),
+				);
+
+				this.__store.dispatch(
+					actions.setActiveTabId(TabKind.codemodRuns),
 				);
 
 				if (
