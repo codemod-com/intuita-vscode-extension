@@ -22,9 +22,15 @@ type Props = {
 	stagedJobs: JobHash[];
 	caseHash: CaseHash;
 	fileNodes: FileTreeNode[] | null;
+	screenWidth: number | null;
 };
 
-const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
+const ActionsHeader = ({
+	stagedJobs,
+	caseHash,
+	fileNodes,
+	screenWidth,
+}: Props) => {
 	const allFileNodesReady = fileNodes !== null;
 	const hasStagedJobs = stagedJobs.length > 0;
 	const hasStagedAllJobs =
@@ -77,6 +83,17 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 		});
 	};
 
+	let discardText = 'Discard All';
+	let applyText = 'Apply Selected';
+
+	if (screenWidth !== null && screenWidth < 340) {
+		discardText = 'X';
+		applyText = '✔️';
+	} else if (screenWidth !== null && screenWidth < 420) {
+		discardText = 'Discard';
+		applyText = 'Apply';
+	}
+
 	return (
 		<div className={styles.root}>
 			{allFileNodesReady ? (
@@ -94,7 +111,7 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 						className={styles.vscodeButton}
 						disabled={!allFileNodesReady}
 					>
-						Discard All
+						{discardText}
 					</VSCodeButton>
 				}
 				popoverText={POPOVER_TEXTS.discard}
@@ -111,7 +128,7 @@ const ActionsHeader = ({ stagedJobs, caseHash, fileNodes }: Props) => {
 						disabled={!allFileNodesReady || !hasStagedJobs}
 						className={styles.vscodeButton}
 					>
-						Apply Selected
+						{applyText}
 					</VSCodeButton>
 				}
 				popoverText={

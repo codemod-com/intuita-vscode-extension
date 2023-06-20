@@ -11,7 +11,9 @@ import Progress from '../shared/Progress';
 
 type CodemodView = Extract<View, { viewId: 'codemods' }>;
 
-function App() {
+type Props = { screenWidth: number | null };
+
+function App({ screenWidth }: Props) {
 	const [view, setView] = useState<CodemodView | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -72,6 +74,7 @@ function App() {
 								placeholder="Search codemods..."
 							/>
 							<TreeView
+								screenWidth={screenWidth}
 								node={node}
 								autocompleteItems={autocompleteItems}
 								openedIds={new Set(openedIds)}

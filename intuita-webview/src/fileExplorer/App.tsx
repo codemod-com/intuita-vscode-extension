@@ -15,7 +15,9 @@ import { vscode } from '../shared/utilities/vscode';
 import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/function';
 
-function App() {
+type Props = { screenWidth: number | null };
+
+function App({ screenWidth }: Props) {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.fileExplorerProps,
 	);
@@ -94,6 +96,7 @@ function App() {
 					stagedJobs={stagedJobs}
 					fileNodes={fileNodes}
 					caseHash={caseHash}
+					screenWidth={screenWidth}
 				/>
 			)}
 			{fileNodes !== null && (

@@ -22,7 +22,9 @@ const handleItemClick = (node: CaseTreeNode) => {
 	});
 };
 
-function App() {
+type Props = { screenWidth: number | null };
+
+function App({ screenWidth: _screenWidth }: Props) {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.codemodRunsProps,
 	);

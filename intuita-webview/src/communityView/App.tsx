@@ -43,7 +43,9 @@ const getIcon = (icon: string): ReactElement | null => {
 	return null;
 };
 
-function App() {
+type Props = { screenWidth: number | null };
+
+function App({ screenWidth: _screenWidth }: Props) {
 	const [view, setView] = useState<MainViews | null>(null);
 
 	useEffect(() => {
