@@ -1,4 +1,4 @@
-import { CSSProperties, ReactElement, useEffect, useRef } from 'react';
+import { CSSProperties, useEffect, useRef } from 'react';
 
 import {
 	PanelResizeHandle,
@@ -21,7 +21,7 @@ type Props = {
 const RESIZABLE_PANELS: {
 	id: CollapsibleWebviews;
 	title: string;
-	Component: (props: any) => ReactElement | null;
+	Component: React.FC<any>;
 	commands?: any[];
 	inlineStyle?: CSSProperties;
 }[] = [
