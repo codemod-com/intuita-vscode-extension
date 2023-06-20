@@ -187,11 +187,11 @@ export const selectExplorerTree = (state: State, rootPath: Uri | null) => {
 						name,
 					);
 				})
-				.forEach((node, i, fileNodes) => {
+				.forEach((node, i, pathNodes) => {
 					const parentNodeHash =
 						i === 0
 							? topNode.hashDigest
-							: fileNodes[i - 1]?.hashDigest ??
+							: pathNodes[i - 1]?.hashDigest ??
 							  topNode.hashDigest;
 
 					parents[node.hashDigest] = parentNodeHash;
