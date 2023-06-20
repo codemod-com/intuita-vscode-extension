@@ -253,7 +253,7 @@ const TreeView = ({
 	}, [state]);
 
 	useEffect(() => {
-		if (typeof ResizeObserver === 'undefined') {
+		if (ResizeObserver === undefined) {
 			return undefined;
 		}
 
@@ -280,9 +280,7 @@ const TreeView = ({
 		resizeObserver.observe(discoveryViewContainer);
 
 		return () => {
-			if (resizeObserver) {
-				resizeObserver.disconnect();
-			}
+			resizeObserver.disconnect();
 		};
 	}, []);
 
