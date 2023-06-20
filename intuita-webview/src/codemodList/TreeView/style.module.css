@@ -30,13 +30,6 @@
 	display: flex;
 }
 
-.root .codemodItemActions,
-.root .directorySelector {
-	@media (max-width: 250px) {
-		display: flex;
-	}
-}
-
 .root:hover .description {
 	display: inline;
 }

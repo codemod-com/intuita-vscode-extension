@@ -258,12 +258,7 @@ const TreeItem = ({
 				{progressBar}
 			</div>
 			{!editingPath && (
-				<div
-					className={cn(
-						styles.actions,
-						kind === 'codemodItem' && styles.codemodItemActions,
-					)}
-				>
+				<div className={cn(styles.actions)}>
 					{actionButtons.map((el) => el)}
 				</div>
 			)}
