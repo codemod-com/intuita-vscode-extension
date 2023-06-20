@@ -86,7 +86,7 @@ const ActionsHeader = ({
 	let discardText = 'Discard All';
 	let applyText = 'Apply Selected';
 
-	if (screenWidth !== null && screenWidth < 335) {
+	if (screenWidth !== null && screenWidth < 340) {
 		discardText = 'X';
 		applyText = '✔️';
 	} else if (screenWidth !== null && screenWidth < 420) {
