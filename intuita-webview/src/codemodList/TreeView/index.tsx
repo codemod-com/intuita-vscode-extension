@@ -211,6 +211,9 @@ const TreeView = ({
 }: Props) => {
 	const rootPath = node.label;
 	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
+	const [treeContainerWidth, setTreeContainerWidth] = useState<null | number>(
+		null,
+	);
 	const [hashesForSearch, setHashesForSearch] = useState<Set<CodemodHash>>(
 		new Set(),
 	);
@@ -248,6 +251,40 @@ const TreeView = ({
 			focusedId: state.focusedId,
 		});
 	}, [state]);
+
+	useEffect(() => {
+		if (typeof ResizeObserver === 'undefined') {
+			return undefined;
+		}
+
+		const discoveryViewContainer =
+			document.getElementById('codemodDiscoveryView-treeContainer') ??
+			null;
+
+		if (discoveryViewContainer === null) {
+			return;
+		}
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			const container = entries[0] ?? null;
+			if (container === null) {
+				return;
+			}
+			const {
+				contentRect: { width },
+			} = container;
+
+			setTreeContainerWidth(width);
+		});
+
+		resizeObserver.observe(discoveryViewContainer);
+
+		return () => {
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+		};
+	}, []);
 
 	const onHalt = useCallback(() => {
 		setRunningRepomodHash(null);
@@ -337,7 +374,10 @@ const TreeView = ({
 								executionStack.includes(action.value) && (
 									<i className="codicon codicon-history mr-2" />
 								)}
-							{action.title}
+							{treeContainerWidth !== null &&
+							treeContainerWidth < 320
+								? action.shortenedTitle
+								: action.title}
 						</VSCodeButton>
 					}
 					popoverText={`${
@@ -390,6 +430,11 @@ const TreeView = ({
 				description={node.description ?? ''}
 				label={node.label ?? ''}
 				icon={icon}
+				pathDisplayValue={
+					treeContainerWidth !== null && treeContainerWidth < 320
+						? '🎯'
+						: null
+				}
 				depth={depth}
 				kind={node.kind}
 				open={opened}

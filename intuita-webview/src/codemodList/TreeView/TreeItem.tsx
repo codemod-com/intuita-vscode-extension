@@ -12,6 +12,12 @@ import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import { useKey } from '../../jobDiffView/hooks/useKey';
 
+const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
+	return path.replace(rootPath, '').length === 0
+		? `${repoName}/`
+		: path.replace(rootPath, repoName);
+};
+
 type Props = {
 	id: CodemodHash;
 	progressBar: JSX.Element | null;
@@ -32,6 +38,7 @@ type Props = {
 	autocompleteItems: string[];
 	collapse(): void;
 	expand(): void;
+	pathDisplayValue: string | null;
 };
 
 const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
@@ -52,6 +59,7 @@ const TreeItem = ({
 	icon,
 	open,
 	focused,
+	pathDisplayValue,
 	rootPath,
 	actionButtons,
 	hasChildren,
@@ -150,10 +158,7 @@ const TreeItem = ({
 		),
 	);
 
-	const targetPath =
-		path.replace(rootPath, '').length === 0
-			? `${repoName}/`
-			: path.replace(rootPath, repoName);
+	const targetPath = buildTargetPath(path, rootPath, repoName);
 
 	const onEditStart = useCallback(() => {
 		setEditingPath(true);
@@ -236,11 +241,15 @@ const TreeItem = ({
 							...(editingPath && {
 								display: 'flex',
 							}),
+							...(pathDisplayValue !== null && {
+								justifyContent: 'flex-end',
+							}),
 						}}
 					>
 						{kind === 'codemodItem' && executionPath && (
 							<DirectorySelector
 								defaultValue={targetPath}
+								displayValue={pathDisplayValue}
 								rootPath={rootPath}
 								error={
 									error === null ? null : { message: error }

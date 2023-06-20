@@ -47,6 +47,7 @@ export type CommitChangesFormData = Readonly<{
 
 export type RunCodemodsCommand = Readonly<{
 	title: string;
+	shortenedTitle: string;
 	description?: string;
 	kind: 'webview.codemodList.dryRunCodemod';
 	value: CodemodHash;
@@ -250,7 +251,7 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
-	| Omit<RunCodemodsCommand, 'title' | 'description'>
+	| Omit<RunCodemodsCommand, 'title' | 'shortenedTitle' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
 			jobHashes: JobHash[];
