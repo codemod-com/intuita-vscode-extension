@@ -3,7 +3,7 @@ import { buildTypeCodec } from '../utilities';
 import { codemodEntryCodec } from '../codemods/types';
 import { executionErrorCodec } from '../errors/types';
 import { withFallback } from 'io-ts-types';
-import { persistedJobCodec } from '../jobs/types';
+import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec } from '../cases/types';
 
 export const syntheticErrorCodec = buildTypeCodec({
@@ -71,11 +71,13 @@ export const persistedStateCodecNew = buildTypeCodec({
 			focusedFileExplorerNodeId: t.union([t.string, t.null]),
 			openedFileExplorerNodeIds: t.readonlyArray(t.string),
 			visible: t.boolean,
+			searchPhrase: withFallback(t.string, ''),
 		}),
 		{
 			focusedFileExplorerNodeId: null,
 			openedFileExplorerNodeIds: [],
 			visible: true,
+			searchPhrase: '',
 		},
 	),
 	codemodRunsView: withFallback(
@@ -89,7 +91,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		},
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
-	appliedJobHashes: withFallback(t.readonlyArray(t.string), []),
+	appliedJobHashes: withFallback(t.readonlyArray(jobHashCodec), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
 });
 

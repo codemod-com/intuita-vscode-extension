@@ -30,9 +30,9 @@ type CodemodRunsState = Readonly<{
 
 type ChangeExplorerState = Readonly<{
 	visible: boolean;
-
 	focusedFileExplorerNodeId: string | null;
 	openedFileExplorerNodeIds: ReadonlyArray<string>;
+	searchPhrase: string;
 }>;
 
 type CommunityState = Readonly<{
@@ -87,6 +87,7 @@ export const getInitialState = (): RootState => {
 			focusedFileExplorerNodeId: null,
 			openedFileExplorerNodeIds: [],
 			visible: false,
+			searchPhrase: '',
 		},
 		communityView: {
 			visible: true,
@@ -248,6 +249,9 @@ const rootSlice = createSlice({
 		},
 		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
 			state.codemodExecutionInProgress = action.payload;
+		},
+		setChangeExplorerSearchPhrase(state, action: PayloadAction<string>) {
+			state.changeExplorerView.searchPhrase = action.payload;
 		},
 	},
 });
