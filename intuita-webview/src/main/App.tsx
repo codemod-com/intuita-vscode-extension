@@ -9,10 +9,33 @@ import {
 import CodemodList from '../codemodList/App';
 import CommunityView from '../communityView/App';
 import CodemodRuns from './CodemodRuns';
+import { WebviewMessage } from '../shared/types';
+
+export enum TabKind {
+	codemods = 'codemods',
+	codemodRuns = 'codemodRuns',
+	community = 'community',
+}
 
 function App() {
 	const ref = useRef(null);
 	const [screenWidth, setScreenWidth] = useState<number | null>(null);
+	const [activeTabId, setActiveTabId] = useState(TabKind.codemods);
+
+	useEffect(() => {
+		const handler = (e: MessageEvent<WebviewMessage>) => {
+			const message = e.data;
+			if (message.kind === 'webview.main.setActiveTabId') {
+				setActiveTabId(message.activeTabId);
+			}
+		};
+
+		window.addEventListener('message', handler);
+
+		return () => {
+			window.removeEventListener('message', handler);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (ResizeObserver === undefined) {
@@ -44,14 +67,17 @@ function App() {
 
 	return (
 		<main className="App" ref={ref}>
-			<VSCodePanels className="h-full w-full vscode-panels">
-				<VSCodePanelTab className="vscode-tab" id="tab-1">
+			<VSCodePanels
+				activeid={activeTabId}
+				className="h-full w-full vscode-panels"
+			>
+				<VSCodePanelTab className="vscode-tab" id={TabKind.codemods}>
 					Codemods Discovery
 				</VSCodePanelTab>
-				<VSCodePanelTab className="vscode-tab" id="tab-2">
+				<VSCodePanelTab className="vscode-tab" id={TabKind.codemodRuns}>
 					Codemod Runs
 				</VSCodePanelTab>
-				<VSCodePanelTab className="vscode-tab" id="tab-3">
+				<VSCodePanelTab className="vscode-tab" id={TabKind.community}>
 					Community
 				</VSCodePanelTab>
 				<VSCodePanelView className="h-full w-full">

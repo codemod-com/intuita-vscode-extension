@@ -12,7 +12,7 @@ import {
 } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
-import { RootState } from '../persistedState/codecs';
+import { RootState, TabKind } from '../persistedState/codecs';
 
 const SLICE_KEY = 'root';
 
@@ -94,6 +94,7 @@ export const getInitialState = (): RootState => {
 		},
 		appliedJobHashes: [],
 		codemodExecutionInProgress: false,
+		activeTabId: TabKind.codemods,
 	};
 };
 
@@ -252,6 +253,9 @@ const rootSlice = createSlice({
 		},
 		setChangeExplorerSearchPhrase(state, action: PayloadAction<string>) {
 			state.changeExplorerView.searchPhrase = action.payload;
+		},
+		setActiveTabId(state, action: PayloadAction<TabKind>) {
+			state.activeTabId = action.payload;
 		},
 	},
 });

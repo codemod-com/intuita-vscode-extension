@@ -12,6 +12,7 @@ import { FileExplorer } from './FileExplorerProvider';
 import { CodemodListPanel } from './CodemodListProvider';
 import { CollapsibleWebviews, WebviewMessage } from './webviewEvents';
 import { Message, MessageBus, MessageKind } from '../messageBus';
+import { Store } from '../../data';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -25,6 +26,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		private readonly __codemodRuns: CampaignManager,
 		private readonly __fileExplorer: FileExplorer,
 		private readonly __codemodList: CodemodListPanel,
+		private readonly __store: Store,
 	) {
 		this.__extensionPath = context.extensionUri;
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
@@ -48,6 +50,23 @@ export class MainViewProvider implements WebviewViewProvider {
 			if (this.__view?.visible) {
 				this.__resolveWebview(this.__view);
 			}
+		});
+
+		let prevActiveTabId = this.__store.getState().activeTabId;
+
+		this.__store.subscribe(() => {
+			const nextActiveTabId = this.__store.getState().activeTabId;
+
+			if (prevActiveTabId === nextActiveTabId) {
+				return;
+			}
+
+			this.__postMessage({
+				kind: 'webview.main.setActiveTabId',
+				activeTabId: nextActiveTabId,
+			});
+
+			prevActiveTabId = nextActiveTabId;
 		});
 	}
 
