@@ -200,10 +200,6 @@ export type WebviewMessage =
 			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.focusNode';
-			id: TreeNodeId;
-	  }>
-	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
 	  }>

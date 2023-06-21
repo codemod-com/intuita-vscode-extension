@@ -17,7 +17,6 @@ type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 export class FileExplorer {
 	__view: WebviewView | null = null;
-	__lastFocusedNodeId: TreeNodeId | null = null;
 
 	constructor(
 		private readonly __messageBus: MessageBus,
@@ -58,16 +57,6 @@ export class FileExplorer {
 
 	public showView() {
 		this.__view?.show(true);
-	}
-
-	public focusMostRecentNode() {
-		if (this.__lastFocusedNodeId === null) {
-			return;
-		}
-		this.__postMessage({
-			kind: 'webview.fileExplorer.focusNode',
-			id: this.__lastFocusedNodeId,
-		});
 	}
 
 	private __buildViewProps(): ViewProps {
