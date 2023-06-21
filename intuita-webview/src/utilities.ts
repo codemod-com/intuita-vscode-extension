@@ -48,3 +48,21 @@ export const generateColor = (hash: string): string => {
 		COLOR_PALETTE[parseInt(hash) % COLOR_PALETTE.length] ?? '#7b133e';
 	return colorHex;
 };
+
+export const distanceBetweenTwoRectsInPx = (
+	rect1: DOMRect,
+	rect2: DOMRect,
+): number => {
+	let distance = -1;
+
+	const x1 = rect1.top;
+	const y1 = rect1.left;
+	const x2 = rect2.top;
+	const y2 = rect2.left;
+	const xDistance = x1 - x2;
+	const yDistance = y1 - y2;
+
+	distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+
+	return distance;
+};

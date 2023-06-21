@@ -209,7 +209,6 @@ const TreeView = ({
 	searchQuery,
 	nodeIds,
 	nodesByDepth,
-	screenWidth,
 }: Props) => {
 	const rootPath = node.label;
 	const userSearchingCodemod = searchQuery.length >= SEARCH_QUERY_MIN_LENGTH;
@@ -313,7 +312,10 @@ const TreeView = ({
 		[executionStack, progress],
 	);
 
-	const actionButtons = (node: CodemodTreeNode) => {
+	const actionButtons = (
+		node: CodemodTreeNode,
+		displayShortenedTitle: boolean,
+	) => {
 		return (node.actions ?? []).map((action) => {
 			return (
 				<Popover
@@ -339,7 +341,7 @@ const TreeView = ({
 								executionStack.includes(action.value) && (
 									<i className="codicon codicon-history mr-2" />
 								)}
-							{screenWidth !== null && screenWidth < 320
+							{displayShortenedTitle
 								? action.shortenedTitle
 								: action.title}
 						</VSCodeButton>
@@ -366,7 +368,7 @@ const TreeView = ({
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
-		const getActionButtons = () => {
+		const getActionButtons = (displayShortenedTitle: boolean) => {
 			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
 				return [];
 			}
@@ -378,7 +380,7 @@ const TreeView = ({
 				return [stopProgress];
 			}
 
-			return actionButtons(node);
+			return actionButtons(node, displayShortenedTitle);
 		};
 
 		return (
@@ -394,9 +396,6 @@ const TreeView = ({
 				description={node.description ?? ''}
 				label={node.label ?? ''}
 				icon={icon}
-				pathDisplayValue={
-					screenWidth !== null && screenWidth < 320 ? '🎯' : null
-				}
 				depth={depth}
 				kind={node.kind}
 				open={opened}
@@ -413,7 +412,9 @@ const TreeView = ({
 				onDoubleClick={() => {
 					handleDoubleClick(node);
 				}}
-				actionButtons={getActionButtons()}
+				actionButtons={(displayShortenedTitle: boolean) =>
+					getActionButtons(displayShortenedTitle)
+				}
 				collapse={() => {
 					dispatch({
 						kind: 'close',
