@@ -41,7 +41,7 @@ export const selectCodemodTree = (state: RootState) => {
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
 
 	const parents: Record<CodemodNodeHashDigest, CodemodNodeHashDigest> = {};
-	const pathsMap = new Map<string, CodemodNode>();
+	const nodePathMap = new Map<string, CodemodNode>();
 
 	const rootNode = buildRootNode();
 	nodes[rootNode.hashDigest] = rootNode;
@@ -59,9 +59,9 @@ export const selectCodemodTree = (state: RootState) => {
 		let currNode: CodemodNode | null = null;
 
 		pathParts.forEach((part, idx) => {
-			const dirName = pathParts.slice(0, idx + 1).join('/');
+			const codemodDirName = pathParts.slice(0, idx + 1).join('/');
 
-			if (pathsMap.has(dirName)) {
+			if (nodePathMap.has(codemodDirName)) {
 				return;
 			}
 
@@ -70,13 +70,13 @@ export const selectCodemodTree = (state: RootState) => {
 			if (idx === pathParts.length - 1) {
 				currNode = buildCodemodNode(codemod, part);
 			} else {
-				currNode = buildDirectoryNode(dirName);
+				currNode = buildDirectoryNode(codemodDirName);
 			}
 
-			pathsMap.set(dirName, currNode);
+			nodePathMap.set(codemodDirName, currNode);
 			nodes[currNode.hashDigest] = currNode;
 
-			const parentNode = pathsMap.get(parentDirName) ?? null;
+			const parentNode = nodePathMap.get(parentDirName) ?? null;
 
 			if (parentNode === null) {
 				return;
