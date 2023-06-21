@@ -22,7 +22,7 @@ function App({ screenWidth }: Props) {
 		window.INITIAL_STATE.fileExplorerProps,
 	);
 	const [searchQuery, setSearchQuery] = useState<string>('');
-	const [stagedJobs, setStagedJobs] = useState<JobHash[]>([]);
+	const [stagedJobs, setStagedJobs] = useState<ReadonlyArray<JobHash>>([]);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -77,7 +77,7 @@ function App({ screenWidth }: Props) {
 						caseHash={caseHash}
 						node={node}
 						searchQuery={searchQuery}
-						stagedJobs={stagedJobs}
+						stagedJobs={stagedJobs.slice()}
 						openedIds={new Set(openedIds)}
 						focusedNodeId={focusedId}
 					/>
@@ -93,8 +93,8 @@ function App({ screenWidth }: Props) {
 		>
 			{searchQuery.length === 0 && (
 				<ActionsHeader
-					stagedJobs={stagedJobs}
-					fileNodes={fileNodes}
+					selectedJobHashes={stagedJobs}
+					jobHashes={fileNodes?.map(({ jobHash }) => jobHash) ?? []}
 					caseHash={caseHash}
 					screenWidth={screenWidth}
 				/>
