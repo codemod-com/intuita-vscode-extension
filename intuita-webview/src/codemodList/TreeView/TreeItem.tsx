@@ -26,7 +26,7 @@ type Props = {
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: (displayShortenedTitle: boolean) => ReactNode[];
+	actionButtons: (doesDisplayShortenedTitle: boolean) => ReactNode[];
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
@@ -70,6 +70,7 @@ const TreeItem = ({
 	expand,
 }: Props) => {
 	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
+	const directorySelectorRef = useRef<HTMLSpanElement>(null);
 	const ref = useRef<HTMLDivElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
@@ -182,16 +183,12 @@ const TreeItem = ({
 				return;
 			}
 
-			const directorySelector = document.getElementById(
-				`directorySelector-${id}`,
-			);
-
-			if (directorySelector === null) {
+			if (directorySelectorRef.current === null) {
 				return;
 			}
 
 			const xDistance = Math.abs(
-				directorySelector.getBoundingClientRect().right -
+				directorySelectorRef.current.getBoundingClientRect().right -
 					treeItem.target.getBoundingClientRect().right,
 			);
 
@@ -275,7 +272,7 @@ const TreeItem = ({
 					/>
 					<span
 						className={styles.directorySelector}
-						id={`directorySelector-${id}`}
+						ref={directorySelectorRef}
 						style={{
 							...(editingPath && {
 								display: 'flex',

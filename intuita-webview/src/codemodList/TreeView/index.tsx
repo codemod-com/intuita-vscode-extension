@@ -314,7 +314,7 @@ const TreeView = ({
 
 	const actionButtons = (
 		node: CodemodTreeNode,
-		displayShortenedTitle: boolean,
+		doesDisplayShortenedTitle: boolean,
 	) => {
 		return (node.actions ?? []).map((action) => {
 			return (
@@ -341,7 +341,7 @@ const TreeView = ({
 								executionStack.includes(action.value) && (
 									<i className="codicon codicon-history mr-2" />
 								)}
-							{displayShortenedTitle
+							{doesDisplayShortenedTitle
 								? action.shortenedTitle
 								: action.title}
 						</VSCodeButton>
@@ -368,7 +368,7 @@ const TreeView = ({
 
 		const icon = getIcon(node.iconName ?? null, opened);
 
-		const getActionButtons = (displayShortenedTitle: boolean) => {
+		const getActionButtons = (doesDisplayShortenedTitle: boolean) => {
 			if (node.modKind === 'repomod' && runningRepomodHash !== null) {
 				return [];
 			}
@@ -380,7 +380,7 @@ const TreeView = ({
 				return [stopProgress];
 			}
 
-			return actionButtons(node, displayShortenedTitle);
+			return actionButtons(node, doesDisplayShortenedTitle);
 		};
 
 		return (
@@ -412,8 +412,8 @@ const TreeView = ({
 				onDoubleClick={() => {
 					handleDoubleClick(node);
 				}}
-				actionButtons={(displayShortenedTitle: boolean) =>
-					getActionButtons(displayShortenedTitle)
+				actionButtons={(doesDisplayShortenedTitle: boolean) =>
+					getActionButtons(doesDisplayShortenedTitle)
 				}
 				collapse={() => {
 					dispatch({
