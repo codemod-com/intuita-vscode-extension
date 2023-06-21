@@ -1,12 +1,7 @@
 import { WebviewView, workspace, commands } from 'vscode';
 import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
-import {
-	TreeNodeId,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { JobManager } from '../jobManager';
 import { CaseHash } from '../../cases/types';
 import { Store } from '../../data';
@@ -17,7 +12,6 @@ type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
 export class FileExplorer {
 	__view: WebviewView | null = null;
-	__lastFocusedNodeId: TreeNodeId | null = null;
 
 	constructor(
 		private readonly __messageBus: MessageBus,
@@ -58,16 +52,6 @@ export class FileExplorer {
 
 	public showView() {
 		this.__view?.show(true);
-	}
-
-	public focusMostRecentNode() {
-		if (this.__lastFocusedNodeId === null) {
-			return;
-		}
-		this.__postMessage({
-			kind: 'webview.fileExplorer.focusNode',
-			id: this.__lastFocusedNodeId,
-		});
 	}
 
 	private __buildViewProps(): ViewProps {
@@ -186,10 +170,6 @@ export class FileExplorer {
 
 		if (message.kind === 'webview.global.stageJobs') {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
-			this.__postMessage({
-				kind: 'webview.fileExplorer.updateStagedJobs',
-				value: message.jobHashes,
-			});
 		}
 
 		if (message.kind === 'webview.global.setChangeExplorerSearchPhrase') {
@@ -210,11 +190,6 @@ export class FileExplorer {
 			this.__store.dispatch(
 				actions.flipChangeExplorerHashDigests(message.hashDigest),
 			);
-		}
-
-		if (message.kind === 'webview.fileExplorer.afterWebviewMounted') {
-			this.showView();
-			this.setView();
 		}
 	};
 

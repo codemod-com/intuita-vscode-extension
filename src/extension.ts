@@ -228,10 +228,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				if (webviewName === 'changeExplorer') {
-					fileExplorerProvider.focusMostRecentNode();
-				}
-
 				if (webviewName === 'diffView' && rootPath !== null) {
 					diffWebviewPanel.focusView();
 				}

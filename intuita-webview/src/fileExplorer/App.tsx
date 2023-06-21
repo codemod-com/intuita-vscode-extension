@@ -56,19 +56,9 @@ function App({ screenWidth }: Props) {
 					setViewProps(message.value.viewProps);
 				}
 			}
-
-			// TODO remove updateStagedJobs
-			// if (message.kind === 'webview.fileExplorer.updateStagedJobs') {
-			// 	setStagedJobs(message.value);
-			// }
 		};
 
 		window.addEventListener('message', handler);
-
-		// TODO is afterWebviewMounted needed?
-		vscode.postMessage({
-			kind: 'webview.fileExplorer.afterWebviewMounted',
-		});
 
 		return () => {
 			window.removeEventListener('message', handler);
