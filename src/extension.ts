@@ -178,10 +178,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const fileExplorerProvider = new FileExplorer(
-		context,
 		messageBus,
 		jobManager,
-		caseManager,
 		store,
 	);
 

@@ -9,6 +9,10 @@ import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
 import { TabKind } from '../../persistedState/codecs';
+import {
+	ExplorerNodeHashDigest,
+	ExplorerTree,
+} from '../../selectors/selectExplorerTree';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -266,6 +270,18 @@ export type WebviewResponse =
 			kind: 'webview.global.stageJobs';
 			jobHashes: ReadonlyArray<JobHash>;
 	  }>
+	| Readonly<{
+			kind: 'webview.global.setChangeExplorerSearchPhrase';
+			searchPhrase: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.selectExplorerNodeHashDigest';
+			selectedExplorerNodeHashDigest: ExplorerNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.flipChangeExplorerNodeIds';
+			hashDigest: ExplorerNodeHashDigest;
+	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
 	| Readonly<{
@@ -287,11 +303,6 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.fileSelected';
 			id: TreeNodeId;
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.setState';
-			openedIds: ReadonlyArray<TreeNodeId>;
-			focusedId: TreeNodeId | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
@@ -341,15 +352,7 @@ export type View =
 	  }>
 	| Readonly<{
 			viewId: 'fileExplorer';
-			viewProps: {
-				caseHash: CaseHash | null;
-				node: ChangeExplorerTree;
-				nodeIds: TreeNodeId[];
-				fileNodes: FileTreeNode[] | null;
-				nodesByDepth: ReadonlyArray<ReadonlyArray<TreeNode>>;
-				openedIds: ReadonlyArray<TreeNodeId>;
-				focusedId: TreeNodeId | null;
-			} | null;
+			viewProps: ExplorerTree | null;
 	  }>
 	| Readonly<{
 			viewId: 'communityView';
