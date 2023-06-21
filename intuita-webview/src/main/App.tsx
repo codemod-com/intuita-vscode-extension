@@ -10,6 +10,7 @@ import CodemodList from '../codemodList/App';
 import CommunityView from '../communityView/App';
 import CodemodRuns from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
+import { vscode } from '../shared/utilities/vscode';
 
 export enum TabKind {
 	codemods = 'codemods',
@@ -65,19 +66,44 @@ function App() {
 		};
 	}, []);
 
+	const handlePanelTabClick = (id: TabKind) => {
+		vscode.postMessage({
+			kind: 'webview.main.setActiveTabId',
+			activeTabId: id,
+		});
+	};
+
 	return (
 		<main className="App" ref={ref}>
 			<VSCodePanels
 				activeid={activeTabId}
 				className="h-full w-full vscode-panels"
 			>
-				<VSCodePanelTab className="vscode-tab" id={TabKind.codemods}>
+				<VSCodePanelTab
+					className="vscode-tab"
+					id={TabKind.codemods}
+					onClick={() => {
+						handlePanelTabClick(TabKind.codemods);
+					}}
+				>
 					Codemods Discovery
 				</VSCodePanelTab>
-				<VSCodePanelTab className="vscode-tab" id={TabKind.codemodRuns}>
+				<VSCodePanelTab
+					className="vscode-tab"
+					id={TabKind.codemodRuns}
+					onClick={() => {
+						handlePanelTabClick(TabKind.codemodRuns);
+					}}
+				>
 					Codemod Runs
 				</VSCodePanelTab>
-				<VSCodePanelTab className="vscode-tab" id={TabKind.community}>
+				<VSCodePanelTab
+					className="vscode-tab"
+					id={TabKind.community}
+					onClick={() => {
+						handlePanelTabClick(TabKind.community);
+					}}
+				>
 					Community
 				</VSCodePanelTab>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">

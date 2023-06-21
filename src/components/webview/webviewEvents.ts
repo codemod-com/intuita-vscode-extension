@@ -305,6 +305,10 @@ export type WebviewResponse =
 			id: TreeNodeId;
 	  }>
 	| Readonly<{
+			kind: 'webview.main.setActiveTabId';
+			activeTabId: TabKind;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
 				newPath: string;

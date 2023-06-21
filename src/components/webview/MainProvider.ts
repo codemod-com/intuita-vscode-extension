@@ -10,9 +10,14 @@ import { Community } from './CommunityProvider';
 import { CampaignManager } from './CampaignManagerProvider';
 import { FileExplorer } from './FileExplorerProvider';
 import { CodemodListPanel } from './CodemodListProvider';
-import { CollapsibleWebviews, WebviewMessage } from './webviewEvents';
+import {
+	CollapsibleWebviews,
+	WebviewMessage,
+	WebviewResponse,
+} from './webviewEvents';
 import { Message, MessageBus, MessageKind } from '../messageBus';
 import { Store } from '../../data';
+import { actions } from '../../data/slice';
 
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
@@ -41,6 +46,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		this.__view = webviewView;
 		this.__attachExtensionEventListeners();
+		this.__attachWebviewEventListeners();
 		this.__community.setWebview(webviewView);
 		this.__codemodRuns.setWebview(webviewView);
 		this.__fileExplorer.setWebview(webviewView);
@@ -124,6 +130,16 @@ export class MainViewProvider implements WebviewViewProvider {
 				communityProps,
 			}),
 		);
+	}
+
+	private __onDidReceiveMessage = async (message: WebviewResponse) => {
+		if (message.kind === 'webview.main.setActiveTabId') {
+			this.__store.dispatch(actions.setActiveTabId(message.activeTabId));
+		}
+	};
+
+	private __attachWebviewEventListeners() {
+		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
 	}
 
 	public getView(): WebviewView | null {
