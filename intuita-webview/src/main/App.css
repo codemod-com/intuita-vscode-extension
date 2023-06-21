@@ -34,3 +34,7 @@
 	white-space: nowrap;
 	display: flex;
 }
+
+.vscode-panel-view {
+	padding: 0px;
+}
