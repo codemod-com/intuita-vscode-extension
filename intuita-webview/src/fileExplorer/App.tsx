@@ -101,8 +101,8 @@ function App({ screenWidth }: Props) {
 			)}
 			{fileNodes !== null && (
 				<SearchBar
-					searchQuery={searchQuery}
-					setSearchQuery={setSearchQuery}
+					searchPhrase={searchQuery}
+					setSearchPhrase={setSearchQuery}
 					placeholder="Search files..."
 				/>
 			)}
