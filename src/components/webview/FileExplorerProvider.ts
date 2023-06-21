@@ -74,7 +74,7 @@ export class FileExplorer {
 		const state = this.__store.getState();
 
 		const fileTree = selectExplorerTree(
-			state as any,
+			state,
 			workspace.workspaceFolders?.[0]?.uri ?? null,
 		);
 

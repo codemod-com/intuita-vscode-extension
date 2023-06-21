@@ -17,44 +17,6 @@ import { ExplorerNodeHashDigest } from '../selectors/selectExplorerTree';
 
 const SLICE_KEY = 'root';
 
-type CodemodDiscoveryState = Readonly<{
-	openedCodemodHashDigests: ReadonlyArray<string>;
-	focusedCodemodHashDigest: string | null;
-	executionPaths: Record<string, string>;
-	visible: boolean;
-}>;
-
-type CodemodRunsState = Readonly<{
-	selectedCaseHash: string | null;
-	visible: boolean;
-}>;
-
-type ChangeExplorerState = Readonly<{
-	visible: boolean;
-	focusedFileExplorerNodeId: string | null;
-	openedFileExplorerNodeIds: ReadonlyArray<string>;
-	searchPhrase: string;
-}>;
-
-type CommunityState = Readonly<{
-	visible: boolean;
-}>;
-
-export type State = {
-	codemodExecutionInProgress: boolean;
-	codemodDiscoveryView: CodemodDiscoveryState;
-	codemodRunsView: CodemodRunsState;
-	changeExplorerView: ChangeExplorerState;
-	communityView: CommunityState;
-	lastCodemodHashDigests: ReadonlyArray<string>;
-	caseHashJobHashes: ReadonlyArray<string>;
-	appliedJobHashes: ReadonlyArray<JobHash>;
-	executionErrors: Record<string, ReadonlyArray<ExecutionError>>;
-	codemod: ReturnType<typeof codemodAdapter.getInitialState>;
-	case: ReturnType<typeof caseAdapter.getInitialState>;
-	job: ReturnType<typeof jobAdapter.getInitialState>;
-};
-
 export const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
@@ -218,7 +180,7 @@ const rootSlice = createSlice({
 			action: PayloadAction<ExplorerNodeHashDigest>,
 		) {
 			const set = new Set<ExplorerNodeHashDigest>(
-				state.changeExplorerView.openedFileExplorerNodeIds as any[],
+				state.changeExplorerView.openedFileExplorerNodeIds,
 			);
 
 			if (set.has(action.payload)) {
@@ -273,8 +235,7 @@ const rootSlice = createSlice({
 });
 
 const actions = rootSlice.actions;
-const selector = (state: State) => state;
 
-export { actions, selector, SLICE_KEY };
+export { actions, SLICE_KEY };
 
 export default rootSlice.reducer;

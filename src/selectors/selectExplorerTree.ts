@@ -1,4 +1,5 @@
 import platformPath from 'path';
+import * as t from 'io-ts';
 import { Uri } from 'vscode';
 import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
@@ -15,9 +16,22 @@ export const doesJobAddNewFile = (kind: Job['kind']): boolean => {
 	].includes(kind);
 };
 
-export type ExplorerNodeHashDigest = string & {
-	__ExplorerNodeHashDigest: 'ExplorerNodeHashDigest';
-};
+interface ExplorerNodeHashDigestBrand {
+	readonly __ExplorerNodeHashDigest: unique symbol;
+}
+
+export const explorerNodeHashDigestCodec = t.brand(
+	t.string,
+	(
+		hashDigest,
+	): hashDigest is t.Branded<string, ExplorerNodeHashDigestBrand> =>
+		hashDigest.length > 0,
+	'__ExplorerNodeHashDigest',
+);
+
+export type ExplorerNodeHashDigest = t.TypeOf<
+	typeof explorerNodeHashDigestCodec
+>;
 
 export const buildRootNode = () =>
 	({
@@ -250,10 +264,10 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 	return {
 		caseHash,
 		nodeData,
-		selectedNodeHashDigest: state.changeExplorerView
-			.focusedFileExplorerNodeId as ExplorerNodeHashDigest | null,
-		expandedNodeHashDigests: state.changeExplorerView
-			.openedFileExplorerNodeIds as ExplorerNodeHashDigest[],
+		selectedNodeHashDigest:
+			state.changeExplorerView.focusedFileExplorerNodeId,
+		expandedNodeHashDigests:
+			state.changeExplorerView.openedFileExplorerNodeIds,
 		appliedJobHashes: state.appliedJobHashes,
 		searchPhrase: properSearchPhrase,
 		jobHashes,
