@@ -80,13 +80,13 @@ function App() {
 				<VSCodePanelTab className="vscode-tab" id={TabKind.community}>
 					Community
 				</VSCodePanelTab>
-				<VSCodePanelView className="h-full w-full">
+				<VSCodePanelView className="vscode-panel-view h-full w-full">
 					<CodemodList screenWidth={screenWidth} />
 				</VSCodePanelView>
-				<VSCodePanelView className="h-full w-full">
+				<VSCodePanelView className="vscode-panel-view h-full w-full">
 					<CodemodRuns screenWidth={screenWidth} />
 				</VSCodePanelView>
-				<VSCodePanelView className="h-full w-full">
+				<VSCodePanelView className="vscode-panel-view h-full w-full">
 					<CommunityView screenWidth={screenWidth} />
 				</VSCodePanelView>
 			</VSCodePanels>
