@@ -156,7 +156,7 @@ export class CodemodListPanel {
 	}
 
 	public getInitialProps() {
-		return {};
+		return this.__buildProps();
 	}
 
 	public setView() {
