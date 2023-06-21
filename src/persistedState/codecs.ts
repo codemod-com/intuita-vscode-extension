@@ -5,6 +5,7 @@ import { executionErrorCodec } from '../errors/types';
 import { withFallback } from 'io-ts-types';
 import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec } from '../cases/types';
+import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -74,8 +75,13 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	changeExplorerView: withFallback(
 		buildTypeCodec({
-			focusedFileExplorerNodeId: t.union([t.string, t.null]),
-			openedFileExplorerNodeIds: t.readonlyArray(t.string),
+			focusedFileExplorerNodeId: t.union([
+				explorerNodeHashDigestCodec,
+				t.null,
+			]),
+			openedFileExplorerNodeIds: t.readonlyArray(
+				explorerNodeHashDigestCodec,
+			),
 			visible: t.boolean,
 			searchPhrase: withFallback(t.string, ''),
 		}),
