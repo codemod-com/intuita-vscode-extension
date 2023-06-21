@@ -24,22 +24,6 @@ export function isNeitherNullNorUndefined<T>(
 	return value !== null && value !== undefined;
 }
 
-const onFocus = (hashDigest: ExplorerNodeHashDigest) => {
-	vscode.postMessage({
-		kind: 'webview.global.selectExplorerNodeHashDigest',
-		selectedExplorerNodeHashDigest: hashDigest,
-	});
-};
-
-const onFlip = (hashDigest: ExplorerNodeHashDigest) => {
-	vscode.postMessage({
-		kind: 'webview.global.flipChangeExplorerNodeIds',
-		hashDigest,
-	});
-
-	onFocus(hashDigest);
-};
-
 type Props = { screenWidth: number | null };
 
 function App({ screenWidth }: Props) {
@@ -94,6 +78,44 @@ function App({ screenWidth }: Props) {
 			searchPhrase,
 		});
 	}, []);
+
+	const onFocus = (hashDigest: ExplorerNodeHashDigest) => {
+		if (viewProps === null) {
+			return;
+		}
+
+		const index = viewProps.nodeData.findIndex(
+			(nodeDatum) => nodeDatum.node.hashDigest === hashDigest,
+		);
+
+		// find the first FILE node in the tree that is or follows the `index` node
+		// this means that if we pick a DIRECTORY, the first FILE under it will be matched
+
+		const slicedNodes = viewProps.nodeData
+			.slice(index)
+			.map(({ node }) => node);
+
+		const node = slicedNodes.find<ExplorerNode & { kind: 'FILE' }>(
+			(node): node is ExplorerNode & { kind: 'FILE' } =>
+				node.kind === 'FILE',
+		);
+
+		vscode.postMessage({
+			kind: 'webview.global.selectExplorerNodeHashDigest',
+			selectedExplorerNodeHashDigest: hashDigest,
+			caseHash: viewProps.caseHash,
+			jobHash: node?.jobHash ?? null,
+		});
+	};
+
+	const onFlip = (hashDigest: ExplorerNodeHashDigest) => {
+		vscode.postMessage({
+			kind: 'webview.global.flipChangeExplorerNodeIds',
+			hashDigest,
+		});
+
+		onFocus(hashDigest);
+	};
 
 	if ((viewProps?.caseHash ?? null) === null) {
 		return (

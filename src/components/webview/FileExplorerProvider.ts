@@ -3,7 +3,6 @@ import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { JobManager } from '../jobManager';
-import { CaseHash } from '../../cases/types';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
 import { selectExplorerTree } from '../../selectors/selectExplorerTree';
@@ -99,56 +98,6 @@ export class FileExplorer {
 			);
 		}
 
-		if (message.kind === 'webview.fileExplorer.fileSelected') {
-			const caseHash = this.__store.getState().codemodRunsView
-				.selectedCaseHash as CaseHash | null;
-
-			if (caseHash === null) {
-				return;
-			}
-
-			const fileNodeObj = null;
-			if (fileNodeObj === null) {
-				return;
-			}
-
-			const { jobHash } = fileNodeObj;
-			const rootPath =
-				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-			if (rootPath === null) {
-				return;
-			}
-
-			this.__messageBus.publish({
-				kind: MessageKind.focusFile,
-				caseHash,
-				jobHash,
-			});
-		}
-
-		if (message.kind === 'webview.fileExplorer.folderSelected') {
-			const caseHash = this.__store.getState().codemodRunsView
-				.selectedCaseHash as CaseHash | null;
-
-			if (caseHash === null) {
-				return;
-			}
-
-			const rootPath =
-				workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
-			if (rootPath === null) {
-				return;
-			}
-
-			const folderPath = message.id;
-
-			this.__messageBus.publish({
-				kind: MessageKind.focusFolder,
-				caseHash,
-				folderPath,
-			});
-		}
-
 		if (message.kind === 'webview.global.focusView') {
 			commands.executeCommand('intuita.focusView', message.webviewName);
 		}
@@ -184,6 +133,16 @@ export class FileExplorer {
 					message.selectedExplorerNodeHashDigest,
 				),
 			);
+
+			if (message.jobHash === null) {
+				return;
+			}
+
+			this.__messageBus.publish({
+				kind: MessageKind.focusFile,
+				caseHash: message.caseHash,
+				jobHash: message.jobHash,
+			});
 		}
 
 		if (message.kind === 'webview.global.flipChangeExplorerNodeIds') {

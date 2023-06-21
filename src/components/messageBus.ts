@@ -181,11 +181,6 @@ export type Message =
 			kind: MessageKind.focusFile;
 			caseHash: CaseHash;
 			jobHash: JobHash;
-	  }>
-	| Readonly<{
-			kind: MessageKind.focusFolder;
-			caseHash: CaseHash;
-			folderPath: string;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
