@@ -11,7 +11,6 @@ import { SyntheticError } from '../../../../src/errors/types';
 import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import { useKey } from '../../jobDiffView/hooks/useKey';
-import { distanceBetweenTwoRectsInPx } from '../../utilities';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -177,21 +176,26 @@ const TreeItem = ({
 			return undefined;
 		}
 
-		const resizeObserver = new ResizeObserver((_) => {
-			const directorySelector = document.getElementById(
-				`directorySelector-${id}`,
-			);
-			const actions = document.getElementById(`actions-${id}`);
-			if (!directorySelector || !actions) {
+		const resizeObserver = new ResizeObserver((entries) => {
+			const treeItem = entries[0] ?? null;
+			if (treeItem === null) {
 				return;
 			}
 
-			const dist = distanceBetweenTwoRectsInPx(
-				directorySelector.getBoundingClientRect(),
-				actions.getBoundingClientRect(),
+			const directorySelector = document.getElementById(
+				`directorySelector-${id}`,
 			);
 
-			setNotEnoughSpace(dist <= 100);
+			if (directorySelector === null) {
+				return;
+			}
+
+			const xDistance = Math.abs(
+				directorySelector.getBoundingClientRect().right -
+					treeItem.target.getBoundingClientRect().right,
+			);
+
+			setNotEnoughSpace(xDistance < 100);
 		});
 
 		const treeItem = document.getElementById(id);
@@ -300,7 +304,7 @@ const TreeItem = ({
 				{progressBar}
 			</div>
 			{!editingPath && (
-				<div className={styles.actions} id={`actions-${id}`}>
+				<div className={styles.actions}>
 					{actionButtons(notEnoughSpace).map((el) => el)}
 				</div>
 			)}
