@@ -1,26 +1,31 @@
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 import cn from 'classnames';
-import { Dispatch, SetStateAction } from 'react';
 import styles from './style.module.css';
 
-type Props = {
-	searchQuery: string;
-	setSearchQuery: Dispatch<SetStateAction<string>>;
+type Props = Readonly<{
+	searchPhrase: string;
+	setSearchPhrase: (searchPhrase: string) => void;
 	placeholder: string;
-};
+}>;
 
 export const SEARCH_QUERY_MIN_LENGTH = 1;
 
-const SearchBar = ({ searchQuery, setSearchQuery, placeholder }: Props) => {
+const SearchBar = (props: Props) => {
 	return (
 		<VSCodeTextField
 			type="text"
-			value={searchQuery}
-			placeholder={placeholder}
-			onInput={(event: Event | React.FormEvent<HTMLElement>) => {
-				setSearchQuery(
-					(prev) => (event.target as HTMLInputElement).value ?? prev,
-				);
+			value={props.searchPhrase}
+			placeholder={props.placeholder}
+			onInput={(event) => {
+				if (
+					event.target === null ||
+					!('value' in event.target) ||
+					typeof event.target.value !== 'string'
+				) {
+					return;
+				}
+
+				props.setSearchPhrase(event.target.value);
 			}}
 			className={styles.container}
 		>

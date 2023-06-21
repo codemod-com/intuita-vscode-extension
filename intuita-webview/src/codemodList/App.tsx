@@ -69,8 +69,8 @@ function App({ screenWidth }: Props) {
 					return (
 						<>
 							<SearchBar
-								searchQuery={searchQuery}
-								setSearchQuery={setSearchQuery}
+								searchPhrase={searchQuery}
+								setSearchPhrase={setSearchQuery}
 								placeholder="Search codemods..."
 							/>
 							<TreeView
