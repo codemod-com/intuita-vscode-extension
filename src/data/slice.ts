@@ -53,7 +53,7 @@ export type State = {
 	job: ReturnType<typeof jobAdapter.getInitialState>;
 };
 
-const codemodAdapter = createEntityAdapter<CodemodEntry>({
+export const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 

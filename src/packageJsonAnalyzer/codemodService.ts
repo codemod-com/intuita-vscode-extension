@@ -143,6 +143,7 @@ export class CodemodService {
 			...rootPath,
 			hash,
 		});
+
 		this.#publicCodemods = discoveredCodemods;
 	};
 
