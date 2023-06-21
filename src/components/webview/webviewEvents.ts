@@ -196,7 +196,7 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.updateStagedJobs';
-			value: JobHash[];
+			value: ReadonlyArray<JobHash>;
 	  }>
 	| Readonly<{
 			kind: 'webview.fileExplorer.focusNode';
@@ -254,12 +254,12 @@ export type WebviewResponse =
 	| Omit<RunCodemodsCommand, 'title' | 'shortenedTitle' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
-			jobHashes: JobHash[];
+			jobHashes: ReadonlyArray<JobHash>;
 			diffId: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.stageJobs';
-			jobHashes: JobHash[];
+			jobHashes: ReadonlyArray<JobHash>;
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>

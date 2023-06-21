@@ -7,7 +7,6 @@ import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import { JobHash } from '../../shared/types';
 import { CaseHash } from '../../../../src/cases/types';
-import { FileTreeNode } from '../../../../src/components/webview/webviewEvents';
 import { ReactComponent as CheckboxIndeterminate } from '../../assets/checkbox_indeterminate.svg';
 import { ReactComponent as CheckboxBlank } from '../../assets/checkbox_blank.svg';
 import { ReactComponent as CheckboxChecked } from '../../assets/checkbox_checked.svg';
@@ -18,43 +17,36 @@ const POPOVER_TEXTS = {
 	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
-type Props = {
-	stagedJobs: JobHash[];
+type Props = Readonly<{
 	caseHash: CaseHash;
-	fileNodes: FileTreeNode[] | null;
+	jobHashes: ReadonlyArray<JobHash>;
+	selectedJobHashes: ReadonlyArray<JobHash>;
 	screenWidth: number | null;
-};
+}>;
 
 const ActionsHeader = ({
-	stagedJobs,
+	selectedJobHashes,
 	caseHash,
-	fileNodes,
+	jobHashes,
 	screenWidth,
 }: Props) => {
-	const allFileNodesReady = fileNodes !== null;
-	const hasStagedJobs = stagedJobs.length > 0;
+	const ready = jobHashes.length > 0;
+	const hasStagedJobs = selectedJobHashes.length > 0;
 	const hasStagedAllJobs =
-		allFileNodesReady && stagedJobs.length === fileNodes.length;
+		ready && selectedJobHashes.length === jobHashes.length;
 
 	const handleToggleAllJobs = () => {
-		if (!allFileNodesReady) {
+		if (!ready) {
 			return;
 		}
-		const jobHashes: JobHash[] = hasStagedJobs
-			? []
-			: fileNodes.map((node) => node.jobHash) ?? [];
 
 		vscode.postMessage({
 			kind: 'webview.global.stageJobs',
-			jobHashes,
+			jobHashes: hasStagedJobs ? [] : jobHashes,
 		});
 	};
 
 	const handleDiscardChanges = () => {
-		if (!caseHash) {
-			return;
-		}
-
 		vscode.postMessage({
 			kind: 'webview.global.discardChanges',
 			caseHash,
@@ -67,13 +59,9 @@ const ActionsHeader = ({
 	};
 
 	const handleApplySelected = () => {
-		if (!caseHash) {
-			return;
-		}
-
 		vscode.postMessage({
 			kind: 'webview.global.applySelected',
-			jobHashes: stagedJobs,
+			jobHashes: selectedJobHashes,
 			diffId: caseHash,
 		});
 
@@ -96,10 +84,10 @@ const ActionsHeader = ({
 
 	return (
 		<div className={styles.root}>
-			{allFileNodesReady ? (
+			{ready ? (
 				<h4
 					className={styles.selectedFileCount}
-				>{`Selected files: ${stagedJobs.length} of ${fileNodes.length}`}</h4>
+				>{`Selected files: ${selectedJobHashes.length} of ${jobHashes.length}`}</h4>
 			) : (
 				<VSCodeProgressRing className={styles.progressRing} />
 			)}
@@ -109,7 +97,7 @@ const ActionsHeader = ({
 						appearance="secondary"
 						onClick={handleDiscardChanges}
 						className={styles.vscodeButton}
-						disabled={!allFileNodesReady}
+						disabled={!ready}
 					>
 						{discardText}
 					</VSCodeButton>
@@ -125,7 +113,7 @@ const ActionsHeader = ({
 					<VSCodeButton
 						appearance="primary"
 						onClick={handleApplySelected}
-						disabled={!allFileNodesReady || !hasStagedJobs}
+						disabled={!ready || !hasStagedJobs}
 						className={styles.vscodeButton}
 					>
 						{applyText}
@@ -144,7 +132,7 @@ const ActionsHeader = ({
 			<Popover
 				trigger={
 					<VSCodeButton
-						disabled={!allFileNodesReady}
+						disabled={!ready}
 						onClick={handleToggleAllJobs}
 						appearance="icon"
 					>

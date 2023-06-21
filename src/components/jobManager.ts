@@ -78,7 +78,7 @@ export class JobManager {
 		});
 	}
 
-	public setAppliedJobs(jobHashes: JobHash[]): void {
+	public setAppliedJobs(jobHashes: ReadonlyArray<JobHash>): void {
 		this.__store.dispatch(actions.setAppliedJobHashes(jobHashes));
 	}
 
