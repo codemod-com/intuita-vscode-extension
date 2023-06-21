@@ -33,6 +33,10 @@ import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
+import {
+	selectCodemodTree,
+	selectExecutionPaths,
+} from '../../selectors/selectCodemodTree';
 
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
@@ -140,8 +144,19 @@ export class CodemodListPanel {
 		this.__view?.webview.postMessage(message);
 	}
 
+	private __buildProps() {
+		const state = this.__store.getState();
+		const tree = selectCodemodTree(state);
+		const executionPaths = selectExecutionPaths(state);
+
+		return {
+			tree,
+			executionPaths,
+		};
+	}
+
 	public getInitialProps() {
-		return {};
+		return this.__buildProps();
 	}
 
 	public setView() {
