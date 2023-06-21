@@ -26,7 +26,7 @@ type Props = {
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: ReactNode[];
+	actionButtons: (doesDisplayShortenedTitle: boolean) => ReactNode[];
 	hasChildren: boolean;
 	kind: CodemodTreeNode['kind'];
 	onClick(): void;
@@ -38,7 +38,6 @@ type Props = {
 	autocompleteItems: string[];
 	collapse(): void;
 	expand(): void;
-	pathDisplayValue: string | null;
 };
 
 const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
@@ -59,7 +58,6 @@ const TreeItem = ({
 	icon,
 	open,
 	focused,
-	pathDisplayValue,
 	rootPath,
 	actionButtons,
 	hasChildren,
@@ -71,6 +69,8 @@ const TreeItem = ({
 	collapse,
 	expand,
 }: Props) => {
+	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
+	const directorySelectorRef = useRef<HTMLSpanElement>(null);
 	const ref = useRef<HTMLDivElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
@@ -172,6 +172,41 @@ const TreeItem = ({
 		setEditingPath(false);
 	}, []);
 
+	useEffect(() => {
+		if (ResizeObserver === undefined) {
+			return undefined;
+		}
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			const treeItem = entries[0] ?? null;
+			if (treeItem === null) {
+				return;
+			}
+
+			if (directorySelectorRef.current === null) {
+				return;
+			}
+
+			const xDistance = Math.abs(
+				directorySelectorRef.current.getBoundingClientRect().right -
+					treeItem.target.getBoundingClientRect().right,
+			);
+
+			setNotEnoughSpace(xDistance < 100);
+		});
+
+		const treeItem = document.getElementById(id);
+
+		if (treeItem === null) {
+			return;
+		}
+		resizeObserver.observe(treeItem);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [id]);
+
 	return (
 		<div
 			id={id}
@@ -237,19 +272,18 @@ const TreeItem = ({
 					/>
 					<span
 						className={styles.directorySelector}
+						ref={directorySelectorRef}
 						style={{
 							...(editingPath && {
 								display: 'flex',
-							}),
-							...(pathDisplayValue !== null && {
-								justifyContent: 'flex-end',
+								width: '100%',
 							}),
 						}}
 					>
 						{kind === 'codemodItem' && executionPath && (
 							<DirectorySelector
 								defaultValue={targetPath}
-								displayValue={pathDisplayValue}
+								displayValue={notEnoughSpace ? '🎯' : null}
 								rootPath={rootPath}
 								error={
 									error === null ? null : { message: error }
@@ -267,8 +301,8 @@ const TreeItem = ({
 				{progressBar}
 			</div>
 			{!editingPath && (
-				<div className={cn(styles.actions)}>
-					{actionButtons.map((el) => el)}
+				<div className={styles.actions}>
+					{actionButtons(notEnoughSpace).map((el) => el)}
 				</div>
 			)}
 		</div>

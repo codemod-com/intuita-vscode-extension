@@ -16,18 +16,14 @@
 
 .root .actions,
 .root .directorySelector {
-	display: none;
-}
-
-.directorySelector {
-	width: 100%;
+	opacity: 0;
 }
 
 .root:hover .actions,
 .root:hover .directorySelector,
 .root:focus .actions,
 .root:focus .directorySelector {
-	display: flex;
+	opacity: 1;
 }
 
 .root:hover .description {
