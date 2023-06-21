@@ -152,10 +152,6 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
-			kind: 'webview.community.setView';
-			value: View;
-	  }>
-	| Readonly<{
 			kind: 'webview.codemodRuns.setView';
 			value: View;
 	  }>
@@ -225,9 +221,6 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.afterWebviewMounted';
-	  }>
-	| Readonly<{
-			kind: 'webview.community.afterWebviewMounted';
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.afterWebviewMounted';

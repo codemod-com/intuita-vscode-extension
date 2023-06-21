@@ -1,11 +1,5 @@
-import { WebviewView, Uri, ExtensionContext, commands } from 'vscode';
-import {
-	ExternalLink,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
-import { WebviewResolver } from './WebviewResolver';
+import { WebviewView, Uri, commands } from 'vscode';
+import { ExternalLink, WebviewResponse } from './webviewEvents';
 
 const EXTERNAL_LINKS: ExternalLink[] = [
 	{
@@ -37,11 +31,6 @@ const EXTERNAL_LINKS: ExternalLink[] = [
 
 export class Community {
 	__view: WebviewView | null = null;
-	__webviewResolver: WebviewResolver;
-
-	constructor(context: ExtensionContext) {
-		this.__webviewResolver = new WebviewResolver(context.extensionUri);
-	}
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
@@ -59,17 +48,6 @@ export class Community {
 		};
 	}
 
-	public setView(data: View) {
-		this.__postMessage({
-			kind: 'webview.community.setView',
-			value: data,
-		});
-	}
-
-	private __postMessage(message: WebviewMessage) {
-		this.__view?.webview.postMessage(message);
-	}
-
 	private __onDidReceiveMessage = (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
 			if (message.value.command === 'openLink') {
@@ -77,17 +55,7 @@ export class Community {
 					'vscode.open',
 					Uri.parse(message.value.arguments?.[0] ?? ''),
 				);
-				return;
 			}
-		}
-
-		if (message.kind === 'webview.community.afterWebviewMounted') {
-			this.setView({
-				viewId: 'communityView',
-				viewProps: {
-					externalLinks: EXTERNAL_LINKS,
-				},
-			});
 		}
 	};
 
