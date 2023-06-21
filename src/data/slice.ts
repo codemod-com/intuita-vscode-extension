@@ -49,7 +49,7 @@ export const getInitialState = (): RootState => {
 		},
 		changeExplorerView: {
 			focusedFileExplorerNodeId: null,
-			openedFileExplorerNodeIds: [],
+			collapsedNodeHashDigests: [],
 			visible: false,
 			searchPhrase: '',
 		},
@@ -94,7 +94,7 @@ const rootSlice = createSlice({
 			state.codemodRunsView.selectedCaseHash = null;
 			state.caseHashJobHashes = [];
 			state.changeExplorerView.focusedFileExplorerNodeId = null;
-			state.changeExplorerView.openedFileExplorerNodeIds = [];
+			state.changeExplorerView.collapsedNodeHashDigests = [];
 			state.changeExplorerView.searchPhrase = '';
 		},
 		upsertCodemods(
@@ -175,12 +175,12 @@ const rootSlice = createSlice({
 			state.changeExplorerView.visible = true;
 			state.changeExplorerView.focusedFileExplorerNodeId = action.payload;
 		},
-		flipChangeExplorerNodeIds(
+		flipChangeExplorerHashDigests(
 			state,
 			action: PayloadAction<ExplorerNodeHashDigest>,
 		) {
 			const set = new Set<ExplorerNodeHashDigest>(
-				state.changeExplorerView.openedFileExplorerNodeIds,
+				state.changeExplorerView.collapsedNodeHashDigests,
 			);
 
 			if (set.has(action.payload)) {
@@ -189,8 +189,7 @@ const rootSlice = createSlice({
 				set.add(action.payload);
 			}
 
-			state.changeExplorerView.openedFileExplorerNodeIds =
-				Array.from(set);
+			state.changeExplorerView.collapsedNodeHashDigests = Array.from(set);
 		},
 		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
 			state.changeExplorerView.visible = action.payload;

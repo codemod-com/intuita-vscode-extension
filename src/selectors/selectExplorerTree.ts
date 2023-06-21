@@ -233,7 +233,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		}
 
 		const expanded =
-			state.changeExplorerView.openedFileExplorerNodeIds.includes(
+			!state.changeExplorerView.collapsedNodeHashDigests.includes(
 				hashDigest,
 			);
 		const focused =
@@ -266,8 +266,8 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		nodeData,
 		selectedNodeHashDigest:
 			state.changeExplorerView.focusedFileExplorerNodeId,
-		expandedNodeHashDigests:
-			state.changeExplorerView.openedFileExplorerNodeIds,
+		collapsedNodeHashDigests:
+			state.changeExplorerView.collapsedNodeHashDigests,
 		appliedJobHashes: state.appliedJobHashes,
 		searchPhrase: properSearchPhrase,
 		jobHashes,

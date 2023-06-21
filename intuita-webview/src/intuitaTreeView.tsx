@@ -19,7 +19,7 @@ export type TreeViewProps<
 	TN extends TreeNode<HD>,
 > = Readonly<{
 	selectedNodeHashDigest: HD | null;
-	expandedNodeHashDigests: ReadonlyArray<HD>;
+	collapsedNodeHashDigests: ReadonlyArray<HD>;
 	nodeData: ReadonlyArray<NodeDatum<HD, TN>>;
 	nodeRenderer: (
 		props: Readonly<{
@@ -90,7 +90,7 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 	const arrowLeftCallback = useCallback(() => {
 		if (
 			props.selectedNodeHashDigest === null ||
-			!props.expandedNodeHashDigests.includes(
+			props.collapsedNodeHashDigests.includes(
 				props.selectedNodeHashDigest,
 			)
 		) {
@@ -103,7 +103,9 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 	const arrowRightCallback = useCallback(() => {
 		if (
 			props.selectedNodeHashDigest === null ||
-			props.expandedNodeHashDigests.includes(props.selectedNodeHashDigest)
+			!props.collapsedNodeHashDigests.includes(
+				props.selectedNodeHashDigest,
+			)
 		) {
 			return;
 		}

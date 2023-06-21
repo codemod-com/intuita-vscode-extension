@@ -79,7 +79,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 				explorerNodeHashDigestCodec,
 				t.null,
 			]),
-			openedFileExplorerNodeIds: t.readonlyArray(
+			collapsedNodeHashDigests: t.readonlyArray(
 				explorerNodeHashDigestCodec,
 			),
 			visible: t.boolean,
@@ -87,7 +87,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		}),
 		{
 			focusedFileExplorerNodeId: null,
-			openedFileExplorerNodeIds: [],
+			collapsedNodeHashDigests: [],
 			visible: true,
 			searchPhrase: '',
 		},
