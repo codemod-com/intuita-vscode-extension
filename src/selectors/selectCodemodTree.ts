@@ -1,10 +1,17 @@
 import path from 'path';
 import { CodemodEntry } from '../codemods/types';
-import { buildHash } from '../utilities';
+import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
 
 export type CodemodNodeHashDigest = string & {
 	__CodemodNodeHashDigest: 'CodemodNodeHashDigest';
+};
+
+const buildCodemodTitle = (name: string): string => {
+	return name
+		.split('-')
+		.map((word) => capitalize(word))
+		.join(' ');
 };
 
 export const buildRootNode = () =>
@@ -25,7 +32,7 @@ export const buildCodemodNode = (codemod: CodemodEntry, name: string) => {
 	return {
 		kind: 'CODEMOD' as const,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
-		label: name,
+		label: buildCodemodTitle(name),
 	} as const;
 };
 
@@ -56,9 +63,8 @@ export const selectCodemodTree = (state: RootState) => {
 			return;
 		}
 
-		let currNode: CodemodNode | null = null;
-
 		pathParts.forEach((part, idx) => {
+      let currNode: CodemodNode | null = null;
 			const codemodDirName = pathParts.slice(0, idx + 1).join('/');
 
 			if (nodePathMap.has(codemodDirName)) {
