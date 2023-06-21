@@ -10,27 +10,27 @@ import { WebviewResolver } from './WebviewResolver';
 const EXTERNAL_LINKS: ExternalLink[] = [
 	{
 		text: 'Feature requests',
-		icon: 'featureRequest',
+		id: 'featureRequest',
 		url: 'https://feedback.intuita.io/feature-requests-and-bugs',
 	},
 	{
 		text: 'Codemod requests',
-		icon: 'codemodRequest',
+		id: 'codemodRequest',
 		url: 'https://feedback.intuita.io/codemod-requests',
 	},
 	{
 		text: 'Docs',
-		icon: 'docs',
+		id: 'docs',
 		url: 'https://docs.intuita.io/docs/intro',
 	},
 	{
 		text: 'Youtube channel',
-		icon: 'youtube',
+		id: 'youtube',
 		url: 'https://www.youtube.com/channel/UCAORbHiie6y5yVaAUL-1nHA',
 	},
 	{
 		text: 'Chat with us on Slack',
-		icon: 'slack',
+		id: 'slack',
 		url: 'https://join.slack.com/t/intuita-inc/shared_invite/zt-1untfdpwh-XWuFslRz0D8cGbmjymd3Bw',
 	},
 ];

@@ -122,8 +122,8 @@ export type FileTreeNode = TreeNode & {
 };
 
 export type ExternalLink = {
+	id: string;
 	text: string;
-	icon: string;
 	url: string;
 };
 

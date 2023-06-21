@@ -11,12 +11,12 @@ import styles from './style.module.css';
 
 type MainViews = Extract<View, { viewId: 'communityView' }>;
 
-const getIcon = (icon: string): ReactElement | null => {
+const getIcon = (id: string): ReactElement | null => {
 	const IntuitaIcon = (
 		<img className={styles.icon} src={intuitaLogo} alt="intuita-logo" />
 	);
 
-	switch (icon) {
+	switch (id) {
 		case 'youtube':
 			return <YoutubeIcon className={styles.icon} />;
 
@@ -34,8 +34,10 @@ const getIcon = (icon: string): ReactElement | null => {
 				<SlackIcon
 					className={styles.icon}
 					style={{
-						width: '17px',
-						height: '17px',
+						width: '15px',
+						height: '15px',
+						marginLeft: '-2px',
+						marginRight: '2px',
 					}}
 				/>
 			);
@@ -75,11 +77,19 @@ function App({ screenWidth: _screenWidth }: Props) {
 		<main className="App">
 			<div className={styles.container}>
 				{view.viewProps.externalLinks.map(
-					({ text, url, icon }: ExternalLink) => {
+					({ text, url, id }: ExternalLink) => {
 						return (
 							<VSCodeLink className={styles.link} href={url}>
-								<span slot="start">{getIcon(icon)}</span>
-								<span>{text}</span>
+								<span slot="start">{getIcon(id)}</span>
+								<span
+									style={{
+										...(id !== 'slack' && {
+											marginLeft: '5px',
+										}),
+									}}
+								>
+									{text}
+								</span>
 							</VSCodeLink>
 						);
 					},
