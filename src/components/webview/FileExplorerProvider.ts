@@ -1,12 +1,7 @@
 import { WebviewView, workspace, commands } from 'vscode';
 import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
-import {
-	TreeNodeId,
-	View,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { JobManager } from '../jobManager';
 import { CaseHash } from '../../cases/types';
 import { Store } from '../../data';
