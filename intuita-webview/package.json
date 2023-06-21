@@ -12,7 +12,6 @@
 		"preact-compat": "^3.19.0",
 		"rc-progress": "^3.4.1",
 		"react": "^18.2.0",
-		"react-accessible-treeview": "^2.6.1",
 		"react-dom": "^18.2.0",
 		"react-resizable-panels": "^0.0.51",
 		"react-treeview": "^0.4.7",
