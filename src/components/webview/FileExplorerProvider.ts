@@ -208,7 +208,7 @@ export class FileExplorer {
 
 		if (message.kind === 'webview.global.flipChangeExplorerNodeIds') {
 			this.__store.dispatch(
-				actions.flipChangeExplorerNodeIds(message.hashDigest),
+				actions.flipChangeExplorerHashDigests(message.hashDigest),
 			);
 		}
 
