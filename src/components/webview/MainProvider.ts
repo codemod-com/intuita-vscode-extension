@@ -133,7 +133,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
-		if (message.kind === 'webview.main.setState') {
+		if (message.kind === 'webview.main.setActiveTabId') {
 			this.__store.dispatch(actions.setActiveTabId(message.activeTabId));
 		}
 	};

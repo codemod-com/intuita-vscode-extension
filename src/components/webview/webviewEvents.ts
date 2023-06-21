@@ -305,7 +305,7 @@ export type WebviewResponse =
 			id: TreeNodeId;
 	  }>
 	| Readonly<{
-			kind: 'webview.main.setState';
+			kind: 'webview.main.setActiveTabId';
 			activeTabId: TabKind;
 	  }>
 	| Readonly<{

@@ -68,7 +68,7 @@ function App() {
 
 	const handlePanelTabClick = (id: TabKind) => {
 		vscode.postMessage({
-			kind: 'webview.main.setState',
+			kind: 'webview.main.setActiveTabId',
 			activeTabId: id,
 		});
 	};
