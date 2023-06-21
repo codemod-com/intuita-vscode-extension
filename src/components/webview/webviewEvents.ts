@@ -200,10 +200,6 @@ export type WebviewMessage =
 			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.updateStagedJobs';
-			value: ReadonlyArray<JobHash>;
-	  }>
-	| Readonly<{
 			kind: 'webview.fileExplorer.focusNode';
 			id: TreeNodeId;
 	  }>
@@ -236,9 +232,6 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.community.afterWebviewMounted';
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.afterWebviewMounted';
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.afterWebviewMounted';

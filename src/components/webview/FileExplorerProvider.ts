@@ -186,10 +186,6 @@ export class FileExplorer {
 
 		if (message.kind === 'webview.global.stageJobs') {
 			this.__jobManager.setAppliedJobs(message.jobHashes);
-			this.__postMessage({
-				kind: 'webview.fileExplorer.updateStagedJobs',
-				value: message.jobHashes,
-			});
 		}
 
 		if (message.kind === 'webview.global.setChangeExplorerSearchPhrase') {
@@ -210,11 +206,6 @@ export class FileExplorer {
 			this.__store.dispatch(
 				actions.flipChangeExplorerHashDigests(message.hashDigest),
 			);
-		}
-
-		if (message.kind === 'webview.fileExplorer.afterWebviewMounted') {
-			this.showView();
-			this.setView();
 		}
 	};
 
