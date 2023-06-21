@@ -25,7 +25,6 @@ function App() {
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-			console.log(message, 'message');
 			if (message.kind === 'webview.main.setActiveTabId') {
 				setActiveTabId(message.activeTabId);
 			}
