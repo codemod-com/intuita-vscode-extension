@@ -1,7 +1,7 @@
 import platformPath from 'path';
 import { Uri } from 'vscode';
 import { CaseHash } from '../cases/types';
-import { caseAdapter, jobAdapter, State } from '../data/slice';
+import { RootState } from '../data';
 import { Job, JobHash, JobKind, PersistedJob } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
@@ -82,8 +82,8 @@ export type NodeDatum = Readonly<{
 	childCount: number;
 }>;
 
-export const selectExplorerTree = (state: State, rootPath: Uri | null) => {
-	if (rootPath === null) {
+export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
+	if (rootPath === null || state.codemodExecutionInProgress) {
 		return null;
 	}
 
@@ -93,8 +93,7 @@ export const selectExplorerTree = (state: State, rootPath: Uri | null) => {
 		return null;
 	}
 
-	const kase =
-		caseAdapter.getSelectors().selectById(state.case, caseHash) ?? null;
+	const kase = state.case.entities[caseHash] ?? null;
 
 	if (kase === null) {
 		return null;
@@ -131,11 +130,7 @@ export const selectExplorerTree = (state: State, rootPath: Uri | null) => {
 	}
 
 	const jobs = Array.from(caseJobManager.getRightHashesByLeftHash(kase.hash))
-		.map((jobHash) => {
-			return (
-				jobAdapter.getSelectors().selectById(state.job, jobHash) ?? null
-			);
-		})
+		.map((jobHash) => state.job.entities[jobHash])
 		.filter(isNeitherNullNorUndefined)
 		.filter((job) => {
 			if (properSearchPhrase === '') {
