@@ -22,12 +22,16 @@ interface ExplorerNodeHashDigestBrand {
 
 export const explorerNodeHashDigestCodec = t.brand(
 	t.string,
-	(hashDigest): hashDigest is t.Branded<string, ExplorerNodeHashDigestBrand> =>
+	(
+		hashDigest,
+	): hashDigest is t.Branded<string, ExplorerNodeHashDigestBrand> =>
 		hashDigest.length > 0,
 	'__ExplorerNodeHashDigest',
 );
 
-export type ExplorerNodeHashDigest = t.TypeOf<typeof explorerNodeHashDigestCodec>;
+export type ExplorerNodeHashDigest = t.TypeOf<
+	typeof explorerNodeHashDigestCodec
+>;
 
 export const buildRootNode = () =>
 	({
@@ -260,10 +264,10 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 	return {
 		caseHash,
 		nodeData,
-		selectedNodeHashDigest: state.changeExplorerView
-			.focusedFileExplorerNodeId as ExplorerNodeHashDigest | null,
-		expandedNodeHashDigests: state.changeExplorerView
-			.openedFileExplorerNodeIds as ExplorerNodeHashDigest[],
+		selectedNodeHashDigest:
+			state.changeExplorerView.focusedFileExplorerNodeId,
+		expandedNodeHashDigests:
+			state.changeExplorerView.openedFileExplorerNodeIds,
 		appliedJobHashes: state.appliedJobHashes,
 		searchPhrase: properSearchPhrase,
 		jobHashes,
