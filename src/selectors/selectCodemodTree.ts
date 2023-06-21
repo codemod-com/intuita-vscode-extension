@@ -64,7 +64,7 @@ export const selectCodemodTree = (state: RootState) => {
 		}
 
 		pathParts.forEach((part, idx) => {
-      let currNode: CodemodNode | null = null;
+			let currNode: CodemodNode | null = null;
 			const codemodDirName = pathParts.slice(0, idx + 1).join('/');
 
 			if (nodePathMap.has(codemodDirName)) {
