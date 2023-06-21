@@ -120,11 +120,11 @@ export const selectCodemodTree = (state: RootState) => {
 		}
 
 		const expanded =
-			state.changeExplorerView.openedFileExplorerNodeIds.includes(
+			state.codemodDiscoveryView.openedCodemodHashDigests.includes(
 				hashDigest,
 			);
 		const focused =
-			state.changeExplorerView.focusedFileExplorerNodeId === hashDigest;
+			state.codemodDiscoveryView.focusedCodemodHashDigest === hashDigest;
 		const childSet = children[node.hashDigest] ?? [];
 
 		if (depth !== -1) {
@@ -150,10 +150,10 @@ export const selectCodemodTree = (state: RootState) => {
 
 	return {
 		nodeData,
-		selectedNodeHashDigest: state.changeExplorerView
-			.focusedFileExplorerNodeId as CodemodNodeHashDigest | null,
-		expandedNodeHashDigests: state.changeExplorerView
-			.openedFileExplorerNodeIds as CodemodNodeHashDigest[],
+		selectedNodeHashDigest: state.codemodDiscoveryView
+			.focusedCodemodHashDigest as CodemodNodeHashDigest | null,
+		expandedNodeHashDigests: state.codemodDiscoveryView
+			.openedCodemodHashDigests as CodemodNodeHashDigest[],
 	};
 };
 

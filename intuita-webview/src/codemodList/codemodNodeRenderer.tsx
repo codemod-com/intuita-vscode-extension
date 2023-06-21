@@ -27,24 +27,38 @@ const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 const getIcon = (
 	nodeDatum: NodeDatum<CodemodNodeHashDigest, CodemodNode>,
 ): ReactNode => {
-	if (nodeDatum.node.kind === 'CODEMOD') {
+	const { expanded, node } = nodeDatum;
+	const { kind } = node;
+
+	if (kind === 'CODEMOD') {
 		return <CaseIcon />;
 	}
 
-	if (nodeDatum.node.kind === 'DIRECTORY') {
+	if (kind === 'DIRECTORY') {
 		return (
 			<span
-				className={cn(
-					'codicon',
-					!nodeDatum.expanded
-						? 'codicon-folder'
-						: 'codicon-folder-opened',
-				)}
+				className={cn('codicon', {
+					'codicon-folder': !expanded,
+					'codicon-folder-opened': expanded,
+				})}
 			/>
 		);
 	}
 
 	return <BlueLightBulbIcon />;
+};
+
+const getContainerInlineStyles = ({
+	depth,
+}: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
+	return {
+		...(depth === 1 && {
+			minWidth: '0.25rem',
+		}),
+		...(depth > 1 && {
+			minWidth: `${5 + depth * 16}px`,
+		}),
+	};
 };
 
 const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
@@ -86,8 +100,8 @@ const getCodemodNodeRenderer =
 		onClick,
 		onDoubleClick,
 	}: Deps) =>
-	({ nodeDatum, onFlip, onFocus }: Props) => {
-		const { node, depth, focused, expanded, childCount } = nodeDatum;
+	({ nodeDatum, onFlip }: Props) => {
+		const { node, focused, expanded, childCount } = nodeDatum;
 
 		const { hashDigest, label, kind } = node;
 
@@ -165,18 +179,7 @@ const getCodemodNodeRenderer =
 				}}
 				onDoubleClick={onDoubleClick}
 			>
-				<div
-					style={{
-						// root folder, which we hide, has depth={0}
-						// framework/library folders have depth={1}
-						...(depth === 1 && {
-							minWidth: '0.25rem',
-						}),
-						...(depth > 1 && {
-							minWidth: `${5 + depth * 16}px`,
-						}),
-					}}
-				/>
+				<div style={getContainerInlineStyles(nodeDatum)} />
 				{!editingPath && (
 					<>
 						{hasChildren ? (
