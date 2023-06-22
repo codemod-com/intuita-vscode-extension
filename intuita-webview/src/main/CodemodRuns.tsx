@@ -35,7 +35,7 @@ const RESIZABLE_PANELS: {
 				command: 'intuita.clearState',
 			},
 		],
-		Component: (props) => CampaignManager(props),
+		Component: CampaignManager,
 	},
 	{
 		id: 'changeExplorerView',
