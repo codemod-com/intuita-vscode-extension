@@ -101,6 +101,11 @@ export class CampaignManager {
 				this.__store.dispatch(
 					actions.setSelectedCaseHash(message.caseHash),
 				);
+
+				commands.executeCommand(
+					'intuita.openCaseDiff',
+					message.caseHash,
+				);
 			}
 		});
 	}

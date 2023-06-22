@@ -336,20 +336,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.openChangeExplorer',
-			async (caseHash: CaseHash | null) => {
-				// TODO validate
-				if (caseHash === null) {
-					return;
-				}
-
-				// TODO this command will be removed in the future
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
 			async (uri: vscode.Uri) => {
 				try {
