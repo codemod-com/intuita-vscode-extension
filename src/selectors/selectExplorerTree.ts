@@ -118,6 +118,11 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		.toLocaleLowerCase();
 
 	const nodes: Record<ExplorerNodeHashDigest, ExplorerNode> = {};
+
+	// we can iterate through the sets based on the insertion order
+	// that's why we can push hashes into the set coming from
+	// the alphanumerical sorting of the job URIs and the iteration order
+	// is maintained
 	const children: Record<
 		ExplorerNodeHashDigest,
 		Set<ExplorerNodeHashDigest>

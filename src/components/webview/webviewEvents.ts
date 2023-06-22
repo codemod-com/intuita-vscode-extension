@@ -172,10 +172,6 @@ export type WebviewMessage =
 			jobHash: JobHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.focusFolder';
-			folderPath: string;
-	  }>
-	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>
@@ -259,6 +255,8 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.global.selectExplorerNodeHashDigest';
 			selectedExplorerNodeHashDigest: ExplorerNodeHashDigest;
+			caseHash: CaseHash;
+			jobHash: JobHash | null; // TODO probably not jobHash
 	  }>
 	| Readonly<{
 			kind: 'webview.global.flipChangeExplorerNodeIds';
@@ -277,14 +275,6 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.fileExplorer.disposeView';
 			webviewName: 'diffView';
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.folderSelected';
-			id: TreeNodeId;
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.fileSelected';
-			id: TreeNodeId;
 	  }>
 	| Readonly<{
 			kind: 'webview.main.setActiveTabId';

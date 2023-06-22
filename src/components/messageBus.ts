@@ -54,7 +54,6 @@ export const enum MessageKind {
 	afterDryRunHooksExecuted = 36,
 
 	focusFile = 37,
-	focusFolder = 38,
 }
 
 export type Command =
@@ -181,11 +180,6 @@ export type Message =
 			kind: MessageKind.focusFile;
 			caseHash: CaseHash;
 			jobHash: JobHash;
-	  }>
-	| Readonly<{
-			kind: MessageKind.focusFolder;
-			caseHash: CaseHash;
-			folderPath: string;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
