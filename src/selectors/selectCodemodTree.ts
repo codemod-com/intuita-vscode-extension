@@ -1,10 +1,20 @@
 import { CodemodEntry } from '../codemods/types';
 import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
+import * as t from 'io-ts';
 
-export type CodemodNodeHashDigest = string & {
-	__CodemodNodeHashDigest: 'CodemodNodeHashDigest';
-};
+interface CodemodNodeHashDigestBrand {
+	readonly __CodemodNodeHashDigest: unique symbol;
+}
+
+export const codemodNodeHashDigestCodec = t.brand(
+	t.string,
+	(hashDigest): hashDigest is t.Branded<string, CodemodNodeHashDigestBrand> =>
+		hashDigest.length > 0,
+	'__CodemodNodeHashDigest',
+);
+
+export type CodemodNodeHashDigest = t.TypeOf<typeof codemodNodeHashDigestCodec>;
 
 export type NodeDatum = Readonly<{
 	node: CodemodNode;

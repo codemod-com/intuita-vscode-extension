@@ -160,8 +160,6 @@ export class CodemodListPanel {
 	}
 
 	public setView() {
-		const state = this.__store.getState().codemodDiscoveryView;
-
 		this.__postMessage({
 			kind: 'webview.codemodList.setView',
 			value: {
@@ -169,10 +167,9 @@ export class CodemodListPanel {
 				viewProps: {
 					codemodTree: this.__codemodTree,
 					autocompleteItems: this.__autocompleteItems,
-					openedIds:
-						state.openedCodemodHashDigests as ReadonlyArray<CodemodHash>,
-					focusedId:
-						state.focusedCodemodHashDigest as CodemodHash | null,
+					// @TEMP
+					openedIds: [],
+					focusedId: null,
 					nodesByDepth: this.__treeNodesByDepth,
 					nodeIds: Array.from(this.__treeMap.values())
 						.slice(1) // exclude the root node because we don't display it to users
@@ -343,13 +340,13 @@ export class CodemodListPanel {
 		}
 
 		if (message.kind === 'webview.codemods.setState') {
-			this.__store.dispatch(
-				actions.setFocusedCodemodHashDigest(message.focusedId),
-			);
-
-			this.__store.dispatch(
-				actions.setOpenedCodemodHashDigests(message.openedIds),
-			);
+			// @TEMPORARILY
+			// this.__store.dispatch(
+			// 	actions.setFocusedCodemodHashDigest(message.focusedId),
+			// );
+			// this.__store.dispatch(
+			// 	actions.setOpenedCodemodHashDigests(message.openedIds),
+			// );
 		}
 	};
 
