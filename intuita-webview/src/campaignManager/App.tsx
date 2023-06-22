@@ -76,26 +76,6 @@ function App({ screenWidth: _screenWidth }: Props) {
 					kind: 'webview.campaignManager.setSelectedCaseHash',
 					caseHash: hashDigest,
 				});
-
-				// TODO other commands
-				// node.commands?.forEach((command) => {
-				// 	vscode.postMessage({
-				// 		kind: 'webview.command',
-				// 		value: command,
-				// 	});
-				// });
-				// commands: [
-				// 	{
-				// 		title: 'Diff View',
-				// 		command: 'intuita.openCaseDiff',
-				// 		arguments: [element.hash],
-				// 	},
-				// 	{
-				// 		title: 'Change Explorer',
-				// 		command: 'intuita.openChangeExplorer',
-				// 		arguments: [caseHash],
-				// 	},
-				// ],
 			}}
 		/>
 	);

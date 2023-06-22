@@ -82,50 +82,6 @@ export type CodemodTreeNode = {
 
 export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
 
-export type ChangeExplorerTree = O.Option<TreeNode>;
-
-export type CaseTreeNode = {
-	id: CaseHash;
-	kind: 'caseElement';
-	label?: string;
-	iconName: 'case.svg';
-	commands?: [
-		Command & {
-			command: 'intuita.openCaseDiff';
-			arguments?: CaseHash[];
-		},
-		Command & {
-			command: 'intuita.openChangeExplorer';
-			arguments?: CaseHash[];
-		},
-	];
-	actions?: Command[];
-	children: TreeNode[];
-	caseApplied: boolean;
-};
-
-export type TreeNodeId = string & { __TreeNodeId: '__TreeNodeId' };
-
-export type TreeNode = {
-	id: TreeNodeId;
-	kind: string;
-	label?: string;
-	iconName?: string;
-	command?:
-		| Command & {
-				command: 'intuita.openCaseDiff';
-				arguments?: CaseHash[];
-		  };
-	actions?: Command[];
-	children: TreeNode[];
-	depth: number;
-	parentId: TreeNodeId | null;
-};
-
-export type FileTreeNode = TreeNode & {
-	jobHash: JobHash;
-};
-
 export type CollapsibleWebviews =
 	| 'codemodRunsView'
 	| 'codemodDiscoveryView'

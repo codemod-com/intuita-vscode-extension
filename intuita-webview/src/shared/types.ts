@@ -3,7 +3,6 @@ export {
 	View,
 	WebviewMessage,
 	JobDiffViewProps,
-	TreeNode,
 	CodemodTreeNode,
 	Command,
 	RunCodemodsCommand,
