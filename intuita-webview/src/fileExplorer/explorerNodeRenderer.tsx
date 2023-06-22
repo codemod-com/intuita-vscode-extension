@@ -54,6 +54,24 @@ export const explorerNodeRenderer =
 		const icon = getIcon(props.nodeDatum.node, props.nodeDatum.expanded);
 		const focused = props.nodeDatum.focused;
 		const hasChildren = props.nodeDatum.childCount > 0;
+		const deselectedDirectoryNodePaths = new Set(
+			explorerTree.nodeData
+				.filter(
+					(nodeDatum) =>
+						nodeDatum.node.kind === 'DIRECTORY' &&
+						explorerTree.deselectedChangeExplorerNodeHashDigests.includes(
+							nodeDatum.node.hashDigest,
+						),
+				)
+				.map(
+					(nodeDatum) =>
+						(
+							nodeDatum.node as ReturnType<
+								typeof buildDirectoryNode
+							>
+						).path,
+				),
+		);
 
 		const Checkbox = () => {
 			const nodeKind = props.nodeDatum.node.kind;
@@ -66,27 +84,10 @@ export const explorerNodeRenderer =
 					props.nodeDatum.node.hashDigest,
 				);
 
-			const deselectedDirectoryNodes = new Set(
-				explorerTree.nodeData
-					.filter(
-						(nodeDatum) =>
-							nodeDatum.node.kind === 'DIRECTORY' &&
-							explorerTree.deselectedChangeExplorerNodeHashDigests.includes(
-								nodeDatum.node.hashDigest,
-							),
-					)
-					.map(
-						(nodeDatum) =>
-							nodeDatum.node as ReturnType<
-								typeof buildDirectoryNode
-							>,
-					),
-			);
-
-			for (const deselectedDirectoryNode of deselectedDirectoryNodes) {
+			for (const deselectedDirectoryNodePath of deselectedDirectoryNodePaths) {
 				if (
 					props.nodeDatum.node.path.startsWith(
-						deselectedDirectoryNode.path,
+						deselectedDirectoryNodePath,
 					)
 				) {
 					checked = false;
