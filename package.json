@@ -95,12 +95,6 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.saveDocumentOnJobAccept": {
-					"order": 0,
-					"type": "boolean",
-					"default": true,
-					"description": "When a proposed change is accepted, save the associated file."
-				},
 				"intuita.fileLimit": {
 					"order": 1,
 					"type": "number",
