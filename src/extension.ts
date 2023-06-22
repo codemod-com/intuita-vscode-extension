@@ -14,7 +14,6 @@ import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
-import { ElementHash } from './elements/types';
 import { FileExplorer } from './components/webview/FileExplorerProvider';
 import { CampaignManager } from './components/webview/CampaignManagerProvider';
 import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
@@ -159,7 +158,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.openCaseDiff',
-			async (caseHash?: ElementHash) => {
+			async (caseHash?: CaseHash) => {
 				if (!caseHash || !rootPath) {
 					return;
 				}

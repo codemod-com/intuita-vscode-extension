@@ -1,6 +1,5 @@
 import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
-import { ElementHash } from '../../elements/types';
 export type { Command } from 'vscode';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
@@ -92,7 +91,7 @@ export type CaseTreeNode = {
 	commands?: [
 		Command & {
 			command: 'intuita.openCaseDiff';
-			arguments?: ElementHash[];
+			arguments?: CaseHash[];
 		},
 		Command & {
 			command: 'intuita.openChangeExplorer';
@@ -114,7 +113,7 @@ export type TreeNode = {
 	command?:
 		| Command & {
 				command: 'intuita.openCaseDiff';
-				arguments?: ElementHash[];
+				arguments?: CaseHash[];
 		  };
 	actions?: Command[];
 	children: TreeNode[];

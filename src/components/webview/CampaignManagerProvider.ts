@@ -196,7 +196,7 @@ export class CampaignManager {
 				{
 					title: 'Diff View',
 					command: 'intuita.openCaseDiff',
-					arguments: [element.hash],
+					arguments: [element.hash as unknown as CaseHash],
 				},
 				{
 					title: 'Change Explorer',

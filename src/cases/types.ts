@@ -6,7 +6,7 @@ interface CaseHashBrand {
 	readonly __CaseHash: unique symbol;
 }
 
-const caseHashCodec = t.brand(
+export const caseHashCodec = t.brand(
 	t.string,
 	(hashDigest): hashDigest is t.Branded<string, CaseHashBrand> =>
 		hashDigest.length > 0,

@@ -20,12 +20,10 @@ import {
 	CodemodElementWithChildren,
 	CodemodHash,
 } from '../../packageJsonAnalyzer/types';
-import { getElementIconBaseName } from '../../utilities';
 import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import * as TE from 'fp-ts/TaskEither';
-import { ElementKind } from '../../elements/types';
 import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import type { SyntheticError } from '../../errors/types';
@@ -408,7 +406,7 @@ export class CodemodListPanel {
 				kind,
 				label,
 				description: description,
-				iconName: getElementIconBaseName(ElementKind.CASE, null),
+				iconName: 'case.svg',
 				id: hash,
 				actions: [
 					{
