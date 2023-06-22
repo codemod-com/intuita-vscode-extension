@@ -47,15 +47,6 @@ const getIcon = (
 	return <BlueLightBulbIcon />;
 };
 
-const getActions = (hashDigest: CodemodNodeHashDigest) => [
-	{
-		title: '✓ Dry Run',
-		shortenedTitle: '✓',
-		description: 'Run this codemod without making change to file system',
-		kind: 'webview.codemodList.dryRunCodemod',
-		value: hashDigest,
-	},
-];
 
 const getContainerInlineStyles = ({
 	depth,
@@ -88,7 +79,6 @@ type Deps = {
 		doesDisplayShortenedTitle: boolean,
 	) => ReactNode[];
 	autocompleteItems: string[];
-	pathDisplayValues: Record<CodemodNodeHashDigest, string | null>;
 	onDoubleClick(node: CodemodNode): void;
 };
 
@@ -105,7 +95,6 @@ const getCodemodNodeRenderer =
 		codemodDescriptions,
 		actionButtons,
 		autocompleteItems,
-		pathDisplayValues,
 		onDoubleClick,
 	}: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
@@ -120,8 +109,9 @@ const getCodemodNodeRenderer =
 		const icon = getIcon(nodeDatum);
 
 		const description = codemodDescriptions[hashDigest] ?? '';
-		const pathDisplayValue = pathDisplayValues[hashDigest] ?? null;
 
+		const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
+		const directorySelectorRef = useRef<HTMLSpanElement>(null);
 		const ref = useRef<HTMLDivElement>(null);
 		const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 		const [editingPath, setEditingPath] = useState(false);
@@ -181,6 +171,41 @@ const getCodemodNodeRenderer =
 		const onEditCancel = useCallback(() => {
 			setEditingPath(false);
 		}, []);
+		
+		useEffect(() => {
+			if (ResizeObserver === undefined) {
+				return undefined;
+			}
+	
+			const resizeObserver = new ResizeObserver((entries) => {
+				const treeItem = entries[0] ?? null;
+				if (treeItem === null) {
+					return;
+				}
+	
+				if (directorySelectorRef.current === null) {
+					return;
+				}
+	
+				const xDistance = Math.abs(
+					directorySelectorRef.current.getBoundingClientRect().right -
+						treeItem.target.getBoundingClientRect().right,
+				);
+	
+				setNotEnoughSpace(xDistance < 100);
+			});
+	
+			const treeItem = document.getElementById(hashDigest);
+	
+			if (treeItem === null) {
+				return;
+			}
+			resizeObserver.observe(treeItem);
+	
+			return () => {
+				resizeObserver.disconnect();
+			};
+		}, [hashDigest]);
 
 		return (
 			<div
@@ -240,19 +265,18 @@ const getCodemodNodeRenderer =
 						/>
 						<span
 							className={styles.directorySelector}
+							ref={directorySelectorRef}
 							style={{
 								...(editingPath && {
 									display: 'flex',
-								}),
-								...(pathDisplayValue !== null && {
-									justifyContent: 'flex-end',
+									width: '100%',
 								}),
 							}}
 						>
 							{kind === 'CODEMOD' && executionPath && (
 								<DirectorySelector
 									defaultValue={targetPath}
-									displayValue={pathDisplayValue}
+									displayValue={notEnoughSpace ? '🎯' : null}
 									rootPath={rootPath}
 									error={
 										error === null
