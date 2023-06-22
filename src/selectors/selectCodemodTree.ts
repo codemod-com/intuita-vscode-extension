@@ -72,7 +72,7 @@ export type CodemodNode =
 
 export const selectCodemodTree = (state: RootState, rootPath: string) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
-	const { executionPaths } = state.codemodDiscoveryView;
+	const { executionPaths, searchPhrase } = state.codemodDiscoveryView;
 
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
@@ -84,6 +84,17 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 	children[rootNode.hashDigest] = [];
 	codemods.forEach((codemod) => {
 		const { name } = codemod;
+
+		const codemodTitle = buildCodemodTitle(name);
+
+		if (
+			!codemodTitle
+				.trim()
+				.toLocaleLowerCase()
+				.includes(searchPhrase.trim().toLocaleLowerCase())
+		) {
+			return;
+		}
 
 		const sep = name.indexOf('/') !== -1 ? '/' : ':';
 

@@ -41,17 +41,6 @@ export type JobDiffViewProps = Readonly<{
 	title: string | null;
 }>;
 
-export type CommitChangesFormData = Readonly<{
-	remoteUrl: string;
-	currentBranchName: string;
-	newBranchName: string;
-	commitMessage: string;
-	createNewBranch: boolean;
-	stagedJobs: { hash: string; label: string }[];
-	pullRequestTitle: string;
-	pullRequestBody: string;
-}>;
-
 export type RunCodemodsCommand = Readonly<{
 	title: string;
 	shortenedTitle: string;
@@ -200,6 +189,10 @@ export type WebviewResponse =
 			searchPhrase: string;
 	  }>
 	| Readonly<{
+			kind: 'webview.global.setCodemodSearchPhrase';
+			searchPhrase: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.global.selectExplorerNodeHashDigest';
 			selectedExplorerNodeHashDigest: ExplorerNodeHashDigest;
 			caseHash: CaseHash;
@@ -300,19 +293,12 @@ export type View =
 			};
 	  }>
 	| Readonly<{
-			viewId: 'commitView';
-			viewProps: {
-				loading: boolean;
-				error: string;
-				remoteOptions: string[];
-				initialFormData: Partial<CommitChangesFormData>;
-			};
-	  }>
-	| Readonly<{
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
 				autocompleteItems: string[];
+				searchPhrase: string;
+				rootPath: string;
 			};
 	  }>
 	| Readonly<{
