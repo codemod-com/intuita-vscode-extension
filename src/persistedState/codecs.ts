@@ -76,6 +76,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	changeExplorerView: withFallback(
 		buildTypeCodec({
+			collapsed: withFallback(t.boolean, false),
 			focusedFileExplorerNodeId: t.union([
 				explorerNodeHashDigestCodec,
 				t.null,
@@ -89,13 +90,16 @@ export const persistedStateCodecNew = buildTypeCodec({
 			focusedFileExplorerNodeId: null,
 			collapsedNodeHashDigests: [],
 			searchPhrase: '',
+			collapsed: false,
 		},
 	),
 	codemodRunsView: withFallback(
 		buildTypeCodec({
+			collapsed: withFallback(t.boolean, false),
 			selectedCaseHash: t.union([t.string, t.null]),
 		}),
 		{
+			collapsed: false,
 			selectedCaseHash: null,
 		},
 	),

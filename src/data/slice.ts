@@ -36,6 +36,7 @@ export const getInitialState = (): RootState => {
 		executionErrors: {},
 		caseHashJobHashes: [],
 		codemodRunsView: {
+			collapsed: false,
 			selectedCaseHash: null,
 		},
 		codemodDiscoveryView: {
@@ -44,6 +45,7 @@ export const getInitialState = (): RootState => {
 			collapsedCodemodHashDigests: [],
 		},
 		changeExplorerView: {
+			collapsed: false,
 			focusedFileExplorerNodeId: null,
 			collapsedNodeHashDigests: [],
 			searchPhrase: '',
