@@ -21,7 +21,9 @@ export enum TabKind {
 function App() {
 	const ref = useRef(null);
 	const [screenWidth, setScreenWidth] = useState<number | null>(null);
-	const [activeTabId, setActiveTabId] = useState(TabKind.codemods);
+	const [activeTabId, setActiveTabId] = useState(
+		window.INITIAL_STATE.activeTabId,
+	);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
