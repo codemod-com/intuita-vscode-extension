@@ -348,11 +348,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'intuita.openChangeExplorer',
 			async (caseHash: CaseHash | null) => {
+				// TODO validate
 				if (caseHash === null) {
 					return;
 				}
 
-				store.dispatch(actions.setChangeExplorerVisible(true));
+				// TODO this command will be removed in the future
 			},
 		),
 	);

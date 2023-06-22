@@ -57,12 +57,8 @@ export const persistedStateCodecNew = buildTypeCodec({
 		t.record(t.string, t.readonlyArray(executionErrorCodec)),
 		{},
 	),
-	communityView: withFallback(buildTypeCodec({ visible: t.boolean }), {
-		visible: true,
-	}),
 	codemodDiscoveryView: withFallback(
 		buildTypeCodec({
-			visible: t.boolean,
 			executionPaths: t.record(t.string, t.string),
 			focusedCodemodHashDigest: t.union([
 				codemodNodeHashDigestCodec,
@@ -73,7 +69,6 @@ export const persistedStateCodecNew = buildTypeCodec({
 			),
 		}),
 		{
-			visible: true,
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			collapsedCodemodHashDigests: [],
@@ -81,6 +76,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	changeExplorerView: withFallback(
 		buildTypeCodec({
+			collapsed: withFallback(t.boolean, false),
 			focusedFileExplorerNodeId: t.union([
 				explorerNodeHashDigestCodec,
 				t.null,
@@ -88,24 +84,23 @@ export const persistedStateCodecNew = buildTypeCodec({
 			collapsedNodeHashDigests: t.readonlyArray(
 				explorerNodeHashDigestCodec,
 			),
-			visible: t.boolean,
 			searchPhrase: withFallback(t.string, ''),
 		}),
 		{
 			focusedFileExplorerNodeId: null,
 			collapsedNodeHashDigests: [],
-			visible: true,
 			searchPhrase: '',
+			collapsed: false,
 		},
 	),
 	codemodRunsView: withFallback(
 		buildTypeCodec({
+			collapsed: withFallback(t.boolean, false),
 			selectedCaseHash: t.union([t.string, t.null]),
-			visible: t.boolean,
 		}),
 		{
+			collapsed: false,
 			selectedCaseHash: null,
-			visible: true,
 		},
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
