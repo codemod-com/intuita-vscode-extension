@@ -1,15 +1,11 @@
 import { VSCodeLink } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as SlackIcon } from '../assets/slack.svg';
 import { ReactComponent as YoutubeIcon } from '../assets/youtube.svg';
-import { ReactElement, useEffect, useState } from 'react';
-import { vscode } from '../shared/utilities/vscode';
-import { View, WebviewMessage } from '../shared/types';
+import { ReactElement } from 'react';
 import { ExternalLink } from '../../../src/components/webview/webviewEvents';
 import intuitaLogo from './../assets/intuita_square128.png';
 
 import styles from './style.module.css';
-
-type MainViews = Extract<View, { viewId: 'communityView' }>;
 
 const getIcon = (id: string): ReactElement | null => {
 	const IntuitaIcon = (
@@ -48,35 +44,10 @@ const getIcon = (id: string): ReactElement | null => {
 type Props = { screenWidth: number | null };
 
 function App({ screenWidth: _screenWidth }: Props) {
-	const [view, setView] = useState<MainViews | null>(null);
-
-	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
-			if (message.kind === 'webview.community.setView') {
-				if (message.value.viewId === 'communityView') {
-					setView(message.value);
-				}
-			}
-		};
-
-		window.addEventListener('message', handler);
-
-		vscode.postMessage({ kind: 'webview.community.afterWebviewMounted' });
-
-		return () => {
-			window.removeEventListener('message', handler);
-		};
-	}, []);
-
-	if (!view || !view.viewProps?.externalLinks) {
-		return null;
-	}
-
 	return (
 		<main className="App">
 			<div className={styles.container}>
-				{view.viewProps.externalLinks.map(
+				{window.INITIAL_STATE.communityProps.externalLinks.map(
 					({ text, url, id }: ExternalLink) => {
 						return (
 							<VSCodeLink className={styles.link} href={url}>

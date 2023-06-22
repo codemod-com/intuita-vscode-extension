@@ -190,7 +190,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const community = new Community(context);
+	const community = new Community();
 
 	const mainViewProvider = new MainViewProvider(
 		context,
