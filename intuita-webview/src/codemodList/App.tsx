@@ -15,7 +15,7 @@ type Props = { screenWidth: number | null };
 
 function App({ screenWidth }: Props) {
 	const [view, setView] = useState<CodemodView | null>(null);
-	const [searchQuery, setSearchQuery] = useState<string>('');
+	const [searchPhrase, setSearchPhrase] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -69,8 +69,8 @@ function App({ screenWidth }: Props) {
 					return (
 						<>
 							<SearchBar
-								searchPhrase={searchQuery}
-								setSearchPhrase={setSearchQuery}
+								searchPhrase={searchPhrase}
+								setSearchPhrase={setSearchPhrase}
 								placeholder="Search codemods..."
 							/>
 							<TreeView
@@ -79,7 +79,7 @@ function App({ screenWidth }: Props) {
 								autocompleteItems={autocompleteItems}
 								openedIds={new Set(openedIds)}
 								focusedId={focusedId}
-								searchQuery={searchQuery}
+								searchQuery={searchPhrase}
 								nodeIds={nodeIds}
 								nodesByDepth={nodesByDepth}
 							/>

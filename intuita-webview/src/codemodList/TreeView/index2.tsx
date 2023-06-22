@@ -19,7 +19,7 @@ import s from './style.module.css';
 type Props = Readonly<{
 	tree: CodemodTree;
 	autocompleteItems: string[];
-	searchQuery: string;
+	searchPhrase: string;
 	screenWidth: number | null;
 	rootPath: string;
 	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
@@ -208,27 +208,25 @@ const TreeView = ({
 	};
 
 	return (
-		<div id="codemodDiscoveryView-treeContainer" tabIndex={0}>
-			<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
-				{...tree}
-				nodeRenderer={getCodemodNodeRenderer({
-					autocompleteItems,
-					rootPath,
-					codemodDescriptions,
-					pathDisplayValues,
-					onDoubleClick: handleDoubleClick,
-					progressBar: (node: CodemodNode) =>
-						progress?.codemodHash ===
-						(node.hashDigest as unknown as CodemodHash)
-							? progressBar
-							: null,
-					actionButtons: (node, doesDisplayShortenedTitle) =>
-						getActionButtons(node, doesDisplayShortenedTitle),
-				})}
-				onFlip={onFlip}
-				onFocus={onFocus}
-			/>
-		</div>
+		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
+			{...tree}
+			nodeRenderer={getCodemodNodeRenderer({
+				autocompleteItems,
+				rootPath,
+				codemodDescriptions,
+				pathDisplayValues,
+				onDoubleClick: handleDoubleClick,
+				progressBar: (node: CodemodNode) =>
+					progress?.codemodHash ===
+					(node.hashDigest as unknown as CodemodHash)
+						? progressBar
+						: null,
+				actionButtons: (node, doesDisplayShortenedTitle) =>
+					getActionButtons(node, doesDisplayShortenedTitle),
+			})}
+			onFlip={onFlip}
+			onFocus={onFocus}
+		/>
 	);
 };
 
