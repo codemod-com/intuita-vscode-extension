@@ -6,7 +6,6 @@ import {
 } from 'vscode';
 
 import { WebviewResolver } from './WebviewResolver';
-import { Community } from './CommunityProvider';
 import { CampaignManager } from './CampaignManagerProvider';
 import { FileExplorer } from './FileExplorerProvider';
 import { CodemodListPanel } from './CodemodListProvider';
@@ -27,7 +26,6 @@ export class MainViewProvider implements WebviewViewProvider {
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
-		private readonly __community: Community,
 		private readonly __codemodRuns: CampaignManager,
 		private readonly __fileExplorer: FileExplorer,
 		private readonly __codemodList: CodemodListPanel,
@@ -47,7 +45,6 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__view = webviewView;
 		this.__attachExtensionEventListeners();
 		this.__attachWebviewEventListeners();
-		this.__community.setWebview(webviewView);
 		this.__codemodRuns.setWebview(webviewView);
 		this.__fileExplorer.setWebview(webviewView);
 		this.__codemodList.setWebview(webviewView);
