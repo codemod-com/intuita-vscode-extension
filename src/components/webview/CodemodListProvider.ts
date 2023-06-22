@@ -143,13 +143,16 @@ export class CodemodListPanel {
 
 	private __buildProps() {
 		const state = this.__store.getState();
+		const { searchPhrase } = state.codemodDiscoveryView;
 		console.time('select');
 		const codemodTree = selectCodemodTree(state, this.__rootPath ?? '');
 		console.timeEnd('select');
 
 		return {
+			searchPhrase,
 			codemodTree,
 			autocompleteItems: this.__autocompleteItems,
+			rootPath: this.__rootPath ?? '',
 		};
 	}
 
@@ -328,6 +331,12 @@ export class CodemodListPanel {
 				actions.setFocusedCodemodHashDigest(
 					message.selectedCodemodNodeHashDigest,
 				),
+			);
+		}
+
+		if (message.kind === 'webview.global.setCodemodSearchPhrase') {
+			this.__store.dispatch(
+				actions.setCodemodSearchPhrase(message.searchPhrase),
 			);
 		}
 	};

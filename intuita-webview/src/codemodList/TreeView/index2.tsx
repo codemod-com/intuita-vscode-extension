@@ -19,7 +19,6 @@ import s from './style.module.css';
 type Props = Readonly<{
 	tree: CodemodTree;
 	autocompleteItems: string[];
-	searchPhrase: string;
 	rootPath: string;
 }>;
 

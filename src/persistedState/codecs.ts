@@ -67,11 +67,13 @@ export const persistedStateCodecNew = buildTypeCodec({
 			collapsedCodemodHashDigests: t.readonlyArray(
 				codemodNodeHashDigestCodec,
 			),
+			searchPhrase: t.string,
 		}),
 		{
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			collapsedCodemodHashDigests: [],
+			searchPhrase: '',
 		},
 	),
 	changeExplorerView: withFallback(

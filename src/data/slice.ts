@@ -43,6 +43,7 @@ export const getInitialState = (): RootState => {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			collapsedCodemodHashDigests: [],
+			searchPhrase: '',
 		},
 		changeExplorerView: {
 			collapsed: false,
@@ -145,6 +146,9 @@ const rootSlice = createSlice({
 
 			state.codemodDiscoveryView.collapsedCodemodHashDigests =
 				Array.from(set);
+		},
+		setCodemodSearchPhrase(state, action: PayloadAction<string>) {
+			state.codemodDiscoveryView.searchPhrase = action.payload;
 		},
 		/**
 		 * Errors

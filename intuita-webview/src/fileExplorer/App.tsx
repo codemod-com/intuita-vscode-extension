@@ -26,6 +26,13 @@ export function isNeitherNullNorUndefined<T>(
 
 type Props = { screenWidth: number | null };
 
+const setSearchPhrase = (searchPhrase: string) => {
+	vscode.postMessage({
+		kind: 'webview.global.setChangeExplorerSearchPhrase',
+		searchPhrase,
+	});
+};
+
 function App({ screenWidth }: Props) {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.fileExplorerProps,
@@ -71,13 +78,6 @@ function App({ screenWidth }: Props) {
 		},
 		[appliedJobHashes],
 	);
-
-	const setSearchPhrase = useCallback((searchPhrase: string) => {
-		vscode.postMessage({
-			kind: 'webview.global.setChangeExplorerSearchPhrase',
-			searchPhrase,
-		});
-	}, []);
 
 	const onFocus = (hashDigest: ExplorerNodeHashDigest) => {
 		if (viewProps === null) {

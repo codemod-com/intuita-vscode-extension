@@ -6,12 +6,18 @@ import './index.css';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';
 
+const setSearchPhrase = (searchPhrase: string) => {
+	vscode.postMessage({
+		kind: 'webview.global.setCodemodSearchPhrase',
+		searchPhrase,
+	});
+};
+
 function App() {
 	const [view, setView] = useState({
 		viewProps: window.INITIAL_STATE.codemodListProps,
 		viewId: 'codemods',
 	});
-	const [searchPhrase, setSearchPhrase] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -41,7 +47,8 @@ function App() {
 		);
 	}
 
-	const { codemodTree, autocompleteItems } = view.viewProps;
+	const { codemodTree, autocompleteItems, searchPhrase, rootPath } =
+		view.viewProps;
 
 	return (
 		<main className="App">
@@ -51,10 +58,9 @@ function App() {
 				placeholder="Search codemods..."
 			/>
 			<TreeView
-				rootPath=""
+				rootPath={rootPath}
 				tree={codemodTree}
 				autocompleteItems={autocompleteItems}
-				searchPhrase={searchPhrase}
 			/>
 		</main>
 	);
