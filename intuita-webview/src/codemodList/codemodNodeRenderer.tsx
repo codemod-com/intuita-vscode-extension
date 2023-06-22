@@ -6,7 +6,6 @@ import { DirectorySelector } from './components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import * as O from 'fp-ts/Option';
-import { SyntheticError } from '../../../src/errors/types';
 import debounce from '../shared/utilities/debounce';
 import { vscode } from '../shared/utilities/vscode';
 import {
@@ -48,6 +47,15 @@ const getIcon = (
 	return <BlueLightBulbIcon />;
 };
 
+const getActions = (hashDigest: CodemodNodeHashDigest) => [{
+	title: '✓ Dry Run',
+	shortenedTitle: '✓',
+	description:
+		'Run this codemod without making change to file system',
+	kind: 'webview.codemodList.dryRunCodemod',
+	value: hashDigest,
+}];
+
 const getContainerInlineStyles = ({
 	depth,
 }: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
@@ -72,14 +80,12 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 
 type Deps = {
 	rootPath: string;
-	progressBar: JSX.Element | null;
-	description: string;
-	actionButtons: ReactNode[];
-	executionPath?: T.These<SyntheticError, string>;
+	progressBar: (node: CodemodNode) => (JSX.Element | null);
+	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
+	actionButtons: (node: CodemodNode, doesDisplayShortenedTitle: boolean) => ReactNode[];
 	autocompleteItems: string[];
-	pathDisplayValue: string | null;
-	onDoubleClick(): void;
-	onClick(): void;
+	pathDisplayValues: Record<CodemodNodeHashDigest, string | null>;
+	onDoubleClick(node: CodemodNode): void;
 };
 
 type Props = Readonly<{
@@ -92,12 +98,10 @@ const getCodemodNodeRenderer =
 	({
 		rootPath,
 		progressBar,
-		description,
+		codemodDescriptions,
 		actionButtons,
-		executionPath,
 		autocompleteItems,
-		pathDisplayValue,
-		onClick,
+		pathDisplayValues,
 		onDoubleClick,
 	}: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
@@ -105,9 +109,14 @@ const getCodemodNodeRenderer =
 
 		const { hashDigest, label, kind } = node;
 
+		const executionPath = node.kind === 'CODEMOD' ? node.executionPath : null;
+
 		const hasChildren = childCount !== 0;
 		const icon = getIcon(nodeDatum);
 
+		const description = codemodDescriptions[hashDigest] ?? '';
+		const pathDisplayValue = pathDisplayValues[hashDigest] ?? null;
+		
 		const ref = useRef<HTMLDivElement>(null);
 		const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 		const [editingPath, setEditingPath] = useState(false);
@@ -175,9 +184,8 @@ const getCodemodNodeRenderer =
 				className={cn(styles.root, focused && styles.focused)}
 				onClick={() => {
 					onFlip(hashDigest);
-					onClick();
 				}}
-				onDoubleClick={onDoubleClick}
+				onDoubleClick={() => onDoubleClick(node)}
 			>
 				<div style={getContainerInlineStyles(nodeDatum)} />
 				{!editingPath && (
@@ -257,11 +265,11 @@ const getCodemodNodeRenderer =
 							)}
 						</span>
 					</span>
-					{progressBar}
+					{progressBar(node)}
 				</div>
 				{!editingPath && (
 					<div className={cn(styles.actions)}>
-						{actionButtons.map((el) => el)}
+						{actionButtons(node, false).map((el) => el)}
 					</div>
 				)}
 			</div>
