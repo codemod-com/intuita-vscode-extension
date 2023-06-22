@@ -1,18 +1,18 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popover from '../shared/Popover';
-import { DirectorySelector } from './components/DirectorySelector';
+import Popover from '../../shared/Popover';
+import { DirectorySelector } from '../components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import * as O from 'fp-ts/Option';
-import debounce from '../shared/utilities/debounce';
-import { vscode } from '../shared/utilities/vscode';
+import debounce from '../../shared/utilities/debounce';
+import { vscode } from '../../shared/utilities/vscode';
 import {
 	CodemodNodeHashDigest,
 	CodemodNode,
-} from '../../../src/selectors/selectCodemodTree';
-import { NodeDatum } from '../intuitaTreeView';
+} from '../../../../src/selectors/selectCodemodTree';
+import { NodeDatum } from '../../intuitaTreeView';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -47,16 +47,6 @@ const getIcon = (
 	return <BlueLightBulbIcon />;
 };
 
-const getActions = (hashDigest: CodemodNodeHashDigest) => [
-	{
-		title: '✓ Dry Run',
-		shortenedTitle: '✓',
-		description: 'Run this codemod without making change to file system',
-		kind: 'webview.codemodList.dryRunCodemod',
-		value: hashDigest,
-	},
-];
-
 const getContainerInlineStyles = ({
 	depth,
 }: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
@@ -81,14 +71,12 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 
 type Deps = {
 	rootPath: string;
+	autocompleteItems: string[];
 	progressBar: (node: CodemodNode) => JSX.Element | null;
-	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
 	actionButtons: (
 		node: CodemodNode,
 		doesDisplayShortenedTitle: boolean,
 	) => ReactNode[];
-	autocompleteItems: string[];
-	pathDisplayValues: Record<CodemodNodeHashDigest, string | null>;
 	onDoubleClick(node: CodemodNode): void;
 };
 
@@ -101,11 +89,9 @@ type Props = Readonly<{
 const getCodemodNodeRenderer =
 	({
 		rootPath,
-		progressBar,
-		codemodDescriptions,
-		actionButtons,
 		autocompleteItems,
-		pathDisplayValues,
+		progressBar,
+		actionButtons,
 		onDoubleClick,
 	}: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
@@ -115,13 +101,13 @@ const getCodemodNodeRenderer =
 
 		const executionPath =
 			node.kind === 'CODEMOD' ? node.executionPath : null;
+		const description = node.kind === 'CODEMOD' ? 'description' : '';
 
 		const hasChildren = childCount !== 0;
 		const icon = getIcon(nodeDatum);
 
-		const description = codemodDescriptions[hashDigest] ?? '';
-		const pathDisplayValue = pathDisplayValues[hashDigest] ?? null;
-
+		const [notEnoughSpace] = useState<boolean>(false);
+		const directorySelectorRef = useRef<HTMLSpanElement>(null);
 		const ref = useRef<HTMLDivElement>(null);
 		const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 		const [editingPath, setEditingPath] = useState(false);
@@ -182,6 +168,42 @@ const getCodemodNodeRenderer =
 			setEditingPath(false);
 		}, []);
 
+		// @TODO check if can be implemented using css container queries
+		// useEffect(() => {
+		// 	if (ResizeObserver === undefined) {
+		// 		return undefined;
+		// 	}
+
+		// 	const resizeObserver = new ResizeObserver((entries) => {
+		// 		const treeItem = entries[0] ?? null;
+		// 		if (treeItem === null) {
+		// 			return;
+		// 		}
+
+		// 		if (directorySelectorRef.current === null) {
+		// 			return;
+		// 		}
+
+		// 		const xDistance = Math.abs(
+		// 			directorySelectorRef.current.getBoundingClientRect().right -
+		// 				treeItem.target.getBoundingClientRect().right,
+		// 		);
+
+		// 		setNotEnoughSpace(xDistance < 100);
+		// 	});
+
+		// 	const treeItem = document.getElementById(hashDigest);
+
+		// 	if (treeItem === null) {
+		// 		return;
+		// 	}
+		// 	resizeObserver.observe(treeItem);
+
+		// 	return () => {
+		// 		resizeObserver.disconnect();
+		// 	};
+		// }, [hashDigest]);
+
 		return (
 			<div
 				id={hashDigest}
@@ -240,19 +262,18 @@ const getCodemodNodeRenderer =
 						/>
 						<span
 							className={styles.directorySelector}
+							ref={directorySelectorRef}
 							style={{
 								...(editingPath && {
 									display: 'flex',
-								}),
-								...(pathDisplayValue !== null && {
-									justifyContent: 'flex-end',
+									width: '100%',
 								}),
 							}}
 						>
 							{kind === 'CODEMOD' && executionPath && (
 								<DirectorySelector
 									defaultValue={targetPath}
-									displayValue={pathDisplayValue}
+									displayValue={notEnoughSpace ? '🎯' : null}
 									rootPath={rootPath}
 									error={
 										error === null

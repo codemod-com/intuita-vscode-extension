@@ -107,7 +107,7 @@ function App() {
 					Community
 				</VSCodePanelTab>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
-					<CodemodList screenWidth={screenWidth} />
+					<CodemodList />
 				</VSCodePanelView>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
 					<CodemodRuns screenWidth={screenWidth} />

@@ -1,8 +1,6 @@
 import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
 export type { Command } from 'vscode';
-import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
@@ -12,8 +10,11 @@ import {
 	ExplorerNodeHashDigest,
 	ExplorerTree,
 } from '../../selectors/selectExplorerTree';
-import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { CodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
+import {
+	CodemodNodeHashDigest,
+	CodemodTree,
+} from '../../selectors/selectCodemodTree';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -79,8 +80,6 @@ export type CodemodTreeNode = {
 	executionPath?: ExecutionPath;
 	modKind?: 'repomod' | 'executeCodemod';
 };
-
-export type CodemodTree = E.Either<SyntheticError, O.Option<CodemodTreeNode>>;
 
 export type CollapsibleWebviews =
 	| 'codemodRunsView'
@@ -314,10 +313,6 @@ export type View =
 			viewProps: {
 				codemodTree: CodemodTree;
 				autocompleteItems: string[];
-				openedIds: ReadonlyArray<CodemodHash>;
-				focusedId: CodemodHash | null;
-				nodeIds: ReadonlyArray<CodemodHash>;
-				nodesByDepth: ReadonlyArray<ReadonlyArray<CodemodTreeNode>>;
 			};
 	  }>
 	| Readonly<{

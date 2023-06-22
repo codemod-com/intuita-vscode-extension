@@ -1,26 +1,21 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import { WebviewMessage, View } from '../shared/types';
-import TreeView from './TreeView';
-import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
+import { WebviewMessage } from '../shared/types';
+import TreeView from './TreeView/index2';
 import './index.css';
-import { pipe } from 'fp-ts/lib/function';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';
 
-type CodemodView = Extract<View, { viewId: 'codemods' }>;
-
-type Props = { screenWidth: number | null };
-
-function App({ screenWidth }: Props) {
-	const [view, setView] = useState<CodemodView | null>(null);
+function App() {
+	const [view, setView] = useState({
+		viewProps: window.INITIAL_STATE.codemodListProps,
+		viewId: 'codemods',
+	});
 	const [searchPhrase, setSearchPhrase] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
 			if (
 				message.kind === 'webview.codemodList.setView' &&
 				message.value.viewId === 'codemods'
@@ -46,51 +41,23 @@ function App({ screenWidth }: Props) {
 		);
 	}
 
-	const {
-		codemodTree,
-		autocompleteItems,
-		openedIds,
-		focusedId,
-		nodeIds,
-		nodesByDepth,
-	} = view.viewProps;
+	const { codemodTree, autocompleteItems } = view.viewProps;
 
-	const component = pipe(
-		codemodTree,
-		E.fold(
-			(error) => <p>{error.message}</p>,
-			O.fold(
-				() => <Progress />,
-				(node) => {
-					if (node.children.length === 0) {
-						return <Progress />;
-					}
-
-					return (
-						<>
-							<SearchBar
-								searchPhrase={searchPhrase}
-								setSearchPhrase={setSearchPhrase}
-								placeholder="Search codemods..."
-							/>
-							<TreeView
-								screenWidth={screenWidth}
-								node={node}
-								autocompleteItems={autocompleteItems}
-								openedIds={new Set(openedIds)}
-								focusedId={focusedId}
-								searchQuery={searchPhrase}
-								nodeIds={nodeIds}
-								nodesByDepth={nodesByDepth}
-							/>
-						</>
-					);
-				},
-			),
-		),
+	return (
+		<main className="App">
+			<SearchBar
+				searchPhrase={searchPhrase}
+				setSearchPhrase={setSearchPhrase}
+				placeholder="Search codemods..."
+			/>
+			<TreeView
+				rootPath=""
+				tree={codemodTree}
+				autocompleteItems={autocompleteItems}
+				searchPhrase={searchPhrase}
+			/>
+		</main>
 	);
-
-	return <main className="App">{component}</main>;
 }
 
-export default App;
+export default memo(App);

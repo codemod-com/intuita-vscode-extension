@@ -7,34 +7,20 @@ import {
 	workspace,
 	window,
 } from 'vscode';
+import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
-import {
-	CodemodTree,
-	CodemodTreeNode,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { CodemodService } from '../../packageJsonAnalyzer/codemodService';
-import {
-	CodemodElementWithChildren,
-	CodemodHash,
-} from '../../packageJsonAnalyzer/types';
+import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
-import * as T from 'fp-ts/These';
 import * as TE from 'fp-ts/TaskEither';
 import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
-import type { SyntheticError } from '../../errors/types';
 import { pipe } from 'fp-ts/lib/function';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
-import {
-	selectCodemodTree,
-	selectExecutionPaths,
-} from '../../selectors/selectCodemodTree';
-
+import { selectCodemodTree } from '../../selectors/selectCodemodTree';
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
 		() => readdir(path),
@@ -55,18 +41,12 @@ const getCompletionItems = (path: string) =>
 		),
 	);
 
-const repomodHashes = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
-
 export class CodemodListPanel {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
 	__engineBootstrapped = false;
-	__codemodTree: CodemodTree = E.right(O.none);
 	__autocompleteItems: string[] = [];
-	// map between hash and the Tree Node
-	__treeMap = new Map<CodemodHash, CodemodTreeNode>();
-	__treeNodesByDepth: CodemodTreeNode[][] = [];
 
 	readonly __eventEmitter = new EventEmitter<void>();
 
@@ -85,7 +65,7 @@ export class CodemodListPanel {
 			MessageKind.engineBootstrapped,
 			async () => {
 				this.__engineBootstrapped = true;
-				this.getCodemodTree();
+				this.__codemodService.fetchCodemods();
 			},
 		);
 
@@ -106,6 +86,26 @@ export class CodemodListPanel {
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
 			this.__postMessage({
 				kind: 'webview.global.codemodExecutionHalted',
+			});
+		});
+
+		let prevProps = this.__buildProps();
+
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.codemodList.setView',
+				value: {
+					viewId: 'codemods',
+					viewProps: nextProps,
+				},
 			});
 		});
 	}
@@ -143,12 +143,13 @@ export class CodemodListPanel {
 
 	private __buildProps() {
 		const state = this.__store.getState();
-		const tree = selectCodemodTree(state, this.__rootPath ?? '');
-		const executionPaths = selectExecutionPaths(state);
+		console.time('select');
+		const codemodTree = selectCodemodTree(state, this.__rootPath ?? '');
+		console.timeEnd('select');
 
 		return {
-			tree,
-			executionPaths,
+			codemodTree,
+			autocompleteItems: this.__autocompleteItems,
 		};
 	}
 
@@ -161,17 +162,7 @@ export class CodemodListPanel {
 			kind: 'webview.codemodList.setView',
 			value: {
 				viewId: 'codemods',
-				viewProps: {
-					codemodTree: this.__codemodTree,
-					autocompleteItems: this.__autocompleteItems,
-					// @TEMP
-					openedIds: [],
-					focusedId: null,
-					nodesByDepth: this.__treeNodesByDepth,
-					nodeIds: Array.from(this.__treeMap.values())
-						.slice(1) // exclude the root node because we don't display it to users
-						.map((node) => node.id),
-				},
+				viewProps: this.__buildProps(),
 			},
 		});
 	}
@@ -241,8 +232,6 @@ export class CodemodListPanel {
 				);
 			}
 		}
-
-		await this.getCodemodTree();
 	};
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
@@ -286,17 +275,13 @@ export class CodemodListPanel {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const codemod = this.__codemodService.getCodemodItem(message.value);
-			if (!codemod || codemod.kind === 'path') {
-				return;
-			}
 
-			const { hash } = codemod;
-
-			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
+			const hashDigest = message.value;
+			this.__store.dispatch(actions.setRecentCodemodHashes(hashDigest));
 
 			const state = this.__store.getState().codemodDiscoveryView;
-			const executionPath = state.executionPaths[hash] ?? this.__rootPath;
+			const executionPath =
+				state.executionPaths[hashDigest] ?? this.__rootPath;
 
 			if (executionPath === null) {
 				return;
@@ -304,15 +289,11 @@ export class CodemodListPanel {
 
 			const uri = Uri.file(executionPath);
 
-			commands.executeCommand('intuita.executeCodemod', uri, hash);
+			commands.executeCommand('intuita.executeCodemod', uri, hashDigest);
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
 			await this.updateExecutionPath(message.value);
-		}
-
-		if (message.kind === 'webview.codemodList.afterWebviewMounted') {
-			this.getCodemodTree();
 		}
 
 		if (message.kind === 'webview.global.showWarningMessage') {
@@ -336,160 +317,18 @@ export class CodemodListPanel {
 			this.setView();
 		}
 
-		if (message.kind === 'webview.codemods.setState') {
-			// @TEMPORARILY
-			// this.__store.dispatch(
-			// 	actions.setFocusedCodemodHashDigest(message.focusedId),
-			// );
-			// this.__store.dispatch(
-			// 	actions.setOpenedCodemodHashDigests(message.openedIds),
-			// );
+		if (message.kind === 'webview.global.flipCodemodHashDigest') {
+			this.__store.dispatch(
+				actions.flipCodemodHashDigest(message.codemodNodeHashDigest),
+			);
+		}
+
+		if (message.kind === 'webview.global.selectCodemodNodeHashDigest') {
+			this.__store.dispatch(
+				actions.setFocusedCodemodHashDigest(
+					message.selectedCodemodNodeHashDigest,
+				),
+			);
 		}
 	};
-
-	private async __getCodemodTree(): Promise<CodemodTree> {
-		try {
-			await this.__codemodService.getDiscoveredCodemods();
-
-			const codemodList = this.__getCodemod();
-
-			if (codemodList.length === 0 && !this.__engineBootstrapped) {
-				return E.right(O.none);
-			}
-
-			const treeNodes = codemodList.map((codemod) =>
-				this.__getTreeNode(codemod, 0, null),
-			);
-
-			if (!treeNodes[0]) {
-				return E.left({
-					kind: 'syntheticError',
-					message: 'No codemods were found',
-				});
-			}
-
-			return E.right(O.some(treeNodes[0]));
-		} catch (error) {
-			console.error(error);
-
-			const syntheticError: SyntheticError = {
-				kind: 'syntheticError',
-				message: error instanceof Error ? error.message : String(error),
-			};
-
-			return E.left(syntheticError);
-		}
-	}
-
-	// TODO change to private & separate calculation from sending
-	public async getCodemodTree() {
-		this.__codemodTree = await this.__getCodemodTree();
-		this.setView();
-	}
-
-	private __getTreeNode(
-		codemodElement: CodemodElementWithChildren,
-		depth: number,
-		parentId: CodemodHash | null,
-	): CodemodTreeNode {
-		if (codemodElement.kind === 'codemodItem') {
-			const { label, kind, description, hash, name } = codemodElement;
-			const state = this.__store.getState().codemodDiscoveryView;
-
-			const persistedExecutionPath =
-				state.executionPaths[hash] ?? this.__rootPath;
-			const executionPath = persistedExecutionPath
-				? T.right(persistedExecutionPath)
-				: undefined;
-
-			const node: CodemodTreeNode = {
-				kind,
-				label,
-				description: description,
-				iconName: 'case.svg',
-				id: hash,
-				actions: [
-					{
-						title: '✓ Dry Run',
-						shortenedTitle: '✓',
-						description:
-							'Run this codemod without making change to file system',
-						kind: 'webview.codemodList.dryRunCodemod',
-						value: hash,
-					},
-				],
-				children: [],
-				executionPath,
-				modKind: repomodHashes.includes(hash)
-					? 'repomod'
-					: 'executeCodemod',
-				doubleClickCommand: {
-					title: 'Show codemod metadata',
-					command: 'intuita.showCodemodMetadata',
-					arguments: [name],
-				},
-				uri: name,
-				depth,
-				parentId,
-			};
-
-			this.__treeMap.set(hash, node);
-
-			const nodesAtCurrDepth = this.__treeNodesByDepth[depth] ?? [];
-			nodesAtCurrDepth.push(node);
-			this.__treeNodesByDepth[depth] = nodesAtCurrDepth;
-
-			return node;
-		}
-
-		const { label, kind, hash, children, path } = codemodElement;
-
-		const node: CodemodTreeNode = {
-			kind,
-			iconName: 'folder.svg',
-			label,
-			id: hash,
-			uri: path,
-			actions: [],
-			children: [],
-			depth,
-			parentId,
-		};
-
-		this.__treeMap.set(hash, node);
-
-		const nodesAtCurrDepth = this.__treeNodesByDepth[depth] ?? [];
-		nodesAtCurrDepth.push(node);
-		this.__treeNodesByDepth[depth] = nodesAtCurrDepth;
-
-		// children is set after adding the node to the tree map
-		// in order to retain the ordering
-		node.children = children.map((child) =>
-			this.__getTreeNode(child, depth + 1, node.id),
-		);
-
-		return node;
-	}
-
-	private __getCodemod(
-		codemodHash?: CodemodHash,
-	): CodemodElementWithChildren[] {
-		const childrenHashes = this.__codemodService.getChildren(codemodHash);
-		const children: CodemodElementWithChildren[] = [];
-		childrenHashes.forEach((child) => {
-			const codemod = this.__codemodService.getCodemodElement(child);
-			if (!codemod) {
-				return;
-			}
-			if (codemod.kind === 'codemodItem') {
-				children.push(codemod);
-				return;
-			}
-
-			const childDescendents = this.__getCodemod(child);
-
-			children.push({ ...codemod, children: childDescendents });
-		});
-		return children;
-	}
 }

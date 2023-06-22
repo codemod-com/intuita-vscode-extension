@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const codemodService = new CodemodService(rootPath, engineService, store);
+	const codemodService = new CodemodService(engineService, store);
 
 	const codemodListWebviewProvider = new CodemodListPanel(
 		context,

@@ -1,0 +1,113 @@
+.root {
+	display: flex;
+	line-height: 22px;
+	flex: 1;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	flex-wrap: nowrap;
+	padding-left: 3px;
+	align-items: center;
+	height: 28px;
+}
+
+.root:hover {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.root .actions,
+.root .directorySelector {
+	opacity: 0;
+}
+
+.root:hover .actions,
+.root:hover .directorySelector,
+.root:focus .actions,
+.root:focus .directorySelector {
+	opacity: 1;
+}
+
+.root:hover .description {
+	display: inline;
+}
+
+.focused,
+.focused:hover {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.icon {
+	min-width: 22px;
+	max-width: 22px;
+	height: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-right: 2px;
+}
+
+.icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.labelContainer {
+	line-height: 22px;
+	font-size: 13px;
+	cursor: pointer;
+	flex-grow: 1;
+	color: var(--vscode-foreground);
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	width: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.description {
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: normal;
+	margin-left: 5px;
+	display: none;
+}
+
+.actions {
+	display: flex;
+	margin: 0 auto;
+	padding: 0 3px 0px 0px;
+	height: 100%;
+	align-items: center;
+	min-width: fit-content;
+}
+
+.actions a {
+	display: flex;
+	font-size: 11px;
+	padding-left: 3px;
+	padding-right: 3px;
+	border-radius: 5px;
+	text-decoration: none;
+	cursor: pointer;
+	color: var(--vscode-list-inactiveSelectionForeground);
+}
+
+.actions a:hover {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.codicon {
+	flex-shrink: 0;
+	width: 16px;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.action {
+	margin-left: 3px;
+	display: flex;
+	align-items: center;
+}
