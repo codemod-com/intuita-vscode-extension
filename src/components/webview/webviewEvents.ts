@@ -13,6 +13,7 @@ import {
 	ExplorerTree,
 } from '../../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
+import { CodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -331,10 +332,7 @@ export type View =
 	  }>
 	| Readonly<{
 			viewId: 'campaignManagerView';
-			viewProps: {
-				selectedCaseHash: CaseHash | null;
-				nodes: CaseTreeNode[];
-			};
+			viewProps: CodemodRunsTree;
 	  }>
 	| Readonly<{
 			viewId: 'jobDiffView';

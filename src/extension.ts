@@ -180,12 +180,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const campaignManagerProvider = new CampaignManager(
-		messageBus,
-		jobManager,
-		caseManager,
-		store,
-	);
+	const campaignManagerProvider = new CampaignManager(messageBus, store);
 
 	const mainViewProvider = new MainViewProvider(
 		context,
