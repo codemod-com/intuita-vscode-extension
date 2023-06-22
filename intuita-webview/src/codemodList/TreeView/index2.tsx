@@ -10,7 +10,7 @@ import {
 	CodemodTree,
 } from '../../../../src/selectors/selectCodemodTree';
 import { IntuitaTreeView } from '../../intuitaTreeView';
-import { getCodemodNodeRenderer } from '../codemodNodeRenderer';
+import { getCodemodNodeRenderer } from '../CodemodNodeRenderer';
 import Popover from '../../shared/Popover';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
@@ -22,8 +22,6 @@ type Props = Readonly<{
 	searchPhrase: string;
 	screenWidth: number | null;
 	rootPath: string;
-	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
-	pathDisplayValues: Record<CodemodNodeHashDigest, string | null>;
 }>;
 
 const handleDoubleClick = (node: CodemodNode) => {
@@ -57,8 +55,6 @@ const TreeView = ({
 	tree,
 	autocompleteItems,
 	rootPath,
-	codemodDescriptions,
-	pathDisplayValues,
 }: Props) => {
 	/**
 	 * Progress bar
@@ -213,8 +209,6 @@ const TreeView = ({
 			nodeRenderer={getCodemodNodeRenderer({
 				autocompleteItems,
 				rootPath,
-				codemodDescriptions,
-				pathDisplayValues,
 				onDoubleClick: handleDoubleClick,
 				progressBar: (node: CodemodNode) =>
 					progress?.codemodHash ===

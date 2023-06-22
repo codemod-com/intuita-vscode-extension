@@ -61,6 +61,7 @@ export const buildCodemodNode = (
 			? 'repomod'
 			: 'executeCodemod',
 		executionPath: T.right(executionPath),
+		description: codemod.description, 
 	} as const;
 };
 

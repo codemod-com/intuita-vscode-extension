@@ -18,8 +18,3 @@ export type CodemodItem = Readonly<{
 
 export type CodemodElement = CodemodItem | CodemodPath;
 
-export type CodemodPathWithChildren = Omit<CodemodPath, 'children'> & {
-	children: CodemodElementWithChildren[];
-};
-
-export type CodemodElementWithChildren = CodemodItem | CodemodPathWithChildren;

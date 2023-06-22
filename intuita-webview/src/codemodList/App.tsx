@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage, View } from '../shared/types';
-import TreeView from './TreeView';
-import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
+import TreeView from './TreeView/index2';
 import './index.css';
-import { pipe } from 'fp-ts/lib/function';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';
 
@@ -49,48 +46,22 @@ function App({ screenWidth }: Props) {
 	const {
 		codemodTree,
 		autocompleteItems,
-		openedIds,
-		focusedId,
-		nodeIds,
-		nodesByDepth,
 	} = view.viewProps;
 
-	const component = pipe(
-		codemodTree,
-		E.fold(
-			(error) => <p>{error.message}</p>,
-			O.fold(
-				() => <Progress />,
-				(node) => {
-					if (node.children.length === 0) {
-						return <Progress />;
-					}
-
-					return (
-						<>
-							<SearchBar
+	return <main className="App">
+			<SearchBar
 								searchPhrase={searchPhrase}
 								setSearchPhrase={setSearchPhrase}
 								placeholder="Search codemods..."
 							/>
-							<TreeView
-								screenWidth={screenWidth}
-								node={node}
-								autocompleteItems={autocompleteItems}
-								openedIds={new Set(openedIds)}
-								focusedId={focusedId}
-								searchQuery={searchPhrase}
-								nodeIds={nodeIds}
-								nodesByDepth={nodesByDepth}
-							/>
-						</>
-					);
-				},
-			),
-		),
-	);
-
-	return <main className="App">{component}</main>;
+				<TreeView
+					rootPath=''
+					tree={codemodTree}
+					screenWidth={screenWidth}
+					autocompleteItems={autocompleteItems}
+					searchPhrase={searchPhrase}
+				/>
+	</main>;
 }
 
 export default App;

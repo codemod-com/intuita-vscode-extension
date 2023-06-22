@@ -1,18 +1,18 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popover from '../shared/Popover';
-import { DirectorySelector } from './components/DirectorySelector';
+import Popover from '../../shared/Popover';
+import { DirectorySelector } from '../components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
 import * as O from 'fp-ts/Option';
-import debounce from '../shared/utilities/debounce';
-import { vscode } from '../shared/utilities/vscode';
+import debounce from '../../shared/utilities/debounce';
+import { vscode } from '../../shared/utilities/vscode';
 import {
 	CodemodNodeHashDigest,
 	CodemodNode,
-} from '../../../src/selectors/selectCodemodTree';
-import { NodeDatum } from '../intuitaTreeView';
+} from '../../../../src/selectors/selectCodemodTree';
+import { NodeDatum } from '../../intuitaTreeView';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
@@ -72,13 +72,12 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 
 type Deps = {
 	rootPath: string;
+	autocompleteItems: string[];
 	progressBar: (node: CodemodNode) => JSX.Element | null;
-	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
 	actionButtons: (
 		node: CodemodNode,
 		doesDisplayShortenedTitle: boolean,
 	) => ReactNode[];
-	autocompleteItems: string[];
 	onDoubleClick(node: CodemodNode): void;
 };
 
@@ -91,10 +90,9 @@ type Props = Readonly<{
 const getCodemodNodeRenderer =
 	({
 		rootPath,
-		progressBar,
-		codemodDescriptions,
-		actionButtons,
 		autocompleteItems,
+		progressBar,
+		actionButtons,
 		onDoubleClick,
 	}: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
@@ -104,11 +102,10 @@ const getCodemodNodeRenderer =
 
 		const executionPath =
 			node.kind === 'CODEMOD' ? node.executionPath : null;
+		const description = node.kind === 'CODEMOD' ? 'description' : '';
 
 		const hasChildren = childCount !== 0;
 		const icon = getIcon(nodeDatum);
-
-		const description = codemodDescriptions[hashDigest] ?? '';
 
 		const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 		const directorySelectorRef = useRef<HTMLSpanElement>(null);
