@@ -11,6 +11,7 @@ import type {
 } from '../../../src/components/webview/webviewEvents';
 import { vscode } from '../shared/utilities/vscode';
 import { ExecutionError } from '../../../src/errors/types';
+import { TabKind } from '../../../src/persistedState/codecs';
 
 type ErrorsViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 type CommunityViewProps = Extract<
@@ -79,6 +80,7 @@ declare global {
 			codemodRunsProps: CodemodRunsViewProps;
 			fileExplorerProps: FileExplorerViewProps;
 			codemodListProps: CodemodsViewProps;
+			activeTabId: TabKind;
 		};
 	}
 }

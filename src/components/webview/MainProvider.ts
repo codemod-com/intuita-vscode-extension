@@ -123,6 +123,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				codemodRunsProps,
 				fileExplorerProps,
 				codemodListProps,
+				activeTabId: this.__store.getState().activeTabId,
 			}),
 		);
 	}
