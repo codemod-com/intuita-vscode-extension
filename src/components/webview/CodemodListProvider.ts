@@ -7,6 +7,7 @@ import {
 	workspace,
 	window,
 } from 'vscode';
+import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
 import {
 	WebviewMessage,
@@ -48,7 +49,6 @@ const getCompletionItems = (path: string) =>
 		),
 	);
 
-
 export class CodemodListPanel {
 	__view: WebviewView | null = null;
 	__extensionPath: Uri;
@@ -73,6 +73,7 @@ export class CodemodListPanel {
 			MessageKind.engineBootstrapped,
 			async () => {
 				this.__engineBootstrapped = true;
+				this.__codemodService.fetchCodemods();
 			},
 		);
 
@@ -93,6 +94,27 @@ export class CodemodListPanel {
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
 			this.__postMessage({
 				kind: 'webview.global.codemodExecutionHalted',
+			});
+		});
+		
+		
+		let prevProps = this.__buildProps();
+
+		this.__store.subscribe(() => {
+			const nextProps = this.__buildProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.codemodList.setView',
+				value: {
+					viewId: 'codemods',
+					viewProps: nextProps,
+				},
 			});
 		});
 	}
@@ -130,7 +152,9 @@ export class CodemodListPanel {
 
 	private __buildProps() {
 		const state = this.__store.getState();
+		console.time('select')
 		const codemodTree = selectCodemodTree(state, this.__rootPath ?? '');
+		console.timeEnd('select')
 
 		return {
 			codemodTree,
@@ -305,5 +329,20 @@ export class CodemodListPanel {
 
 			this.setView();
 		}
+		
+		if (message.kind === 'webview.global.flipCodemodHashDigest') {
+			this.__store.dispatch(
+				actions.flipCodemodHashDigest(message.codemodNodeHashDigest),
+			);
+		}
+		
+		if (message.kind === 'webview.global.selectCodemodNodeHashDigest') {
+			this.__store.dispatch(
+				actions.setFocusedCodemodHashDigest(
+					message.selectedCodemodNodeHashDigest,
+				),
+			);
+		}
+	
 	};
 }

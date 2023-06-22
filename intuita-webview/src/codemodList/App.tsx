@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import { WebviewMessage, View } from '../shared/types';
+import { WebviewMessage } from '../shared/types';
 import TreeView from './TreeView/index2';
 import './index.css';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';
 
-type CodemodView = Extract<View, { viewId: 'codemods' }>;
-
 type Props = { screenWidth: number | null };
 
 function App({ screenWidth }: Props) {
-	const [view, setView] = useState<CodemodView | null>(null);
+	const [view, setView] = useState({ viewProps: window.INITIAL_STATE.codemodListProps, viewId: 'codemods' });
 	const [searchPhrase, setSearchPhrase] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-
+			console.log(message,'test');
 			if (
 				message.kind === 'webview.codemodList.setView' &&
 				message.value.viewId === 'codemods'

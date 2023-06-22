@@ -26,6 +26,8 @@ type FileExplorerViewProps = Extract<
 	{ viewId: 'fileExplorer' }
 >['viewProps'];
 
+type CodemodsViewProps = Extract<View, { viewId: 'codemods'}>['viewProps'];
+
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
 		<VSCodeDataGridCell cell-type="columnheader" grid-column="1">
@@ -76,6 +78,7 @@ declare global {
 			errorProps: ErrorsViewProps;
 			codemodRunsProps: CodemodRunsViewProps;
 			fileExplorerProps: FileExplorerViewProps;
+			codemodListProps: CodemodsViewProps;
 		};
 	}
 }
