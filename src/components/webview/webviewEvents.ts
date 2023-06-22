@@ -172,10 +172,6 @@ export type WebviewMessage =
 			jobHash: JobHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.focusFolder';
-			folderPath: string;
-	  }>
-	| Readonly<{
 			kind: 'webview.createIssue.submittingIssue';
 			value: boolean;
 	  }>

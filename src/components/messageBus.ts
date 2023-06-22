@@ -54,7 +54,6 @@ export const enum MessageKind {
 	afterDryRunHooksExecuted = 36,
 
 	focusFile = 37,
-	focusFolder = 38,
 }
 
 export type Command =

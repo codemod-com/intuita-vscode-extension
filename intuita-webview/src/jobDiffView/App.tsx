@@ -56,21 +56,6 @@ function App() {
 
 			setJobIndex(index);
 		}
-
-		if (message.kind === 'webview.diffView.focusFolder') {
-			const folderPathExcludingRootPath = message.folderPath.slice(
-				message.folderPath.indexOf('/'),
-			);
-			const index = view.viewProps.data.findIndex((job) =>
-				job.newFileTitle?.includes(folderPathExcludingRootPath),
-			);
-
-			if (index === -1) {
-				return;
-			}
-
-			setJobIndex(index);
-		}
 	}, []);
 
 	useEffect(() => {

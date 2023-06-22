@@ -222,13 +222,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 	}
 
-	public focusFolder(folderPath: string) {
-		this._panel?.webview.postMessage({
-			kind: 'webview.diffView.focusFolder',
-			folderPath,
-		});
-	}
-
 	async __refreshView(): Promise<void> {
 		if (this.__selectedCaseHash === null) {
 			return;
@@ -280,13 +273,5 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			await this.openCase(caseHash as unknown as ElementHash);
 			this.focusFile(jobHash);
 		});
-
-		this._addHook(
-			MessageKind.focusFolder,
-			async ({ caseHash, folderPath }) => {
-				await this.openCase(caseHash as unknown as ElementHash);
-				this.focusFolder(folderPath);
-			},
-		);
 	}
 }
