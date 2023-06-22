@@ -4,7 +4,6 @@ import { JobDiffViewProps, View, WebviewResponse } from './webviewEvents';
 import { JobHash, JobKind } from '../../jobs/types';
 import { JobManager } from '../jobManager';
 import { isNeitherNullNorUndefined } from '../../utilities';
-import { ElementHash } from '../../elements/types';
 import { CaseManager } from '../../cases/caseManager';
 import { CaseHash } from '../../cases/types';
 import { IntuitaWebviewPanel, Options } from './WebviewPanel';
@@ -27,7 +26,7 @@ Codemod: ${codemodName}
 **Additional context**`;
 };
 export class DiffWebviewPanel extends IntuitaWebviewPanel {
-	private __selectedCaseHash: ElementHash | null = null;
+	private __selectedCaseHash: CaseHash | null = null;
 
 	constructor(
 		options: Options,
@@ -90,7 +89,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		}
 	}
 
-	public async openCase(caseHash: ElementHash): Promise<void> {
+	public async openCase(caseHash: CaseHash): Promise<void> {
 		this.__selectedCaseHash = caseHash;
 		await this.__refreshView();
 	}
@@ -159,19 +158,18 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	public async getViewDataForCase(
-		caseHash: ElementHash,
+		caseHash: CaseHash,
 	): Promise<null | Readonly<{
 		title: string;
 		data: JobDiffViewProps[];
 		stagedJobs: JobHash[];
 	}>> {
-		const hash = caseHash as unknown as CaseHash;
-		const kase = this.__caseManager.getCase(hash);
+		const kase = this.__caseManager.getCase(caseHash);
 		if (!kase) {
 			return null;
 		}
 		const jobHashes = Array.from(
-			this.__caseManager.getJobHashes([hash] as unknown as CaseHash[]),
+			this.__caseManager.getJobHashes([caseHash]),
 		);
 
 		if (jobHashes.length === 0) {
@@ -259,7 +257,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		});
 
 		this._addHook(MessageKind.focusFile, async ({ caseHash, jobHash }) => {
-			await this.openCase(caseHash as unknown as ElementHash);
+			await this.openCase(caseHash);
 			this.focusFile(jobHash);
 		});
 	}

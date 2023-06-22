@@ -4,7 +4,7 @@ import { codemodEntryCodec } from '../codemods/types';
 import { executionErrorCodec } from '../errors/types';
 import { withFallback } from 'io-ts-types';
 import { jobHashCodec, persistedJobCodec } from '../jobs/types';
-import { caseCodec } from '../cases/types';
+import { caseCodec, caseHashCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
 import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
 
@@ -96,7 +96,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	codemodRunsView: withFallback(
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
-			selectedCaseHash: t.union([t.string, t.null]),
+			selectedCaseHash: t.union([caseHashCodec, t.null]),
 		}),
 		{
 			collapsed: false,

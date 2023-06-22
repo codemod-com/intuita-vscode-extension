@@ -104,7 +104,7 @@ const rootSlice = createSlice({
 		/**
 		 * Codemod runs
 		 */
-		setSelectedCaseHash(state, action: PayloadAction<string | null>) {
+		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
 		},
 		/**
