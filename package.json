@@ -95,12 +95,6 @@
 		"configuration": {
 			"title": "Intuita VSCode Extension Configuration",
 			"properties": {
-				"intuita.saveDocumentOnJobAccept": {
-					"order": 0,
-					"type": "boolean",
-					"default": true,
-					"description": "When a proposed change is accepted, save the associated file."
-				},
 				"intuita.fileLimit": {
 					"order": 1,
 					"type": "number",
@@ -128,11 +122,6 @@
 						"**/node_modules"
 					],
 					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
-				},
-				"intuita.onDryRunCompleted": {
-					"order": 7,
-					"type": "string",
-					"description": "Specify a command that will be executed when dry run is completed"
 				},
 				"intuita.formatWithPrettier": {
 					"order": 8,

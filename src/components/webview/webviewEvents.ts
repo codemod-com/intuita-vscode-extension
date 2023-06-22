@@ -213,9 +213,6 @@ export type WebviewResponse =
 			kind: 'webview.global.redirectToSignIn';
 	  }>
 	| Readonly<{
-			kind: 'webview.global.openConfiguration';
-	  }>
-	| Readonly<{
 			kind: 'webview.global.afterWebviewMounted';
 	  }>
 	| Readonly<{
