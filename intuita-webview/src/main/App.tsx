@@ -7,7 +7,7 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 
 import CodemodList from '../codemodList/App';
-import CommunityView from '../communityView/App';
+import { CommunityTab } from '../communityTab/CommunityTab';
 import CodemodRuns from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
@@ -113,7 +113,7 @@ function App() {
 					<CodemodRuns screenWidth={screenWidth} />
 				</VSCodePanelView>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
-					<CommunityView screenWidth={screenWidth} />
+					<CommunityTab />
 				</VSCodePanelView>
 			</VSCodePanels>
 		</main>

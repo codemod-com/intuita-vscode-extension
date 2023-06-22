@@ -20,7 +20,6 @@ import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
 import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
-import { Community } from './components/webview/CommunityProvider';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
 import { applyChangesCoded } from './components/sourceControl/codecs';
@@ -188,12 +187,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	const community = new Community();
-
 	const mainViewProvider = new MainViewProvider(
 		context,
 		messageBus,
-		community,
 		campaignManagerProvider,
 		fileExplorerProvider,
 		codemodListWebviewProvider,

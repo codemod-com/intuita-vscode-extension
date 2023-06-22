@@ -125,12 +125,6 @@ export type FileTreeNode = TreeNode & {
 	jobHash: JobHash;
 };
 
-export type ExternalLink = {
-	id: string;
-	text: string;
-	url: string;
-};
-
 export type CollapsibleWebviews =
 	| 'codemodRunsView'
 	| 'codemodDiscoveryView'
@@ -334,12 +328,6 @@ export type View =
 	| Readonly<{
 			viewId: 'fileExplorer';
 			viewProps: ExplorerTree | null;
-	  }>
-	| Readonly<{
-			viewId: 'communityView';
-			viewProps: {
-				externalLinks: ExternalLink[];
-			};
 	  }>
 	| Readonly<{
 			viewId: 'campaignManagerView';
