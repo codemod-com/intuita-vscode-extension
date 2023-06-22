@@ -194,7 +194,8 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 			continue;
 		}
 
-		const path = uri.fsPath.replace(rootPath.fsPath, '');
+		// `slice(1)` is needed to get rid of the `/` at the beginning
+		const path = uri.fsPath.replace(rootPath.fsPath, '').slice(1);
 
 		if (properSearchPhrase !== '') {
 			const node = buildFileNode(job, path, path);
