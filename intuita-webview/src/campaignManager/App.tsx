@@ -9,9 +9,7 @@ import { CodemodRunsTree } from '../../../src/selectors/selectCodemodRunsTree';
 import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem from '../shared/TreeItem';
 
-type Props = { screenWidth: number | null };
-
-function App({ screenWidth: _screenWidth }: Props) {
+function App() {
 	const [viewProps, setViewProps] = useState(
 		window.INITIAL_STATE.codemodRunsProps,
 	);

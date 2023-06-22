@@ -22,11 +22,8 @@
 	"scripts": {
 		"start": "vite -c 'vite.config.dev.ts'",
 		"build:main": "NODE_ENV='production' TARGET_APP='main' vite build",
-		"build:campaignManager": "NODE_ENV='production' TARGET_APP='campaignManager' vite build",
-		"build:fileExplorer": "NODE_ENV='production' TARGET_APP='fileExplorer' vite build",
 		"build:codemodList": "NODE_ENV='production' TARGET_APP='codemodList' vite build",
 		"build:jobDiffView": "NODE_ENV='production' TARGET_APP='jobDiffView' vite build",
-		"build:communityView": "NODE_ENV='production' TARGET_APP='communityView' vite build",
 		"build:errors": "NODE_ENV='production' TARGET_APP='errors' vite build",
 		"build": "pnpm build:main && pnpm build:jobDiffView && pnpm build:errors"
 	},
