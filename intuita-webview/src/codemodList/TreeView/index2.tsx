@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
-import {
-	RunCodemodsCommand,
-	CodemodHash,
-} from '../../shared/types';
+import { RunCodemodsCommand, CodemodHash } from '../../shared/types';
 import { vscode } from '../../shared/utilities/vscode';
 
 import { useProgressBar } from '../useProgressBar';
 
-import { CodemodNode, CodemodNodeHashDigest, CodemodTree } from '../../../../src/selectors/selectCodemodTree';
+import {
+	CodemodNode,
+	CodemodNodeHashDigest,
+	CodemodTree,
+} from '../../../../src/selectors/selectCodemodTree';
 import { IntuitaTreeView } from '../../intuitaTreeView';
 import { getCodemodNodeRenderer } from '../codemodNodeRenderer';
 import Popover from '../../shared/Popover';
@@ -21,7 +22,7 @@ type Props = Readonly<{
 	searchQuery: string;
 	screenWidth: number | null;
 	rootPath: string;
-	codemodDescriptions: Record<CodemodNodeHashDigest, string>
+	codemodDescriptions: Record<CodemodNodeHashDigest, string>;
 	pathDisplayValues: Record<CodemodNodeHashDigest, string | null>;
 }>;
 
@@ -32,7 +33,7 @@ const handleDoubleClick = (node: CodemodNode) => {
 			title: 'Show codemod metadata',
 			command: 'intuita.showCodemodMetadata',
 			arguments: [node.hashDigest],
-		}
+		},
 	});
 };
 
@@ -52,23 +53,21 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 	onFocus(hashDigest);
 };
 
-
 const TreeView = ({
 	tree,
 	autocompleteItems,
-	rootPath, 
-	codemodDescriptions, 
-	pathDisplayValues, 
+	rootPath,
+	codemodDescriptions,
+	pathDisplayValues,
 }: Props) => {
-
 	/**
 	 * Progress bar
 	 * @TODO hide progress bar logic
 	 */
 	const [executionStack, setExecutionStack] = useState<
 		ReadonlyArray<CodemodNodeHashDigest>
-	>([]) ;
-	
+	>([]);
+
 	const [runningRepomodHash, setRunningRepomodHash] =
 		useState<CodemodNodeHashDigest | null>(null);
 
@@ -99,12 +98,11 @@ const TreeView = ({
 		runningRepomodHash as CodemodHash | null,
 	);
 
-	
-	
 	const handleActionButtonClick = useCallback(
 		(action: RunCodemodsCommand) => {
 			// @TODO
-			const actionValue  = action.value as unknown as CodemodNodeHashDigest;
+			const actionValue =
+				action.value as unknown as CodemodNodeHashDigest;
 			if (
 				(progress || executionStack.length) &&
 				action.kind === 'webview.codemodList.dryRunCodemod'
@@ -120,8 +118,6 @@ const TreeView = ({
 		},
 		[executionStack, progress],
 	);
-	
-	
 
 	// @TODO move to other component
 	const actionButtons = (
@@ -129,13 +125,13 @@ const TreeView = ({
 		actions: RunCodemodsCommand[],
 		doesDisplayShortenedTitle: boolean,
 	) => {
-		if(node.kind !== 'CODEMOD') {
+		if (node.kind !== 'CODEMOD') {
 			return [];
 		}
-		
-		
+
 		return (actions ?? []).map((action) => {
-			const actionValue = action.value as unknown as CodemodNodeHashDigest;
+			const actionValue =
+				action.value as unknown as CodemodNodeHashDigest;
 			return (
 				<Popover
 					trigger={
@@ -175,32 +171,38 @@ const TreeView = ({
 			);
 		});
 	};
-	
-	const getActionButtons = (node: CodemodNode, doesDisplayShortenedTitle: boolean) => {
-	  if(node.kind !== 'CODEMOD') {
+
+	const getActionButtons = (
+		node: CodemodNode,
+		doesDisplayShortenedTitle: boolean,
+	) => {
+		if (node.kind !== 'CODEMOD') {
 			return [];
-		}		
-		
+		}
+
 		if (node.codemodKind === 'repomod' && runningRepomodHash !== null) {
 			return [];
 		}
 
 		if (
 			// @TODO
-			progress?.codemodHash === (node.hashDigest as unknown as CodemodHash) &&
+			progress?.codemodHash ===
+				(node.hashDigest as unknown as CodemodHash) &&
 			node.codemodKind === 'executeCodemod'
 		) {
 			return [stopProgress];
 		}
-		
-		const actions = [{
-			title: '✓ Dry Run',
-			shortenedTitle: '✓',
-			description:
-				'Run this codemod without making change to file system',
-			kind: 'webview.codemodList.dryRunCodemod' as const,
-			value: node.hashDigest as unknown as CodemodHash,
-		}];
+
+		const actions = [
+			{
+				title: '✓ Dry Run',
+				shortenedTitle: '✓',
+				description:
+					'Run this codemod without making change to file system',
+				kind: 'webview.codemodList.dryRunCodemod' as const,
+				value: node.hashDigest as unknown as CodemodHash,
+			},
+		];
 
 		return actionButtons(node, actions, doesDisplayShortenedTitle);
 	};
@@ -208,15 +210,20 @@ const TreeView = ({
 	return (
 		<div id="codemodDiscoveryView-treeContainer" tabIndex={0}>
 			<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
-			 	{...tree}
+				{...tree}
 				nodeRenderer={getCodemodNodeRenderer({
-					autocompleteItems, 
-					rootPath, 
-				 	codemodDescriptions, 
-					pathDisplayValues, 
-					onDoubleClick: handleDoubleClick, 
-					progressBar: (node: CodemodNode) => progress?.codemodHash === (node.hashDigest as unknown as CodemodHash) ? progressBar : null, 
-					actionButtons: (node, doesDisplayShortenedTitle) => getActionButtons(node, doesDisplayShortenedTitle), 
+					autocompleteItems,
+					rootPath,
+					codemodDescriptions,
+					pathDisplayValues,
+					onDoubleClick: handleDoubleClick,
+					progressBar: (node: CodemodNode) =>
+						progress?.codemodHash ===
+						(node.hashDigest as unknown as CodemodHash)
+							? progressBar
+							: null,
+					actionButtons: (node, doesDisplayShortenedTitle) =>
+						getActionButtons(node, doesDisplayShortenedTitle),
 				})}
 				onFlip={onFlip}
 				onFocus={onFocus}

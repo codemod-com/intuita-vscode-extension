@@ -323,14 +323,13 @@ export type WebviewResponse =
 			caseHash: CaseHash;
 	  }>
 	| Readonly<{
-		kind: 'webview.global.selectCodemodNodeHashDigest';
-		selectedCodemodNodeHashDigest: CodemodNodeHashDigest
-	}>
+			kind: 'webview.global.selectCodemodNodeHashDigest';
+			selectedCodemodNodeHashDigest: CodemodNodeHashDigest;
+	  }>
 	| Readonly<{
-		kind: 'webview.global.flipCodemodHashDigest';
-		codemodNodeHashDigest: CodemodNodeHashDigest
-	}>
-		
+			kind: 'webview.global.flipCodemodHashDigest';
+			codemodNodeHashDigest: CodemodNodeHashDigest;
+	  }>;
 
 export type View =
 	| Readonly<{

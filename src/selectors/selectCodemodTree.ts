@@ -46,15 +46,20 @@ export const buildDirectoryNode = (name: string) =>
 		label: name,
 	} as const);
 
-
 const REPOMOD_CODEMOD_HASH_DIGESTS = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
 
-export const buildCodemodNode = (codemod: CodemodEntry, name: string, executionPath: string) => {
+export const buildCodemodNode = (
+	codemod: CodemodEntry,
+	name: string,
+	executionPath: string,
+) => {
 	return {
 		kind: 'CODEMOD' as const,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
 		label: buildCodemodTitle(name),
-		codemodKind: REPOMOD_CODEMOD_HASH_DIGESTS.includes(codemod.hashDigest) ? 'repomod' : 'executeCodemod', 
+		codemodKind: REPOMOD_CODEMOD_HASH_DIGESTS.includes(codemod.hashDigest)
+			? 'repomod'
+			: 'executeCodemod',
 		executionPath: T.right(executionPath),
 	} as const;
 };
@@ -66,7 +71,7 @@ export type CodemodNode =
 
 export const selectCodemodTree = (state: RootState, rootPath: string) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
-	const {executionPaths} = state;
+	const { executionPaths } = state;
 
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
@@ -98,7 +103,8 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 			const parentDirName = pathParts.slice(0, idx).join(sep);
 
 			if (idx === pathParts.length - 1) {
-				const executionPath = executionPaths[codemod.hashDigest] ??  rootPath;
+				const executionPath =
+					executionPaths[codemod.hashDigest] ?? rootPath;
 				currNode = buildCodemodNode(codemod, part, executionPath);
 			} else {
 				currNode = buildDirectoryNode(part);
