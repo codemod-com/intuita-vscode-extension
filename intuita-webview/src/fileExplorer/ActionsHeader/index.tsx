@@ -10,6 +10,7 @@ import { CaseHash } from '../../../../src/cases/types';
 import { ReactComponent as CheckboxIndeterminate } from '../../assets/checkbox_indeterminate.svg';
 import { ReactComponent as CheckboxBlank } from '../../assets/checkbox_blank.svg';
 import { ReactComponent as CheckboxChecked } from '../../assets/checkbox_checked.svg';
+import { ExplorerNodeHashDigest } from '../../../../src/selectors/selectExplorerTree';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard all the proposed changes for the highlighted codemod.',
@@ -20,20 +21,19 @@ const POPOVER_TEXTS = {
 type Props = Readonly<{
 	caseHash: CaseHash;
 	jobHashes: ReadonlyArray<JobHash>;
-	selectedJobHashes: ReadonlyArray<JobHash>;
+	deselectedHashDigests: ReadonlyArray<ExplorerNodeHashDigest>;
 	screenWidth: number | null;
 }>;
 
 const ActionsHeader = ({
-	selectedJobHashes,
+	deselectedHashDigests,
 	caseHash,
 	jobHashes,
 	screenWidth,
 }: Props) => {
 	const ready = jobHashes.length > 0;
-	const hasStagedJobs = selectedJobHashes.length > 0;
-	const hasStagedAllJobs =
-		ready && selectedJobHashes.length === jobHashes.length;
+	const hasStagedJobs = deselectedHashDigests.length < jobHashes.length;
+	const hasStagedAllJobs = ready && deselectedHashDigests.length === 0;
 
 	const handleToggleAllJobs = () => {
 		if (!ready) {
@@ -41,8 +41,8 @@ const ActionsHeader = ({
 		}
 
 		vscode.postMessage({
-			kind: 'webview.global.stageJobs',
-			jobHashes: hasStagedJobs ? [] : jobHashes,
+			kind: 'webview.global.resetDeselectedChangeExplorerNodeHashDigests',
+			fillWith: hasStagedJobs ? 'all' : 'none',
 		});
 	};
 
@@ -61,7 +61,6 @@ const ActionsHeader = ({
 	const handleApplySelected = () => {
 		vscode.postMessage({
 			kind: 'webview.global.applySelected',
-			jobHashes: selectedJobHashes,
 			diffId: caseHash,
 		});
 
@@ -85,9 +84,9 @@ const ActionsHeader = ({
 	return (
 		<div className={styles.root}>
 			{ready ? (
-				<h4
-					className={styles.selectedFileCount}
-				>{`Selected files: ${selectedJobHashes.length} of ${jobHashes.length}`}</h4>
+				<h4 className={styles.selectedFileCount}>{`Selected files: ${
+					jobHashes.length - deselectedHashDigests.length
+				} of ${jobHashes.length}`}</h4>
 			) : (
 				<VSCodeProgressRing className={styles.progressRing} />
 			)}

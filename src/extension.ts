@@ -30,6 +30,11 @@ import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider'
 import { MainViewProvider } from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
+import {
+	buildDirectoryNode,
+	buildFileNode,
+	selectExplorerTree,
+} from './selectors/selectExplorerTree';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -176,11 +181,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	const fileExplorerProvider = new FileExplorer(
-		messageBus,
-		jobManager,
-		store,
-	);
+	const fileExplorerProvider = new FileExplorer(messageBus, store);
 
 	const campaignManagerProvider = new CampaignManager(
 		messageBus,
@@ -291,7 +292,66 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const { jobHashes, diffId: caseHash } = decoded.right;
+					const { diffId: caseHash } = decoded.right;
+					const fileTree = selectExplorerTree(
+						store.getState(),
+						vscode.workspace.workspaceFolders?.[0]?.uri ?? null,
+					);
+
+					if (fileTree === null) {
+						return;
+					}
+
+					const {
+						nodeData,
+						deselectedChangeExplorerNodeHashDigests,
+						jobHashes,
+					} = fileTree;
+
+					const finalJobHashes = new Set(jobHashes.slice());
+					const deselectedDirectoryNodes = new Set<
+						ReturnType<typeof buildDirectoryNode>
+					>();
+					const fileNodes = new Set<
+						ReturnType<typeof buildFileNode>
+					>();
+
+					for (const nodeDatum of nodeData) {
+						const node = nodeDatum.node;
+
+						if (
+							node.kind === 'DIRECTORY' &&
+							deselectedChangeExplorerNodeHashDigests.includes(
+								node.hashDigest,
+							)
+						) {
+							deselectedDirectoryNodes.add(node);
+						}
+
+						if (node.kind === 'FILE') {
+							fileNodes.add(node);
+							if (
+								deselectedChangeExplorerNodeHashDigests.includes(
+									node.hashDigest,
+								)
+							) {
+								finalJobHashes.delete(node.jobHash);
+							}
+						}
+					}
+
+					fileNodes.forEach((fileNode) => {
+						for (const deselectedDirectoryNode of deselectedDirectoryNodes) {
+							if (
+								fileNode.path.startsWith(
+									deselectedDirectoryNode.path,
+								)
+							) {
+								finalJobHashes.delete(fileNode.jobHash);
+								break;
+							}
+						}
+					});
 
 					await jobManager.acceptJobs(
 						new Set(jobHashes as JobHash[]),

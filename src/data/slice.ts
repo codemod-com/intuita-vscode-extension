@@ -57,7 +57,7 @@ export const getInitialState = (): RootState => {
 		communityView: {
 			visible: true,
 		},
-		appliedJobHashes: [],
+		deselectedChangeExplorerNodeHashDigests: [],
 		codemodExecutionInProgress: false,
 		activeTabId: TabKind.codemods,
 	};
@@ -208,30 +208,17 @@ const rootSlice = createSlice({
 		},
 		clearJobs(state) {
 			jobAdapter.removeAll(state.job);
-			state.appliedJobHashes = [];
 		},
-		upsertAppliedJobHashes(
+		setDeselectedChangeExplorerNodeHashDigests(
 			state,
-			action: PayloadAction<ReadonlyArray<JobHash>>,
+			action: PayloadAction<ReadonlyArray<ExplorerNodeHashDigest>>,
 		) {
-			state.appliedJobHashes = Array.from(
-				new Set([...state.appliedJobHashes, ...action.payload]),
-			);
-		},
-		setAppliedJobHashes(
-			state,
-			action: PayloadAction<ReadonlyArray<JobHash>>,
-		) {
-			state.appliedJobHashes = Array.from(
+			state.deselectedChangeExplorerNodeHashDigests = Array.from(
 				new Set(action.payload.slice()),
 			);
 		},
 		deleteJobs(state, action: PayloadAction<ReadonlyArray<JobHash>>) {
 			jobAdapter.removeMany(state.job, action.payload);
-
-			state.appliedJobHashes = state.appliedJobHashes.filter(
-				(jobHash) => !action.payload.includes(jobHash as JobHash),
-			);
 		},
 		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
 			state.codemodExecutionInProgress = action.payload;

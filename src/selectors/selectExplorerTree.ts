@@ -53,10 +53,15 @@ export const buildDirectoryNode = (path: string, label: string) =>
 			['DIRECTORY', path, label].join(''),
 		) as ExplorerNodeHashDigest,
 		kind: 'DIRECTORY' as const,
+		path,
 		label,
 	} as const);
 
-export const buildFileNode = (job: PersistedJob, label: string) => {
+export const buildFileNode = (
+	job: PersistedJob,
+	label: string,
+	path: string,
+) => {
 	const fileAdded = doesJobAddNewFile(job.kind);
 
 	return {
@@ -65,6 +70,7 @@ export const buildFileNode = (job: PersistedJob, label: string) => {
 			['FILE', job.hash, label].join(''),
 		) as ExplorerNodeHashDigest,
 		label,
+		path,
 		jobHash: job.hash,
 		fileAdded,
 	} as const;
@@ -191,7 +197,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		const path = uri.fsPath.replace(rootPath.fsPath, '');
 
 		if (properSearchPhrase !== '') {
-			const node = buildFileNode(job, path);
+			const node = buildFileNode(job, path, path);
 			children[rootNode.hashDigest]?.add(node.hashDigest);
 
 			nodes[node.hashDigest] = node;
@@ -201,7 +207,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 				.filter((name) => name !== '')
 				.map((name, i, names) => {
 					if (names.length - 1 === i) {
-						return buildFileNode(job, name);
+						return buildFileNode(job, name, path);
 					}
 
 					return buildDirectoryNode(
@@ -273,7 +279,8 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 			state.changeExplorerView.focusedFileExplorerNodeId,
 		collapsedNodeHashDigests:
 			state.changeExplorerView.collapsedNodeHashDigests,
-		appliedJobHashes: state.appliedJobHashes,
+		deselectedChangeExplorerNodeHashDigests:
+			state.deselectedChangeExplorerNodeHashDigests,
 		searchPhrase: properSearchPhrase,
 		jobHashes,
 	};

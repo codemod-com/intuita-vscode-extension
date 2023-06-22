@@ -238,12 +238,15 @@ export type WebviewResponse =
 	| Omit<RunCodemodsCommand, 'title' | 'shortenedTitle' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
-			jobHashes: ReadonlyArray<JobHash>;
 			diffId: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.stageJobs';
-			jobHashes: ReadonlyArray<JobHash>;
+			kind: 'webview.global.deselectChangeExplorerNodeHashDigests';
+			hashDigests: ReadonlyArray<ExplorerNodeHashDigest>;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.resetDeselectedChangeExplorerNodeHashDigests';
+			fillWith: 'none' | 'all';
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setChangeExplorerSearchPhrase';
@@ -347,7 +350,6 @@ export type View =
 				title: string;
 				loading: boolean;
 				data: JobDiffViewProps[];
-				stagedJobs: JobHash[];
 			};
 	  }>
 	| Readonly<{

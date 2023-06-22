@@ -2,10 +2,12 @@ import { WebviewView, workspace, commands } from 'vscode';
 import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage, WebviewResponse } from './webviewEvents';
-import { JobManager } from '../jobManager';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
-import { selectExplorerTree } from '../../selectors/selectExplorerTree';
+import {
+	ExplorerNodeHashDigest,
+	selectExplorerTree,
+} from '../../selectors/selectExplorerTree';
 
 type ViewProps = Extract<View, { viewId: 'fileExplorer' }>['viewProps'];
 
@@ -14,7 +16,6 @@ export class FileExplorer {
 
 	constructor(
 		private readonly __messageBus: MessageBus,
-		private readonly __jobManager: JobManager,
 		private readonly __store: Store,
 	) {
 		__store.subscribe(() => {
@@ -117,8 +118,37 @@ export class FileExplorer {
 			);
 		}
 
-		if (message.kind === 'webview.global.stageJobs') {
-			this.__jobManager.setAppliedJobs(message.jobHashes);
+		if (
+			message.kind ===
+			'webview.global.deselectChangeExplorerNodeHashDigests'
+		) {
+			this.__store.dispatch(
+				actions.setDeselectedChangeExplorerNodeHashDigests(
+					message.hashDigests,
+				),
+			);
+		}
+
+		if (
+			message.kind ===
+			'webview.global.resetDeselectedChangeExplorerNodeHashDigests'
+		) {
+			const deselectedHashDigests = new Set<ExplorerNodeHashDigest>();
+			if (message.fillWith === 'all') {
+				const props = this.__buildViewProps();
+				if (props === null) {
+					return;
+				}
+				props.nodeData.forEach((nodeDatum) =>
+					deselectedHashDigests.add(nodeDatum.node.hashDigest),
+				);
+			}
+
+			this.__store.dispatch(
+				actions.setDeselectedChangeExplorerNodeHashDigests(
+					Array.from(deselectedHashDigests),
+				),
+			);
 		}
 
 		if (message.kind === 'webview.global.setChangeExplorerSearchPhrase') {

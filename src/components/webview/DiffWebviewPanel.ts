@@ -102,7 +102,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 
 	public async getViewDataForJob(
 		jobHash: JobHash,
-	): Promise<(JobDiffViewProps & { staged: boolean }) | null> {
+	): Promise<JobDiffViewProps | null> {
 		if (!this.__rootPath) {
 			return null;
 		}
@@ -129,8 +129,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			? (await workspace.fs.readFile(oldUri)).toString()
 			: null;
 
-		const jobStaged = this.__jobManager.isJobApplied(job.hash);
-
 		return {
 			jobHash,
 			jobKind: kind,
@@ -154,7 +152,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				: { oldFileContent: null }),
 			newFileContent,
 			title: newFileTitle,
-			staged: jobStaged,
 		};
 	}
 
@@ -163,7 +160,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	): Promise<null | Readonly<{
 		title: string;
 		data: JobDiffViewProps[];
-		stagedJobs: JobHash[];
 	}>> {
 		const hash = caseHash as unknown as CaseHash;
 		const kase = this.__caseManager.getCase(hash);
@@ -177,6 +173,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		if (jobHashes.length === 0) {
 			return null;
 		}
+
 		const viewDataArray = await Promise.all(
 			jobHashes.map((jobHash) => this.getViewDataForJob(jobHash)),
 		);
@@ -184,14 +181,10 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 		this.__selectedCaseHash = caseHash;
 
 		const data = viewDataArray.filter(isNeitherNullNorUndefined);
-		const stagedJobs = data
-			.filter((job) => job.staged)
-			.map((job) => job.jobHash);
 
 		return {
 			title: `${kase.codemodName} (${data.length})`,
 			data,
-			stagedJobs: stagedJobs,
 		};
 	}
 
@@ -228,7 +221,7 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			return;
 		}
 
-		const { title, data, stagedJobs } = viewData;
+		const { title, data } = viewData;
 
 		const view: View = {
 			viewId: 'jobDiffView' as const,
@@ -237,7 +230,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 				diffId: this.__selectedCaseHash as string,
 				title,
 				data,
-				stagedJobs,
 			},
 		};
 

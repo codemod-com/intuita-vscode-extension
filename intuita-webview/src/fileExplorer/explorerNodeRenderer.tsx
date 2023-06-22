@@ -7,8 +7,8 @@ import {
 	ExplorerNode,
 	ExplorerNodeHashDigest,
 	ExplorerTree,
+	buildDirectoryNode,
 } from '../../../src/selectors/selectExplorerTree';
-import { JobHash } from '../shared/types';
 import { NodeDatum } from '../intuitaTreeView';
 
 const getIcon = (explorerNode: ExplorerNode, opened: boolean): ReactNode => {
@@ -42,7 +42,10 @@ const getIcon = (explorerNode: ExplorerNode, opened: boolean): ReactNode => {
 };
 
 export const explorerNodeRenderer =
-	(explorerTree: ExplorerTree, onToggleJob: (jobHash: JobHash) => void) =>
+	(
+		explorerTree: ExplorerTree,
+		onToggleJob: (hashDigest: ExplorerNodeHashDigest) => void,
+	) =>
 	(props: {
 		nodeDatum: NodeDatum<ExplorerNodeHashDigest, ExplorerNode>;
 		onFlip: (hashDigest: ExplorerNodeHashDigest) => void;
@@ -52,22 +55,50 @@ export const explorerNodeRenderer =
 		const focused = props.nodeDatum.focused;
 		const hasChildren = props.nodeDatum.childCount > 0;
 
-		const enableCheckbox = props.nodeDatum.node.kind === 'FILE';
-
 		const Checkbox = () => {
-			if (props.nodeDatum.node.kind !== 'FILE') {
+			const nodeKind = props.nodeDatum.node.kind;
+			if (nodeKind !== 'FILE' && nodeKind !== 'DIRECTORY') {
 				return null;
 			}
 
-			const { jobHash } = props.nodeDatum.node;
+			let checked =
+				!explorerTree.deselectedChangeExplorerNodeHashDigests.includes(
+					props.nodeDatum.node.hashDigest,
+				);
 
-			const checked = explorerTree.appliedJobHashes.includes(jobHash);
+			const deselectedDirectoryNodes = new Set(
+				explorerTree.nodeData
+					.filter(
+						(nodeDatum) =>
+							nodeDatum.node.kind === 'DIRECTORY' &&
+							explorerTree.deselectedChangeExplorerNodeHashDigests.includes(
+								nodeDatum.node.hashDigest,
+							),
+					)
+					.map(
+						(nodeDatum) =>
+							nodeDatum.node as ReturnType<
+								typeof buildDirectoryNode
+							>,
+					),
+			);
+
+			for (const deselectedDirectoryNode of deselectedDirectoryNodes) {
+				if (
+					props.nodeDatum.node.path.startsWith(
+						deselectedDirectoryNode.path,
+					)
+				) {
+					checked = false;
+					break;
+				}
+			}
 
 			return (
 				<VSCodeCheckbox
 					onClick={(event) => {
 						event.stopPropagation();
-						onToggleJob(jobHash);
+						onToggleJob(props.nodeDatum.node.hashDigest);
 					}}
 					checked={checked}
 				/>
@@ -89,7 +120,7 @@ export const explorerNodeRenderer =
 
 					props.onFocus(props.nodeDatum.node.hashDigest);
 				}}
-				actionButtons={[enableCheckbox && <Checkbox />]}
+				actionButtons={[<Checkbox />]}
 				onPressChevron={(event) => {
 					event.stopPropagation();
 
@@ -97,13 +128,12 @@ export const explorerNodeRenderer =
 				}}
 				inlineStyles={{
 					root: {
-						...(enableCheckbox && {
-							...(!focused && {
+						...(props.nodeDatum.node.kind === 'FILE' &&
+							!focused && {
 								backgroundColor:
 									'var(--vscode-list-hoverBackground)',
 							}),
-							paddingRight: 4,
-						}),
+						paddingRight: 4,
 					},
 					actions: { display: 'flex' },
 				}}

@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './style.module.css';
 
-import type {
-	JobHash,
-	WebviewMessage,
-} from '../../../src/components/webview/webviewEvents';
+import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
 import ActionsHeader from './ActionsHeader';
 import Progress from '../shared/Progress';
@@ -49,27 +46,29 @@ function App({ screenWidth }: Props) {
 		};
 	}, []);
 
-	const appliedJobHashes = useMemo(
-		() => viewProps?.appliedJobHashes ?? [],
+	const deselectedChangeExplorerNodeHashDigests = useMemo(
+		() => viewProps?.deselectedChangeExplorerNodeHashDigests ?? [],
 		[viewProps],
 	);
 
 	const onToggleJob = useCallback(
-		(jobHash: JobHash) => {
-			const stagedJobsSet = new Set(appliedJobHashes);
+		(hashDigest: ExplorerNodeHashDigest) => {
+			const deselectedHashDigestsSet = new Set(
+				deselectedChangeExplorerNodeHashDigests,
+			);
 
-			if (stagedJobsSet.has(jobHash)) {
-				stagedJobsSet.delete(jobHash);
+			if (deselectedHashDigestsSet.has(hashDigest)) {
+				deselectedHashDigestsSet.delete(hashDigest);
 			} else {
-				stagedJobsSet.add(jobHash);
+				deselectedHashDigestsSet.add(hashDigest);
 			}
 
 			vscode.postMessage({
-				kind: 'webview.global.stageJobs',
-				jobHashes: Array.from(stagedJobsSet),
+				kind: 'webview.global.deselectChangeExplorerNodeHashDigests',
+				hashDigests: Array.from(deselectedHashDigestsSet),
 			});
 		},
-		[appliedJobHashes],
+		[deselectedChangeExplorerNodeHashDigests],
 	);
 
 	const setSearchPhrase = useCallback((searchPhrase: string) => {
@@ -132,7 +131,9 @@ function App({ screenWidth }: Props) {
 		>
 			{viewProps !== null && (
 				<ActionsHeader
-					selectedJobHashes={viewProps.appliedJobHashes}
+					deselectedHashDigests={
+						viewProps.deselectedChangeExplorerNodeHashDigests
+					}
 					jobHashes={viewProps.jobHashes}
 					caseHash={viewProps.caseHash}
 					screenWidth={screenWidth}

@@ -3,7 +3,7 @@ import { buildTypeCodec } from '../utilities';
 import { codemodEntryCodec } from '../codemods/types';
 import { executionErrorCodec } from '../errors/types';
 import { withFallback } from 'io-ts-types';
-import { jobHashCodec, persistedJobCodec } from '../jobs/types';
+import { persistedJobCodec } from '../jobs/types';
 import { caseCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
 import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
@@ -109,7 +109,10 @@ export const persistedStateCodecNew = buildTypeCodec({
 		},
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
-	appliedJobHashes: withFallback(t.readonlyArray(jobHashCodec), []),
+	deselectedChangeExplorerNodeHashDigests: withFallback(
+		t.readonlyArray(explorerNodeHashDigestCodec),
+		[],
+	),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
 	activeTabId: withFallback(
 		t.union([
