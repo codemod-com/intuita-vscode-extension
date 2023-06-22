@@ -26,7 +26,7 @@ type FileExplorerViewProps = Extract<
 	{ viewId: 'fileExplorer' }
 >['viewProps'];
 
-type CodemodsViewProps = Extract<View, { viewId: 'codemods'}>['viewProps'];
+type CodemodsViewProps = Extract<View, { viewId: 'codemods' }>['viewProps'];
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">

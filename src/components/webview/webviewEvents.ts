@@ -1,7 +1,6 @@
 import { Command } from 'vscode';
 import { JobHash, JobKind } from '../../jobs/types';
 export type { Command } from 'vscode';
-import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
@@ -12,7 +11,10 @@ import {
 	ExplorerTree,
 } from '../../selectors/selectExplorerTree';
 import { CodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
-import { CodemodNodeHashDigest, CodemodTree } from '../../selectors/selectCodemodTree';
+import {
+	CodemodNodeHashDigest,
+	CodemodTree,
+} from '../../selectors/selectCodemodTree';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -78,7 +80,6 @@ export type CodemodTreeNode = {
 	executionPath?: ExecutionPath;
 	modKind?: 'repomod' | 'executeCodemod';
 };
-
 
 export type CollapsibleWebviews =
 	| 'codemodRunsView'

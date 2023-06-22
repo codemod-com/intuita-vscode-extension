@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage } from '../shared/types';
 import TreeView from './TreeView/index2';
@@ -6,16 +6,16 @@ import './index.css';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';
 
-type Props = { screenWidth: number | null };
-
-function App({ screenWidth }: Props) {
-	const [view, setView] = useState({ viewProps: window.INITIAL_STATE.codemodListProps, viewId: 'codemods' });
+function App() {
+	const [view, setView] = useState({
+		viewProps: window.INITIAL_STATE.codemodListProps,
+		viewId: 'codemods',
+	});
 	const [searchPhrase, setSearchPhrase] = useState<string>('');
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
 			const message = e.data;
-			console.log(message,'test');
 			if (
 				message.kind === 'webview.codemodList.setView' &&
 				message.value.viewId === 'codemods'
@@ -41,25 +41,23 @@ function App({ screenWidth }: Props) {
 		);
 	}
 
-	const {
-		codemodTree,
-		autocompleteItems,
-	} = view.viewProps;
+	const { codemodTree, autocompleteItems } = view.viewProps;
 
-	return <main className="App">
+	return (
+		<main className="App">
 			<SearchBar
-								searchPhrase={searchPhrase}
-								setSearchPhrase={setSearchPhrase}
-								placeholder="Search codemods..."
-							/>
-				<TreeView
-					rootPath=''
-					tree={codemodTree}
-					screenWidth={screenWidth}
-					autocompleteItems={autocompleteItems}
-					searchPhrase={searchPhrase}
-				/>
-	</main>;
+				searchPhrase={searchPhrase}
+				setSearchPhrase={setSearchPhrase}
+				placeholder="Search codemods..."
+			/>
+			<TreeView
+				rootPath=""
+				tree={codemodTree}
+				autocompleteItems={autocompleteItems}
+				searchPhrase={searchPhrase}
+			/>
+		</main>
+	);
 }
 
-export default App;
+export default memo(App);

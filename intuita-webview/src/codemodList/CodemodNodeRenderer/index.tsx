@@ -47,7 +47,6 @@ const getIcon = (
 	return <BlueLightBulbIcon />;
 };
 
-
 const getContainerInlineStyles = ({
 	depth,
 }: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
@@ -107,7 +106,7 @@ const getCodemodNodeRenderer =
 		const hasChildren = childCount !== 0;
 		const icon = getIcon(nodeDatum);
 
-		const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
+		const [notEnoughSpace] = useState<boolean>(false);
 		const directorySelectorRef = useRef<HTMLSpanElement>(null);
 		const ref = useRef<HTMLDivElement>(null);
 		const repoName = rootPath.split('/').slice(-1)[0] ?? '';
@@ -168,41 +167,42 @@ const getCodemodNodeRenderer =
 		const onEditCancel = useCallback(() => {
 			setEditingPath(false);
 		}, []);
-		
-		useEffect(() => {
-			if (ResizeObserver === undefined) {
-				return undefined;
-			}
-	
-			const resizeObserver = new ResizeObserver((entries) => {
-				const treeItem = entries[0] ?? null;
-				if (treeItem === null) {
-					return;
-				}
-	
-				if (directorySelectorRef.current === null) {
-					return;
-				}
-	
-				const xDistance = Math.abs(
-					directorySelectorRef.current.getBoundingClientRect().right -
-						treeItem.target.getBoundingClientRect().right,
-				);
-	
-				setNotEnoughSpace(xDistance < 100);
-			});
-	
-			const treeItem = document.getElementById(hashDigest);
-	
-			if (treeItem === null) {
-				return;
-			}
-			resizeObserver.observe(treeItem);
-	
-			return () => {
-				resizeObserver.disconnect();
-			};
-		}, [hashDigest]);
+
+		// @TODO check if can be implemented using css container queries
+		// useEffect(() => {
+		// 	if (ResizeObserver === undefined) {
+		// 		return undefined;
+		// 	}
+
+		// 	const resizeObserver = new ResizeObserver((entries) => {
+		// 		const treeItem = entries[0] ?? null;
+		// 		if (treeItem === null) {
+		// 			return;
+		// 		}
+
+		// 		if (directorySelectorRef.current === null) {
+		// 			return;
+		// 		}
+
+		// 		const xDistance = Math.abs(
+		// 			directorySelectorRef.current.getBoundingClientRect().right -
+		// 				treeItem.target.getBoundingClientRect().right,
+		// 		);
+
+		// 		setNotEnoughSpace(xDistance < 100);
+		// 	});
+
+		// 	const treeItem = document.getElementById(hashDigest);
+
+		// 	if (treeItem === null) {
+		// 		return;
+		// 	}
+		// 	resizeObserver.observe(treeItem);
+
+		// 	return () => {
+		// 		resizeObserver.disconnect();
+		// 	};
+		// }, [hashDigest]);
 
 		return (
 			<div

@@ -39,9 +39,9 @@ export const buildRootNode = () =>
 		label: '',
 	} as const);
 
-export const buildDirectoryNode = (name: string) =>
+export const buildDirectoryNode = (name: string, path: string) =>
 	({
-		hashDigest: buildHash(name) as CodemodNodeHashDigest,
+		hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
 		kind: 'DIRECTORY' as const,
 		label: name,
 	} as const);
@@ -61,7 +61,7 @@ export const buildCodemodNode = (
 			? 'repomod'
 			: 'executeCodemod',
 		executionPath: T.right(executionPath),
-		description: codemod.description, 
+		description: codemod.description,
 	} as const;
 };
 
@@ -108,7 +108,7 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 					executionPaths[codemod.hashDigest] ?? rootPath;
 				currNode = buildCodemodNode(codemod, part, executionPath);
 			} else {
-				currNode = buildDirectoryNode(part);
+				currNode = buildDirectoryNode(part, codemodDirName);
 			}
 
 			nodePathMap.set(codemodDirName, currNode);

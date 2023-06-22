@@ -9,15 +9,10 @@ import {
 } from 'vscode';
 import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
-import {
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
+import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { CodemodService } from '../../packageJsonAnalyzer/codemodService';
-import {
-	CodemodHash,
-} from '../../packageJsonAnalyzer/types';
+import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { readdir } from 'node:fs/promises';
@@ -25,10 +20,7 @@ import { join, parse } from 'node:path';
 import { pipe } from 'fp-ts/lib/function';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
-import {
-	selectCodemodTree,
-} from '../../selectors/selectCodemodTree';
-
+import { selectCodemodTree } from '../../selectors/selectCodemodTree';
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
 		() => readdir(path),
@@ -96,8 +88,7 @@ export class CodemodListPanel {
 				kind: 'webview.global.codemodExecutionHalted',
 			});
 		});
-		
-		
+
 		let prevProps = this.__buildProps();
 
 		this.__store.subscribe(() => {
@@ -152,9 +143,9 @@ export class CodemodListPanel {
 
 	private __buildProps() {
 		const state = this.__store.getState();
-		console.time('select')
+		console.time('select');
 		const codemodTree = selectCodemodTree(state, this.__rootPath ?? '');
-		console.timeEnd('select')
+		console.timeEnd('select');
 
 		return {
 			codemodTree,
@@ -171,7 +162,7 @@ export class CodemodListPanel {
 			kind: 'webview.codemodList.setView',
 			value: {
 				viewId: 'codemods',
-				viewProps: this.__buildProps()
+				viewProps: this.__buildProps(),
 			},
 		});
 	}
@@ -284,17 +275,13 @@ export class CodemodListPanel {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
-			const codemod = this.__codemodService.getCodemodItem(message.value);
-			if (!codemod || codemod.kind === 'path') {
-				return;
-			}
 
-			const { hash } = codemod;
-
-			this.__store.dispatch(actions.setRecentCodemodHashes(hash));
+			const hashDigest = message.value;
+			this.__store.dispatch(actions.setRecentCodemodHashes(hashDigest));
 
 			const state = this.__store.getState().codemodDiscoveryView;
-			const executionPath = state.executionPaths[hash] ?? this.__rootPath;
+			const executionPath =
+				state.executionPaths[hashDigest] ?? this.__rootPath;
 
 			if (executionPath === null) {
 				return;
@@ -302,7 +289,7 @@ export class CodemodListPanel {
 
 			const uri = Uri.file(executionPath);
 
-			commands.executeCommand('intuita.executeCodemod', uri, hash);
+			commands.executeCommand('intuita.executeCodemod', uri, hashDigest);
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
@@ -329,13 +316,13 @@ export class CodemodListPanel {
 
 			this.setView();
 		}
-		
+
 		if (message.kind === 'webview.global.flipCodemodHashDigest') {
 			this.__store.dispatch(
 				actions.flipCodemodHashDigest(message.codemodNodeHashDigest),
 			);
 		}
-		
+
 		if (message.kind === 'webview.global.selectCodemodNodeHashDigest') {
 			this.__store.dispatch(
 				actions.setFocusedCodemodHashDigest(
@@ -343,6 +330,5 @@ export class CodemodListPanel {
 				),
 			);
 		}
-	
 	};
 }
