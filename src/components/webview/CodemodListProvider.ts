@@ -25,7 +25,6 @@ import * as E from 'fp-ts/Either';
 import * as O from 'fp-ts/Option';
 import * as T from 'fp-ts/These';
 import * as TE from 'fp-ts/TaskEither';
-
 import { ElementKind } from '../../elements/types';
 import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
@@ -146,7 +145,7 @@ export class CodemodListPanel {
 
 	private __buildProps() {
 		const state = this.__store.getState();
-		const tree = selectCodemodTree(state);
+		const tree = selectCodemodTree(state, this.__rootPath ?? '');
 		const executionPaths = selectExecutionPaths(state);
 
 		return {

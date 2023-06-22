@@ -13,6 +13,7 @@ import {
 	ExplorerNodeHashDigest,
 	ExplorerTree,
 } from '../../selectors/selectExplorerTree';
+import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -307,6 +308,14 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.campaignManager.setSelectedCaseHash';
 			caseHash: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.selectCodemodNodeHashDigest';
+			selectedCodemodNodeHashDigest: CodemodNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.flipCodemodHashDigest';
+			codemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>;
 
 export type View =
