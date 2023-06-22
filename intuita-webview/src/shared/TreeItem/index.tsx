@@ -1,9 +1,4 @@
-import {
-	CSSProperties,
-	ReactNode,
-	useLayoutEffect,
-	useRef,
-} from 'react';
+import { CSSProperties, ReactNode, useLayoutEffect, useRef } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
