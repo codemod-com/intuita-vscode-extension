@@ -14,6 +14,7 @@ import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { RootState, TabKind } from '../persistedState/codecs';
 import { ExplorerNodeHashDigest } from '../selectors/selectExplorerTree';
+import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 
 const SLICE_KEY = 'root';
 
@@ -44,7 +45,7 @@ export const getInitialState = (): RootState => {
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			openedCodemodHashDigests: [],
+			collapsedCodemodHashDigests: [],
 			visible: true,
 		},
 		changeExplorerView: {
@@ -138,19 +139,30 @@ const rootSlice = createSlice({
 		},
 		setFocusedCodemodHashDigest(
 			state,
-			action: PayloadAction<string | null>,
+			action: PayloadAction<CodemodNodeHashDigest | null>,
 		) {
 			state.codemodDiscoveryView.visible = true;
 			state.codemodDiscoveryView.focusedCodemodHashDigest =
 				action.payload;
 		},
-		setOpenedCodemodHashDigests(
+		flipCodemodHashDigest(
 			state,
-			action: PayloadAction<ReadonlyArray<string>>,
+			action: PayloadAction<CodemodNodeHashDigest>,
 		) {
 			state.codemodDiscoveryView.visible = true;
-			state.codemodDiscoveryView.openedCodemodHashDigests =
-				action.payload.slice();
+
+			const set = new Set<CodemodNodeHashDigest>(
+				state.codemodDiscoveryView.collapsedCodemodHashDigests,
+			);
+
+			if (set.has(action.payload)) {
+				set.delete(action.payload);
+			} else {
+				set.add(action.payload);
+			}
+
+			state.codemodDiscoveryView.collapsedCodemodHashDigests =
+				Array.from(set);
 		},
 		/**
 		 * Errors

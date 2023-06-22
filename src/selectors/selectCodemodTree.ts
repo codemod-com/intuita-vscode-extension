@@ -1,11 +1,20 @@
-import path from 'path';
 import { CodemodEntry } from '../codemods/types';
 import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
+import * as t from 'io-ts';
 
-export type CodemodNodeHashDigest = string & {
-	__CodemodNodeHashDigest: 'CodemodNodeHashDigest';
-};
+interface CodemodNodeHashDigestBrand {
+	readonly __CodemodNodeHashDigest: unique symbol;
+}
+
+export const codemodNodeHashDigestCodec = t.brand(
+	t.string,
+	(hashDigest): hashDigest is t.Branded<string, CodemodNodeHashDigestBrand> =>
+		hashDigest.length > 0,
+	'__CodemodNodeHashDigest',
+);
+
+export type CodemodNodeHashDigest = t.TypeOf<typeof codemodNodeHashDigestCodec>;
 
 export type NodeDatum = Readonly<{
 	node: CodemodNode;
@@ -55,17 +64,17 @@ export const selectCodemodTree = (state: RootState) => {
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
 
-	const parents: Record<CodemodNodeHashDigest, CodemodNodeHashDigest> = {};
 	const nodePathMap = new Map<string, CodemodNode>();
 
 	const rootNode = buildRootNode();
 	nodes[rootNode.hashDigest] = rootNode;
 	children[rootNode.hashDigest] = [];
-
 	codemods.forEach((codemod) => {
 		const { name } = codemod;
 
-		const pathParts = name.split(path.sep).filter((part) => part !== '');
+		const sep = name.indexOf('/') !== -1 ? '/' : ':';
+
+		const pathParts = name.split(sep).filter((part) => part !== '');
 
 		if (pathParts.length === 0) {
 			return;
@@ -73,18 +82,18 @@ export const selectCodemodTree = (state: RootState) => {
 
 		pathParts.forEach((part, idx) => {
 			let currNode: CodemodNode | null = null;
-			const codemodDirName = pathParts.slice(0, idx + 1).join('/');
+			const codemodDirName = pathParts.slice(0, idx + 1).join(sep);
 
 			if (nodePathMap.has(codemodDirName)) {
 				return;
 			}
 
-			const parentDirName = pathParts.slice(0, idx).join('/');
+			const parentDirName = pathParts.slice(0, idx).join(sep);
 
 			if (idx === pathParts.length - 1) {
 				currNode = buildCodemodNode(codemod, part);
 			} else {
-				currNode = buildDirectoryNode(codemodDirName);
+				currNode = buildDirectoryNode(part);
 			}
 
 			nodePathMap.set(codemodDirName, currNode);
@@ -96,8 +105,6 @@ export const selectCodemodTree = (state: RootState) => {
 			if (parentNode === null) {
 				return;
 			}
-
-			parents[currNode.hashDigest] = parentNode.hashDigest;
 
 			if (children[parentNode.hashDigest] === undefined) {
 				children[parentNode.hashDigest] = [];
@@ -120,7 +127,7 @@ export const selectCodemodTree = (state: RootState) => {
 		}
 
 		const expanded =
-			state.codemodDiscoveryView.openedCodemodHashDigests.includes(
+			!state.codemodDiscoveryView.collapsedCodemodHashDigests.includes(
 				hashDigest,
 			);
 		const focused =
@@ -152,11 +159,13 @@ export const selectCodemodTree = (state: RootState) => {
 		nodeData,
 		selectedNodeHashDigest: state.codemodDiscoveryView
 			.focusedCodemodHashDigest as CodemodNodeHashDigest | null,
-		expandedNodeHashDigests: state.codemodDiscoveryView
-			.openedCodemodHashDigests as CodemodNodeHashDigest[],
+		collapsedNodeHashDigests: state.codemodDiscoveryView
+			.collapsedCodemodHashDigests as CodemodNodeHashDigest[],
 	};
 };
 
 export const selectExecutionPaths = (state: RootState) => {
 	return state.codemodDiscoveryView.executionPaths;
 };
+
+export type CodemodTree = NonNullable<ReturnType<typeof selectCodemodTree>>;

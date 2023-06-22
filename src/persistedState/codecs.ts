@@ -6,6 +6,7 @@ import { withFallback } from 'io-ts-types';
 import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
+import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -63,14 +64,19 @@ export const persistedStateCodecNew = buildTypeCodec({
 		buildTypeCodec({
 			visible: t.boolean,
 			executionPaths: t.record(t.string, t.string),
-			focusedCodemodHashDigest: t.union([t.string, t.null]),
-			openedCodemodHashDigests: t.readonlyArray(t.string),
+			focusedCodemodHashDigest: t.union([
+				codemodNodeHashDigestCodec,
+				t.null,
+			]),
+			collapsedCodemodHashDigests: t.readonlyArray(
+				codemodNodeHashDigestCodec,
+			),
 		}),
 		{
 			visible: true,
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			openedCodemodHashDigests: [],
+			collapsedCodemodHashDigests: [],
 		},
 	),
 	changeExplorerView: withFallback(
