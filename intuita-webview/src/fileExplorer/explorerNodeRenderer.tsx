@@ -76,6 +76,7 @@ export const explorerNodeRenderer =
 
 		return (
 			<TreeItem
+				key={props.nodeDatum.node.hashDigest}
 				hasChildren={hasChildren}
 				id={props.nodeDatum.node.hashDigest}
 				label={props.nodeDatum.node.label}

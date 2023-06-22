@@ -106,6 +106,8 @@ const rootSlice = createSlice({
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
+			state.changeExplorerView.focusedFileExplorerNodeId = null;
+			state.changeExplorerView.collapsedNodeHashDigests = [];
 		},
 		/**
 		 * Codemod list

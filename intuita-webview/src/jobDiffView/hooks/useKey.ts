@@ -28,7 +28,7 @@ export const useKey = (
 	key: KeyboardEvent['key'],
 	callback: () => void,
 ) => {
-	const keyPressCallback = useCallback(
+	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
 			if (event.key === key) {
 				event.preventDefault();
@@ -42,8 +42,10 @@ export const useKey = (
 		if (container === null) {
 			return;
 		}
-		container.addEventListener('keydown', keyPressCallback);
+		container.addEventListener('keydown', keyDownCallback);
 
-		return () => container.removeEventListener('keydown', keyPressCallback);
-	}, [keyPressCallback, container]);
+		return () => {
+			container.removeEventListener('keydown', keyDownCallback);
+		};
+	}, [keyDownCallback, container]);
 };
