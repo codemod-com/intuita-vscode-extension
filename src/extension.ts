@@ -22,7 +22,6 @@ import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { Community } from './components/webview/CommunityProvider';
-import { UserHooksService } from './components/hooks';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
 import { applyChangesCoded } from './components/sourceControl/codecs';
@@ -208,10 +207,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(mainView);
-
-	if (rootPath) {
-		new UserHooksService(messageBus, { getConfiguration }, rootPath);
-	}
 
 	const errorWebviewProvider = new ErrorWebviewProvider(
 		context,

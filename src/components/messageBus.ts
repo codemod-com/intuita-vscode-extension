@@ -51,8 +51,6 @@ export const enum MessageKind {
 
 	focusCodemod = 35,
 
-	afterDryRunHooksExecuted = 36,
-
 	focusFile = 37,
 	focusFolder = 38,
 }
@@ -173,9 +171,6 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.focusCodemod;
 			codemodHashDigest: CodemodHash;
-	  }>
-	| Readonly<{
-			kind: MessageKind.afterDryRunHooksExecuted;
 	  }>
 	| Readonly<{
 			kind: MessageKind.focusFile;

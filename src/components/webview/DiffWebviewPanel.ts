@@ -85,13 +85,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 			);
 		}
 
-		if (message.kind === 'webview.global.openConfiguration') {
-			commands.executeCommand(
-				'workbench.action.openSettings',
-				'@ext:Intuita.intuita-vscode-extension onDryRunCompleted',
-			);
-		}
-
 		if (message.kind === 'webview.global.showInformationMessage') {
 			window.showInformationMessage(message.value);
 		}
@@ -260,10 +253,6 @@ export class DiffWebviewPanel extends IntuitaWebviewPanel {
 	}
 
 	_attachExtensionEventListeners() {
-		this._addHook(MessageKind.afterDryRunHooksExecuted, () => {
-			this.__refreshView();
-		});
-
 		this._addHook(MessageKind.codemodSetExecuted, () => {
 			this.__refreshView();
 		});

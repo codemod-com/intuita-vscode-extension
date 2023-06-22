@@ -17,9 +17,6 @@ export const getConfiguration = () => {
 		'**/node_modules',
 	];
 
-	const onDryRunCompleted =
-		configuration.get<string>('onDryRunCompleted') || null;
-
 	const formatWithPrettier =
 		configuration.get<boolean>('formatWithPrettier') ?? false;
 
@@ -29,7 +26,6 @@ export const getConfiguration = () => {
 		workerThreadCount,
 		includePatterns,
 		excludePatterns,
-		onDryRunCompleted,
 		formatWithPrettier,
 	};
 };
