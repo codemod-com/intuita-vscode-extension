@@ -6,10 +6,7 @@ import {
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
-import {
-	CollapsibleWebviews,
-	JobHash,
-} from '../components/webview/webviewEvents';
+import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { RootState, TabKind } from '../persistedState/codecs';
@@ -40,22 +37,16 @@ export const getInitialState = (): RootState => {
 		caseHashJobHashes: [],
 		codemodRunsView: {
 			selectedCaseHash: null,
-			visible: true,
 		},
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			collapsedCodemodHashDigests: [],
-			visible: true,
 		},
 		changeExplorerView: {
 			focusedFileExplorerNodeId: null,
 			collapsedNodeHashDigests: [],
-			visible: false,
 			searchPhrase: '',
-		},
-		communityView: {
-			visible: true,
 		},
 		appliedJobHashes: [],
 		codemodExecutionInProgress: false,
@@ -67,16 +58,6 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
-		setVisible(
-			state,
-			action: PayloadAction<{
-				visible: boolean;
-				viewName: CollapsibleWebviews;
-			}>,
-		) {
-			const { visible, viewName } = action.payload;
-			state[viewName].visible = visible;
-		},
 		setCases(state, action: PayloadAction<ReadonlyArray<Case>>) {
 			caseAdapter.setAll(state.case, action.payload);
 		},
@@ -141,7 +122,6 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<CodemodNodeHashDigest | null>,
 		) {
-			state.codemodDiscoveryView.visible = true;
 			state.codemodDiscoveryView.focusedCodemodHashDigest =
 				action.payload;
 		},
@@ -149,8 +129,6 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<CodemodNodeHashDigest>,
 		) {
-			state.codemodDiscoveryView.visible = true;
-
 			const set = new Set<CodemodNodeHashDigest>(
 				state.codemodDiscoveryView.collapsedCodemodHashDigests,
 			);
@@ -184,7 +162,6 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<ExplorerNodeHashDigest | null>,
 		) {
-			state.changeExplorerView.visible = true;
 			state.changeExplorerView.focusedFileExplorerNodeId = action.payload;
 		},
 		flipChangeExplorerHashDigests(
@@ -202,9 +179,6 @@ const rootSlice = createSlice({
 			}
 
 			state.changeExplorerView.collapsedNodeHashDigests = Array.from(set);
-		},
-		setChangeExplorerVisible(state, action: PayloadAction<boolean>) {
-			state.changeExplorerView.visible = action.payload;
 		},
 		clearJobs(state) {
 			jobAdapter.removeAll(state.job);
