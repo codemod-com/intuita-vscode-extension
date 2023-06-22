@@ -32,7 +32,10 @@ const ActionsHeader = ({
 	screenWidth,
 }: Props) => {
 	const ready = jobHashes.length > 0;
-	const hasStagedJobs = deselectedHashDigests.length < jobHashes.length;
+	const hasStagedJobs =
+		ready &&
+		deselectedHashDigests.length > 0 &&
+		deselectedHashDigests.length < jobHashes.length;
 	const hasStagedAllJobs = ready && deselectedHashDigests.length === 0;
 
 	const handleToggleAllJobs = () => {
@@ -84,9 +87,9 @@ const ActionsHeader = ({
 	return (
 		<div className={styles.root}>
 			{ready ? (
-				<h4 className={styles.selectedFileCount}>{`Selected files: ${
-					jobHashes.length - deselectedHashDigests.length
-				} of ${jobHashes.length}`}</h4>
+				<h4
+					className={styles.selectedFileCount}
+				>{`Total files: ${jobHashes.length}`}</h4>
 			) : (
 				<VSCodeProgressRing className={styles.progressRing} />
 			)}
