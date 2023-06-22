@@ -71,7 +71,7 @@ export type CodemodNode =
 
 export const selectCodemodTree = (state: RootState, rootPath: string) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
-	const { executionPaths } = state;
+	const { executionPaths } = state.codemodDiscoveryView;
 
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
