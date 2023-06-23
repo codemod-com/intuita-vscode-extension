@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import { WebviewMessage } from '../shared/types';
-import TreeView from './TreeView/index2';
+import TreeView from './TreeView';
 import './index.css';
 import SearchBar from '../shared/SearchBar';
 import Progress from '../shared/Progress';

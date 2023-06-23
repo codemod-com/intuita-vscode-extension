@@ -20,7 +20,10 @@ import { join, parse } from 'node:path';
 import { pipe } from 'fp-ts/lib/function';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
-import { selectCodemodTree } from '../../selectors/selectCodemodTree';
+import {
+	CodemodNodeHashDigest,
+	selectCodemodTree,
+} from '../../selectors/selectCodemodTree';
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
 		() => readdir(path),
@@ -77,10 +80,11 @@ export class CodemodListPanel {
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
 			this.setView();
 
-			this.__postMessage({
-				kind: 'webview.codemods.focusCodemod',
-				codemodHashDigest: message.codemodHashDigest,
-			});
+			this.__store.dispatch(
+				actions.setFocusedCodemodHashDigest(
+					message.codemodHashDigest as unknown as CodemodNodeHashDigest,
+				),
+			);
 		});
 
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
