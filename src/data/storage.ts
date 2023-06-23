@@ -25,7 +25,6 @@ class MementoStorage implements WebStorage {
 	public async setItem(key: string, value: string): Promise<void> {
 		const oldBuffer = Buffer.from(value, 'utf8');
 		const newBuffer = await asyncDeflate(oldBuffer, {});
-
 		this.__memento.update(key, newBuffer.toString('base64url'));
 	}
 
