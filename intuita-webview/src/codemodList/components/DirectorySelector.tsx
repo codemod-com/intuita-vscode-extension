@@ -36,7 +36,7 @@ type Props = {
 	rootPath: string;
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
-	autocompleteItems: string[];
+	autocompleteItems: ReadonlyArray<string>;
 	onEditStart(): void;
 	onEditEnd(): void;
 	onEditCancel(): void;
