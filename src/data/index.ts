@@ -20,7 +20,7 @@ const deserializeState = (serializedState: string) => {
 			parsedState[key] = JSON.parse(rawState[key]);
 		});
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 	}
 
 	return parsedState;
@@ -67,8 +67,6 @@ const buildStore = async (workspaceState: Memento) => {
 	if (decodedState._tag !== 'Right') {
 		throw new Error('Invalid state');
 	}
-
-	console.log(decodedState.right);
 
 	const store = configureStore({
 		reducer: validatedReducer,
