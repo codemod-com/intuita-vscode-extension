@@ -14,6 +14,10 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
+.root:focus-visible {
+	outline: none;
+}
+
 .root .actions,
 .root .directorySelector {
 	opacity: 0;
