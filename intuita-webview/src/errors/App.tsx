@@ -9,7 +9,6 @@ import type {
 	View,
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
-import { vscode } from '../shared/utilities/vscode';
 import { ExecutionError } from '../../../src/errors/types';
 import { TabKind } from '../../../src/persistedState/codecs';
 
@@ -100,7 +99,6 @@ export const App = () => {
 		};
 
 		window.addEventListener('message', handler);
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 
 		return () => {
 			window.removeEventListener('message', handler);
