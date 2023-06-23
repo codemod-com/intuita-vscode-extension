@@ -49,27 +49,6 @@ export type RunCodemodsCommand = Readonly<{
 	value: CodemodHash;
 }>;
 
-export type CodemodTreeNode = {
-	id: CodemodHash;
-	kind: 'codemodItem' | 'path';
-	uri: string;
-	label: string;
-	children: CodemodTreeNode[];
-	depth: number;
-	description?: string;
-	parentId: CodemodHash | null;
-	iconName?: string;
-	command?: Command;
-	doubleClickCommand?:
-		| Command & {
-				command: 'intuita.showCodemodMetadata';
-				arguments: [string];
-		  };
-	actions?: RunCodemodsCommand[];
-	executionPath?: ExecutionPath;
-	modKind?: 'repomod' | 'executeCodemod';
-};
-
 export type CollapsibleWebviews =
 	| 'codemodRunsView'
 	| 'codemodDiscoveryView'
@@ -125,10 +104,6 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';
-	  }>
-	| Readonly<{
-			kind: 'webview.codemods.focusCodemod';
-			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
@@ -233,11 +208,6 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.global.discardChanges';
 			caseHash: CaseHash;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemods.setState';
-			openedIds: ReadonlyArray<CodemodHash>;
-			focusedId: CodemodHash | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
