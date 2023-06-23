@@ -48,6 +48,7 @@ export const getInitialState = (): RootState => {
 		changeExplorerView: {
 			collapsed: false,
 			focusedFileExplorerNodeId: null,
+			focusedJobHash: null,
 			collapsedNodeHashDigests: [],
 			searchPhrase: '',
 		},
@@ -79,6 +80,7 @@ const rootSlice = createSlice({
 			state.codemodRunsView.selectedCaseHash = null;
 			state.caseHashJobHashes = [];
 			state.changeExplorerView.focusedFileExplorerNodeId = null;
+			state.changeExplorerView.focusedJobHash = null;
 			state.changeExplorerView.collapsedNodeHashDigests = [];
 			state.changeExplorerView.searchPhrase = '';
 		},
@@ -108,6 +110,7 @@ const rootSlice = createSlice({
 		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
 			state.changeExplorerView.focusedFileExplorerNodeId = null;
+			state.changeExplorerView.focusedJobHash = null;
 			state.changeExplorerView.collapsedNodeHashDigests = [];
 		},
 		/**
@@ -168,9 +171,13 @@ const rootSlice = createSlice({
 		 */
 		setFocusedFileExplorerNodeId(
 			state,
-			action: PayloadAction<ExplorerNodeHashDigest | null>,
+			action: PayloadAction<
+				[ExplorerNodeHashDigest | null, JobHash | null]
+			>,
 		) {
-			state.changeExplorerView.focusedFileExplorerNodeId = action.payload;
+			state.changeExplorerView.focusedFileExplorerNodeId =
+				action.payload[0];
+			state.changeExplorerView.focusedJobHash = action.payload[1];
 		},
 		flipChangeExplorerHashDigests(
 			state,

@@ -129,9 +129,10 @@ export class FileExplorer {
 
 		if (message.kind === 'webview.global.selectExplorerNodeHashDigest') {
 			this.__store.dispatch(
-				actions.setFocusedFileExplorerNodeId(
+				actions.setFocusedFileExplorerNodeId([
 					message.selectedExplorerNodeHashDigest,
-				),
+					message.jobHash,
+				]),
 			);
 
 			if (message.jobHash === null) {

@@ -83,6 +83,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 				explorerNodeHashDigestCodec,
 				t.null,
 			]),
+			focusedJobHash: t.union([jobHashCodec, t.null]),
 			collapsedNodeHashDigests: t.readonlyArray(
 				explorerNodeHashDigestCodec,
 			),
@@ -90,6 +91,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		}),
 		{
 			focusedFileExplorerNodeId: null,
+			focusedJobHash: null,
 			collapsedNodeHashDigests: [],
 			searchPhrase: '',
 			collapsed: false,
