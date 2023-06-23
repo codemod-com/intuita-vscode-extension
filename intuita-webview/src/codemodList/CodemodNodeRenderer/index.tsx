@@ -50,13 +50,14 @@ const getIcon = (
 
 const getContainerInlineStyles = ({
 	depth,
+	node,
 }: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
 	return {
-		...(depth === 1 && {
-			minWidth: '0.25rem',
-		}),
-		...(depth > 1 && {
+		...(depth > 0 && {
 			minWidth: `${5 + depth * 16}px`,
+		}),
+		...(node.kind === 'CODEMOD' && {
+			minWidth: `${8 + (depth + 1) * 16}px`,
 		}),
 	};
 };
