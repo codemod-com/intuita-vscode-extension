@@ -258,7 +258,9 @@ const rootSlice = createSlice({
 			}
 
 			const nodeData = [
+				// applies first the nodes after the found node
 				...changeExplorerTree.nodeData.slice(index + 1),
+				// and the the nodes before the found node
 				...changeExplorerTree.nodeData.slice(0, index),
 			];
 
