@@ -3,6 +3,7 @@ import {
 	WebviewView,
 	Uri,
 	ExtensionContext,
+	commands,
 } from 'vscode';
 
 import { WebviewResolver } from './WebviewResolver';
@@ -35,6 +36,10 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
 	}
 
+	public isVisible(): boolean {
+		return this.__view?.visible ?? false;
+	}
+
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
 		if (!webviewView.webview) {
 			return;
@@ -49,7 +54,15 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__fileExplorer.setWebview(webviewView);
 		this.__codemodList.setWebview(webviewView);
 
+		this.__messageBus.publish({
+			kind: MessageKind.mainWebviewViewVisibilityChange,
+		});
+
 		this.__view.onDidChangeVisibility(() => {
+			this.__messageBus.publish({
+				kind: MessageKind.mainWebviewViewVisibilityChange,
+			});
+
 			if (this.__view?.visible) {
 				this.__resolveWebview(this.__view);
 			}
@@ -129,8 +142,74 @@ export class MainViewProvider implements WebviewViewProvider {
 	}
 
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
+		if (message.kind === 'webview.command') {
+			commands.executeCommand(
+				message.value.command,
+				...(message.value.arguments ?? []),
+			);
+		}
+
+		if (message.kind === 'webview.campaignManager.setSelectedCaseHash') {
+			this.__store.dispatch(
+				actions.setSelectedCaseHash(message.caseHash),
+			);
+		}
+
+		if (message.kind === 'webview.global.discardChanges') {
+			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		}
+
+		if (message.kind === 'webview.global.applySelected') {
+			commands.executeCommand(
+				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
+				message.caseHashDigest,
+			);
+		}
+
 		if (message.kind === 'webview.main.setActiveTabId') {
 			this.__store.dispatch(actions.setActiveTabId(message.activeTabId));
+		}
+
+		if (message.kind === 'webview.global.flipSelectedExplorerNode') {
+			this.__store.dispatch(
+				actions.flipSelectedExplorerNode([
+					message.caseHashDigest,
+					message.explorerNodeHashDigest,
+				]),
+			);
+		}
+
+		if (message.kind === 'webview.global.flipSelectedExplorerNodes') {
+			this.__store.dispatch(
+				actions.flipSelectedExplorerNodes(message.caseHashDigest),
+			);
+		}
+
+		if (message.kind === 'webview.global.flipCollapsibleExplorerNode') {
+			this.__store.dispatch(
+				actions.flipCollapsibleExplorerNode([
+					message.caseHashDigest,
+					message.explorerNodeHashDigest,
+				]),
+			);
+		}
+
+		if (message.kind === 'webview.global.focusExplorerNode') {
+			this.__store.dispatch(
+				actions.focusExplorerNode([
+					message.caseHashDigest,
+					message.explorerNodeHashDigest,
+				]),
+			);
+		}
+
+		if (message.kind === 'webview.global.setChangeExplorerSearchPhrase') {
+			this.__store.dispatch(
+				actions.setChangeExplorerSearchPhrase([
+					message.caseHashDigest,
+					message.searchPhrase,
+				]),
+			);
 		}
 	};
 

@@ -1,84 +1,73 @@
-import platformPath from 'path';
-import * as t from 'io-ts';
 import { Uri } from 'vscode';
 import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
-import { JobHash, PersistedJob } from '../jobs/types';
-import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { buildHash, isNeitherNullNorUndefined } from '../utilities';
-import {
-	comparePersistedJobs,
-	doesJobAddNewFile,
-	getPersistedJobUri,
-} from './comparePersistedJobs';
+import { isNeitherNullNorUndefined } from '../utilities';
 
-interface ExplorerNodeHashDigestBrand {
-	readonly __ExplorerNodeHashDigest: unique symbol;
-}
+export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
+	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
 
-export const explorerNodeHashDigestCodec = t.brand(
-	t.string,
-	(
-		hashDigest,
-	): hashDigest is t.Branded<string, ExplorerNodeHashDigestBrand> =>
-		hashDigest.length > 0,
-	'__ExplorerNodeHashDigest',
-);
+	const properSearchPhrase = (state.explorerSearchPhrases[caseHash] ?? '')
+		.trim()
+		.toLocaleLowerCase();
 
-export type ExplorerNodeHashDigest = t.TypeOf<
-	typeof explorerNodeHashDigestCodec
->;
+	let maximumDepth = Number.MAX_SAFE_INTEGER;
 
-export const buildRootNode = () =>
-	({
-		hashDigest: buildHash('ROOT') as ExplorerNodeHashDigest,
-		kind: 'ROOT' as const,
-		label: '',
-	} as const);
+	return (
+		state.explorerNodes[caseHash]
+			?.map((node) => {
+				if (properSearchPhrase !== '') {
+					if (
+						node.kind !== 'FILE' ||
+						!node.path
+							.toLocaleLowerCase()
+							.includes(properSearchPhrase)
+					) {
+						return null;
+					}
 
-export const buildTopNode = (label: string) =>
-	({
-		hashDigest: buildHash('TOP') as ExplorerNodeHashDigest,
-		kind: 'TOP' as const,
-		label,
-	} as const);
+					return {
+						node: {
+							...node,
+							label: node.path,
+						},
+						depth: 0,
+						expanded: false,
+						focused:
+							state.focusedExplorerNodes[caseHash] ===
+							node.hashDigest,
+						collapsable: false,
+					};
+				}
 
-export const buildDirectoryNode = (path: string, label: string) =>
-	({
-		hashDigest: buildHash(
-			['DIRECTORY', path, label].join(''),
-		) as ExplorerNodeHashDigest,
-		kind: 'DIRECTORY' as const,
-		label,
-	} as const);
+				if (maximumDepth < node.depth) {
+					return null;
+				}
 
-export const buildFileNode = (job: PersistedJob, label: string) => {
-	const fileAdded = doesJobAddNewFile(job.kind);
+				if (maximumDepth === node.depth) {
+					maximumDepth = Number.MAX_SAFE_INTEGER;
+				}
 
-	return {
-		kind: 'FILE' as const,
-		hashDigest: buildHash(
-			['FILE', job.hash, label].join(''),
-		) as ExplorerNodeHashDigest,
-		label,
-		jobHash: job.hash,
-		fileAdded,
-	} as const;
+				const collapsed =
+					node.kind !== 'FILE' &&
+					collapsedExplorerNodes.includes(node.hashDigest);
+
+				if (collapsed) {
+					maximumDepth = node.depth;
+				}
+
+				return {
+					node,
+					depth: node.depth,
+					expanded: !collapsed,
+					focused:
+						state.focusedExplorerNodes[caseHash] ===
+						node.hashDigest,
+					collapsable: node.kind !== 'FILE',
+				};
+			})
+			.filter(isNeitherNullNorUndefined) ?? []
+	);
 };
-
-export type ExplorerNode =
-	| ReturnType<typeof buildRootNode>
-	| ReturnType<typeof buildTopNode>
-	| ReturnType<typeof buildDirectoryNode>
-	| ReturnType<typeof buildFileNode>;
-
-export type NodeDatum = Readonly<{
-	node: ExplorerNode;
-	depth: number;
-	expanded: boolean;
-	focused: boolean;
-	childCount: number;
-}>;
 
 export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 	if (rootPath === null || state.codemodExecutionInProgress) {
@@ -97,160 +86,25 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		return null;
 	}
 
-	const properSearchPhrase = state.changeExplorerView.searchPhrase
-		.trim()
-		.toLocaleLowerCase();
+	const nodeData = selectNodeData(state, caseHash);
 
-	const nodes: Record<ExplorerNodeHashDigest, ExplorerNode> = {};
+	const fileNodeData = nodeData.filter(({ node }) => node.kind === 'FILE');
 
-	// we can iterate through the sets based on the insertion order
-	// that's why we can push hashes into the set coming from
-	// the alphanumerical sorting of the job URIs and the iteration order
-	// is maintained
-	const children: Record<
-		ExplorerNodeHashDigest,
-		Set<ExplorerNodeHashDigest>
-	> = {};
-
-	const caseJobManager = new LeftRightHashSetManager<CaseHash, JobHash>(
-		new Set(state.caseHashJobHashes),
-	);
-
-	// rootNode
-	const rootNode = buildRootNode();
-	nodes[rootNode.hashDigest] = rootNode;
-	children[rootNode.hashDigest] = new Set();
-
-	// topNode
-	const topPath = platformPath.basename(rootPath.fsPath);
-	const topNode = buildTopNode(topPath);
-
-	if (properSearchPhrase === '') {
-		children[rootNode.hashDigest]?.add(topNode.hashDigest);
-		nodes[topNode.hashDigest] = topNode;
-
-		children[topNode.hashDigest] = new Set();
-	}
-
-	const jobs = Array.from(caseJobManager.getRightHashesByLeftHash(kase.hash))
-		.map((jobHash) => state.job.entities[jobHash])
-		.filter(isNeitherNullNorUndefined);
-
-	const jobHashes = jobs.map(({ hash }) => hash);
-
-	const filteredJobs = jobs
-		.filter((job) => {
-			if (properSearchPhrase === '') {
-				return true;
-			}
-
-			const jobUri = getPersistedJobUri(job);
-
-			if (jobUri === null) {
-				return false;
-			}
-
-			return jobUri.fsPath
-				.toLocaleLowerCase()
-				.includes(properSearchPhrase);
-		})
-		.sort(comparePersistedJobs);
-
-	for (const job of filteredJobs) {
-		const uri = getPersistedJobUri(job);
-
-		if (uri === null) {
-			continue;
-		}
-
-		const path = uri.fsPath.replace(rootPath.fsPath, '');
-
-		if (properSearchPhrase !== '') {
-			const node = buildFileNode(job, path);
-			children[rootNode.hashDigest]?.add(node.hashDigest);
-
-			nodes[node.hashDigest] = node;
-			children[node.hashDigest] = new Set();
-		} else {
-			path.split(platformPath.sep)
-				.filter((name) => name !== '')
-				.map((name, i, names) => {
-					if (names.length - 1 === i) {
-						return buildFileNode(job, name);
-					}
-
-					return buildDirectoryNode(
-						names.slice(0, i + 1).join(platformPath.sep),
-						name,
-					);
-				})
-				.forEach((node, i, pathNodes) => {
-					const parentNodeHash =
-						i === 0
-							? topNode.hashDigest
-							: pathNodes[i - 1]?.hashDigest ??
-							  topNode.hashDigest;
-
-					children[parentNodeHash]?.add(node.hashDigest);
-
-					nodes[node.hashDigest] = node;
-					children[node.hashDigest] =
-						children[node.hashDigest] ?? new Set();
-				});
-		}
-	}
-
-	const nodeData: NodeDatum[] = [];
-
-	const appendNodeData = (
-		hashDigest: ExplorerNodeHashDigest,
-		depth: number,
-	) => {
-		const node = nodes[hashDigest] ?? null;
-
-		if (node === null) {
-			return;
-		}
-
-		const expanded =
-			!state.changeExplorerView.collapsedNodeHashDigests.includes(
-				hashDigest,
-			);
-		const focused =
-			state.changeExplorerView.focusedFileExplorerNodeId === hashDigest;
-		const childSet = children[node.hashDigest] ?? new Set();
-
-		if (depth !== -1) {
-			nodeData.push({
-				node,
-				depth,
-				expanded,
-				focused,
-				childCount: childSet.size,
-			});
-		}
-
-		if (!expanded && depth !== -1) {
-			return;
-		}
-
-		for (const child of childSet) {
-			appendNodeData(child, depth + 1);
-		}
-	};
-
-	appendNodeData(rootNode.hashDigest, -1);
+	const selectedExplorerNodeHashDigests =
+		state.selectedExplorerNodes[caseHash] ?? [];
+	const selectedJobCount = fileNodeData.filter(({ node }) =>
+		selectedExplorerNodeHashDigests.includes(node.hashDigest),
+	).length;
 
 	return {
 		caseHash,
 		nodeData,
-		selectedNodeHashDigest:
-			state.changeExplorerView.focusedFileExplorerNodeId,
-		collapsedNodeHashDigests:
-			state.changeExplorerView.collapsedNodeHashDigests,
-		appliedJobHashes: state.appliedJobHashes,
-		searchPhrase: properSearchPhrase,
-		jobHashes,
+		focusedNodeHashDigest: state.focusedExplorerNodes[caseHash] ?? null,
+		collapsedNodeHashDigests: state.collapsedExplorerNodes[caseHash] ?? [],
+		selectedExplorerNodeHashDigests,
+		searchPhrase: state.explorerSearchPhrases[caseHash] ?? '',
+		selectedJobCount,
+		jobCount: fileNodeData.length,
 	};
 };
 

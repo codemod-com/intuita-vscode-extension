@@ -21,7 +21,7 @@ export const selectCodemodRunsTree = (state: RootState) => {
 					depth: 0,
 					expanded: true,
 					focused: kase.hash === selectedCaseHash,
-					childCount: 0,
+					collapsable: false,
 				} as const),
 		);
 

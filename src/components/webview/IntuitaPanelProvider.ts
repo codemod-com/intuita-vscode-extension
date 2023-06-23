@@ -1,18 +1,18 @@
 import { readFileSync } from 'fs';
 import { commands, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
 import type { RootState, Store } from '../../data';
-import { JobHash, JobKind, mapPersistedJobToJob } from '../../jobs/types';
+import { JobKind, mapPersistedJobToJob } from '../../jobs/types';
 import { WebviewResolver } from './WebviewResolver';
 import areEqual from 'fast-deep-equal';
 import { PanelViewProps } from './panelViewProps';
-import { LeftRightHashSetManager } from '../../leftRightHashes/leftRightHashSetManager';
-import { CaseHash } from '../../cases/types';
 import { WebviewMessage, WebviewResponse } from './webviewEvents';
-import { isNeitherNullNorUndefined } from '../../utilities';
-import { comparePersistedJobs } from '../../selectors/comparePersistedJobs';
 import { actions } from '../../data/slice';
 import { CodemodDescriptionProvider } from './CodemodDescriptionProvider';
 import { TabKind } from '../../persistedState/codecs';
+import { selectNodeData } from '../../selectors/selectExplorerTree';
+import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
+import { MainViewProvider } from './MainProvider';
+import { MessageBus, MessageKind } from '../messageBus';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -36,10 +36,15 @@ Codemod: ${codemodName}
 };
 
 const selectPanelViewProps = (
+	mainWebviewViewProvider: MainViewProvider,
 	codemodDescriptionProvider: CodemodDescriptionProvider,
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
+	if (!mainWebviewViewProvider.isVisible()) {
+		return null;
+	}
+
 	const { activeTabId } = state;
 
 	if (activeTabId === TabKind.community) {
@@ -73,27 +78,32 @@ const selectPanelViewProps = (
 
 	const { selectedCaseHash } = state.codemodRunsView;
 
-	const { focusedJobHash } = state.changeExplorerView;
-
-	if (selectedCaseHash === null || focusedJobHash === null) {
+	if (selectedCaseHash === null) {
 		return null;
 	}
 
-	const caseJobManager = new LeftRightHashSetManager<CaseHash, JobHash>(
-		new Set(state.caseHashJobHashes),
+	const focusedExplorerNodeHashDigest =
+		state.focusedExplorerNodes[selectedCaseHash];
+
+	if (focusedExplorerNodeHashDigest === null) {
+		return null;
+	}
+
+	const nodeData = selectNodeData(state, selectedCaseHash);
+
+	const jobNodes = nodeData
+		.map(({ node }) => node)
+		.filter(
+			(node): node is _ExplorerNode & { kind: 'FILE' } =>
+				node.kind === 'FILE',
+		);
+
+	const jobIndex = jobNodes.findIndex(
+		({ hashDigest }) => hashDigest === focusedExplorerNodeHashDigest,
 	);
 
-	const jobs = Array.from(
-		caseJobManager.getRightHashesByLeftHash(selectedCaseHash),
-	)
-		.map((jobHash) => state.job.entities[jobHash])
-		.filter(isNeitherNullNorUndefined)
-		.sort(comparePersistedJobs);
-
-	const jobIndex = jobs.findIndex((job) => job.hash === focusedJobHash);
-	const jobCount = jobs.length;
-
-	const persistedJob = jobs[jobIndex] ?? null;
+	const persistedJob =
+		state.job.entities[jobNodes[jobIndex]?.jobHash ?? -1] ?? null;
 
 	if (persistedJob === null) {
 		return null;
@@ -137,7 +147,7 @@ const selectPanelViewProps = (
 		newFileTitle,
 		oldFileContent,
 		newFileContent,
-		jobCount,
+		jobCount: jobNodes.length,
 		jobIndex,
 	};
 };
@@ -148,10 +158,13 @@ export class IntuitaPanelProvider {
 	public constructor(
 		private readonly __extensionUri: Uri,
 		private readonly __store: Store,
+		mainWebviewViewProvider: MainViewProvider,
+		messageBus: MessageBus,
 		codemodDescriptionProvider: CodemodDescriptionProvider,
 		rootPath: string,
 	) {
 		let prevViewProps = selectPanelViewProps(
+			mainWebviewViewProvider,
 			codemodDescriptionProvider,
 			__store.getState(),
 			rootPath,
@@ -159,6 +172,7 @@ export class IntuitaPanelProvider {
 
 		const listener = async () => {
 			const nextViewProps = selectPanelViewProps(
+				mainWebviewViewProvider,
 				codemodDescriptionProvider,
 				__store.getState(),
 				rootPath,
@@ -180,6 +194,10 @@ export class IntuitaPanelProvider {
 		__store.subscribe(listener);
 
 		codemodDescriptionProvider.onDidChange(listener);
+		messageBus.subscribe(
+			MessageKind.mainWebviewViewVisibilityChange,
+			listener,
+		);
 	}
 
 	private async __upsertPanel(
@@ -215,9 +233,15 @@ export class IntuitaPanelProvider {
 						commands.executeCommand('intuitaMainView.focus');
 					}
 
-					if (message.kind === 'webview.panel.changeJob') {
+					if (
+						message.kind ===
+						'webview.global.focusExplorerNodeSibling'
+					) {
 						this.__store.dispatch(
-							actions.changeJob(message.direction),
+							actions.focusExplorerNodeSibling([
+								message.caseHashDigest,
+								message.direction,
+							]),
 						);
 					}
 

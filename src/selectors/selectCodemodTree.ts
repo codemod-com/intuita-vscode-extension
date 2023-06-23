@@ -22,7 +22,7 @@ export type NodeDatum = Readonly<{
 	depth: number;
 	expanded: boolean;
 	focused: boolean;
-	childCount: number;
+	collapsable: boolean;
 }>;
 
 const buildCodemodTitle = (name: string): string => {
@@ -167,7 +167,7 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 				depth,
 				expanded,
 				focused,
-				childCount: childSet.length,
+				collapsable: childSet.length !== 0,
 			});
 		}
 
@@ -184,10 +184,10 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 
 	return {
 		nodeData,
-		selectedNodeHashDigest: state.codemodDiscoveryView
-			.focusedCodemodHashDigest as CodemodNodeHashDigest | null,
-		collapsedNodeHashDigests: state.codemodDiscoveryView
-			.collapsedCodemodHashDigests as CodemodNodeHashDigest[],
+		focusedNodeHashDigest:
+			state.codemodDiscoveryView.focusedCodemodHashDigest,
+		collapsedNodeHashDigests:
+			state.codemodDiscoveryView.collapsedCodemodHashDigests,
 	};
 };
 

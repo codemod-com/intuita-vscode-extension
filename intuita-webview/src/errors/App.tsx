@@ -105,19 +105,21 @@ export const App = () => {
 		};
 	}, []);
 
-	const { caseHash, executionErrors } = viewProps;
-
-	if (caseHash === null) {
+	if (viewProps.kind !== 'CASE_SELECTED') {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
-					Choose a codemod run from Codemod Runs to see its errors.
+					{viewProps.kind === 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
+						? 'Open the left-sided Intuita View Container to see the errors.'
+						: viewProps.kind === 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
+						? 'Open the Codemod Runs tab to see the errors.'
+						: 'Choose a codemod run from Codemod Runs to see its errors.'}
 				</p>
 			</main>
 		);
 	}
 
-	if (executionErrors.length === 0) {
+	if (viewProps.executionErrors.length === 0) {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
@@ -127,7 +129,7 @@ export const App = () => {
 		);
 	}
 
-	const rows = executionErrors.map(buildExecutionErrorRow);
+	const rows = viewProps.executionErrors.map(buildExecutionErrorRow);
 
 	return (
 		<main>

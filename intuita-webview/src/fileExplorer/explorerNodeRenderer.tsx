@@ -3,16 +3,16 @@ import cn from 'classnames';
 import { ReactNode } from 'react';
 import TreeItem from '../shared/TreeItem';
 import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
-import {
-	ExplorerNode,
-	ExplorerNodeHashDigest,
-	ExplorerTree,
-} from '../../../src/selectors/selectExplorerTree';
-import { JobHash } from '../shared/types';
+import { ExplorerTree } from '../../../src/selectors/selectExplorerTree';
 import { NodeDatum } from '../intuitaTreeView';
+import {
+	_ExplorerNode,
+	_ExplorerNodeHashDigest,
+} from '../../../src/persistedState/explorerNodeCodec';
+import { vscode } from '../shared/utilities/vscode';
 
-const getIcon = (explorerNode: ExplorerNode, opened: boolean): ReactNode => {
-	if (explorerNode.kind === 'TOP') {
+const getIcon = (explorerNode: _ExplorerNode, opened: boolean): ReactNode => {
+	if (explorerNode.kind === 'ROOT') {
 		return <CaseIcon />;
 	}
 
@@ -42,32 +42,33 @@ const getIcon = (explorerNode: ExplorerNode, opened: boolean): ReactNode => {
 };
 
 export const explorerNodeRenderer =
-	(explorerTree: ExplorerTree, onToggleJob: (jobHash: JobHash) => void) =>
+	(explorerTree: ExplorerTree) =>
 	(props: {
-		nodeDatum: NodeDatum<ExplorerNodeHashDigest, ExplorerNode>;
-		onFlip: (hashDigest: ExplorerNodeHashDigest) => void;
-		onFocus: (hashDigest: ExplorerNodeHashDigest) => void;
+		nodeDatum: NodeDatum<_ExplorerNodeHashDigest, _ExplorerNode>;
+		onFlip: (hashDigest: _ExplorerNodeHashDigest) => void;
+		onFocus: (hashDigest: _ExplorerNodeHashDigest) => void;
 	}) => {
 		const icon = getIcon(props.nodeDatum.node, props.nodeDatum.expanded);
 		const focused = props.nodeDatum.focused;
-		const hasChildren = props.nodeDatum.childCount > 0;
-
-		const enableCheckbox = props.nodeDatum.node.kind === 'FILE';
 
 		const Checkbox = () => {
-			if (props.nodeDatum.node.kind !== 'FILE') {
-				return null;
-			}
+			const explorerNodeHashDigest = props.nodeDatum.node.hashDigest;
 
-			const { jobHash } = props.nodeDatum.node;
-
-			const checked = explorerTree.appliedJobHashes.includes(jobHash);
+			const checked =
+				explorerTree.selectedExplorerNodeHashDigests.includes(
+					explorerNodeHashDigest,
+				);
 
 			return (
 				<VSCodeCheckbox
 					onClick={(event) => {
 						event.stopPropagation();
-						onToggleJob(jobHash);
+
+						vscode.postMessage({
+							kind: 'webview.global.flipSelectedExplorerNode',
+							caseHashDigest: explorerTree.caseHash,
+							explorerNodeHashDigest,
+						});
 					}}
 					checked={checked}
 				/>
@@ -77,7 +78,7 @@ export const explorerNodeRenderer =
 		return (
 			<TreeItem
 				key={props.nodeDatum.node.hashDigest}
-				hasChildren={hasChildren}
+				hasChildren={props.nodeDatum.collapsable}
 				id={props.nodeDatum.node.hashDigest}
 				label={props.nodeDatum.node.label}
 				subLabel=""
@@ -90,7 +91,7 @@ export const explorerNodeRenderer =
 
 					props.onFocus(props.nodeDatum.node.hashDigest);
 				}}
-				actionButtons={[enableCheckbox && <Checkbox />]}
+				actionButtons={[<Checkbox />]}
 				onPressChevron={(event) => {
 					event.stopPropagation();
 
@@ -98,13 +99,11 @@ export const explorerNodeRenderer =
 				}}
 				inlineStyles={{
 					root: {
-						...(enableCheckbox && {
-							...(!focused && {
-								backgroundColor:
-									'var(--vscode-list-hoverBackground)',
-							}),
-							paddingRight: 4,
+						...(!focused && {
+							backgroundColor:
+								'var(--vscode-list-hoverBackground)',
 						}),
+						paddingRight: 4,
 					},
 					actions: { display: 'flex' },
 				}}

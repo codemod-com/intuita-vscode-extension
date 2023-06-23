@@ -11,14 +11,14 @@ export type NodeDatum<HD extends string, TN extends TreeNode<HD>> = Readonly<{
 	depth: number;
 	expanded: boolean;
 	focused: boolean;
-	childCount: number;
+	collapsable: boolean;
 }>;
 
 export type TreeViewProps<
 	HD extends string,
 	TN extends TreeNode<HD>,
 > = Readonly<{
-	selectedNodeHashDigest: HD | null;
+	focusedNodeHashDigest: HD | null;
 	collapsedNodeHashDigests: ReadonlyArray<HD>;
 	nodeData: ReadonlyArray<NodeDatum<HD, TN>>;
 	nodeRenderer: (
@@ -38,13 +38,13 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 	const ref = useRef<HTMLDivElement>(null);
 
 	const arrowUpCallback = useCallback(() => {
-		if (props.selectedNodeHashDigest === null) {
+		if (props.focusedNodeHashDigest === null) {
 			return;
 		}
 
 		const index = props.nodeData.findIndex(
 			(nodeDatum) =>
-				nodeDatum.node.hashDigest === props.selectedNodeHashDigest,
+				nodeDatum.node.hashDigest === props.focusedNodeHashDigest,
 		);
 
 		if (index === -1) {
@@ -63,13 +63,13 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 	}, [props]);
 
 	const arrowDownCallback = useCallback(() => {
-		if (props.selectedNodeHashDigest === null) {
+		if (props.focusedNodeHashDigest === null) {
 			return;
 		}
 
 		const index = props.nodeData.findIndex(
 			(nodeDatum) =>
-				nodeDatum.node.hashDigest === props.selectedNodeHashDigest,
+				nodeDatum.node.hashDigest === props.focusedNodeHashDigest,
 		);
 
 		if (index === -1) {
@@ -89,28 +89,26 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 
 	const arrowLeftCallback = useCallback(() => {
 		if (
-			props.selectedNodeHashDigest === null ||
-			props.collapsedNodeHashDigests.includes(
-				props.selectedNodeHashDigest,
-			)
+			props.focusedNodeHashDigest === null ||
+			props.collapsedNodeHashDigests.includes(props.focusedNodeHashDigest)
 		) {
 			return;
 		}
 
-		props.onFlip(props.selectedNodeHashDigest);
+		props.onFlip(props.focusedNodeHashDigest);
 	}, [props]);
 
 	const arrowRightCallback = useCallback(() => {
 		if (
-			props.selectedNodeHashDigest === null ||
+			props.focusedNodeHashDigest === null ||
 			!props.collapsedNodeHashDigests.includes(
-				props.selectedNodeHashDigest,
+				props.focusedNodeHashDigest,
 			)
 		) {
 			return;
 		}
 
-		props.onFlip(props.selectedNodeHashDigest);
+		props.onFlip(props.focusedNodeHashDigest);
 	}, [props]);
 
 	useKey(ref.current, 'ArrowUp', arrowUpCallback);

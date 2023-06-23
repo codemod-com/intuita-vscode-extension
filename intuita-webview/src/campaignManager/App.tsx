@@ -44,14 +44,14 @@ function App() {
 
 	return (
 		<IntuitaTreeView<CaseHash, CodemodRunsTree['nodeData'][0]['node']>
-			selectedNodeHashDigest={viewProps.selectedNodeHashDigest}
+			focusedNodeHashDigest={viewProps.selectedNodeHashDigest}
 			collapsedNodeHashDigests={[]}
 			nodeData={viewProps.nodeData}
 			nodeRenderer={(props) => {
 				return (
 					<TreeItem
 						key={props.nodeDatum.node.hashDigest}
-						hasChildren={props.nodeDatum.childCount !== 0}
+						hasChildren={props.nodeDatum.collapsable}
 						id={props.nodeDatum.node.hashDigest}
 						label={props.nodeDatum.node.label}
 						subLabel=""

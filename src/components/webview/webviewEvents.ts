@@ -6,16 +6,14 @@ import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
 import { TabKind } from '../../persistedState/codecs';
-import {
-	ExplorerNodeHashDigest,
-	ExplorerTree,
-} from '../../selectors/selectExplorerTree';
+import { ExplorerTree } from '../../selectors/selectExplorerTree';
 import { CodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
 import {
 	CodemodNodeHashDigest,
 	CodemodTree,
 } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
+import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -100,7 +98,24 @@ export type WebviewMessage =
 
 export type WebviewResponse =
 	| Readonly<{
-			kind: 'webview.panel.changeJob';
+			kind: 'webview.global.focusExplorerNode';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind:
+				| 'webview.global.flipSelectedExplorerNode'
+				| 'webview.global.flipCollapsibleExplorerNode';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.flipSelectedExplorerNodes';
+			caseHashDigest: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.focusExplorerNodeSibling';
+			caseHashDigest: CaseHash;
 			direction: 'prev' | 'next';
 	  }>
 	| Readonly<{
@@ -119,15 +134,11 @@ export type WebviewResponse =
 	| Omit<RunCodemodsCommand, 'title' | 'shortenedTitle' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
-			jobHashes: ReadonlyArray<JobHash>;
-			diffId: string;
-	  }>
-	| Readonly<{
-			kind: 'webview.global.stageJobs';
-			jobHashes: ReadonlyArray<JobHash>;
+			caseHashDigest: CaseHash;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setChangeExplorerSearchPhrase';
+			caseHashDigest: CaseHash;
 			searchPhrase: string;
 	  }>
 	| Readonly<{
@@ -135,14 +146,9 @@ export type WebviewResponse =
 			searchPhrase: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.selectExplorerNodeHashDigest';
-			selectedExplorerNodeHashDigest: ExplorerNodeHashDigest;
-			caseHash: CaseHash;
-			jobHash: JobHash | null; // TODO probably not jobHash
-	  }>
-	| Readonly<{
-			kind: 'webview.global.flipChangeExplorerNodeIds';
-			hashDigest: ExplorerNodeHashDigest;
+			kind: 'webview.global.flipChangeExplorerNodeHashDigests';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
@@ -205,8 +211,16 @@ export type View =
 	  }>
 	| Readonly<{
 			viewId: 'errors';
-			viewProps: Readonly<{
-				caseHash: CaseHash | null;
-				executionErrors: ReadonlyArray<ExecutionError>;
-			}>;
+			viewProps:
+				| Readonly<{
+						kind:
+							| 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
+							| 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
+							| 'CASE_NOT_SELECTED';
+				  }>
+				| Readonly<{
+						kind: 'CASE_SELECTED';
+						caseHash: CaseHash;
+						executionErrors: ReadonlyArray<ExecutionError>;
+				  }>;
 	  }>;

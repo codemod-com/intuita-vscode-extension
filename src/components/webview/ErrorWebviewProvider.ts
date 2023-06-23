@@ -1,16 +1,12 @@
-import {
-	ExtensionContext,
-	WebviewView,
-	WebviewViewProvider,
-	commands,
-} from 'vscode';
+import { ExtensionContext, WebviewView, WebviewViewProvider } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
-import { CaseHash } from '../../cases/types';
 import areEqual from 'fast-deep-equal';
+import { MainViewProvider } from './MainProvider';
+import { TabKind } from '../../persistedState/codecs';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -22,26 +18,13 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		messageBus: MessageBus,
 		private readonly __store: Store,
+		private readonly __mainWebviewViewProvider: MainViewProvider,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
-		messageBus.subscribe(
-			MessageKind.codemodSetExecuted,
-			async ({ case: kase, executionErrors }) => {
-				this.__store.dispatch(
-					actions.setExecutionErrors({
-						caseHash: kase.hash,
-						errors: executionErrors,
-					}),
-				);
-			},
-		);
-
-		// store subscription
-
 		let prevProps = this.__buildViewProps();
 
-		this.__store.subscribe(async () => {
+		const handler = async () => {
 			const nextProps = this.__buildViewProps();
 
 			if (areEqual(prevProps, nextProps)) {
@@ -58,12 +41,32 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 				},
 			});
 
-			if (prevProps.executionErrors.length !== 0) {
+			if (
+				nextProps.kind === 'CASE_SELECTED' &&
+				nextProps.executionErrors.length !== 0
+			) {
 				this.showView();
-
-				await commands.executeCommand('intuitaErrorViewId.focus');
 			}
-		});
+		};
+
+		messageBus.subscribe(
+			MessageKind.mainWebviewViewVisibilityChange,
+			handler,
+		);
+
+		messageBus.subscribe(
+			MessageKind.codemodSetExecuted,
+			async ({ case: kase, executionErrors }) => {
+				this.__store.dispatch(
+					actions.setExecutionErrors({
+						caseHash: kase.hash,
+						errors: executionErrors,
+					}),
+				);
+			},
+		);
+
+		this.__store.subscribe(handler);
 	}
 
 	public resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
@@ -95,17 +98,32 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 	}
 
 	private __buildViewProps(): ViewProps {
+		if (!this.__mainWebviewViewProvider.isVisible()) {
+			return {
+				kind: 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE',
+			};
+		}
+
 		const state = this.__store.getState();
 
-		const caseHash = state.codemodRunsView
-			.selectedCaseHash as CaseHash | null;
+		if (state.activeTabId !== TabKind.codemodRuns) {
+			return {
+				kind: 'CODEMOD_RUNS_TAB_NOT_ACTIVE',
+			};
+		}
 
-		const executionErrors =
-			caseHash !== null ? state.executionErrors[caseHash] ?? [] : [];
+		const caseHash = state.codemodRunsView.selectedCaseHash;
+
+		if (caseHash === null) {
+			return {
+				kind: 'CASE_NOT_SELECTED',
+			};
+		}
 
 		return {
+			kind: 'CASE_SELECTED',
 			caseHash,
-			executionErrors,
+			executionErrors: state.executionErrors[caseHash] ?? [],
 		};
 	}
 

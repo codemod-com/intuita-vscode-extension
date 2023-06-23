@@ -1,4 +1,3 @@
-import type { JobHash } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
 import * as t from 'io-ts';
 
@@ -28,8 +27,3 @@ export const caseCodec = buildTypeCodec({
 });
 
 export type Case = t.TypeOf<typeof caseCodec>;
-
-export type CaseWithJobHashes = Case &
-	Readonly<{
-		jobHashes: ReadonlySet<JobHash>;
-	}>;

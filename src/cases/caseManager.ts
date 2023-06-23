@@ -31,26 +31,13 @@ export class CaseManager {
 	#onUpsertCasesMessage(
 		message: Message & { kind: MessageKind.upsertCases },
 	) {
-		const newCaseHash = message.casesWithJobHashes[0]?.hash ?? null;
-		if (newCaseHash === null) {
-			return;
-		}
+		const caseHashJobHashes = message.jobs.map(
+			({ hash }) => `${message.kase.hash}${hash}`,
+		);
 
-		// TODO we only upsert one case at the time I think
-		message.casesWithJobHashes.map((caseWithJobHash) => {
-			const caseHashJobHashes = Array.from(caseWithJobHash.jobHashes).map(
-				(jobHash) => {
-					return `${caseWithJobHash.hash}${jobHash}`;
-				},
-			);
-
-			const kase = { ...caseWithJobHash, jobHashes: [] };
-
-			this.__store.dispatch(actions.upsertCases([kase]));
-			this.__store.dispatch(
-				actions.upsertCaseHashJobHashes(caseHashJobHashes),
-			);
-		});
+		this.__store.dispatch(
+			actions.upsertCase([message.kase, caseHashJobHashes]),
+		);
 
 		this.__messageBus.publish({
 			kind: MessageKind.upsertJobs,

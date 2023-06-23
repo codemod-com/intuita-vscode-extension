@@ -1,5 +1,5 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseWithJobHashes } from '../cases/types';
+import type { Case, CaseHash } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError } from '../errors/types';
@@ -42,6 +42,8 @@ export const enum MessageKind {
 	focusCodemod = 35,
 
 	focusFile = 37,
+
+	mainWebviewViewVisibilityChange = 38,
 }
 
 export type Command =
@@ -67,8 +69,9 @@ export type Command =
 
 export type Message =
 	| Readonly<{
+			// TODO change it later to `upsertCase`
 			kind: MessageKind.upsertCases;
-			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
+			kase: Case;
 			jobs: ReadonlyArray<Job>;
 			executionId: string;
 	  }>
@@ -120,7 +123,7 @@ export type Message =
 			halted: boolean;
 			fileCount: number;
 			jobs: Job[];
-			case: CaseWithJobHashes;
+			case: Case;
 			executionErrors: ReadonlyArray<ExecutionError>;
 	  }>
 	| Readonly<{
@@ -155,9 +158,7 @@ export type Message =
 			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: MessageKind.focusFile;
-			caseHash: CaseHash;
-			jobHash: JobHash;
+			kind: MessageKind.mainWebviewViewVisibilityChange;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
