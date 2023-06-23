@@ -1,5 +1,5 @@
 import React from 'react';
-import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
 import { JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
@@ -12,13 +12,9 @@ type HeaderProps = Readonly<{
 	id: string;
 	diff: Diff | null;
 	title: string;
-	newFileTitle: string;
 	oldFileTitle: string;
 	jobKind: JobDiffViewProps['jobKind'];
-	viewType: 'inline' | 'side-by-side';
-	viewed?: boolean;
 	children?: React.ReactNode;
-	onViewedChange: () => void;
 	onReportIssue(): void;
 }>;
 
@@ -26,11 +22,9 @@ export const Header = ({
 	id,
 	diff,
 	title,
-	jobKind,
 	oldFileTitle,
+	jobKind,
 	children,
-	viewed,
-	onViewedChange,
 	onReportIssue,
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
@@ -113,16 +107,6 @@ export const Header = ({
 							</span>
 						</div>
 					) : null}
-					<div
-						className="viewed-button flex ml-10 justify-between checkbox-container align-items-center"
-						onClick={(e) => {
-							e.stopPropagation();
-							onViewedChange();
-						}}
-					>
-						<VSCodeCheckbox checked={viewed} />
-						<p className="my-0 ml-10 user-select-none">Viewed</p>
-					</div>
 				</div>
 			</div>
 			{children}

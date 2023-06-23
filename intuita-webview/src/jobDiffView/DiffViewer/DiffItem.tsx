@@ -2,25 +2,20 @@ import { Header } from './Container';
 import { JobDiffViewProps } from '../App';
 import { Collapsable } from '../Components/Collapsable';
 import { Diff, DiffComponent } from './Diff';
-import { JobAction } from '../../../../src/components/webview/webviewEvents';
 import { reportIssue } from '../util';
 import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
 
 type Props = JobDiffViewProps & {
-	postMessage: (arg: JobAction) => void;
 	viewType: 'inline' | 'side-by-side';
-	visible: boolean;
-	toggleVisible: () => void;
-	expanded: boolean;
 	diff: Diff | null;
 	onDiffCalculated: (diff: Diff) => void;
 	theme: string;
 };
 
 export const JobDiffView = memo(
-	forwardRef(
+	forwardRef<HTMLDivElement, Props>(
 		(
 			{
 				viewType,
@@ -29,13 +24,9 @@ export const JobDiffView = memo(
 				oldFileContent,
 				newFileContent,
 				oldFileTitle,
-				newFileTitle,
 				title,
-				visible,
-				toggleVisible,
 				onDiffCalculated,
 				diff,
-				expanded,
 				theme,
 			}: Props,
 			ref,
@@ -48,10 +39,6 @@ export const JobDiffView = memo(
 				);
 			}, [jobHash, oldFileContent, newFileContent]);
 
-			const handleToggleVisible = useCallback(() => {
-				toggleVisible();
-			}, [toggleVisible]);
-
 			const handleDiffCalculated = useCallback(
 				(diff: Diff) => {
 					onDiffCalculated(diff);
@@ -61,11 +48,7 @@ export const JobDiffView = memo(
 
 			return (
 				<div
-					ref={(r) => {
-						if (typeof ref === 'function') {
-							ref(r ?? undefined);
-						}
-					}}
+					ref={ref}
 					className="px-5 pb-2-5 diff-view-container h-full"
 					id="diffViewContainer"
 					tabIndex={0}
@@ -81,7 +64,7 @@ export const JobDiffView = memo(
 					}}
 				>
 					<Collapsable
-						defaultExpanded={expanded}
+						defaultExpanded={true}
 						className="overflow-hidden rounded h-full"
 						headerClassName="p-10"
 						contentClassName="p-10 h-full"
@@ -91,12 +74,8 @@ export const JobDiffView = memo(
 								id={`diffViewHeader-${jobHash}`}
 								diff={diff}
 								oldFileTitle={oldFileTitle ?? ''}
-								newFileTitle={newFileTitle ?? ''}
 								jobKind={jobKind}
-								onViewedChange={handleToggleVisible}
-								viewed={!visible}
 								title={title ?? ''}
-								viewType={viewType}
 								onReportIssue={report}
 							/>
 						}
