@@ -17,6 +17,7 @@ export type PanelViewProps =
 			jobIndex: number;
 	  }>
 	| Readonly<{
-			title: string;
 			kind: 'CODEMOD';
+			title: string;
+			description: string;
 	  }>;

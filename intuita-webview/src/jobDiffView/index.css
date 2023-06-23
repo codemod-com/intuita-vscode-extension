@@ -31,6 +31,15 @@
 	background-color: var(--vscode-textCodeBlock-background);
 }
 
+.markdownContainer {
+	height: 100%;
+	position: relative;
+	background-color: var(--vscode-textCodeBlock-background);
+	padding-left: 2em;
+	padding-right: 2em;
+	overflow-y: scroll;
+}
+
 #root {
 	position: absolute;
 	width: 100%;
@@ -38,12 +47,9 @@
 }
 
 html {
-	overflow-y: scroll;
+	overflow: hidden;
 }
 
 .ReactVirtualized__Grid__innerScrollContainer {
 	overflow: initial !important;
-}
-html {
-	overflow: hidden;
 }

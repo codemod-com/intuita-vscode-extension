@@ -34,7 +34,6 @@ type Deps = {
 		node: CodemodNode,
 		doesDisplayShortenedTitle: boolean,
 	) => ReactNode[];
-	onDoubleClick(node: CodemodNode): void;
 };
 
 type Props = Readonly<{
@@ -44,13 +43,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({
-		rootPath,
-		autocompleteItems,
-		progressBar,
-		actionButtons,
-		onDoubleClick,
-	}: Deps) =>
+	({ rootPath, autocompleteItems, progressBar, actionButtons }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded, childCount } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -82,7 +75,6 @@ const getCodemodNodeRenderer =
 				ref={ref}
 				className={cn(styles.root, focused && styles.focused)}
 				onClick={() => onFlip(hashDigest)}
-				onDoubleClick={() => onDoubleClick(node)}
 			>
 				<div style={getContainerInlineStyles(nodeDatum)} />
 				{node.kind === 'CODEMOD' ? (
@@ -97,7 +89,6 @@ const getCodemodNodeRenderer =
 						rootPath={rootPath}
 						progressBar={progressBar}
 						actionButtons={actionButtons}
-						onDoubleClick={onDoubleClick}
 					/>
 				) : (
 					<Directory

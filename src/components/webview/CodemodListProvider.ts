@@ -258,14 +258,6 @@ export class CodemodListPanel {
 	}
 	private __onDidReceiveMessage = async (message: WebviewResponse) => {
 		if (message.kind === 'webview.command') {
-			if (message.value.command === 'intuita.showCodemodMetadata') {
-				commands.executeCommand(
-					'intuita.showCodemodMetadata',
-					message.value.arguments?.[0],
-				);
-				return;
-			}
-
 			commands.executeCommand(
 				message.value.command,
 				...(message.value.arguments ?? []),

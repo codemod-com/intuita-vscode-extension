@@ -24,17 +24,6 @@ type Props = Readonly<{
 	rootPath: string;
 }>;
 
-const handleDoubleClick = (node: CodemodNode) => {
-	vscode.postMessage({
-		kind: 'webview.command',
-		value: {
-			title: 'Show codemod metadata',
-			command: 'intuita.showCodemodMetadata',
-			arguments: [node.hashDigest],
-		},
-	});
-};
-
 const onFocus = (hashDigest: CodemodNodeHashDigest) => {
 	vscode.postMessage({
 		kind: 'webview.global.selectCodemodNodeHashDigest',
@@ -205,7 +194,6 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 			nodeRenderer={getCodemodNodeRenderer({
 				autocompleteItems,
 				rootPath,
-				onDoubleClick: handleDoubleClick,
 				progressBar: (node: CodemodNode) =>
 					progress?.codemodHash ===
 					(node.hashDigest as unknown as CodemodHash)

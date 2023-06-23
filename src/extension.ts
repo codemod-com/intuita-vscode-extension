@@ -20,7 +20,6 @@ import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
-import { TextDocumentContentProvider } from './components/webview/VirtualDocumentProvider';
 import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
@@ -29,8 +28,7 @@ import { buildStore } from './data';
 import { actions } from './data/slice';
 import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
 import { CaseManager } from './cases/caseManager';
-
-const CODEMOD_METADATA_SCHEME = 'codemod';
+import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 
 const messageBus = new MessageBus();
 
@@ -95,50 +93,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const textContentProvider = new TextDocumentContentProvider(
-		downloadService,
-		vscode.workspace.fs,
-		context.globalStorageUri,
-		messageBus,
-	);
-
-	context.subscriptions.push(
-		vscode.workspace.registerTextDocumentContentProvider(
-			CODEMOD_METADATA_SCHEME,
-			textContentProvider,
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.showCodemodMetadata',
-			async (arg0?: unknown) => {
-				try {
-					const name = typeof arg0 === 'string' ? arg0 : null;
-
-					if (name === null) {
-						throw new Error(`Expected codemod name, got ${arg0}`);
-					}
-
-					const uri = vscode.Uri.parse(
-						`${CODEMOD_METADATA_SCHEME}:${name}.md`,
-					);
-
-					const metadataExist = textContentProvider.hasMetadata(uri);
-
-					if (!metadataExist) {
-						return;
-					}
-
-					vscode.commands.executeCommand('markdown.showPreview', uri);
-				} catch (e) {
-					const message = e instanceof Error ? e.message : String(e);
-					vscode.window.showErrorMessage(message);
-				}
-			},
-		),
-	);
-
 	const fileExplorerProvider = new FileExplorer(
 		messageBus,
 		jobManager,
@@ -161,7 +115,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 	);
 
-	new IntuitaPanelProvider(context.extensionUri, store, rootPath ?? '');
+	const codemodDescriptionProvider = new CodemodDescriptionProvider(
+		downloadService,
+		vscode.workspace.fs,
+		context.globalStorageUri,
+		messageBus,
+	);
+
+	new IntuitaPanelProvider(
+		context.extensionUri,
+		store,
+		codemodDescriptionProvider,
+		rootPath ?? '',
+	);
 
 	context.subscriptions.push(mainView);
 

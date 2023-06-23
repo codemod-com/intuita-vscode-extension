@@ -55,6 +55,7 @@ export const buildCodemodNode = (
 ) => {
 	return {
 		kind: 'CODEMOD' as const,
+		name: codemod.name,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
 		label: buildCodemodTitle(name),
 		codemodKind: REPOMOD_CODEMOD_HASH_DIGESTS.includes(codemod.hashDigest)
