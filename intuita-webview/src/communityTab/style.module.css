@@ -19,8 +19,10 @@
 	gap: 4px;
 }
 
-.button::part(control):focus {
-	outline: none;
+.link:focus {
+	&::part(control) {
+		border-color: transparent;
+	}
 }
 
 .icon {
