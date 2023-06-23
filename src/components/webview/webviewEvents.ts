@@ -104,6 +104,10 @@ export type WebviewMessage =
 
 export type WebviewResponse =
 	| Readonly<{
+			kind: 'webview.panel.changeJob';
+			direction: 'prev' | 'next';
+	  }>
+	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
 	  }>

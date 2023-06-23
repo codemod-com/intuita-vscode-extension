@@ -14,6 +14,7 @@ export type PanelViewProps =
 			oldFileTitle: string | null;
 			newFileTitle: string | null;
 			jobCount: number;
+			jobIndex: number;
 	  }>
 	| Readonly<{
 			title: string;

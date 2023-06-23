@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import { commands, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { JobHash, JobKind, mapPersistedJobToJob } from '../../jobs/types';
 import { WebviewResolver } from './WebviewResolver';
@@ -7,12 +7,33 @@ import areEqual from 'fast-deep-equal';
 import { PanelViewProps } from './panelViewProps';
 import { LeftRightHashSetManager } from '../../leftRightHashes/leftRightHashSetManager';
 import { CaseHash } from '../../cases/types';
-import { WebviewMessage } from './webviewEvents';
+import { WebviewMessage, WebviewResponse } from './webviewEvents';
+import { isNeitherNullNorUndefined } from '../../utilities';
+import { comparePersistedJobs } from '../../selectors/comparePersistedJobs';
+import { actions } from '../../data/slice';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
 
-const selectViewProps = (
+const buildIssueTemplate = (codemodName: string): string => {
+	return `
+---
+:warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
+
+---
+Codemod: ${codemodName}
+
+**1. Code before transformation (Input for codemod)**
+	
+**2. Expected code after transformation (Desired output of codemod)**
+
+**3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
+
+---	
+**Additional context**`;
+};
+
+const selectPanelViewProps = (
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
@@ -23,18 +44,25 @@ const selectViewProps = (
 		return null;
 	}
 
-	const persistedJob = state.job.entities[focusedJobHash] ?? null;
-
-	if (persistedJob === null) {
-		return null;
-	}
-
 	const caseJobManager = new LeftRightHashSetManager<CaseHash, JobHash>(
 		new Set(state.caseHashJobHashes),
 	);
 
-	const jobCount =
-		caseJobManager.getRightHashesByLeftHash(selectedCaseHash).size;
+	const jobs = Array.from(
+		caseJobManager.getRightHashesByLeftHash(selectedCaseHash),
+	)
+		.map((jobHash) => state.job.entities[jobHash])
+		.filter(isNeitherNullNorUndefined)
+		.sort(comparePersistedJobs);
+
+	const jobIndex = jobs.findIndex((job) => job.hash === focusedJobHash);
+	const jobCount = jobs.length;
+
+	const persistedJob = jobs[jobIndex] ?? null;
+
+	if (persistedJob === null) {
+		return null;
+	}
 
 	const job = mapPersistedJobToJob(persistedJob);
 
@@ -75,6 +103,7 @@ const selectViewProps = (
 		oldFileContent,
 		newFileContent,
 		jobCount,
+		jobIndex,
 	};
 };
 
@@ -83,13 +112,16 @@ export class IntuitaPanelProvider {
 
 	public constructor(
 		private readonly __extensionUri: Uri,
-		store: Store,
+		private readonly __store: Store,
 		rootPath: string,
 	) {
-		let prevViewProps = selectViewProps(store.getState(), rootPath);
+		let prevViewProps = selectPanelViewProps(__store.getState(), rootPath);
 
-		store.subscribe(async () => {
-			const nextViewProps = selectViewProps(store.getState(), rootPath);
+		__store.subscribe(async () => {
+			const nextViewProps = selectPanelViewProps(
+				__store.getState(),
+				rootPath,
+			);
 
 			if (areEqual(prevViewProps, nextViewProps)) {
 				return;
@@ -126,6 +158,44 @@ export class IntuitaPanelProvider {
 				WEBVIEW_NAME,
 				JSON.stringify(panelViewProps),
 				'panelViewProps',
+			);
+
+			this.__webviewPanel.webview.onDidReceiveMessage(
+				(message: WebviewResponse) => {
+					if (message.kind === 'webview.panel.changeJob') {
+						this.__store.dispatch(
+							actions.changeJob(message.direction),
+						);
+					}
+
+					if (message.kind === 'webview.global.reportIssue') {
+						const state = this.__store.getState();
+
+						const job =
+							state.job.entities[message.faultyJobHash] ?? null;
+
+						if (job === null) {
+							throw new Error('Unable to get the job');
+						}
+
+						const query = new URLSearchParams({
+							title: `[Codemod][${job.codemodName}] Invalid codemod output`,
+							body: buildIssueTemplate(job.codemodName),
+							template: 'report-faulty-codemod.md',
+						}).toString();
+
+						commands.executeCommand(
+							'intuita.redirect',
+							`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
+						);
+					}
+
+					if (
+						message.kind === 'webview.global.showInformationMessage'
+					) {
+						window.showInformationMessage(message.value);
+					}
+				},
 			);
 
 			this.__webviewPanel.onDidDispose(() => {

@@ -3,18 +3,14 @@ import * as t from 'io-ts';
 import { Uri } from 'vscode';
 import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
-import { Job, JobHash, JobKind, PersistedJob } from '../jobs/types';
+import { JobHash, PersistedJob } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { buildHash, isNeitherNullNorUndefined } from '../utilities';
-
-export const doesJobAddNewFile = (kind: Job['kind']): boolean => {
-	return [
-		JobKind.copyFile,
-		JobKind.createFile,
-		JobKind.moveAndRewriteFile,
-		JobKind.moveFile,
-	].includes(kind);
-};
+import {
+	comparePersistedJobs,
+	doesJobAddNewFile,
+	getPersistedJobUri,
+} from './comparePersistedJobs';
 
 interface ExplorerNodeHashDigestBrand {
 	readonly __ExplorerNodeHashDigest: unique symbol;
@@ -75,18 +71,6 @@ export type ExplorerNode =
 	| ReturnType<typeof buildTopNode>
 	| ReturnType<typeof buildDirectoryNode>
 	| ReturnType<typeof buildFileNode>;
-
-const getJobUri = (job: PersistedJob): Uri | null => {
-	if (doesJobAddNewFile(job.kind) && job.newUri !== null) {
-		return Uri.parse(job.newUri);
-	}
-
-	if (!doesJobAddNewFile(job.kind) && job.oldUri !== null) {
-		return Uri.parse(job.oldUri);
-	}
-
-	return null;
-};
 
 export type NodeDatum = Readonly<{
 	node: ExplorerNode;
@@ -160,7 +144,7 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 				return true;
 			}
 
-			const jobUri = getJobUri(job);
+			const jobUri = getPersistedJobUri(job);
 
 			if (jobUri === null) {
 				return false;
@@ -170,19 +154,10 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 				.toLocaleLowerCase()
 				.includes(properSearchPhrase);
 		})
-		.sort((a, b) => {
-			const aUri = getJobUri(a);
-			const bUri = getJobUri(b);
-
-			if (aUri === null || bUri === null) {
-				return 0;
-			}
-
-			return aUri.fsPath.localeCompare(bUri.fsPath);
-		});
+		.sort(comparePersistedJobs);
 
 	for (const job of filteredJobs) {
-		const uri = getJobUri(job);
+		const uri = getPersistedJobUri(job);
 
 		if (uri === null) {
 			continue;
