@@ -25,6 +25,7 @@
 .vscode-panels::part(tablist) {
 	width: 100%;
 	overflow: hidden;
+	min-height: 33px;
 }
 
 .vscode-tab {
