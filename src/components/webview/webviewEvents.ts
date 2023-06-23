@@ -26,11 +26,6 @@ export type JobActionCommands =
 	| 'intuita.unapplyJob'
 	| 'intuita.applyJob';
 
-export type JobAction = {
-	title: string;
-	command: JobActionCommands;
-	arguments: JobHash[];
-};
 export type JobDiffViewProps = Readonly<{
 	jobHash: JobHash;
 	jobKind: JobKind;

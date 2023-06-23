@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import {
-	View,
-	WebviewMessage,
-	JobDiffViewProps,
-	JobAction,
-} from '../shared/types';
+import { View, WebviewMessage, JobDiffViewProps } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 import LoadingProgress from './Components/LoadingProgress';
@@ -70,13 +65,6 @@ function App() {
 		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
-	const postMessage = useCallback((event: JobAction) => {
-		vscode.postMessage({
-			kind: event.command,
-			value: event.arguments,
-		});
-	}, []);
-
 	const view = viewRef.current;
 	if (!view || view.viewId !== 'jobDiffView') {
 		return null;
@@ -97,7 +85,6 @@ function App() {
 		<main className="App">
 			<JobDiffViewContainer
 				job={job}
-				postMessage={postMessage}
 				totalJobsCount={data.length}
 				jobIndex={jobIndex}
 				setJobIndex={setJobIndex}

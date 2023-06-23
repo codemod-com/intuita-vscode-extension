@@ -1,5 +1,4 @@
 export {
-	JobAction,
 	View,
 	WebviewMessage,
 	JobDiffViewProps,
