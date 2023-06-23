@@ -208,6 +208,7 @@ const getCodemodNodeRenderer =
 		return (
 			<div
 				id={hashDigest}
+				tabIndex={0}
 				ref={ref}
 				className={cn(styles.root, focused && styles.focused)}
 				onClick={() => {
