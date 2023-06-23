@@ -103,7 +103,6 @@ export class CodemodListPanel {
 			}
 
 			prevProps = nextProps;
-
 			this.__postMessage({
 				kind: 'webview.codemodList.setView',
 				value: {

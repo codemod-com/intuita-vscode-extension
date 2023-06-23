@@ -36,7 +36,7 @@ const messageBus = new MessageBus();
 export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
 
-	const { store } = buildStore(context.workspaceState);
+	const { store } = await buildStore(context.workspaceState);
 
 	const configurationContainer = buildContainer(getConfiguration());
 
