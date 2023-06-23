@@ -38,7 +38,7 @@ type Props = Readonly<{
 		CodemodNode & { kind: 'CODEMOD' }
 	>;
 	rootPath: string;
-	autocompleteItems: string[];
+	autocompleteItems: ReadonlyArray<string>;
 	progressBar: (node: CodemodNode) => JSX.Element | null;
 	actionButtons: (
 		node: CodemodNode,
