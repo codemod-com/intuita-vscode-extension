@@ -261,6 +261,7 @@ const rootSlice = createSlice({
 				// applies first the nodes after the found node
 				...changeExplorerTree.nodeData.slice(index + 1),
 				// and the the nodes before the found node
+
 				...changeExplorerTree.nodeData.slice(0, index),
 			];
 
@@ -282,6 +283,10 @@ const rootSlice = createSlice({
 			state.changeExplorerView.focusedJobHash = nodeDatum.node.jobHash;
 			state.changeExplorerView.focusedFileExplorerNodeId =
 				nodeDatum.node.hashDigest;
+		},
+		focusOnChangeExplorer(state) {
+			state.activeTabId = TabKind.codemodRuns;
+			state.changeExplorerView.collapsed = false;
 		},
 	},
 });

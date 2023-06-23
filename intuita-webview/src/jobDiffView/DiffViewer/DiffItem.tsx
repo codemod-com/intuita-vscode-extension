@@ -1,11 +1,11 @@
 import { Header } from './Container';
-import { JobDiffViewProps } from '../App';
 import { Collapsable } from '../Components/Collapsable';
 import { Diff, DiffComponent } from './Diff';
 import { reportIssue } from '../util';
 import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
+import { JobDiffViewProps } from '../../shared/types';
 
 type Props = JobDiffViewProps & {
 	viewType: 'inline' | 'side-by-side';
@@ -50,15 +50,13 @@ export const JobDiffView = memo(
 				<div
 					ref={ref}
 					className="px-5 pb-2-5 diff-view-container h-full"
-					id="diffViewContainer"
 					tabIndex={0}
 					onKeyDown={(event: KeyboardEvent) => {
 						if (event.key === 'ArrowLeft') {
 							event.preventDefault();
 
 							vscode.postMessage({
-								kind: 'webview.global.focusView',
-								webviewName: 'changeExplorer',
+								kind: 'webview.panel.focusOnChangeExplorer',
 							});
 						}
 					}}

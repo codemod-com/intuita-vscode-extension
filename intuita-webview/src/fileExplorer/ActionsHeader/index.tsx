@@ -51,11 +51,6 @@ const ActionsHeader = ({
 			kind: 'webview.global.discardChanges',
 			caseHash,
 		});
-
-		vscode.postMessage({
-			kind: 'webview.fileExplorer.disposeView',
-			webviewName: 'diffView',
-		});
 	};
 
 	const handleApplySelected = () => {
@@ -63,11 +58,6 @@ const ActionsHeader = ({
 			kind: 'webview.global.applySelected',
 			jobHashes: selectedJobHashes,
 			diffId: caseHash,
-		});
-
-		vscode.postMessage({
-			kind: 'webview.fileExplorer.disposeView',
-			webviewName: 'diffView',
 		});
 	};
 

@@ -98,14 +98,6 @@ export class FileExplorer {
 			);
 		}
 
-		if (message.kind === 'webview.global.focusView') {
-			commands.executeCommand('intuita.focusView', message.webviewName);
-		}
-
-		if (message.kind === 'webview.fileExplorer.disposeView') {
-			commands.executeCommand('intuita.disposeView', message.webviewName);
-		}
-
 		if (message.kind === 'webview.global.discardChanges') {
 			commands.executeCommand('intuita.rejectCase', message.caseHash);
 		}

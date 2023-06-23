@@ -1,5 +1,4 @@
-import { Dispatch, SetStateAction, useRef, useState } from 'react';
-import { JobDiffViewProps } from '../App';
+import { useRef, useState } from 'react';
 import { JobDiffView } from './DiffItem';
 import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
@@ -7,20 +6,19 @@ import { useCTLKey } from '../hooks/useKey';
 import Header from './Header';
 import { Diff } from './Diff';
 import { useTheme } from '../../shared/Snippet/useTheme';
+import type { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
+import { vscode } from '../../shared/utilities/vscode';
 
-type JobDiffViewContainerProps = Readonly<{
-	job: JobDiffViewProps;
-	totalJobsCount: number;
-	jobIndex: number;
-	setJobIndex: Dispatch<SetStateAction<number>>;
-}>;
+const changeJob = (direction: 'prev' | 'next') => {
+	vscode.postMessage({
+		kind: 'webview.panel.changeJob',
+		direction,
+	});
+};
 
-export const JobDiffViewContainer = ({
-	job,
-	totalJobsCount,
-	jobIndex,
-	setJobIndex,
-}: JobDiffViewContainerProps) => {
+export const JobDiffViewContainer = (
+	props: PanelViewProps & { kind: 'JOB' },
+) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 	const [diff, setDiff] = useState<Diff | null>(null);
@@ -36,10 +34,9 @@ export const JobDiffViewContainer = ({
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobs={[job]}
-				totalJobsCount={totalJobsCount}
-				jobIndex={jobIndex}
-				setJobIndex={setJobIndex}
+				totalJobsCount={props.jobCount}
+				jobIndex={props.jobIndex}
+				changeJob={changeJob}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<JobDiffView
@@ -47,7 +44,7 @@ export const JobDiffViewContainer = ({
 					diff={diff}
 					viewType={viewType}
 					onDiffCalculated={setDiff}
-					{...job}
+					{...props}
 				/>
 			</div>
 		</div>

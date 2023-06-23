@@ -74,10 +74,6 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.focusView';
-			nodeIdToFocus: string | null;
-	  }>
-	| Readonly<{
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
@@ -106,6 +102,9 @@ export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.panel.changeJob';
 			direction: 'prev' | 'next';
+	  }>
+	| Readonly<{
+			kind: 'webview.panel.focusOnChangeExplorer';
 	  }>
 	| Readonly<{
 			kind: 'webview.command';
@@ -147,18 +146,6 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
-	| Readonly<{
-			kind: 'webview.global.focusView';
-			webviewName:
-				| 'changeExplorer'
-				| 'codemodRuns'
-				| 'codemodDiscovery'
-				| 'diffView';
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.disposeView';
-			webviewName: 'diffView';
-	  }>
 	| Readonly<{
 			kind: 'webview.main.setActiveTabId';
 			activeTabId: TabKind;

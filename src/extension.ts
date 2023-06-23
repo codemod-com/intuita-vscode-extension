@@ -6,7 +6,6 @@ import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
 import { JobHash } from './jobs/types';
-import { CaseManager } from './cases/caseManager';
 import { CaseHash } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
@@ -16,7 +15,7 @@ import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { FileExplorer } from './components/webview/FileExplorerProvider';
 import { CampaignManager } from './components/webview/CampaignManagerProvider';
-import { DiffWebviewPanel } from './components/webview/DiffWebviewPanel';
+
 import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
@@ -28,6 +27,8 @@ import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider'
 import { MainViewProvider } from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
+import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
+import { CaseManager } from './cases/caseManager';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -50,7 +51,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const jobManager = new JobManager(fileService, messageBus, store);
 
-	const caseManager = new CaseManager(messageBus, store);
+	new CaseManager(messageBus, store);
 
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
@@ -86,22 +87,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		rootPath,
 		codemodService,
 		store,
-	);
-
-	const diffWebviewPanel = new DiffWebviewPanel(
-		{
-			type: 'intuitaPanel',
-			title: 'Diff',
-			extensionUri: context.extensionUri,
-			initialData: {},
-			viewColumn: vscode.ViewColumn.One,
-			webviewName: 'jobDiffView',
-			preserveFocus: true,
-		},
-		messageBus,
-		jobManager,
-		caseManager,
-		rootPath,
 	);
 
 	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
@@ -154,33 +139,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.openCaseDiff',
-			async (caseHash?: CaseHash) => {
-				if (!caseHash || !rootPath) {
-					return;
-				}
-				try {
-					await diffWebviewPanel.openCase(caseHash);
-				} catch (err) {
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.openCaseDiff',
-					});
-					console.error(err);
-				}
-			},
-		),
-	);
-
 	const fileExplorerProvider = new FileExplorer(
 		messageBus,
 		jobManager,
 		store,
 	);
 
-	const campaignManagerProvider = new CampaignManager(messageBus, store);
+	const campaignManagerProvider = new CampaignManager(store);
 
 	const mainViewProvider = new MainViewProvider(
 		context,
@@ -196,6 +161,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 	);
 
+	new IntuitaPanelProvider(context.extensionUri, store, rootPath ?? '');
+
 	context.subscriptions.push(mainView);
 
 	const errorWebviewProvider = new ErrorWebviewProvider(
@@ -204,38 +171,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		store,
 	);
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.focusView',
-			(arg0: unknown) => {
-				const webviewName = typeof arg0 === 'string' ? arg0 : null;
-				if (webviewName === null) {
-					return;
-				}
-
-				if (webviewName === 'diffView' && rootPath !== null) {
-					diffWebviewPanel.focusView();
-				}
-			},
-		),
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.disposeView',
-			(arg0: unknown) => {
-				const webviewName = typeof arg0 === 'string' ? arg0 : null;
-				if (webviewName === null) {
-					return;
-				}
-
-				if (webviewName === 'diffView' && rootPath !== null) {
-					diffWebviewPanel.dispose();
-				}
-			},
-		),
-	);
-
+	// this is only used by the intuita panel's webview
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.redirect', (arg0) => {
 			try {

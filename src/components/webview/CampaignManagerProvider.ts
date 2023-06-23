@@ -1,5 +1,4 @@
 import { WebviewView, commands } from 'vscode';
-import { Message, MessageBus, MessageKind } from '../messageBus';
 import { View, WebviewMessage } from './webviewEvents';
 import { actions } from '../../data/slice';
 import { Store } from '../../data';
@@ -11,10 +10,7 @@ type ViewProps = Extract<View, { viewId: 'campaignManagerView' }>['viewProps'];
 export class CampaignManager {
 	private __webviewView: WebviewView | null = null;
 
-	constructor(
-		private readonly __messageBus: MessageBus,
-		private readonly __store: Store,
-	) {}
+	constructor(private readonly __store: Store) {}
 
 	setWebview(webviewView: WebviewView): void | Thenable<void> {
 		this.__webviewView = webviewView;
@@ -42,12 +38,6 @@ export class CampaignManager {
 		this.__webviewView?.webview.postMessage(message);
 	}
 
-	private __addHook<T extends MessageKind>(
-		kind: T,
-		handler: (message: Message & { kind: T }) => void,
-	) {
-		this.__messageBus.subscribe<T>(kind, handler);
-	}
 	private __attachExtensionEventListeners() {
 		let prevProps = this.__buildViewProps();
 
@@ -67,18 +57,6 @@ export class CampaignManager {
 					viewProps: nextProps,
 				},
 			});
-		});
-
-		this.__addHook(MessageKind.upsertCases, (message) => {
-			const hash = message.casesWithJobHashes[0]?.hash ?? null;
-
-			if (hash !== null) {
-				commands.executeCommand('intuita.openCaseDiff', hash);
-			}
-		});
-
-		this.__addHook(MessageKind.codemodSetExecuted, (message) => {
-			commands.executeCommand('intuita.openCaseDiff', message.case.hash);
 		});
 	}
 
@@ -100,11 +78,6 @@ export class CampaignManager {
 			) {
 				this.__store.dispatch(
 					actions.setSelectedCaseHash(message.caseHash),
-				);
-
-				commands.executeCommand(
-					'intuita.openCaseDiff',
-					message.caseHash,
 				);
 			}
 		});
