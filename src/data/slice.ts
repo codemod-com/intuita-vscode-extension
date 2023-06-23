@@ -10,8 +10,12 @@ import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { RootState, TabKind } from '../persistedState/codecs';
-import { ExplorerNodeHashDigest } from '../selectors/selectExplorerTree';
+import {
+	ExplorerNodeHashDigest,
+	selectExplorerTree,
+} from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
+import { workspace } from 'vscode';
 
 const SLICE_KEY = 'root';
 
@@ -230,6 +234,54 @@ const rootSlice = createSlice({
 		},
 		setActiveTabId(state, action: PayloadAction<TabKind>) {
 			state.activeTabId = action.payload;
+		},
+		changeJob(state, action: PayloadAction<'prev' | 'next'>) {
+			// this selector is expensive to calculate
+			const changeExplorerTree = selectExplorerTree(
+				state,
+				workspace.workspaceFolders?.[0]?.uri ?? null,
+			);
+
+			if (changeExplorerTree === null) {
+				return;
+			}
+
+			const index = changeExplorerTree.nodeData.findIndex((nodeDatum) => {
+				return (
+					nodeDatum.node.hashDigest ===
+					changeExplorerTree.selectedNodeHashDigest
+				);
+			});
+
+			if (index === -1) {
+				return;
+			}
+
+			const nodeData = [
+				// applies first the nodes after the found node
+				...changeExplorerTree.nodeData.slice(index + 1),
+				// and the the nodes before the found node
+				...changeExplorerTree.nodeData.slice(0, index),
+			];
+
+			if (action.payload === 'prev') {
+				// if we are looking for the previous file,
+				// we can reverse the array (as if we were looking for the next file)
+				nodeData.reverse();
+			}
+
+			const nodeDatum =
+				nodeData.find((nodeDatum) => {
+					return nodeDatum.node.kind === 'FILE';
+				}) ?? null;
+
+			if (nodeDatum === null || nodeDatum.node.kind !== 'FILE') {
+				return;
+			}
+
+			state.changeExplorerView.focusedJobHash = nodeDatum.node.jobHash;
+			state.changeExplorerView.focusedFileExplorerNodeId =
+				nodeDatum.node.hashDigest;
 		},
 	},
 });
