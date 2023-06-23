@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { useEffect, useState } from 'react';
 import { WebviewMessage } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
@@ -28,8 +29,12 @@ export const App = () => {
 	}, []);
 
 	if (viewProps.kind === 'CODEMOD') {
-		// a placeholder for the codemod description (Markdown)
-		return null;
+		return viewProps.docs !== null ? (
+			<ReactMarkdown
+				children={viewProps.docs}
+				className="markdownContainer"
+			/>
+		) : null;
 	}
 
 	return (

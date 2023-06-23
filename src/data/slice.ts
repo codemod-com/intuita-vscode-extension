@@ -56,6 +56,11 @@ export const getInitialState = (): RootState => {
 			collapsedNodeHashDigests: [],
 			searchPhrase: '',
 		},
+		panelView: {
+			kind: null,
+			docs: null,
+			title: '',
+		},
 		appliedJobHashes: [],
 		codemodExecutionInProgress: false,
 		activeTabId: TabKind.codemods,
@@ -87,6 +92,11 @@ const rootSlice = createSlice({
 			state.changeExplorerView.focusedJobHash = null;
 			state.changeExplorerView.collapsedNodeHashDigests = [];
 			state.changeExplorerView.searchPhrase = '';
+			state.panelView = {
+				docs: null,
+				kind: null,
+				title: '',
+			};
 		},
 		upsertCodemods(
 			state,
@@ -116,6 +126,11 @@ const rootSlice = createSlice({
 			state.changeExplorerView.focusedFileExplorerNodeId = null;
 			state.changeExplorerView.focusedJobHash = null;
 			state.changeExplorerView.collapsedNodeHashDigests = [];
+			state.panelView = {
+				docs: null,
+				kind: 'JOB',
+				title: '',
+			};
 		},
 		/**
 		 * Codemod list
@@ -182,6 +197,11 @@ const rootSlice = createSlice({
 			state.changeExplorerView.focusedFileExplorerNodeId =
 				action.payload[0];
 			state.changeExplorerView.focusedJobHash = action.payload[1];
+			state.panelView = {
+				docs: null,
+				kind: 'JOB',
+				title: '',
+			};
 		},
 		flipChangeExplorerHashDigests(
 			state,
@@ -236,6 +256,11 @@ const rootSlice = createSlice({
 			state.activeTabId = action.payload;
 		},
 		changeJob(state, action: PayloadAction<'prev' | 'next'>) {
+			state.panelView = {
+				docs: null,
+				kind: 'JOB',
+				title: '',
+			};
 			// this selector is expensive to calculate
 			const changeExplorerTree = selectExplorerTree(
 				state,
@@ -287,6 +312,9 @@ const rootSlice = createSlice({
 		focusOnChangeExplorer(state) {
 			state.activeTabId = TabKind.codemodRuns;
 			state.changeExplorerView.collapsed = false;
+		},
+		setPanelView(state, action: PayloadAction<RootState['panelView']>) {
+			state.panelView = action.payload;
 		},
 	},
 });

@@ -107,6 +107,18 @@ export const persistedStateCodecNew = buildTypeCodec({
 			selectedCaseHash: null,
 		},
 	),
+	panelView: withFallback(
+		buildTypeCodec({
+			kind: t.union([t.literal('JOB'), t.literal('CODEMOD'), t.null]),
+			docs: t.union([t.string, t.null]),
+			title: t.string,
+		}),
+		{
+			kind: null,
+			docs: null,
+			title: '',
+		},
+	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	appliedJobHashes: withFallback(t.readonlyArray(jobHashCodec), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),

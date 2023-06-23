@@ -124,13 +124,20 @@ export async function activate(context: vscode.ExtensionContext) {
 						`${CODEMOD_METADATA_SCHEME}:${name}.md`,
 					);
 
-					const metadataExist = textContentProvider.hasMetadata(uri);
-
-					if (!metadataExist) {
+					if (!textContentProvider.hasMetadata(uri)) {
 						return;
 					}
 
-					vscode.commands.executeCommand('markdown.showPreview', uri);
+					const metadataContent =
+						textContentProvider.provideTextDocumentContent(uri);
+
+					store.dispatch(
+						actions.setPanelView({
+							kind: 'CODEMOD',
+							title: `${name}.md`,
+							docs: metadataContent,
+						}),
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);

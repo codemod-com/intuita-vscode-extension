@@ -19,4 +19,5 @@ export type PanelViewProps =
 	| Readonly<{
 			title: string;
 			kind: 'CODEMOD';
+			docs: string | null;
 	  }>;

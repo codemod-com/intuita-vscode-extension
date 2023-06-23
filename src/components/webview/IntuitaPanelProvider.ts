@@ -37,6 +37,16 @@ const selectPanelViewProps = (
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
+	const { kind } = state.panelView;
+
+	if (kind === 'CODEMOD') {
+		return {
+			title: state.panelView.title,
+			kind: 'CODEMOD',
+			docs: state.panelView.docs,
+		};
+	}
+
 	const { selectedCaseHash } = state.codemodRunsView;
 	const { focusedJobHash } = state.changeExplorerView;
 

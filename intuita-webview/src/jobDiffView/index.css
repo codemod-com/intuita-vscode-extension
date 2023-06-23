@@ -47,3 +47,12 @@ html {
 html {
 	overflow: hidden;
 }
+
+/**
+* Markdown
+**/
+
+.markdownContainer {
+	padding: 0 30px;
+	width: 85%;
+}
