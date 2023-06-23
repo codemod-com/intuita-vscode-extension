@@ -20,11 +20,6 @@ export type ExecutionPath = T.These<SyntheticError, string>;
 
 export { JobHash };
 export { CodemodHash };
-export type JobActionCommands =
-	| 'intuita.rejectJob'
-	| 'intuita.acceptJob'
-	| 'intuita.unapplyJob'
-	| 'intuita.applyJob';
 
 export type JobDiffViewProps = Readonly<{
 	jobHash: JobHash;
@@ -132,10 +127,6 @@ export type WebviewResponse =
 			value: Command;
 	  }>
 	| Readonly<{
-			kind: JobActionCommands;
-			value: JobHash[];
-	  }>
-	| Readonly<{
 			kind: 'webview.global.closeView';
 	  }>
 	| Readonly<{
@@ -227,19 +218,6 @@ export type WebviewResponse =
 
 export type View =
 	| Readonly<{
-			viewId: 'createIssue';
-			viewProps: {
-				error: string;
-				loading: boolean;
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					remoteUrl: string;
-				}>;
-				remoteOptions: string[];
-			};
-	  }>
-	| Readonly<{
 			viewId: 'fileExplorer';
 			viewProps: ExplorerTree | null;
 	  }>
@@ -254,7 +232,6 @@ export type View =
 				title: string;
 				loading: boolean;
 				data: JobDiffViewProps[];
-				stagedJobs: JobHash[];
 			};
 	  }>
 	| Readonly<{

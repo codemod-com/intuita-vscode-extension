@@ -48,23 +48,7 @@
 				"icon": "$(clear-all)"
 			},
 			{
-				"command": "intuita.acceptJob",
-				"title": "✓ Apply"
-			},
-			{
-				"command": "intuita.acceptFolder",
-				"title": "✓ Apply"
-			},
-			{
-				"command": "intuita.rejectJob",
-				"title": "✗ Dismiss"
-			},
-			{
 				"command": "intuita.rejectCase",
-				"title": "✗ Dismiss"
-			},
-			{
-				"command": "intuita.rejectFolder",
 				"title": "✗ Dismiss"
 			},
 			{
