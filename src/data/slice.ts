@@ -263,6 +263,8 @@ const rootSlice = createSlice({
 			];
 
 			if (action.payload === 'prev') {
+				// if we are looking for the previous file,
+				// we can reverse the array (as if we were looking for the next file)
 				nodeData.reverse();
 			}
 
