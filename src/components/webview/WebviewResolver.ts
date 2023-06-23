@@ -19,12 +19,14 @@ export class WebviewResolver {
 		webview: Webview,
 		webviewName: string,
 		initialData: string,
+		initialStateKey = 'INITIAL_STATE',
 	) {
 		webview.options = this.getWebviewOptions();
 		webview.html = this.__getHtmlForWebview(
 			webview,
 			webviewName,
 			initialData,
+			initialStateKey,
 		);
 	}
 
@@ -32,6 +34,7 @@ export class WebviewResolver {
 		webview: Webview,
 		webviewName: string,
 		initialData: string,
+		initialStateKey: string,
 	) {
 		const stylesUri = getUri(webview, this.__extensionPath, [
 			'intuita-webview',
@@ -108,7 +111,7 @@ export class WebviewResolver {
 						<h1 class="placeholder">Loading...</h1>
 					</div>
 					<script nonce="${nonce}">
-					window.INITIAL_STATE=${initialData}
+					window.${initialStateKey}=${initialData}
 					</script>
 					<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 				</body>

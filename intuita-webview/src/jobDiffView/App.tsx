@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { vscode } from '../shared/utilities/vscode';
 import { View, WebviewMessage, JobDiffViewProps } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
@@ -60,10 +59,6 @@ function App() {
 			window.removeEventListener('message', eventHandler);
 		};
 	}, [eventHandler]);
-
-	useEffect(() => {
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
-	}, []);
 
 	const view = viewRef.current;
 	if (!view || view.viewId !== 'jobDiffView') {

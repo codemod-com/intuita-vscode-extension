@@ -15,6 +15,7 @@ import {
 	CodemodNodeHashDigest,
 	CodemodTree,
 } from '../../selectors/selectCodemodTree';
+import { PanelViewProps } from './panelViewProps';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -28,6 +29,7 @@ export type JobDiffViewProps = Readonly<{
 	newFileContent: string | null;
 	oldFileTitle: string | null;
 	newFileTitle: string | null;
+	// title TO BE REMOVED:
 	title: string | null;
 }>;
 
@@ -47,8 +49,8 @@ export type CollapsibleWebviews =
 
 export type WebviewMessage =
 	| Readonly<{
-			kind: 'webview.global.setUserAccount';
-			value: string | null;
+			kind: 'webview.setPanelViewProps';
+			panelViewProps: PanelViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.main.setCollapsed';
@@ -80,10 +82,6 @@ export type WebviewMessage =
 			jobHash: JobHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.createIssue.submittingIssue';
-			value: boolean;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
 			codemodHash: CodemodHash;
@@ -106,28 +104,8 @@ export type WebviewMessage =
 
 export type WebviewResponse =
 	| Readonly<{
-			kind: 'webview.createIssue.submitIssue';
-			value: {
-				title: string;
-				body: string;
-				remoteUrl: string;
-			};
-	  }>
-	| Readonly<{
-			kind: 'webview.global.redirectToSignIn';
-	  }>
-	| Readonly<{
-			kind: 'webview.global.afterWebviewMounted';
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.afterWebviewMounted';
-	  }>
-	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
-	  }>
-	| Readonly<{
-			kind: 'webview.global.closeView';
 	  }>
 	| Readonly<{
 			kind: 'webview.global.reportIssue';

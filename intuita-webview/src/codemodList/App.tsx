@@ -32,8 +32,6 @@ function App() {
 
 		window.addEventListener('message', handler);
 
-		vscode.postMessage({ kind: 'webview.codemodList.afterWebviewMounted' });
-
 		return () => {
 			window.removeEventListener('message', handler);
 		};
