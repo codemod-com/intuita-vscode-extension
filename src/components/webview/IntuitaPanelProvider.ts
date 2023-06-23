@@ -162,6 +162,14 @@ export class IntuitaPanelProvider {
 
 			this.__webviewPanel.webview.onDidReceiveMessage(
 				(message: WebviewResponse) => {
+					if (
+						message.kind === 'webview.panel.focusOnChangeExplorer'
+					) {
+						this.__store.dispatch(actions.focusOnChangeExplorer());
+
+						commands.executeCommand('intuitaMainView.focus');
+					}
+
 					if (message.kind === 'webview.panel.changeJob') {
 						this.__store.dispatch(
 							actions.changeJob(message.direction),

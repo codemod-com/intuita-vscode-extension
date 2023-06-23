@@ -1,21 +1,19 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { ReactComponent as UnifiedIcon } from '../../../assets/Unified.svg';
 import { ReactComponent as SplitIcon } from '../../../assets/Split.svg';
-import { DiffViewType, JobDiffViewProps } from '../../../shared/types';
+import { DiffViewType } from '../../../shared/types';
 
 import styles from './style.module.css';
 
 import cn from 'classnames';
 import Popover from '../../../shared/Popover';
-import { Dispatch, SetStateAction } from 'react';
 
 type Props = Readonly<{
 	viewType: DiffViewType;
-	jobs: JobDiffViewProps[];
 	onViewChange(value: DiffViewType): void;
 	totalJobsCount: number;
 	jobIndex: number;
-	setJobIndex: Dispatch<SetStateAction<number>>;
+	changeJob: (direction: 'prev' | 'next') => void;
 }>;
 
 const Header = ({
@@ -23,7 +21,7 @@ const Header = ({
 	onViewChange,
 	totalJobsCount,
 	jobIndex,
-	setJobIndex,
+	changeJob,
 }: Props) => {
 	return (
 		<div className={styles.root}>
@@ -31,10 +29,11 @@ const Header = ({
 				<Popover
 					trigger={
 						<VSCodeButton
-							disabled={jobIndex === 0}
 							appearance="icon"
-							onClick={() => {
-								setJobIndex((prev) => prev - 1);
+							onClick={(event) => {
+								event.preventDefault();
+
+								changeJob('prev');
 							}}
 						>
 							<span
@@ -47,10 +46,11 @@ const Header = ({
 				<Popover
 					trigger={
 						<VSCodeButton
-							disabled={jobIndex === totalJobsCount - 1}
 							appearance="icon"
-							onClick={() => {
-								setJobIndex((prev) => prev + 1);
+							onClick={(event) => {
+								event.preventDefault();
+
+								changeJob('next');
 							}}
 						>
 							<span

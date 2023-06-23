@@ -1,91 +1,40 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { View, WebviewMessage, JobDiffViewProps } from '../shared/types';
+import { useEffect, useState } from 'react';
+import { WebviewMessage } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
-import LoadingProgress from './Components/LoadingProgress';
+import type { PanelViewProps } from '../../../src/components/webview/panelViewProps';
 
-type MainViews = Extract<View, { viewId: 'jobDiffView' }>;
+declare global {
+	interface Window {
+		panelViewProps: PanelViewProps;
+	}
+}
 
-function App() {
-	const [, forceUpdate] = useState('');
-	const [jobIndex, setJobIndex] = useState<number>(0);
-	const viewRef = useRef<MainViews | null>(null);
-
-	const eventHandler = useCallback((event: MessageEvent<WebviewMessage>) => {
-		const view = viewRef.current;
-		const { data: message } = event;
-		if (message.kind === 'webview.global.setView') {
-			if (message.value.viewId === 'jobDiffView') {
-				message.value.viewProps.data.sort((a, b) => {
-					if (!a.newFileTitle || !b.newFileTitle) {
-						return 0;
-					}
-					return a.newFileTitle.localeCompare(b.newFileTitle);
-				});
-
-				viewRef.current = message.value;
-				forceUpdate(crypto.randomUUID());
-			}
-		}
-
-		if (view === null) {
-			return;
-		}
-
-		if (message.kind === 'webview.global.focusView') {
-			const diffViewContainer =
-				document.getElementById('diffViewContainer');
-
-			diffViewContainer?.focus();
-		}
-
-		if (message.kind === 'webview.diffView.focusFile') {
-			const index = view.viewProps.data.findIndex(
-				(job) => job.jobHash === message.jobHash,
-			);
-
-			if (index === -1) {
-				return;
-			}
-
-			setJobIndex(index);
-		}
-	}, []);
+export const App = () => {
+	const [viewProps, setViewProps] = useState(window.panelViewProps);
 
 	useEffect(() => {
+		const eventHandler = (event: MessageEvent<WebviewMessage>) => {
+			if (event.data.kind === 'webview.setPanelViewProps') {
+				setViewProps(event.data.panelViewProps);
+			}
+		};
+
 		window.addEventListener('message', eventHandler);
 
 		return () => {
 			window.removeEventListener('message', eventHandler);
 		};
-	}, [eventHandler]);
+	}, []);
 
-	const view = viewRef.current;
-	if (!view || view.viewId !== 'jobDiffView') {
-		return null;
-	}
-
-	if (view.viewProps.loading) {
-		return <LoadingProgress />;
-	}
-
-	const { data } = view.viewProps;
-	const job = data[jobIndex];
-
-	if (!job) {
+	if (viewProps.kind === 'CODEMOD') {
+		// a placeholder for the codemod description (Markdown)
 		return null;
 	}
 
 	return (
 		<main className="App">
-			<JobDiffViewContainer
-				job={job}
-				totalJobsCount={data.length}
-				jobIndex={jobIndex}
-				setJobIndex={setJobIndex}
-			/>
+			<JobDiffViewContainer {...viewProps} />
 		</main>
 	);
-}
-export type { JobDiffViewProps };
-export default App;
+};
