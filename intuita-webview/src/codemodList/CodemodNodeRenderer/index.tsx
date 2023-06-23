@@ -16,6 +16,7 @@ import { NodeDatum } from '../../intuitaTreeView';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { ReactComponent as BlueLightBulbIcon } from '../../assets/bluelightbulb.svg';
+import { CodemodHash } from '../../shared/types';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -106,7 +107,7 @@ const getCodemodNodeRenderer =
 		const hasChildren = childCount !== 0;
 		const icon = getIcon(nodeDatum);
 
-		const [notEnoughSpace] = useState<boolean>(false);
+		const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 		const directorySelectorRef = useRef<HTMLSpanElement>(null);
 		const ref = useRef<HTMLDivElement>(null);
 		const repoName = rootPath.split('/').slice(-1)[0] ?? '';
@@ -169,40 +170,40 @@ const getCodemodNodeRenderer =
 		}, []);
 
 		// @TODO check if can be implemented using css container queries
-		// useEffect(() => {
-		// 	if (ResizeObserver === undefined) {
-		// 		return undefined;
-		// 	}
+		useEffect(() => {
+			if (ResizeObserver === undefined) {
+				return undefined;
+			}
 
-		// 	const resizeObserver = new ResizeObserver((entries) => {
-		// 		const treeItem = entries[0] ?? null;
-		// 		if (treeItem === null) {
-		// 			return;
-		// 		}
+			const resizeObserver = new ResizeObserver((entries) => {
+				const treeItem = entries[0] ?? null;
+				if (treeItem === null) {
+					return;
+				}
 
-		// 		if (directorySelectorRef.current === null) {
-		// 			return;
-		// 		}
+				if (directorySelectorRef.current === null) {
+					return;
+				}
 
-		// 		const xDistance = Math.abs(
-		// 			directorySelectorRef.current.getBoundingClientRect().right -
-		// 				treeItem.target.getBoundingClientRect().right,
-		// 		);
+				const xDistance = Math.abs(
+					directorySelectorRef.current.getBoundingClientRect().right -
+						treeItem.target.getBoundingClientRect().right,
+				);
 
-		// 		setNotEnoughSpace(xDistance < 100);
-		// 	});
+				setNotEnoughSpace(xDistance < 100);
+			});
 
-		// 	const treeItem = document.getElementById(hashDigest);
+			const treeItem = document.getElementById(hashDigest);
 
-		// 	if (treeItem === null) {
-		// 		return;
-		// 	}
-		// 	resizeObserver.observe(treeItem);
+			if (treeItem === null) {
+				return;
+			}
+			resizeObserver.observe(treeItem);
 
-		// 	return () => {
-		// 		resizeObserver.disconnect();
-		// 	};
-		// }, [hashDigest]);
+			return () => {
+				resizeObserver.disconnect();
+			};
+		}, [hashDigest]);
 
 		return (
 			<div
@@ -280,8 +281,10 @@ const getCodemodNodeRenderer =
 											? null
 											: { message: error }
 									}
-									// @ts-ignore
-									hashDigest={hashDigest}
+									// @TODO CodemodHash type will be replaced in next PRs
+									codemodHash={
+										hashDigest as unknown as CodemodHash
+									}
 									onEditStart={onEditStart}
 									onEditEnd={onEditEnd}
 									onEditCancel={onEditCancel}
