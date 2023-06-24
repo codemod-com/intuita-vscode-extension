@@ -11,6 +11,10 @@ import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { isNeitherNullNorUndefined } from '../../utilities';
 import { comparePersistedJobs } from '../../selectors/comparePersistedJobs';
 import { actions } from '../../data/slice';
+import {
+	codemodMetadataCodec,
+	jobViewCodec,
+} from '../../selectors/selectCodemodTree';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -37,84 +41,94 @@ const selectPanelViewProps = (
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
-	const { kind } = state.panelView;
+	const { mainPanel } = state;
+	if (mainPanel === null) {
+		return null;
+	}
 
-	if (kind === 'CODEMOD') {
+	const validation1 = codemodMetadataCodec.decode(mainPanel);
+	console.log(validation1, 'VALIDATION 1');
+	if (validation1._tag === 'Right') {
+		const { title, doc } = validation1.right;
 		return {
-			title: state.panelView.title,
 			kind: 'CODEMOD',
-			docs: state.panelView.docs,
+			title,
+			doc,
 		};
 	}
 
-	const { selectedCaseHash } = state.codemodRunsView;
-	const { focusedJobHash } = state.changeExplorerView;
+	const validation2 = jobViewCodec.decode(mainPanel);
+	console.log(validation2, 'VALIDATION 2');
+	if (validation2._tag === 'Right') {
+		const { selectedCaseHash, focusedJobHash } = validation2.right;
 
-	if (selectedCaseHash === null || focusedJobHash === null) {
-		return null;
+		if (selectedCaseHash === null || focusedJobHash === null) {
+			return null;
+		}
+
+		const caseJobManager = new LeftRightHashSetManager<CaseHash, JobHash>(
+			new Set(state.caseHashJobHashes),
+		);
+
+		const jobs = Array.from(
+			caseJobManager.getRightHashesByLeftHash(selectedCaseHash),
+		)
+			.map((jobHash) => state.job.entities[jobHash])
+			.filter(isNeitherNullNorUndefined)
+			.sort(comparePersistedJobs);
+
+		const jobIndex = jobs.findIndex((job) => job.hash === focusedJobHash);
+		const jobCount = jobs.length;
+
+		const persistedJob = jobs[jobIndex] ?? null;
+
+		if (persistedJob === null) {
+			return null;
+		}
+
+		const job = mapPersistedJobToJob(persistedJob);
+
+		const newFileTitle = job.newUri?.fsPath.replace(rootPath, '') ?? null;
+		const oldFileTitle =
+			[
+				JobKind.moveFile,
+				JobKind.moveAndRewriteFile,
+				JobKind.copyFile,
+			].includes(job.kind) && job.oldUri
+				? job.oldUri.fsPath.replace(rootPath, '')
+				: null;
+
+		const newFileContent =
+			job.newContentUri !== null
+				? readFileSync(job.newContentUri.fsPath).toString('utf8')
+				: null;
+
+		const oldFileContent =
+			job.oldUri !== null &&
+			[
+				JobKind.rewriteFile,
+				JobKind.deleteFile,
+				JobKind.moveAndRewriteFile,
+				JobKind.moveFile,
+			].includes(job.kind)
+				? readFileSync(job.oldUri.fsPath).toString('utf8')
+				: null;
+
+		return {
+			kind: 'JOB',
+			title: newFileTitle ?? oldFileTitle ?? '',
+			caseHash: selectedCaseHash,
+			jobHash: job.hash,
+			jobKind: job.kind,
+			oldFileTitle,
+			newFileTitle,
+			oldFileContent,
+			newFileContent,
+			jobCount,
+			jobIndex,
+		};
 	}
-
-	const caseJobManager = new LeftRightHashSetManager<CaseHash, JobHash>(
-		new Set(state.caseHashJobHashes),
-	);
-
-	const jobs = Array.from(
-		caseJobManager.getRightHashesByLeftHash(selectedCaseHash),
-	)
-		.map((jobHash) => state.job.entities[jobHash])
-		.filter(isNeitherNullNorUndefined)
-		.sort(comparePersistedJobs);
-
-	const jobIndex = jobs.findIndex((job) => job.hash === focusedJobHash);
-	const jobCount = jobs.length;
-
-	const persistedJob = jobs[jobIndex] ?? null;
-
-	if (persistedJob === null) {
-		return null;
-	}
-
-	const job = mapPersistedJobToJob(persistedJob);
-
-	const newFileTitle = job.newUri?.fsPath.replace(rootPath, '') ?? null;
-	const oldFileTitle =
-		[
-			JobKind.moveFile,
-			JobKind.moveAndRewriteFile,
-			JobKind.copyFile,
-		].includes(job.kind) && job.oldUri
-			? job.oldUri.fsPath.replace(rootPath, '')
-			: null;
-
-	const newFileContent =
-		job.newContentUri !== null
-			? readFileSync(job.newContentUri.fsPath).toString('utf8')
-			: null;
-
-	const oldFileContent =
-		job.oldUri !== null &&
-		[
-			JobKind.rewriteFile,
-			JobKind.deleteFile,
-			JobKind.moveAndRewriteFile,
-			JobKind.moveFile,
-		].includes(job.kind)
-			? readFileSync(job.oldUri.fsPath).toString('utf8')
-			: null;
-
-	return {
-		kind: 'JOB',
-		title: newFileTitle ?? oldFileTitle ?? '',
-		caseHash: selectedCaseHash,
-		jobHash: job.hash,
-		jobKind: job.kind,
-		oldFileTitle,
-		newFileTitle,
-		oldFileContent,
-		newFileContent,
-		jobCount,
-		jobIndex,
-	};
+	return null;
 };
 
 export class IntuitaPanelProvider {

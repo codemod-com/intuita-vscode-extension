@@ -6,7 +6,11 @@ import { withFallback } from 'io-ts-types';
 import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec, caseHashCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
-import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
+import {
+	codemodMetadataCodec,
+	codemodNodeHashDigestCodec,
+	jobViewCodec,
+} from '../selectors/selectCodemodTree';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -107,17 +111,9 @@ export const persistedStateCodecNew = buildTypeCodec({
 			selectedCaseHash: null,
 		},
 	),
-	panelView: withFallback(
-		buildTypeCodec({
-			kind: t.union([t.literal('JOB'), t.literal('CODEMOD'), t.null]),
-			docs: t.union([t.string, t.null]),
-			title: t.string,
-		}),
-		{
-			kind: null,
-			docs: null,
-			title: '',
-		},
+	mainPanel: withFallback(
+		t.union([codemodMetadataCodec, jobViewCodec, t.null]),
+		null,
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	appliedJobHashes: withFallback(t.readonlyArray(jobHashCodec), []),

@@ -1,8 +1,33 @@
 import { CodemodEntry } from '../codemods/types';
-import { buildHash, capitalize } from '../utilities';
+import { buildHash, buildTypeCodec, capitalize } from '../utilities';
 import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
+import { withFallback } from 'io-ts-types';
+import { jobHashCodec } from '../jobs/types';
+import { caseHashCodec } from '../cases/types';
+
+interface CodemodMetadataDocBrand {
+	readonly __CodemodMetadataDoc: unique symbol;
+}
+
+export const codemodMetadataDocCodec = t.brand(
+	t.string,
+	(doc): doc is t.Branded<string, CodemodMetadataDocBrand> => doc.length > 0,
+	'__CodemodMetadataDoc',
+);
+
+export type CodemodMetadataDoc = t.TypeOf<typeof codemodMetadataDocCodec>;
+
+export const codemodMetadataCodec = buildTypeCodec({
+	title: withFallback(t.string, ''),
+	doc: codemodMetadataDocCodec,
+});
+
+export const jobViewCodec = buildTypeCodec({
+	selectedCaseHash: t.union([caseHashCodec, t.null]),
+	focusedJobHash: t.union([jobHashCodec, t.null]),
+});
 
 interface CodemodNodeHashDigestBrand {
 	readonly __CodemodNodeHashDigest: unique symbol;

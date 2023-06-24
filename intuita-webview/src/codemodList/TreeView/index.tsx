@@ -30,7 +30,7 @@ const handleDoubleClick = (node: CodemodNode) => {
 		value: {
 			title: 'Show codemod metadata',
 			command: 'intuita.showCodemodMetadata',
-			arguments: [node.hashDigest],
+			arguments: [node.hashDigest, node.label],
 		},
 	});
 };

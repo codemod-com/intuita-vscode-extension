@@ -29,6 +29,7 @@ import { buildStore } from './data';
 import { actions } from './data/slice';
 import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
 import { CaseManager } from './cases/caseManager';
+import { CodemodMetadataDoc } from './selectors/selectCodemodTree';
 
 const CODEMOD_METADATA_SCHEME = 'codemod';
 
@@ -112,16 +113,24 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.showCodemodMetadata',
-			async (arg0?: unknown) => {
+			async (arg0: unknown, arg1: unknown) => {
 				try {
-					const name = typeof arg0 === 'string' ? arg0 : null;
+					const hashDigest = typeof arg0 === 'string' ? arg0 : null;
+					const label = typeof arg1 === 'string' ? arg1 : null;
 
-					if (name === null) {
-						throw new Error(`Expected codemod name, got ${arg0}`);
+					if (hashDigest === null) {
+						throw new Error(
+							`Expected codemod hash digest, but got ${arg0}`,
+						);
+					}
+					if (label === null) {
+						throw new Error(
+							`Expected codemod label, but got ${arg1}`,
+						);
 					}
 
 					const uri = vscode.Uri.parse(
-						`${CODEMOD_METADATA_SCHEME}:${name}.md`,
+						`${CODEMOD_METADATA_SCHEME}:${hashDigest}.md`,
 					);
 
 					if (!textContentProvider.hasMetadata(uri)) {
@@ -129,13 +138,14 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const metadataContent =
-						textContentProvider.provideTextDocumentContent(uri);
+						textContentProvider.provideTextDocumentContent(
+							uri,
+						) as CodemodMetadataDoc;
 
 					store.dispatch(
 						actions.setPanelView({
-							kind: 'CODEMOD',
-							title: `${name}.md`,
-							docs: metadataContent,
+							title: label,
+							doc: metadataContent,
 						}),
 					);
 				} catch (e) {

@@ -28,13 +28,17 @@ export const App = () => {
 		};
 	}, []);
 
+	if (viewProps === null) {
+		return null;
+	}
+
 	if (viewProps.kind === 'CODEMOD') {
-		return viewProps.docs !== null ? (
+		return (
 			<ReactMarkdown
-				children={viewProps.docs}
+				children={viewProps.doc}
 				className="markdownContainer"
 			/>
-		) : null;
+		);
 	}
 
 	return (
