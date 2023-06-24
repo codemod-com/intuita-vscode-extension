@@ -47,7 +47,7 @@ const selectPanelViewProps = (
 	}
 
 	const validation1 = codemodMetadataCodec.decode(mainPanel);
-	console.log(validation1, 'VALIDATION 1');
+
 	if (validation1._tag === 'Right') {
 		const { title, doc } = validation1.right;
 		return {
@@ -58,7 +58,7 @@ const selectPanelViewProps = (
 	}
 
 	const validation2 = jobViewCodec.decode(mainPanel);
-	console.log(validation2, 'VALIDATION 2');
+
 	if (validation2._tag === 'Right') {
 		const { selectedCaseHash, focusedJobHash } = validation2.right;
 
