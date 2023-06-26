@@ -16,6 +16,8 @@ import { NodeDatum } from '../../intuitaTreeView';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
+import InfiniteProgress from '../TreeView/InfiniteProgress';
+import ProgressBar from '../TreeView/ProgressBar';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -39,17 +41,15 @@ type Props = Readonly<{
 	>;
 	rootPath: string;
 	autocompleteItems: ReadonlyArray<string>;
-	progressBar: (node: CodemodNode) => JSX.Element | null;
-	actionButtons: (
-		node: CodemodNode,
-	) => ReactNode;
+	getProgress: (node: CodemodNode) => number | null;
+	actionButtons: (node: CodemodNode) => ReactNode;
 }>;
 
 const Codemod = ({
 	nodeDatum,
 	rootPath,
 	autocompleteItems,
-	progressBar,
+	getProgress,
 	actionButtons,
 }: Props) => {
 	const { node } = nodeDatum;
@@ -135,6 +135,8 @@ const Codemod = ({
 		};
 	}, [hashDigest]);
 
+	const progress = getProgress(node);
+
 	return (
 		<>
 			{!editingPath ? (
@@ -198,12 +200,15 @@ const Codemod = ({
 						)}
 					</span>
 				</span>
-				{progressBar(node)}
+				{progress && node.codemodKind === 'repomod' ? (
+					<InfiniteProgress />
+				) : null}
+				{progress && node.codemodKind === 'executeCodemod' ? (
+					<ProgressBar progress={progress} />
+				) : null}
 			</div>
 			{!editingPath && (
-				<div className={cn(styles.actions)}>
-					{actionButtons(node)}
-				</div>
+				<div className={cn(styles.actions)}>{actionButtons(node)}</div>
 			)}
 		</>
 	);

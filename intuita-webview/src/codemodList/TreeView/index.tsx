@@ -65,11 +65,9 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 		});
 	}, [executionStack]);
 
-	const [progress, { progressBar }] = useProgressBar(onHalt);
+	const progress = useProgressBar(onHalt);
 
-	const getActionButtons = (
-		node: CodemodNode,
-	) => {
+	const getActionButtons = (node: CodemodNode) => {
 		if (node.kind !== 'CODEMOD') {
 			return null;
 		}
@@ -127,7 +125,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 							kind: 'webview.codemodList.haltCodemodExecution',
 							value: node.hashDigest as unknown as CodemodHash,
 						});
-						
+
 						onHalt();
 					}}
 				/>
@@ -136,6 +134,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 
 		return null;
 	};
+	
 
 	return (
 		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
@@ -143,12 +142,12 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 			nodeRenderer={getCodemodNodeRenderer({
 				autocompleteItems,
 				rootPath,
-				progressBar: (node: CodemodNode) =>
+				getProgress: (node: CodemodNode) =>
 					progress?.codemodHash ===
 					(node.hashDigest as unknown as CodemodHash)
-						? progressBar
+						? progress.progress
 						: null,
-				actionButtons: getActionButtons
+				actionButtons: getActionButtons,
 			})}
 			onFlip={onFlip}
 			onFocus={onFocus}

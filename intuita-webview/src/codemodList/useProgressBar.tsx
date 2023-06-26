@@ -1,46 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { Line } from 'rc-progress';
+import { useEffect, useState } from 'react';
 import { CodemodHash, WebviewMessage } from '../shared/types';
-import styles from './TreeView/style.module.css';
-import { vscode } from '../shared/utilities/vscode';
-import Popover from '../shared/Popover';
 
 type ProgressType = {
 	progress: number;
 	codemodHash: CodemodHash;
 };
 
-export const useProgressBar = (
-	onHalt: () => void,
-): [
-	ProgressType | null,
-	{
-		progressBar: JSX.Element | null;
-		stopProgress: JSX.Element | null;
-	},
-] => {
-	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+export const useProgressBar = (onHalt: () => void): ProgressType | null => {
 	const [codemodExecutionProgress, setCodemodExecutionProgress] =
 		useState<null | ProgressType>(null);
-
-	const handleClearInterval = () => {
-		if (intervalRef.current !== null) {
-			clearInterval(intervalRef.current);
-			intervalRef.current = null;
-		}
-		setCodemodExecutionProgress(null);
-	};
-
-	const handleStopCodemodExecution = (hash: CodemodHash) => {
-		handleClearInterval();
-		if (!hash) {
-			return;
-		}
-		vscode.postMessage({
-			kind: 'webview.codemodList.haltCodemodExecution',
-			value: hash,
-		});
-	};
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -54,7 +22,6 @@ export const useProgressBar = (
 			}
 
 			if (message.kind === 'webview.global.codemodExecutionHalted') {
-				handleClearInterval();
 				setCodemodExecutionProgress(null);
 				onHalt();
 			}
@@ -67,54 +34,5 @@ export const useProgressBar = (
 		};
 	}, [codemodExecutionProgress?.codemodHash, onHalt]);
 
-
-	const progressBar =
-		codemodExecutionProgress !== null ? (
-			<>
-				<div
-					className="flex mb-2"
-					style={{ height: '3.5px', width: '95%' }}
-				>
-					<Line
-					
-						percent={codemodExecutionProgress.progress}
-						strokeWidth={1.5}
-						className="w-full"
-						strokeLinecap="round"
-						trailColor="var(--scrollbar-slider-background)"
-						strokeColor="var(--vscode-progressBar-background)"
-					/>
-				</div>
-			</>
-		) : null;
-
-	const stopProgress = codemodExecutionProgress ? (
-		<Popover
-			trigger={
-				// eslint-disable-next-line jsx-a11y/anchor-is-valid
-				<a
-					className={styles.action}
-					role="button"
-					onClick={(e) => {
-						e.stopPropagation();
-						onHalt();
-						handleStopCodemodExecution(
-							codemodExecutionProgress.codemodHash,
-						);
-					}}
-					style={{ marginLeft: '0px' }}
-				>
-					<i className="codicon codicon-debug-stop" />
-				</a>
-			}
-			popoverText="Stop Codemod Execution"
-		/>
-	) : null;
-	return [
-		codemodExecutionProgress,
-		{
-			progressBar,
-			stopProgress,
-		},
-	];
+	return codemodExecutionProgress;
 };

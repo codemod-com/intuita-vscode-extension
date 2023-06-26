@@ -29,10 +29,8 @@ const getContainerInlineStyles = ({
 type Deps = {
 	rootPath: string;
 	autocompleteItems: string[];
-	progressBar: (node: CodemodNode) => JSX.Element | null;
-	actionButtons: (
-		node: CodemodNode,
-	) => ReactNode;
+	getProgress: (node: CodemodNode) => number | null;
+	actionButtons: (node: CodemodNode) => ReactNode;
 };
 
 type Props = Readonly<{
@@ -42,7 +40,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({ rootPath, autocompleteItems, progressBar, actionButtons }: Deps) =>
+	({ rootPath, autocompleteItems, getProgress, actionButtons }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -86,7 +84,7 @@ const getCodemodNodeRenderer =
 						}
 						autocompleteItems={autocompleteItems}
 						rootPath={rootPath}
-						progressBar={progressBar}
+						getProgress={getProgress}
 						actionButtons={actionButtons}
 					/>
 				) : (
