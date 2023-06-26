@@ -182,7 +182,7 @@ const Codemod = ({
 
 
 	const codemodInProgress = progress !== null;
-
+	console.log('CODEMOD RENERED')
 	return (
 		<>
 			{!editingPath ? (

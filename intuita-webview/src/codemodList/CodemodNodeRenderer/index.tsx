@@ -68,6 +68,7 @@ const getCodemodNodeRenderer =
 
 		return (
 			<div
+				key={hashDigest}
 				id={hashDigest}
 				tabIndex={0}
 				ref={ref}
