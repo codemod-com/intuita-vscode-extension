@@ -59,6 +59,11 @@ export const getInitialState = (): RootState => {
 		appliedJobHashes: [],
 		codemodExecutionInProgress: false,
 		activeTabId: TabKind.codemods,
+		explorerSearchPhrases: {},
+		explorerNodes: {},
+		selectedExplorerNodes: {},
+		collapsedExplorerNodes: {},
+		focusedExplorerNodes: {},
 	};
 };
 
