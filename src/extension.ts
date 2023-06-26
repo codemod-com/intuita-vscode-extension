@@ -93,11 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const fileExplorerProvider = new FileExplorer(
-		messageBus,
-		jobManager,
-		store,
-	);
+	const fileExplorerProvider = new FileExplorer(store);
 
 	const campaignManagerProvider = new CampaignManager(store);
 
