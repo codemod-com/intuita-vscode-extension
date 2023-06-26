@@ -4,7 +4,7 @@ import { actions } from '../data/slice';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import { isNeitherNullNorUndefined } from '../utilities';
-import { Case, CaseWithJobHashes, CaseHash } from './types';
+import { CaseHash } from './types';
 
 export class CaseManager {
 	public constructor(
@@ -29,61 +29,6 @@ export class CaseManager {
 		this.__messageBus.subscribe(MessageKind.clearState, () =>
 			this.#onClearStateMessage(),
 		);
-	}
-
-	public getCase(caseHash: CaseHash): Case | undefined {
-		const state = this.__store.getState();
-
-		return state.case.entities[caseHash];
-	}
-
-	public getJobHashes(caseHashes: Iterable<CaseHash>): ReadonlySet<JobHash> {
-		const state = this.__store.getState();
-
-		const caseHashJobHashSetManager = new LeftRightHashSetManager<
-			CaseHash,
-			JobHash
-		>(new Set(state.caseHashJobHashes));
-
-		const jobHashes = new Set<JobHash>();
-
-		for (const caseHash of caseHashes) {
-			const caseJobHashes =
-				caseHashJobHashSetManager.getRightHashesByLeftHash(caseHash);
-
-			for (const jobHash of caseJobHashes) {
-				jobHashes.add(jobHash);
-			}
-		}
-
-		return jobHashes;
-	}
-
-	public getCasesWithJobHashes(): ReadonlySet<CaseWithJobHashes> {
-		const state = this.__store.getState();
-
-		const caseHashJobHashSetManager = new LeftRightHashSetManager<
-			CaseHash,
-			JobHash
-		>(new Set(state.caseHashJobHashes));
-
-		const caseWithJobHashes = new Set<CaseWithJobHashes>();
-
-		const cases = Object.values(state.case.entities).filter(
-			isNeitherNullNorUndefined,
-		);
-
-		for (const kase of cases) {
-			const jobHashes =
-				caseHashJobHashSetManager.getRightHashesByLeftHash(kase.hash);
-
-			caseWithJobHashes.add({
-				...kase,
-				jobHashes,
-			});
-		}
-
-		return caseWithJobHashes;
 	}
 
 	#onUpsertCasesMessage(
