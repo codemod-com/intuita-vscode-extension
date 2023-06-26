@@ -41,8 +41,20 @@ const TreeItem = ({
 
 	useLayoutEffect(() => {
 		if (focused) {
-			ref.current?.focus();
+			const timeout = setTimeout(() => {
+				ref.current?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'center',
+					inline: 'center',
+				});
+			}, 0);
+
+			return () => {
+				clearTimeout(timeout);
+			};
 		}
+
+		return () => {};
 	}, [focused]);
 
 	return (
