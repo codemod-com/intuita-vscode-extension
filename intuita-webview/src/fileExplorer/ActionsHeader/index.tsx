@@ -77,7 +77,6 @@ export const ActionsHeader = (
 							discardChanges(props.caseHash);
 						}}
 						className={styles.vscodeButton}
-						disabled={props.searchPhrase.length !== 0}
 					>
 						{discardText}
 					</VSCodeButton>
@@ -97,9 +96,6 @@ export const ActionsHeader = (
 
 							applySelected(props.caseHash);
 						}}
-						disabled={
-							props.searchPhrase.length !== 0 || status === 'NONE'
-						}
 						className={styles.vscodeButton}
 					>
 						{applyText}
@@ -118,7 +114,6 @@ export const ActionsHeader = (
 			<Popover
 				trigger={
 					<VSCodeButton
-						disabled={props.searchPhrase.length !== 0}
 						onClick={(event) => {
 							event.stopPropagation();
 

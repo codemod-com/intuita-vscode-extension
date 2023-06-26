@@ -186,22 +186,46 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const state = store.getState();
 
+					const collapsed =
+						state.collapsedExplorerNodes[cashHashDigest] ?? [];
+					const searchPhrase = (
+						state.explorerSearchPhrases[cashHashDigest] ?? ''
+					).trim();
+
+					if (collapsed.length !== 0 || searchPhrase.length !== 0) {
+						const choice = await vscode.window.showWarningMessage(
+							'There are more files than the ones visible in the Change Explorer, ' +
+								'due to you having collapsed some directories or applied a search phrase.' +
+								' Do you want to continue?',
+							'Yes',
+							'No',
+						);
+
+						if (choice !== 'Yes') {
+							return;
+						}
+					}
+
 					const selectedHashDigests =
 						state.selectedExplorerNodes[cashHashDigest] ?? [];
 
-					const jobHashes = (
-						state.explorerNodes[cashHashDigest] ?? []
-					)
-						.filter(
-							(node): node is _ExplorerNode & { kind: 'FILE' } =>
-								node.kind === 'FILE' &&
-								selectedHashDigests.includes(node.hashDigest),
+					const explorerNodes =
+						state.explorerNodes[cashHashDigest] ?? [];
+
+					const fileNodes = explorerNodes.filter(
+						(node): node is _ExplorerNode & { kind: 'FILE' } =>
+							node.kind === 'FILE',
+					);
+
+					const jobHashes = fileNodes
+						.filter(({ hashDigest }) =>
+							selectedHashDigests.includes(hashDigest),
 						)
-						.map((node) => node.jobHash);
+						.map(({ jobHash }) => jobHash);
 
 					await jobManager.acceptJobs(new Set(jobHashes));
 
-					vscode.commands.executeCommand(
+					await vscode.commands.executeCommand(
 						'intuita.rejectCase',
 						cashHashDigest,
 					);

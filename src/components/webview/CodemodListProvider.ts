@@ -147,9 +147,7 @@ export class CodemodListPanel {
 	private __buildProps() {
 		const state = this.__store.getState();
 		const { searchPhrase } = state.codemodDiscoveryView;
-		console.time('select');
 		const codemodTree = selectCodemodTree(state, this.__rootPath ?? '');
-		console.timeEnd('select');
 
 		return {
 			searchPhrase,
