@@ -7,6 +7,7 @@ import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec, caseHashCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
 import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
+import { explorerNodeCodec } from './explorerNodeCodec';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -117,6 +118,23 @@ export const persistedStateCodecNew = buildTypeCodec({
 			t.literal(TabKind.community),
 		]),
 		TabKind.codemods,
+	),
+	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
+	explorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(explorerNodeCodec)),
+		{},
+	),
+	selectedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(explorerNodeHashDigestCodec)),
+		{},
+	),
+	collapsedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(explorerNodeHashDigestCodec)),
+		{},
+	),
+	focusedExplorerNodes: withFallback(
+		t.record(caseHashCodec, explorerNodeHashDigestCodec),
+		{},
 	),
 });
 
