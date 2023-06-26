@@ -153,7 +153,7 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 			return;
 		}
 
-		const isSearching = searchPhrase.length !== 0;
+		const isSearching = searchPhrase.trim().length !== 0;
 
 		// searched nodes should always be expanded
 		const expanded =
