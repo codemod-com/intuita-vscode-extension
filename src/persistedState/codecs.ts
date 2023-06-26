@@ -7,7 +7,10 @@ import { jobHashCodec, persistedJobCodec } from '../jobs/types';
 import { caseCodec, caseHashCodec } from '../cases/types';
 import { explorerNodeHashDigestCodec } from '../selectors/selectExplorerTree';
 import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
-import { explorerNodeCodec } from './explorerNodeCodec';
+import {
+	_explorerNodeCodec,
+	_explorerNodeHashDigestCodec,
+} from './explorerNodeCodec';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -121,19 +124,19 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
 	explorerNodes: withFallback(
-		t.record(caseHashCodec, t.readonlyArray(explorerNodeCodec)),
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeCodec)),
 		{},
 	),
 	selectedExplorerNodes: withFallback(
-		t.record(caseHashCodec, t.readonlyArray(explorerNodeHashDigestCodec)),
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
 		{},
 	),
 	collapsedExplorerNodes: withFallback(
-		t.record(caseHashCodec, t.readonlyArray(explorerNodeHashDigestCodec)),
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
 		{},
 	),
 	focusedExplorerNodes: withFallback(
-		t.record(caseHashCodec, explorerNodeHashDigestCodec),
+		t.record(caseHashCodec, _explorerNodeHashDigestCodec),
 		{},
 	),
 });
