@@ -1,11 +1,7 @@
-import {
-	VSCodeButton,
-	VSCodeProgressRing,
-} from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import Popover from '../../shared/Popover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
-import { JobHash } from '../../shared/types';
 import { CaseHash } from '../../../../src/cases/types';
 import { ReactComponent as CheckboxIndeterminate } from '../../assets/checkbox_indeterminate.svg';
 import { ReactComponent as CheckboxBlank } from '../../assets/checkbox_blank.svg';
@@ -17,77 +13,73 @@ const POPOVER_TEXTS = {
 	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
-type Props = Readonly<{
-	caseHash: CaseHash;
-	jobHashes: ReadonlyArray<JobHash>;
-	selectedJobHashes: ReadonlyArray<JobHash>;
-	screenWidth: number | null;
-}>;
+const flipSelectedExplorerNodes = (caseHashDigest: CaseHash) => {
+	// TODO RESTORE
+	// vscode.postMessage({
+	// 	kind: 'webview.global.flipSelectedExplorerNodes',
+	// 	caseHashDigest,
+	// });
+};
 
-const ActionsHeader = ({
-	selectedJobHashes,
-	caseHash,
-	jobHashes,
-	screenWidth,
-}: Props) => {
-	const ready = jobHashes.length > 0;
-	const hasStagedJobs = selectedJobHashes.length > 0;
-	const hasStagedAllJobs =
-		ready && selectedJobHashes.length === jobHashes.length;
+const discardChanges = (caseHashDigest: CaseHash) => {
+	vscode.postMessage({
+		kind: 'webview.global.discardChanges',
+		caseHash: caseHashDigest,
+	});
+};
 
-	const handleToggleAllJobs = () => {
-		if (!ready) {
-			return;
-		}
+const applySelected = (caseHashDigest: CaseHash) => {
+	vscode.postMessage({
+		kind: 'webview.global.applySelected',
+		jobHashes: [], // TODO remove
+		diffId: caseHashDigest, // TODO to caseHashDigest
+	});
+};
 
-		vscode.postMessage({
-			kind: 'webview.global.stageJobs',
-			jobHashes: hasStagedJobs ? [] : jobHashes,
-		});
-	};
-
-	const handleDiscardChanges = () => {
-		vscode.postMessage({
-			kind: 'webview.global.discardChanges',
-			caseHash,
-		});
-	};
-
-	const handleApplySelected = () => {
-		vscode.postMessage({
-			kind: 'webview.global.applySelected',
-			jobHashes: selectedJobHashes,
-			diffId: caseHash,
-		});
-	};
+export const ActionsHeader = (
+	props: Readonly<{
+		searchPhrase: string;
+		caseHash: CaseHash;
+		selectedJobCount: number;
+		jobCount: number;
+		screenWidth: number | null;
+	}>,
+) => {
+	const status =
+		props.selectedJobCount === props.jobCount
+			? 'ALL'
+			: props.selectedJobCount > 0
+			? 'SOME'
+			: 'NONE';
 
 	let discardText = 'Discard All';
 	let applyText = 'Apply Selected';
 
-	if (screenWidth !== null && screenWidth < 340) {
+	if (props.screenWidth !== null && props.screenWidth < 340) {
 		discardText = 'X';
 		applyText = '✔️';
-	} else if (screenWidth !== null && screenWidth < 420) {
+	} else if (props.screenWidth !== null && props.screenWidth < 420) {
 		discardText = 'Discard';
 		applyText = 'Apply';
 	}
 
 	return (
 		<div className={styles.root}>
-			{ready ? (
-				<h4
-					className={styles.selectedFileCount}
-				>{`Selected files: ${selectedJobHashes.length} of ${jobHashes.length}`}</h4>
-			) : (
-				<VSCodeProgressRing className={styles.progressRing} />
-			)}
+			<h4
+				className={styles.selectedFileCount}
+			>{`Selected files: ${props.selectedJobCount} of ${props.jobCount}`}</h4>
+
 			<Popover
 				trigger={
 					<VSCodeButton
 						appearance="secondary"
-						onClick={handleDiscardChanges}
+						onClick={(event) => {
+							event.preventDefault();
+
+							discardChanges(props.caseHash);
+						}}
 						className={styles.vscodeButton}
-						disabled={!ready}
+						disabled={props.searchPhrase.length !== 0}
 					>
 						{discardText}
 					</VSCodeButton>
@@ -102,15 +94,21 @@ const ActionsHeader = ({
 				trigger={
 					<VSCodeButton
 						appearance="primary"
-						onClick={handleApplySelected}
-						disabled={!ready || !hasStagedJobs}
+						onClick={(event) => {
+							event.preventDefault();
+
+							applySelected(props.caseHash);
+						}}
+						disabled={
+							props.searchPhrase.length !== 0 || status === 'NONE'
+						}
 						className={styles.vscodeButton}
 					>
 						{applyText}
 					</VSCodeButton>
 				}
 				popoverText={
-					!hasStagedJobs
+					status === 'NONE'
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}
@@ -122,25 +120,27 @@ const ActionsHeader = ({
 			<Popover
 				trigger={
 					<VSCodeButton
-						disabled={!ready}
-						onClick={handleToggleAllJobs}
+						disabled={props.searchPhrase.length !== 0}
+						onClick={(event) => {
+							event.stopPropagation();
+
+							flipSelectedExplorerNodes(props.caseHash);
+						}}
 						appearance="icon"
 					>
-						{!hasStagedJobs && (
+						{status === 'NONE' && (
 							<CheckboxBlank className={styles.icon} />
 						)}
-						{hasStagedJobs &&
-							(hasStagedAllJobs ? (
-								<CheckboxChecked className={styles.icon} />
-							) : (
-								<CheckboxIndeterminate
-									className={styles.icon}
-								/>
-							))}
+						{status === 'SOME' && (
+							<CheckboxIndeterminate className={styles.icon} />
+						)}
+						{status === 'ALL' && (
+							<CheckboxChecked className={styles.icon} />
+						)}
 					</VSCodeButton>
 				}
 				popoverText={
-					!hasStagedJobs
+					status === 'NONE'
 						? 'Select all changes'
 						: 'Unselect all changes'
 				}
@@ -152,5 +152,3 @@ const ActionsHeader = ({
 		</div>
 	);
 };
-
-export default ActionsHeader;

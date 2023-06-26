@@ -6,7 +6,7 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
-import ActionsHeader from './ActionsHeader';
+import { ActionsHeader } from './ActionsHeader';
 import Progress from '../shared/Progress';
 
 import { vscode } from '../shared/utilities/vscode';
@@ -132,10 +132,11 @@ function App({ screenWidth }: Props) {
 		>
 			{viewProps !== null && (
 				<ActionsHeader
-					selectedJobHashes={viewProps.appliedJobHashes}
-					jobHashes={viewProps.jobHashes}
 					caseHash={viewProps.caseHash}
 					screenWidth={screenWidth}
+					searchPhrase={viewProps.searchPhrase}
+					selectedJobCount={0 /*viewProps.selectedJobCount*/}
+					jobCount={0 /*viewProps.jobCount*/}
 				/>
 			)}
 			{viewProps !== null && (
