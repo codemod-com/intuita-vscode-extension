@@ -4,7 +4,6 @@ import { buildCodemodMetadataHash, buildTypeCodec } from '../../utilities';
 import * as t from 'io-ts';
 import * as E from 'fp-ts/Either';
 import { DownloadService } from '../downloadService';
-export class MetadataNotFoundError extends Error {}
 
 const indexItemCodec = buildTypeCodec({
 	kind: t.literal('README'),
@@ -14,11 +13,9 @@ const indexItemCodec = buildTypeCodec({
 
 const BASE_URL = `https://intuita-public.s3.us-west-1.amazonaws.com`;
 
-export class TextDocumentContentProvider
-	implements TextDocumentContentProvider
-{
-	private __codemodMetadata = new Map<string, string>();
-	public onDidChangeEmitter = new EventEmitter<Uri>();
+export class CodemodDescriptionProvider {
+	private __descriptions = new Map<string, string>();
+	public onDidChangeEmitter = new EventEmitter<null>();
 	public onDidChange = this.onDidChangeEmitter.event;
 
 	constructor(
@@ -32,12 +29,26 @@ export class TextDocumentContentProvider
 		);
 	}
 
-	public hasMetadata(uri: Uri): boolean {
-		return this.__getCodemodMetadata(uri) !== null;
-	}
+	public getCodemodDescription(name: string): string {
+		const hash = buildCodemodMetadataHash(name);
 
-	public provideTextDocumentContent(uri: Uri): string {
-		return this.__getCodemodMetadata(uri) ?? '';
+		const data = this.__descriptions.get(hash) ?? null;
+
+		if (data === null) {
+			this.__readDataFromFileSystem(hash)
+				.then((data) => {
+					this.__descriptions.set(hash, data);
+
+					this.onDidChangeEmitter.fire(null);
+				})
+				.catch((error) => {
+					console.error(error);
+				});
+
+			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
+		}
+
+		return data;
 	}
 
 	private async __onEngineBootstrapped() {
@@ -84,12 +95,10 @@ export class TextDocumentContentProvider
 
 				const hash = buildCodemodMetadataHash(indexItem.name);
 
-				this.__codemodMetadata.set(hash, metadata);
-
-				const uri = Uri.parse(`codemod:${indexItem.name}.md`);
-
-				this.onDidChangeEmitter.fire(uri);
+				this.__descriptions.set(hash, metadata);
 			}
+
+			this.onDidChangeEmitter.fire(null);
 		} catch (error) {
 			console.error(error);
 		}
@@ -104,35 +113,11 @@ export class TextDocumentContentProvider
 			await this.__downloadService.downloadFileIfNeeded(url, uri, null);
 
 			const uint8array = await this.__fileSystem.readFile(uri);
+
 			return uint8array.toString();
 		} catch (e) {
 			return null;
 		}
-	}
-
-	private __getCodemodMetadata(uri: Uri): string | null {
-		const { path } = uri;
-
-		const name = path.replace(/\.md$/, '');
-		const hash = buildCodemodMetadataHash(name);
-
-		const data = this.__codemodMetadata.get(hash) ?? null;
-
-		if (data === null) {
-			this.__readDataFromFileSystem(hash)
-				.then((data) => {
-					this.__codemodMetadata.set(hash, data);
-
-					this.onDidChangeEmitter.fire(uri);
-				})
-				.catch((error) => {
-					console.error(error);
-				});
-
-			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
-		}
-
-		return data;
 	}
 
 	private async __readDataFromFileSystem(hash: string): Promise<string> {

@@ -11,6 +11,8 @@ import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { isNeitherNullNorUndefined } from '../../utilities';
 import { comparePersistedJobs } from '../../selectors/comparePersistedJobs';
 import { actions } from '../../data/slice';
+import { CodemodDescriptionProvider } from './CodemodDescriptionProvider';
+import { TabKind } from '../../persistedState/codecs';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -34,10 +36,43 @@ Codemod: ${codemodName}
 };
 
 const selectPanelViewProps = (
+	codemodDescriptionProvider: CodemodDescriptionProvider,
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
+	const { activeTabId } = state;
+
+	if (activeTabId === TabKind.community) {
+		return null;
+	}
+
+	if (activeTabId === TabKind.codemods) {
+		const { focusedCodemodHashDigest } = state.codemodDiscoveryView;
+
+		if (focusedCodemodHashDigest === null) {
+			return null;
+		}
+
+		const codemod =
+			state.codemod.entities[focusedCodemodHashDigest] ?? null;
+
+		if (codemod === null) {
+			return null;
+		}
+
+		const description = codemodDescriptionProvider.getCodemodDescription(
+			codemod.name,
+		);
+
+		return {
+			kind: 'CODEMOD',
+			title: codemod.name,
+			description: description,
+		};
+	}
+
 	const { selectedCaseHash } = state.codemodRunsView;
+
 	const { focusedJobHash } = state.changeExplorerView;
 
 	if (selectedCaseHash === null || focusedJobHash === null) {
@@ -113,12 +148,18 @@ export class IntuitaPanelProvider {
 	public constructor(
 		private readonly __extensionUri: Uri,
 		private readonly __store: Store,
+		codemodDescriptionProvider: CodemodDescriptionProvider,
 		rootPath: string,
 	) {
-		let prevViewProps = selectPanelViewProps(__store.getState(), rootPath);
+		let prevViewProps = selectPanelViewProps(
+			codemodDescriptionProvider,
+			__store.getState(),
+			rootPath,
+		);
 
-		__store.subscribe(async () => {
+		const listener = async () => {
 			const nextViewProps = selectPanelViewProps(
+				codemodDescriptionProvider,
 				__store.getState(),
 				rootPath,
 			);
@@ -134,7 +175,11 @@ export class IntuitaPanelProvider {
 			} else {
 				this.__disposePanel();
 			}
-		});
+		};
+
+		__store.subscribe(listener);
+
+		codemodDescriptionProvider.onDidChange(listener);
 	}
 
 	private async __upsertPanel(

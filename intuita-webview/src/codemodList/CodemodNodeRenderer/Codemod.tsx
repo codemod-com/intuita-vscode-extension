@@ -44,7 +44,6 @@ type Props = Readonly<{
 		node: CodemodNode,
 		doesDisplayShortenedTitle: boolean,
 	) => ReactNode[];
-	onDoubleClick(node: CodemodNode): void;
 }>;
 
 const Codemod = ({

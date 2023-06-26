@@ -195,15 +195,6 @@ export type View =
 			viewProps: CodemodRunsTree;
 	  }>
 	| Readonly<{
-			viewId: 'jobDiffView';
-			viewProps: {
-				diffId: string;
-				title: string;
-				loading: boolean;
-				data: JobDiffViewProps[];
-			};
-	  }>
-	| Readonly<{
 			viewId: 'codemods';
 			viewProps: {
 				codemodTree: CodemodTree;
