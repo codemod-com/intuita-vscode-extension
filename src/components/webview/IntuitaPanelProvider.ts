@@ -178,7 +178,14 @@ export class IntuitaPanelProvider {
 				rootPath,
 			);
 
-			if (areEqual(prevViewProps, nextViewProps)) {
+			if (
+				areEqual(prevViewProps, nextViewProps) &&
+				// this check ensures that if the panel was closed manually (disposed)
+				// and there are some data to render,
+				// the panel will be reopened
+				nextViewProps !== null &&
+				this.__webviewPanel?.active
+			) {
 				return;
 			}
 
