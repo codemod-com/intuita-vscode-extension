@@ -5,8 +5,7 @@ import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
-import { JobHash } from './jobs/types';
-import { CaseHash } from './cases/types';
+import { CaseHash, caseHashCodec } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService, Messages } from './components/engineService';
@@ -20,7 +19,6 @@ import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
-import { applyChangesCoded } from './components/sourceControl/codecs';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
 import { MainViewProvider } from './components/webview/MainProvider';
@@ -29,6 +27,8 @@ import { actions } from './data/slice';
 import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
+import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
+import { _ExplorerNode } from './persistedState/explorerNodeCodec';
 
 const messageBus = new MessageBus();
 
@@ -175,23 +175,36 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 			async (arg0: unknown) => {
 				try {
-					const decoded = applyChangesCoded.decode(arg0);
+					const validation = caseHashCodec.decode(arg0);
 
-					if (decoded._tag === 'Left') {
+					if (validation._tag === 'Left') {
 						throw new Error(
-							prettyReporter.report(decoded).join('\n'),
+							prettyReporter.report(validation).join('\n'),
 						);
 					}
 
-					const { jobHashes, diffId: caseHash } = decoded.right;
+					const cashHashDigest = validation.right;
 
-					await jobManager.acceptJobs(
-						new Set(jobHashes as JobHash[]),
-					);
+					const state = store.getState();
+
+					const selectedHashDigests =
+						state.selectedExplorerNodes[cashHashDigest] ?? [];
+
+					const jobHashes = (
+						state.explorerNodes[cashHashDigest] ?? []
+					)
+						.filter(
+							(node): node is _ExplorerNode & { kind: 'FILE' } =>
+								node.kind === 'FILE' &&
+								selectedHashDigests.includes(node.hashDigest),
+						)
+						.map((node) => node.jobHash);
+
+					await jobManager.acceptJobs(new Set(jobHashes));
 
 					vscode.commands.executeCommand(
 						'intuita.rejectCase',
-						caseHash,
+						cashHashDigest,
 					);
 
 					vscode.commands.executeCommand('workbench.view.scm');
@@ -556,7 +569,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.clearState', () => {
+			const state = store.getState();
+
+			const uris: vscode.Uri[] = [];
+
+			for (const job of Object.values(state.job.entities)) {
+				if (
+					!job ||
+					!doesJobAddNewFile(job.kind) ||
+					job.newContentUri === null
+				) {
+					continue;
+				}
+
+				uris.push(vscode.Uri.parse(job.newContentUri));
+			}
+
 			store.dispatch(actions.clearState());
+
+			messageBus.publish({
+				kind: MessageKind.deleteFiles,
+				uris,
+			});
 		}),
 	);
 
