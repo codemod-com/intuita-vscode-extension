@@ -3,8 +3,8 @@ import * as E from 'fp-ts/Either';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri, window } from 'vscode';
-import { CaseKind, CaseWithJobHashes } from '../cases/types';
+import { FileSystem, Uri, window, workspace } from 'vscode';
+import { Case, CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
@@ -22,7 +22,6 @@ import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
-import { TabKind } from '../persistedState/codecs';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -110,7 +109,7 @@ type Execution = {
 	halted: boolean;
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
-	case: CaseWithJobHashes;
+	case: Case;
 };
 
 export class EngineService {
@@ -418,7 +417,7 @@ export class EngineService {
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
-			case: {} as CaseWithJobHashes,
+			case: {} as Case,
 		};
 		if (
 			'kind' in message.command &&
@@ -591,29 +590,24 @@ export class EngineService {
 
 			this.#execution.jobs.push(job);
 
-			const kase = {
+			const kase: Case = {
+				hash: buildCaseHash(
+					{ kind: caseKind, subKind: codemodName },
+					executionId,
+				),
 				kind: caseKind,
 				subKind: codemodName,
-			} as const;
-
-			const caseWithJobHashes: CaseWithJobHashes = {
-				hash: buildCaseHash(kase, executionId),
-				kind: caseKind,
-				subKind: codemodName,
-				jobHashes: new Set([job.hash]),
 				codemodSetName: job.codemodSetName,
 				codemodName: job.codemodName,
 			};
 
-			this.#execution.case = caseWithJobHashes;
+			this.#execution.case = kase;
 
-			this.__store.dispatch(
-				actions.setSelectedCaseHash(caseWithJobHashes.hash),
-			);
+			this.__store.dispatch(actions.setSelectedCaseHash(kase.hash));
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCases,
-				casesWithJobHashes: [caseWithJobHashes],
+				kase,
 				jobs: [job],
 				executionId,
 			});
@@ -633,11 +627,10 @@ export class EngineService {
 				});
 
 				this.__store.dispatch(
-					actions.setCodemodExecutionInProgress(false),
-				);
-
-				this.__store.dispatch(
-					actions.setActiveTabId(TabKind.codemodRuns),
+					actions.setExplorerNodes([
+						this.#execution.case.hash,
+						workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+					]),
 				);
 
 				if (

@@ -8,10 +8,15 @@ import { Diff } from './Diff';
 import { useTheme } from '../../shared/Snippet/useTheme';
 import type { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 import { vscode } from '../../shared/utilities/vscode';
+import { CaseHash } from '../../../../src/cases/types';
 
-const changeJob = (direction: 'prev' | 'next') => {
+const focusExplorerNodeSibling = (
+	caseHashDigest: CaseHash,
+	direction: 'prev' | 'next',
+) => {
 	vscode.postMessage({
-		kind: 'webview.panel.changeJob',
+		kind: 'webview.global.focusExplorerNodeSibling',
+		caseHashDigest,
 		direction,
 	});
 };
@@ -36,7 +41,9 @@ export const JobDiffViewContainer = (
 				viewType={viewType}
 				jobCount={props.jobCount}
 				jobIndex={props.jobIndex}
-				changeJob={changeJob}
+				changeJob={(direction) =>
+					focusExplorerNodeSibling(props.caseHash, direction)
+				}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<JobDiffView

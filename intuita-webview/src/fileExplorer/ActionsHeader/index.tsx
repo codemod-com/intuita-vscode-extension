@@ -14,11 +14,10 @@ const POPOVER_TEXTS = {
 };
 
 const flipSelectedExplorerNodes = (caseHashDigest: CaseHash) => {
-	// TODO RESTORE
-	// vscode.postMessage({
-	// 	kind: 'webview.global.flipSelectedExplorerNodes',
-	// 	caseHashDigest,
-	// });
+	vscode.postMessage({
+		kind: 'webview.global.flipSelectedExplorerNodes',
+		caseHashDigest,
+	});
 };
 
 const discardChanges = (caseHashDigest: CaseHash) => {
@@ -31,8 +30,7 @@ const discardChanges = (caseHashDigest: CaseHash) => {
 const applySelected = (caseHashDigest: CaseHash) => {
 	vscode.postMessage({
 		kind: 'webview.global.applySelected',
-		jobHashes: [], // TODO remove
-		diffId: caseHashDigest, // TODO to caseHashDigest
+		caseHashDigest,
 	});
 };
 

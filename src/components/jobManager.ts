@@ -34,11 +34,6 @@ export class JobManager {
 		const persistedJobs = message.jobs.map(mapJobToPersistedJob);
 
 		this.__store.dispatch(actions.upsertJobs(persistedJobs));
-		this.__store.dispatch(
-			actions.upsertAppliedJobHashes(
-				message.jobs.map(({ hash }) => hash),
-			),
-		);
 	}
 
 	private async __onAcceptJobsMessage(
@@ -63,10 +58,6 @@ export class JobManager {
 			kind: MessageKind.jobsAccepted,
 			deletedJobs: new Set(deletedJobs),
 		});
-	}
-
-	public setAppliedJobs(jobHashes: ReadonlyArray<JobHash>): void {
-		this.__store.dispatch(actions.setAppliedJobHashes(jobHashes));
 	}
 
 	public deleteJobs(jobHash: ReadonlyArray<JobHash>) {

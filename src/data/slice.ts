@@ -11,12 +11,8 @@ import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { RootState, TabKind } from '../persistedState/codecs';
-import {
-	ExplorerNodeHashDigest,
-	selectExplorerTree,
-} from '../selectors/selectExplorerTree';
+import { selectNodeData } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
-import { workspace } from 'vscode';
 import {
 	_ExplorerNode,
 	_ExplorerNodeHashDigest,
@@ -63,12 +59,7 @@ export const getInitialState = (): RootState => {
 		},
 		changeExplorerView: {
 			collapsed: false,
-			focusedFileExplorerNodeId: null,
-			focusedJobHash: null,
-			collapsedNodeHashDigests: [],
-			searchPhrase: '',
 		},
-		appliedJobHashes: [],
 		codemodExecutionInProgress: false,
 		activeTabId: TabKind.codemods,
 		explorerSearchPhrases: {},
@@ -83,14 +74,44 @@ const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
 	reducers: {
-		setCases(state, action: PayloadAction<ReadonlyArray<Case>>) {
-			caseAdapter.setAll(state.case, action.payload);
-		},
-		upsertCases(state, action: PayloadAction<ReadonlyArray<Case>>) {
-			caseAdapter.upsertMany(state.case, action.payload);
+		upsertCase(
+			state,
+			action: PayloadAction<[Case, ReadonlyArray<string>]>,
+		) {
+			const [kase, caseHashJobHashes] = action.payload;
+
+			caseAdapter.upsertOne(state.case, kase);
+
+			const set = new Set([
+				...state.caseHashJobHashes,
+				...caseHashJobHashes,
+			]);
+
+			state.caseHashJobHashes = Array.from(set);
 		},
 		removeCases(state, action: PayloadAction<ReadonlyArray<CaseHash>>) {
 			caseAdapter.removeMany(state.case, action.payload);
+
+			state.caseHashJobHashes = state.caseHashJobHashes.filter(
+				(caseHashJobHash) =>
+					action.payload.every(
+						(caseHash) => !caseHashJobHash.startsWith(caseHash),
+					),
+			);
+
+			for (const caseHash of action.payload) {
+				state.executionErrors[caseHash] = [];
+
+				if (state.codemodRunsView.selectedCaseHash === caseHash) {
+					state.codemodRunsView.selectedCaseHash = null;
+				}
+
+				delete state.explorerSearchPhrases[caseHash];
+				delete state.explorerNodes[caseHash];
+				delete state.selectedExplorerNodes[caseHash];
+				delete state.collapsedExplorerNodes[caseHash];
+				delete state.focusedExplorerNodes[caseHash];
+			}
 		},
 		upsertJobs(state, action: PayloadAction<ReadonlyArray<PersistedJob>>) {
 			jobAdapter.upsertMany(state.job, action.payload);
@@ -98,12 +119,16 @@ const rootSlice = createSlice({
 		clearState(state) {
 			caseAdapter.removeAll(state.case);
 			jobAdapter.removeAll(state.job);
-			state.codemodRunsView.selectedCaseHash = null;
+
+			state.executionErrors = {};
 			state.caseHashJobHashes = [];
-			state.changeExplorerView.focusedFileExplorerNodeId = null;
-			state.changeExplorerView.focusedJobHash = null;
-			state.changeExplorerView.collapsedNodeHashDigests = [];
-			state.changeExplorerView.searchPhrase = '';
+			state.codemodRunsView.selectedCaseHash = null;
+
+			state.explorerSearchPhrases = {};
+			state.explorerNodes = {};
+			state.selectedExplorerNodes = {};
+			state.collapsedExplorerNodes = {};
+			state.focusedExplorerNodes = {};
 		},
 		upsertCodemods(
 			state,
@@ -111,28 +136,11 @@ const rootSlice = createSlice({
 		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
 		},
-		deleteCaseHashJobHashes(state) {
-			state.caseHashJobHashes = [];
-		},
-		upsertCaseHashJobHashes(
-			state,
-			action: PayloadAction<ReadonlyArray<string>>,
-		) {
-			const set = new Set([
-				...state.caseHashJobHashes,
-				...action.payload,
-			]);
-
-			state.caseHashJobHashes = Array.from(set);
-		},
 		/**
 		 * Codemod runs
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
-			state.changeExplorerView.focusedFileExplorerNodeId = null;
-			state.changeExplorerView.focusedJobHash = null;
-			state.changeExplorerView.collapsedNodeHashDigests = [];
 		},
 		/**
 		 * Codemod list
@@ -187,87 +195,34 @@ const rootSlice = createSlice({
 			const { caseHash, errors } = action.payload;
 			state.executionErrors[caseHash] = [...errors];
 		},
-		/**
-		 * Change explorer
-		 */
-		setFocusedFileExplorerNodeId(
-			state,
-			action: PayloadAction<
-				[ExplorerNodeHashDigest | null, JobHash | null]
-			>,
-		) {
-			state.changeExplorerView.focusedFileExplorerNodeId =
-				action.payload[0];
-			state.changeExplorerView.focusedJobHash = action.payload[1];
-		},
-		flipChangeExplorerHashDigests(
-			state,
-			action: PayloadAction<ExplorerNodeHashDigest>,
-		) {
-			const set = new Set<ExplorerNodeHashDigest>(
-				state.changeExplorerView.collapsedNodeHashDigests,
-			);
-
-			if (set.has(action.payload)) {
-				set.delete(action.payload);
-			} else {
-				set.add(action.payload);
-			}
-
-			state.changeExplorerView.collapsedNodeHashDigests = Array.from(set);
-		},
-		clearJobs(state) {
-			jobAdapter.removeAll(state.job);
-			state.appliedJobHashes = [];
-		},
-		upsertAppliedJobHashes(
-			state,
-			action: PayloadAction<ReadonlyArray<JobHash>>,
-		) {
-			state.appliedJobHashes = Array.from(
-				new Set([...state.appliedJobHashes, ...action.payload]),
-			);
-		},
-		setAppliedJobHashes(
-			state,
-			action: PayloadAction<ReadonlyArray<JobHash>>,
-		) {
-			state.appliedJobHashes = Array.from(
-				new Set(action.payload.slice()),
-			);
-		},
 		deleteJobs(state, action: PayloadAction<ReadonlyArray<JobHash>>) {
 			jobAdapter.removeMany(state.job, action.payload);
-
-			state.appliedJobHashes = state.appliedJobHashes.filter(
-				(jobHash) => !action.payload.includes(jobHash as JobHash),
-			);
 		},
 		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
 			state.codemodExecutionInProgress = action.payload;
 		},
-		setChangeExplorerSearchPhrase(state, action: PayloadAction<string>) {
-			state.changeExplorerView.searchPhrase = action.payload;
+		setChangeExplorerSearchPhrase(
+			state,
+			action: PayloadAction<[CaseHash, string]>,
+		) {
+			const [caseHash, searchPhrase] = action.payload;
+
+			state.explorerSearchPhrases[caseHash] = searchPhrase;
 		},
 		setActiveTabId(state, action: PayloadAction<TabKind>) {
 			state.activeTabId = action.payload;
 		},
-		changeJob(state, action: PayloadAction<'prev' | 'next'>) {
-			// this selector is expensive to calculate
-			const changeExplorerTree = selectExplorerTree(
-				state,
-				workspace.workspaceFolders?.[0]?.uri ?? null,
-			);
+		focusExplorerNodeSibling(
+			state,
+			action: PayloadAction<[CaseHash, 'prev' | 'next']>,
+		) {
+			const [caseHash, direction] = action.payload;
 
-			if (changeExplorerTree === null) {
-				return;
-			}
+			const prevNodeData = selectNodeData(state, caseHash);
+			const focused = state.focusedExplorerNodes[caseHash] ?? null;
 
-			const index = changeExplorerTree.nodeData.findIndex((nodeDatum) => {
-				return (
-					nodeDatum.node.hashDigest ===
-					changeExplorerTree.selectedNodeHashDigest
-				);
+			const index = prevNodeData.findIndex((nodeDatum) => {
+				return nodeDatum.node.hashDigest === focused;
 			});
 
 			if (index === -1) {
@@ -276,13 +231,12 @@ const rootSlice = createSlice({
 
 			const nodeData = [
 				// applies first the nodes after the found node
-				...changeExplorerTree.nodeData.slice(index + 1),
+				...prevNodeData.slice(index + 1),
 				// and the the nodes before the found node
-
-				...changeExplorerTree.nodeData.slice(0, index),
+				...prevNodeData.slice(0, index),
 			];
 
-			if (action.payload === 'prev') {
+			if (direction === 'prev') {
 				// if we are looking for the previous file,
 				// we can reverse the array (as if we were looking for the next file)
 				nodeData.reverse();
@@ -297,9 +251,7 @@ const rootSlice = createSlice({
 				return;
 			}
 
-			state.changeExplorerView.focusedJobHash = nodeDatum.node.jobHash;
-			state.changeExplorerView.focusedFileExplorerNodeId =
-				nodeDatum.node.hashDigest;
+			state.focusedExplorerNodes[caseHash] = nodeDatum.node.hashDigest;
 		},
 		focusOnChangeExplorer(state) {
 			state.activeTabId = TabKind.codemodRuns;

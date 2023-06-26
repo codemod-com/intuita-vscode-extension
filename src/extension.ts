@@ -121,6 +121,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	new IntuitaPanelProvider(
 		context.extensionUri,
 		store,
+		mainViewProvider,
+		messageBus,
 		codemodDescriptionProvider,
 		rootPath ?? '',
 	);
@@ -131,6 +133,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		messageBus,
 		store,
+		mainViewProvider,
 	);
 
 	// this is only used by the intuita panel's webview
