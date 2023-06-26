@@ -153,10 +153,15 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 			return;
 		}
 
+		const isSearching = searchPhrase.length !== 0;
+
+		// searched nodes should always be expanded
 		const expanded =
+			isSearching ||
 			!state.codemodDiscoveryView.collapsedCodemodHashDigests.includes(
 				hashDigest,
 			);
+
 		const focused =
 			state.codemodDiscoveryView.focusedCodemodHashDigest === hashDigest;
 		const childSet = children[node.hashDigest] ?? [];
