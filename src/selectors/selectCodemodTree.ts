@@ -190,7 +190,7 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 	const collapsedNodeHashDigests = nodeData
 		.filter((data) => data.node.kind === 'DIRECTORY')
 		.map((data) =>
-			state.codemodDiscoveryView.expandedCodemodHashDigests.includes(
+			!state.codemodDiscoveryView.expandedCodemodHashDigests.includes(
 				data.node.hashDigest,
 			),
 		);
