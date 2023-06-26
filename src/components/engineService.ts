@@ -3,7 +3,7 @@ import * as E from 'fp-ts/Either';
 import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
-import { FileSystem, Uri, window, workspace } from 'vscode';
+import { commands, FileSystem, Uri, window, workspace } from 'vscode';
 import { Case, CaseKind } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
@@ -632,6 +632,8 @@ export class EngineService {
 						workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
 					]),
 				);
+
+				commands.executeCommand('intuitaMainView.focus');
 
 				if (
 					!executionErrors.length &&
