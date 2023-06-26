@@ -6,7 +6,7 @@ interface ExplorerNodeHashDigestBrand {
 	readonly __ExplorerNodeHashDigest: unique symbol;
 }
 
-export const explorerNodeHashDigestCodec = t.brand(
+export const _explorerNodeHashDigestCodec = t.brand(
 	t.string,
 	(
 		hashDigest,
@@ -15,25 +15,25 @@ export const explorerNodeHashDigestCodec = t.brand(
 	'__ExplorerNodeHashDigest',
 );
 
-export type ExplorerNodeHashDigest = t.TypeOf<
-	typeof explorerNodeHashDigestCodec
+export type _ExplorerNodeHashDigest = t.TypeOf<
+	typeof _explorerNodeHashDigestCodec
 >;
 
-export const explorerNodeCodec = t.union([
+export const _explorerNodeCodec = t.union([
 	buildTypeCodec({
-		hashDigest: explorerNodeHashDigestCodec,
+		hashDigest: _explorerNodeHashDigestCodec,
 		kind: t.literal('ROOT'),
 		label: t.string,
 		depth: t.number,
 	}),
 	buildTypeCodec({
-		hashDigest: explorerNodeHashDigestCodec,
+		hashDigest: _explorerNodeHashDigestCodec,
 		kind: t.literal('DIRECTORY'),
 		label: t.string,
 		depth: t.number,
 	}),
 	buildTypeCodec({
-		hashDigest: explorerNodeHashDigestCodec,
+		hashDigest: _explorerNodeHashDigestCodec,
 		kind: t.literal('FILE'),
 		path: t.string,
 		label: t.string,
@@ -43,4 +43,4 @@ export const explorerNodeCodec = t.union([
 	}),
 ]);
 
-export type ExplorerNode = t.TypeOf<typeof explorerNodeCodec>;
+export type _ExplorerNode = t.TypeOf<typeof _explorerNodeCodec>;
