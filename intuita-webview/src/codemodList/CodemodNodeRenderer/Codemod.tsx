@@ -42,8 +42,7 @@ type Props = Readonly<{
 	progressBar: (node: CodemodNode) => JSX.Element | null;
 	actionButtons: (
 		node: CodemodNode,
-		doesDisplayShortenedTitle: boolean,
-	) => ReactNode[];
+	) => ReactNode;
 }>;
 
 const Codemod = ({
@@ -203,7 +202,7 @@ const Codemod = ({
 			</div>
 			{!editingPath && (
 				<div className={cn(styles.actions)}>
-					{actionButtons(node, false).map((el) => el)}
+					{actionButtons(node)}
 				</div>
 			)}
 		</>

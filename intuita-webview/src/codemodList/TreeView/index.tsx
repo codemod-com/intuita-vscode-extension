@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 
-import { RunCodemodsCommand, CodemodHash } from '../../shared/types';
-import Popover from '../../shared/Popover';
+import { CodemodHash } from '../../shared/types';
 import { vscode } from '../../shared/utilities/vscode';
 
 import { useProgressBar } from '../useProgressBar';
@@ -16,7 +14,7 @@ import {
 import { IntuitaTreeView } from '../../intuitaTreeView';
 import { getCodemodNodeRenderer } from '../CodemodNodeRenderer';
 
-import s from './style.module.css';
+import ActionButton from './actionButton';
 
 type Props = Readonly<{
 	tree: CodemodTree;
@@ -49,12 +47,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 		ReadonlyArray<CodemodNodeHashDigest>
 	>([]);
 
-	const [runningRepomodHash, setRunningRepomodHash] =
-		useState<CodemodNodeHashDigest | null>(null);
-
 	const onHalt = useCallback(() => {
-		setRunningRepomodHash(null);
-
 		if (!executionStack.length) {
 			return;
 		}
@@ -68,124 +61,80 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 		setExecutionStack(stack);
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
-			// @TODO
 			value: hash as unknown as CodemodHash,
 		});
 	}, [executionStack]);
 
-	const [progress, { progressBar, stopProgress }] = useProgressBar(
-		onHalt,
-		// @TODO make generic
-		runningRepomodHash as CodemodHash | null,
-	);
-
-	const handleActionButtonClick = useCallback(
-		(action: RunCodemodsCommand) => {
-			// @TODO
-			const actionValue =
-				action.value as unknown as CodemodNodeHashDigest;
-			if (
-				(progress || executionStack.length) &&
-				action.kind === 'webview.codemodList.dryRunCodemod'
-			) {
-				if (executionStack.includes(actionValue)) {
-					return;
-				}
-				setExecutionStack((prev) => [...prev, actionValue]);
-				return;
-			}
-
-			vscode.postMessage(action);
-		},
-		[executionStack, progress],
-	);
-
-	// @TODO move to other component
-	const actionButtons = (
-		node: CodemodNode,
-		actions: RunCodemodsCommand[],
-		doesDisplayShortenedTitle: boolean,
-	) => {
-		if (node.kind !== 'CODEMOD') {
-			return [];
-		}
-
-		return (actions ?? []).map((action) => {
-			const actionValue =
-				action.value as unknown as CodemodNodeHashDigest;
-			return (
-				<Popover
-					trigger={
-						<VSCodeButton
-							key={action.kind}
-							className={s.action}
-							appearance="icon"
-							onClick={(e) => {
-								e.stopPropagation();
-								handleActionButtonClick(action);
-								if (
-									action.kind ===
-										'webview.codemodList.dryRunCodemod' &&
-									node.codemodKind === 'repomod'
-								) {
-									setRunningRepomodHash(node.hashDigest);
-								}
-							}}
-						>
-							{action.kind ===
-								'webview.codemodList.dryRunCodemod' &&
-								executionStack.includes(actionValue) && (
-									<i className="codicon codicon-history mr-2" />
-								)}
-							{doesDisplayShortenedTitle
-								? action.shortenedTitle
-								: action.title}
-						</VSCodeButton>
-					}
-					popoverText={`${
-						action.kind === 'webview.codemodList.dryRunCodemod' &&
-						executionStack.includes(actionValue)
-							? 'Queued:'
-							: ''
-					} ${action.description}`}
-				/>
-			);
-		});
-	};
+	const [progress, { progressBar }] = useProgressBar(onHalt);
 
 	const getActionButtons = (
 		node: CodemodNode,
-		doesDisplayShortenedTitle: boolean,
 	) => {
 		if (node.kind !== 'CODEMOD') {
-			return [];
+			return null;
 		}
 
-		if (node.codemodKind === 'repomod' && runningRepomodHash !== null) {
-			return [];
+		const codemodIsInProgress =
+			(node.hashDigest as unknown as CodemodHash) ===
+			progress?.codemodHash;
+
+		if (!codemodIsInProgress) {
+			const queued = executionStack.includes(node.hashDigest);
+
+			if (queued) {
+				return (
+					<ActionButton
+						popoverText="Codemod execution is queued"
+						iconName="codicon-history"
+						onClick={(e) => {
+							e.stopPropagation();
+						}}
+					/>
+				);
+			}
+
+			return (
+				<ActionButton
+					popoverText="Run this codemod without making change to file system"
+					onClick={(e) => {
+						e.stopPropagation();
+
+						if (executionStack.includes(node.hashDigest)) {
+							return;
+						}
+
+						setExecutionStack((prev) => [...prev, node.hashDigest]);
+
+						vscode.postMessage({
+							kind: 'webview.codemodList.dryRunCodemod',
+							value: node.hashDigest as unknown as CodemodHash,
+						});
+					}}
+				>
+					✓ Dry Run
+				</ActionButton>
+			);
 		}
 
-		if (
-			// @TODO
-			progress?.codemodHash ===
-				(node.hashDigest as unknown as CodemodHash) &&
-			node.codemodKind === 'executeCodemod'
-		) {
-			return [stopProgress];
+		if (node.codemodKind === 'executeCodemod') {
+			return (
+				<ActionButton
+					popoverText="Stop Codemod Execution"
+					iconName="codicon-debug-stop"
+					onClick={(e) => {
+						e.stopPropagation();
+						vscode.postMessage({
+							kind: 'webview.codemodList.haltCodemodExecution',
+							value: node.hashDigest as unknown as CodemodHash,
+						});
+						
+						onHalt();
+					}}
+				/>
+			);
 		}
 
-		const actions = [
-			{
-				title: '✓ Dry Run',
-				shortenedTitle: '✓',
-				description:
-					'Run this codemod without making change to file system',
-				kind: 'webview.codemodList.dryRunCodemod' as const,
-				value: node.hashDigest as unknown as CodemodHash,
-			},
-		];
-
-		return actionButtons(node, actions, doesDisplayShortenedTitle);
+		return null;
 	};
 
 	return (
@@ -199,8 +148,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 					(node.hashDigest as unknown as CodemodHash)
 						? progressBar
 						: null,
-				actionButtons: (node, doesDisplayShortenedTitle) =>
-					getActionButtons(node, doesDisplayShortenedTitle),
+				actionButtons: getActionButtons
 			})}
 			onFlip={onFlip}
 			onFocus={onFocus}

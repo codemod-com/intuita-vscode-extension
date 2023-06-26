@@ -32,8 +32,7 @@ type Deps = {
 	progressBar: (node: CodemodNode) => JSX.Element | null;
 	actionButtons: (
 		node: CodemodNode,
-		doesDisplayShortenedTitle: boolean,
-	) => ReactNode[];
+	) => ReactNode;
 };
 
 type Props = Readonly<{

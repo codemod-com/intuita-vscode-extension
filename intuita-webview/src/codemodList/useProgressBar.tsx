@@ -12,7 +12,6 @@ type ProgressType = {
 
 export const useProgressBar = (
 	onHalt: () => void,
-	runningRepomodHash: CodemodHash | null,
 ): [
 	ProgressType | null,
 	{
@@ -68,26 +67,6 @@ export const useProgressBar = (
 		};
 	}, [codemodExecutionProgress?.codemodHash, onHalt]);
 
-	useEffect(() => {
-		if (runningRepomodHash === null) {
-			return;
-		}
-		intervalRef.current = setInterval(() => {
-			setCodemodExecutionProgress((prev) => {
-				return {
-					progress:
-						prev?.progress !== undefined
-							? (prev.progress + 25) % 125
-							: 0,
-					codemodHash: runningRepomodHash,
-				};
-			});
-		}, 400);
-
-		return () => {
-			handleClearInterval();
-		};
-	}, [runningRepomodHash]);
 
 	const progressBar =
 		codemodExecutionProgress !== null ? (
@@ -97,6 +76,7 @@ export const useProgressBar = (
 					style={{ height: '3.5px', width: '95%' }}
 				>
 					<Line
+					
 						percent={codemodExecutionProgress.progress}
 						strokeWidth={1.5}
 						className="w-full"
