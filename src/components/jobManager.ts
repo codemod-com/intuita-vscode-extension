@@ -2,7 +2,6 @@ import { isNeitherNullNorUndefined } from '../utilities';
 import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import {
-	Job,
 	JobHash,
 	JobKind,
 	mapJobToPersistedJob,
@@ -31,14 +30,6 @@ export class JobManager {
 		this.__messageBus.subscribe(MessageKind.clearState, () =>
 			this.__onClearStateMessage(),
 		);
-	}
-
-	public getJob(jobHash: JobHash): Job | null {
-		const state = this.__store.getState();
-
-		const job = state.job.entities[jobHash];
-
-		return job ? mapPersistedJobToJob(job) : null;
 	}
 
 	private __onUpsertJobsMessage(
@@ -150,11 +141,5 @@ export class JobManager {
 			kind: MessageKind.deleteFiles,
 			uris,
 		});
-	}
-
-	public isJobApplied(jobHash: JobHash): boolean {
-		const state = this.__store.getState();
-
-		return state.appliedJobHashes.includes(jobHash);
 	}
 }
