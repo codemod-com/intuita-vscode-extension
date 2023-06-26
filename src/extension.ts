@@ -555,24 +555,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.workspace.onDidChangeConfiguration((event) => {
-			if (!event.affectsConfiguration('intuita')) {
-				return;
-			}
-
-			messageBus.publish({
-				kind: MessageKind.configurationChanged,
-				nextConfiguration: getConfiguration(),
-			});
-		}),
-	);
-
-	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.clearState', () => {
-			messageBus.publish({
-				kind: MessageKind.clearState,
-			});
-
 			store.dispatch(actions.clearState());
 		}),
 	);
