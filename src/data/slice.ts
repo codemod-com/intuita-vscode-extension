@@ -54,7 +54,7 @@ export const getInitialState = (): RootState => {
 		codemodDiscoveryView: {
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			collapsedCodemodHashDigests: [],
+			expandedCodemodHashDigests: [],
 			searchPhrase: '',
 		},
 		changeExplorerView: {
@@ -167,7 +167,7 @@ const rootSlice = createSlice({
 			action: PayloadAction<CodemodNodeHashDigest>,
 		) {
 			const set = new Set<CodemodNodeHashDigest>(
-				state.codemodDiscoveryView.collapsedCodemodHashDigests,
+				state.codemodDiscoveryView.expandedCodemodHashDigests,
 			);
 
 			if (set.has(action.payload)) {
@@ -176,7 +176,7 @@ const rootSlice = createSlice({
 				set.add(action.payload);
 			}
 
-			state.codemodDiscoveryView.collapsedCodemodHashDigests =
+			state.codemodDiscoveryView.expandedCodemodHashDigests =
 				Array.from(set);
 		},
 		setCodemodSearchPhrase(state, action: PayloadAction<string>) {

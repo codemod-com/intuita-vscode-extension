@@ -67,7 +67,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 				codemodNodeHashDigestCodec,
 				t.null,
 			]),
-			collapsedCodemodHashDigests: t.readonlyArray(
+			expandedCodemodHashDigests: t.readonlyArray(
 				codemodNodeHashDigestCodec,
 			),
 			searchPhrase: t.string,
@@ -75,7 +75,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		{
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
-			collapsedCodemodHashDigests: [],
+			expandedCodemodHashDigests: [],
 			searchPhrase: '',
 		},
 	),

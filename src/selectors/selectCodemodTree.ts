@@ -158,7 +158,7 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 		// searched nodes should always be expanded
 		const expanded =
 			isSearching ||
-			!state.codemodDiscoveryView.collapsedCodemodHashDigests.includes(
+			state.codemodDiscoveryView.expandedCodemodHashDigests.includes(
 				hashDigest,
 			);
 
@@ -187,12 +187,19 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 
 	appendNodeData(rootNode.hashDigest, -1);
 
+	const collapsedNodeHashDigests = nodeData
+		.filter((data) => data.node.kind === 'DIRECTORY')
+		.map((data) =>
+			state.codemodDiscoveryView.expandedCodemodHashDigests.includes(
+				data.node.hashDigest,
+			),
+		);
+
 	return {
 		nodeData,
 		focusedNodeHashDigest:
 			state.codemodDiscoveryView.focusedCodemodHashDigest,
-		collapsedNodeHashDigests:
-			state.codemodDiscoveryView.collapsedCodemodHashDigests,
+		collapsedNodeHashDigests,
 	};
 };
 
