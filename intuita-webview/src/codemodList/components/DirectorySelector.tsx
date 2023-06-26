@@ -259,8 +259,9 @@ export const DirectorySelector = ({
 			trigger={
 				<VSCodeButton
 					appearance="icon"
-					onClick={(e) => {
-						e.stopPropagation();
+					onDoubleClick={(event) => {
+						event.stopPropagation();
+
 						setEditing(true);
 						onEditStart();
 						ignoreBlurEvent.current = false;
@@ -280,7 +281,7 @@ export const DirectorySelector = ({
 					</span>
 				</VSCodeButton>
 			}
-			popoverText="Codemod's target path. Click to edit."
+			popoverText="Codemod's target path. Double-click to edit."
 		/>
 	);
 };

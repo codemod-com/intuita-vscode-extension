@@ -2,32 +2,27 @@ import cn from 'classnames';
 import s from './style.module.css';
 import { memo } from 'react';
 
-type Props = Readonly<{
-	expanded: boolean;
-	childCount: number;
-	label: string;
-}>;
-
-const Directory = ({ expanded, childCount, label }: Props) => {
-	const hasChildren = childCount !== 0;
-
+const Directory = (
+	props: Readonly<{
+		expanded: boolean;
+		label: string;
+	}>,
+) => {
 	return (
 		<>
-			{hasChildren ? (
-				<div className={s.codicon}>
-					<span
-						className={cn('codicon', {
-							'codicon-chevron-right': !expanded,
-							'codicon-chevron-down': expanded,
-						})}
-					/>
-				</div>
-			) : null}
+			<div className={s.codicon}>
+				<span
+					className={cn('codicon', {
+						'codicon-chevron-right': !props.expanded,
+						'codicon-chevron-down': props.expanded,
+					})}
+				/>
+			</div>
 			<div className={s.icon}>
 				<span
 					className={cn('codicon', {
-						'codicon-folder': !expanded,
-						'codicon-folder-opened': expanded,
+						'codicon-folder': !props.expanded,
+						'codicon-folder-opened': props.expanded,
 					})}
 				/>
 			</div>
@@ -38,7 +33,7 @@ const Directory = ({ expanded, childCount, label }: Props) => {
 							userSelect: 'none',
 						}}
 					>
-						{label}
+						{props.label}
 					</span>
 				</span>
 			</div>
