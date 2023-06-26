@@ -45,7 +45,7 @@ type Props = Readonly<{
 const getCodemodNodeRenderer =
 	({ rootPath, autocompleteItems, progressBar, actionButtons }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
-		const { node, focused, expanded, childCount } = nodeDatum;
+		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
 
 		const ref = useRef<HTMLDivElement>(null);
@@ -91,11 +91,7 @@ const getCodemodNodeRenderer =
 						actionButtons={actionButtons}
 					/>
 				) : (
-					<Directory
-						expanded={expanded}
-						childCount={childCount}
-						label={label}
-					/>
+					<Directory expanded={expanded} label={label} />
 				)}
 			</div>
 		);
