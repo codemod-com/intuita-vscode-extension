@@ -3,7 +3,7 @@ import { JobDiffView } from './DiffItem';
 import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
-import Header from './Header';
+import { Header } from './Header';
 import { Diff } from './Diff';
 import { useTheme } from '../../shared/Snippet/useTheme';
 import type { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
@@ -34,7 +34,7 @@ export const JobDiffViewContainer = (
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				totalJobsCount={props.jobCount}
+				jobCount={props.jobCount}
 				jobIndex={props.jobIndex}
 				changeJob={changeJob}
 			/>

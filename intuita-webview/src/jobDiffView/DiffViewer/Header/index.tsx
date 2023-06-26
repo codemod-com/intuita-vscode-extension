@@ -11,18 +11,12 @@ import Popover from '../../../shared/Popover';
 type Props = Readonly<{
 	viewType: DiffViewType;
 	onViewChange(value: DiffViewType): void;
-	totalJobsCount: number;
+	jobCount: number;
 	jobIndex: number;
 	changeJob: (direction: 'prev' | 'next') => void;
 }>;
 
-const Header = ({
-	viewType,
-	onViewChange,
-	totalJobsCount,
-	jobIndex,
-	changeJob,
-}: Props) => {
+export const Header = (props: Props) => {
 	return (
 		<div className={styles.root}>
 			<div className={styles.actionsContainer}>
@@ -33,7 +27,7 @@ const Header = ({
 							onClick={(event) => {
 								event.preventDefault();
 
-								changeJob('prev');
+								props.changeJob('prev');
 							}}
 						>
 							<span
@@ -50,7 +44,7 @@ const Header = ({
 							onClick={(event) => {
 								event.preventDefault();
 
-								changeJob('next');
+								props.changeJob('next');
 							}}
 						>
 							<span
@@ -62,12 +56,12 @@ const Header = ({
 				/>
 			</div>
 			<div className={styles.buttonGroup}>
-				<h4>{`${jobIndex + 1} / ${totalJobsCount}`}</h4>
-				{viewType === 'side-by-side' ? (
+				<h4>{`${props.jobIndex + 1} / ${props.jobCount}`}</h4>
+				{props.viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"
 						appearance="icon"
-						onClick={() => onViewChange('inline')}
+						onClick={() => props.onViewChange('inline')}
 					>
 						Inline <UnifiedIcon className={styles.icon} />
 					</VSCodeButton>
@@ -75,7 +69,7 @@ const Header = ({
 					<VSCodeButton
 						title="Side by Side"
 						appearance="icon"
-						onClick={() => onViewChange('side-by-side')}
+						onClick={() => props.onViewChange('side-by-side')}
 					>
 						Side by Side <SplitIcon className={styles.icon} />
 					</VSCodeButton>
@@ -84,5 +78,3 @@ const Header = ({
 		</div>
 	);
 };
-
-export default Header;
