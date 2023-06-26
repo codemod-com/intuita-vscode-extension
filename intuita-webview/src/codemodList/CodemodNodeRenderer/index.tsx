@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import cn from 'classnames';
 
 import {
@@ -11,6 +11,8 @@ import Directory from './Directory';
 import Codemod from './Codemod';
 
 import styles from './style.module.css';
+import { ProgressType } from '../useProgressBar';
+import { CodemodHash } from '../../shared/types';
 
 const getContainerInlineStyles = ({
 	depth,
@@ -29,8 +31,7 @@ const getContainerInlineStyles = ({
 type Deps = {
 	rootPath: string;
 	autocompleteItems: string[];
-	getProgress: (node: CodemodNode) => number | null;
-	actionButtons: (node: CodemodNode) => ReactNode;
+	progress: ProgressType | null;
 };
 
 type Props = Readonly<{
@@ -40,7 +41,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({ rootPath, autocompleteItems, getProgress, actionButtons }: Deps) =>
+	({ rootPath, autocompleteItems, progress }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -84,8 +85,7 @@ const getCodemodNodeRenderer =
 						}
 						autocompleteItems={autocompleteItems}
 						rootPath={rootPath}
-						getProgress={getProgress}
-						actionButtons={actionButtons}
+						progress={progress?.codemodHash === (node.hashDigest as unknown as CodemodHash) ? progress.progress : null}
 					/>
 				) : (
 					<Directory expanded={expanded} label={label} />

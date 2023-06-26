@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CodemodHash, WebviewMessage } from '../shared/types';
 
-type ProgressType = {
+export type ProgressType = {
 	progress: number;
 	codemodHash: CodemodHash;
 };
