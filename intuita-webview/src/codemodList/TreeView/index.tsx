@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { CodemodHash } from '../../shared/types';
 import { vscode } from '../../shared/utilities/vscode';
@@ -38,32 +38,34 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 	onFocus(hashDigest);
 };
 
+function useQueue<T>() {
+	const [queue, setQueue] = useState<T[]>([]);
+
+	return {
+		enqueue: (item: T) => setQueue((prev) => [item, ...prev]),
+		dequeue: () => {
+			const nextQueue = queue.slice();
+			const item = nextQueue.shift();
+
+			setQueue(nextQueue);
+
+			return item;
+		},
+		queued: (item: T) => queue.includes(item), 
+	};
+}
+
 const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
-	/**
-	 * Progress bar
-	 * @TODO hide progress bar logic
-	 */
-	const [executionStack, setExecutionStack] = useState<
-		ReadonlyArray<CodemodNodeHashDigest>
-	>([]);
+	const { queued, enqueue, dequeue } = useQueue<CodemodNodeHashDigest>();
 
-	const onHalt = useCallback(() => {
-		if (!executionStack.length) {
-			return;
-		}
-		const stack = executionStack.slice();
-		const hash = stack.shift();
-
-		if (!hash) {
-			return;
-		}
-
-		setExecutionStack(stack);
+	const onHalt = () => {
+		const nextHash = dequeue();
+		
 		vscode.postMessage({
 			kind: 'webview.codemodList.dryRunCodemod',
-			value: hash as unknown as CodemodHash,
+			value: nextHash as unknown as CodemodHash,
 		});
-	}, [executionStack]);
+	};
 
 	const progress = useProgressBar(onHalt);
 
@@ -77,9 +79,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 			progress?.codemodHash;
 
 		if (!codemodIsInProgress) {
-			const queued = executionStack.includes(node.hashDigest);
-
-			if (queued) {
+			if (queued(node.hashDigest)) {
 				return (
 					<ActionButton
 						popoverText="Codemod execution is queued"
@@ -97,11 +97,11 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 					onClick={(e) => {
 						e.stopPropagation();
 
-						if (executionStack.includes(node.hashDigest)) {
+						if (queued(node.hashDigest)) {
 							return;
 						}
 
-						setExecutionStack((prev) => [...prev, node.hashDigest]);
+						enqueue(node.hashDigest);
 
 						vscode.postMessage({
 							kind: 'webview.codemodList.dryRunCodemod',
@@ -134,7 +134,6 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 
 		return null;
 	};
-	
 
 	return (
 		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
