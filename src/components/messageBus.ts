@@ -1,7 +1,6 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
 import type { CaseHash, CaseWithJobHashes } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
-import type { Configuration } from '../configuration';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError } from '../errors/types';
 
@@ -22,9 +21,6 @@ export const enum MessageKind {
 	bootstrapEngine = 13,
 	engineBootstrapped = 14,
 
-	/** state */
-	clearState = 16,
-
 	/** information message */
 	showInformationMessage = 17,
 
@@ -37,12 +33,6 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
-
-	/**
-	 * config events
-	 */
-
-	configurationChanged = 28,
 
 	/**
 	 * show progress
@@ -118,9 +108,6 @@ export type Message =
 			noraNodeEngineExecutableUri: Uri;
 	  }>
 	| Readonly<{
-			kind: MessageKind.clearState;
-	  }>
-	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 			happenedAt: string;
@@ -156,10 +143,6 @@ export type Message =
 			newUri: Uri;
 			oldUri: Uri;
 			newContentUri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.configurationChanged;
-			nextConfiguration: Configuration;
 	  }>
 	| Readonly<{
 			kind: MessageKind.showProgress;

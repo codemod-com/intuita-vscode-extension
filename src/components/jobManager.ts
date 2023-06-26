@@ -1,5 +1,4 @@
 import { isNeitherNullNorUndefined } from '../utilities';
-import { Uri } from 'vscode';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import {
 	JobHash,
@@ -26,9 +25,6 @@ export class JobManager {
 		);
 		this.__messageBus.subscribe(MessageKind.rejectJobs, (message) =>
 			this.__onRejectJobsMessage(message),
-		);
-		this.__messageBus.subscribe(MessageKind.clearState, () =>
-			this.__onClearStateMessage(),
 		);
 	}
 
@@ -114,32 +110,5 @@ export class JobManager {
 		for (const message of messages) {
 			this.__messageBus.publish(message);
 		}
-	}
-
-	private __onClearStateMessage() {
-		const state = this.__store.getState();
-
-		const jobs = Object.values(state.job.entities)
-			.filter(isNeitherNullNorUndefined)
-			.map(mapPersistedJobToJob);
-
-		const uris: Uri[] = [];
-
-		for (const job of jobs) {
-			if (
-				(job.kind === JobKind.rewriteFile ||
-					job.kind === JobKind.moveAndRewriteFile) &&
-				job.newContentUri
-			) {
-				uris.push(job.newContentUri);
-			}
-		}
-
-		this.__store.dispatch(actions.clearJobs());
-
-		this.__messageBus.publish({
-			kind: MessageKind.deleteFiles,
-			uris,
-		});
 	}
 }

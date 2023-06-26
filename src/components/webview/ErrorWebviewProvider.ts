@@ -37,10 +37,6 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			},
 		);
 
-		messageBus.subscribe(MessageKind.clearState, () => {
-			this.__store.dispatch(actions.setSelectedCaseHash(null));
-		});
-
 		// store subscription
 
 		let prevProps = this.__buildViewProps();

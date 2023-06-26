@@ -26,9 +26,6 @@ export class CaseManager {
 		this.__messageBus.subscribe(MessageKind.jobsRejected, (message) =>
 			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
-		this.__messageBus.subscribe(MessageKind.clearState, () =>
-			this.#onClearStateMessage(),
-		);
 	}
 
 	#onUpsertCasesMessage(
@@ -144,10 +141,5 @@ export class CaseManager {
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
-	}
-
-	#onClearStateMessage() {
-		this.__store.dispatch(actions.setCases([]));
-		this.__store.dispatch(actions.deleteCaseHashJobHashes());
 	}
 }
