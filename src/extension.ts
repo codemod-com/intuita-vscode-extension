@@ -12,8 +12,6 @@ import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
-import { FileExplorer } from './components/webview/FileExplorerProvider';
-import { CampaignManager } from './components/webview/CampaignManagerProvider';
 
 import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodService } from './packageJsonAnalyzer/codemodService';
@@ -93,15 +91,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 	);
 
-	const fileExplorerProvider = new FileExplorer(store);
-
-	const campaignManagerProvider = new CampaignManager(store);
-
 	const mainViewProvider = new MainViewProvider(
 		context,
 		messageBus,
-		campaignManagerProvider,
-		fileExplorerProvider,
 		codemodListWebviewProvider,
 		store,
 	);

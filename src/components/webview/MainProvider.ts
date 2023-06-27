@@ -1,39 +1,47 @@
+import areEqual from 'fast-deep-equal';
 import {
 	WebviewViewProvider,
 	WebviewView,
-	Uri,
 	ExtensionContext,
 	commands,
+	workspace,
 } from 'vscode';
 
 import { WebviewResolver } from './WebviewResolver';
-import { CampaignManager } from './CampaignManagerProvider';
-import { FileExplorer } from './FileExplorerProvider';
 import { CodemodListPanel } from './CodemodListProvider';
-import {
-	CollapsibleWebviews,
-	WebviewMessage,
-	WebviewResponse,
-} from './webviewEvents';
-import { Message, MessageBus, MessageKind } from '../messageBus';
+import { WebviewMessage, WebviewResponse } from './webviewEvents';
+import { MessageBus, MessageKind } from '../messageBus';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
 
+import { selectCodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
+import { selectExplorerTree } from '../../selectors/selectExplorerTree';
+
 export class MainViewProvider implements WebviewViewProvider {
 	__view: WebviewView | null = null;
-	__extensionPath: Uri;
 	__webviewResolver: WebviewResolver;
 
 	constructor(
 		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
-		private readonly __codemodRuns: CampaignManager,
-		private readonly __fileExplorer: FileExplorer,
 		private readonly __codemodList: CodemodListPanel,
 		private readonly __store: Store,
 	) {
-		this.__extensionPath = context.extensionUri;
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
+		this.__webviewResolver = new WebviewResolver(context.extensionUri);
+
+		this.__messageBus.subscribe(MessageKind.executeCodemodSet, () => {
+			this.__postMessage({
+				kind: 'webview.main.setCollapsed',
+				collapsed: false,
+				viewName: 'codemodRunsView',
+			});
+
+			this.__postMessage({
+				kind: 'webview.main.setCollapsed',
+				collapsed: false,
+				viewName: 'changeExplorerView',
+			});
+		});
 	}
 
 	public isVisible(): boolean {
@@ -48,10 +56,9 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__resolveWebview(webviewView);
 
 		this.__view = webviewView;
-		this.__attachExtensionEventListeners();
-		this.__attachWebviewEventListeners();
-		this.__codemodRuns.setWebview(webviewView);
-		this.__fileExplorer.setWebview(webviewView);
+
+		this.__view.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
+
 		this.__codemodList.setWebview(webviewView);
 
 		this.__messageBus.publish({
@@ -68,56 +75,81 @@ export class MainViewProvider implements WebviewViewProvider {
 			}
 		});
 
-		let prevActiveTabId = this.__store.getState().activeTabId;
+		{
+			let prevActiveTabId = this.__store.getState().activeTabId;
 
-		this.__store.subscribe(() => {
-			const nextActiveTabId = this.__store.getState().activeTabId;
+			this.__store.subscribe(() => {
+				const nextActiveTabId = this.__store.getState().activeTabId;
 
-			if (prevActiveTabId === nextActiveTabId) {
-				return;
-			}
+				if (prevActiveTabId === nextActiveTabId) {
+					return;
+				}
 
-			this.__postMessage({
-				kind: 'webview.main.setActiveTabId',
-				activeTabId: nextActiveTabId,
+				this.__postMessage({
+					kind: 'webview.main.setActiveTabId',
+					activeTabId: nextActiveTabId,
+				});
+
+				prevActiveTabId = nextActiveTabId;
 			});
+		}
 
-			prevActiveTabId = nextActiveTabId;
-		});
+		{
+			let prevProps = this.__buildCodemodRunsProps();
+
+			this.__store.subscribe(() => {
+				const nextProps = this.__buildCodemodRunsProps();
+
+				if (areEqual(prevProps, nextProps)) {
+					return;
+				}
+
+				prevProps = nextProps;
+
+				this.__postMessage({
+					kind: 'webview.codemodRuns.setView',
+					value: {
+						viewId: 'campaignManagerView',
+						viewProps: nextProps,
+					},
+				});
+			});
+		}
+
+		{
+			let prevProps = this.__buildFileExplorerProps();
+
+			this.__store.subscribe(() => {
+				const nextProps = this.__buildFileExplorerProps();
+
+				if (areEqual(prevProps, nextProps)) {
+					return;
+				}
+
+				prevProps = nextProps;
+
+				this.__postMessage({
+					kind: 'webview.fileExplorer.setView',
+					value: {
+						viewId: 'fileExplorer',
+						viewProps: nextProps,
+					},
+				});
+			});
+		}
 	}
 
-	private __setCollapsed({
-		collapsed,
-		viewName,
-	}: {
-		collapsed: boolean;
-		viewName: CollapsibleWebviews;
-	}): void {
-		this.__postMessage({
-			kind: 'webview.main.setCollapsed',
-			collapsed,
-			viewName,
-		});
+	private __buildCodemodRunsProps() {
+		return selectCodemodRunsTree(this.__store.getState());
 	}
 
-	private __addHook<T extends MessageKind>(
-		kind: T,
-		handler: (message: Message & { kind: T }) => void,
-	) {
-		this.__messageBus.subscribe<T>(kind, handler);
-	}
+	private __buildFileExplorerProps() {
+		const state = this.__store.getState();
 
-	private __attachExtensionEventListeners() {
-		this.__addHook(MessageKind.executeCodemodSet, () => {
-			this.__setCollapsed({
-				collapsed: false,
-				viewName: 'codemodRunsView',
-			});
-			this.__setCollapsed({
-				collapsed: false,
-				viewName: 'changeExplorerView',
-			});
-		});
+		return selectExplorerTree(
+			state,
+			workspace.workspaceFolders?.[0]?.uri ?? null,
+		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -125,18 +157,16 @@ export class MainViewProvider implements WebviewViewProvider {
 	}
 
 	private __resolveWebview(webviewView: WebviewView) {
-		const codemodRunsProps = this.__codemodRuns.getInitialProps();
-		const fileExplorerProps = this.__fileExplorer.getInitialProps();
 		const codemodListProps = this.__codemodList.getInitialProps();
 
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
 			JSON.stringify({
-				codemodRunsProps,
-				fileExplorerProps,
-				codemodListProps,
 				activeTabId: this.__store.getState().activeTabId,
+				codemodRunsProps: this.__buildCodemodRunsProps(),
+				fileExplorerProps: this.__buildFileExplorerProps(),
+				codemodListProps,
 			}),
 		);
 	}
@@ -212,12 +242,4 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 	};
-
-	private __attachWebviewEventListeners() {
-		this.__view?.webview.onDidReceiveMessage(this.__onDidReceiveMessage);
-	}
-
-	public getView(): WebviewView | null {
-		return this.__view;
-	}
 }
