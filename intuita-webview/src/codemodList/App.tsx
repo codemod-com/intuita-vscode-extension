@@ -1,3 +1,4 @@
+import areEqual from 'fast-deep-equal';
 import { memo } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import TreeView from './TreeView';
@@ -27,4 +28,5 @@ export const App = memo(
 			/>
 		</main>
 	),
+	areEqual,
 );

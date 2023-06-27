@@ -5,14 +5,10 @@ import {
 	VSCodeDataGridRow,
 	VSCodeDataGridCell,
 } from '@vscode/webview-ui-toolkit/react';
-import type {
-	View,
-	WebviewMessage,
-} from '../../../src/components/webview/webviewEvents';
+import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
 import { ExecutionError } from '../../../src/errors/types';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-
-type ErrorsViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
+import { ErrorWebviewViewProps } from '../../../src/selectors/selectErrorWebviewViewProps';
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
@@ -59,25 +55,21 @@ const buildExecutionErrorRow = (
 
 declare global {
 	interface Window {
-		INITIAL_STATE: {
-			errorProps: ErrorsViewProps;
-		};
+		errorWebviewViewProps: ErrorWebviewViewProps;
 		mainWebviewViewProps: MainWebviewViewProps;
 	}
 }
 
 export const App = () => {
-	const [viewProps, setViewProps] = useState(window.INITIAL_STATE.errorProps);
+	const [props, setProps] = useState(window.errorWebviewViewProps);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
-
-			if (message.kind === 'webview.global.setView') {
-				if (message.value.viewId === 'errors') {
-					setViewProps(message.value.viewProps);
-				}
+		const handler = (event: MessageEvent<WebviewMessage>) => {
+			if (event.data.kind !== 'webview.error.setProps') {
+				return;
 			}
+
+			setProps(event.data.errorWebviewViewProps);
 		};
 
 		window.addEventListener('message', handler);
@@ -87,13 +79,13 @@ export const App = () => {
 		};
 	}, []);
 
-	if (viewProps.kind !== 'CASE_SELECTED') {
+	if (props.kind !== 'CASE_SELECTED') {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
-					{viewProps.kind === 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
+					{props.kind === 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
 						? 'Open the left-sided Intuita View Container to see the errors.'
-						: viewProps.kind === 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
+						: props.kind === 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
 						? 'Open the Codemod Runs tab to see the errors.'
 						: 'Choose a codemod run from Codemod Runs to see its errors.'}
 				</p>
@@ -101,7 +93,7 @@ export const App = () => {
 		);
 	}
 
-	if (viewProps.executionErrors.length === 0) {
+	if (props.executionErrors.length === 0) {
 		return (
 			<main>
 				<p className={styles.welcomeMessage}>
@@ -111,7 +103,7 @@ export const App = () => {
 		);
 	}
 
-	const rows = viewProps.executionErrors.map(buildExecutionErrorRow);
+	const rows = props.executionErrors.map(buildExecutionErrorRow);
 
 	return (
 		<main>
