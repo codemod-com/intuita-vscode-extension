@@ -45,6 +45,14 @@ const buildCollectionCodec = <T extends t.Props>(
 	);
 };
 
+const activeTabIdCodec = t.union([
+	t.literal('codemods'),
+	t.literal('codemodRuns'),
+	t.literal('community'),
+]);
+
+export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
+
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
@@ -93,14 +101,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
-	activeTabId: withFallback(
-		t.union([
-			t.literal('codemods'),
-			t.literal('codemodRuns'),
-			t.literal('community'),
-		]),
-		'codemods',
-	),
+	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
 	explorerNodes: withFallback(
 		t.record(caseHashCodec, t.readonlyArray(_explorerNodeCodec)),

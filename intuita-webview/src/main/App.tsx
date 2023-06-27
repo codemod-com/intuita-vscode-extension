@@ -11,6 +11,7 @@ import { CommunityTab } from '../communityTab/CommunityTab';
 import CodemodRuns from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
+import { ActiveTabId } from '../../../src/persistedState/codecs';
 
 function App() {
 	const ref = useRef(null);
@@ -63,9 +64,7 @@ function App() {
 		};
 	}, []);
 
-	const handlePanelTabClick = (
-		id: 'codemods' | 'codemodRuns' | 'community',
-	) => {
+	const handlePanelTabClick = (id: ActiveTabId) => {
 		vscode.postMessage({
 			kind: 'webview.main.setActiveTabId',
 			activeTabId: id,

@@ -10,7 +10,7 @@ import { ExecutionError } from '../errors/types';
 import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
-import { RootState } from '../persistedState/codecs';
+import { ActiveTabId, RootState } from '../persistedState/codecs';
 import { selectNodeData } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import {
@@ -209,10 +209,7 @@ const rootSlice = createSlice({
 
 			state.explorerSearchPhrases[caseHash] = searchPhrase;
 		},
-		setActiveTabId(
-			state,
-			action: PayloadAction<'codemods' | 'codemodRuns' | 'community'>,
-		) {
+		setActiveTabId(state, action: PayloadAction<ActiveTabId>) {
 			state.activeTabId = action.payload;
 		},
 		focusExplorerNodeSibling(

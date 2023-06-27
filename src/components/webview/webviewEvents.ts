@@ -9,6 +9,7 @@ import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
 import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
+import { ActiveTabId } from '../../persistedState/codecs';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -129,7 +130,7 @@ export type WebviewResponse =
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
 	| Readonly<{
 			kind: 'webview.main.setActiveTabId';
-			activeTabId: 'codemods' | 'codemodRuns' | 'community';
+			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
