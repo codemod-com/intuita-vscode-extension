@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './style.module.css';
 import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
@@ -71,7 +71,32 @@ function App({ screenWidth }: Props) {
 		};
 	}, []);
 
-	if ((viewProps?.caseHash ?? null) === null) {
+	const caseHash = viewProps?.caseHash ?? null;
+
+	const handleFocus = useCallback(
+		(hashDigest: _ExplorerNodeHashDigest) => {
+			if (caseHash === null) {
+				return;
+			}
+
+			onFocus(caseHash, hashDigest);
+		},
+
+		[caseHash],
+	);
+
+	const handleFlip = useCallback(
+		(hashDigest: _ExplorerNodeHashDigest) => {
+			if (caseHash === null) {
+				return;
+			}
+
+			onCollapsibleExplorerNodeFlip(caseHash, hashDigest);
+		},
+		[caseHash],
+	);
+
+	if (caseHash === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -98,15 +123,8 @@ function App({ screenWidth }: Props) {
 					<IntuitaTreeView<_ExplorerNodeHashDigest, _ExplorerNode>
 						{...viewProps}
 						nodeRenderer={explorerNodeRenderer(viewProps)}
-						onFlip={(hashDigest) =>
-							onCollapsibleExplorerNodeFlip(
-								viewProps.caseHash,
-								hashDigest,
-							)
-						}
-						onFocus={(hashDigest) =>
-							onFocus(viewProps.caseHash, hashDigest)
-						}
+						onFlip={handleFlip}
+						onFocus={handleFocus}
 					/>
 				) : (
 					<Progress />

@@ -1,8 +1,5 @@
-import { ReactComponent as CaseIcon } from '../assets/case.svg';
-import cn from 'classnames';
-import { ReactNode } from 'react';
-import TreeItem from '../shared/TreeItem';
-import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { useCallback } from 'react';
+import TreeItem, { IconName } from './FileExplorerTreeNode';
 import { ExplorerTree } from '../../../src/selectors/selectExplorerTree';
 import { NodeDatum } from '../intuitaTreeView';
 import {
@@ -10,36 +7,24 @@ import {
 	_ExplorerNodeHashDigest,
 } from '../../../src/persistedState/explorerNodeCodec';
 import { vscode } from '../shared/utilities/vscode';
-import styles from './style.module.css';
 
-const getIcon = (explorerNode: _ExplorerNode, opened: boolean): ReactNode => {
+const getIconName = (
+	explorerNode: _ExplorerNode,
+	opened: boolean,
+): IconName => {
 	if (explorerNode.kind === 'ROOT') {
-		return <CaseIcon />;
+		return 'root';
 	}
 
 	if (explorerNode.kind === 'DIRECTORY') {
-		return (
-			<span
-				className={cn(
-					'codicon',
-					!opened ? 'codicon-folder' : 'codicon-folder-opened',
-				)}
-			/>
-		);
+		return !opened ? 'folder' : 'folder-opened';
 	}
 
 	if (explorerNode.kind === 'FILE') {
-		return (
-			<span
-				className={cn('codicon', {
-					'codicon-file-add': explorerNode.fileAdded,
-					'codicon-file': !explorerNode.fileAdded,
-				})}
-			/>
-		);
+		return explorerNode.fileAdded ? 'file-add' : 'file';
 	}
 
-	return null;
+	return 'file';
 };
 
 export const explorerNodeRenderer =
@@ -49,33 +34,50 @@ export const explorerNodeRenderer =
 		onFlip: (hashDigest: _ExplorerNodeHashDigest) => void;
 		onFocus: (hashDigest: _ExplorerNodeHashDigest) => void;
 	}) => {
-		const icon = getIcon(props.nodeDatum.node, props.nodeDatum.expanded);
+		const iconName = getIconName(
+			props.nodeDatum.node,
+			props.nodeDatum.expanded,
+		);
 		const focused = props.nodeDatum.focused;
 
-		const Checkbox = () => {
-			const explorerNodeHashDigest = props.nodeDatum.node.hashDigest;
+		const { onFocus, onFlip, nodeDatum } = props;
 
-			const checked =
-				explorerTree.selectedExplorerNodeHashDigests.includes(
+		const explorerNodeHashDigest = props.nodeDatum.node.hashDigest;
+
+		const checked = explorerTree.selectedExplorerNodeHashDigests.includes(
+			explorerNodeHashDigest,
+		);
+
+		const handleClick = useCallback(
+			(event: React.MouseEvent) => {
+				event.stopPropagation();
+
+				onFocus(nodeDatum.node.hashDigest);
+			},
+			[onFocus, nodeDatum.node.hashDigest],
+		);
+
+		const handleCheckboxClick = useCallback(
+			(event: React.MouseEvent) => {
+				event.stopPropagation();
+
+				vscode.postMessage({
+					kind: 'webview.global.flipSelectedExplorerNode',
+					caseHashDigest: explorerTree.caseHash,
 					explorerNodeHashDigest,
-				);
+				});
+			},
+			[explorerNodeHashDigest],
+		);
 
-			return (
-				<VSCodeCheckbox
-					onClick={(event) => {
-						event.stopPropagation();
+		const handleChevronClick = useCallback(
+			(event: React.MouseEvent) => {
+				event.stopPropagation();
 
-						vscode.postMessage({
-							kind: 'webview.global.flipSelectedExplorerNode',
-							caseHashDigest: explorerTree.caseHash,
-							explorerNodeHashDigest,
-						});
-					}}
-					checked={checked}
-					className={styles.checkbox}
-				/>
-			);
-		};
+				onFlip(nodeDatum.node.hashDigest);
+			},
+			[onFlip, nodeDatum.node.hashDigest],
+		);
 
 		return (
 			<TreeItem
@@ -83,31 +85,14 @@ export const explorerNodeRenderer =
 				hasChildren={props.nodeDatum.collapsable}
 				id={props.nodeDatum.node.hashDigest}
 				label={props.nodeDatum.node.label}
-				subLabel=""
-				icon={icon}
+				iconName={iconName}
 				depth={props.nodeDatum.depth}
 				open={props.nodeDatum.expanded}
 				focused={focused}
-				onClick={(event) => {
-					event.stopPropagation();
-
-					props.onFocus(props.nodeDatum.node.hashDigest);
-				}}
-				startDecorator={<Checkbox />}
-				onPressChevron={(event) => {
-					event.stopPropagation();
-
-					props.onFlip(props.nodeDatum.node.hashDigest);
-				}}
-				inlineStyles={{
-					root: {
-						...(!focused && {
-							backgroundColor:
-								'var(--vscode-list-hoverBackground)',
-						}),
-						paddingRight: 4,
-					},
-				}}
+				checked={checked}
+				onClick={handleClick}
+				onCheckboxClick={handleCheckboxClick}
+				onPressChevron={handleChevronClick}
 			/>
 		);
 	};
