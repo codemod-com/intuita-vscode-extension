@@ -4,7 +4,6 @@ import cn from 'classnames';
 import {
 	CodemodNodeHashDigest,
 	CodemodNode,
-	buildDirectoryNode,
 } from '../../../../src/selectors/selectCodemodTree';
 import { NodeDatum } from '../../intuitaTreeView';
 
@@ -77,7 +76,7 @@ const getCodemodNodeRenderer =
 				onClick={() => onFlip(hashDigest)}
 			>
 				<div style={getContainerInlineStyles(nodeDatum)} />
-				{node.kind === 'CODEMOD' ? (
+				{node.kind === 'CODEMOD' && (
 					// <Profiler id="Codemod leaf" onRender={console.log}>
 					<Codemod
 						hashDigest={hashDigest}
@@ -94,15 +93,22 @@ const getCodemodNodeRenderer =
 								: null
 						}
 					/>
-				) : (
+				)}
+
+				{node.kind === 'DIRECTORY' && (
 					// </Profiler>
 					<Directory
 						expanded={expanded}
 						label={label}
-						intuitaCertified={
-							(node as ReturnType<typeof buildDirectoryNode>)
-								.intuitaCertified
-						}
+						intuitaCertified={node.intuitaCertified}
+					/>
+				)}
+
+				{node.kind === 'ROOT' && (
+					<Directory
+						expanded={expanded}
+						label={label}
+						intuitaCertified={false}
 					/>
 				)}
 			</div>
