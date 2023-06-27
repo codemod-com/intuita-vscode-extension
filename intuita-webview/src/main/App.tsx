@@ -88,7 +88,7 @@ function App() {
 						handlePanelTabClick(TabKind.codemods);
 					}}
 				>
-					Codemods Discovery
+					Codemod Discovery
 				</VSCodePanelTab>
 				<VSCodePanelTab
 					className="vscode-tab"
