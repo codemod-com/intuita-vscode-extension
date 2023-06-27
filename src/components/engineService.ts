@@ -119,7 +119,8 @@ export class EngineService {
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
-
+  __executionMessageQueue:  (Message & { kind: MessageKind.executeCodemodSet })[] = [];
+	
 	public constructor(
 		configurationContainer: Container<Configuration>,
 		messageBus: MessageBus,
@@ -221,10 +222,7 @@ export class EngineService {
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
 		if (this.#execution) {
-			await window.showErrorMessage(
-				'Wait until the previous codemod set execution has finished',
-			);
-
+			this.__executionMessageQueue.push(message);
 			return;
 		}
 
@@ -656,6 +654,14 @@ export class EngineService {
 			}
 
 			this.#execution = null;
+			
+			const nextMessage = this.__executionMessageQueue.shift() ?? null;
+			
+			if(nextMessage === null) {
+				return;
+			}
+			
+			this.#onExecuteCodemodSetMessage(nextMessage);
 		});
 	}
 

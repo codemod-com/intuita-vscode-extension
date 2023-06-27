@@ -6,7 +6,7 @@ export type ProgressType = {
 	codemodHash: CodemodHash;
 };
 
-export const useProgressBar = (onHalt: () => void): ProgressType | null => {
+export const useProgressBar = (): ProgressType | null => {
 	const [codemodExecutionProgress, setCodemodExecutionProgress] =
 		useState<null | ProgressType>(null);
 
@@ -23,7 +23,6 @@ export const useProgressBar = (onHalt: () => void): ProgressType | null => {
 
 			if (message.kind === 'webview.global.codemodExecutionHalted') {
 				setCodemodExecutionProgress(null);
-				onHalt();
 			}
 		};
 
@@ -32,7 +31,7 @@ export const useProgressBar = (onHalt: () => void): ProgressType | null => {
 		return () => {
 			window.removeEventListener('message', handler);
 		};
-	}, [codemodExecutionProgress?.codemodHash, onHalt]);
+	}, [codemodExecutionProgress?.codemodHash]);
 
 	return codemodExecutionProgress;
 };
