@@ -32,14 +32,8 @@ export const ActionsFooter = (
 		screenWidth: number | null;
 	}>,
 ) => {
-	console.log(props.screenWidth);
-	let discardText = 'Discard All';
-	let applyText = `Apply ${props.selectedJobCount} files`;
-
-	if (props.screenWidth !== null && props.screenWidth < 175) {
-		discardText = 'X';
-		applyText = '✔️';
-	}
+	const discardText = 'Discard All';
+	const applyText = `Apply ${props.selectedJobCount} files`;
 
 	return (
 		<div
