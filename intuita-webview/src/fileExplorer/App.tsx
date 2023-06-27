@@ -71,31 +71,32 @@ function App({ screenWidth }: Props) {
 		};
 	}, []);
 
+	const caseHash = viewProps?.caseHash ?? null;
+
 	const handleFocus = useCallback(
 		(hashDigest: _ExplorerNodeHashDigest) => {
-			if (viewProps === null) {
+			if (caseHash === null) {
 				return;
 			}
 
-			onFocus(viewProps.caseHash, hashDigest);
+			onFocus(caseHash, hashDigest);
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[viewProps?.caseHash],
+
+		[caseHash],
 	);
 
 	const handleFlip = useCallback(
 		(hashDigest: _ExplorerNodeHashDigest) => {
-			if (viewProps === null) {
+			if (caseHash === null) {
 				return;
 			}
 
-			onCollapsibleExplorerNodeFlip(viewProps.caseHash, hashDigest);
+			onCollapsibleExplorerNodeFlip(caseHash, hashDigest);
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[viewProps?.caseHash],
+		[caseHash],
 	);
 
-	if ((viewProps?.caseHash ?? null) === null) {
+	if (caseHash === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
