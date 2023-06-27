@@ -143,6 +143,8 @@ export class EngineService {
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
+
+		this.__fetchCodemods();
 	}
 
 	public isEngineBootstrapped() {
@@ -189,6 +191,16 @@ export class EngineService {
 			throw new UnableToParseEngineResponseError(
 				'Unable to parse engine output',
 			);
+		}
+	}
+
+	private async __fetchCodemods() {
+		try {
+			const codemods = await this.getCodemodList();
+
+			this.__store.dispatch(actions.upsertCodemods(codemods));
+		} catch (e) {
+			console.error(e);
 		}
 	}
 
