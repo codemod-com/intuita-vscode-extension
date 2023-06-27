@@ -12,8 +12,6 @@ import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
-
-import { CodemodListPanel } from './components/webview/CodemodListProvider';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import prettyReporter from 'io-ts-reporters';
@@ -74,13 +72,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const codemodListWebviewProvider = new CodemodListPanel(
-		messageBus,
-		rootPath,
-		engineService,
-		store,
-	);
-
 	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
@@ -89,8 +80,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const mainViewProvider = new MainViewProvider(
 		context,
+		engineService,
 		messageBus,
-		codemodListWebviewProvider,
+		rootPath ?? '',
 		store,
 	);
 
@@ -455,7 +447,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						throw new Error('Codemod is not selected');
 					}
 
-					await codemodListWebviewProvider.updateExecutionPath({
+					await mainViewProvider.updateExecutionPath({
 						newPath: uri.path,
 						codemodHash: selectedCodemod.hashDigest as CodemodHash,
 						fromVSCodeCommand: true,
