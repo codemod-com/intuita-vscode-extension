@@ -60,10 +60,6 @@ export type WebviewMessage =
 			props: MainWebviewViewProps;
 	  }>
 	| Readonly<{
-			kind: 'webview.diffView.focusFile';
-			jobHash: JobHash;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
 			value: number;
 			codemodHash: CodemodHash;
