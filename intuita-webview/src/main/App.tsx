@@ -6,31 +6,27 @@ import {
 	VSCodePanelView,
 } from '@vscode/webview-ui-toolkit/react';
 
-import CodemodList from '../codemodList/App';
+import { App as CodemodList } from '../codemodList/App';
 import { CommunityTab } from '../communityTab/CommunityTab';
 import CodemodRuns from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
-
-export enum TabKind {
-	codemods = 'codemods',
-	codemodRuns = 'codemodRuns',
-	community = 'community',
-}
+import { ActiveTabId } from '../../../src/persistedState/codecs';
 
 function App() {
 	const ref = useRef(null);
 	const [screenWidth, setScreenWidth] = useState<number | null>(null);
-	const [activeTabId, setActiveTabId] = useState(
-		window.INITIAL_STATE.activeTabId,
+	const [mainWebviewViewProps, setMainWebviewViewProps] = useState(
+		window.mainWebviewViewProps,
 	);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
-			if (message.kind === 'webview.main.setActiveTabId') {
-				setActiveTabId(message.activeTabId);
+		const handler = (event: MessageEvent<WebviewMessage>) => {
+			if (event.data.kind !== 'webview.main.setProps') {
+				return;
 			}
+
+			setMainWebviewViewProps(event.data.props);
 		};
 
 		window.addEventListener('message', handler);
@@ -68,7 +64,7 @@ function App() {
 		};
 	}, []);
 
-	const handlePanelTabClick = (id: TabKind) => {
+	const handlePanelTabClick = (id: ActiveTabId) => {
 		vscode.postMessage({
 			kind: 'webview.main.setActiveTabId',
 			activeTabId: id,
@@ -78,44 +74,53 @@ function App() {
 	return (
 		<main className="App" ref={ref}>
 			<VSCodePanels
-				activeid={activeTabId}
+				activeid={mainWebviewViewProps.activeTabId}
 				className="h-full w-full vscode-panels"
 			>
 				<VSCodePanelTab
 					className="vscode-tab"
-					id={TabKind.codemods}
+					id={'codemods'}
 					onClick={() => {
-						handlePanelTabClick(TabKind.codemods);
+						handlePanelTabClick('codemods');
 					}}
 				>
 					Codemod Discovery
 				</VSCodePanelTab>
 				<VSCodePanelTab
 					className="vscode-tab"
-					id={TabKind.codemodRuns}
+					id={'codemodRuns'}
 					onClick={() => {
-						handlePanelTabClick(TabKind.codemodRuns);
+						handlePanelTabClick('codemodRuns');
 					}}
 				>
 					Codemod Runs
 				</VSCodePanelTab>
 				<VSCodePanelTab
 					className="vscode-tab"
-					id={TabKind.community}
+					id={'community'}
 					onClick={() => {
-						handlePanelTabClick(TabKind.community);
+						handlePanelTabClick('community');
 					}}
 				>
 					Community
 				</VSCodePanelTab>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
-					<CodemodList />
+					{mainWebviewViewProps.activeTabId === 'codemods' ? (
+						<CodemodList {...mainWebviewViewProps} />
+					) : null}
 				</VSCodePanelView>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
-					<CodemodRuns screenWidth={screenWidth} />
+					{mainWebviewViewProps.activeTabId === 'codemodRuns' ? (
+						<CodemodRuns
+							screenWidth={screenWidth}
+							{...mainWebviewViewProps}
+						/>
+					) : null}
 				</VSCodePanelView>
 				<VSCodePanelView className="vscode-panel-view h-full w-full">
-					<CommunityTab />
+					{mainWebviewViewProps.activeTabId === 'community' ? (
+						<CommunityTab />
+					) : null}
 				</VSCodePanelView>
 			</VSCodePanels>
 		</main>

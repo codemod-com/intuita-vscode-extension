@@ -32,12 +32,6 @@ export const workspaceStateCodec = t.union([
 	}),
 ]);
 
-export enum TabKind {
-	codemods = 'codemods',
-	codemodRuns = 'codemodRuns',
-	community = 'community',
-}
-
 const emptyCollection = { ids: [], entities: {} };
 const buildCollectionCodec = <T extends t.Props>(
 	entityCodec: t.ReadonlyC<t.ExactC<t.TypeC<T>>>,
@@ -50,6 +44,14 @@ const buildCollectionCodec = <T extends t.Props>(
 		emptyCollection,
 	);
 };
+
+const activeTabIdCodec = t.union([
+	t.literal('codemods'),
+	t.literal('codemodRuns'),
+	t.literal('community'),
+]);
+
+export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
 
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
@@ -99,14 +101,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
-	activeTabId: withFallback(
-		t.union([
-			t.literal(TabKind.codemods),
-			t.literal(TabKind.codemodRuns),
-			t.literal(TabKind.community),
-		]),
-		TabKind.codemods,
-	),
+	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
 	explorerNodes: withFallback(
 		t.record(caseHashCodec, t.readonlyArray(_explorerNodeCodec)),

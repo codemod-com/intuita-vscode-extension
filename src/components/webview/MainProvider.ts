@@ -19,14 +19,9 @@ import { CodemodHash, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { MessageBus, MessageKind } from '../messageBus';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
-
-import { selectCodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
-import { selectExplorerTree } from '../../selectors/selectExplorerTree';
-import {
-	CodemodNodeHashDigest,
-	selectCodemodTree,
-} from '../../selectors/selectCodemodTree';
+import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { EngineService } from '../engineService';
+import { selectMainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 
 const getCompletionItems = (path: string) =>
 	pipe(parsePath(path), ({ dir, base }) =>
@@ -57,7 +52,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		private readonly __engineService: EngineService,
 		private readonly __messageBus: MessageBus,
-		private readonly __rootPath: string,
+		private readonly __rootUri: Uri,
 		private readonly __store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
@@ -67,8 +62,6 @@ export class MainViewProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.setView();
-
 			this.__store.dispatch(
 				actions.setFocusedCodemodHashDigest(
 					message.codemodHashDigest as unknown as CodemodNodeHashDigest,
@@ -93,6 +86,23 @@ export class MainViewProvider implements WebviewViewProvider {
 				kind: 'webview.main.setCollapsed',
 				collapsed: false,
 				viewName: 'changeExplorerView',
+			});
+		});
+
+		let prevProps = this.__buildProps();
+
+		this.__store.subscribe(async () => {
+			const nextProps = this.__buildProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.main.setProps',
+				props: nextProps,
 			});
 		});
 	}
@@ -121,114 +131,8 @@ export class MainViewProvider implements WebviewViewProvider {
 				this.__resolveWebview(this.__view);
 			}
 		});
-
-		{
-			let prevActiveTabId = this.__store.getState().activeTabId;
-
-			this.__store.subscribe(() => {
-				const nextActiveTabId = this.__store.getState().activeTabId;
-
-				if (prevActiveTabId === nextActiveTabId) {
-					return;
-				}
-
-				this.__postMessage({
-					kind: 'webview.main.setActiveTabId',
-					activeTabId: nextActiveTabId,
-				});
-
-				prevActiveTabId = nextActiveTabId;
-			});
-		}
-
-		{
-			let prevProps = this.__buildCodemodRunsProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildCodemodRunsProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-
-				this.__postMessage({
-					kind: 'webview.codemodRuns.setView',
-					value: {
-						viewId: 'campaignManagerView',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
-
-		{
-			let prevProps = this.__buildFileExplorerProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildFileExplorerProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-
-				this.__postMessage({
-					kind: 'webview.fileExplorer.setView',
-					value: {
-						viewId: 'fileExplorer',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
-
-		{
-			let prevProps = this.__buildCodemodProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildCodemodProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-				this.__postMessage({
-					kind: 'webview.codemodList.setView',
-					value: {
-						viewId: 'codemods',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
 	}
 
-	private __buildCodemodRunsProps() {
-		return selectCodemodRunsTree(this.__store.getState());
-	}
-
-	private __buildFileExplorerProps() {
-		const state = this.__store.getState();
-
-		return selectExplorerTree(state);
-	}
-
-	private __buildCodemodProps() {
-		const state = this.__store.getState();
-		const { searchPhrase } = state.codemodDiscoveryView;
-		const codemodTree = selectCodemodTree(state, this.__rootPath);
-
-		return {
-			searchPhrase,
-			codemodTree,
-			autocompleteItems: this.__autocompleteItems,
-			rootPath: this.__rootPath,
-		};
-	}
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
@@ -237,12 +141,16 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
-			JSON.stringify({
-				activeTabId: this.__store.getState().activeTabId,
-				codemodRunsProps: this.__buildCodemodRunsProps(),
-				fileExplorerProps: this.__buildFileExplorerProps(),
-				codemodListProps: this.__buildCodemodProps(),
-			}),
+			JSON.stringify(this.__buildProps()),
+			'mainWebviewViewProps',
+		);
+	}
+
+	private __buildProps() {
+		return selectMainWebviewViewProps(
+			this.__store.getState(),
+			this.__rootUri,
+			this.__autocompleteItems,
 		);
 	}
 
@@ -316,7 +224,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
-			if (this.__rootPath === null) {
+			if (this.__rootUri === null) {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
@@ -326,7 +234,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 			const state = this.__store.getState().codemodDiscoveryView;
 			const executionPath =
-				state.executionPaths[hashDigest] ?? this.__rootPath;
+				state.executionPaths[hashDigest] ?? this.__rootUri.fsPath;
 
 			if (executionPath === null) {
 				return;
@@ -359,7 +267,10 @@ export class MainViewProvider implements WebviewViewProvider {
 				),
 			);
 
-			this.setView();
+			this.__postMessage({
+				kind: 'webview.main.setProps',
+				props: this.__buildProps(),
+			});
 		}
 
 		if (message.kind === 'webview.global.flipCodemodHashDigest') {
@@ -398,7 +309,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		revertToPrevExecutionIfInvalid: boolean;
 		fromVSCodeCommand?: boolean;
 	}) => {
-		if (this.__rootPath === null) {
+		if (this.__rootUri === null) {
 			window.showWarningMessage('No active workspace is found.');
 			return;
 		}
@@ -449,16 +360,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			}
 		}
 	};
-
-	public setView() {
-		this.__postMessage({
-			kind: 'webview.codemodList.setView',
-			value: {
-				viewId: 'codemods',
-				viewProps: this.__buildCodemodProps(),
-			},
-		});
-	}
 
 	private __handleCodemodExecutionProgress({
 		processedFiles,

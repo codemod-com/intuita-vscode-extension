@@ -8,7 +8,6 @@ import { PanelViewProps } from './panelViewProps';
 import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { actions } from '../../data/slice';
 import { CodemodDescriptionProvider } from './CodemodDescriptionProvider';
-import { TabKind } from '../../persistedState/codecs';
 import { selectNodeData } from '../../selectors/selectExplorerTree';
 import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
@@ -47,11 +46,11 @@ const selectPanelViewProps = (
 
 	const { activeTabId } = state;
 
-	if (activeTabId === TabKind.community) {
+	if (activeTabId === 'community') {
 		return null;
 	}
 
-	if (activeTabId === TabKind.codemods) {
+	if (activeTabId === 'codemods') {
 		const { focusedCodemodHashDigest } = state.codemodDiscoveryView;
 
 		if (focusedCodemodHashDigest === null) {

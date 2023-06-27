@@ -10,7 +10,7 @@ import { ExecutionError } from '../errors/types';
 import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
-import { RootState, TabKind } from '../persistedState/codecs';
+import { ActiveTabId, RootState } from '../persistedState/codecs';
 import { selectNodeData } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import {
@@ -61,7 +61,7 @@ export const getInitialState = (): RootState => {
 			collapsed: false,
 		},
 		codemodExecutionInProgress: false,
-		activeTabId: TabKind.codemods,
+		activeTabId: 'codemods',
 		explorerSearchPhrases: {},
 		explorerNodes: {},
 		selectedExplorerNodes: {},
@@ -209,7 +209,7 @@ const rootSlice = createSlice({
 
 			state.explorerSearchPhrases[caseHash] = searchPhrase;
 		},
-		setActiveTabId(state, action: PayloadAction<TabKind>) {
+		setActiveTabId(state, action: PayloadAction<ActiveTabId>) {
 			state.activeTabId = action.payload;
 		},
 		focusExplorerNodeSibling(
@@ -254,14 +254,14 @@ const rootSlice = createSlice({
 			state.focusedExplorerNodes[caseHash] = nodeDatum.node.hashDigest;
 		},
 		focusOnChangeExplorer(state) {
-			state.activeTabId = TabKind.codemodRuns;
+			state.activeTabId = 'codemodRuns';
 			state.changeExplorerView.collapsed = false;
 		},
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 
 			state.codemodExecutionInProgress = false;
-			state.activeTabId = TabKind.codemodRuns;
+			state.activeTabId = 'codemodRuns';
 
 			state.codemodRunsView.selectedCaseHash = caseHash;
 
