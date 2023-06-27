@@ -67,8 +67,6 @@ export class MainViewProvider implements WebviewViewProvider {
 		);
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.setView();
-
 			this.__store.dispatch(
 				actions.setFocusedCodemodHashDigest(
 					message.codemodHashDigest as unknown as CodemodNodeHashDigest,
@@ -121,90 +119,6 @@ export class MainViewProvider implements WebviewViewProvider {
 				this.__resolveWebview(this.__view);
 			}
 		});
-
-		{
-			let prevActiveTabId = this.__store.getState().activeTabId;
-
-			this.__store.subscribe(() => {
-				const nextActiveTabId = this.__store.getState().activeTabId;
-
-				if (prevActiveTabId === nextActiveTabId) {
-					return;
-				}
-
-				this.__postMessage({
-					kind: 'webview.main.setActiveTabId',
-					activeTabId: nextActiveTabId,
-				});
-
-				prevActiveTabId = nextActiveTabId;
-			});
-		}
-
-		{
-			let prevProps = this.__buildCodemodRunsProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildCodemodRunsProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-
-				this.__postMessage({
-					kind: 'webview.codemodRuns.setView',
-					value: {
-						viewId: 'campaignManagerView',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
-
-		{
-			let prevProps = this.__buildFileExplorerProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildFileExplorerProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-
-				this.__postMessage({
-					kind: 'webview.fileExplorer.setView',
-					value: {
-						viewId: 'fileExplorer',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
-
-		{
-			let prevProps = this.__buildCodemodProps();
-
-			this.__store.subscribe(() => {
-				const nextProps = this.__buildCodemodProps();
-
-				if (areEqual(prevProps, nextProps)) {
-					return;
-				}
-
-				prevProps = nextProps;
-				this.__postMessage({
-					kind: 'webview.codemodList.setView',
-					value: {
-						viewId: 'codemods',
-						viewProps: nextProps,
-					},
-				});
-			});
-		}
 	}
 
 	private __buildCodemodRunsProps() {
@@ -358,8 +272,6 @@ export class MainViewProvider implements WebviewViewProvider {
 						(this.__autocompleteItems = autocompleteItems),
 				),
 			);
-
-			this.setView();
 		}
 
 		if (message.kind === 'webview.global.flipCodemodHashDigest') {
@@ -449,16 +361,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			}
 		}
 	};
-
-	public setView() {
-		this.__postMessage({
-			kind: 'webview.codemodList.setView',
-			value: {
-				viewId: 'codemods',
-				viewProps: this.__buildCodemodProps(),
-			},
-		});
-	}
 
 	private __handleCodemodExecutionProgress({
 		processedFiles,

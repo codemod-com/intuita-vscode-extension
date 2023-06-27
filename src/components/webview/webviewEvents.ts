@@ -60,18 +60,6 @@ export type WebviewMessage =
 			value: View;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodRuns.setView';
-			value: View;
-	  }>
-	| Readonly<{
-			kind: 'webview.fileExplorer.setView';
-			value: View;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.setView';
-			value: View;
-	  }>
-	| Readonly<{
 			kind: 'webview.diffView.focusFile';
 			jobHash: JobHash;
 	  }>
@@ -90,10 +78,6 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.codemodList.setAutocompleteItems';
 			autocompleteItems: string[];
-	  }>
-	| Readonly<{
-			kind: 'webview.main.setActiveTabId';
-			activeTabId: TabKind;
 	  }>;
 
 export type WebviewResponse =
