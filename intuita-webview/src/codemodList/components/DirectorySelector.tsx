@@ -1,4 +1,10 @@
-import React, { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import React, {
+	KeyboardEvent,
+	ReactNode,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -32,7 +38,7 @@ const updatePath = (
 
 type Props = {
 	defaultValue: string;
-	displayValue: string | null;
+	displayValue: string | ReactNode | null;
 	rootPath: string;
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
@@ -270,13 +276,17 @@ export const DirectorySelector = ({
 					className={styles.targetPathButton}
 				>
 					<span className={styles.label}>
-						{displayValue === `${repoName}/` ? (
-							<em>{`${repoName}/`}</em>
+						{typeof displayValue === 'string' ? (
+							displayValue === `${repoName}/` ? (
+								<em>{`${repoName}/`}</em>
+							) : (
+								displayValue
+									.split('/')
+									.filter((part) => part.length !== 0)
+									.slice(-1)[0]
+							)
 						) : (
 							displayValue
-								.split('/')
-								.filter((part) => part.length !== 0)
-								.slice(-1)[0]
 						)}
 					</span>
 				</VSCodeButton>
