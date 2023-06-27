@@ -9,8 +9,8 @@ import { ResizablePanel, PanelGroup } from '../shared/Panel';
 import SectionHeader from '../shared/SectionHeader';
 import { WebviewMessage } from '../shared/types';
 
-import CampaignManager from '../campaignManager/App';
-import FileExplorer from '../fileExplorer/App';
+import { App as CampaignManager } from '../campaignManager/App';
+import { App as FileExplorer } from '../fileExplorer/App';
 
 import { CollapsibleWebviews } from '../../../src/components/webview/webviewEvents';
 

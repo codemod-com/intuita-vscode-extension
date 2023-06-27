@@ -16,6 +16,7 @@ export const selectMainWebviewViewProps = (
 			searchPhrase: state.codemodDiscoveryView.searchPhrase,
 			autocompleteItems,
 			codemodTree: selectCodemodTree(state, rootUri.fsPath),
+			rootPath: rootUri.fsPath,
 		};
 	}
 

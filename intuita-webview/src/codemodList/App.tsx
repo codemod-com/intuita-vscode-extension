@@ -1,10 +1,10 @@
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { vscode } from '../shared/utilities/vscode';
-import { WebviewMessage } from '../shared/types';
 import TreeView from './TreeView';
 import './index.css';
 import SearchBar from '../shared/SearchBar';
-import Progress from '../shared/Progress';
+import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import { TabKind } from '../../../src/persistedState/codecs';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -13,55 +13,19 @@ const setSearchPhrase = (searchPhrase: string) => {
 	});
 };
 
-function App() {
-	const [view, setView] = useState({
-		viewProps: window.INITIAL_STATE.codemodListProps,
-		viewId: 'codemods',
-	});
-
-	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
-			if (
-				message.kind === 'webview.codemodList.setView' &&
-				message.value.viewId === 'codemods'
-			) {
-				setView(message.value);
-			}
-		};
-
-		window.addEventListener('message', handler);
-
-		return () => {
-			window.removeEventListener('message', handler);
-		};
-	}, []);
-
-	if (view === null) {
-		return (
-			<main className="App">
-				<Progress />
-			</main>
-		);
-	}
-
-	const { codemodTree, autocompleteItems, searchPhrase, rootPath } =
-		view.viewProps;
-
-	return (
+export const App = memo(
+	(props: MainWebviewViewProps & { activeTabId: TabKind.codemods }) => (
 		<main className="App">
 			<SearchBar
-				searchPhrase={searchPhrase}
+				searchPhrase={props.searchPhrase}
 				setSearchPhrase={setSearchPhrase}
 				placeholder="Search codemods..."
 			/>
 			<TreeView
-				rootPath={rootPath}
-				tree={codemodTree}
-				autocompleteItems={autocompleteItems}
+				rootPath={props.rootPath}
+				tree={props.codemodTree}
+				autocompleteItems={props.autocompleteItems}
 			/>
 		</main>
-	);
-}
-
-export default memo(App);
+	),
+);

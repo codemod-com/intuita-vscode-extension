@@ -10,23 +10,9 @@ import type {
 	WebviewMessage,
 } from '../../../src/components/webview/webviewEvents';
 import { ExecutionError } from '../../../src/errors/types';
-import { TabKind } from '../../../src/persistedState/codecs';
+import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 
 type ErrorsViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
-type CommunityViewProps = Extract<
-	View,
-	{ viewId: 'communityView' }
->['viewProps'];
-type CodemodRunsViewProps = Extract<
-	View,
-	{ viewId: 'campaignManagerView' }
->['viewProps'];
-type FileExplorerViewProps = Extract<
-	View,
-	{ viewId: 'fileExplorer' }
->['viewProps'];
-
-type CodemodsViewProps = Extract<View, { viewId: 'codemods' }>['viewProps'];
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
@@ -74,13 +60,9 @@ const buildExecutionErrorRow = (
 declare global {
 	interface Window {
 		INITIAL_STATE: {
-			communityProps: CommunityViewProps;
 			errorProps: ErrorsViewProps;
-			codemodRunsProps: CodemodRunsViewProps;
-			fileExplorerProps: FileExplorerViewProps;
-			codemodListProps: CodemodsViewProps;
-			activeTabId: TabKind;
 		};
+		mainWebviewViewProps: MainWebviewViewProps;
 	}
 }
 

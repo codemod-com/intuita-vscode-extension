@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import styles from './style.module.css';
-import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
 import { ActionsFooter } from './ActionsFooter';
 import Progress from '../shared/Progress';
@@ -13,8 +12,8 @@ import {
 	_ExplorerNodeHashDigest,
 } from '../../../src/persistedState/explorerNodeCodec';
 import { CaseHash } from '../../../src/cases/types';
-
-type Props = { screenWidth: number | null };
+import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import { TabKind } from '../../../src/persistedState/codecs';
 
 const setSearchPhrase = (caseHashDigest: CaseHash, searchPhrase: string) => {
 	vscode.postMessage({
@@ -48,30 +47,14 @@ const onCollapsibleExplorerNodeFlip = (
 	onFocus(caseHashDigest, explorerNodeHashDigest);
 };
 
-function App({ screenWidth }: Props) {
-	const [viewProps, setViewProps] = useState(
-		window.INITIAL_STATE.fileExplorerProps,
-	);
+export const App = (
+	props: { screenWidth: number | null } & MainWebviewViewProps & {
+			activeTabId: TabKind.codemodRuns;
+		},
+) => {
+	const { changeExplorerTree } = props;
 
-	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
-			if (message.kind === 'webview.fileExplorer.setView') {
-				// @TODO separate View type to MainViews and SourceControlViews
-				if (message.value.viewId === 'fileExplorer') {
-					setViewProps(message.value.viewProps);
-				}
-			}
-		};
-
-		window.addEventListener('message', handler);
-
-		return () => {
-			window.removeEventListener('message', handler);
-		};
-	}, []);
-
-	const caseHash = viewProps?.caseHash ?? null;
+	const caseHash = changeExplorerTree?.caseHash ?? null;
 
 	const handleFocus = useCallback(
 		(hashDigest: _ExplorerNodeHashDigest) => {
@@ -96,7 +79,7 @@ function App({ screenWidth }: Props) {
 		[caseHash],
 	);
 
-	if (caseHash === null) {
+	if ((props.changeExplorerTree?.caseHash ?? null) === null) {
 		return (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
@@ -107,22 +90,27 @@ function App({ screenWidth }: Props) {
 	return (
 		<main
 			className={styles.container}
-			style={{ ...(viewProps === null && { cursor: 'not-allowed' }) }}
+			style={{
+				...(changeExplorerTree === null && { cursor: 'not-allowed' }),
+			}}
 		>
-			{viewProps !== null && (
+			{changeExplorerTree !== null && (
 				<SearchBar
-					searchPhrase={viewProps.searchPhrase}
+					searchPhrase={changeExplorerTree.searchPhrase}
 					setSearchPhrase={(searchPhrase) =>
-						setSearchPhrase(viewProps.caseHash, searchPhrase)
+						setSearchPhrase(
+							changeExplorerTree.caseHash,
+							searchPhrase,
+						)
 					}
 					placeholder="Search files..."
 				/>
 			)}
 			<div className={styles.treeContainer}>
-				{viewProps !== null ? (
+				{changeExplorerTree !== null ? (
 					<IntuitaTreeView<_ExplorerNodeHashDigest, _ExplorerNode>
-						{...viewProps}
-						nodeRenderer={explorerNodeRenderer(viewProps)}
+						{...changeExplorerTree}
+						nodeRenderer={explorerNodeRenderer(changeExplorerTree)}
 						onFlip={handleFlip}
 						onFocus={handleFocus}
 					/>
@@ -130,16 +118,14 @@ function App({ screenWidth }: Props) {
 					<Progress />
 				)}
 			</div>
-			{viewProps !== null && (
+			{changeExplorerTree !== null && (
 				<ActionsFooter
-					caseHash={viewProps.caseHash}
-					screenWidth={screenWidth}
-					searchPhrase={viewProps.searchPhrase}
-					selectedJobCount={viewProps.selectedJobCount}
+					caseHash={changeExplorerTree.caseHash}
+					screenWidth={props.screenWidth}
+					searchPhrase={changeExplorerTree.searchPhrase}
+					selectedJobCount={changeExplorerTree.selectedJobCount}
 				/>
 			)}
 		</main>
 	);
-}
-
-export default App;
+};

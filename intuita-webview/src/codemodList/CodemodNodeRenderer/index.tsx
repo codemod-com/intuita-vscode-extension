@@ -30,7 +30,7 @@ const getContainerInlineStyles = ({
 
 type Deps = {
 	rootPath: string;
-	autocompleteItems: string[];
+	autocompleteItems: ReadonlyArray<string>;
 	progress: ProgressType | null;
 };
 

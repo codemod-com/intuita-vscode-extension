@@ -13,7 +13,7 @@ import { getCodemodNodeRenderer } from '../CodemodNodeRenderer';
 
 type Props = Readonly<{
 	tree: CodemodTree;
-	autocompleteItems: string[];
+	autocompleteItems: ReadonlyArray<string>;
 	rootPath: string;
 }>;
 
