@@ -15,14 +15,6 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.root .actions {
-	display: none;
-}
-
-.root:hover .actions {
-	display: flex;
-}
-
 .focused,
 .focused:hover {
 	background-color: var(--vscode-list-activeSelectionBackground);
@@ -68,13 +60,12 @@
 	text-align: right;
 }
 
-.actions {
+.startDecorator {
 	display: flex;
-	margin: 0 auto;
+	margin: auto;
 	padding: 0;
-	height: 100%;
 	align-items: center;
-	min-width: fit-content;
+	justify-content: center;
 }
 
 .actions a {

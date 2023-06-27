@@ -10,6 +10,7 @@ import {
 	_ExplorerNodeHashDigest,
 } from '../../../src/persistedState/explorerNodeCodec';
 import { vscode } from '../shared/utilities/vscode';
+import styles from './style.module.css';
 
 const getIcon = (explorerNode: _ExplorerNode, opened: boolean): ReactNode => {
 	if (explorerNode.kind === 'ROOT') {
@@ -71,6 +72,7 @@ export const explorerNodeRenderer =
 						});
 					}}
 					checked={checked}
+					className={styles.checkbox}
 				/>
 			);
 		};
@@ -91,7 +93,7 @@ export const explorerNodeRenderer =
 
 					props.onFocus(props.nodeDatum.node.hashDigest);
 				}}
-				actionButtons={[<Checkbox />]}
+				startDecorator={<Checkbox />}
 				onPressChevron={(event) => {
 					event.stopPropagation();
 
@@ -105,7 +107,6 @@ export const explorerNodeRenderer =
 						}),
 						paddingRight: 4,
 					},
-					actions: { display: 'flex' },
 				}}
 			/>
 		);
