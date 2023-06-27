@@ -88,6 +88,25 @@ export class MainViewProvider implements WebviewViewProvider {
 				viewName: 'changeExplorerView',
 			});
 		});
+
+		let prevProps = this.__buildProps();
+
+		const handler = async () => {
+			const nextProps = this.__buildProps();
+
+			if (areEqual(prevProps, nextProps)) {
+				return;
+			}
+
+			prevProps = nextProps;
+
+			this.__postMessage({
+				kind: 'webview.main.setProps',
+				props: nextProps,
+			});
+		};
+
+		this.__store.subscribe(handler);
 	}
 
 	public isVisible(): boolean {
@@ -130,7 +149,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	}
 
 	private __buildProps() {
-		selectMainWebviewViewProps(
+		return selectMainWebviewViewProps(
 			this.__store.getState(),
 			this.__rootUri,
 			this.__autocompleteItems,
