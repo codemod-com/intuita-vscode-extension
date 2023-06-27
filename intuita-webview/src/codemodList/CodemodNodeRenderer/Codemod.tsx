@@ -166,8 +166,8 @@ const Codemod = ({
 			);
 
 			setNotEnoughSpace(xDistance < 100);
-		}
-		
+		};
+
 		const resizeObserver = new ResizeObserver(throttle(resizeHandler, 300));
 
 		const treeItem = document.getElementById(hashDigest);

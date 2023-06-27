@@ -5,15 +5,14 @@ const throttle = <R>(callback: (...args: any[]) => R, ms: number) => {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (...args: any[]) => {
 		if (timeout) {
-      return;
-		} 
-    
+			return;
+		}
+
 		callback(...args);
 		timeout = setTimeout(() => {
 			callback(...args);
 			timeout = null;
-			
-			}, ms);
+		}, ms);
 	};
 };
 
