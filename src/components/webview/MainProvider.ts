@@ -4,7 +4,6 @@ import {
 	WebviewView,
 	ExtensionContext,
 	commands,
-	workspace,
 } from 'vscode';
 
 import { WebviewResolver } from './WebviewResolver';
@@ -146,10 +145,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	private __buildFileExplorerProps() {
 		const state = this.__store.getState();
 
-		return selectExplorerTree(
-			state,
-			workspace.workspaceFolders?.[0]?.uri ?? null,
-		);
+		return selectExplorerTree(state);
 	}
 
 	private __postMessage(message: WebviewMessage) {

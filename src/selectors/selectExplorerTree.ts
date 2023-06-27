@@ -1,4 +1,3 @@
-import { Uri } from 'vscode';
 import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
 import { isNeitherNullNorUndefined } from '../utilities';
@@ -69,8 +68,8 @@ export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 	);
 };
 
-export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
-	if (rootPath === null || state.codemodExecutionInProgress) {
+export const selectExplorerTree = (state: RootState) => {
+	if (state.codemodExecutionInProgress) {
 		return null;
 	}
 
