@@ -27,6 +27,7 @@ import {
 	selectCodemodTree,
 } from '../../selectors/selectCodemodTree';
 import { EngineService } from '../engineService';
+import { selectMainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 
 const getCompletionItems = (path: string) =>
 	pipe(parsePath(path), ({ dir, base }) =>
@@ -57,7 +58,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		private readonly __engineService: EngineService,
 		private readonly __messageBus: MessageBus,
-		private readonly __rootPath: string,
+		private readonly __rootUri: Uri,
 		private readonly __store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
@@ -121,28 +122,6 @@ export class MainViewProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __buildCodemodRunsProps() {
-		return selectCodemodRunsTree(this.__store.getState());
-	}
-
-	private __buildFileExplorerProps() {
-		const state = this.__store.getState();
-
-		return selectExplorerTree(state);
-	}
-
-	private __buildCodemodProps() {
-		const state = this.__store.getState();
-		const { searchPhrase } = state.codemodDiscoveryView;
-		const codemodTree = selectCodemodTree(state, this.__rootPath);
-
-		return {
-			searchPhrase,
-			codemodTree,
-			autocompleteItems: this.__autocompleteItems,
-			rootPath: this.__rootPath,
-		};
-	}
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
@@ -151,12 +130,16 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__webviewResolver.resolveWebview(
 			webviewView.webview,
 			'main',
-			JSON.stringify({
-				activeTabId: this.__store.getState().activeTabId,
-				codemodRunsProps: this.__buildCodemodRunsProps(),
-				fileExplorerProps: this.__buildFileExplorerProps(),
-				codemodListProps: this.__buildCodemodProps(),
-			}),
+			JSON.stringify(this.__buildProps()),
+			'mainWebviewViewProps',
+		);
+	}
+
+	private __buildProps() {
+		selectMainWebviewViewProps(
+			this.__store.getState(),
+			this.__rootUri,
+			this.__autocompleteItems,
 		);
 	}
 
@@ -230,7 +213,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
-			if (this.__rootPath === null) {
+			if (this.__rootUri === null) {
 				window.showWarningMessage('No active workspace is found.');
 				return;
 			}
@@ -240,7 +223,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 			const state = this.__store.getState().codemodDiscoveryView;
 			const executionPath =
-				state.executionPaths[hashDigest] ?? this.__rootPath;
+				state.executionPaths[hashDigest] ?? this.__rootUri.fsPath;
 
 			if (executionPath === null) {
 				return;
@@ -310,7 +293,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		revertToPrevExecutionIfInvalid: boolean;
 		fromVSCodeCommand?: boolean;
 	}) => {
-		if (this.__rootPath === null) {
+		if (this.__rootUri === null) {
 			window.showWarningMessage('No active workspace is found.');
 			return;
 		}

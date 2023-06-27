@@ -28,6 +28,12 @@ import { _ExplorerNode } from './persistedState/explorerNodeCodec';
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
+	const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
+
+	if (rootUri === null) {
+		return;
+	}
+
 	messageBus.setDisposables(context.subscriptions);
 
 	const { store } = await buildStore(context.workspaceState);
@@ -45,8 +51,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const jobManager = new JobManager(fileService, messageBus, store);
 
 	new CaseManager(messageBus, store);
-
-	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
 
 	const fileSystemUtilities = new FileSystemUtilities(vscode.workspace.fs);
 
@@ -82,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context,
 		engineService,
 		messageBus,
-		rootPath ?? '',
+		rootUri,
 		store,
 	);
 
@@ -104,7 +108,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 		messageBus,
 		codemodDescriptionProvider,
-		rootPath ?? '',
+		rootUri.fsPath,
 	);
 
 	context.subscriptions.push(mainView);
