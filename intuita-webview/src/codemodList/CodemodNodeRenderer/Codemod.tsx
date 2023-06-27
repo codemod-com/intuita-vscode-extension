@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import Popover from '../../shared/Popover';
@@ -15,7 +14,7 @@ import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
 import InfiniteProgress from '../TreeView/InfiniteProgress';
 import ProgressBar from '../TreeView/ProgressBar';
-import ActionButton from '../TreeView/ActionButton';
+import CodemodActionButtons from './CodemodActionButtons';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -49,44 +48,6 @@ const renderProgressBar = (
 		<InfiniteProgress />
 	) : (
 		<ProgressBar progress={progress} />
-	);
-};
-
-const renderActionButtons = (
-	hashDigest: CodemodItemNode['hashDigest'],
-	codemodInProgress: boolean,
-	doesDisplayShortenedTitle: boolean,
-) => {
-	if (!codemodInProgress) {
-		return (
-			<ActionButton
-				popoverText="Run this codemod without making change to file system"
-				onClick={(e) => {
-					e.stopPropagation();
-
-					vscode.postMessage({
-						kind: 'webview.codemodList.dryRunCodemod',
-						value: hashDigest as unknown as CodemodHash,
-					});
-				}}
-			>
-				{doesDisplayShortenedTitle ? '✓' : '✓ Dry Run'}
-			</ActionButton>
-		);
-	}
-
-	return (
-		<ActionButton
-			popoverText="Stop Codemod Execution"
-			iconName="codicon-debug-stop"
-			onClick={(e) => {
-				e.stopPropagation();
-				vscode.postMessage({
-					kind: 'webview.codemodList.haltCodemodExecution',
-					value: hashDigest as unknown as CodemodHash,
-				});
-			}}
-		/>
 	);
 };
 
@@ -226,16 +187,7 @@ const Codemod = ({
 						{executionPath && (
 							<DirectorySelector
 								defaultValue={targetPath}
-								displayValue={
-									notEnoughSpace ? (
-										<EditMaterialIcon
-											style={{
-												width: '16px',
-												height: '16px',
-											}}
-										/>
-									) : null
-								}
+								notEnoughSpace={notEnoughSpace}
 								rootPath={rootPath}
 								error={
 									error === null ? null : { message: error }
@@ -259,11 +211,11 @@ const Codemod = ({
 			{}
 			{!editingPath && (
 				<div className={cn(styles.actions)}>
-					{renderActionButtons(
-						hashDigest,
-						codemodInProgress,
-						notEnoughSpace,
-					)}
+					<CodemodActionButtons
+						hashDigest={hashDigest}
+						codemodInProgress={codemodInProgress}
+						notEnoughSpace={notEnoughSpace}
+					/>
 				</div>
 			)}
 		</>
