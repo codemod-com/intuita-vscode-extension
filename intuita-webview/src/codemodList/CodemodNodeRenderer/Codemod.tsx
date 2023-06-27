@@ -10,9 +10,7 @@ import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 
-import {
-	CodemodNode,
-} from '../../../../src/selectors/selectCodemodTree';
+import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
@@ -35,16 +33,19 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 	});
 }, 50);
 
-
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Omit<CodemodItemNode, 'name' | 'kind'> & Readonly<{
-	rootPath: string;
-	autocompleteItems: ReadonlyArray<string>;
-	progress: number | null;
-}>;
+type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
+	Readonly<{
+		rootPath: string;
+		autocompleteItems: ReadonlyArray<string>;
+		progress: number | null;
+	}>;
 
-const renderProgressBar = (codemodKind: CodemodItemNode['codemodKind'], progress: number) => {
+const renderProgressBar = (
+	codemodKind: CodemodItemNode['codemodKind'],
+	progress: number,
+) => {
 	return codemodKind === 'repomod' ? (
 		<InfiniteProgress />
 	) : (
@@ -99,7 +100,6 @@ const Codemod = ({
 	autocompleteItems,
 	progress,
 }: Props) => {
-
 	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 	const directorySelectorRef = useRef<HTMLSpanElement>(null);
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
@@ -243,7 +243,9 @@ const Codemod = ({
 						)}
 					</span>
 				</span>
-				{codemodInProgress ? renderProgressBar(codemodKind, progress) : null}
+				{codemodInProgress
+					? renderProgressBar(codemodKind, progress)
+					: null}
 			</div>
 			{}
 			{!editingPath && (

@@ -78,23 +78,23 @@ const getCodemodNodeRenderer =
 				<div style={getContainerInlineStyles(nodeDatum)} />
 				{node.kind === 'CODEMOD' ? (
 					// <Profiler id="Codemod leaf" onRender={console.log}>
-						<Codemod
-							hashDigest={hashDigest}
-							description={node.description}
-							executionPath={node.executionPath}
-							codemodKind={node.codemodKind}
-							label={label}
-							autocompleteItems={autocompleteItems}
-							rootPath={rootPath}
-							progress={
-								progress?.codemodHash ===
-								(node.hashDigest as unknown as CodemodHash)
-									? progress.progress
-									: null
-							}
-						/>
-					// </Profiler>
+					<Codemod
+						hashDigest={hashDigest}
+						description={node.description}
+						executionPath={node.executionPath}
+						codemodKind={node.codemodKind}
+						label={label}
+						autocompleteItems={autocompleteItems}
+						rootPath={rootPath}
+						progress={
+							progress?.codemodHash ===
+							(node.hashDigest as unknown as CodemodHash)
+								? progress.progress
+								: null
+						}
+					/>
 				) : (
+					// </Profiler>
 					<Directory expanded={expanded} label={label} />
 				)}
 			</div>
