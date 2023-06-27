@@ -10,16 +10,6 @@
 	gap: 8px;
 }
 
-.selectedFileCount {
-	user-select: none;
-	margin-right: auto;
-	font-size: var(--vscode-editor-font-size);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	padding-left: 4px;
-}
-
 .icon {
 	width: 22px;
 	height: 22px;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './style.module.css';
 import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
 import SearchBar from '../shared/SearchBar';
-import { ActionsHeader } from './ActionsHeader';
+import { ActionsFooter } from './ActionsFooter';
 import Progress from '../shared/Progress';
 
 import { vscode } from '../shared/utilities/vscode';
@@ -85,15 +85,6 @@ function App({ screenWidth }: Props) {
 			style={{ ...(viewProps === null && { cursor: 'not-allowed' }) }}
 		>
 			{viewProps !== null && (
-				<ActionsHeader
-					caseHash={viewProps.caseHash}
-					screenWidth={screenWidth}
-					searchPhrase={viewProps.searchPhrase}
-					selectedJobCount={viewProps.selectedJobCount}
-					jobCount={viewProps.jobCount}
-				/>
-			)}
-			{viewProps !== null && (
 				<SearchBar
 					searchPhrase={viewProps.searchPhrase}
 					setSearchPhrase={(searchPhrase) =>
@@ -121,6 +112,14 @@ function App({ screenWidth }: Props) {
 					<Progress />
 				)}
 			</div>
+			{viewProps !== null && (
+				<ActionsFooter
+					caseHash={viewProps.caseHash}
+					screenWidth={screenWidth}
+					searchPhrase={viewProps.searchPhrase}
+					selectedJobCount={viewProps.selectedJobCount}
+				/>
+			)}
 		</main>
 	);
 }

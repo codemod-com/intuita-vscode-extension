@@ -104,7 +104,6 @@ export const selectExplorerTree = (state: RootState, rootPath: Uri | null) => {
 		selectedExplorerNodeHashDigests,
 		searchPhrase: state.explorerSearchPhrases[caseHash] ?? '',
 		selectedJobCount,
-		jobCount: fileNodeData.length,
 	};
 };
 

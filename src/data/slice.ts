@@ -474,20 +474,6 @@ const rootSlice = createSlice({
 				),
 			);
 		},
-		flipSelectedExplorerNodes(state, action: PayloadAction<CaseHash>) {
-			const caseHash = action.payload;
-
-			const hashDigests = state.selectedExplorerNodes[caseHash] ?? [];
-
-			if (hashDigests.length === 0) {
-				state.selectedExplorerNodes[caseHash] =
-					state.explorerNodes[caseHash]?.map(
-						(node) => node.hashDigest,
-					) ?? [];
-			} else {
-				state.selectedExplorerNodes[caseHash] = [];
-			}
-		},
 		flipCollapsibleExplorerNode(
 			state,
 			action: PayloadAction<[CaseHash, _ExplorerNodeHashDigest]>,

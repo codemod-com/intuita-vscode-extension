@@ -13,8 +13,6 @@ export type PanelViewProps =
 			newFileContent: string | null;
 			oldFileTitle: string | null;
 			newFileTitle: string | null;
-			jobCount: number;
-			jobIndex: number;
 	  }>
 	| Readonly<{
 			kind: 'CODEMOD';
