@@ -9,10 +9,10 @@ type Props = Readonly<{
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: ReactNode;
 	hasChildren: boolean;
 	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
+	startDecorator?: ReactNode;
 	inlineStyles?: {
 		root?: CSSProperties;
 		icon?: CSSProperties;
@@ -30,7 +30,7 @@ const TreeItem = ({
 	icon,
 	open,
 	focused,
-	actionButtons,
+	startDecorator,
 	hasChildren,
 	onClick,
 	depth,
@@ -82,6 +82,14 @@ const TreeItem = ({
 					/>
 				</div>
 			) : null}
+			{startDecorator && (
+				<div
+					className={styles.startDecorator}
+					style={inlineStyles?.actions}
+				>
+					{startDecorator}
+				</div>
+			)}
 			<div className={styles.icon} style={inlineStyles?.icon}>
 				{icon}
 			</div>
@@ -96,9 +104,6 @@ const TreeItem = ({
 					{subLabel}
 				</span>
 			) : null}
-			<div className={styles.actions} style={inlineStyles?.actions}>
-				{actionButtons}
-			</div>
 		</div>
 	);
 };

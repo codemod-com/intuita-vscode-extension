@@ -14,3 +14,8 @@
 	flex-grow: 1;
 	overflow-y: auto;
 }
+
+.checkbox::part(control) {
+	width: calc(var(--design-unit) * 3.5px);
+	height: calc(var(--design-unit) * 3.5px);
+}

@@ -59,7 +59,6 @@ function App() {
 						depth={props.nodeDatum.depth}
 						open={false}
 						focused={props.nodeDatum.focused}
-						actionButtons={null}
 						onClick={(event) => {
 							event.stopPropagation();
 
