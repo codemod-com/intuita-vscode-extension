@@ -27,7 +27,7 @@ const RESIZABLE_PANELS: {
 }[] = [
 	{
 		id: 'codemodRunsView',
-		title: 'Codemod Runs',
+		title: 'Results',
 		commands: [
 			{
 				icon: 'clear-all',
@@ -39,7 +39,7 @@ const RESIZABLE_PANELS: {
 	},
 	{
 		id: 'changeExplorerView',
-		title: 'Changes Explorer',
+		title: 'Change Explorer',
 		Component: (props) => FileExplorer(props),
 	},
 ];
