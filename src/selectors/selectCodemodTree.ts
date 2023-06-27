@@ -4,6 +4,8 @@ import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
 
+const IntuitaCertifiedLibraries = ['next'];
+
 interface CodemodNodeHashDigestBrand {
 	readonly __CodemodNodeHashDigest: unique symbol;
 }
@@ -44,6 +46,7 @@ export const buildDirectoryNode = (name: string, path: string) =>
 		hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
 		kind: 'DIRECTORY' as const,
 		label: name,
+		intuitaCertified: IntuitaCertifiedLibraries.includes(name),
 	} as const);
 
 const REPOMOD_CODEMOD_HASH_DIGESTS = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];

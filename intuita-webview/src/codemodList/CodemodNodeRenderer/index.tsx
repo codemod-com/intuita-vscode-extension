@@ -4,6 +4,7 @@ import cn from 'classnames';
 import {
 	CodemodNodeHashDigest,
 	CodemodNode,
+	buildDirectoryNode,
 } from '../../../../src/selectors/selectCodemodTree';
 import { NodeDatum } from '../../intuitaTreeView';
 
@@ -95,7 +96,14 @@ const getCodemodNodeRenderer =
 					/>
 				) : (
 					// </Profiler>
-					<Directory expanded={expanded} label={label} />
+					<Directory
+						expanded={expanded}
+						label={label}
+						intuitaCertified={
+							(node as ReturnType<typeof buildDirectoryNode>)
+								.intuitaCertified
+						}
+					/>
 				)}
 			</div>
 		);
