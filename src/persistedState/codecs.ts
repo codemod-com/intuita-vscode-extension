@@ -32,12 +32,6 @@ export const workspaceStateCodec = t.union([
 	}),
 ]);
 
-export enum TabKind {
-	codemods = 'codemods',
-	codemodRuns = 'codemodRuns',
-	community = 'community',
-}
-
 const emptyCollection = { ids: [], entities: {} };
 const buildCollectionCodec = <T extends t.Props>(
 	entityCodec: t.ReadonlyC<t.ExactC<t.TypeC<T>>>,
@@ -101,11 +95,11 @@ export const persistedStateCodecNew = buildTypeCodec({
 	codemodExecutionInProgress: withFallback(t.boolean, false),
 	activeTabId: withFallback(
 		t.union([
-			t.literal(TabKind.codemods),
-			t.literal(TabKind.codemodRuns),
-			t.literal(TabKind.community),
+			t.literal('codemods'),
+			t.literal('codemodRuns'),
+			t.literal('community'),
 		]),
-		TabKind.codemods,
+		'codemods',
 	),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
 	explorerNodes: withFallback(

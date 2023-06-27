@@ -13,7 +13,6 @@ import {
 } from '../../../src/persistedState/explorerNodeCodec';
 import { CaseHash } from '../../../src/cases/types';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import { TabKind } from '../../../src/persistedState/codecs';
 
 const setSearchPhrase = (caseHashDigest: CaseHash, searchPhrase: string) => {
 	vscode.postMessage({
@@ -49,7 +48,7 @@ const onCollapsibleExplorerNodeFlip = (
 
 export const App = (
 	props: { screenWidth: number | null } & MainWebviewViewProps & {
-			activeTabId: TabKind.codemodRuns;
+			activeTabId: 'codemodRuns';
 		},
 ) => {
 	const { changeExplorerTree } = props;

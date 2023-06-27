@@ -5,7 +5,6 @@ import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
-import { TabKind } from '../../persistedState/codecs';
 import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
@@ -130,7 +129,7 @@ export type WebviewResponse =
 	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
 	| Readonly<{
 			kind: 'webview.main.setActiveTabId';
-			activeTabId: TabKind;
+			activeTabId: 'codemods' | 'codemodRuns' | 'community';
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';

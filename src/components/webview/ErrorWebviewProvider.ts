@@ -6,7 +6,6 @@ import { Store } from '../../data';
 import { actions } from '../../data/slice';
 import areEqual from 'fast-deep-equal';
 import { MainViewProvider } from './MainProvider';
-import { TabKind } from '../../persistedState/codecs';
 
 type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
 
@@ -106,7 +105,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 
 		const state = this.__store.getState();
 
-		if (state.activeTabId !== TabKind.codemodRuns) {
+		if (state.activeTabId !== 'codemodRuns') {
 			return {
 				kind: 'CODEMOD_RUNS_TAB_NOT_ACTIVE',
 			};

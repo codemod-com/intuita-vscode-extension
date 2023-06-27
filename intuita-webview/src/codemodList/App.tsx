@@ -4,7 +4,6 @@ import TreeView from './TreeView';
 import './index.css';
 import SearchBar from '../shared/SearchBar';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import { TabKind } from '../../../src/persistedState/codecs';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -14,7 +13,7 @@ const setSearchPhrase = (searchPhrase: string) => {
 };
 
 export const App = memo(
-	(props: MainWebviewViewProps & { activeTabId: TabKind.codemods }) => (
+	(props: MainWebviewViewProps & { activeTabId: 'codemods' }) => (
 		<main className="App">
 			<SearchBar
 				searchPhrase={props.searchPhrase}

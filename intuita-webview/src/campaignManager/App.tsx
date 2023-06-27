@@ -7,10 +7,9 @@ import { CodemodRunsTree } from '../../../src/selectors/selectCodemodRunsTree';
 import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem from '../shared/TreeItem';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import { TabKind } from '../../../src/persistedState/codecs';
 
 export const App = (
-	props: MainWebviewViewProps & { activeTabId: TabKind.codemodRuns },
+	props: MainWebviewViewProps & { activeTabId: 'codemodRuns' },
 ) => {
 	if (props.codemodRunsTree.nodeData.length === 0) {
 		return (

@@ -1,6 +1,5 @@
 import type { Uri } from 'vscode';
 import type { RootState } from '../data';
-import { TabKind } from '../persistedState/codecs';
 import { selectCodemodRunsTree } from './selectCodemodRunsTree';
 import { selectCodemodTree } from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
@@ -10,7 +9,7 @@ export const selectMainWebviewViewProps = (
 	rootUri: Uri,
 	autocompleteItems: ReadonlyArray<string>,
 ) => {
-	if (state.activeTabId === TabKind.codemods) {
+	if (state.activeTabId === 'codemods') {
 		return {
 			activeTabId: state.activeTabId,
 			searchPhrase: state.codemodDiscoveryView.searchPhrase,
@@ -20,7 +19,7 @@ export const selectMainWebviewViewProps = (
 		};
 	}
 
-	if (state.activeTabId === TabKind.codemodRuns) {
+	if (state.activeTabId === 'codemodRuns') {
 		return {
 			activeTabId: state.activeTabId,
 			codemodRunsTree: selectCodemodRunsTree(state),
