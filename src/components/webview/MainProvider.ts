@@ -91,7 +91,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		let prevProps = this.__buildProps();
 
-		const handler = async () => {
+		this.__store.subscribe(async () => {
 			const nextProps = this.__buildProps();
 
 			if (areEqual(prevProps, nextProps)) {
@@ -104,9 +104,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				kind: 'webview.main.setProps',
 				props: nextProps,
 			});
-		};
-
-		this.__store.subscribe(handler);
+		});
 	}
 
 	public isVisible(): boolean {
@@ -268,6 +266,11 @@ export class MainViewProvider implements WebviewViewProvider {
 						(this.__autocompleteItems = autocompleteItems),
 				),
 			);
+
+			this.__postMessage({
+				kind: 'webview.main.setProps',
+				props: this.__buildProps(),
+			});
 		}
 
 		if (message.kind === 'webview.global.flipCodemodHashDigest') {
