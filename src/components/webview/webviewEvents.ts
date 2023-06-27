@@ -6,12 +6,7 @@ import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
 import { ExecutionError, SyntheticError } from '../../errors/types';
 import { TabKind } from '../../persistedState/codecs';
-import { ExplorerTree } from '../../selectors/selectExplorerTree';
-import { CodemodRunsTree } from '../../selectors/selectCodemodRunsTree';
-import {
-	CodemodNodeHashDigest,
-	CodemodTree,
-} from '../../selectors/selectCodemodTree';
+import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
 import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
@@ -176,36 +171,18 @@ export type WebviewResponse =
 			codemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>;
 
-export type View =
-	| Readonly<{
-			viewId: 'fileExplorer';
-			viewProps: ExplorerTree | null;
-	  }>
-	| Readonly<{
-			viewId: 'campaignManagerView';
-			viewProps: CodemodRunsTree;
-	  }>
-	| Readonly<{
-			viewId: 'codemods';
-			viewProps: {
-				codemodTree: CodemodTree;
-				autocompleteItems: string[];
-				searchPhrase: string;
-				rootPath: string;
-			};
-	  }>
-	| Readonly<{
-			viewId: 'errors';
-			viewProps:
-				| Readonly<{
-						kind:
-							| 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
-							| 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
-							| 'CASE_NOT_SELECTED';
-				  }>
-				| Readonly<{
-						kind: 'CASE_SELECTED';
-						caseHash: CaseHash;
-						executionErrors: ReadonlyArray<ExecutionError>;
-				  }>;
-	  }>;
+export type View = Readonly<{
+	viewId: 'errors';
+	viewProps:
+		| Readonly<{
+				kind:
+					| 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
+					| 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
+					| 'CASE_NOT_SELECTED';
+		  }>
+		| Readonly<{
+				kind: 'CASE_SELECTED';
+				caseHash: CaseHash;
+				executionErrors: ReadonlyArray<ExecutionError>;
+		  }>;
+}>;
