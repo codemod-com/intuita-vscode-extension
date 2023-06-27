@@ -2,7 +2,7 @@ import { CSSProperties, ReactNode, useLayoutEffect, useRef } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
-type Props = Readonly<{
+export type Props = Readonly<{
 	id: string;
 	label: string;
 	subLabel: string;
@@ -38,7 +38,6 @@ const TreeItem = ({
 	onPressChevron,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
-
 	useLayoutEffect(() => {
 		if (focused) {
 			const timeout = setTimeout(() => {
