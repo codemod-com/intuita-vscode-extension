@@ -14,7 +14,6 @@ import { buildExecutionId } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 
 import { CodemodListPanel } from './components/webview/CodemodListProvider';
-import { CodemodService } from './packageJsonAnalyzer/codemodService';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import prettyReporter from 'io-ts-reporters';
@@ -75,13 +74,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const codemodService = new CodemodService(engineService, store);
-
 	const codemodListWebviewProvider = new CodemodListPanel(
-		context,
 		messageBus,
 		rootPath,
-		codemodService,
+		engineService,
 		store,
 	);
 

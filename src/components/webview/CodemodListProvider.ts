@@ -1,17 +1,7 @@
-import {
-	WebviewView,
-	Uri,
-	EventEmitter,
-	ExtensionContext,
-	commands,
-	workspace,
-	window,
-} from 'vscode';
+import { WebviewView, Uri, commands, workspace, window } from 'vscode';
 import areEqual from 'fast-deep-equal';
 import { MessageBus, MessageKind } from '../messageBus';
 import { WebviewMessage, WebviewResponse } from './webviewEvents';
-import { WebviewResolver } from './WebviewResolver';
-import { CodemodService } from '../../packageJsonAnalyzer/codemodService';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
@@ -24,6 +14,7 @@ import {
 	CodemodNodeHashDigest,
 	selectCodemodTree,
 } from '../../selectors/selectCodemodTree';
+import { EngineService } from '../engineService';
 const readDir = (path: string): TE.TaskEither<Error, string[]> =>
 	TE.tryCatch(
 		() => readdir(path),
@@ -46,32 +37,14 @@ const getCompletionItems = (path: string) =>
 
 export class CodemodListPanel {
 	__view: WebviewView | null = null;
-	__extensionPath: Uri;
-	__webviewResolver: WebviewResolver;
-	__engineBootstrapped = false;
 	__autocompleteItems: string[] = [];
 
-	readonly __eventEmitter = new EventEmitter<void>();
-
 	constructor(
-		context: ExtensionContext,
 		private readonly __messageBus: MessageBus,
 		public readonly __rootPath: string | null,
-		public readonly __codemodService: CodemodService,
+		public readonly __engineService: EngineService,
 		private readonly __store: Store,
 	) {
-		this.__extensionPath = context.extensionUri;
-
-		this.__webviewResolver = new WebviewResolver(this.__extensionPath);
-
-		this.__messageBus.subscribe(
-			MessageKind.engineBootstrapped,
-			async () => {
-				this.__engineBootstrapped = true;
-				this.__codemodService.fetchCodemods();
-			},
-		);
-
 		this.__messageBus.subscribe(
 			MessageKind.showProgress,
 			this.handleCodemodExecutionProgress.bind(this),
@@ -135,10 +108,6 @@ export class CodemodListPanel {
 			codemodHash,
 		});
 	};
-
-	isEngineBootstrapped() {
-		return this.__engineBootstrapped;
-	}
 
 	private __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
@@ -263,7 +232,7 @@ export class CodemodListPanel {
 		}
 
 		if (message.kind === 'webview.codemodList.haltCodemodExecution') {
-			this.__codemodService.haltCurrentCodemodExecution();
+			this.__engineService.shutdownEngines();
 		}
 
 		if (message.kind === 'webview.codemodList.dryRunCodemod') {
