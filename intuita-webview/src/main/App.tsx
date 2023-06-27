@@ -21,8 +21,12 @@ function App() {
 	);
 
 	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			// TODO handle set view
+		const handler = (event: MessageEvent<WebviewMessage>) => {
+			if (event.data.kind !== 'webview.main.setProps') {
+				return;
+			}
+
+			setMainWebviewViewProps(event.data.props);
 		};
 
 		window.addEventListener('message', handler);

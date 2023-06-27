@@ -14,6 +14,7 @@ import {
 } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
+import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -58,6 +59,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.global.setView';
 			value: View;
+	  }>
+	| Readonly<{
+			kind: 'webview.main.setProps';
+			props: MainWebviewViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.diffView.focusFile';
