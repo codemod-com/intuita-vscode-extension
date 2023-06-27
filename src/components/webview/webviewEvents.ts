@@ -33,7 +33,6 @@ export type JobDiffViewProps = Readonly<{
 
 export type RunCodemodsCommand = Readonly<{
 	title: string;
-	shortenedTitle: string;
 	description?: string;
 	kind: 'webview.codemodList.dryRunCodemod';
 	value: CodemodHash;
@@ -127,7 +126,7 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
-	| Omit<RunCodemodsCommand, 'title' | 'shortenedTitle' | 'description'>
+	| Omit<RunCodemodsCommand, 'title' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
 			caseHashDigest: CaseHash;

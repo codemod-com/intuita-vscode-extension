@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import Popover from '../../shared/Popover';
@@ -9,9 +10,7 @@ import * as O from 'fp-ts/Option';
 import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
-
 import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
-
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
 import InfiniteProgress from '../TreeView/InfiniteProgress';
@@ -56,6 +55,7 @@ const renderProgressBar = (
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
+	doesDisplayShortenedTitle: boolean,
 ) => {
 	if (!codemodInProgress) {
 		return (
@@ -70,7 +70,7 @@ const renderActionButtons = (
 					});
 				}}
 			>
-				✓ Dry Run
+				{doesDisplayShortenedTitle ? '✓' : '✓ Dry Run'}
 			</ActionButton>
 		);
 	}
@@ -226,7 +226,16 @@ const Codemod = ({
 						{executionPath && (
 							<DirectorySelector
 								defaultValue={targetPath}
-								displayValue={notEnoughSpace ? '🎯' : null}
+								displayValue={
+									notEnoughSpace ? (
+										<EditMaterialIcon
+											style={{
+												width: '16px',
+												height: '16px',
+											}}
+										/>
+									) : null
+								}
 								rootPath={rootPath}
 								error={
 									error === null ? null : { message: error }
@@ -250,7 +259,11 @@ const Codemod = ({
 			{}
 			{!editingPath && (
 				<div className={cn(styles.actions)}>
-					{renderActionButtons(hashDigest, codemodInProgress)}
+					{renderActionButtons(
+						hashDigest,
+						codemodInProgress,
+						notEnoughSpace,
+					)}
 				</div>
 			)}
 		</>
