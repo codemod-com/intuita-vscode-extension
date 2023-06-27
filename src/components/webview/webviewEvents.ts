@@ -110,10 +110,6 @@ export type WebviewResponse =
 			explorerNodeHashDigest: _ExplorerNodeHashDigest;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.flipSelectedExplorerNodes';
-			caseHashDigest: CaseHash;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.focusExplorerNodeSibling';
 			caseHashDigest: CaseHash;
 			direction: 'prev' | 'next';

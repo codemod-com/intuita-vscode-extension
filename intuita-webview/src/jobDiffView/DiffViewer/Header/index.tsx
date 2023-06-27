@@ -11,8 +11,6 @@ import Popover from '../../../shared/Popover';
 type Props = Readonly<{
 	viewType: DiffViewType;
 	onViewChange(value: DiffViewType): void;
-	jobCount: number;
-	jobIndex: number;
 	changeJob: (direction: 'prev' | 'next') => void;
 }>;
 
@@ -56,7 +54,6 @@ export const Header = (props: Props) => {
 				/>
 			</div>
 			<div className={styles.buttonGroup}>
-				<h4>{`${props.jobIndex + 1} / ${props.jobCount}`}</h4>
 				{props.viewType === 'side-by-side' ? (
 					<VSCodeButton
 						title="Inline"

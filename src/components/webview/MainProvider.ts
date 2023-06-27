@@ -209,12 +209,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.global.flipSelectedExplorerNodes') {
-			this.__store.dispatch(
-				actions.flipSelectedExplorerNodes(message.caseHashDigest),
-			);
-		}
-
 		if (message.kind === 'webview.global.flipCollapsibleExplorerNode') {
 			this.__store.dispatch(
 				actions.flipCollapsibleExplorerNode([

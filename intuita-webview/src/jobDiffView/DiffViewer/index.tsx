@@ -39,8 +39,6 @@ export const JobDiffViewContainer = (
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				jobCount={props.jobCount}
-				jobIndex={props.jobIndex}
 				changeJob={(direction) =>
 					focusExplorerNodeSibling(props.caseHash, direction)
 				}

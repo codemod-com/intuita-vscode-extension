@@ -147,8 +147,6 @@ const selectPanelViewProps = (
 		newFileTitle,
 		oldFileContent,
 		newFileContent,
-		jobCount: jobNodes.length,
-		jobIndex,
 	};
 };
 
