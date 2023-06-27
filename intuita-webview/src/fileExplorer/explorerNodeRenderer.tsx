@@ -10,7 +10,7 @@ import {
 	_ExplorerNodeHashDigest,
 } from '../../../src/persistedState/explorerNodeCodec';
 import { vscode } from '../shared/utilities/vscode';
-import styles from "./style.module.css";
+import styles from './style.module.css';
 
 const getIcon = (explorerNode: _ExplorerNode, opened: boolean): ReactNode => {
 	if (explorerNode.kind === 'ROOT') {
