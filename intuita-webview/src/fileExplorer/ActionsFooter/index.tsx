@@ -32,7 +32,7 @@ export const ActionsFooter = (
 		screenWidth: number | null;
 	}>,
 ) => {
-	console.log(props.screenWidth)
+	console.log(props.screenWidth);
 	let discardText = 'Discard All';
 	let applyText = `Apply ${props.selectedJobCount} files`;
 
