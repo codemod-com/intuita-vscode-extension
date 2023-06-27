@@ -1,4 +1,4 @@
-import {  memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import Popover from '../../shared/Popover';
@@ -11,10 +11,8 @@ import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 
 import {
-	CodemodNodeHashDigest,
 	CodemodNode,
 } from '../../../../src/selectors/selectCodemodTree';
-import { NodeDatum } from '../../intuitaTreeView';
 
 import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
@@ -37,17 +35,17 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 	});
 }, 50);
 
-type CodemodLeafNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Readonly<{
-	nodeDatum: NodeDatum<CodemodNodeHashDigest, CodemodLeafNode>;
+type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
+
+type Props = Omit<CodemodItemNode, 'name' | 'kind'> & Readonly<{
 	rootPath: string;
 	autocompleteItems: ReadonlyArray<string>;
 	progress: number | null;
 }>;
 
-const renderProgressBar = (node: CodemodLeafNode, progress: number) => {
-	return node.codemodKind === 'repomod' ? (
+const renderProgressBar = (codemodKind: CodemodItemNode['codemodKind'], progress: number) => {
+	return codemodKind === 'repomod' ? (
 		<InfiniteProgress />
 	) : (
 		<ProgressBar progress={progress} />
@@ -55,7 +53,7 @@ const renderProgressBar = (node: CodemodLeafNode, progress: number) => {
 };
 
 const renderActionButtons = (
-	node: CodemodLeafNode,
+	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
 ) => {
 	if (!codemodInProgress) {
@@ -67,7 +65,7 @@ const renderActionButtons = (
 
 					vscode.postMessage({
 						kind: 'webview.codemodList.dryRunCodemod',
-						value: node.hashDigest as unknown as CodemodHash,
+						value: hashDigest as unknown as CodemodHash,
 					});
 				}}
 			>
@@ -84,7 +82,7 @@ const renderActionButtons = (
 				e.stopPropagation();
 				vscode.postMessage({
 					kind: 'webview.codemodList.haltCodemodExecution',
-					value: node.hashDigest as unknown as CodemodHash,
+					value: hashDigest as unknown as CodemodHash,
 				});
 			}}
 		/>
@@ -92,14 +90,15 @@ const renderActionButtons = (
 };
 
 const Codemod = ({
-	nodeDatum,
+	hashDigest,
+	label,
+	executionPath,
+	description,
+	codemodKind,
 	rootPath,
 	autocompleteItems,
 	progress,
 }: Props) => {
-	const { node } = nodeDatum;
-
-	const { hashDigest, label, executionPath, description } = node;
 
 	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 	const directorySelectorRef = useRef<HTMLSpanElement>(null);
@@ -180,9 +179,7 @@ const Codemod = ({
 		};
 	}, [hashDigest]);
 
-
 	const codemodInProgress = progress !== null;
-	console.log('CODEMOD RENERED')
 	return (
 		<>
 			{!editingPath ? (
@@ -246,11 +243,13 @@ const Codemod = ({
 						)}
 					</span>
 				</span>
-				{codemodInProgress ? renderProgressBar(node, progress) : null}
+				{codemodInProgress ? renderProgressBar(codemodKind, progress) : null}
 			</div>
 			{}
 			{!editingPath && (
-				<div className={cn(styles.actions)}>{renderActionButtons(node, codemodInProgress)}</div>
+				<div className={cn(styles.actions)}>
+					{renderActionButtons(hashDigest, codemodInProgress)}
+				</div>
 			)}
 		</>
 	);
