@@ -22,17 +22,19 @@
 	background-color: var(--vscode-focusBorder);
 }
 
+.vscode-panels {
+	overflow-x: hidden;
+}
+
 .vscode-panels::part(tablist) {
 	min-height: 35px;
 	column-gap: 10px;
 	padding: 0 2px;
-	width: 100%;
 }
 
 .vscode-tab {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	overflow: hidden;
 	white-space: nowrap;
 	display: flex;
 	padding: 0 2px;
