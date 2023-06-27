@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
+import { ReactComponent as DescriptionMaterialIcon } from '../../assets/material-icons/description.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import Popover from '../../shared/Popover';
@@ -11,7 +12,6 @@ import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
-import { ReactComponent as CaseIcon } from '../../assets/case.svg';
 import { CodemodHash } from '../../shared/types';
 import InfiniteProgress from '../TreeView/InfiniteProgress';
 import ProgressBar from '../TreeView/ProgressBar';
@@ -186,7 +186,7 @@ const Codemod = ({
 				<Popover
 					trigger={
 						<div className={styles.icon}>
-							<CaseIcon />
+							<DescriptionMaterialIcon fill="var(--vscode-icon-foreground)" />
 						</div>
 					}
 					position={['bottom left', 'top left']}
