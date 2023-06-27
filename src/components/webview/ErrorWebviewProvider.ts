@@ -1,13 +1,12 @@
 import { ExtensionContext, WebviewView, WebviewViewProvider } from 'vscode';
 import { MessageBus, MessageKind } from '../messageBus';
-import { View, WebviewMessage } from './webviewEvents';
+import { WebviewMessage } from './webviewEvents';
 import { WebviewResolver } from './WebviewResolver';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
 import areEqual from 'fast-deep-equal';
 import { MainViewProvider } from './MainProvider';
-
-type ViewProps = Extract<View, { viewId: 'errors' }>['viewProps'];
+import { selectErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
 
 export class ErrorWebviewProvider implements WebviewViewProvider {
 	private readonly __webviewResolver: WebviewResolver;
@@ -33,11 +32,8 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 			prevProps = nextProps;
 
 			this.__postMessage({
-				kind: 'webview.global.setView',
-				value: {
-					viewId: 'errors',
-					viewProps: nextProps,
-				},
+				kind: 'webview.error.setProps',
+				errorWebviewViewProps: nextProps,
 			});
 
 			if (
@@ -80,6 +76,7 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 				JSON.stringify({
 					errorProps,
 				}),
+				'errorWebviewViewProps',
 			);
 		};
 
@@ -96,34 +93,11 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView?.show(true);
 	}
 
-	private __buildViewProps(): ViewProps {
-		if (!this.__mainWebviewViewProvider.isVisible()) {
-			return {
-				kind: 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE',
-			};
-		}
-
-		const state = this.__store.getState();
-
-		if (state.activeTabId !== 'codemodRuns') {
-			return {
-				kind: 'CODEMOD_RUNS_TAB_NOT_ACTIVE',
-			};
-		}
-
-		const caseHash = state.codemodRunsView.selectedCaseHash;
-
-		if (caseHash === null) {
-			return {
-				kind: 'CASE_NOT_SELECTED',
-			};
-		}
-
-		return {
-			kind: 'CASE_SELECTED',
-			caseHash,
-			executionErrors: state.executionErrors[caseHash] ?? [],
-		};
+	private __buildViewProps() {
+		return selectErrorWebviewViewProps(
+			this.__store.getState(),
+			this.__mainWebviewViewProvider.isVisible(),
+		);
 	}
 
 	private __postMessage(message: WebviewMessage) {

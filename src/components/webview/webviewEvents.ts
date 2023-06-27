@@ -4,12 +4,13 @@ export type { Command } from 'vscode';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
-import { ExecutionError, SyntheticError } from '../../errors/types';
+import { SyntheticError } from '../../errors/types';
 import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
 import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 import { ActiveTabId } from '../../persistedState/codecs';
+import { ErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
@@ -51,8 +52,8 @@ export type WebviewMessage =
 			viewName: CollapsibleWebviews;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setView';
-			value: View;
+			kind: 'webview.error.setProps';
+			errorWebviewViewProps: ErrorWebviewViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.main.setProps';
@@ -165,19 +166,3 @@ export type WebviewResponse =
 			kind: 'webview.global.flipCodemodHashDigest';
 			codemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>;
-
-export type View = Readonly<{
-	viewId: 'errors';
-	viewProps:
-		| Readonly<{
-				kind:
-					| 'MAIN_WEBVIEW_VIEW_NOT_VISIBLE'
-					| 'CODEMOD_RUNS_TAB_NOT_ACTIVE'
-					| 'CASE_NOT_SELECTED';
-		  }>
-		| Readonly<{
-				kind: 'CASE_SELECTED';
-				caseHash: CaseHash;
-				executionErrors: ReadonlyArray<ExecutionError>;
-		  }>;
-}>;
