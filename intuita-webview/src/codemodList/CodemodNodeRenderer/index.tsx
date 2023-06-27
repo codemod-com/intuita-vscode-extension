@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import cn from 'classnames';
 
 import {
@@ -11,6 +11,8 @@ import Directory from './Directory';
 import Codemod from './Codemod';
 
 import styles from './style.module.css';
+import { ProgressType } from '../useProgressBar';
+import { CodemodHash } from '../../shared/types';
 
 const getContainerInlineStyles = ({
 	depth,
@@ -29,11 +31,7 @@ const getContainerInlineStyles = ({
 type Deps = {
 	rootPath: string;
 	autocompleteItems: string[];
-	progressBar: (node: CodemodNode) => JSX.Element | null;
-	actionButtons: (
-		node: CodemodNode,
-		doesDisplayShortenedTitle: boolean,
-	) => ReactNode[];
+	progress: ProgressType | null;
 };
 
 type Props = Readonly<{
@@ -43,7 +41,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({ rootPath, autocompleteItems, progressBar, actionButtons }: Deps) =>
+	({ rootPath, autocompleteItems, progress }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -70,6 +68,7 @@ const getCodemodNodeRenderer =
 
 		return (
 			<div
+				key={hashDigest}
 				id={hashDigest}
 				tabIndex={0}
 				ref={ref}
@@ -78,19 +77,24 @@ const getCodemodNodeRenderer =
 			>
 				<div style={getContainerInlineStyles(nodeDatum)} />
 				{node.kind === 'CODEMOD' ? (
+					// <Profiler id="Codemod leaf" onRender={console.log}>
 					<Codemod
-						nodeDatum={
-							nodeDatum as NodeDatum<
-								CodemodNodeHashDigest,
-								CodemodNode & { kind: 'CODEMOD' }
-							>
-						}
+						hashDigest={hashDigest}
+						description={node.description}
+						executionPath={node.executionPath}
+						codemodKind={node.codemodKind}
+						label={label}
 						autocompleteItems={autocompleteItems}
 						rootPath={rootPath}
-						progressBar={progressBar}
-						actionButtons={actionButtons}
+						progress={
+							progress?.codemodHash ===
+							(node.hashDigest as unknown as CodemodHash)
+								? progress.progress
+								: null
+						}
 					/>
 				) : (
+					// </Profiler>
 					<Directory expanded={expanded} label={label} />
 				)}
 			</div>

@@ -21,7 +21,7 @@
 		"typescript": "^4.9.5"
 	},
 	"scripts": {
-		"start": "vite -c 'vite.config.dev.ts'",
+		"start": "NODE_ENV='development' vite -c 'vite.config.dev.ts'",
 		"build:main": "NODE_ENV='production' TARGET_APP='main' vite build",
 		"build:codemodList": "NODE_ENV='production' TARGET_APP='codemodList' vite build",
 		"build:jobDiffView": "NODE_ENV='production' TARGET_APP='jobDiffView' vite build",
