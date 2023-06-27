@@ -16,6 +16,7 @@ import { CodemodHash } from '../../shared/types';
 import InfiniteProgress from '../TreeView/InfiniteProgress';
 import ProgressBar from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
+import throttle from '../../shared/utilities/throttle';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -149,7 +150,7 @@ const Codemod = ({
 			return undefined;
 		}
 
-		const resizeObserver = new ResizeObserver((entries) => {
+		const resizeHandler: ResizeObserverCallback = (entries) => {
 			const treeItem = entries[0] ?? null;
 			if (treeItem === null) {
 				return;
@@ -165,7 +166,9 @@ const Codemod = ({
 			);
 
 			setNotEnoughSpace(xDistance < 100);
-		});
+		};
+
+		const resizeObserver = new ResizeObserver(throttle(resizeHandler, 300));
 
 		const treeItem = document.getElementById(hashDigest);
 
