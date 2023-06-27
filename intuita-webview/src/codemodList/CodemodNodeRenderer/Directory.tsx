@@ -1,11 +1,14 @@
 import cn from 'classnames';
 import s from './style.module.css';
 import { memo } from 'react';
+import { ReactComponent as VerifiedMaterialIcon } from '../../assets/material-icons/verified.svg';
+import Popover from '../../shared/Popover';
 
 const Directory = (
 	props: Readonly<{
 		expanded: boolean;
 		label: string;
+		intuitaCertified: boolean;
 	}>,
 ) => {
 	return (
@@ -35,6 +38,21 @@ const Directory = (
 					>
 						{props.label}
 					</span>
+					{props.intuitaCertified && (
+						<Popover
+							trigger={
+								<span style={{ display: 'flex' }}>
+									<VerifiedMaterialIcon
+										fill="var(--vscode-focusBorder)"
+										width={17}
+										height={17}
+										style={{ marginLeft: '2px' }}
+									/>
+								</span>
+							}
+							popoverText="This library consists of high-quality, Intuita-verified codemods."
+						/>
+					)}
 				</span>
 			</div>
 		</>
