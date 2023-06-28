@@ -49,7 +49,3 @@
 html {
 	overflow: hidden;
 }
-
-.ReactVirtualized__Grid__innerScrollContainer {
-	overflow: initial !important;
-}
