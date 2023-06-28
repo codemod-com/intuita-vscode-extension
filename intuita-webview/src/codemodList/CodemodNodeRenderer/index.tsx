@@ -92,6 +92,7 @@ const getCodemodNodeRenderer =
 								? progress.progress
 								: null
 						}
+						queued={node.queued}
 					/>
 				)}
 

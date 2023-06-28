@@ -56,9 +56,10 @@ const renderProgressBar = (
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
+	queued: boolean,
 	doesDisplayShortenedTitle: boolean,
 ) => {
-	if (!codemodInProgress) {
+	if (!codemodInProgress && !queued) {
 		return (
 			<ActionButton
 				popoverText="Run this codemod without making change to file system"
@@ -73,6 +74,15 @@ const renderActionButtons = (
 			>
 				{doesDisplayShortenedTitle ? '✓' : '✓ Dry Run'}
 			</ActionButton>
+		);
+	}
+
+	if (!codemodInProgress && queued) {
+		return (
+			<Popover
+				trigger={<i className="codicon codicon-history mr-2" />}
+				popoverText="This codemod has already been queued for execution."
+			/>
 		);
 	}
 
@@ -100,6 +110,7 @@ const Codemod = ({
 	rootPath,
 	autocompleteItems,
 	progress,
+	queued,
 }: Props) => {
 	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 	const directorySelectorRef = useRef<HTMLSpanElement>(null);
@@ -265,6 +276,7 @@ const Codemod = ({
 					{renderActionButtons(
 						hashDigest,
 						codemodInProgress,
+						queued,
 						notEnoughSpace,
 					)}
 				</div>
