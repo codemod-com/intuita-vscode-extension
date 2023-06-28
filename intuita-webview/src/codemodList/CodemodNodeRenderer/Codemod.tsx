@@ -36,7 +36,7 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Omit<CodemodItemNode, 'name' | 'kind' | 'codemodKind'> &
+type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 	Readonly<{
 		rootPath: string;
 		autocompleteItems: ReadonlyArray<string>;
