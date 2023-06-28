@@ -139,7 +139,6 @@ export type WebviewResponse =
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
-			value: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.codemodPathChange';

@@ -96,7 +96,6 @@ const renderActionButtons = (
 				e.stopPropagation();
 				vscode.postMessage({
 					kind: 'webview.codemodList.haltCodemodExecution',
-					value: hashDigest as unknown as CodemodHash,
 				});
 			}}
 		/>
