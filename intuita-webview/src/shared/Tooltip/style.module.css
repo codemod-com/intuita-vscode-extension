@@ -1,0 +1,24 @@
+
+.tooltip{
+  content: attr(tooltip);
+  color: white;
+  font-family: 'IBM Plex Sans Condensed';
+  font-size: 12px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.17;
+  letter-spacing: normal;
+  color: var(--white);
+  text-align: center;
+  white-space: nowrap;
+  padding: 0.5px 5px 1px 5px;
+  opacity: 0.99;
+  z-index: 10000; 
+  transition: left 3 ease-in-out; 
+  position: fixed;
+  border-radius: 2px;
+  box-shadow: 0 8px 8px -4px rgba(62, 60, 66, 0.3);
+  border: solid 1px rgba(197, 197, 197, 0.5);
+  background-color: var(--vscode-editor-background);
+}
