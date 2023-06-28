@@ -1,26 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import ProgressBar from './ProgressBar';
+import styles from './InfiniteProgress.module.css';
 
-const InfiniteProgress = () => {
-	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-	const [progress, setProgress] = useState(0);
-
-	useEffect(() => {
-		intervalRef.current = setInterval(() => {
-			setProgress((prevProgress) => (prevProgress + 25) % 125);
-		}, 400);
-
-		return () => {
-			if (intervalRef.current === null) {
-				return;
-			}
-
-			clearInterval(intervalRef.current);
-			intervalRef.current = null;
-		};
-	}, []);
-
-	return <ProgressBar progress={progress} />;
-};
-
-export default InfiniteProgress;
+export const InfiniteProgress = () => (
+	<div className={styles.progressContainer}>
+		<div className={styles.progress} />
+	</div>
+);
