@@ -24,6 +24,9 @@ const applySelected = (caseHashDigest: CaseHash) => {
 	});
 };
 
+const discardText = 'Discard All';
+const applyText = `Apply files`;
+
 export const ActionsFooter = (
 	props: Readonly<{
 		searchPhrase: string;
@@ -32,9 +35,6 @@ export const ActionsFooter = (
 		screenWidth: number | null;
 	}>,
 ) => {
-	const discardText = 'Discard All';
-	const applyText = `Apply ${props.selectedJobCount} files`;
-
 	return (
 		<div
 			className={styles.root}
@@ -74,11 +74,7 @@ export const ActionsFooter = (
 						}}
 						className={styles.vscodeButton}
 					>
-						{`${applyText} ${
-							applyText === 'Apply'
-								? `${props.selectedJobCount} files`
-								: ''
-						}`}
+						{applyText}
 					</VSCodeButton>
 				}
 				popoverText={
