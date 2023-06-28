@@ -13,8 +13,8 @@ import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
 import { CodemodHash } from '../../shared/types';
-import InfiniteProgress from '../TreeView/InfiniteProgress';
-import ProgressBar from '../TreeView/ProgressBar';
+import { InfiniteProgress } from '../TreeView/InfiniteProgress';
+import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import throttle from '../../shared/utilities/throttle';
 import { Progress } from '../useProgressBar';
@@ -49,10 +49,10 @@ const renderProgressBar = (progress: Progress | null) => {
 	}
 
 	if (progress.progressKind === 'infinite') {
-		<InfiniteProgress />;
+		return <InfiniteProgress />;
 	}
 
-	return <ProgressBar progress={progress.value} />;
+	return <ProgressBar percent={progress.value} />;
 };
 
 const renderActionButtons = (
@@ -268,7 +268,6 @@ const Codemod = ({
 				</span>
 				{renderProgressBar(progress)}
 			</div>
-			{}
 			{!editingPath && (
 				<div className={cn(styles.actions)}>
 					{renderActionButtons(
