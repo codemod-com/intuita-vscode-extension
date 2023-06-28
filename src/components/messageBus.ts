@@ -50,6 +50,7 @@ export const enum MessageKind {
 export type Command =
 	| Readonly<{
 			kind: 'repomod';
+			codemodHash: CodemodHash;
 			inputPath: Uri;
 			storageUri: Uri;
 			repomodFilePath: string;
@@ -150,9 +151,9 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.showProgress;
-			processedFiles: number;
-			codemodHash?: CodemodHash;
-			totalFiles: number;
+			codemodHash: CodemodHash | null;
+			progressKind: 'finite' | 'infinite';
+			value: number;
 	  }>
 	| Readonly<{
 			kind: MessageKind.focusCodemod;

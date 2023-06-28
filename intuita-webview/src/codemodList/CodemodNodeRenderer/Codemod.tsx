@@ -17,6 +17,7 @@ import InfiniteProgress from '../TreeView/InfiniteProgress';
 import ProgressBar from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import throttle from '../../shared/utilities/throttle';
+import { Progress } from '../useProgressBar';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -35,22 +36,23 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
+type Props = Omit<CodemodItemNode, 'name' | 'kind' | 'codemodKind'> &
 	Readonly<{
 		rootPath: string;
 		autocompleteItems: ReadonlyArray<string>;
-		progress: number | null;
+		progress: Progress | null;
 	}>;
 
-const renderProgressBar = (
-	codemodKind: CodemodItemNode['codemodKind'],
-	progress: number,
-) => {
-	return codemodKind === 'repomod' ? (
-		<InfiniteProgress />
-	) : (
-		<ProgressBar progress={progress} />
-	);
+const renderProgressBar = (progress: Progress | null) => {
+	if (progress === null) {
+		return null;
+	}
+
+	if (progress.progressKind === 'infinite') {
+		<InfiniteProgress />;
+	}
+
+	return <ProgressBar progress={progress.value} />;
 };
 
 const renderActionButtons = (
@@ -106,7 +108,6 @@ const Codemod = ({
 	label,
 	executionPath,
 	description,
-	codemodKind,
 	rootPath,
 	autocompleteItems,
 	progress,
@@ -193,7 +194,6 @@ const Codemod = ({
 		};
 	}, [hashDigest]);
 
-	const codemodInProgress = progress !== null;
 	return (
 		<>
 			{!editingPath ? (
@@ -266,16 +266,14 @@ const Codemod = ({
 						)}
 					</span>
 				</span>
-				{codemodInProgress
-					? renderProgressBar(codemodKind, progress)
-					: null}
+				{renderProgressBar(progress)}
 			</div>
 			{}
 			{!editingPath && (
 				<div className={cn(styles.actions)}>
 					{renderActionButtons(
 						hashDigest,
-						codemodInProgress,
+						progress !== null,
 						queued,
 						notEnoughSpace,
 					)}

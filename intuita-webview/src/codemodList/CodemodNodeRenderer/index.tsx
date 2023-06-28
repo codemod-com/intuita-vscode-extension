@@ -11,7 +11,7 @@ import Directory from './Directory';
 import Codemod from './Codemod';
 
 import styles from './style.module.css';
-import { ProgressType } from '../useProgressBar';
+import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
 
 const getContainerInlineStyles = ({
@@ -31,7 +31,7 @@ const getContainerInlineStyles = ({
 type Deps = {
 	rootPath: string;
 	autocompleteItems: ReadonlyArray<string>;
-	progress: ProgressType | null;
+	progress: Progress | null;
 };
 
 type Props = Readonly<{
@@ -77,19 +77,17 @@ const getCodemodNodeRenderer =
 			>
 				<div style={getContainerInlineStyles(nodeDatum)} />
 				{node.kind === 'CODEMOD' && (
-					// <Profiler id="Codemod leaf" onRender={console.log}>
 					<Codemod
 						hashDigest={hashDigest}
 						description={node.description}
 						executionPath={node.executionPath}
-						codemodKind={node.codemodKind}
 						label={label}
 						autocompleteItems={autocompleteItems}
 						rootPath={rootPath}
 						progress={
 							progress?.codemodHash ===
 							(node.hashDigest as unknown as CodemodHash)
-								? progress.progress
+								? progress
 								: null
 						}
 						queued={node.queued}
@@ -97,7 +95,6 @@ const getCodemodNodeRenderer =
 				)}
 
 				{node.kind === 'DIRECTORY' && (
-					// </Profiler>
 					<Directory
 						expanded={expanded}
 						label={label}
