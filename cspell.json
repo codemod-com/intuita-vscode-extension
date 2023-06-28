@@ -61,7 +61,7 @@
 		"reduxjs",
 		"persistor",
 		"webviews",
-		"activeid", 
+		"activeid",
 		"tippyjs"
 	]
 }
