@@ -58,9 +58,18 @@ export class MainViewProvider implements WebviewViewProvider {
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
 
-		this.__messageBus.subscribe(MessageKind.showProgress, (message) =>
-			this.__handleCodemodExecutionProgress(message),
-		);
+		this.__messageBus.subscribe(MessageKind.showProgress, (message) => {
+			if (message.codemodHash === null) {
+				return;
+			}
+
+			this.__postMessage({
+				kind: 'webview.global.setCodemodExecutionProgress',
+				codemodHash: message.codemodHash,
+				progressKind: message.progressKind,
+				value: message.value,
+			});
+		});
 
 		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
 			this.__store.dispatch(
@@ -375,28 +384,4 @@ export class MainViewProvider implements WebviewViewProvider {
 			}
 		}
 	};
-
-	private __handleCodemodExecutionProgress({
-		processedFiles,
-		totalFiles,
-		codemodHash,
-	}: {
-		processedFiles: number;
-		totalFiles: number;
-		codemodHash?: CodemodHash;
-	}) {
-		if (!codemodHash || totalFiles === 0) {
-			return;
-		}
-		const progress =
-			totalFiles > 0
-				? Math.round((processedFiles / totalFiles) * 100)
-				: 0;
-
-		this.__postMessage({
-			kind: 'webview.global.setCodemodExecutionProgress',
-			value: progress,
-			codemodHash,
-		});
-	}
 }

@@ -328,6 +328,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (hashDigest === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
 						command = {
 							kind: 'repomod',
+							codemodHash: hashDigest,
 							inputPath: uri,
 							storageUri,
 							repomodFilePath: hashDigest,

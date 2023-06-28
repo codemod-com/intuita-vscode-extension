@@ -59,8 +59,9 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
-			value: number;
 			codemodHash: CodemodHash;
+			progressKind: 'finite' | 'infinite';
+			value: number;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';

@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { CodemodHash, WebviewMessage } from '../shared/types';
 
-export type ProgressType = {
-	progress: number;
+export type Progress = Readonly<{
 	codemodHash: CodemodHash;
-};
+	progressKind: 'finite' | 'infinite';
+	value: number;
+}>;
 
-export const useProgressBar = (): ProgressType | null => {
+export const useProgressBar = (): Progress | null => {
 	const [codemodExecutionProgress, setCodemodExecutionProgress] =
-		useState<null | ProgressType>(null);
+		useState<Progress | null>(null);
 
 	useEffect(() => {
 		const handler = (e: MessageEvent<WebviewMessage>) => {
@@ -16,8 +17,9 @@ export const useProgressBar = (): ProgressType | null => {
 
 			if (message.kind === 'webview.global.setCodemodExecutionProgress') {
 				setCodemodExecutionProgress({
-					progress: message.value,
 					codemodHash: message.codemodHash,
+					progressKind: message.progressKind,
+					value: message.value,
 				});
 			}
 

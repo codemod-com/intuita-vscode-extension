@@ -263,6 +263,20 @@ export class EngineService {
 			return;
 		}
 
+		const codemodHash =
+			'kind' in message.command &&
+			(message.command.kind === 'executeCodemod' ||
+				message.command.kind === 'repomod')
+				? message.command.codemodHash
+				: null;
+
+		this.#messageBus.publish({
+			kind: MessageKind.showProgress,
+			codemodHash,
+			progressKind: 'infinite',
+			value: 0,
+		});
+
 		const { storageUri } = message.command;
 
 		const outputUri = Uri.joinPath(
@@ -497,11 +511,16 @@ export class EngineService {
 			const message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
+				const value =
+					message.t > 0
+						? Math.round((message.p / message.t) * 100)
+						: 0;
+
 				this.#messageBus.publish({
 					kind: MessageKind.showProgress,
-					totalFiles: message.t,
-					processedFiles: message.p,
-					codemodHash: this.#execution.codemodHash,
+					codemodHash: this.#execution.codemodHash ?? null,
+					progressKind: 'finite',
+					value,
 				});
 				this.#execution.totalFileCount = message.t;
 				return;
