@@ -184,7 +184,7 @@ export class IntuitaPanelProvider {
 			}
 
 			prevViewProps = nextViewProps;
-			
+
 			if (nextViewProps !== null) {
 				await this.__upsertPanel(nextViewProps, true);
 			} else {
