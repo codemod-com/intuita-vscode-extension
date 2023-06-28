@@ -12,29 +12,3 @@ code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 		monospace;
 }
-
-/* global styles required by react-treeview */
-
-.tree-view_item {
-	display: flex;
-}
-
-.tree-view_arrow {
-	cursor: pointer;
-	margin-right: 0px;
-	display: none;
-}
-
-.tree-view_arrow:not(.tree-view_arrow-collapsed):after {
-	display: none;
-}
-
-.tree-view_arrow.tree-view_arrow-collapsed:after {
-	display: none;
-}
-
-.tree-view_disabled {
-	cursor: auto !important;
-	pointer-events: none !important;
-	opacity: 0.5;
-}
