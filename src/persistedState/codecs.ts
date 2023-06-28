@@ -99,6 +99,14 @@ export const persistedStateCodecNew = buildTypeCodec({
 			selectedCaseHash: null,
 		},
 	),
+	jobDiffView: withFallback(
+		buildTypeCodec({
+			visible: withFallback(t.boolean, false),
+		}),
+		{
+			visible: false,
+		},
+	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
 	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
