@@ -245,7 +245,13 @@ export class EngineService {
 					kind: MessageKind.executionQueueChange,
 					queuedCodemodHashes: this.__getQueuedCodemodHashes(),
 				});
+
+				return;
 			}
+
+			await window.showErrorMessage(
+				'Wait until the previous codemod set execution has finished',
+			);
 			return;
 		}
 
