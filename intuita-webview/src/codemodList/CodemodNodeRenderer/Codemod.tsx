@@ -196,18 +196,25 @@ const Codemod = ({
 
 	return (
 		<>
-			{!editingPath ? (
-				<Popover
-					trigger={
-						<div className={styles.icon}>
-							<DescriptionMaterialIcon fill="var(--vscode-icon-foreground)" />
-						</div>
-					}
-					popoverText={description || 'Missing description'}
-				/>
-			) : null}
 			<div className="flex w-full flex-col">
 				<span className={styles.labelContainer}>
+					<Popover
+						trigger={
+							<div
+								className={styles.icon}
+								style={{
+									...(editingPath && {
+										display: 'none',
+									}),
+								}}
+							>
+								<DescriptionMaterialIcon fill="var(--vscode-icon-foreground)" />
+							</div>
+						}
+						disabled={editingPath}
+						popoverText={description || 'Missing description'}
+						keepTooltipInside=".codemodDiscoveryTreeView"
+					/>
 					<Popover
 						trigger={
 							<span
