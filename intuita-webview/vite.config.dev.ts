@@ -3,7 +3,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 import svgrPlugin from 'vite-plugin-svgr';
-import reactVirtualizedPlugin from './vite-plugin-react-virtualized';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,10 +18,5 @@ export default defineConfig({
 	define: {
 		'process.env': {},
 	},
-	plugins: [
-		react(),
-		viteTsconfigPaths(),
-		svgrPlugin(),
-		reactVirtualizedPlugin(),
-	],
+	plugins: [react(), viteTsconfigPaths(), svgrPlugin()],
 });

@@ -12,6 +12,7 @@ type Props = JobDiffViewProps & {
 	diff: Diff | null;
 	onDiffCalculated: (diff: Diff) => void;
 	theme: string;
+	title: string;
 };
 
 export const JobDiffView = memo(
