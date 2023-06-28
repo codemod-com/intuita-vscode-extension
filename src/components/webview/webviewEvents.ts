@@ -24,8 +24,6 @@ export type JobDiffViewProps = Readonly<{
 	newFileContent: string | null;
 	oldFileTitle: string | null;
 	newFileTitle: string | null;
-	// title TO BE REMOVED:
-	title: string | null;
 }>;
 
 export type RunCodemodsCommand = Readonly<{
@@ -65,15 +63,7 @@ export type WebviewMessage =
 			codemodHash: CodemodHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setCodemodExecutionProgressLoop';
-			codemodHash: CodemodHash;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.setAutocompleteItems';
-			autocompleteItems: string[];
 	  }>;
 
 export type WebviewResponse =

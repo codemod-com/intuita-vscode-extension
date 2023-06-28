@@ -19,7 +19,7 @@ export class WebviewResolver {
 		webview: Webview,
 		webviewName: string,
 		initialData: string,
-		initialStateKey = 'INITIAL_STATE',
+		initialStateKey: string,
 	) {
 		webview.options = this.getWebviewOptions();
 		webview.html = this.__getHtmlForWebview(
