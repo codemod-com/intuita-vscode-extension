@@ -5,6 +5,7 @@ import App from './App';
 
 import '../shared/index.css';
 import '../shared/util.css';
+import 'tippy.js/dist/tippy.css';
 import './App.css';
 
 const root = ReactDOM.createRoot(
