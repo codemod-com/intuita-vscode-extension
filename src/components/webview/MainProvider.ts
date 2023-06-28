@@ -47,6 +47,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	private __view: WebviewView | null = null;
 	private __webviewResolver: WebviewResolver;
 	private __autocompleteItems: string[] = [];
+	private __executionQueue: ReadonlyArray<CodemodHash> = [];
 
 	constructor(
 		context: ExtensionContext,
@@ -88,6 +89,19 @@ export class MainViewProvider implements WebviewViewProvider {
 				viewName: 'changeExplorerView',
 			});
 		});
+
+		this.__messageBus.subscribe(
+			MessageKind.executionQueueChange,
+			(message) => {
+				this.__executionQueue = message.queuedCodemodHashes;
+				const props = this.__buildProps();
+
+				this.__postMessage({
+					kind: 'webview.main.setProps',
+					props: props,
+				});
+			},
+		);
 
 		let prevProps = this.__buildProps();
 
@@ -151,6 +165,7 @@ export class MainViewProvider implements WebviewViewProvider {
 			this.__store.getState(),
 			this.__rootUri,
 			this.__autocompleteItems,
+			this.__executionQueue,
 		);
 	}
 
