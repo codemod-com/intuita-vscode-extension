@@ -209,22 +209,16 @@ const Codemod = ({
 			) : null}
 			<div className="flex w-full flex-col">
 				<span className={styles.labelContainer}>
-					<Popover
-						trigger={
-							<span
-								style={{
-									...(editingPath && {
-										display: 'none',
-									}),
-									userSelect: 'none',
-								}}
-							>
-								{label}
-							</span>
-						}
-						popoverText="Double-click to open the documentation."
-						disabled={editingPath}
-					/>
+					<span
+						style={{
+							...(editingPath && {
+								display: 'none',
+							}),
+							userSelect: 'none',
+						}}
+					>
+						{label}
+					</span>
 					<span
 						className={styles.directorySelector}
 						ref={directorySelectorRef}
