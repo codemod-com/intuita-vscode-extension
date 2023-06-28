@@ -30,6 +30,7 @@ export type TreeViewProps<
 	) => JSX.Element;
 	onFlip: (hashDigest: HD) => void;
 	onFocus: (hashDigest: HD) => void;
+	className?: string;
 }>;
 
 export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
@@ -117,7 +118,7 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 	useKey(ref.current, 'ArrowRight', arrowRightCallback);
 
 	return (
-		<div ref={ref}>
+		<div ref={ref} className={props.className}>
 			{props.nodeData.map((nodeDatum) =>
 				props.nodeRenderer({
 					nodeDatum,

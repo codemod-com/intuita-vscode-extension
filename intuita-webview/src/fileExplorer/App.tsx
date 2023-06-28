@@ -109,6 +109,7 @@ export const App = (
 				{changeExplorerTree !== null ? (
 					<IntuitaTreeView<_ExplorerNodeHashDigest, _ExplorerNode>
 						{...changeExplorerTree}
+						className='changeExplorerTreeView'
 						nodeRenderer={explorerNodeRenderer(changeExplorerTree)}
 						onFlip={handleFlip}
 						onFocus={handleFocus}

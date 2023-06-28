@@ -5,12 +5,19 @@ import s from './style.module.css';
 
 type Props = {
 	popoverText: string;
+	onClick(e: React.MouseEvent): void;
 	iconName?: string;
 	children?: React.ReactNode;
-	onClick(e: React.MouseEvent): void;
+	keepTooltipInside?: string;
 };
 
-const ActionButton = ({ popoverText, iconName, children, onClick }: Props) => {
+const ActionButton = ({
+	popoverText,
+	iconName,
+	children,
+	onClick,
+	keepTooltipInside,
+}: Props) => {
 	return (
 		<Popover
 			trigger={
@@ -29,6 +36,7 @@ const ActionButton = ({ popoverText, iconName, children, onClick }: Props) => {
 				</VSCodeButton>
 			}
 			popoverText={popoverText}
+			keepTooltipInside={keepTooltipInside}
 		/>
 	);
 };

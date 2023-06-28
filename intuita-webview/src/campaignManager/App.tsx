@@ -22,6 +22,7 @@ export const App = (
 
 	return (
 		<IntuitaTreeView<CaseHash, CodemodRunsTree['nodeData'][0]['node']>
+			className='codemodRunsTreeView'
 			focusedNodeHashDigest={props.codemodRunsTree.selectedNodeHashDigest}
 			collapsedNodeHashDigests={[]}
 			nodeData={props.codemodRunsTree.nodeData}

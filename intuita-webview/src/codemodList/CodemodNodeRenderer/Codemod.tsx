@@ -203,8 +203,6 @@ const Codemod = ({
 							<DescriptionMaterialIcon fill="var(--vscode-icon-foreground)" />
 						</div>
 					}
-					position={['bottom left', 'top left']}
-					mouseEnterDelay={300}
 					popoverText={description || 'Missing description'}
 				/>
 			) : null}
@@ -223,8 +221,9 @@ const Codemod = ({
 								{label}
 							</span>
 						}
-						popoverText="Double-click to open the documentation."
+						popoverText="Click to open the documentation."
 						disabled={editingPath}
+						keepTooltipInside=".codemodDiscoveryTreeView"
 					/>
 					<span
 						className={styles.directorySelector}

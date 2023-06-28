@@ -7,7 +7,7 @@ type Props = Readonly<
 	} & Omit<PopupProps, 'children'>
 >;
 
-const Popover = ({ trigger, popoverText, ...others }: Props) => {
+const Popover = ({ trigger, popoverText, contentStyle, ...others }: Props) => {
 	if (!popoverText) {
 		return null;
 	}
@@ -15,17 +15,24 @@ const Popover = ({ trigger, popoverText, ...others }: Props) => {
 	return (
 		<Popup
 			arrow
-			mouseEnterDelay={800} // 100ms by default; Ref: https://react-popup.elazizi.com/component-api#mouseleavedelay
+			mouseEnterDelay={300} // 100ms by default; Ref: https://react-popup.elazizi.com/component-api#mouseleavedelay
 			mouseLeaveDelay={10} // 100ms by default; Ref: https://react-popup.elazizi.com/component-api#mouseleavedelay
 			closeOnDocumentClick
 			trigger={trigger}
-			position={['top right', 'right center']}
+			position={[
+				'bottom left',
+				'bottom right',
+				'top left',
+				'top right',
+				'right center',
+			]}
 			lockScroll
 			on={['hover', 'focus']}
 			contentStyle={{
 				display: 'flex',
 				alignItems: 'center',
 				padding: '8px',
+				...contentStyle,
 			}}
 			{...others}
 		>

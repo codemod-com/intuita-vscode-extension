@@ -39,6 +39,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 	return (
 		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
 			{...tree}
+			className='codemodDiscoveryTreeView'
 			nodeRenderer={getCodemodNodeRenderer({
 				autocompleteItems,
 				rootPath,
