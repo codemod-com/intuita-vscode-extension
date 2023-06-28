@@ -1,7 +1,4 @@
-import React, {
-	useRef,
-	useState,
-} from 'react';
+import React, { useRef, useState } from 'react';
 import s from './style.module.css';
 
 type Props = {
