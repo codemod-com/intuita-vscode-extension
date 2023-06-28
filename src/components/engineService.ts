@@ -15,7 +15,7 @@ import {
 	singleQuotify,
 	streamToString,
 } from '../utilities';
-import { Message, MessageBus, MessageKind } from './messageBus';
+import { Command, Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
@@ -112,6 +112,13 @@ type Execution = {
 	case: Case;
 };
 
+type ExecuteCodemodMessage = Readonly<{
+	kind: MessageKind.executeCodemodSet;
+	command: Command & { codemodHash: CodemodHash };
+	happenedAt: string;
+	executionId: string;
+}>;
+
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
 	readonly #fileSystem: FileSystem;
@@ -119,6 +126,7 @@ export class EngineService {
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
+	__executionMessageQueue: ExecuteCodemodMessage[] = [];
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
@@ -217,14 +225,33 @@ export class EngineService {
 		this.#execution.childProcess.stdin.write('shutdown\n');
 	}
 
+	private __getQueuedCodemodHashes() {
+		return this.__executionMessageQueue.map((m) => m.command.codemodHash);
+	}
+
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
 		if (this.#execution) {
+			if (
+				'kind' in message.command &&
+				message.command.kind === 'executeCodemod'
+			) {
+				this.__executionMessageQueue.push(
+					message as ExecuteCodemodMessage,
+				);
+
+				this.#messageBus.publish({
+					kind: MessageKind.executionQueueChange,
+					queuedCodemodHashes: this.__getQueuedCodemodHashes(),
+				});
+
+				return;
+			}
+
 			await window.showErrorMessage(
 				'Wait until the previous codemod set execution has finished',
 			);
-
 			return;
 		}
 
@@ -656,6 +683,19 @@ export class EngineService {
 			}
 
 			this.#execution = null;
+
+			const nextMessage = this.__executionMessageQueue.shift() ?? null;
+
+			if (nextMessage === null) {
+				return;
+			}
+
+			this.#onExecuteCodemodSetMessage(nextMessage);
+
+			this.#messageBus.publish({
+				kind: MessageKind.executionQueueChange,
+				queuedCodemodHashes: this.__getQueuedCodemodHashes(),
+			});
 		});
 	}
 

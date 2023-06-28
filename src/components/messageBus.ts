@@ -44,6 +44,7 @@ export const enum MessageKind {
 	focusFile = 37,
 
 	mainWebviewViewVisibilityChange = 38,
+	executionQueueChange = 39,
 }
 
 export type Command =
@@ -159,6 +160,10 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.mainWebviewViewVisibilityChange;
+	  }>
+	| Readonly<{
+			kind: MessageKind.executionQueueChange;
+			queuedCodemodHashes: ReadonlyArray<CodemodHash>;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

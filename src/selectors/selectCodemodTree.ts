@@ -3,6 +3,7 @@ import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
+import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 const IntuitaCertifiedLibraries = ['next'];
 
@@ -55,6 +56,7 @@ export const buildCodemodNode = (
 	codemod: CodemodEntry,
 	name: string,
 	executionPath: string,
+	queued: boolean,
 ) => {
 	return {
 		kind: 'CODEMOD' as const,
@@ -66,6 +68,7 @@ export const buildCodemodNode = (
 			: 'executeCodemod',
 		executionPath: T.right(executionPath),
 		description: codemod.description,
+		queued: queued,
 	} as const;
 };
 
@@ -74,7 +77,11 @@ export type CodemodNode =
 	| ReturnType<typeof buildDirectoryNode>
 	| ReturnType<typeof buildCodemodNode>;
 
-export const selectCodemodTree = (state: RootState, rootPath: string) => {
+export const selectCodemodTree = (
+	state: RootState,
+	rootPath: string,
+	executionQueue: ReadonlyArray<CodemodHash>,
+) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
 	const { executionPaths, searchPhrase } = state.codemodDiscoveryView;
 
@@ -121,7 +128,12 @@ export const selectCodemodTree = (state: RootState, rootPath: string) => {
 			if (idx === pathParts.length - 1) {
 				const executionPath =
 					executionPaths[codemod.hashDigest] ?? rootPath;
-				currNode = buildCodemodNode(codemod, part, executionPath);
+				currNode = buildCodemodNode(
+					codemod,
+					part,
+					executionPath,
+					executionQueue.includes(codemod.hashDigest as CodemodHash),
+				);
 			} else {
 				currNode = buildDirectoryNode(part, codemodDirName);
 			}

@@ -34,7 +34,7 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 };
 
 const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
-	const progress = useProgressBar(() => {});
+	const progress = useProgressBar();
 
 	return (
 		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
