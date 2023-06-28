@@ -50,8 +50,6 @@ export const buildDirectoryNode = (name: string, path: string) =>
 		intuitaCertified: IntuitaCertifiedLibraries.includes(name),
 	} as const);
 
-const REPOMOD_CODEMOD_HASH_DIGESTS = ['QKEdp-pofR9UnglrKAGDm1Oj6W0'];
-
 export const buildCodemodNode = (
 	codemod: CodemodEntry,
 	name: string,
@@ -63,9 +61,6 @@ export const buildCodemodNode = (
 		name: codemod.name,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
 		label: buildCodemodTitle(name),
-		codemodKind: REPOMOD_CODEMOD_HASH_DIGESTS.includes(codemod.hashDigest)
-			? 'repomod'
-			: 'executeCodemod',
 		executionPath: T.right(executionPath),
 		description: codemod.description,
 		queued: queued,
