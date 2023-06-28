@@ -6,7 +6,7 @@ type Props = {
 	mouseEnterDelay?: number;
 	disabled?: boolean;
 	// @TODO
-	position?: string[];
+	position?: ReadonlyArray<string>;
 	contentStyle?: object;
 };
 
