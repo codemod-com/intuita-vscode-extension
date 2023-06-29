@@ -53,17 +53,11 @@ const getCodemodNodeRenderer =
 				return;
 			}
 
-			const timeout = setTimeout(() => {
-				ref.current?.scrollIntoView({
-					behavior: 'smooth',
-					block: 'center',
-					inline: 'center',
-				});
-			}, 500);
-
-			return () => {
-				clearTimeout(timeout);
-			};
+			ref.current?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'center',
+				inline: 'center',
+			});
 		}, [focused]);
 
 		return (
