@@ -73,7 +73,6 @@ const getCodemodNodeRenderer =
 				{node.kind === 'CODEMOD' && (
 					<Codemod
 						hashDigest={hashDigest}
-						description={node.description}
 						executionPath={node.executionPath}
 						label={label}
 						autocompleteItems={autocompleteItems}
