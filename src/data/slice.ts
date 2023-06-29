@@ -165,6 +165,7 @@ const rootSlice = createSlice({
 		) {
 			state.codemodDiscoveryView.focusedCodemodHashDigest =
 				action.payload;
+			state.jobDiffView.visible = true;
 		},
 		flipCodemodHashDigest(
 			state,
