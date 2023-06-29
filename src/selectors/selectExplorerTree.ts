@@ -2,12 +2,13 @@ import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
 import { isNeitherNullNorUndefined } from '../utilities';
 
+export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
+	(state.explorerSearchPhrases[caseHash] ?? '').trim().toLocaleLowerCase();
+
 export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
 
-	const properSearchPhrase = (state.explorerSearchPhrases[caseHash] ?? '')
-		.trim()
-		.toLocaleLowerCase();
+	const properSearchPhrase = selectSearchPhrase(state, caseHash);
 
 	let maximumDepth = Number.MAX_SAFE_INTEGER;
 

@@ -24,6 +24,10 @@ import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { _ExplorerNode } from './persistedState/explorerNodeCodec';
+import {
+	selectNodeData,
+	selectSearchPhrase,
+} from './selectors/selectExplorerTree';
 
 const messageBus = new MessageBus();
 
@@ -164,13 +168,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const state = store.getState();
 
-					const collapsed =
-						state.collapsedExplorerNodes[cashHashDigest] ?? [];
-					const searchPhrase = (
-						state.explorerSearchPhrases[cashHashDigest] ?? ''
-					).trim();
+					const searchPhrase = selectSearchPhrase(
+						state,
+						cashHashDigest,
+					);
+					const visibleNodes = selectNodeData(
+						state,
+						cashHashDigest,
+					).map((node) => node.node);
 
-					if (collapsed.length !== 0 || searchPhrase.length !== 0) {
+					const isSearching = searchPhrase.length !== 0;
+
+					if (isSearching) {
 						const choice = await vscode.window.showWarningMessage(
 							'There are more files than the ones visible in the Change Explorer, ' +
 								'due to you having collapsed some directories or applied a search phrase.' +
@@ -187,10 +196,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					const selectedHashDigests =
 						state.selectedExplorerNodes[cashHashDigest] ?? [];
 
-					const explorerNodes =
-						state.explorerNodes[cashHashDigest] ?? [];
+					const targetNodes = isSearching
+						? visibleNodes
+						: state.explorerNodes[cashHashDigest] ?? [];
 
-					const fileNodes = explorerNodes.filter(
+					const fileNodes = targetNodes.filter(
 						(node): node is _ExplorerNode & { kind: 'FILE' } =>
 							node.kind === 'FILE',
 					);
