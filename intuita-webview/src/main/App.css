@@ -22,10 +22,6 @@
 	background-color: var(--vscode-focusBorder);
 }
 
-.vscode-panels {
-	overflow-x: hidden;
-}
-
 .vscode-panels::part(tablist) {
 	min-height: 35px;
 	column-gap: 10px;
