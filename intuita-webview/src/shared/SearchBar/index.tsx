@@ -1,11 +1,13 @@
 import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 import cn from 'classnames';
 import styles from './style.module.css';
+import { ReactNode } from 'react';
 
 type Props = Readonly<{
 	searchPhrase: string;
 	setSearchPhrase: (searchPhrase: string) => void;
 	placeholder: string;
+	icon?: ReactNode;
 }>;
 
 export const SEARCH_QUERY_MIN_LENGTH = 1;
@@ -29,7 +31,12 @@ const SearchBar = (props: Props) => {
 			}}
 			className={styles.container}
 		>
-			<span slot="start" className={cn('codicon', 'codicon-search')} />
+			{props.icon || (
+				<span
+					slot="start"
+					className={cn('codicon', 'codicon-search')}
+				/>
+			)}
 		</VSCodeTextField>
 	);
 };
