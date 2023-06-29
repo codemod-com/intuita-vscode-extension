@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
-import { ReactComponent as DescriptionMaterialIcon } from '../../assets/material-icons/description.svg';
+import { ReactComponent as UnpublishedMaterialIcon } from '../../assets/material-icons/unpublished.svg';
+import { ReactComponent as CheckCircleMaterialIcon } from '../../assets/material-icons/check_circle.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import Popover from '../../shared/Popover';
@@ -111,6 +112,7 @@ const Codemod = ({
 	autocompleteItems,
 	progress,
 	queued,
+	intuitaCertified,
 }: Props) => {
 	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
 	const directorySelectorRef = useRef<HTMLSpanElement>(null);
@@ -199,7 +201,11 @@ const Codemod = ({
 				<Popover
 					trigger={
 						<div className={styles.icon}>
-							<DescriptionMaterialIcon fill="var(--vscode-icon-foreground)" />
+							{intuitaCertified ? (
+								<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
+							) : (
+								<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
+							)}
 						</div>
 					}
 					position={['bottom left', 'top left']}
