@@ -23,11 +23,11 @@ import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider'
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
-import { _ExplorerNode } from './persistedState/explorerNodeCodec';
 import {
-	selectNodeData,
+	selectExplorerTree,
 	selectSearchPhrase,
 } from './selectors/selectExplorerTree';
+import { JobHash } from './jobs/types';
 
 const messageBus = new MessageBus();
 
@@ -172,11 +172,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						state,
 						cashHashDigest,
 					);
-					const visibleNodes = selectNodeData(
-						state,
-						cashHashDigest,
-					).map((node) => node.node);
 
+					const tree = selectExplorerTree(state);
+
+					if (tree === null) {
+						return;
+					}
+
+					const { selectedFileHashes } = tree;
 					const isSearching = searchPhrase.length !== 0;
 
 					if (isSearching) {
@@ -193,25 +196,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
-					const selectedHashDigests =
-						state.selectedExplorerNodes[cashHashDigest] ?? [];
-
-					const targetNodes = isSearching
-						? visibleNodes
-						: state.explorerNodes[cashHashDigest] ?? [];
-
-					const fileNodes = targetNodes.filter(
-						(node): node is _ExplorerNode & { kind: 'FILE' } =>
-							node.kind === 'FILE',
+					await jobManager.acceptJobs(
+						new Set(selectedFileHashes as unknown[] as JobHash[]),
 					);
-
-					const jobHashes = fileNodes
-						.filter(({ hashDigest }) =>
-							selectedHashDigests.includes(hashDigest),
-						)
-						.map(({ jobHash }) => jobHash);
-
-					await jobManager.acceptJobs(new Set(jobHashes));
 
 					await vscode.commands.executeCommand(
 						'intuita.rejectCase',
