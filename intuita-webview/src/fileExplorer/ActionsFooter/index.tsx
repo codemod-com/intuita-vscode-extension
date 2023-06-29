@@ -25,22 +25,26 @@ const applySelected = (caseHashDigest: CaseHash) => {
 };
 
 const discardText = 'Discard All';
-const applyText = `Apply files`;
+const getApplyText = (selectedJobCount: number) =>
+	`Apply ${selectedJobCount} files`;
 
-export const ActionsFooter = (
-	props: Readonly<{
-		searchPhrase: string;
-		caseHash: CaseHash;
-		selectedJobCount: number;
-		screenWidth: number | null;
-	}>,
-) => {
+type Props = Readonly<{
+	caseHash: CaseHash;
+	selectedJobCount: number;
+	screenWidth: number | null;
+}>;
+
+export const ActionsFooter = ({
+	caseHash,
+	selectedJobCount,
+	screenWidth,
+}: Props) => {
 	return (
 		<div
 			className={styles.root}
 			style={{
-				...(props.screenWidth !== null &&
-					props.screenWidth < 330 && { marginRight: 'auto' }),
+				...(screenWidth !== null &&
+					screenWidth < 330 && { marginRight: 'auto' }),
 			}}
 		>
 			<Popover
@@ -50,7 +54,7 @@ export const ActionsFooter = (
 						onClick={(event) => {
 							event.preventDefault();
 
-							discardChanges(props.caseHash);
+							discardChanges(caseHash);
 						}}
 						className={styles.vscodeButton}
 					>
@@ -70,15 +74,15 @@ export const ActionsFooter = (
 						onClick={(event) => {
 							event.preventDefault();
 
-							applySelected(props.caseHash);
+							applySelected(caseHash);
 						}}
 						className={styles.vscodeButton}
 					>
-						{applyText}
+						{getApplyText(selectedJobCount)}
 					</VSCodeButton>
 				}
 				popoverText={
-					props.selectedJobCount === 0
+					selectedJobCount === 0
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}

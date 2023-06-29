@@ -2,12 +2,13 @@ import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
 import { isNeitherNullNorUndefined } from '../utilities';
 
+export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
+	(state.explorerSearchPhrases[caseHash] ?? '').trim().toLocaleLowerCase();
+
 export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
 
-	const properSearchPhrase = (state.explorerSearchPhrases[caseHash] ?? '')
-		.trim()
-		.toLocaleLowerCase();
+	const properSearchPhrase = selectSearchPhrase(state, caseHash);
 
 	let maximumDepth = Number.MAX_SAFE_INTEGER;
 
@@ -86,14 +87,26 @@ export const selectExplorerTree = (state: RootState) => {
 	}
 
 	const nodeData = selectNodeData(state, caseHash);
+	const searchPhrase = selectSearchPhrase(state, caseHash);
+	const searching = searchPhrase.length !== 0;
 
-	const fileNodeData = nodeData.filter(({ node }) => node.kind === 'FILE');
+	// visible nodes or all nodes
+	const nodes = searching
+		? nodeData.map((node) => node.node)
+		: state.explorerNodes[caseHash] ?? [];
+
+	const fileNodes = nodes.filter((node) => node.kind === 'FILE');
 
 	const selectedExplorerNodeHashDigests =
 		state.selectedExplorerNodes[caseHash] ?? [];
-	const selectedJobCount = fileNodeData.filter(({ node }) =>
+
+	const selectedFiles = fileNodes.filter((node) =>
 		selectedExplorerNodeHashDigests.includes(node.hashDigest),
-	).length;
+	);
+
+	const selectedFileHashes = selectedFiles.map(
+		({ hashDigest }) => hashDigest,
+	);
 
 	return {
 		caseHash,
@@ -102,7 +115,8 @@ export const selectExplorerTree = (state: RootState) => {
 		collapsedNodeHashDigests: state.collapsedExplorerNodes[caseHash] ?? [],
 		selectedExplorerNodeHashDigests,
 		searchPhrase: state.explorerSearchPhrases[caseHash] ?? '',
-		selectedJobCount,
+		selectedFileHashes,
+		selectedJobCount: selectedFiles.length,
 	};
 };
 

@@ -128,7 +128,6 @@ export const App = (
 				<ActionsFooter
 					caseHash={changeExplorerTree.caseHash}
 					screenWidth={props.screenWidth}
-					searchPhrase={changeExplorerTree.searchPhrase}
 					selectedJobCount={changeExplorerTree.selectedJobCount}
 				/>
 			)}
