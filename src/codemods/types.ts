@@ -7,7 +7,6 @@ export const codemodEntryCodec = buildTypeCodec({
 	kind: t.literal('codemod'),
 	hashDigest: t.string,
 	name: t.string,
-	description: t.string,
 	engine: t.union([
 		t.literal('jscodeshift'),
 		t.literal('ts-morph'),

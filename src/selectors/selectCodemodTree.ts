@@ -67,14 +67,12 @@ export const buildCodemodNode = (
 	executionPath: string,
 	queued: boolean,
 ) => {
-	console.log(codemod.name);
 	return {
 		kind: 'CODEMOD' as const,
 		name: codemod.name,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
 		label: buildCodemodTitle(name),
 		executionPath: T.right(executionPath),
-		description: codemod.description,
 		queued: queued,
 		intuitaCertified: IntuitaCertifiedCodemods.includes(codemod.name),
 	} as const;

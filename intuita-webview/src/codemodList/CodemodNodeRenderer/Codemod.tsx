@@ -107,7 +107,6 @@ const Codemod = ({
 	hashDigest,
 	label,
 	executionPath,
-	description,
 	rootPath,
 	autocompleteItems,
 	progress,
@@ -197,22 +196,13 @@ const Codemod = ({
 
 	return (
 		<>
-			{!editingPath ? (
-				<Popover
-					trigger={
-						<div className={styles.icon}>
-							{intuitaCertified ? (
-								<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
-							) : (
-								<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
-							)}
-						</div>
-					}
-					position={['bottom left', 'top left']}
-					mouseEnterDelay={300}
-					popoverText={description || 'Missing description'}
-				/>
-			) : null}
+			<div className={styles.icon}>
+				{intuitaCertified ? (
+					<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
+				) : (
+					<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
+				)}
+			</div>
 			<div className="flex w-full flex-col">
 				<span className={styles.labelContainer}>
 					<span
