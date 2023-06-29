@@ -38,10 +38,7 @@ const Directory = (
 					</span>
 
 					<Popover
-						trigger={
-							<span style={{ display: 'flex' }}>
-							</span>
-						}
+						trigger={<span style={{ display: 'flex' }}></span>}
 						popoverText="This library consists of high-quality, Intuita-verified codemods."
 					/>
 				</span>
