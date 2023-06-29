@@ -5,7 +5,19 @@ import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 
-const IntuitaCertifiedLibraries = ['next'];
+const IntuitaCertifiedCodemods = [
+	'next/13/app-directory-boilerplate',
+	'next/13/built-in-next-font',
+	'next/13/comment-deletable-files',
+	'next/13/move-css-in-js-styles',
+	'next/13/new-image-experimental',
+	'next/13/new-link',
+	'next/13/next-image-to-legacy-image',
+	'next/13/remove-get-static-props',
+	'next/13/remove-next-export',
+	'next/13/replace-next-head',
+	'next/13/replace-next-router',
+];
 
 interface CodemodNodeHashDigestBrand {
 	readonly __CodemodNodeHashDigest: unique symbol;
@@ -47,7 +59,6 @@ export const buildDirectoryNode = (name: string, path: string) =>
 		hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
 		kind: 'DIRECTORY' as const,
 		label: name,
-		intuitaCertified: IntuitaCertifiedLibraries.includes(name),
 	} as const);
 
 export const buildCodemodNode = (
@@ -56,6 +67,7 @@ export const buildCodemodNode = (
 	executionPath: string,
 	queued: boolean,
 ) => {
+	console.log(codemod.name);
 	return {
 		kind: 'CODEMOD' as const,
 		name: codemod.name,
@@ -64,6 +76,7 @@ export const buildCodemodNode = (
 		executionPath: T.right(executionPath),
 		description: codemod.description,
 		queued: queued,
+		intuitaCertified: IntuitaCertifiedCodemods.includes(codemod.name),
 	} as const;
 };
 

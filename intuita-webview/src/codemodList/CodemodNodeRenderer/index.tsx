@@ -85,23 +85,16 @@ const getCodemodNodeRenderer =
 								: null
 						}
 						queued={node.queued}
-					/>
-				)}
-
-				{node.kind === 'DIRECTORY' && (
-					<Directory
-						expanded={expanded}
-						label={label}
 						intuitaCertified={node.intuitaCertified}
 					/>
 				)}
 
+				{node.kind === 'DIRECTORY' && (
+					<Directory expanded={expanded} label={label} />
+				)}
+
 				{node.kind === 'ROOT' && (
-					<Directory
-						expanded={expanded}
-						label={label}
-						intuitaCertified={false}
-					/>
+					<Directory expanded={expanded} label={label} />
 				)}
 			</div>
 		);
