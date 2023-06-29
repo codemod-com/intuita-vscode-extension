@@ -8,6 +8,17 @@ import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem from '../shared/TreeItem';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 
+const getCodemodRunLabel = (node: CodemodRunsTree['nodeData'][0]['node']) => {
+	return `${node.label} [${new Date(
+		Number(node.createdAt),
+	).toLocaleTimeString()}]`;
+};
+
+const getCodemodRunPopoverText = (
+	node: CodemodRunsTree['nodeData'][0]['node'],
+) => {
+	return `Target Path:  ${node.path}`;
+};
 export const App = (
 	props: MainWebviewViewProps & { activeTabId: 'codemodRuns' },
 ) => {
@@ -31,7 +42,7 @@ export const App = (
 						key={props.nodeDatum.node.hashDigest}
 						hasChildren={props.nodeDatum.collapsable}
 						id={props.nodeDatum.node.hashDigest}
-						label={props.nodeDatum.node.label}
+						label={getCodemodRunLabel(props.nodeDatum.node)}
 						subLabel=""
 						icon={<CaseIcon />}
 						depth={props.nodeDatum.depth}
@@ -42,6 +53,9 @@ export const App = (
 
 							props.onFocus(props.nodeDatum.node.hashDigest);
 						}}
+						popoverText={getCodemodRunPopoverText(
+							props.nodeDatum.node,
+						)}
 					/>
 				);
 			}}

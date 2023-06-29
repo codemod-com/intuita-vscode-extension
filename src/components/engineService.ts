@@ -110,6 +110,8 @@ type Execution = {
 	affectedAnyFile: boolean;
 	readonly jobs: Job[];
 	case: Case;
+	uri: Uri;
+	happenedAt: string;
 };
 
 type ExecuteCodemodMessage = Readonly<{
@@ -471,6 +473,11 @@ export class EngineService {
 			affectedAnyFile: false,
 			jobs: [],
 			case: {} as Case,
+			uri:
+				'uri' in message.command
+					? message.command.uri
+					: message.command.inputPath,
+			happenedAt: message.happenedAt,
 		};
 		if (
 			'kind' in message.command &&
@@ -657,6 +664,8 @@ export class EngineService {
 				subKind: codemodName,
 				codemodSetName: job.codemodSetName,
 				codemodName: job.codemodName,
+				createdAt: this.#execution.happenedAt,
+				path: this.#execution.uri.fsPath,
 			};
 
 			this.#execution.case = kase;

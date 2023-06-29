@@ -17,6 +17,8 @@ export const selectCodemodRunsTree = (state: RootState) => {
 					node: {
 						hashDigest: kase.hash,
 						label: kase.codemodName,
+						createdAt: kase.createdAt,
+						path: kase.path,
 					} as const,
 					depth: 0,
 					expanded: true,
