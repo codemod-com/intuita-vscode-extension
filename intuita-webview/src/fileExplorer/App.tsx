@@ -13,7 +13,6 @@ import {
 } from '../../../src/persistedState/explorerNodeCodec';
 import { CaseHash } from '../../../src/cases/types';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import classNames from 'classnames';
 
 const setSearchPhrase = (caseHashDigest: CaseHash, searchPhrase: string) => {
 	vscode.postMessage({
@@ -103,13 +102,7 @@ export const App = (
 							searchPhrase,
 						)
 					}
-					placeholder="Filter files..."
-					icon={
-						<span
-							slot="start"
-							className={classNames('codicon', 'codicon-filter')}
-						/>
-					}
+					placeholder="Filter by file name"
 				/>
 			)}
 			<div className={styles.treeContainer}>
