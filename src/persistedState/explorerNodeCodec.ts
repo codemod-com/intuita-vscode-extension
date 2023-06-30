@@ -29,6 +29,7 @@ export const _explorerNodeCodec = t.union([
 	buildTypeCodec({
 		hashDigest: _explorerNodeHashDigestCodec,
 		kind: t.literal('DIRECTORY'),
+		path: t.string,
 		label: t.string,
 		depth: t.number,
 	}),
