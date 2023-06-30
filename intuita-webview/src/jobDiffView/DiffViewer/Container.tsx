@@ -5,7 +5,7 @@ import { JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
 
 type HeaderProps = Readonly<{
@@ -50,7 +50,7 @@ export const Header = ({
 							{jobKindText}
 						</h4>
 					) : null}
-					<Popover
+					<IntuitaPopover
 						disabled={
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
@@ -76,7 +76,7 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<Popover
+					<IntuitaPopover
 						children={
 							<VSCodeButton
 								appearance="secondary"

@@ -7,7 +7,7 @@ import { CodemodRunsTree } from '../../../src/selectors/selectCodemodRunsTree';
 import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem from '../shared/TreeItem';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import Popover from '../shared/Popover';
+import IntuitaPopover from '../shared/IntuitaPopover';
 import cn from 'classnames';
 
 type InfoIconProps = {
@@ -17,7 +17,7 @@ type InfoIconProps = {
 
 const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 	return (
-		<Popover
+		<IntuitaPopover
 			children={
 				<i
 					className={cn('codicon', 'codicon-info', 'cursor-pointer')}

@@ -2,7 +2,7 @@ import Tippy, { TippyProps } from '@tippyjs/react';
 
 type Props = TippyProps;
 
-const Popover = ({
+const IntuitaPopover = ({
 	content,
 	delay = 200,
 	disabled = false,
@@ -20,4 +20,4 @@ const Popover = ({
 	);
 };
 
-export default Popover;
+export default IntuitaPopover;

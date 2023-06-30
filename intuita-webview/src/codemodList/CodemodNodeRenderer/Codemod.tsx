@@ -4,7 +4,7 @@ import { ReactComponent as UnpublishedMaterialIcon } from '../../assets/material
 import { ReactComponent as CheckCircleMaterialIcon } from '../../assets/material-icons/check_circle.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { DirectorySelector } from '../components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
@@ -82,7 +82,7 @@ const renderActionButtons = (
 
 	if (!codemodInProgress && queued) {
 		return (
-			<Popover
+			<IntuitaPopover
 				children={<i className="codicon codicon-history mr-2" />}
 				content="This codemod has already been queued for execution."
 			/>

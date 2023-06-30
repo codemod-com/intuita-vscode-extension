@@ -12,7 +12,7 @@ import {
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import classNames from 'classnames';
 
 const updatePath = (
@@ -261,7 +261,7 @@ export const DirectorySelector = ({
 	}
 
 	return (
-		<Popover
+		<IntuitaPopover
 			children={
 				<VSCodeButton
 					appearance="icon"

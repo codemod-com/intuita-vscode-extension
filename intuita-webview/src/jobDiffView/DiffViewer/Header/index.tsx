@@ -6,7 +6,7 @@ import { DiffViewType } from '../../../shared/types';
 import styles from './style.module.css';
 
 import cn from 'classnames';
-import Popover from '../../../shared/Popover';
+import IntuitaPopover from '../../../shared/IntuitaPopover';
 
 type Props = Readonly<{
 	viewType: DiffViewType;
@@ -18,7 +18,7 @@ export const Header = (props: Props) => {
 	return (
 		<div className={styles.root}>
 			<div className={styles.actionsContainer}>
-				<Popover
+				<IntuitaPopover
 					children={
 						<VSCodeButton
 							appearance="icon"
@@ -35,7 +35,7 @@ export const Header = (props: Props) => {
 					}
 					content="Move to the previous file"
 				/>
-				<Popover
+				<IntuitaPopover
 					children={
 						<VSCodeButton
 							appearance="icon"

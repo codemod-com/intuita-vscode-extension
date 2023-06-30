@@ -1,5 +1,5 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import { CaseHash } from '../../../../src/cases/types';
@@ -47,7 +47,7 @@ export const ActionsFooter = ({
 					screenWidth < 330 && { marginRight: 'auto' }),
 			}}
 		>
-			<Popover
+			<IntuitaPopover
 				children={
 					<VSCodeButton
 						appearance="secondary"
@@ -63,7 +63,7 @@ export const ActionsFooter = ({
 				}
 				content={POPOVER_TEXTS.discard}
 			/>
-			<Popover
+			<IntuitaPopover
 				children={
 					<VSCodeButton
 						appearance="primary"
