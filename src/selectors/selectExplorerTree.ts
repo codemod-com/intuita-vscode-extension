@@ -1,5 +1,6 @@
 import { CaseHash } from '../cases/types';
 import { RootState } from '../data';
+import { _ExplorerNode } from '../persistedState/explorerNodeCodec';
 import { isNeitherNullNorUndefined } from '../utilities';
 
 export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
@@ -95,7 +96,10 @@ export const selectExplorerTree = (state: RootState) => {
 		? nodeData.map((node) => node.node)
 		: state.explorerNodes[caseHash] ?? [];
 
-	const fileNodes = nodes.filter((node) => node.kind === 'FILE');
+	const fileNodes = nodes.filter(
+		(node): node is _ExplorerNode & { kind: 'FILE' } =>
+			node.kind === 'FILE',
+	);
 
 	const selectedExplorerNodeHashDigests =
 		state.selectedExplorerNodes[caseHash] ?? [];
@@ -104,9 +108,7 @@ export const selectExplorerTree = (state: RootState) => {
 		selectedExplorerNodeHashDigests.includes(node.hashDigest),
 	);
 
-	const selectedFileHashes = selectedFiles.map(
-		({ hashDigest }) => hashDigest,
-	);
+	const selectedJobHashes = selectedFiles.map(({ jobHash }) => jobHash);
 
 	return {
 		caseHash,
@@ -115,7 +117,7 @@ export const selectExplorerTree = (state: RootState) => {
 		collapsedNodeHashDigests: state.collapsedExplorerNodes[caseHash] ?? [],
 		selectedExplorerNodeHashDigests,
 		searchPhrase: state.explorerSearchPhrases[caseHash] ?? '',
-		selectedFileHashes,
+		selectedJobHashes,
 		selectedJobCount: selectedFiles.length,
 	};
 };

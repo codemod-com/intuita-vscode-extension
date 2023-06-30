@@ -27,7 +27,6 @@ import {
 	selectExplorerTree,
 	selectSearchPhrase,
 } from './selectors/selectExplorerTree';
-import { JobHash } from './jobs/types';
 
 const messageBus = new MessageBus();
 
@@ -179,7 +178,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					const { selectedFileHashes } = tree;
+					const { selectedJobHashes } = tree;
 					const isSearching = searchPhrase.length !== 0;
 
 					if (isSearching) {
@@ -196,9 +195,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					}
 
-					await jobManager.acceptJobs(
-						new Set(selectedFileHashes as unknown[] as JobHash[]),
-					);
+					await jobManager.acceptJobs(new Set(selectedJobHashes));
 
 					await vscode.commands.executeCommand(
 						'intuita.rejectCase',
