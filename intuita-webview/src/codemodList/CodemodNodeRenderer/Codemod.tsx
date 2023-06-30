@@ -199,11 +199,13 @@ const Codemod = ({
 			<div className={styles.icon}>
 				<Popover
 					trigger={
-						intuitaCertified ? (
-							<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
-						) : (
-							<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
-						)
+						<span style={{ display: 'flex' }}>
+							{intuitaCertified ? (
+								<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
+							) : (
+								<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
+							)}
+						</span>
 					}
 					popoverText={
 						intuitaCertified
