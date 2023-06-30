@@ -1,7 +1,6 @@
 import cn from 'classnames';
 import s from './style.module.css';
 import { memo } from 'react';
-import Popover from '../../shared/Popover';
 
 const Directory = (
 	props: Readonly<{
@@ -36,11 +35,6 @@ const Directory = (
 					>
 						{props.label}
 					</span>
-
-					<Popover
-						trigger={<span style={{ display: 'flex' }}></span>}
-						popoverText="This library consists of high-quality, Intuita-verified codemods."
-					/>
 				</span>
 			</div>
 		</>
