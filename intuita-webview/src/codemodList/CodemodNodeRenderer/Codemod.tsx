@@ -196,22 +196,21 @@ const Codemod = ({
 	return (
 		<>
 			<div className={styles.icon}>
-				<Popover
-					trigger={
-						<span style={{ display: 'flex' }}>
-							{intuitaCertified ? (
-								<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
-							) : (
-								<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
-							)}
-						</span>
-					}
-					popoverText={
+				<IntuitaPopover
+					content={
 						intuitaCertified
 							? 'This is a high-quality, Intuita-verified codemod.'
 							: 'This is a community codemod.'
 					}
-				/>
+				>
+					<span style={{ display: 'flex' }}>
+						{intuitaCertified ? (
+							<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
+						) : (
+							<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
+						)}
+					</span>
+				</IntuitaPopover>
 			</div>
 			<div className="flex w-full flex-col">
 				<span className={styles.labelContainer}>
