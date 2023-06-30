@@ -664,7 +664,7 @@ export class EngineService {
 				subKind: codemodName,
 				codemodSetName: job.codemodSetName,
 				codemodName: job.codemodName,
-				createdAt: this.#execution.happenedAt,
+				createdAt: Number(this.#execution.happenedAt),
 				path: this.#execution.uri.fsPath,
 			};
 

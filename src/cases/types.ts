@@ -24,7 +24,7 @@ export const caseCodec = buildTypeCodec({
 	hash: caseHashCodec,
 	codemodSetName: t.string,
 	codemodName: t.string,
-	createdAt: t.string,
+	createdAt: t.number,
 	path: t.string,
 });
 

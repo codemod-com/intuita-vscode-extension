@@ -28,7 +28,7 @@ export const selectMainWebviewViewProps = (
 	if (state.activeTabId === 'codemodRuns') {
 		return {
 			activeTabId: state.activeTabId,
-			codemodRunsTree: selectCodemodRunsTree(state),
+			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
 			changeExplorerTree: selectExplorerTree(state),
 		};
 	}

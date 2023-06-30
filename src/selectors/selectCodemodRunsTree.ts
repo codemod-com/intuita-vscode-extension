@@ -1,16 +1,14 @@
 import { RootState } from '../data';
 import { isNeitherNullNorUndefined } from '../utilities';
+import { sep } from 'path';
 
-export const selectCodemodRunsTree = (state: RootState) => {
+export const selectCodemodRunsTree = (state: RootState, rootPath: string) => {
 	const { selectedCaseHash } = state.codemodRunsView;
+	const dirName = rootPath.split(sep).slice(-1).join(sep);
 
 	const nodeData = Object.values(state.case.entities)
 		.filter(isNeitherNullNorUndefined)
-		.sort((a, b) =>
-			a.codemodName
-				.toLocaleLowerCase()
-				.localeCompare(b.codemodName.toLocaleLowerCase()),
-		)
+		.sort((a, b) => a.createdAt - b.createdAt)
 		.map(
 			(kase) =>
 				({
@@ -18,7 +16,7 @@ export const selectCodemodRunsTree = (state: RootState) => {
 						hashDigest: kase.hash,
 						label: kase.codemodName,
 						createdAt: kase.createdAt,
-						path: kase.path,
+						path: kase.path.replace(rootPath, dirName),
 					} as const,
 					depth: 0,
 					expanded: true,
