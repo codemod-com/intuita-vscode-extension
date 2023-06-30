@@ -75,41 +75,42 @@ function App() {
 		<main className="App" ref={ref}>
 			<VSCodePanels
 				activeid={mainWebviewViewProps.activeTabId}
+				onChange={(e) => {
+					const newValue =
+						(e as unknown as { detail: HTMLElement | null }).detail
+							?.id ?? null;
+
+					if (newValue === null) {
+						return;
+					}
+
+					if (newValue !== mainWebviewViewProps.activeTabId) {
+						handlePanelTabClick(newValue as ActiveTabId);
+					}
+				}}
 				className="h-full w-full vscode-panels"
 			>
-				<VSCodePanelTab
-					className="vscode-tab"
-					id={'codemods'}
-					onClick={() => {
-						handlePanelTabClick('codemods');
-					}}
-				>
+				<VSCodePanelTab className="vscode-tab" id={'codemods'}>
 					Codemod Discovery
 				</VSCodePanelTab>
-				<VSCodePanelTab
-					className="vscode-tab"
-					id={'codemodRuns'}
-					onClick={() => {
-						handlePanelTabClick('codemodRuns');
-					}}
-				>
+				<VSCodePanelTab className="vscode-tab" id={'codemodRuns'}>
 					Codemod Runs
 				</VSCodePanelTab>
-				<VSCodePanelTab
-					className="vscode-tab"
-					id={'community'}
-					onClick={() => {
-						handlePanelTabClick('community');
-					}}
-				>
+				<VSCodePanelTab className="vscode-tab" id={'community'}>
 					Community
 				</VSCodePanelTab>
-				<VSCodePanelView className="vscode-panel-view h-full w-full">
+				<VSCodePanelView
+					className="vscode-panel-view h-full w-full"
+					id="codemodsView"
+				>
 					{mainWebviewViewProps.activeTabId === 'codemods' ? (
 						<CodemodList {...mainWebviewViewProps} />
 					) : null}
 				</VSCodePanelView>
-				<VSCodePanelView className="vscode-panel-view h-full w-full">
+				<VSCodePanelView
+					className="vscode-panel-view h-full w-full"
+					id="codemodRunsView"
+				>
 					{mainWebviewViewProps.activeTabId === 'codemodRuns' ? (
 						<CodemodRuns
 							screenWidth={screenWidth}
@@ -117,7 +118,10 @@ function App() {
 						/>
 					) : null}
 				</VSCodePanelView>
-				<VSCodePanelView className="vscode-panel-view h-full w-full">
+				<VSCodePanelView
+					className="vscode-panel-view h-full w-full"
+					id="communityView"
+				>
 					{mainWebviewViewProps.activeTabId === 'community' ? (
 						<CommunityTab />
 					) : null}
