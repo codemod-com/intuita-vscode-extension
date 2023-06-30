@@ -1,7 +1,6 @@
 import { CSSProperties, ReactNode, useLayoutEffect, useRef } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popover from '../Popover';
 
 export type Props = Readonly<{
 	id: string;
@@ -14,7 +13,7 @@ export type Props = Readonly<{
 	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
 	startDecorator?: ReactNode;
-	popoverText?: string;
+	endDecorator?: ReactNode;
 	inlineStyles?: {
 		root?: CSSProperties;
 		icon?: CSSProperties;
@@ -38,7 +37,7 @@ const TreeItem = ({
 	depth,
 	inlineStyles,
 	onPressChevron,
-	popoverText,
+	endDecorator,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
 	useLayoutEffect(() => {
@@ -60,59 +59,61 @@ const TreeItem = ({
 	}, [focused]);
 
 	return (
-		<Popover
-			disabled={!popoverText?.length}
-			trigger={
-				<div
-					key={id}
-					ref={ref}
-					tabIndex={0}
-					className={cn(styles.root, focused && styles.focused)}
-					onClick={onClick}
-					style={inlineStyles?.root}
-				>
-					<div
-						style={{
-							minWidth: `${depth * 18}px`,
-						}}
+		<div
+			key={id}
+			ref={ref}
+			tabIndex={0}
+			className={cn(styles.root, focused && styles.focused)}
+			onClick={onClick}
+			style={inlineStyles?.root}
+		>
+			<div
+				style={{
+					minWidth: `${depth * 18}px`,
+				}}
+			/>
+			{hasChildren ? (
+				<div className={styles.codicon}>
+					<span
+						onClick={onPressChevron}
+						className={cn('codicon', {
+							'codicon-chevron-right': !open,
+							'codicon-chevron-down': open,
+						})}
 					/>
-					{hasChildren ? (
-						<div className={styles.codicon}>
-							<span
-								onClick={onPressChevron}
-								className={cn('codicon', {
-									'codicon-chevron-right': !open,
-									'codicon-chevron-down': open,
-								})}
-							/>
-						</div>
-					) : null}
-					{startDecorator && (
-						<div
-							className={styles.startDecorator}
-							style={inlineStyles?.actions}
-						>
-							{startDecorator}
-						</div>
-					)}
-					<div className={styles.icon} style={inlineStyles?.icon}>
-						{icon}
-					</div>
-					<span className={styles.label} style={inlineStyles?.label}>
-						{label}
-					</span>
-					{subLabel.length > 0 ? (
-						<span
-							className={styles.subLabel}
-							style={inlineStyles?.subLabel}
-						>
-							{subLabel}
-						</span>
-					) : null}
 				</div>
-			}
-			popoverText={popoverText ?? ''}
-		/>
+			) : null}
+			{startDecorator && (
+				<div
+					className={styles.startDecorator}
+					style={inlineStyles?.actions}
+				>
+					{startDecorator}
+				</div>
+			)}
+			<div className={styles.icon} style={inlineStyles?.icon}>
+				{icon}
+			</div>
+			<span className={styles.label} style={inlineStyles?.label}>
+				{label}
+			</span>
+			{subLabel.length > 0 ? (
+				<span
+					className={styles.subLabel}
+					style={inlineStyles?.subLabel}
+				>
+					{subLabel}
+				</span>
+			) : null}
+			{endDecorator && (
+				<div
+					className={styles.endDecorator}
+					style={inlineStyles?.actions}
+				>
+					{endDecorator}
+				</div>
+			)}
+		</div>
 	);
 };
 
