@@ -82,10 +82,9 @@ const renderActionButtons = (
 
 	if (!codemodInProgress && queued) {
 		return (
-			<IntuitaPopover
-				children={<i className="codicon codicon-history mr-2" />}
-				content="This codemod has already been queued for execution."
-			/>
+			<IntuitaPopover content="This codemod has already been queued for execution.">
+				<i className="codicon codicon-history mr-2" />
+			</IntuitaPopover>
 		);
 	}
 

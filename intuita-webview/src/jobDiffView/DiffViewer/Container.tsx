@@ -54,13 +54,12 @@ export const Header = ({
 						disabled={
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
-						children={
-							<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
-								{title}
-							</h4>
-						}
 						content={`Copied from ${oldFileTitle}`}
-					/>
+					>
+						<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
+							{title}
+						</h4>
+					</IntuitaPopover>
 					<VSCodeButton
 						onClick={handleCopyFileName}
 						appearance="icon"
@@ -76,17 +75,14 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<IntuitaPopover
-						children={
-							<VSCodeButton
-								appearance="secondary"
-								onClick={onReportIssue}
-							>
-								Report Issue
-							</VSCodeButton>
-						}
-						content="Open a Github issue with a provided template to report a problem."
-					/>
+					<IntuitaPopover content="Open a Github issue with a provided template to report a problem.">
+						<VSCodeButton
+							appearance="secondary"
+							onClick={onReportIssue}
+						>
+							Report Issue
+						</VSCodeButton>
+					</IntuitaPopover>
 					{hasDiff ? (
 						<div className="ml-10 flex align-items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">

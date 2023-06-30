@@ -18,40 +18,32 @@ export const Header = (props: Props) => {
 	return (
 		<div className={styles.root}>
 			<div className={styles.actionsContainer}>
-				<IntuitaPopover
-					children={
-						<VSCodeButton
-							appearance="icon"
-							onClick={(event) => {
-								event.preventDefault();
+				<IntuitaPopover content="Move to the previous file">
+					<VSCodeButton
+						appearance="icon"
+						onClick={(event) => {
+							event.preventDefault();
 
-								props.changeJob('prev');
-							}}
-						>
-							<span
-								className={cn('codicon', 'codicon-arrow-left')}
-							/>
-						</VSCodeButton>
-					}
-					content="Move to the previous file"
-				/>
-				<IntuitaPopover
-					children={
-						<VSCodeButton
-							appearance="icon"
-							onClick={(event) => {
-								event.preventDefault();
+							props.changeJob('prev');
+						}}
+					>
+						<span className={cn('codicon', 'codicon-arrow-left')} />
+					</VSCodeButton>
+				</IntuitaPopover>
+				<IntuitaPopover content="Move to the next file">
+					<VSCodeButton
+						appearance="icon"
+						onClick={(event) => {
+							event.preventDefault();
 
-								props.changeJob('next');
-							}}
-						>
-							<span
-								className={cn('codicon', 'codicon-arrow-right')}
-							/>
-						</VSCodeButton>
-					}
-					content="Move to the next file"
-				/>
+							props.changeJob('next');
+						}}
+					>
+						<span
+							className={cn('codicon', 'codicon-arrow-right')}
+						/>
+					</VSCodeButton>
+				</IntuitaPopover>
 			</div>
 			<div className={styles.buttonGroup}>
 				{props.viewType === 'side-by-side' ? (

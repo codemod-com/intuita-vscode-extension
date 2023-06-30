@@ -12,24 +12,21 @@ type Props = {
 
 const ActionButton = ({ content, iconName, children, onClick }: Props) => {
 	return (
-		<IntuitaPopover
-			children={
-				<VSCodeButton
-					className={s.action}
-					appearance="icon"
-					onClick={(e) => {
-						e.stopPropagation();
-						onClick(e);
-					}}
-				>
-					{iconName ? (
-						<i className={cn('codicon', 'mr-2', iconName)} />
-					) : null}
-					{children}
-				</VSCodeButton>
-			}
-			content={content}
-		/>
+		<IntuitaPopover content={content}>
+			<VSCodeButton
+				className={s.action}
+				appearance="icon"
+				onClick={(e) => {
+					e.stopPropagation();
+					onClick(e);
+				}}
+			>
+				{iconName ? (
+					<i className={cn('codicon', 'mr-2', iconName)} />
+				) : null}
+				{children}
+			</VSCodeButton>
+		</IntuitaPopover>
 	);
 };
 

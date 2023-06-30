@@ -18,15 +18,12 @@ type InfoIconProps = {
 const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 	return (
 		<IntuitaPopover
-			children={
-				<i
-					className={cn('codicon', 'codicon-info', 'cursor-pointer')}
-				/>
-			}
 			content={`Executed on ${path} at ${new Date(
 				Number(createdAt),
 			).toLocaleTimeString()}`}
-		/>
+		>
+			<i className={cn('codicon', 'codicon-info', 'cursor-pointer')} />
+		</IntuitaPopover>
 	);
 };
 

@@ -261,37 +261,34 @@ export const DirectorySelector = ({
 	}
 
 	return (
-		<IntuitaPopover
-			children={
-				<VSCodeButton
-					appearance="icon"
-					onDoubleClick={(event) => {
-						event.stopPropagation();
+		<IntuitaPopover content="Codemod's target path. Double-click to edit.">
+			<VSCodeButton
+				appearance="icon"
+				onDoubleClick={(event) => {
+					event.stopPropagation();
 
-						setEditing(true);
-						onEditStart();
-						ignoreBlurEvent.current = false;
-						setValue(defaultValue);
-					}}
-					className={styles.targetPathButton}
-				>
-					<span className={styles.label}>
-						{typeof displayValue === 'string' ? (
-							displayValue === `${repoName}/` ? (
-								<em>{`${repoName}/`}</em>
-							) : (
-								displayValue
-									.split('/')
-									.filter((part) => part.length !== 0)
-									.slice(-1)[0]
-							)
+					setEditing(true);
+					onEditStart();
+					ignoreBlurEvent.current = false;
+					setValue(defaultValue);
+				}}
+				className={styles.targetPathButton}
+			>
+				<span className={styles.label}>
+					{typeof displayValue === 'string' ? (
+						displayValue === `${repoName}/` ? (
+							<em>{`${repoName}/`}</em>
 						) : (
 							displayValue
-						)}
-					</span>
-				</VSCodeButton>
-			}
-			content="Codemod's target path. Double-click to edit."
-		/>
+								.split('/')
+								.filter((part) => part.length !== 0)
+								.slice(-1)[0]
+						)
+					) : (
+						displayValue
+					)}
+				</span>
+			</VSCodeButton>
+		</IntuitaPopover>
 	);
 };

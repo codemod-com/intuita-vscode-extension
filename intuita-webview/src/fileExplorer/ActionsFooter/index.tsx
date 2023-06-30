@@ -47,42 +47,38 @@ export const ActionsFooter = ({
 					screenWidth < 330 && { marginRight: 'auto' }),
 			}}
 		>
-			<IntuitaPopover
-				children={
-					<VSCodeButton
-						appearance="secondary"
-						onClick={(event) => {
-							event.preventDefault();
+			<IntuitaPopover content={POPOVER_TEXTS.discard}>
+				<VSCodeButton
+					appearance="secondary"
+					onClick={(event) => {
+						event.preventDefault();
 
-							discardChanges(caseHash);
-						}}
-						className={styles.vscodeButton}
-					>
-						{discardText}
-					</VSCodeButton>
-				}
-				content={POPOVER_TEXTS.discard}
-			/>
+						discardChanges(caseHash);
+					}}
+					className={styles.vscodeButton}
+				>
+					{discardText}
+				</VSCodeButton>
+			</IntuitaPopover>
 			<IntuitaPopover
-				children={
-					<VSCodeButton
-						appearance="primary"
-						onClick={(event) => {
-							event.preventDefault();
-
-							applySelected(caseHash);
-						}}
-						className={styles.vscodeButton}
-					>
-						{getApplyText(selectedJobCount)}
-					</VSCodeButton>
-				}
 				content={
 					selectedJobCount === 0
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}
-			/>
+			>
+				<VSCodeButton
+					appearance="primary"
+					onClick={(event) => {
+						event.preventDefault();
+
+						applySelected(caseHash);
+					}}
+					className={styles.vscodeButton}
+				>
+					{getApplyText(selectedJobCount)}
+				</VSCodeButton>
+			</IntuitaPopover>
 		</div>
 	);
 };
