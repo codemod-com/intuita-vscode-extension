@@ -65,7 +65,7 @@ const renderActionButtons = (
 	if (!codemodInProgress && !queued) {
 		return (
 			<ActionButton
-				popoverText="Run this codemod without making change to file system"
+				content="Run this codemod without making change to file system"
 				onClick={(e) => {
 					e.stopPropagation();
 
@@ -83,15 +83,15 @@ const renderActionButtons = (
 	if (!codemodInProgress && queued) {
 		return (
 			<Popover
-				trigger={<i className="codicon codicon-history mr-2" />}
-				popoverText="This codemod has already been queued for execution."
+				children={<i className="codicon codicon-history mr-2" />}
+				content="This codemod has already been queued for execution."
 			/>
 		);
 	}
 
 	return (
 		<ActionButton
-			popoverText="Stop Codemod Execution"
+			content="Stop Codemod Execution"
 			iconName="codicon-debug-stop"
 			onClick={(e) => {
 				e.stopPropagation();

@@ -4,16 +4,16 @@ import cn from 'classnames';
 import s from './style.module.css';
 
 type Props = {
-	popoverText: string;
+	content: string;
 	iconName?: string;
 	children?: React.ReactNode;
 	onClick(e: React.MouseEvent): void;
 };
 
-const ActionButton = ({ popoverText, iconName, children, onClick }: Props) => {
+const ActionButton = ({ content, iconName, children, onClick }: Props) => {
 	return (
 		<Popover
-			trigger={
+			children={
 				<VSCodeButton
 					className={s.action}
 					appearance="icon"
@@ -28,7 +28,7 @@ const ActionButton = ({ popoverText, iconName, children, onClick }: Props) => {
 					{children}
 				</VSCodeButton>
 			}
-			popoverText={popoverText}
+			content={content}
 		/>
 	);
 };

@@ -18,12 +18,12 @@ type InfoIconProps = {
 const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 	return (
 		<Popover
-			trigger={
+			children={
 				<i
 					className={cn('codicon', 'codicon-info', 'cursor-pointer')}
 				/>
 			}
-			popoverText={`Executed on ${path} at ${new Date(
+			content={`Executed on ${path} at ${new Date(
 				Number(createdAt),
 			).toLocaleTimeString()}`}
 		/>

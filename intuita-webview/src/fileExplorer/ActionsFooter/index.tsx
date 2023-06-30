@@ -48,7 +48,7 @@ export const ActionsFooter = ({
 			}}
 		>
 			<Popover
-				trigger={
+				children={
 					<VSCodeButton
 						appearance="secondary"
 						onClick={(event) => {
@@ -61,14 +61,10 @@ export const ActionsFooter = ({
 						{discardText}
 					</VSCodeButton>
 				}
-				popoverText={POPOVER_TEXTS.discard}
-				contentStyle={{
-					backgroundColor: 'var(--vscode-editor-background)',
-					padding: '8px',
-				}}
+				content={POPOVER_TEXTS.discard}
 			/>
 			<Popover
-				trigger={
+				children={
 					<VSCodeButton
 						appearance="primary"
 						onClick={(event) => {
@@ -81,15 +77,11 @@ export const ActionsFooter = ({
 						{getApplyText(selectedJobCount)}
 					</VSCodeButton>
 				}
-				popoverText={
+				content={
 					selectedJobCount === 0
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}
-				contentStyle={{
-					backgroundColor: 'var(--vscode-editor-background)',
-					padding: '8px',
-				}}
 			/>
 		</div>
 	);

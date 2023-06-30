@@ -1,31 +1,22 @@
-import Tippy from '@tippyjs/react';
+import Tippy, { TippyProps } from '@tippyjs/react';
 
-type Props = {
-	trigger: React.ReactNode;
-	popoverText: string;
-	mouseEnterDelay?: number;
-	disabled?: boolean;
-	// @TODO
-	position?: ReadonlyArray<string>;
-	contentStyle?: object;
-};
+type Props = TippyProps;
 
 const Popover = ({
-	trigger,
-	popoverText,
-	mouseEnterDelay = 200,
+	content,
+	delay = 200,
 	disabled = false,
+	...others
 }: Props) => {
 	return (
 		<Tippy
 			arrow
-			delay={mouseEnterDelay}
-			content={popoverText}
+			delay={delay}
+			content={content}
 			placement="auto"
 			disabled={disabled}
-		>
-			<span>{trigger}</span>
-		</Tippy>
+			{...others}
+		/>
 	);
 };
 

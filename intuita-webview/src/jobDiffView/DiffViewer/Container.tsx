@@ -54,12 +54,12 @@ export const Header = ({
 						disabled={
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
-						trigger={
+						children={
 							<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
 								{title}
 							</h4>
 						}
-						popoverText={`Copied from ${oldFileTitle}`}
+						content={`Copied from ${oldFileTitle}`}
 					/>
 					<VSCodeButton
 						onClick={handleCopyFileName}
@@ -77,7 +77,7 @@ export const Header = ({
 					}}
 				>
 					<Popover
-						trigger={
+						children={
 							<VSCodeButton
 								appearance="secondary"
 								onClick={onReportIssue}
@@ -85,7 +85,7 @@ export const Header = ({
 								Report Issue
 							</VSCodeButton>
 						}
-						popoverText="Open a Github issue with a provided template to report a problem."
+						content="Open a Github issue with a provided template to report a problem."
 					/>
 					{hasDiff ? (
 						<div className="ml-10 flex align-items-center justify-end diff-changes-container">

@@ -262,7 +262,7 @@ export const DirectorySelector = ({
 
 	return (
 		<Popover
-			trigger={
+			children={
 				<VSCodeButton
 					appearance="icon"
 					onDoubleClick={(event) => {
@@ -291,7 +291,7 @@ export const DirectorySelector = ({
 					</span>
 				</VSCodeButton>
 			}
-			popoverText="Codemod's target path. Double-click to edit."
+			content="Codemod's target path. Double-click to edit."
 		/>
 	);
 };

@@ -19,7 +19,7 @@ export const Header = (props: Props) => {
 		<div className={styles.root}>
 			<div className={styles.actionsContainer}>
 				<Popover
-					trigger={
+					children={
 						<VSCodeButton
 							appearance="icon"
 							onClick={(event) => {
@@ -33,10 +33,10 @@ export const Header = (props: Props) => {
 							/>
 						</VSCodeButton>
 					}
-					popoverText="Move to the previous file"
+					content="Move to the previous file"
 				/>
 				<Popover
-					trigger={
+					children={
 						<VSCodeButton
 							appearance="icon"
 							onClick={(event) => {
@@ -50,7 +50,7 @@ export const Header = (props: Props) => {
 							/>
 						</VSCodeButton>
 					}
-					popoverText="Move to the next file"
+					content="Move to the next file"
 				/>
 			</div>
 			<div className={styles.buttonGroup}>
