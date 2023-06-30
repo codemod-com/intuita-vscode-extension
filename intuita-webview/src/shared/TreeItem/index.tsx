@@ -13,6 +13,7 @@ export type Props = Readonly<{
 	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
 	startDecorator?: ReactNode;
+	endDecorator?: ReactNode;
 	inlineStyles?: {
 		root?: CSSProperties;
 		icon?: CSSProperties;
@@ -36,6 +37,7 @@ const TreeItem = ({
 	depth,
 	inlineStyles,
 	onPressChevron,
+	endDecorator,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
 	useLayoutEffect(() => {
@@ -103,6 +105,14 @@ const TreeItem = ({
 					{subLabel}
 				</span>
 			) : null}
+			{endDecorator && (
+				<div
+					className={styles.endDecorator}
+					style={inlineStyles?.actions}
+				>
+					{endDecorator}
+				</div>
+			)}
 		</div>
 	);
 };

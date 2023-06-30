@@ -24,6 +24,8 @@ export const caseCodec = buildTypeCodec({
 	hash: caseHashCodec,
 	codemodSetName: t.string,
 	codemodName: t.string,
+	createdAt: t.number,
+	path: t.string,
 });
 
 export type Case = t.TypeOf<typeof caseCodec>;
