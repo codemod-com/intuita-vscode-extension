@@ -75,13 +75,7 @@ export const selectExplorerTree = (state: RootState) => {
 	}
 
 	const nodeData = selectNodeData(state, caseHash);
-	const searchPhrase = selectSearchPhrase(state, caseHash);
-	const searching = searchPhrase.length !== 0;
-
-	// visible nodes or all nodes
-	const nodes = searching
-		? nodeData.map((node) => node.node)
-		: state.explorerNodes[caseHash] ?? [];
+	const nodes = state.explorerNodes[caseHash] ?? [];
 
 	const fileNodes = nodes.filter(
 		(node): node is _ExplorerNode & { kind: 'FILE' } =>

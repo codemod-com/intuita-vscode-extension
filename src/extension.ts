@@ -167,11 +167,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const state = store.getState();
 
-					const searchPhrase = selectSearchPhrase(
-						state,
-						cashHashDigest,
-					);
-
 					const tree = selectExplorerTree(state);
 
 					if (tree === null) {
@@ -179,21 +174,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const { selectedJobHashes } = tree;
-					const isSearching = searchPhrase.length !== 0;
-
-					if (isSearching) {
-						const choice = await vscode.window.showWarningMessage(
-							'There are more files than the ones visible in the Change Explorer, ' +
-								'due to you having collapsed some directories or applied a search phrase.' +
-								' Do you want to continue?',
-							'Yes',
-							'No',
-						);
-
-						if (choice !== 'Yes') {
-							return;
-						}
-					}
 
 					await jobManager.acceptJobs(new Set(selectedJobHashes));
 
