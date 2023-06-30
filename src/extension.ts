@@ -25,7 +25,6 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import {
 	selectExplorerTree,
-	selectSearchPhrase,
 } from './selectors/selectExplorerTree';
 
 const messageBus = new MessageBus();
