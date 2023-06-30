@@ -1,5 +1,5 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import { CaseHash } from '../../../../src/cases/types';
@@ -47,50 +47,38 @@ export const ActionsFooter = ({
 					screenWidth < 330 && { marginRight: 'auto' }),
 			}}
 		>
-			<Popover
-				trigger={
-					<VSCodeButton
-						appearance="secondary"
-						onClick={(event) => {
-							event.preventDefault();
+			<IntuitaPopover content={POPOVER_TEXTS.discard}>
+				<VSCodeButton
+					appearance="secondary"
+					onClick={(event) => {
+						event.preventDefault();
 
-							discardChanges(caseHash);
-						}}
-						className={styles.vscodeButton}
-					>
-						{discardText}
-					</VSCodeButton>
-				}
-				popoverText={POPOVER_TEXTS.discard}
-				contentStyle={{
-					backgroundColor: 'var(--vscode-editor-background)',
-					padding: '8px',
-				}}
-			/>
-			<Popover
-				trigger={
-					<VSCodeButton
-						appearance="primary"
-						onClick={(event) => {
-							event.preventDefault();
-
-							applySelected(caseHash);
-						}}
-						className={styles.vscodeButton}
-					>
-						{getApplyText(selectedJobCount)}
-					</VSCodeButton>
-				}
-				popoverText={
+						discardChanges(caseHash);
+					}}
+					className={styles.vscodeButton}
+				>
+					{discardText}
+				</VSCodeButton>
+			</IntuitaPopover>
+			<IntuitaPopover
+				content={
 					selectedJobCount === 0
 						? POPOVER_TEXTS.cannotApply
 						: POPOVER_TEXTS.apply
 				}
-				contentStyle={{
-					backgroundColor: 'var(--vscode-editor-background)',
-					padding: '8px',
-				}}
-			/>
+			>
+				<VSCodeButton
+					appearance="primary"
+					onClick={(event) => {
+						event.preventDefault();
+
+						applySelected(caseHash);
+					}}
+					className={styles.vscodeButton}
+				>
+					{getApplyText(selectedJobCount)}
+				</VSCodeButton>
+			</IntuitaPopover>
 		</div>
 	);
 };

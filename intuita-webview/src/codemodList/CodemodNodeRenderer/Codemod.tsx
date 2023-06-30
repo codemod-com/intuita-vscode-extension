@@ -4,7 +4,7 @@ import { ReactComponent as UnpublishedMaterialIcon } from '../../assets/material
 import { ReactComponent as CheckCircleMaterialIcon } from '../../assets/material-icons/check_circle.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { DirectorySelector } from '../components/DirectorySelector';
 import { pipe } from 'fp-ts/lib/function';
 import * as T from 'fp-ts/These';
@@ -65,7 +65,7 @@ const renderActionButtons = (
 	if (!codemodInProgress && !queued) {
 		return (
 			<ActionButton
-				popoverText="Run this codemod without making change to file system"
+				content="Run this codemod without making change to file system"
 				onClick={(e) => {
 					e.stopPropagation();
 
@@ -82,16 +82,15 @@ const renderActionButtons = (
 
 	if (!codemodInProgress && queued) {
 		return (
-			<Popover
-				trigger={<i className="codicon codicon-history mr-2" />}
-				popoverText="This codemod has already been queued for execution."
-			/>
+			<IntuitaPopover content="This codemod has already been queued for execution.">
+				<i className="codicon codicon-history mr-2" />
+			</IntuitaPopover>
 		);
 	}
 
 	return (
 		<ActionButton
-			popoverText="Stop Codemod Execution"
+			content="Stop Codemod Execution"
 			iconName="codicon-debug-stop"
 			onClick={(e) => {
 				e.stopPropagation();

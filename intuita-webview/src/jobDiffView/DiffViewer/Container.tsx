@@ -5,7 +5,7 @@ import { JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
-import Popover from '../../shared/Popover';
+import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
 
 type HeaderProps = Readonly<{
@@ -50,17 +50,16 @@ export const Header = ({
 							{jobKindText}
 						</h4>
 					) : null}
-					<Popover
+					<IntuitaPopover
 						disabled={
 							(jobKind as unknown as JobKind) !== JobKind.copyFile
 						}
-						trigger={
-							<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
-								{title}
-							</h4>
-						}
-						popoverText={`Copied from ${oldFileTitle}`}
-					/>
+						content={`Copied from ${oldFileTitle}`}
+					>
+						<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
+							{title}
+						</h4>
+					</IntuitaPopover>
 					<VSCodeButton
 						onClick={handleCopyFileName}
 						appearance="icon"
@@ -76,17 +75,14 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<Popover
-						trigger={
-							<VSCodeButton
-								appearance="secondary"
-								onClick={onReportIssue}
-							>
-								Report Issue
-							</VSCodeButton>
-						}
-						popoverText="Open a Github issue with a provided template to report a problem."
-					/>
+					<IntuitaPopover content="Open a Github issue with a provided template to report a problem.">
+						<VSCodeButton
+							appearance="secondary"
+							onClick={onReportIssue}
+						>
+							Report Issue
+						</VSCodeButton>
+					</IntuitaPopover>
 					{hasDiff ? (
 						<div className="ml-10 flex align-items-center justify-end diff-changes-container">
 							<span className="diff-changes diff-removed">
