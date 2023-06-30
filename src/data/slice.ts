@@ -345,6 +345,7 @@ const rootSlice = createSlice({
 
 						return {
 							kind: 'DIRECTORY' as const,
+							path,
 							hashDigest: buildHash(
 								['DIRECTORY', directoryPath, name].join(''),
 							) as _ExplorerNodeHashDigest,

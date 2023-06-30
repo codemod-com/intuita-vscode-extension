@@ -18,26 +18,13 @@ export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 			?.map((node) => {
 				if (properSearchPhrase !== '') {
 					if (
-						node.kind !== 'FILE' ||
+						(node.kind === 'DIRECTORY' || node.kind === 'FILE') &&
 						!node.path
 							.toLocaleLowerCase()
 							.includes(properSearchPhrase)
 					) {
 						return null;
 					}
-
-					return {
-						node: {
-							...node,
-							label: node.path,
-						},
-						depth: 0,
-						expanded: false,
-						focused:
-							state.focusedExplorerNodes[caseHash] ===
-							node.hashDigest,
-						collapsable: false,
-					};
 				}
 
 				if (maximumDepth < node.depth) {
