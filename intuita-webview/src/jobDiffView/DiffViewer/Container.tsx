@@ -75,7 +75,21 @@ export const Header = ({
 						e.stopPropagation();
 					}}
 				>
-					<IntuitaPopover content="Open a Github issue with a provided template to report a problem.">
+					<IntuitaPopover
+						content={
+							<div
+								style={{
+									padding: '8px',
+									backgroundColor:
+										'var(--vscode-tab-inactiveBackground)',
+								}}
+							>
+								Open a Github issue with a provided template to
+								report a problem.
+							</div>
+						}
+						placement="bottom"
+					>
 						<VSCodeButton
 							appearance="secondary"
 							onClick={onReportIssue}
