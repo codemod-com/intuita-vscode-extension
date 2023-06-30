@@ -18,7 +18,21 @@ export const Header = (props: Props) => {
 	return (
 		<div className={styles.root}>
 			<div className={styles.actionsContainer}>
-				<IntuitaPopover content="Move to the previous file">
+				<IntuitaPopover
+					content={
+						<div
+							style={{
+								padding: '8px',
+								backgroundColor:
+									'var(--vscode-tab-inactiveBackground)',
+							}}
+						>
+							Move to the previous file
+						</div>
+					}
+					placement="right"
+					delay={[200, 0]}
+				>
 					<VSCodeButton
 						appearance="icon"
 						onClick={(event) => {
@@ -30,7 +44,21 @@ export const Header = (props: Props) => {
 						<span className={cn('codicon', 'codicon-arrow-left')} />
 					</VSCodeButton>
 				</IntuitaPopover>
-				<IntuitaPopover content="Move to the next file">
+				<IntuitaPopover
+					content={
+						<div
+							style={{
+								padding: '8px',
+								backgroundColor:
+									'var(--vscode-tab-inactiveBackground)',
+							}}
+						>
+							Move to the next file
+						</div>
+					}
+					placement="right"
+					delay={[200, 0]}
+				>
 					<VSCodeButton
 						appearance="icon"
 						onClick={(event) => {
