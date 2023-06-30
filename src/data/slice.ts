@@ -261,7 +261,6 @@ const rootSlice = createSlice({
 			const [caseHash, rootPath] = action.payload;
 
 			state.codemodExecutionInProgress = false;
-			state.activeTabId = 'codemodRuns';
 
 			state.codemodRunsView.selectedCaseHash = caseHash;
 
@@ -302,6 +301,10 @@ const rootSlice = createSlice({
 			)
 				.map((jobHash) => state.job.entities[jobHash])
 				.filter(isNeitherNullNorUndefined);
+
+			if (jobs.length !== 0) {
+				state.activeTabId = 'codemodRuns';
+			}
 
 			const filteredJobs = jobs.sort(comparePersistedJobs);
 
