@@ -40,6 +40,10 @@ const selectPanelViewProps = (
 	state: RootState,
 	rootPath: string,
 ): PanelViewProps | null => {
+	if (!state.jobDiffView.visible) {
+		return null;
+	}
+
 	if (!mainWebviewViewProvider.isVisible()) {
 		return null;
 	}
@@ -175,14 +179,7 @@ export class IntuitaPanelProvider {
 				rootPath,
 			);
 
-			if (
-				areEqual(prevViewProps, nextViewProps) &&
-				// this check ensures that if the panel was closed manually (disposed)
-				// and there are some data to render,
-				// the panel will be reopened
-				nextViewProps !== null &&
-				this.__webviewPanel?.active
-			) {
+			if (areEqual(prevViewProps, nextViewProps)) {
 				return;
 			}
 
@@ -281,6 +278,7 @@ export class IntuitaPanelProvider {
 
 			this.__webviewPanel.onDidDispose(() => {
 				this.__webviewPanel = null;
+				this.__store.dispatch(actions.setJobDiffViewVisible(false));
 			});
 
 			return;

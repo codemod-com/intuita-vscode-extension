@@ -60,6 +60,9 @@ export const getInitialState = (): RootState => {
 		changeExplorerView: {
 			collapsed: false,
 		},
+		jobDiffView: {
+			visible: false,
+		},
 		codemodExecutionInProgress: false,
 		activeTabId: 'codemods',
 		explorerSearchPhrases: {},
@@ -141,6 +144,7 @@ const rootSlice = createSlice({
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
 			state.codemodRunsView.selectedCaseHash = action.payload;
+			state.jobDiffView.visible = true;
 		},
 		/**
 		 * Codemod list
@@ -161,6 +165,7 @@ const rootSlice = createSlice({
 		) {
 			state.codemodDiscoveryView.focusedCodemodHashDigest =
 				action.payload;
+			state.jobDiffView.visible = true;
 		},
 		flipCodemodHashDigest(
 			state,
@@ -506,6 +511,10 @@ const rootSlice = createSlice({
 			const [caseHash, explorerNodeHashDigest] = action.payload;
 
 			state.focusedExplorerNodes[caseHash] = explorerNodeHashDigest;
+			state.jobDiffView.visible = true;
+		},
+		setJobDiffViewVisible(state, action: PayloadAction<boolean>) {
+			state.jobDiffView.visible = action.payload;
 		},
 	},
 });
