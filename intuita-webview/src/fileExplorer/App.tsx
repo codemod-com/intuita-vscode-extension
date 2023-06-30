@@ -102,7 +102,7 @@ export const App = (
 							searchPhrase,
 						)
 					}
-					placeholder="Filter by file name"
+					placeholder="Search by file name"
 				/>
 			)}
 			<div className={styles.treeContainer}>
