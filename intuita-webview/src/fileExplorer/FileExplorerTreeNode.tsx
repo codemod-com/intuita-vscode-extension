@@ -4,7 +4,8 @@ import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem, { Props as TreeItemProps } from '../shared/TreeItem';
 
 import { memo } from 'react';
-import { VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
+import { ReactComponent as CheckboxMaterialIcon } from '../assets/material-icons/check_box.svg';
+import { ReactComponent as CheckboxOutlineBlankMaterialIcon } from '../assets/material-icons/check_box_outline_blank.svg';
 
 import styles from './style.module.css';
 
@@ -41,11 +42,13 @@ const Checkbox = memo(
 		onClick(e: React.MouseEvent): void;
 	}) => {
 		return (
-			<VSCodeCheckbox
-				onClick={onClick}
-				checked={checked}
-				className={styles.checkbox}
-			/>
+			<span onClick={onClick} className={styles.checkbox}>
+				{checked ? (
+					<CheckboxMaterialIcon fill="var(--vscode-icon-foreground)" />
+				) : (
+					<CheckboxOutlineBlankMaterialIcon fill="var(--vscode-icon-foreground)" />
+				)}
+			</span>
 		);
 	},
 );
