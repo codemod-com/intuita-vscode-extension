@@ -15,7 +15,13 @@
 	overflow-y: auto;
 }
 
-.checkbox::part(control) {
+.checkbox {
+	margin-bottom: 3px;
 	width: calc(var(--design-unit) * 3.5px);
 	height: calc(var(--design-unit) * 3.5px);
+}
+
+.checkbox svg {
+	width: 100%;
+	height: 100%;
 }
