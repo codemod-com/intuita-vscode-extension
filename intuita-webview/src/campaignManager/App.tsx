@@ -11,7 +11,7 @@ import Popover from '../shared/Popover';
 import cn from 'classnames';
 
 type InfoIconProps = {
-	createdAt: string;
+	createdAt: number;
 	path: string;
 };
 
@@ -23,7 +23,7 @@ const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 					className={cn('codicon', 'codicon-info', 'cursor-pointer')}
 				/>
 			}
-			popoverText={`Target Path:  ${path}. \n Executed at ${new Date(
+			popoverText={`Executed on ${path} at ${new Date(
 				Number(createdAt),
 			).toLocaleTimeString()}`}
 		/>
