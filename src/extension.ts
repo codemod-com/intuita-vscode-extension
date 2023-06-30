@@ -23,9 +23,7 @@ import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider'
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
-import {
-	selectExplorerTree,
-} from './selectors/selectExplorerTree';
+import { selectExplorerTree } from './selectors/selectExplorerTree';
 
 const messageBus = new MessageBus();
 
