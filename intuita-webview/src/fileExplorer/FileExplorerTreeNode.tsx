@@ -8,12 +8,13 @@ import { ReactComponent as CheckboxMaterialIcon } from '../assets/material-icons
 import { ReactComponent as CheckboxOutlineBlankMaterialIcon } from '../assets/material-icons/check_box_outline_blank.svg';
 
 import styles from './style.module.css';
+import { _ExplorerNode } from '../../../src/persistedState/explorerNodeCodec';
 
 type Props = Omit<
 	TreeItemProps,
 	'icon' | 'startDecorator' | 'inlineStyles' | 'subLabel'
 > & {
-	kind: 'FILE' | 'DIRECTORY' | 'ROOT';
+	kind: _ExplorerNode['kind'];
 	iconName: IconName;
 	checked: boolean;
 	onCheckboxClick(e: React.MouseEvent): void;
@@ -34,7 +35,7 @@ const Icon = ({ iconName }: { iconName: IconName }) => {
 	return <span className={cn('codicon', `codicon-${iconName}`)} />;
 };
 
-const getIndent = (kind: 'DIRECTORY' | 'FILE' | 'ROOT', depth: number) => {
+const getIndent = (kind: _ExplorerNode['kind'], depth: number) => {
 	let offset = 18 * depth;
 
 	if (kind === 'FILE') {
