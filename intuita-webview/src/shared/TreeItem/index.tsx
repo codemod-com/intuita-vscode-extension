@@ -20,6 +20,7 @@ export type Props = Readonly<{
 		label?: CSSProperties;
 		subLabel?: CSSProperties;
 		actions?: CSSProperties;
+		indent?: CSSProperties;
 	};
 	onPressChevron?(event: React.MouseEvent<HTMLSpanElement>): void;
 }>;
@@ -70,6 +71,7 @@ const TreeItem = ({
 			<div
 				style={{
 					minWidth: `${depth * 18}px`,
+					...(inlineStyles?.indent ?? {}),
 				}}
 			/>
 			{hasChildren ? (

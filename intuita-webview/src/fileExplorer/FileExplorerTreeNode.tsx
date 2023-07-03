@@ -13,6 +13,7 @@ type Props = Omit<
 	TreeItemProps,
 	'icon' | 'startDecorator' | 'inlineStyles' | 'subLabel'
 > & {
+	kind: 'FILE' | 'DIRECTORY' | 'ROOT';
 	iconName: IconName;
 	checked: boolean;
 	onCheckboxClick(e: React.MouseEvent): void;
@@ -31,6 +32,16 @@ const Icon = ({ iconName }: { iconName: IconName }) => {
 	}
 
 	return <span className={cn('codicon', `codicon-${iconName}`)} />;
+};
+
+const getIndent = (kind: 'DIRECTORY' | 'FILE' | 'ROOT', depth: number) => {
+	let offset = 18 * depth;
+
+	if (kind === 'FILE') {
+		offset += 16;
+	}
+
+	return offset;
 };
 
 const Checkbox = memo(
@@ -62,6 +73,7 @@ const FileExplorerTreeNode = ({
 	focused,
 	iconName,
 	checked,
+	kind,
 	onClick,
 	onCheckboxClick,
 	onPressChevron,
@@ -87,6 +99,9 @@ const FileExplorerTreeNode = ({
 						backgroundColor: 'var(--vscode-list-hoverBackground)',
 					}),
 					paddingRight: 4,
+				},
+				indent: {
+					minWidth: `${getIndent(kind, depth)}px`,
 				},
 			}}
 		/>
