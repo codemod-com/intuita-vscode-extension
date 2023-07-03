@@ -77,6 +77,8 @@ export const getInitialState = (): RootState => {
 	};
 };
 
+const FUZZY_SEARCH_MINIMUM_SCORE = -1000;
+
 const rootSlice = createSlice({
 	name: SLICE_KEY,
 	initialState: getInitialState(),
@@ -319,7 +321,7 @@ const rootSlice = createSlice({
 
 			const properSearchPhrase = selectSearchPhrase(state, caseHash);
 
-			const allFilePaths = filteredJobs
+			const allJobPaths = filteredJobs
 				.map((j) => {
 					const uri = getPersistedJobUri(j);
 
@@ -327,8 +329,8 @@ const rootSlice = createSlice({
 				})
 				.filter(isNeitherNullNorUndefined);
 
-			const searchResults = go(properSearchPhrase, allFilePaths)
-				.filter((r) => r.score > -1000)
+			const searchResults = go(properSearchPhrase, allJobPaths)
+				.filter((r) => r.score > FUZZY_SEARCH_MINIMUM_SCORE)
 				.map((r) => r.target);
 
 			for (const job of filteredJobs) {
@@ -423,7 +425,6 @@ const rootSlice = createSlice({
 			const focusedExplorerNode = fileNodes[0]?.hashDigest ?? null;
 
 			state.explorerNodes[caseHash] = explorerNodes;
-			// state.explorerSearchPhrases[caseHash] = '';
 			state.collapsedExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				({ hashDigest }) => hashDigest,
