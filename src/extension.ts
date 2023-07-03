@@ -555,7 +555,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			const state = store.getState();
 
 			const uris: vscode.Uri[] = [];
-			
+
 			for (const job of Object.values(state.job.entities)) {
 				if (!job) {
 					continue;
