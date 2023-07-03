@@ -4,6 +4,7 @@ import {
 	createEntityAdapter,
 	PayloadAction,
 } from '@reduxjs/toolkit';
+import { go } from 'fuzzysort';
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
@@ -11,7 +12,10 @@ import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { ActiveTabId, RootState } from '../persistedState/codecs';
-import { selectNodeData } from '../selectors/selectExplorerTree';
+import {
+	selectNodeData,
+	selectSearchPhrase,
+} from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import {
 	_ExplorerNode,
@@ -313,10 +317,31 @@ const rootSlice = createSlice({
 
 			const filteredJobs = jobs.sort(comparePersistedJobs);
 
+			const properSearchPhrase = selectSearchPhrase(state, caseHash);
+
+			const allFilePaths = filteredJobs
+				.map((j) => {
+					const uri = getPersistedJobUri(j);
+
+					return uri?.fsPath.toLocaleLowerCase() ?? null;
+				})
+				.filter(isNeitherNullNorUndefined);
+
+			const searchResults = go(properSearchPhrase, allFilePaths)
+				.filter((r) => r.score > -1000)
+				.map((r) => r.target);
+
 			for (const job of filteredJobs) {
 				const uri = getPersistedJobUri(job);
 
 				if (uri === null) {
+					continue;
+				}
+
+				if (
+					properSearchPhrase !== '' &&
+					!searchResults.includes(uri.fsPath.toLocaleLowerCase())
+				) {
 					continue;
 				}
 
@@ -398,7 +423,7 @@ const rootSlice = createSlice({
 			const focusedExplorerNode = fileNodes[0]?.hashDigest ?? null;
 
 			state.explorerNodes[caseHash] = explorerNodes;
-			state.explorerSearchPhrases[caseHash] = '';
+			// state.explorerSearchPhrases[caseHash] = '';
 			state.collapsedExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				({ hashDigest }) => hashDigest,

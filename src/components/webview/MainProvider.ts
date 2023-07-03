@@ -241,6 +241,13 @@ export class MainViewProvider implements WebviewViewProvider {
 					message.searchPhrase,
 				]),
 			);
+
+			this.__store.dispatch(
+				actions.setExplorerNodes([
+					message.caseHashDigest,
+					this.__rootUri.fsPath,
+				]),
+			);
 		}
 
 		if (message.kind === 'webview.codemodList.haltCodemodExecution') {
