@@ -90,6 +90,7 @@ export const explorerNodeRenderer =
 				open={props.nodeDatum.expanded}
 				focused={focused}
 				checked={checked}
+				kind={props.nodeDatum.node.kind}
 				onClick={handleClick}
 				onCheckboxClick={handleCheckboxClick}
 				onPressChevron={handleChevronClick}
