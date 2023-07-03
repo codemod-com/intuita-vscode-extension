@@ -9,24 +9,11 @@ export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
 export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
 
-	const properSearchPhrase = selectSearchPhrase(state, caseHash);
-
 	let maximumDepth = Number.MAX_SAFE_INTEGER;
 
 	return (
 		state.explorerNodes[caseHash]
 			?.map((node) => {
-				if (properSearchPhrase !== '') {
-					if (
-						(node.kind === 'DIRECTORY' || node.kind === 'FILE') &&
-						!node.path
-							.toLocaleLowerCase()
-							.includes(properSearchPhrase)
-					) {
-						return null;
-					}
-				}
-
 				if (maximumDepth < node.depth) {
 					return null;
 				}

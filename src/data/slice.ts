@@ -4,6 +4,7 @@ import {
 	createEntityAdapter,
 	PayloadAction,
 } from '@reduxjs/toolkit';
+import { go } from 'fuzzysort';
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
@@ -11,7 +12,10 @@ import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import { ActiveTabId, RootState } from '../persistedState/codecs';
-import { selectNodeData } from '../selectors/selectExplorerTree';
+import {
+	selectNodeData,
+	selectSearchPhrase,
+} from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import {
 	_ExplorerNode,
@@ -72,6 +76,8 @@ export const getInitialState = (): RootState => {
 		focusedExplorerNodes: {},
 	};
 };
+
+const FUZZY_SEARCH_MINIMUM_SCORE = -1000;
 
 const rootSlice = createSlice({
 	name: SLICE_KEY,
@@ -313,10 +319,31 @@ const rootSlice = createSlice({
 
 			const filteredJobs = jobs.sort(comparePersistedJobs);
 
+			const properSearchPhrase = selectSearchPhrase(state, caseHash);
+
+			const allJobPaths = filteredJobs
+				.map((j) => {
+					const uri = getPersistedJobUri(j);
+
+					return uri?.fsPath.toLocaleLowerCase() ?? null;
+				})
+				.filter(isNeitherNullNorUndefined);
+
+			const searchResults = go(properSearchPhrase, allJobPaths)
+				.filter((r) => r.score > FUZZY_SEARCH_MINIMUM_SCORE)
+				.map((r) => r.target);
+
 			for (const job of filteredJobs) {
 				const uri = getPersistedJobUri(job);
 
 				if (uri === null) {
+					continue;
+				}
+
+				if (
+					properSearchPhrase !== '' &&
+					!searchResults.includes(uri.fsPath.toLocaleLowerCase())
+				) {
 					continue;
 				}
 
@@ -398,7 +425,6 @@ const rootSlice = createSlice({
 			const focusedExplorerNode = fileNodes[0]?.hashDigest ?? null;
 
 			state.explorerNodes[caseHash] = explorerNodes;
-			state.explorerSearchPhrases[caseHash] = '';
 			state.collapsedExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				({ hashDigest }) => hashDigest,

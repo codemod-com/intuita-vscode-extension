@@ -62,6 +62,7 @@
 		"persistor",
 		"webviews",
 		"activeid",
-		"tippyjs"
+		"tippyjs",
+		"fuzzysort"
 	]
 }
