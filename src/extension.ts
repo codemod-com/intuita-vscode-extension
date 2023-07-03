@@ -556,17 +556,19 @@ export async function activate(context: vscode.ExtensionContext) {
 			const state = store.getState();
 
 			const uris: vscode.Uri[] = [];
-
+			
 			for (const job of Object.values(state.job.entities)) {
-				if (
-					!job ||
-					!doesJobAddNewFile(job.kind) ||
-					job.newContentUri === null
-				) {
+				if (!job) {
 					continue;
 				}
 
-				uris.push(vscode.Uri.parse(job.newContentUri));
+				if ('newContentUri' in job && job.newContentUri !== null) {
+					uris.push(vscode.Uri.parse(job.newContentUri));
+				}
+
+				if ('oldContentUri' in job && job.oldContentUri !== null) {
+					uris.push(vscode.Uri.parse(job.oldContentUri));
+				}
 			}
 
 			store.dispatch(actions.clearState());
