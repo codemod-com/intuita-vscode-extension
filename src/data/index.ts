@@ -9,6 +9,7 @@ import { persistedStateCodecNew } from '../persistedState/codecs';
 
 const PERSISTANCE_PREFIX = 'persist';
 const PERSISTANCE_KEY = 'compressedRoot';
+const HYDRATION_TIMEOUT = 3 * 1000;
 
 const deserializeState = (serializedState: string) => {
 	const parsedState: Record<string, unknown> = {};
@@ -33,7 +34,7 @@ const buildStore = async (workspaceState: Memento) => {
 		{
 			key: PERSISTANCE_KEY,
 			storage,
-			// throttle: 1000,
+			timeout: HYDRATION_TIMEOUT,
 		},
 		rootReducer,
 	);
