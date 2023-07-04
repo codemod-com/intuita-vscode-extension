@@ -153,6 +153,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 			async (arg0: unknown) => {
 				try {
+					store.dispatch(actions.setApplySelectedInProgress(true));
+
 					const validation = caseHashCodec.decode(arg0);
 
 					if (validation._tag === 'Left') {
@@ -168,6 +170,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const tree = selectExplorerTree(state);
 
 					if (tree === null) {
+						store.dispatch(
+							actions.setApplySelectedInProgress(false),
+						);
 						return;
 					}
 
@@ -189,6 +194,8 @@ export async function activate(context: vscode.ExtensionContext) {
 							'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 					});
 					vscode.window.showErrorMessage(message);
+				} finally {
+					store.dispatch(actions.setApplySelectedInProgress(false));
 				}
 			},
 		),

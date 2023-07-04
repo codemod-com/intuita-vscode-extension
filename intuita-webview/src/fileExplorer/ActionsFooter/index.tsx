@@ -1,4 +1,7 @@
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodeButton,
+	VSCodeProgressRing,
+} from '@vscode/webview-ui-toolkit/react';
 import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
@@ -31,6 +34,7 @@ const getApplyText = (selectedJobCount: number) =>
 type Props = Readonly<{
 	caseHash: CaseHash;
 	selectedJobCount: number;
+	applySelectedInProgress: boolean;
 	screenWidth: number | null;
 }>;
 
@@ -38,6 +42,7 @@ export const ActionsFooter = ({
 	caseHash,
 	selectedJobCount,
 	screenWidth,
+	applySelectedInProgress,
 }: Props) => {
 	return (
 		<div
@@ -75,7 +80,11 @@ export const ActionsFooter = ({
 						applySelected(caseHash);
 					}}
 					className={styles.vscodeButton}
+					disabled={applySelectedInProgress}
 				>
+					{applySelectedInProgress && (
+						<VSCodeProgressRing className={styles.progressRing} />
+					)}
 					{getApplyText(selectedJobCount)}
 				</VSCodeButton>
 			</IntuitaPopover>

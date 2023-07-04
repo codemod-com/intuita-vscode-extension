@@ -19,8 +19,11 @@
 }
 
 .progressRing {
-	margin-right: auto;
+	margin-right: 8px;
 	width: 18px;
 	height: 18px;
-	padding: 0 4px;
+}
+
+.progressRing::part(indeterminate-indicator-1) {
+	stroke: var(--vscode-icon-foreground);
 }

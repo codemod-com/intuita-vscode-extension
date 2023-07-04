@@ -111,6 +111,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	codemodExecutionInProgress: withFallback(t.boolean, false),
+	applySelectedInProgress: withFallback(t.boolean, false),
 	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
 	explorerNodes: withFallback(
