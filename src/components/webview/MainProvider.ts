@@ -198,6 +198,12 @@ export class MainViewProvider implements WebviewViewProvider {
 			this.__store.dispatch(actions.setActiveTabId(message.activeTabId));
 		}
 
+		if (message.kind === 'webview.main.setPanelGroupSettings') {
+			this.__store.dispatch(
+				actions.setPanelGroupSettings(message.panelGroupSettings),
+			);
+		}
+
 		if (message.kind === 'webview.global.flipSelectedExplorerNode') {
 			this.__store.dispatch(
 				actions.flipSelectedExplorerNode([

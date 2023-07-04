@@ -124,6 +124,10 @@ export type WebviewResponse =
 			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
+			kind: 'webview.main.setPanelGroupSettings';
+			panelGroupSettings: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
 				newPath: string;

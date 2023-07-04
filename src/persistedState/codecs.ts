@@ -53,6 +53,10 @@ const activeTabIdCodec = t.union([
 
 export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
 
+export const panelGroupSettingsCodec = t.record(t.string, t.array(t.number));
+
+export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
+
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
@@ -81,6 +85,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 			searchPhrase: '',
 		},
 	),
+	// shouldn't be part of codemodRunsTab?
 	changeExplorerView: withFallback(
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
@@ -89,14 +94,19 @@ export const persistedStateCodecNew = buildTypeCodec({
 			collapsed: false,
 		},
 	),
+	// shouldn't be codemodRunsTab?
 	codemodRunsView: withFallback(
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
 			selectedCaseHash: t.union([caseHashCodec, t.null]),
+			panelGroupSettings: panelGroupSettingsCodec,
 		}),
 		{
 			collapsed: false,
 			selectedCaseHash: null,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
 		},
 	),
 	jobDiffView: withFallback(
