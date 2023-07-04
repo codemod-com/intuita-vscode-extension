@@ -23,7 +23,12 @@
 }
 
 .vscode-panels {
-	overflow-x: hidden;
+	overflow: hidden;
+}
+
+.vscode-panels::part(tabpanel) {
+	height: 100%;
+	overflow: hidden;
 }
 
 .vscode-panels::part(tablist) {

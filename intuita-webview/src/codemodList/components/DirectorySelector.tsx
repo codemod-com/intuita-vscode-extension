@@ -13,7 +13,7 @@ import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
 import IntuitaPopover from '../../shared/IntuitaPopover';
-import classNames from 'classnames';
+import cn from 'classnames';
 
 const updatePath = (
 	value: string,
@@ -229,11 +229,16 @@ export const DirectorySelector = ({
 					width: '100%',
 				}}
 			>
-				<div className="flex flex-col w-full overflow-hidden input-background relative">
+				<div
+					className={cn(
+						'flex flex-col w-full overflow-hidden relative',
+						styles.inputContainer,
+					)}
+				>
 					{autocompleteContent ? (
 						<input
 							ref={hintRef}
-							className="autocomplete"
+							className={styles.autocomplete}
 							aria-hidden={true}
 							readOnly
 							value={autocompleteContent}
@@ -241,7 +246,7 @@ export const DirectorySelector = ({
 					) : null}
 					<VSCodeTextField
 						id="directory-selector"
-						className={classNames(
+						className={cn(
 							styles.textField,
 							showErrorStyle && styles.textFieldError,
 						)}
