@@ -8,7 +8,7 @@ import {
 
 import { App as CodemodList } from '../codemodList/App';
 import { CommunityTab } from '../communityTab/CommunityTab';
-import CodemodRuns from './CodemodRuns';
+import { CodemodRuns } from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
 import { ActiveTabId } from '../../../src/persistedState/codecs';

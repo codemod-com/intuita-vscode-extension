@@ -675,6 +675,12 @@ const rootSlice = createSlice({
 		setJobDiffViewVisible(state, action: PayloadAction<boolean>) {
 			state.jobDiffView.visible = action.payload;
 		},
+		collapseResultsPanel(state, action: PayloadAction<boolean>) {
+			state.codemodRunsTab.resultsCollapsed = action.payload;
+		},
+		collapseChangeExplorerPanel(state, action: PayloadAction<boolean>) {
+			state.codemodRunsTab.changeExplorerCollapsed = action.payload;
+		},
 	},
 });
 

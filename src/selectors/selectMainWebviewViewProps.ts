@@ -32,6 +32,9 @@ export const selectMainWebviewViewProps = (
 			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
 			changeExplorerTree: selectExplorerTree(state),
 			panelGroupSettings: state.codemodRunsTab.panelGroupSettings,
+			resultsCollapsed: state.codemodRunsTab.resultsCollapsed,
+			changeExplorerCollapsed:
+				state.codemodRunsTab.changeExplorerCollapsed,
 		};
 	}
 
