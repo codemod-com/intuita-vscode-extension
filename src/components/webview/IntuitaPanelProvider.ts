@@ -79,7 +79,7 @@ const selectPanelViewProps = (
 		};
 	}
 
-	const { selectedCaseHash } = state.codemodRunsView;
+	const { selectedCaseHash } = state.codemodRunsTab;
 
 	if (selectedCaseHash === null) {
 		return null;

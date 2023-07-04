@@ -49,7 +49,7 @@ export const selectExplorerTree = (state: RootState) => {
 		return null;
 	}
 
-	const caseHash = state.codemodRunsView.selectedCaseHash as CaseHash | null;
+	const caseHash = state.codemodRunsTab.selectedCaseHash as CaseHash | null;
 
 	if (caseHash === null) {
 		return null;
