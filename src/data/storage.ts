@@ -17,9 +17,13 @@ class MementoStorage implements WebStorage {
 			return null;
 		}
 
-		const oldBuffer = Buffer.from(storedValue, 'base64url');
-		const newBuffer = await asyncUnzip(oldBuffer);
-		return newBuffer.toString('utf8');
+		try {
+			const oldBuffer = Buffer.from(storedValue, 'base64url');
+			const newBuffer = await asyncUnzip(oldBuffer);
+			return newBuffer.toString('utf8');
+		} catch (e) {
+			return null;
+		}
 	}
 
 	public async setItem(key: string, value: string): Promise<void> {

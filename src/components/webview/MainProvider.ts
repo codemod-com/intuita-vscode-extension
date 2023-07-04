@@ -71,14 +71,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			});
 		});
 
-		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__store.dispatch(
-				actions.setFocusedCodemodHashDigest(
-					message.codemodHashDigest as unknown as CodemodNodeHashDigest,
-				),
-			);
-		});
-
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
 			this.__postMessage({
 				kind: 'webview.global.codemodExecutionHalted',
