@@ -598,13 +598,6 @@ const rootSlice = createSlice({
 							!updatedSelectedHashDigests.includes(hashDigest),
 					);
 
-				// console.log(
-				// 	explorerNodes[currIndex]?.label,
-				// 	allSelected,
-				// 	allDeselected,
-				// 	childNodes.length,
-				// );
-
 				if (allSelected) {
 					state.selectedExplorerNodes[caseHash] = Array.from(
 						new Set<_ExplorerNodeHashDigest>(
