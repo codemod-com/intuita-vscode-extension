@@ -3,7 +3,7 @@ import { isNeitherNullNorUndefined } from '../utilities';
 import { sep } from 'path';
 
 export const selectCodemodRunsTree = (state: RootState, rootPath: string) => {
-	const { selectedCaseHash } = state.codemodRunsView;
+	const { selectedCaseHash } = state.codemodRunsTab;
 	const dirName = rootPath.split(sep).slice(-1).join(sep);
 
 	const nodeData = Object.values(state.case.entities)

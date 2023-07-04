@@ -16,7 +16,7 @@ export const selectErrorWebviewViewProps = (
 		};
 	}
 
-	const caseHash = state.codemodRunsView.selectedCaseHash;
+	const caseHash = state.codemodRunsTab.selectedCaseHash;
 
 	if (caseHash === null) {
 		return {

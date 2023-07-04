@@ -55,8 +55,9 @@ export const getInitialState = (): RootState => {
 		lastCodemodHashDigests: [],
 		executionErrors: {},
 		caseHashJobHashes: [],
-		codemodRunsView: {
-			collapsed: false,
+		codemodRunsTab: {
+			resultsCollapsed: false,
+			changeExplorerCollapsed: false,
 			selectedCaseHash: null,
 			panelGroupSettings: {
 				'0,0': [50, 50],
@@ -67,9 +68,6 @@ export const getInitialState = (): RootState => {
 			focusedCodemodHashDigest: null,
 			collapsedCodemodHashDigests: [],
 			searchPhrase: '',
-		},
-		changeExplorerView: {
-			collapsed: false,
 		},
 		jobDiffView: {
 			visible: false,
@@ -118,8 +116,8 @@ const rootSlice = createSlice({
 			for (const caseHash of action.payload) {
 				state.executionErrors[caseHash] = [];
 
-				if (state.codemodRunsView.selectedCaseHash === caseHash) {
-					state.codemodRunsView.selectedCaseHash = null;
+				if (state.codemodRunsTab.selectedCaseHash === caseHash) {
+					state.codemodRunsTab.selectedCaseHash = null;
 				}
 
 				delete state.explorerSearchPhrases[caseHash];
@@ -138,7 +136,7 @@ const rootSlice = createSlice({
 
 			state.executionErrors = {};
 			state.caseHashJobHashes = [];
-			state.codemodRunsView.selectedCaseHash = null;
+			state.codemodRunsTab.selectedCaseHash = null;
 
 			state.explorerSearchPhrases = {};
 			state.explorerNodes = {};
@@ -156,7 +154,7 @@ const rootSlice = createSlice({
 		 * Codemod runs
 		 */
 		setSelectedCaseHash(state, action: PayloadAction<CaseHash | null>) {
-			state.codemodRunsView.selectedCaseHash = action.payload;
+			state.codemodRunsTab.selectedCaseHash = action.payload;
 			state.jobDiffView.visible = true;
 		},
 		/**
@@ -243,7 +241,7 @@ const rootSlice = createSlice({
 					);
 				}
 
-				state.codemodRunsView.panelGroupSettings = validation.right;
+				state.codemodRunsTab.panelGroupSettings = validation.right;
 			} catch (error) {
 				console.error(error);
 			}
@@ -291,14 +289,14 @@ const rootSlice = createSlice({
 		},
 		focusOnChangeExplorer(state) {
 			state.activeTabId = 'codemodRuns';
-			state.changeExplorerView.collapsed = false;
+			state.codemodRunsTab.changeExplorerCollapsed = false;
 		},
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 
 			state.codemodExecutionInProgress = false;
 
-			state.codemodRunsView.selectedCaseHash = caseHash;
+			state.codemodRunsTab.selectedCaseHash = caseHash;
 
 			const kase = state.case.entities[caseHash] ?? null;
 
