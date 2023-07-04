@@ -6,7 +6,7 @@ import { CaseHash } from '../../../../src/cases/types';
 
 const POPOVER_TEXTS = {
 	discard: 'Discard all the proposed changes for the highlighted codemod.',
-	apply: 'Save changes to file(s), further tweak things if needed, and commit later.',
+	apply: 'Save selected changes to file(s) and discard all the deselected changes.',
 	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
