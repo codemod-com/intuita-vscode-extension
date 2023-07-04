@@ -488,6 +488,8 @@ const rootSlice = createSlice({
 
 			const selectedHashDigests =
 				state.selectedExplorerNodes[caseHash] ?? [];
+			const hashDigestsOfNodesWithDeselectedChildren =
+				state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
 
 			if (explorerNode.kind === 'FILE') {
 				if (selectedHashDigests.includes(explorerNodeHashDigest)) {
@@ -516,7 +518,17 @@ const rootSlice = createSlice({
 					hashDigests.push(node.hashDigest);
 				}
 
-				if (selectedHashDigests.includes(explorerNodeHashDigest)) {
+				state.explorerNodesWithDeselectedChildNodes[caseHash] =
+					hashDigestsOfNodesWithDeselectedChildren.filter(
+						(hashDigest) => !hashDigests.includes(hashDigest),
+					);
+
+				if (
+					selectedHashDigests.includes(explorerNodeHashDigest) ||
+					hashDigestsOfNodesWithDeselectedChildren.includes(
+						explorerNodeHashDigest,
+					)
+				) {
 					// deselect the directory and the files within it
 					state.selectedExplorerNodes[caseHash] =
 						selectedHashDigests.filter(
@@ -540,6 +552,11 @@ const rootSlice = createSlice({
 				const updatedHashDigestsOfNodesWithDeselectedChildren =
 					state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
 
+				const currNode = explorerNodes[currIndex] ?? null;
+				if (currNode === null) {
+					return;
+				}
+
 				const parentNode = findParentExplorerNode(
 					currIndex,
 					explorerNodes,
@@ -551,7 +568,7 @@ const rootSlice = createSlice({
 
 				const parentHashDigest = parentNode.node.hashDigest;
 
-				const childNodes: _ExplorerNode[] = [];
+				const childNodeHashDigests: _ExplorerNodeHashDigest[] = [];
 
 				for (
 					let i = parentNode.index + 1;
@@ -560,19 +577,33 @@ const rootSlice = createSlice({
 				) {
 					const node = explorerNodes[i] ?? null;
 
-					if (node === null || node.depth !== explorerNode.depth) {
+					if (node === null || node.depth < currNode.depth) {
 						break;
 					}
-					childNodes.push(node);
+
+					if (node.depth === explorerNode.depth) {
+						childNodeHashDigests.push(node.hashDigest);
+					}
 				}
 
-				const allSelected = childNodes.every((node) =>
-					updatedSelectedHashDigests.includes(node.hashDigest),
-				);
-				const allDeselected = childNodes.every(
-					(node) =>
-						!updatedSelectedHashDigests.includes(node.hashDigest),
-				);
+				const allSelected =
+					childNodeHashDigests.length > 0 &&
+					childNodeHashDigests.every((hashDigest) =>
+						updatedSelectedHashDigests.includes(hashDigest),
+					);
+				const allDeselected =
+					childNodeHashDigests.length > 0 &&
+					childNodeHashDigests.every(
+						(hashDigest) =>
+							!updatedSelectedHashDigests.includes(hashDigest),
+					);
+
+				// console.log(
+				// 	explorerNodes[currIndex]?.label,
+				// 	allSelected,
+				// 	allDeselected,
+				// 	childNodes.length,
+				// );
 
 				if (allSelected) {
 					state.selectedExplorerNodes[caseHash] = Array.from(
