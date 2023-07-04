@@ -50,7 +50,7 @@ export const JobDiffView = memo(
 
 			const handleContentChange = debounce((newContent: string) => {
 				vscode.postMessage({
-					kind: 'webview.jobDiffView.contentModified',
+					kind: 'webview.panel.contentModified',
 					newContent,
 					jobHash,
 				});

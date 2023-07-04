@@ -164,7 +164,7 @@ export type WebviewResponse =
 			codemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>
 	| Readonly<{
-			kind: 'webview.jobDiffView.contentModified';
+			kind: 'webview.panel.contentModified';
 			jobHash: JobHash;
 			newContent: string;
 	  }>;

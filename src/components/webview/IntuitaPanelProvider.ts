@@ -300,7 +300,7 @@ export class IntuitaPanelProvider {
 					}
 
 					if (
-						message.kind === 'webview.jobDiffView.contentModified'
+						message.kind === 'webview.panel.contentModified'
 					) {
 						if (this.__webviewPanel === null) {
 							return;

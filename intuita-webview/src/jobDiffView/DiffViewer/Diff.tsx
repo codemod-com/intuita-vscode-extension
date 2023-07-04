@@ -5,7 +5,8 @@ import type { editor } from 'monaco-editor';
 import { Disposable } from 'vscode';
 
 export type { Diff };
-type Props = {
+
+type Props = Readonly<{
 	jobHash: string;
 	oldFileContent: string | null;
 	newFileContent: string | null;
@@ -13,7 +14,7 @@ type Props = {
 	theme: string;
 	onDiffCalculated: (diff: Diff) => void;
 	onChange(content: string): void;
-};
+}>;
 
 const getDiffChanges = (
 	editor: editor.IStandaloneDiffEditor,
