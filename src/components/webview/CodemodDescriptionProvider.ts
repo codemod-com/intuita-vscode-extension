@@ -29,7 +29,7 @@ export class CodemodDescriptionProvider {
 		);
 	}
 
-	public getCodemodDescription(name: string): string {
+	public getCodemodDescription(name: string): string | null {
 		const hash = buildCodemodMetadataHash(name);
 
 		const data = this.__descriptions.get(hash) ?? null;
@@ -45,7 +45,7 @@ export class CodemodDescriptionProvider {
 					console.error(error);
 				});
 
-			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
+			return null;
 		}
 
 		return data;

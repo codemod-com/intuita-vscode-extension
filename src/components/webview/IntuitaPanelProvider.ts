@@ -71,6 +71,10 @@ const selectPanelViewProps = (
 		const description = codemodDescriptionProvider.getCodemodDescription(
 			codemod.name,
 		);
+		
+		if(description === null) {
+			return null;
+		}
 
 		return {
 			kind: 'CODEMOD',
