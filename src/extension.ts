@@ -561,11 +561,11 @@ export async function activate(context: vscode.ExtensionContext) {
 					continue;
 				}
 
-				if ('newContentUri' in job && job.newContentUri !== null) {
+				if (job.newContentUri !== null) {
 					uris.push(vscode.Uri.parse(job.newContentUri));
 				}
 
-				if ('oldContentUri' in job && job.oldContentUri !== null) {
+				if (job.oldContentUri !== null) {
 					uris.push(vscode.Uri.parse(job.oldContentUri));
 				}
 			}
