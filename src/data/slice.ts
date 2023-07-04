@@ -77,6 +77,7 @@ export const getInitialState = (): RootState => {
 			visible: false,
 		},
 		codemodExecutionInProgress: false,
+		applySelectedInProgress: false,
 		activeTabId: 'codemods',
 		explorerSearchPhrases: {},
 		explorerNodes: {},
@@ -227,6 +228,9 @@ const rootSlice = createSlice({
 		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
 			state.codemodExecutionInProgress = action.payload;
 		},
+		setApplySelectedInProgress(state, action: PayloadAction<boolean>) {
+			state.applySelectedInProgress = action.payload;
+		},
 		setChangeExplorerSearchPhrase(
 			state,
 			action: PayloadAction<[CaseHash, string]>,
@@ -304,6 +308,7 @@ const rootSlice = createSlice({
 			const [caseHash, rootPath] = action.payload;
 
 			state.codemodExecutionInProgress = false;
+			state.applySelectedInProgress = false;
 
 			state.codemodRunsTab.selectedCaseHash = caseHash;
 

@@ -153,9 +153,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 			async (arg0: unknown) => {
 				try {
+					store.dispatch(actions.setApplySelectedInProgress(true));
+
 					const validation = caseHashCodec.decode(arg0);
 
 					if (validation._tag === 'Left') {
+						store.dispatch(
+							actions.setApplySelectedInProgress(false),
+						);
 						throw new Error(
 							prettyReporter.report(validation).join('\n'),
 						);
@@ -168,6 +173,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					const tree = selectExplorerTree(state);
 
 					if (tree === null) {
+						store.dispatch(
+							actions.setApplySelectedInProgress(false),
+						);
 						return;
 					}
 
@@ -179,6 +187,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						'intuita.rejectCase',
 						cashHashDigest,
 					);
+
+					store.dispatch(actions.setApplySelectedInProgress(false));
 
 					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {

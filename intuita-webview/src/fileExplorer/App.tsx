@@ -122,6 +122,7 @@ export const App = (
 					caseHash={changeExplorerTree.caseHash}
 					screenWidth={props.screenWidth}
 					selectedJobCount={changeExplorerTree.selectedJobCount}
+					applySelectedInProgress={props.applySelectedInProgress}
 				/>
 			)}
 		</main>

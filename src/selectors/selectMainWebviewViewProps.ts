@@ -28,6 +28,7 @@ export const selectMainWebviewViewProps = (
 	if (state.activeTabId === 'codemodRuns') {
 		return {
 			activeTabId: state.activeTabId,
+			applySelectedInProgress: state.applySelectedInProgress,
 			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
 			changeExplorerTree: selectExplorerTree(state),
 			panelGroupSettings: state.codemodRunsTab.panelGroupSettings,
