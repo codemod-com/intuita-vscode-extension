@@ -31,7 +31,6 @@ export const Header = (props: Props) => {
 						</div>
 					}
 					placement="right"
-					delay={[200, 0]}
 				>
 					<VSCodeButton
 						appearance="icon"
@@ -57,7 +56,6 @@ export const Header = (props: Props) => {
 						</div>
 					}
 					placement="right"
-					delay={[200, 0]}
 				>
 					<VSCodeButton
 						appearance="icon"
