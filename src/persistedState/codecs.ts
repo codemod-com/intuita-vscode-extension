@@ -81,6 +81,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 			searchPhrase: '',
 		},
 	),
+	// shouldn't be part of codemodRunsTab?
 	changeExplorerView: withFallback(
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
@@ -89,14 +90,17 @@ export const persistedStateCodecNew = buildTypeCodec({
 			collapsed: false,
 		},
 	),
+	// shouldn't be codemodRunsTab?
 	codemodRunsView: withFallback(
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
 			selectedCaseHash: t.union([caseHashCodec, t.null]),
+			panelGroup: t.union([t.string, t.null]),
 		}),
 		{
 			collapsed: false,
 			selectedCaseHash: null,
+			panelGroup: null,
 		},
 	),
 	jobDiffView: withFallback(

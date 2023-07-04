@@ -54,6 +54,7 @@ export const getInitialState = (): RootState => {
 		codemodRunsView: {
 			collapsed: false,
 			selectedCaseHash: null,
+			panelGroup: null,
 		},
 		codemodDiscoveryView: {
 			executionPaths: {},
@@ -223,6 +224,9 @@ const rootSlice = createSlice({
 		},
 		setActiveTabId(state, action: PayloadAction<ActiveTabId>) {
 			state.activeTabId = action.payload;
+		},
+		setPanelGroup(state, action: PayloadAction<string>) {
+			state.codemodRunsView.panelGroup = action.payload;
 		},
 		focusExplorerNodeSibling(
 			state,
