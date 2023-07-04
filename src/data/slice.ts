@@ -586,17 +586,13 @@ const rootSlice = createSlice({
 					}
 				}
 
-				const allSelected =
-					childNodeHashDigests.length > 0 &&
-					childNodeHashDigests.every((hashDigest) =>
-						updatedSelectedHashDigests.includes(hashDigest),
-					);
-				const allDeselected =
-					childNodeHashDigests.length > 0 &&
-					childNodeHashDigests.every(
-						(hashDigest) =>
-							!updatedSelectedHashDigests.includes(hashDigest),
-					);
+				const allSelected = childNodeHashDigests.every((hashDigest) =>
+					updatedSelectedHashDigests.includes(hashDigest),
+				);
+				const allDeselected = childNodeHashDigests.every(
+					(hashDigest) =>
+						!updatedSelectedHashDigests.includes(hashDigest),
+				);
 
 				if (allSelected) {
 					state.selectedExplorerNodes[caseHash] = Array.from(
