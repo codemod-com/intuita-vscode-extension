@@ -5,7 +5,7 @@ import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 import type { PanelViewProps } from '../../../src/components/webview/panelViewProps';
 import { vscode } from '../shared/utilities/vscode';
-import s from './style.module.css';
+import styles from './style.module.css';
 
 declare global {
 	interface Window {
@@ -38,14 +38,14 @@ export const App = () => {
 
 	if (viewProps.kind === 'CODEMOD') {
 		return (
-			<main className={s.markdownContainer}>
+			<main className={styles.markdownContainer}>
 				<ReactMarkdown children={viewProps.description} />
 			</main>
 		);
 	}
 
 	return (
-		<main className={s.app}>
+		<main className={styles.app}>
 			<JobDiffViewContainer {...viewProps} />
 		</main>
 	);
