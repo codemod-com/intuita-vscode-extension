@@ -4,6 +4,7 @@ import { WebviewMessage } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
 import type { PanelViewProps } from '../../../src/components/webview/panelViewProps';
+import { vscode } from '../shared/utilities/vscode';
 
 declare global {
 	interface Window {
@@ -13,6 +14,12 @@ declare global {
 
 export const App = () => {
 	const [viewProps, setViewProps] = useState(window.panelViewProps);
+
+	useEffect(() => {
+		vscode.postMessage({
+			kind: 'webview.jobDiffView.webviewMounted',
+		});
+	}, []);
 
 	useEffect(() => {
 		const eventHandler = (event: MessageEvent<WebviewMessage>) => {

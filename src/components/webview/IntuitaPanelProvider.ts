@@ -159,24 +159,24 @@ export class IntuitaPanelProvider {
 	public constructor(
 		private readonly __extensionUri: Uri,
 		private readonly __store: Store,
-		mainWebviewViewProvider: MainViewProvider,
+		private readonly __mainWebviewViewProvider: MainViewProvider,
 		messageBus: MessageBus,
-		codemodDescriptionProvider: CodemodDescriptionProvider,
-		rootPath: string,
+		private readonly __codemodDescriptionProvider: CodemodDescriptionProvider,
+		private readonly __rootPath: string,
 	) {
 		let prevViewProps = selectPanelViewProps(
-			mainWebviewViewProvider,
-			codemodDescriptionProvider,
+			__mainWebviewViewProvider,
+			__codemodDescriptionProvider,
 			__store.getState(),
-			rootPath,
+			__rootPath,
 		);
 
 		const listener = async () => {
 			const nextViewProps = selectPanelViewProps(
-				mainWebviewViewProvider,
-				codemodDescriptionProvider,
+				__mainWebviewViewProvider,
+				__codemodDescriptionProvider,
 				__store.getState(),
-				rootPath,
+				__rootPath,
 			);
 
 			if (areEqual(prevViewProps, nextViewProps)) {
@@ -194,7 +194,7 @@ export class IntuitaPanelProvider {
 
 		__store.subscribe(listener);
 
-		codemodDescriptionProvider.onDidChange(listener);
+		__codemodDescriptionProvider.onDidChange(listener);
 		messageBus.subscribe(
 			MessageKind.mainWebviewViewVisibilityChange,
 			listener,
@@ -272,6 +272,29 @@ export class IntuitaPanelProvider {
 						message.kind === 'webview.global.showInformationMessage'
 					) {
 						window.showInformationMessage(message.value);
+					}
+
+					if (message.kind === 'webview.jobDiffView.webviewMounted') {
+						const nextViewProps = selectPanelViewProps(
+							this.__mainWebviewViewProvider,
+							this.__codemodDescriptionProvider,
+							this.__store.getState(),
+							this.__rootPath,
+						);
+
+						if (
+							nextViewProps === null ||
+							this.__webviewPanel === null
+						) {
+							return;
+						}
+
+						this.__webviewPanel.webview.postMessage({
+							kind: 'webview.setPanelViewProps',
+							panelViewProps: nextViewProps,
+						} satisfies WebviewMessage);
+
+						this.__webviewPanel.reveal(undefined, preserveFocus);
 					}
 				},
 			);
