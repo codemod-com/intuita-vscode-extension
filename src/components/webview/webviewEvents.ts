@@ -33,21 +33,10 @@ export type RunCodemodsCommand = Readonly<{
 	value: CodemodHash;
 }>;
 
-export type CollapsibleWebviews =
-	| 'codemodRunsView'
-	| 'codemodDiscoveryView'
-	| 'changeExplorerView'
-	| 'communityView';
-
 export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.setPanelViewProps';
 			panelViewProps: PanelViewProps;
-	  }>
-	| Readonly<{
-			kind: 'webview.main.setCollapsed';
-			collapsed: boolean;
-			viewName: CollapsibleWebviews;
 	  }>
 	| Readonly<{
 			kind: 'webview.error.setProps';
@@ -167,4 +156,12 @@ export type WebviewResponse =
 			kind: 'webview.panel.contentModified';
 			jobHash: JobHash;
 			newContent: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.collapseResultsPanel';
+			collapsed: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.collapseChangeExplorerPanel';
+			collapsed: boolean;
 	  }>;

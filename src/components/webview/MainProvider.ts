@@ -77,17 +77,8 @@ export class MainViewProvider implements WebviewViewProvider {
 		});
 
 		this.__messageBus.subscribe(MessageKind.executeCodemodSet, () => {
-			this.__postMessage({
-				kind: 'webview.main.setCollapsed',
-				collapsed: false,
-				viewName: 'codemodRunsView',
-			});
-
-			this.__postMessage({
-				kind: 'webview.main.setCollapsed',
-				collapsed: false,
-				viewName: 'changeExplorerView',
-			});
+			this.__store.dispatch(actions.collapseResultsPanel(false));
+			this.__store.dispatch(actions.collapseChangeExplorerPanel(false));
 		});
 
 		this.__messageBus.subscribe(
@@ -318,6 +309,18 @@ export class MainViewProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.global.setCodemodSearchPhrase') {
 			this.__store.dispatch(
 				actions.setCodemodSearchPhrase(message.searchPhrase),
+			);
+		}
+
+		if (message.kind === 'webview.global.collapseResultsPanel') {
+			this.__store.dispatch(
+				actions.collapseResultsPanel(message.collapsed),
+			);
+		}
+
+		if (message.kind === 'webview.global.collapseChangeExplorerPanel') {
+			this.__store.dispatch(
+				actions.collapseChangeExplorerPanel(message.collapsed),
 			);
 		}
 	};
