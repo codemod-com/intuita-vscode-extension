@@ -431,14 +431,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					// why setTimeout?
-					setTimeout(() => {
-						store.dispatch(
-							actions.setFocusedCodemodHashDigest(
-								selectedCodemod.hashDigest as unknown as CodemodNodeHashDigest,
-							),
-						);
-					}, 500);
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							selectedCodemod.hashDigest as unknown as CodemodNodeHashDigest,
+						),
+					);
 
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
