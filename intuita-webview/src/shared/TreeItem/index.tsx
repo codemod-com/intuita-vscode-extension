@@ -46,7 +46,7 @@ const TreeItem = ({
 			const timeout = setTimeout(() => {
 				ref.current?.scrollIntoView({
 					behavior: 'smooth',
-					block: 'center',
+					block: 'nearest',
 					inline: 'center',
 				});
 			}, 0);
