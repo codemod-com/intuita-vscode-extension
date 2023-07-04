@@ -19,7 +19,6 @@ import { CodemodHash, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { MessageBus, MessageKind } from '../messageBus';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
-import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { EngineService } from '../engineService';
 import { selectMainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 
