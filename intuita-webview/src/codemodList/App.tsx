@@ -1,9 +1,14 @@
 import areEqual from 'fast-deep-equal';
 import { memo } from 'react';
+
 import { vscode } from '../shared/utilities/vscode';
-import TreeView from './TreeView';
-import './index.css';
 import SearchBar from '../shared/SearchBar';
+
+import TreeView from './TreeView';
+
+import './index.css';
+import s from './style.module.css';
+
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 
 const setSearchPhrase = (searchPhrase: string) => {
@@ -15,7 +20,7 @@ const setSearchPhrase = (searchPhrase: string) => {
 
 export const App = memo(
 	(props: MainWebviewViewProps & { activeTabId: 'codemods' }) => (
-		<main className="App">
+		<main className={s.root}>
 			<SearchBar
 				searchPhrase={props.searchPhrase}
 				setSearchPhrase={setSearchPhrase}

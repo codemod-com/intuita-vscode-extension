@@ -160,3 +160,11 @@
 .user-select-none {
 	user-select: none;
 }
+
+.relative {
+	position: relative;
+}
+
+.overflow-hidden {
+	overflow: hidden;
+}
