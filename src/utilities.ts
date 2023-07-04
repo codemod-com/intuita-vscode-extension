@@ -1,6 +1,7 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
+import { _ExplorerNode } from './persistedState/explorerNodeCodec';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
@@ -94,3 +95,26 @@ export const buildCodemodMetadataHash = (name: string) =>
 		.update('README.md')
 		.update(name)
 		.digest('base64url');
+
+export const findParentExplorerNode = (
+	index: number,
+	explorerNodes: _ExplorerNode[],
+): { node: _ExplorerNode; index: number } | null => {
+	const explorerNode = explorerNodes[index] ?? null;
+	if (explorerNode === null) {
+		return null;
+	}
+
+	for (let i = index - 1; i >= 0; i--) {
+		const node = explorerNodes[i] ?? null;
+
+		if (node === null) {
+			return null;
+		}
+
+		if (node.depth < explorerNode.depth) {
+			return { node, index: i };
+		}
+	}
+	return null;
+};
