@@ -129,7 +129,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 		t.record(caseHashCodec, _explorerNodeHashDigestCodec),
 		{},
 	),
-	explorerNodesWithDeselectedChildNodes: withFallback(
+	indeterminateExplorerNodes: withFallback(
 		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
 		{},
 	),

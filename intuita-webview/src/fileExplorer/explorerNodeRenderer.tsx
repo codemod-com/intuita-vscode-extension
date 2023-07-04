@@ -45,7 +45,7 @@ export const explorerNodeRenderer =
 		const explorerNodeHashDigest = props.nodeDatum.node.hashDigest;
 
 		const checkboxState =
-			explorerTree.hashDigestsOfExplorerNodesWithDeselectedChildNodes.includes(
+			explorerTree.indeterminateExplorerNodeHashDigests.includes(
 				explorerNodeHashDigest,
 			)
 				? 'indeterminate'

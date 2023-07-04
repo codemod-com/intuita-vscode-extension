@@ -81,7 +81,9 @@ export const getInitialState = (): RootState => {
 		explorerSearchPhrases: {},
 		explorerNodes: {},
 		selectedExplorerNodes: {},
-		explorerNodesWithDeselectedChildNodes: {},
+		// indeterminate explorer node is a node some (but not all) of whose children are deselected.
+		// For such node, we will use indeterminate checkbox icon.
+		indeterminateExplorerNodes: {},
 		collapsedExplorerNodes: {},
 		focusedExplorerNodes: {},
 	};
@@ -128,7 +130,7 @@ const rootSlice = createSlice({
 				delete state.explorerSearchPhrases[caseHash];
 				delete state.explorerNodes[caseHash];
 				delete state.selectedExplorerNodes[caseHash];
-				delete state.explorerNodesWithDeselectedChildNodes[caseHash];
+				delete state.indeterminateExplorerNodes[caseHash];
 				delete state.collapsedExplorerNodes[caseHash];
 				delete state.focusedExplorerNodes[caseHash];
 			}
@@ -147,7 +149,7 @@ const rootSlice = createSlice({
 			state.explorerSearchPhrases = {};
 			state.explorerNodes = {};
 			state.selectedExplorerNodes = {};
-			state.explorerNodesWithDeselectedChildNodes = {};
+			state.indeterminateExplorerNodes = {};
 			state.collapsedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
 		},
@@ -456,7 +458,7 @@ const rootSlice = createSlice({
 
 			state.explorerNodes[caseHash] = explorerNodes;
 			state.collapsedExplorerNodes[caseHash] = [];
-			state.explorerNodesWithDeselectedChildNodes[caseHash] = [];
+			state.indeterminateExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				({ hashDigest }) => hashDigest,
 			);
@@ -489,7 +491,7 @@ const rootSlice = createSlice({
 			const selectedHashDigests =
 				state.selectedExplorerNodes[caseHash] ?? [];
 			const hashDigestsOfNodesWithDeselectedChildren =
-				state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
+				state.indeterminateExplorerNodes[caseHash] ?? [];
 
 			if (explorerNode.kind === 'FILE') {
 				if (selectedHashDigests.includes(explorerNodeHashDigest)) {
@@ -518,7 +520,7 @@ const rootSlice = createSlice({
 					hashDigests.push(node.hashDigest);
 				}
 
-				state.explorerNodesWithDeselectedChildNodes[caseHash] =
+				state.indeterminateExplorerNodes[caseHash] =
 					hashDigestsOfNodesWithDeselectedChildren.filter(
 						(hashDigest) => !hashDigests.includes(hashDigest),
 					);
@@ -550,7 +552,7 @@ const rootSlice = createSlice({
 				const updatedSelectedHashDigests =
 					state.selectedExplorerNodes[caseHash] ?? [];
 				const updatedHashDigestsOfNodesWithDeselectedChildren =
-					state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
+					state.indeterminateExplorerNodes[caseHash] ?? [];
 
 				const currNode = explorerNodes[currIndex] ?? null;
 				if (currNode === null) {
@@ -602,7 +604,7 @@ const rootSlice = createSlice({
 							]),
 						),
 					);
-					state.explorerNodesWithDeselectedChildNodes[caseHash] =
+					state.indeterminateExplorerNodes[caseHash] =
 						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
@@ -611,7 +613,7 @@ const rootSlice = createSlice({
 						updatedSelectedHashDigests.filter(
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
-					state.explorerNodesWithDeselectedChildNodes[caseHash] =
+					state.indeterminateExplorerNodes[caseHash] =
 						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
@@ -622,14 +624,13 @@ const rootSlice = createSlice({
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
 
-					state.explorerNodesWithDeselectedChildNodes[caseHash] =
-						Array.from(
-							new Set<_ExplorerNodeHashDigest>(
-								updatedHashDigestsOfNodesWithDeselectedChildren.concat(
-									[parentNode.node.hashDigest],
-								),
+					state.indeterminateExplorerNodes[caseHash] = Array.from(
+						new Set<_ExplorerNodeHashDigest>(
+							updatedHashDigestsOfNodesWithDeselectedChildren.concat(
+								[parentNode.node.hashDigest],
 							),
-						);
+						),
+					);
 				}
 
 				currIndex = parentNode.index;
