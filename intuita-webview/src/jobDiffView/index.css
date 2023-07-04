@@ -1,43 +1,8 @@
 @import '../shared//util.css';
-/**
-* popup
-**/
-.popup-content {
-	/** override the default z-index to match monaco **/
-	z-index: 1002 !important;
-	background-color: #2c2c2c;
-	color: white;
-	box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
-	border: 1px solid var(--vscode-editor-background);
-	word-break: break-word;
-	/** override the default width to match with filename length **/
-	width: 250px !important;
-}
-.popup-arrow {
-	color: #2c2c2c;
-	stroke: #2c2c2c;
-	border: 0;
-}
 
 /**
 * App styles
 **/
-
-.App {
-	height: 100%;
-	width: 100%;
-	position: relative;
-	background-color: var(--vscode-textCodeBlock-background);
-}
-
-.markdownContainer {
-	height: 100%;
-	position: relative;
-	background-color: var(--vscode-textCodeBlock-background);
-	padding-left: 2em;
-	padding-right: 2em;
-	overflow-y: scroll;
-}
 
 #root {
 	position: absolute;
