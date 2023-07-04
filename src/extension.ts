@@ -24,6 +24,7 @@ import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
+import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 
 const messageBus = new MessageBus();
 
@@ -557,13 +558,15 @@ export async function activate(context: vscode.ExtensionContext) {
 			const uris: vscode.Uri[] = [];
 
 			for (const job of Object.values(state.job.entities)) {
-				if (!job) {
+				if (
+					!job ||
+					!doesJobAddNewFile(job.kind) ||
+					job.newContentUri === null
+				) {
 					continue;
 				}
 
-				if (job.newContentUri !== null) {
-					uris.push(vscode.Uri.parse(job.newContentUri));
-				}
+				uris.push(vscode.Uri.parse(job.newContentUri));
 			}
 
 			store.dispatch(actions.clearState());
