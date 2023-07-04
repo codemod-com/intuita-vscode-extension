@@ -124,8 +124,8 @@ export type WebviewResponse =
 			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
-			kind: 'webview.main.setPanelGroup';
-			panelGroup: string;
+			kind: 'webview.main.setPanelGroupSettings';
+			panelGroupSettings: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';

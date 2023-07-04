@@ -11,7 +11,11 @@ import { ExecutionError } from '../errors/types';
 import { JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
-import { ActiveTabId, RootState } from '../persistedState/codecs';
+import {
+	ActiveTabId,
+	panelGroupSettingsCodec,
+	RootState,
+} from '../persistedState/codecs';
 import {
 	selectNodeData,
 	selectSearchPhrase,
@@ -54,7 +58,9 @@ export const getInitialState = (): RootState => {
 		codemodRunsView: {
 			collapsed: false,
 			selectedCaseHash: null,
-			panelGroup: null,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
 		},
 		codemodDiscoveryView: {
 			executionPaths: {},
@@ -225,8 +231,22 @@ const rootSlice = createSlice({
 		setActiveTabId(state, action: PayloadAction<ActiveTabId>) {
 			state.activeTabId = action.payload;
 		},
-		setPanelGroup(state, action: PayloadAction<string>) {
-			state.codemodRunsView.panelGroup = action.payload;
+		setPanelGroupSettings(state, action: PayloadAction<string>) {
+			try {
+				const validation = panelGroupSettingsCodec.decode(
+					JSON.parse(action.payload),
+				);
+
+				if (validation._tag === 'Left') {
+					throw new Error(
+						'Could not decode the panel group settings',
+					);
+				}
+
+				state.codemodRunsView.panelGroupSettings = validation.right;
+			} catch (error) {
+				console.error(error);
+			}
 		},
 		focusExplorerNodeSibling(
 			state,

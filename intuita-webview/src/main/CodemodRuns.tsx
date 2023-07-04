@@ -89,11 +89,11 @@ const CodemodRuns = (props: Props) => {
 	}, []);
 
 	const storage: PanelGroupStorage = {
-		getItem: () => props.panelGroup,
-		setItem: (_, panelGroup: string): void => {
+		getItem: () => JSON.stringify(props.panelGroupSettings),
+		setItem: (_, panelGroupSettings: string): void => {
 			vscode.postMessage({
-				kind: 'webview.main.setPanelGroup',
-				panelGroup,
+				kind: 'webview.main.setPanelGroupSettings',
+				panelGroupSettings,
 			});
 		},
 	};

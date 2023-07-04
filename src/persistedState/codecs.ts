@@ -53,6 +53,10 @@ const activeTabIdCodec = t.union([
 
 export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
 
+export const panelGroupSettingsCodec = t.record(t.string, t.array(t.number));
+
+export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
+
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
@@ -95,12 +99,14 @@ export const persistedStateCodecNew = buildTypeCodec({
 		buildTypeCodec({
 			collapsed: withFallback(t.boolean, false),
 			selectedCaseHash: t.union([caseHashCodec, t.null]),
-			panelGroup: t.union([t.string, t.null]),
+			panelGroupSettings: panelGroupSettingsCodec,
 		}),
 		{
 			collapsed: false,
 			selectedCaseHash: null,
-			panelGroup: null,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
 		},
 	),
 	jobDiffView: withFallback(

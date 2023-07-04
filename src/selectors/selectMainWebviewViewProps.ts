@@ -30,7 +30,7 @@ export const selectMainWebviewViewProps = (
 			activeTabId: state.activeTabId,
 			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
 			changeExplorerTree: selectExplorerTree(state),
-			panelGroup: state.codemodRunsView.panelGroup,
+			panelGroupSettings: state.codemodRunsView.panelGroupSettings,
 		};
 	}
 
