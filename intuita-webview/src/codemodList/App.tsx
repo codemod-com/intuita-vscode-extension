@@ -7,7 +7,7 @@ import SearchBar from '../shared/SearchBar';
 import TreeView from './TreeView';
 
 import './index.css';
-import s from './style.module.css';
+import styles from './style.module.css';
 
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 
@@ -20,7 +20,7 @@ const setSearchPhrase = (searchPhrase: string) => {
 
 export const App = memo(
 	(props: MainWebviewViewProps & { activeTabId: 'codemods' }) => (
-		<main className={s.root}>
+		<main className={styles.root}>
 			<SearchBar
 				searchPhrase={props.searchPhrase}
 				setSearchPhrase={setSearchPhrase}
