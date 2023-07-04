@@ -6,6 +6,7 @@ import TreeItem, { Props as TreeItemProps } from '../shared/TreeItem';
 import { memo } from 'react';
 import { ReactComponent as CheckboxMaterialIcon } from '../assets/material-icons/check_box.svg';
 import { ReactComponent as CheckboxOutlineBlankMaterialIcon } from '../assets/material-icons/check_box_outline_blank.svg';
+import { ReactComponent as IndeterminateCheckboxMaterialIcon } from '../assets/material-icons/indeterminate_check_box.svg';
 
 import styles from './style.module.css';
 import { _ExplorerNode } from '../../../src/persistedState/explorerNodeCodec';
@@ -16,7 +17,7 @@ type Props = Omit<
 > & {
 	kind: _ExplorerNode['kind'];
 	iconName: IconName;
-	checked: boolean;
+	checkboxState: 'checked' | 'blank' | 'indeterminate';
 	onCheckboxClick(e: React.MouseEvent): void;
 };
 
@@ -47,18 +48,22 @@ const getIndent = (kind: _ExplorerNode['kind'], depth: number) => {
 
 const Checkbox = memo(
 	({
-		checked,
+		checkboxState,
 		onClick,
 	}: {
-		checked: boolean;
+		checkboxState: 'checked' | 'blank' | 'indeterminate';
 		onClick(e: React.MouseEvent): void;
 	}) => {
 		return (
 			<span onClick={onClick} className={styles.checkbox}>
-				{checked ? (
+				{checkboxState === 'checked' && (
 					<CheckboxMaterialIcon fill="var(--vscode-icon-foreground)" />
-				) : (
+				)}
+				{checkboxState === 'blank' && (
 					<CheckboxOutlineBlankMaterialIcon fill="var(--vscode-icon-foreground)" />
+				)}
+				{checkboxState === 'indeterminate' && (
+					<IndeterminateCheckboxMaterialIcon fill="var(--vscode-icon-foreground)" />
 				)}
 			</span>
 		);
@@ -73,7 +78,7 @@ const FileExplorerTreeNode = ({
 	open,
 	focused,
 	iconName,
-	checked,
+	checkboxState,
 	kind,
 	onClick,
 	onCheckboxClick,
@@ -91,7 +96,10 @@ const FileExplorerTreeNode = ({
 			focused={focused}
 			onClick={onClick}
 			startDecorator={
-				<Checkbox checked={checked} onClick={onCheckboxClick} />
+				<Checkbox
+					checkboxState={checkboxState}
+					onClick={onCheckboxClick}
+				/>
 			}
 			onPressChevron={onPressChevron}
 			inlineStyles={{

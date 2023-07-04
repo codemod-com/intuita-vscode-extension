@@ -44,9 +44,16 @@ export const explorerNodeRenderer =
 
 		const explorerNodeHashDigest = props.nodeDatum.node.hashDigest;
 
-		const checked = explorerTree.selectedExplorerNodeHashDigests.includes(
-			explorerNodeHashDigest,
-		);
+		const checkboxState =
+			explorerTree.hashDigestsOfExplorerNodesWithDeselectedChildNodes.includes(
+				explorerNodeHashDigest,
+			)
+				? 'indeterminate'
+				: explorerTree.selectedExplorerNodeHashDigests.includes(
+						explorerNodeHashDigest,
+				  )
+				? 'checked'
+				: 'blank';
 
 		const handleClick = useCallback(
 			(event: React.MouseEvent) => {
@@ -89,7 +96,7 @@ export const explorerNodeRenderer =
 				depth={props.nodeDatum.depth}
 				open={props.nodeDatum.expanded}
 				focused={focused}
-				checked={checked}
+				checkboxState={checkboxState}
 				kind={props.nodeDatum.node.kind}
 				onClick={handleClick}
 				onCheckboxClick={handleCheckboxClick}

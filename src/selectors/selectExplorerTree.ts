@@ -78,6 +78,9 @@ export const selectExplorerTree = (state: RootState) => {
 
 	const selectedJobHashes = selectedFiles.map(({ jobHash }) => jobHash);
 
+	const hashDigestsOfExplorerNodesWithDeselectedChildNodes =
+		state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
+
 	return {
 		caseHash,
 		nodeData,
@@ -87,6 +90,7 @@ export const selectExplorerTree = (state: RootState) => {
 		searchPhrase: state.explorerSearchPhrases[caseHash] ?? '',
 		selectedJobHashes,
 		selectedJobCount: selectedFiles.length,
+		hashDigestsOfExplorerNodesWithDeselectedChildNodes,
 	};
 };
 

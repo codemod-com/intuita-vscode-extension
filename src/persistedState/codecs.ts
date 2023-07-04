@@ -129,6 +129,10 @@ export const persistedStateCodecNew = buildTypeCodec({
 		t.record(caseHashCodec, _explorerNodeHashDigestCodec),
 		{},
 	),
+	explorerNodesWithDeselectedChildNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
 });
 
 export type RootState = t.TypeOf<typeof persistedStateCodecNew>;

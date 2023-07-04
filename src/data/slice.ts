@@ -25,7 +25,11 @@ import {
 	_ExplorerNode,
 	_ExplorerNodeHashDigest,
 } from '../persistedState/explorerNodeCodec';
-import { buildHash, isNeitherNullNorUndefined } from '../utilities';
+import {
+	buildHash,
+	isNeitherNullNorUndefined,
+	findParentExplorerNode,
+} from '../utilities';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
 import {
 	comparePersistedJobs,
@@ -77,6 +81,7 @@ export const getInitialState = (): RootState => {
 		explorerSearchPhrases: {},
 		explorerNodes: {},
 		selectedExplorerNodes: {},
+		explorerNodesWithDeselectedChildNodes: {},
 		collapsedExplorerNodes: {},
 		focusedExplorerNodes: {},
 	};
@@ -123,6 +128,7 @@ const rootSlice = createSlice({
 				delete state.explorerSearchPhrases[caseHash];
 				delete state.explorerNodes[caseHash];
 				delete state.selectedExplorerNodes[caseHash];
+				delete state.explorerNodesWithDeselectedChildNodes[caseHash];
 				delete state.collapsedExplorerNodes[caseHash];
 				delete state.focusedExplorerNodes[caseHash];
 			}
@@ -141,6 +147,7 @@ const rootSlice = createSlice({
 			state.explorerSearchPhrases = {};
 			state.explorerNodes = {};
 			state.selectedExplorerNodes = {};
+			state.explorerNodesWithDeselectedChildNodes = {};
 			state.collapsedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
 		},
@@ -449,6 +456,7 @@ const rootSlice = createSlice({
 
 			state.explorerNodes[caseHash] = explorerNodes;
 			state.collapsedExplorerNodes[caseHash] = [];
+			state.explorerNodesWithDeselectedChildNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				({ hashDigest }) => hashDigest,
 			);
@@ -492,45 +500,120 @@ const rootSlice = createSlice({
 				}
 
 				state.selectedExplorerNodes[caseHash] = selectedHashDigests;
+			} else {
+				// get the root/directory and subordinate directory/files
+				const hashDigests: _ExplorerNodeHashDigest[] = [
+					explorerNodeHashDigest,
+				];
 
-				return;
-			}
+				for (let i = index + 1; i < explorerNodes.length; i++) {
+					const node = explorerNodes[i] ?? null;
 
-			// if a ROOT or a DIRECTORY is to be flipped, it means that
-			// we are NOT projecting over a search phrase
-			// otherwise directories would not be visible
+					if (node === null || node.depth <= explorerNode.depth) {
+						break;
+					}
 
-			// get the root/directory and subordinate directory/files
-			const hashDigests: _ExplorerNodeHashDigest[] = [
-				explorerNodeHashDigest,
-			];
-
-			for (let i = index + 1; i < explorerNodes.length; i++) {
-				const node = explorerNodes[i] ?? null;
-
-				if (node === null || node.depth <= explorerNode.depth) {
-					break;
+					hashDigests.push(node.hashDigest);
 				}
 
-				hashDigests.push(node.hashDigest);
-			}
-
-			if (selectedHashDigests.includes(explorerNodeHashDigest)) {
-				// deselect the directory and the files within it
-				state.selectedExplorerNodes[caseHash] =
-					selectedHashDigests.filter(
-						(hashDigest) => !hashDigests.includes(hashDigest),
+				if (selectedHashDigests.includes(explorerNodeHashDigest)) {
+					// deselect the directory and the files within it
+					state.selectedExplorerNodes[caseHash] =
+						selectedHashDigests.filter(
+							(hashDigest) => !hashDigests.includes(hashDigest),
+						);
+				} else {
+					// select the directory and the files within it
+					state.selectedExplorerNodes[caseHash] = Array.from(
+						new Set<_ExplorerNodeHashDigest>(
+							selectedHashDigests.concat(hashDigests),
+						),
 					);
-
-				return;
+				}
 			}
 
-			// select the directory and the files within it
-			state.selectedExplorerNodes[caseHash] = Array.from(
-				new Set<_ExplorerNodeHashDigest>(
-					selectedHashDigests.concat(hashDigests),
-				),
-			);
+			let currIndex = index;
+
+			while (currIndex > 0) {
+				const updatedSelectedHashDigests =
+					state.selectedExplorerNodes[caseHash] ?? [];
+				const updatedHashDigestsOfNodesWithDeselectedChildren =
+					state.explorerNodesWithDeselectedChildNodes[caseHash] ?? [];
+
+				const parentNode = findParentExplorerNode(
+					currIndex,
+					explorerNodes,
+				);
+
+				if (parentNode === null) {
+					return;
+				}
+
+				const parentHashDigest = parentNode.node.hashDigest;
+
+				const childNodes: _ExplorerNode[] = [];
+
+				for (
+					let i = parentNode.index + 1;
+					i < explorerNodes.length;
+					i++
+				) {
+					const node = explorerNodes[i] ?? null;
+
+					if (node === null || node.depth !== explorerNode.depth) {
+						break;
+					}
+					childNodes.push(node);
+				}
+
+				const allSelected = childNodes.every((node) =>
+					updatedSelectedHashDigests.includes(node.hashDigest),
+				);
+				const allDeselected = childNodes.every(
+					(node) =>
+						!updatedSelectedHashDigests.includes(node.hashDigest),
+				);
+
+				if (allSelected) {
+					state.selectedExplorerNodes[caseHash] = Array.from(
+						new Set<_ExplorerNodeHashDigest>(
+							updatedSelectedHashDigests.concat([
+								parentHashDigest,
+							]),
+						),
+					);
+					state.explorerNodesWithDeselectedChildNodes[caseHash] =
+						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
+							(hashDigest) => hashDigest !== parentHashDigest,
+						);
+				} else if (allDeselected) {
+					state.selectedExplorerNodes[caseHash] =
+						updatedSelectedHashDigests.filter(
+							(hashDigest) => hashDigest !== parentHashDigest,
+						);
+					state.explorerNodesWithDeselectedChildNodes[caseHash] =
+						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
+							(hashDigest) => hashDigest !== parentHashDigest,
+						);
+				} else {
+					// case: some (but not all) child nodes are selected
+					state.selectedExplorerNodes[caseHash] =
+						updatedSelectedHashDigests.filter(
+							(hashDigest) => hashDigest !== parentHashDigest,
+						);
+
+					state.explorerNodesWithDeselectedChildNodes[caseHash] =
+						Array.from(
+							new Set<_ExplorerNodeHashDigest>(
+								updatedHashDigestsOfNodesWithDeselectedChildren.concat(
+									[parentNode.node.hashDigest],
+								),
+							),
+						);
+				}
+
+				currIndex = parentNode.index;
+			}
 		},
 		flipCollapsibleExplorerNode(
 			state,
