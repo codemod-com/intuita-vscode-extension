@@ -69,6 +69,9 @@ export type WebviewMessage =
 
 export type WebviewResponse =
 	| Readonly<{
+			kind: 'webview.jobDiffView.webviewMounted';
+	  }>
+	| Readonly<{
 			kind: 'webview.global.focusExplorerNode';
 			caseHashDigest: CaseHash;
 			explorerNodeHashDigest: _ExplorerNodeHashDigest;
