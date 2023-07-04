@@ -158,9 +158,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					const validation = caseHashCodec.decode(arg0);
 
 					if (validation._tag === 'Left') {
-						store.dispatch(
-							actions.setApplySelectedInProgress(false),
-						);
 						throw new Error(
 							prettyReporter.report(validation).join('\n'),
 						);
@@ -188,8 +185,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						cashHashDigest,
 					);
 
-					store.dispatch(actions.setApplySelectedInProgress(false));
-
 					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
@@ -199,6 +194,8 @@ export async function activate(context: vscode.ExtensionContext) {
 							'intuita.sourceControl.saveStagedJobsToTheFileSystem',
 					});
 					vscode.window.showErrorMessage(message);
+				} finally {
+					store.dispatch(actions.setApplySelectedInProgress(false));
 				}
 			},
 		),

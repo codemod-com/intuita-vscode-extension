@@ -44,7 +44,6 @@ export const ActionsFooter = ({
 	screenWidth,
 	applySelectedInProgress,
 }: Props) => {
-	console.log(applySelectedInProgress);
 	return (
 		<div
 			className={styles.root}
