@@ -39,8 +39,6 @@ export const enum MessageKind {
 	 */
 	showProgress = 31,
 
-	focusCodemod = 35,
-
 	focusFile = 37,
 
 	mainWebviewViewVisibilityChange = 38,
@@ -154,10 +152,6 @@ export type Message =
 			codemodHash: CodemodHash | null;
 			progressKind: 'finite' | 'infinite';
 			value: number;
-	  }>
-	| Readonly<{
-			kind: MessageKind.focusCodemod;
-			codemodHashDigest: CodemodHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.mainWebviewViewVisibilityChange;

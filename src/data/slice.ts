@@ -169,6 +169,7 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<CodemodNodeHashDigest | null>,
 		) {
+			state.activeTabId = 'codemods';
 			state.codemodDiscoveryView.focusedCodemodHashDigest =
 				action.payload;
 			state.jobDiffView.visible = true;

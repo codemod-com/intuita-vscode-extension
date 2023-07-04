@@ -24,6 +24,7 @@ import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { selectExplorerTree } from './selectors/selectExplorerTree';
+import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 
 const messageBus = new MessageBus();
 
@@ -430,13 +431,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					setTimeout(() => {
-						messageBus.publish({
-							kind: MessageKind.focusCodemod,
-							codemodHashDigest:
-								selectedCodemod.hashDigest as CodemodHash,
-						});
-					}, 500);
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							selectedCodemod.hashDigest as unknown as CodemodNodeHashDigest,
+						),
+					);
 
 					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
@@ -655,12 +654,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					setTimeout(() => {
-						messageBus.publish({
-							kind: MessageKind.focusCodemod,
-							codemodHashDigest: codemodHashDigest as CodemodHash,
-						});
-					}, 500);
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHashDigest as unknown as CodemodNodeHashDigest,
+						),
+					);
 				}
 			},
 		}),

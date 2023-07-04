@@ -19,7 +19,6 @@ import { CodemodHash, WebviewMessage, WebviewResponse } from './webviewEvents';
 import { MessageBus, MessageKind } from '../messageBus';
 import { Store } from '../../data';
 import { actions } from '../../data/slice';
-import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { EngineService } from '../engineService';
 import { selectMainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 
@@ -69,14 +68,6 @@ export class MainViewProvider implements WebviewViewProvider {
 				progressKind: message.progressKind,
 				value: message.value,
 			});
-		});
-
-		this.__messageBus.subscribe(MessageKind.focusCodemod, (message) => {
-			this.__store.dispatch(
-				actions.setFocusedCodemodHashDigest(
-					message.codemodHashDigest as unknown as CodemodNodeHashDigest,
-				),
-			);
 		});
 
 		this.__messageBus.subscribe(MessageKind.codemodSetExecuted, () => {
