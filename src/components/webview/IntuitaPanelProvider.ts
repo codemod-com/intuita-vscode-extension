@@ -71,8 +71,8 @@ const selectPanelViewProps = (
 		const description = codemodDescriptionProvider.getCodemodDescription(
 			codemod.name,
 		);
-		
-		if(description === null) {
+
+		if (description === null) {
 			return null;
 		}
 
