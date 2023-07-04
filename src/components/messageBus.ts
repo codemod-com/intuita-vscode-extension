@@ -161,7 +161,7 @@ export type Message =
 			kind: MessageKind.executionQueueChange;
 			queuedCodemodHashes: ReadonlyArray<CodemodHash>;
 	  }>
-		| Readonly<{
+	| Readonly<{
 			kind: MessageKind.modifyJobContent;
 			newJobContent: string;
 	  }>;

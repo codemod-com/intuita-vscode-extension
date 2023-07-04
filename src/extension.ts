@@ -110,6 +110,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		messageBus,
 		codemodDescriptionProvider,
 		rootUri.fsPath,
+		jobManager,
 	);
 
 	context.subscriptions.push(mainView);

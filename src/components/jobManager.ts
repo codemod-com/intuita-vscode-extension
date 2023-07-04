@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { isNeitherNullNorUndefined } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import {
@@ -103,18 +104,20 @@ export class JobManager {
 		}
 	}
 
-	public async modifyJobContent(jobHash: JobHash, newJobContent: string) {
-		const job = { newContentUri: null };
+	public async changeJobContent(jobHash: JobHash, newJobContent: string) {
+		const job = this.__store.getState().job.entities[jobHash];
+
 		const newContentUri = job?.newContentUri ?? null;
 
-		if (newContentUri === null) {
+		if (job === undefined || newContentUri === null) {
 			return;
 		}
 
 		await this.__fileService.updateFileContent({
-			uri: newContentUri,
+			uri: vscode.Uri.parse(newContentUri),
 			content: newJobContent,
 		});
-		// this.#jobMap.set(jobHash, { ...job, modifiedByUser: true } as Job);
+
+		this.__store.dispatch(actions.upsertJobs([job]));
 	}
 }

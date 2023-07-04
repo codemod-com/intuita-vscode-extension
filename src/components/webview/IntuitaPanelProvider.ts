@@ -12,6 +12,7 @@ import { selectNodeData } from '../../selectors/selectExplorerTree';
 import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
+import { JobManager } from '../jobManager';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -163,6 +164,7 @@ export class IntuitaPanelProvider {
 		messageBus: MessageBus,
 		private readonly __codemodDescriptionProvider: CodemodDescriptionProvider,
 		private readonly __rootPath: string,
+		private readonly __jobManager: JobManager,
 	) {
 		let prevViewProps = selectPanelViewProps(
 			__mainWebviewViewProvider,
@@ -225,7 +227,7 @@ export class IntuitaPanelProvider {
 			);
 
 			this.__webviewPanel.webview.onDidReceiveMessage(
-				(message: WebviewResponse) => {
+				async (message: WebviewResponse) => {
 					if (
 						message.kind === 'webview.panel.focusOnChangeExplorer'
 					) {
@@ -295,6 +297,31 @@ export class IntuitaPanelProvider {
 						} satisfies WebviewMessage);
 
 						this.__webviewPanel.reveal(undefined, preserveFocus);
+					}
+
+					if (
+						message.kind === 'webview.jobDiffView.contentModified'
+					) {
+						if (this.__webviewPanel === null) {
+							return;
+						}
+
+						await this.__jobManager.changeJobContent(
+							message.jobHash,
+							message.newContent,
+						);
+
+						const nextViewProps = selectPanelViewProps(
+							this.__mainWebviewViewProvider,
+							this.__codemodDescriptionProvider,
+							this.__store.getState(),
+							this.__rootPath,
+						);
+
+						this.__webviewPanel.webview.postMessage({
+							kind: 'webview.main.setProps',
+							props: nextViewProps,
+						});
 					}
 				},
 			);
