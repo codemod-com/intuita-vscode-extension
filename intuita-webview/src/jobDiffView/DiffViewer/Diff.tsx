@@ -2,8 +2,29 @@ import { memo, useEffect, useRef } from 'react';
 import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
+import { Disposable } from 'vscode';
 
 export type { Diff };
+
+type Props = Readonly<{
+	jobHash: string;
+	oldFileContent: string | null;
+	newFileContent: string | null;
+	viewType: 'inline' | 'side-by-side';
+	theme: string;
+	onDiffCalculated: (diff: Diff) => void;
+	onChange(content: string): void;
+}>;
+
+const getDiffChanges = (
+	editor: editor.IStandaloneDiffEditor,
+): Diff | undefined => {
+	const lineChanges = editor.getLineChanges();
+	if (!lineChanges) {
+		return;
+	}
+	return getDiff(lineChanges);
+};
 
 export const DiffComponent = memo(
 	({
@@ -11,36 +32,47 @@ export const DiffComponent = memo(
 		newFileContent,
 		viewType,
 		onDiffCalculated,
+		onChange,
 		theme,
-	}: {
-		oldFileContent: string | null;
-		newFileContent: string | null;
-		viewType: 'inline' | 'side-by-side';
-		onDiffCalculated: (diff: Diff) => void;
-		theme: string;
-	}) => {
-		const editorRef = useRef<editor.IStandaloneDiffEditor>(null);
+		jobHash,
+	}: Props) => {
+		const editorRef = useRef<editor.IStandaloneDiffEditor | null>(null);
+		const handlerRef = useRef<Disposable | null>(null);
+		const jobHashRef = useRef<string | null>(null);
 
 		useEffect(() => {
-			const editorInstance =
-				editorRef.current?.getModifiedEditor() ?? null;
-
-			if (editorInstance === null) {
-				return;
-			}
-
-			editorInstance.setScrollTop(0);
+			editorRef.current?.getModifiedEditor().setScrollTop(0);
 		}, [oldFileContent, newFileContent]);
 
-		const getDiffChanges = (
-			editor: editor.IStandaloneDiffEditor,
-		): Diff | undefined => {
-			const lineChanges = editor.getLineChanges();
-			if (!lineChanges) {
+		const reattachHandler = (editor?: editor.IStandaloneDiffEditor) => {
+			if (jobHashRef.current === jobHash) {
 				return;
 			}
-			return getDiff(lineChanges);
+
+			const modifiedEditor =
+				(editor ?? editorRef.current)?.getModifiedEditor() ?? null;
+
+			if (modifiedEditor === null) {
+				return;
+			}
+
+			if (handlerRef.current !== null) {
+				handlerRef.current.dispose();
+			}
+
+			handlerRef.current = modifiedEditor.onDidChangeModelContent(() => {
+				const content = modifiedEditor.getModel()?.getValue() ?? null;
+				if (content === null) {
+					return;
+				}
+
+				onChange(content);
+			});
+
+			jobHashRef.current = jobHash;
 		};
+
+		reattachHandler();
 
 		const handleRefSet = (editor: editor.IStandaloneDiffEditor) => {
 			editor.onDidUpdateDiff(() => {
@@ -49,15 +81,18 @@ export const DiffComponent = memo(
 					onDiffCalculated(diffChanges);
 				}
 			});
+
+			reattachHandler(editor);
 		};
 
 		return (
 			<MonacoDiffEditor
-				onRefSet={handleRefSet}
 				theme={theme}
+				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
-					readOnly: true,
+					readOnly: false,
+					originalEditable: false,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',

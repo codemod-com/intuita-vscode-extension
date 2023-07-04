@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { isNeitherNullNorUndefined } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
 import {
@@ -101,5 +102,22 @@ export class JobManager {
 		for (const message of messages) {
 			this.__messageBus.publish(message);
 		}
+	}
+
+	public async changeJobContent(jobHash: JobHash, newJobContent: string) {
+		const job = this.__store.getState().job.entities[jobHash];
+
+		const newContentUri = job?.newContentUri ?? null;
+
+		if (job === undefined || newContentUri === null) {
+			return;
+		}
+
+		await this.__fileService.updateFileContent({
+			uri: vscode.Uri.parse(newContentUri),
+			content: newJobContent,
+		});
+
+		this.__store.dispatch(actions.upsertJobs([job]));
 	}
 }

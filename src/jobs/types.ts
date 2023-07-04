@@ -1,6 +1,7 @@
 import { Uri } from 'vscode';
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
+import { withFallback } from 'io-ts-types';
 
 interface JobHashBrand {
 	readonly __JobHash: unique symbol;
@@ -35,6 +36,7 @@ export type Job = Readonly<{
 	codemodName: string;
 	createdAt: number;
 	executionId: string;
+	modifiedByUser: boolean;
 }>;
 
 export const persistedJobCodec = buildTypeCodec({
@@ -55,6 +57,7 @@ export const persistedJobCodec = buildTypeCodec({
 	codemodName: t.string,
 	executionId: t.string,
 	createdAt: t.number,
+	modifiedByUser: withFallback(t.boolean, false),
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
@@ -66,6 +69,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 		newUri: job.newUri?.toString() ?? null,
 		oldContentUri: job.oldContentUri?.toString() ?? null,
 		newContentUri: job.newContentUri?.toString() ?? null,
+		modifiedByUser: job.modifiedByUser,
 	};
 };
 
@@ -80,5 +84,6 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 		newContentUri: persistedJob.newContentUri
 			? Uri.parse(persistedJob.newContentUri)
 			: null,
+		modifiedByUser: persistedJob.modifiedByUser,
 	};
 };

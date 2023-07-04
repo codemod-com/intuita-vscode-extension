@@ -54,6 +54,10 @@ export class FileService {
 		await workspace.fs.writeFile(params.newUri, content);
 	}
 
+	public async updateFileContent(params: { uri: Uri; content: string }) {
+		await workspace.fs.writeFile(params.uri, Buffer.from(params.content));
+	}
+
 	public async updateFile(params: {
 		uri: Uri;
 		contentUri: Uri;
