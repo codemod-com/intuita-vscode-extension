@@ -1,7 +1,6 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
-import { Message } from './components/messageBus';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
