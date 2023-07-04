@@ -91,8 +91,7 @@ export const DiffComponent = memo(
 				onRefSet={handleRefSet}
 				ref={editorRef}
 				options={{
-					readOnly: false,
-					originalEditable: false,
+					readOnly: true,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
