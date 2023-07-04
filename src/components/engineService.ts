@@ -59,7 +59,6 @@ export const messageCodec = t.union([
 		i: t.string,
 		o: t.string,
 		c: t.string,
-		oldDataPath: t.string,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.compare),
