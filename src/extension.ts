@@ -564,10 +564,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (job.newContentUri !== null) {
 					uris.push(vscode.Uri.parse(job.newContentUri));
 				}
-
-				if (job.oldContentUri !== null) {
-					uris.push(vscode.Uri.parse(job.oldContentUri));
-				}
 			}
 
 			store.dispatch(actions.clearState());

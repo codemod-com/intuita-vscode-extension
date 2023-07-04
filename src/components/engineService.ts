@@ -550,7 +550,6 @@ export class EngineService {
 					kind: JobKind.createFile,
 					oldUri: null,
 					newUri,
-					oldContentUri: null,
 					newContentUri,
 					codemodSetName,
 					codemodName,
@@ -565,7 +564,6 @@ export class EngineService {
 				};
 			} else if (message.k === EngineMessageKind.rewrite) {
 				const oldUri = Uri.file(message.i);
-				const oldContentUri = Uri.file(message.oldDataPath);
 				const newContentUri = Uri.file(message.o);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
@@ -573,7 +571,6 @@ export class EngineService {
 					oldUri,
 					newUri: oldUri,
 					newContentUri,
-					oldContentUri,
 					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
@@ -593,7 +590,6 @@ export class EngineService {
 					oldUri,
 					newUri: null,
 					newContentUri: null,
-					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
@@ -614,7 +610,6 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
-					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
@@ -635,7 +630,6 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
-					oldContentUri: oldUri,
 					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),

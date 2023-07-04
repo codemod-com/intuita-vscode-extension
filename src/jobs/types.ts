@@ -30,7 +30,6 @@ export type Job = Readonly<{
 	kind: JobKind;
 	oldUri: Uri | null;
 	newUri: Uri | null;
-	oldContentUri: Uri | null;
 	newContentUri: Uri | null;
 	codemodSetName: string;
 	codemodName: string;
@@ -51,7 +50,6 @@ export const persistedJobCodec = buildTypeCodec({
 	]),
 	oldUri: t.union([t.string, t.null]),
 	newUri: t.union([t.string, t.null]),
-	oldContentUri: t.union([t.string, t.null]),
 	newContentUri: t.union([t.string, t.null]),
 	codemodSetName: t.string,
 	codemodName: t.string,
@@ -67,7 +65,6 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 		...job,
 		oldUri: job.oldUri?.toString() ?? null,
 		newUri: job.newUri?.toString() ?? null,
-		oldContentUri: job.oldContentUri?.toString() ?? null,
 		newContentUri: job.newContentUri?.toString() ?? null,
 		modifiedByUser: job.modifiedByUser,
 	};
@@ -78,9 +75,6 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 		...persistedJob,
 		oldUri: persistedJob.oldUri ? Uri.parse(persistedJob.oldUri) : null,
 		newUri: persistedJob.newUri ? Uri.parse(persistedJob.newUri) : null,
-		oldContentUri: persistedJob.oldContentUri
-			? Uri.parse(persistedJob.oldContentUri)
-			: null,
 		newContentUri: persistedJob.newContentUri
 			? Uri.parse(persistedJob.newContentUri)
 			: null,
