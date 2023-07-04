@@ -299,9 +299,7 @@ export class IntuitaPanelProvider {
 						this.__webviewPanel.reveal(undefined, preserveFocus);
 					}
 
-					if (
-						message.kind === 'webview.panel.contentModified'
-					) {
+					if (message.kind === 'webview.panel.contentModified') {
 						if (this.__webviewPanel === null) {
 							return;
 						}
