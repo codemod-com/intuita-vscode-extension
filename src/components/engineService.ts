@@ -12,10 +12,11 @@ import { Job, JobKind } from '../jobs/types';
 import {
 	buildTypeCodec,
 	doubleQuotify,
+	isNeitherNullNorUndefined,
 	singleQuotify,
 	streamToString,
 } from '../utilities';
-import { Command, Message, MessageBus, MessageKind } from './messageBus';
+import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
@@ -112,12 +113,10 @@ type Execution = {
 	codemodName: string;
 };
 
-type ExecuteCodemodMessage = Readonly<{
-	kind: MessageKind.executeCodemodSet;
-	command: Command & { codemodHash: CodemodHash };
-	happenedAt: string;
-	caseHashDigest: CaseHash;
-}>;
+type ExecuteCodemodMessage = Message &
+	Readonly<{
+		kind: MessageKind.executeCodemodSet;
+	}>;
 
 export class EngineService {
 	readonly #configurationContainer: Container<Configuration>;
@@ -225,8 +224,12 @@ export class EngineService {
 		this.#execution.childProcess.stdin.write('shutdown\n');
 	}
 
-	private __getQueuedCodemodHashes() {
-		return this.__executionMessageQueue.map((m) => m.command.codemodHash);
+	private __getQueuedCodemodHashes(): ReadonlyArray<CodemodHash> {
+		return this.__executionMessageQueue
+			.map(({ command }) =>
+				'codemodHash' in command ? command.codemodHash : null,
+			)
+			.filter(isNeitherNullNorUndefined);
 	}
 
 	async #onExecuteCodemodSetMessage(
@@ -262,7 +265,7 @@ export class EngineService {
 
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
-			message.command.kind === 'repomod'
+			message.command.kind === 'executeRepomod'
 				? message.command.codemodHash
 				: null;
 
@@ -273,14 +276,9 @@ export class EngineService {
 			value: 0,
 		});
 
-		const { storageUri } = message.command;
+		const outputUri = Uri.joinPath(message.storageUri, 'nora-node-engine');
 
-		const outputUri = Uri.joinPath(
-			message.command.storageUri,
-			'nora-node-engine',
-		);
-
-		await this.#fileSystem.createDirectory(storageUri);
+		await this.#fileSystem.createDirectory(message.storageUri);
 		await this.#fileSystem.createDirectory(outputUri);
 
 		const { fileLimit, includePatterns, excludePatterns } =
@@ -289,34 +287,27 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if (message.command.kind === 'repomod') {
+			const { command } = message;
+
+			if (command.kind === 'executeRepomod') {
 				args.push('repomod');
-				args.push('-f', singleQuotify(message.command.codemodHash));
-				args.push(
-					'-i',
-					singleQuotify(message.command.targetUri.fsPath),
-				);
-				args.push(
-					'-o',
-					singleQuotify(message.command.storageUri.fsPath),
-				);
+				args.push('-f', singleQuotify(command.codemodHash));
+				args.push('-i', singleQuotify(message.targetUri.fsPath));
+				args.push('-o', singleQuotify(message.storageUri.fsPath));
 
 				return args;
 			}
 
-			if (message.command.kind === 'executeCodemod') {
+			if (command.kind === 'executeCodemod') {
 				args.push(
 					'-c',
-					singleQuotify(doubleQuotify(message.command.codemodHash)),
+					singleQuotify(doubleQuotify(command.codemodHash)),
 				);
 
-				const { targetUri } = message.command;
-				const { targetUriIsDirectory } = message.command;
-
-				if (targetUriIsDirectory) {
+				if (message.targetUriIsDirectory) {
 					includePatterns.forEach((includePattern) => {
 						const { fsPath } = Uri.joinPath(
-							targetUri,
+							message.targetUri,
 							includePattern,
 						);
 
@@ -325,14 +316,14 @@ export class EngineService {
 
 					excludePatterns.forEach((excludePattern) => {
 						const { fsPath } = Uri.joinPath(
-							targetUri,
+							message.targetUri,
 							excludePattern,
 						);
 
 						args.push('-p', `!${singleQuotify(fsPath)}`);
 					});
 				} else {
-					args.push('-p', singleQuotify(targetUri.fsPath));
+					args.push('-p', singleQuotify(message.targetUri.fsPath));
 				}
 
 				args.push(
@@ -344,24 +335,25 @@ export class EngineService {
 
 				args.push('-l', String(fileLimit));
 
-				args.push(
-					'-o',
-					singleQuotify(message.command.storageUri.fsPath),
-				);
+				args.push('-o', singleQuotify(message.storageUri.fsPath));
 
 				return args;
 			}
 
-			const { targetUri } = message.command;
-
 			includePatterns.forEach((includePattern) => {
-				const { fsPath } = Uri.joinPath(targetUri, includePattern);
+				const { fsPath } = Uri.joinPath(
+					message.targetUri,
+					includePattern,
+				);
 
 				args.push('-p', singleQuotify(fsPath));
 			});
 
 			excludePatterns.forEach((excludePattern) => {
-				const { fsPath } = Uri.joinPath(targetUri, excludePattern);
+				const { fsPath } = Uri.joinPath(
+					message.targetUri,
+					excludePattern,
+				);
 
 				args.push('-p', `!${singleQuotify(fsPath)}`);
 			});
@@ -372,9 +364,7 @@ export class EngineService {
 			);
 
 			args.push('-l', String(fileLimit));
-
-			args.push('-f', singleQuotify(message.command.codemodUri.fsPath));
-
+			args.push('-f', singleQuotify(command.codemodUri.fsPath));
 			args.push('-o', singleQuotify(outputUri.fsPath));
 
 			return args;
@@ -428,7 +418,7 @@ export class EngineService {
 			affectedAnyFile: false,
 			jobs: [],
 			case: {} as Case,
-			targetUri: message.command.targetUri,
+			targetUri: message.targetUri,
 			happenedAt: message.happenedAt,
 			codemodName: '',
 		};
@@ -616,7 +606,7 @@ export class EngineService {
 			this.__store.dispatch(actions.setSelectedCaseHash(kase.hash));
 
 			this.#messageBus.publish({
-				kind: MessageKind.upsertCases,
+				kind: MessageKind.upsertCase,
 				kase,
 				jobs: [job],
 			});

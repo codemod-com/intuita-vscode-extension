@@ -265,13 +265,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeLocalCodemod',
-							targetUri,
-							storageUri,
 							codemodUri,
-							targetUriIsDirectory,
 						},
 						happenedAt,
 						caseHashDigest: buildCaseHash(),
+						storageUri,
+						targetUri,
+						targetUriIsDirectory,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
@@ -301,37 +301,27 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const happenedAt = String(Date.now());
 
-					let command: Command;
+					const fileStat = await vscode.workspace.fs.stat(targetUri);
+					const targetUriIsDirectory = Boolean(
+						fileStat.type & vscode.FileType.Directory,
+					);
 
-					if (codemodHash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
-						command = {
-							kind: 'repomod',
-							codemodHash,
-							targetUri,
-							storageUri,
-						};
-					} else {
-						const fileStat = await vscode.workspace.fs.stat(
-							targetUri,
-						);
-						const targetUriIsDirectory = Boolean(
-							fileStat.type & vscode.FileType.Directory,
-						);
-
-						command = {
-							kind: 'executeCodemod',
-							storageUri,
-							codemodHash,
-							targetUri,
-							targetUriIsDirectory,
-						};
-					}
+					const command: Command = {
+						kind:
+							codemodHash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0'
+								? 'executeRepomod'
+								: 'executeCodemod',
+						codemodHash,
+					};
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command,
 						caseHashDigest: buildCaseHash(),
 						happenedAt,
+						targetUri,
+						targetUriIsDirectory,
+						storageUri,
 					});
 
 					vscode.commands.executeCommand(
@@ -459,14 +449,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeCodemod',
-							storageUri,
 							codemodHash:
 								selectedCodemod.hashDigest as CodemodHash,
-							targetUri,
-							targetUriIsDirectory,
 						},
 						caseHashDigest: buildCaseHash(),
 						happenedAt: String(Date.now()),
+						storageUri,
+						targetUri,
+						targetUriIsDirectory,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
@@ -526,13 +516,13 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeLocalCodemod',
-							targetUri,
-							storageUri,
 							codemodUri,
-							targetUriIsDirectory,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),
+						storageUri,
+						targetUri,
+						targetUriIsDirectory,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);

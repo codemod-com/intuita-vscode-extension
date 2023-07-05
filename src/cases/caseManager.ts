@@ -11,7 +11,7 @@ export class CaseManager {
 		private readonly __messageBus: MessageBus,
 		private readonly __store: Store,
 	) {
-		this.__messageBus.subscribe(MessageKind.upsertCases, (message) =>
+		this.__messageBus.subscribe(MessageKind.upsertCase, (message) =>
 			this.#onUpsertCasesMessage(message),
 		);
 		this.__messageBus.subscribe(MessageKind.acceptCase, (message) =>
@@ -28,9 +28,7 @@ export class CaseManager {
 		);
 	}
 
-	#onUpsertCasesMessage(
-		message: Message & { kind: MessageKind.upsertCases },
-	) {
+	#onUpsertCasesMessage(message: Message & { kind: MessageKind.upsertCase }) {
 		const caseHashJobHashes = message.jobs.map(
 			({ hash }) => `${message.kase.hash}${hash}`,
 		);
