@@ -256,8 +256,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const happenedAt = String(Date.now());
 
-					const fileStat = await vscode.workspace.fs.stat(codemodUri);
-					const directory = Boolean(
+					const fileStat = await vscode.workspace.fs.stat(targetUri);
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
@@ -268,7 +268,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							targetUri,
 							storageUri,
 							codemodUri,
-							directory,
+							targetUriIsDirectory,
 						},
 						happenedAt,
 						caseHashDigest: buildCaseHash(),
@@ -314,7 +314,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						const fileStat = await vscode.workspace.fs.stat(
 							targetUri,
 						);
-						const directory = Boolean(
+						const targetUriIsDirectory = Boolean(
 							fileStat.type & vscode.FileType.Directory,
 						);
 
@@ -323,7 +323,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							storageUri,
 							codemodHash,
 							targetUri,
-							directory,
+							targetUriIsDirectory,
 						};
 					}
 
@@ -451,7 +451,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
-					const directory = Boolean(
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
@@ -463,7 +463,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							codemodHash:
 								selectedCodemod.hashDigest as CodemodHash,
 							targetUri,
-							directory,
+							targetUriIsDirectory,
 						},
 						caseHashDigest: buildCaseHash(),
 						happenedAt: String(Date.now()),
@@ -518,7 +518,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.workspace.fs.writeFile(codemodUri, content);
 
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
-					const directory = Boolean(
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
@@ -529,7 +529,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							targetUri,
 							storageUri,
 							codemodUri,
-							directory,
+							targetUriIsDirectory,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),

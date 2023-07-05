@@ -311,9 +311,9 @@ export class EngineService {
 				);
 
 				const { targetUri } = message.command;
-				const { directory } = message.command;
+				const { targetUriIsDirectory } = message.command;
 
-				if (directory) {
+				if (targetUriIsDirectory) {
 					includePatterns.forEach((includePattern) => {
 						const { fsPath } = Uri.joinPath(
 							targetUri,

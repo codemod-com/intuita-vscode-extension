@@ -57,14 +57,14 @@ export type Command =
 			codemodUri: Uri;
 			storageUri: Uri;
 			targetUri: Uri;
-			directory: boolean;
+			targetUriIsDirectory: boolean;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			storageUri: Uri;
 			targetUri: Uri;
-			directory: boolean;
+			targetUriIsDirectory: boolean;
 	  }>;
 
 export type Message =
