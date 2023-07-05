@@ -27,6 +27,12 @@ const getIconName = (
 	return 'file';
 };
 
+const getLabel = (explorerNode: _ExplorerNode, opened: boolean): string => {
+	return explorerNode.kind !== 'FILE' && !opened
+		? `${explorerNode.label} (${explorerNode.childCount})`
+		: explorerNode.label;
+};
+
 export const explorerNodeRenderer =
 	(explorerTree: ExplorerTree) =>
 	(props: {
@@ -91,7 +97,7 @@ export const explorerNodeRenderer =
 				key={props.nodeDatum.node.hashDigest}
 				hasChildren={props.nodeDatum.collapsable}
 				id={props.nodeDatum.node.hashDigest}
-				label={props.nodeDatum.node.label}
+				label={getLabel(props.nodeDatum.node, props.nodeDatum.expanded)}
 				iconName={iconName}
 				depth={props.nodeDatum.depth}
 				open={props.nodeDatum.expanded}
