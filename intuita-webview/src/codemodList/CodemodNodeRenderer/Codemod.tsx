@@ -80,8 +80,7 @@ const renderActionButtons = (
 				) : (
 					<div style={{ display: 'flex' }}>
 						<span
-							className={cn('codicon', 'codicon-play')}
-							style={{ marginRight: '2px' }}
+							className={cn('codicon', 'codicon-play', 'mr-2')}
 						/>
 						Dry Run
 					</div>

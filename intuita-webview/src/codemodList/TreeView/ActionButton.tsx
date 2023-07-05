@@ -22,7 +22,7 @@ const ActionButton = ({ content, iconName, children, onClick }: Props) => {
 				}}
 			>
 				{iconName ? (
-					<i className={cn('codicon', 'mr-2', iconName)} />
+					<span className={cn('codicon', 'mr-2', iconName)} />
 				) : null}
 				{children}
 			</VSCodeButton>
