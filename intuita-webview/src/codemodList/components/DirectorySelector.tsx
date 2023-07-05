@@ -266,7 +266,7 @@ export const DirectorySelector = ({
 	}
 
 	return (
-		<IntuitaPopover content="Codemod's target path. Double-click to edit.">
+		<IntuitaPopover content="Double-click to edit the target path.">
 			<VSCodeButton
 				appearance="icon"
 				onDoubleClick={(event) => {
