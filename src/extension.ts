@@ -185,9 +185,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					await jobManager.acceptJobs(new Set(selectedJobHashes));
 
-					await vscode.commands.executeCommand(
-						'intuita.rejectCase',
-						cashHashDigest,
+					// needed to recalculate explorer nodes tree
+					// why cant we rely on reactivity?
+					store.dispatch(
+						actions.setExplorerNodes([
+							cashHashDigest,
+							vscode.workspace.workspaceFolders?.[0]?.uri
+								.fsPath ?? '',
+						]),
 					);
 
 					vscode.commands.executeCommand('workbench.view.scm');
