@@ -46,7 +46,7 @@ export class VscodeTelemetry implements Telemetry {
 			this.sendEvent({
 				kind: 'jobsAccepted',
 				jobCount: jobs.length,
-				caseHashDigest: caseHashDigest as CaseHash,
+				executionId: caseHashDigest as CaseHash,
 			});
 		}
 	}
@@ -72,7 +72,7 @@ export class VscodeTelemetry implements Telemetry {
 			this.sendEvent({
 				kind: 'jobsRejected',
 				jobCount: jobs.length,
-				caseHashDigest: caseHashDigest as CaseHash,
+				executionId: caseHashDigest as CaseHash,
 			});
 		}
 	}
@@ -85,7 +85,7 @@ export class VscodeTelemetry implements Telemetry {
 		if (halted) {
 			this.sendEvent({
 				kind: 'codemodHalted',
-				caseHashDigest,
+				executionId: caseHashDigest,
 				fileCount: jobs.length,
 				codemodName,
 			});
@@ -94,7 +94,7 @@ export class VscodeTelemetry implements Telemetry {
 
 		this.sendEvent({
 			kind: 'codemodExecuted',
-			caseHashDigest,
+			executionId: caseHashDigest,
 			fileCount: jobs.length,
 			codemodName,
 		});

@@ -9,24 +9,24 @@ export type Event =
 	| Readonly<{
 			kind: 'codemodExecuted';
 			fileCount: number;
-			caseHashDigest: CaseHash;
+			executionId: CaseHash;
 			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: 'codemodHalted';
 			fileCount: number;
-			caseHashDigest: CaseHash;
+			executionId: CaseHash;
 			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: 'jobsAccepted';
 			jobCount: number;
-			caseHashDigest: CaseHash;
+			executionId: CaseHash;
 	  }>
 	| Readonly<{
 			kind: 'jobsRejected';
 			jobCount: number;
-			caseHashDigest: CaseHash;
+			executionId: CaseHash;
 	  }>;
 
 export interface Telemetry {
