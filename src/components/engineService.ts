@@ -99,24 +99,24 @@ export const messageCodec = t.union([
 ]);
 
 type Execution = {
-	readonly executionId: CaseHash;
+	readonly caseHashDigest: CaseHash;
 	readonly childProcess: ChildProcessWithoutNullStreams;
-	readonly codemodSetName: string;
 	readonly codemodHash?: CodemodHash;
+	readonly jobs: Job[];
+	readonly targetUri: Uri;
+	readonly happenedAt: string;
 	totalFileCount: number;
 	halted: boolean;
 	affectedAnyFile: boolean;
-	readonly jobs: Job[];
 	case: Case;
-	uri: Uri;
-	happenedAt: string;
+	codemodName: string;
 };
 
 type ExecuteCodemodMessage = Readonly<{
 	kind: MessageKind.executeCodemodSet;
 	command: Command & { codemodHash: CodemodHash };
 	happenedAt: string;
-	executionId: CaseHash;
+	caseHashDigest: CaseHash;
 }>;
 
 export class EngineService {
@@ -233,10 +233,7 @@ export class EngineService {
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
 		if (this.#execution) {
-			if (
-				'kind' in message.command &&
-				message.command.kind === 'executeCodemod'
-			) {
+			if (message.command.kind === 'executeCodemod') {
 				this.__executionMessageQueue.push(
 					message as ExecuteCodemodMessage,
 				);
@@ -264,9 +261,8 @@ export class EngineService {
 		}
 
 		const codemodHash =
-			'kind' in message.command &&
-			(message.command.kind === 'executeCodemod' ||
-				message.command.kind === 'repomod')
+			message.command.kind === 'executeCodemod' ||
+			message.command.kind === 'repomod'
 				? message.command.codemodHash
 				: null;
 
@@ -293,15 +289,12 @@ export class EngineService {
 		const buildArguments = () => {
 			const args: string[] = [];
 
-			if (
-				'kind' in message.command &&
-				message.command.kind === 'repomod'
-			) {
+			if (message.command.kind === 'repomod') {
 				args.push('repomod');
-				args.push('-f', singleQuotify(message.command.repomodFilePath));
+				args.push('-f', singleQuotify(message.command.codemodHash));
 				args.push(
 					'-i',
-					singleQuotify(message.command.inputPath.fsPath),
+					singleQuotify(message.command.targetUri.fsPath),
 				);
 				args.push(
 					'-o',
@@ -311,44 +304,35 @@ export class EngineService {
 				return args;
 			}
 
-			if (
-				'kind' in message.command &&
-				message.command.kind === 'executeCodemod'
-			) {
+			if (message.command.kind === 'executeCodemod') {
 				args.push(
 					'-c',
 					singleQuotify(doubleQuotify(message.command.codemodHash)),
 				);
 
-				const commandUri = message.command.uri;
-				const { directory } = message.command;
+				const { targetUri } = message.command;
+				const { targetUriIsDirectory } = message.command;
 
-				if (directory) {
+				if (targetUriIsDirectory) {
 					includePatterns.forEach((includePattern) => {
 						const { fsPath } = Uri.joinPath(
-							commandUri,
+							targetUri,
 							includePattern,
 						);
 
-						const path = singleQuotify(fsPath);
-
-						args.push('-p', path);
+						args.push('-p', singleQuotify(fsPath));
 					});
 
 					excludePatterns.forEach((excludePattern) => {
 						const { fsPath } = Uri.joinPath(
-							commandUri,
+							targetUri,
 							excludePattern,
 						);
 
-						const path = singleQuotify(fsPath);
-
-						args.push('-p', `!${path}`);
+						args.push('-p', `!${singleQuotify(fsPath)}`);
 					});
 				} else {
-					const path = singleQuotify(commandUri.fsPath);
-
-					args.push('-p', path);
+					args.push('-p', singleQuotify(targetUri.fsPath));
 				}
 
 				args.push(
@@ -368,30 +352,19 @@ export class EngineService {
 				return args;
 			}
 
-			const commandUri = message.command.uri;
-			const { directory } = message.command;
+			const { targetUri } = message.command;
 
-			if (directory) {
-				includePatterns.forEach((includePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, includePattern);
+			includePatterns.forEach((includePattern) => {
+				const { fsPath } = Uri.joinPath(targetUri, includePattern);
 
-					const path = singleQuotify(fsPath);
+				args.push('-p', singleQuotify(fsPath));
+			});
 
-					args.push('-p', path);
-				});
+			excludePatterns.forEach((excludePattern) => {
+				const { fsPath } = Uri.joinPath(targetUri, excludePattern);
 
-				excludePatterns.forEach((excludePattern) => {
-					const { fsPath } = Uri.joinPath(commandUri, excludePattern);
-
-					const path = singleQuotify(fsPath);
-
-					args.push('-p', `!${path}`);
-				});
-			} else {
-				const path = singleQuotify(commandUri.fsPath);
-
-				args.push('-p', path);
-			}
+				args.push('-p', `!${singleQuotify(fsPath)}`);
+			});
 
 			args.push(
 				'-w',
@@ -400,17 +373,7 @@ export class EngineService {
 
 			args.push('-l', String(fileLimit));
 
-			if ('fileUri' in message.command) {
-				args.push('-f', singleQuotify(message.command.fileUri.fsPath));
-
-				const { fsPath } = Uri.joinPath(
-					message.command.uri,
-					`**/*.{js,jsx,ts,tsx}`,
-				);
-
-				args.push('-p', fsPath);
-				args.push('-p', '!**/node_modules');
-			}
+			args.push('-f', singleQuotify(message.command.codemodUri.fsPath));
 
 			args.push('-o', singleQuotify(outputUri.fsPath));
 
@@ -455,25 +418,19 @@ export class EngineService {
 			}
 		});
 
-		const executionId = message.executionId;
-
-		// TODO remove the codemod set name
-		const codemodSetName = '';
+		const caseHashDigest = message.caseHashDigest;
 
 		this.#execution = {
 			childProcess,
-			executionId,
-			codemodSetName,
+			caseHashDigest,
 			halted: false,
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
 			case: {} as Case,
-			uri:
-				'uri' in message.command
-					? message.command.uri
-					: message.command.inputPath,
+			targetUri: message.command.targetUri,
 			happenedAt: message.happenedAt,
+			codemodName: '',
 		};
 		if (
 			'kind' in message.command &&
@@ -541,6 +498,8 @@ export class EngineService {
 
 			const codemodName = 'modId' in message ? message.modId : message.c;
 
+			this.#execution.codemodName = codemodName;
+
 			if (message.k === EngineMessageKind.create) {
 				const newUri = Uri.file(message.newFilePath);
 				const newContentUri = Uri.file(message.newContentPath);
@@ -550,16 +509,15 @@ export class EngineService {
 					oldUri: null,
 					newUri,
 					newContentUri,
-					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
-					executionId,
+					caseHashDigest,
 					modifiedByUser: false,
 				};
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob, executionId),
+					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
 			} else if (message.k === EngineMessageKind.rewrite) {
 				const oldUri = Uri.file(message.i);
@@ -570,16 +528,15 @@ export class EngineService {
 					oldUri,
 					newUri: oldUri,
 					newContentUri,
-					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
-					executionId,
+					caseHashDigest,
 					modifiedByUser: false,
 				};
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob, executionId),
+					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
 			} else if (message.k === EngineMessageKind.delete) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -589,16 +546,15 @@ export class EngineService {
 					oldUri,
 					newUri: null,
 					newContentUri: null,
-					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
-					executionId,
+					caseHashDigest,
 					modifiedByUser: false,
 				};
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob, executionId),
+					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
 			} else if (message.k === EngineMessageKind.move) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -609,16 +565,15 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
-					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
-					executionId,
+					caseHashDigest,
 					modifiedByUser: false,
 				};
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob, executionId),
+					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
 			} else if (message.k === EngineMessageKind.copy) {
 				const oldUri = Uri.file(message.oldFilePath);
@@ -629,16 +584,15 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
-					codemodSetName,
 					codemodName,
 					createdAt: Date.now(),
-					executionId,
+					caseHashDigest,
 					modifiedByUser: false,
 				};
 
 				job = {
 					...hashlessJob,
-					hash: buildJobHash(hashlessJob, executionId),
+					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
 			} else {
 				throw new Error(`Unrecognized message`);
@@ -651,10 +605,10 @@ export class EngineService {
 			this.#execution.jobs.push(job);
 
 			const kase: Case = {
-				hash: executionId,
+				hash: caseHashDigest,
 				codemodName: job.codemodName,
 				createdAt: Number(this.#execution.happenedAt),
-				path: this.#execution.uri.fsPath,
+				path: this.#execution.targetUri.fsPath,
 			};
 
 			this.#execution.case = kase;
@@ -665,7 +619,6 @@ export class EngineService {
 				kind: MessageKind.upsertCases,
 				kase,
 				jobs: [job],
-				executionId,
 			});
 		});
 
@@ -673,13 +626,13 @@ export class EngineService {
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
-					executionId: this.#execution.executionId,
-					codemodSetName: this.#execution.codemodSetName,
+					caseHashDigest: this.#execution.caseHashDigest,
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
 					case: this.#execution.case,
 					executionErrors,
+					codemodName: this.#execution.codemodName,
 				});
 
 				this.__store.dispatch(

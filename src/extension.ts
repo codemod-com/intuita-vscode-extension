@@ -10,7 +10,7 @@ import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService, Messages } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
-import { buildExecutionId } from './telemetry/hashes';
+import { buildCaseHash } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
 import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
@@ -237,11 +237,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeAsCodemod',
-			async (uri: vscode.Uri) => {
+			async (codemodUri: vscode.Uri) => {
 				try {
-					const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+					const targetUri =
+						vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
 
-					if (!rootUri) {
+					if (targetUri == null) {
 						throw new Error('No workspace has been opened.');
 					}
 
@@ -254,23 +255,23 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const happenedAt = String(Date.now());
-					const executionId = buildExecutionId();
 
-					const fileStat = await vscode.workspace.fs.stat(uri);
-					const directory = Boolean(
+					const fileStat = await vscode.workspace.fs.stat(targetUri);
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
-							uri: rootUri,
+							kind: 'executeLocalCodemod',
+							targetUri,
 							storageUri,
-							fileUri: uri,
-							directory,
+							codemodUri,
+							targetUriIsDirectory,
 						},
 						happenedAt,
-						executionId,
+						caseHashDigest: buildCaseHash(),
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
@@ -288,7 +289,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeCodemod',
-			async (uri: vscode.Uri, hashDigest: CodemodHash) => {
+			async (targetUri: vscode.Uri, codemodHash: CodemodHash) => {
 				try {
 					const { storageUri } = context;
 
@@ -298,38 +299,38 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const executionId = buildExecutionId();
 					const happenedAt = String(Date.now());
 
 					let command: Command;
 
-					if (hashDigest === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
+					if (codemodHash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0') {
 						command = {
 							kind: 'repomod',
-							codemodHash: hashDigest,
-							inputPath: uri,
+							codemodHash,
+							targetUri,
 							storageUri,
-							repomodFilePath: hashDigest,
 						};
 					} else {
-						const fileStat = await vscode.workspace.fs.stat(uri);
-						const directory = Boolean(
+						const fileStat = await vscode.workspace.fs.stat(
+							targetUri,
+						);
+						const targetUriIsDirectory = Boolean(
 							fileStat.type & vscode.FileType.Directory,
 						);
 
 						command = {
 							kind: 'executeCodemod',
 							storageUri,
-							codemodHash: hashDigest,
-							uri,
-							directory,
+							codemodHash,
+							targetUri,
+							targetUriIsDirectory,
 						};
 					}
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command,
-						executionId,
+						caseHashDigest: buildCaseHash(),
 						happenedAt,
 					});
 
@@ -352,7 +353,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeCodemodWithinPath',
-			async (uriArg: vscode.Uri) => {
+			async (uriArg: vscode.Uri | null | undefined) => {
 				try {
 					const { storageUri } = context;
 
@@ -362,12 +363,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const uri =
-						(uriArg ||
-							vscode.window.activeTextEditor?.document.uri) ??
+					const targetUri =
+						uriArg ??
+						vscode.window.activeTextEditor?.document.uri ??
 						null;
 
-					if (uri === null) {
+					if (targetUri === null) {
 						return;
 					}
 
@@ -431,7 +432,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					await mainViewProvider.updateExecutionPath({
-						newPath: uri.path,
+						newPath: targetUri.path,
 						codemodHash: selectedCodemod.hashDigest as CodemodHash,
 						fromVSCodeCommand: true,
 						errorMessage: null,
@@ -449,11 +450,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						),
 					);
 
-					const executionId = buildExecutionId();
-					const happenedAt = String(Date.now());
-
-					const fileStat = await vscode.workspace.fs.stat(uri);
-					const directory = Boolean(
+					const fileStat = await vscode.workspace.fs.stat(targetUri);
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
@@ -464,11 +462,11 @@ export async function activate(context: vscode.ExtensionContext) {
 							storageUri,
 							codemodHash:
 								selectedCodemod.hashDigest as CodemodHash,
-							uri,
-							directory,
+							targetUri,
+							targetUriIsDirectory,
 						},
-						executionId,
-						happenedAt,
+						caseHashDigest: buildCaseHash(),
+						happenedAt: String(Date.now()),
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
@@ -486,7 +484,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executeImportedModOnPath',
-			async (uri: vscode.Uri) => {
+			async (targetUri: vscode.Uri) => {
 				try {
 					const { storageUri } = context;
 
@@ -496,7 +494,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const modUri = vscode.Uri.joinPath(
+					const codemodUri = vscode.Uri.joinPath(
 						storageUri,
 						'jscodeshiftCodemod.ts',
 					);
@@ -517,26 +515,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const buffer = Buffer.from(text);
 					const content = new Uint8Array(buffer);
-					vscode.workspace.fs.writeFile(modUri, content);
+					vscode.workspace.fs.writeFile(codemodUri, content);
 
-					const happenedAt = String(Date.now());
-					const executionId = buildExecutionId();
-
-					const fileStat = await vscode.workspace.fs.stat(uri);
-					const directory = Boolean(
+					const fileStat = await vscode.workspace.fs.stat(targetUri);
+					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
 					);
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
-							uri,
+							kind: 'executeLocalCodemod',
+							targetUri,
 							storageUri,
-							fileUri: modUri,
-							directory,
+							codemodUri,
+							targetUriIsDirectory,
 						},
-						happenedAt,
-						executionId,
+						happenedAt: String(Date.now()),
+						caseHashDigest: buildCaseHash(),
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);

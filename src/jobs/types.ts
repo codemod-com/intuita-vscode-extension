@@ -2,6 +2,7 @@ import { Uri } from 'vscode';
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
 import { withFallback } from 'io-ts-types';
+import { CaseHash, caseHashCodec } from '../cases/types';
 
 interface JobHashBrand {
 	readonly __JobHash: unique symbol;
@@ -31,10 +32,9 @@ export type Job = Readonly<{
 	oldUri: Uri | null;
 	newUri: Uri | null;
 	newContentUri: Uri | null;
-	codemodSetName: string;
 	codemodName: string;
 	createdAt: number;
-	executionId: string;
+	caseHashDigest: CaseHash;
 	modifiedByUser: boolean;
 }>;
 
@@ -51,9 +51,8 @@ export const persistedJobCodec = buildTypeCodec({
 	oldUri: t.union([t.string, t.null]),
 	newUri: t.union([t.string, t.null]),
 	newContentUri: t.union([t.string, t.null]),
-	codemodSetName: t.string,
 	codemodName: t.string,
-	executionId: t.string,
+	caseHashDigest: caseHashCodec,
 	createdAt: t.number,
 	modifiedByUser: withFallback(t.boolean, false),
 });

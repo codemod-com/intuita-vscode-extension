@@ -1,3 +1,5 @@
+import type { CaseHash } from '../cases/types';
+
 export type ErrorEvent = Readonly<{
 	kind: 'failedToExecuteCommand';
 	commandName: string;
@@ -7,24 +9,24 @@ export type Event =
 	| Readonly<{
 			kind: 'codemodExecuted';
 			fileCount: number;
-			executionId: string;
+			executionId: CaseHash;
 			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: 'codemodHalted';
 			fileCount: number;
-			executionId: string;
+			executionId: CaseHash;
 			codemodName: string;
 	  }>
 	| Readonly<{
 			kind: 'jobsAccepted';
 			jobCount: number;
-			executionId: string;
+			executionId: CaseHash;
 	  }>
 	| Readonly<{
 			kind: 'jobsRejected';
 			jobCount: number;
-			executionId: string;
+			executionId: CaseHash;
 	  }>;
 
 export interface Telemetry {

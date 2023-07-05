@@ -49,22 +49,22 @@ export type Command =
 	| Readonly<{
 			kind: 'repomod';
 			codemodHash: CodemodHash;
-			inputPath: Uri;
+			targetUri: Uri;
 			storageUri: Uri;
-			repomodFilePath: string;
 	  }>
 	| Readonly<{
-			fileUri: Uri;
+			kind: 'executeLocalCodemod';
+			codemodUri: Uri;
 			storageUri: Uri;
-			uri: Uri;
-			directory: boolean;
+			targetUri: Uri;
+			targetUriIsDirectory: boolean;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			storageUri: Uri;
-			uri: Uri;
-			directory: boolean;
+			targetUri: Uri;
+			targetUriIsDirectory: boolean;
 	  }>;
 
 export type Message =
@@ -73,7 +73,6 @@ export type Message =
 			kind: MessageKind.upsertCases;
 			kase: Case;
 			jobs: ReadonlyArray<Job>;
-			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
@@ -114,12 +113,12 @@ export type Message =
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 			happenedAt: string;
-			executionId: CaseHash;
+			caseHashDigest: CaseHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
-			executionId: CaseHash;
-			codemodSetName: string;
+			codemodName: string;
+			caseHashDigest: CaseHash;
 			halted: boolean;
 			fileCount: number;
 			jobs: Job[];
