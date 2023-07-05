@@ -206,6 +206,15 @@ const rootSlice = createSlice({
 		},
 		deleteJobs(state, action: PayloadAction<ReadonlyArray<JobHash>>) {
 			jobAdapter.removeMany(state.job, action.payload);
+
+			const caseHashJobHashes = state.caseHashJobHashes.filter(
+				(caseHashJobHash) =>
+					action.payload.every(
+						(jobHash) => !caseHashJobHash.endsWith(jobHash),
+					),
+			);
+
+			state.caseHashJobHashes = caseHashJobHashes;
 		},
 		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
 			state.codemodExecutionInProgress = action.payload;
@@ -291,7 +300,6 @@ const rootSlice = createSlice({
 			state.activeTabId = 'codemodRuns';
 			state.codemodRunsTab.changeExplorerCollapsed = false;
 		},
-		// @TODO
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 

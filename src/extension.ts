@@ -185,16 +185,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					await jobManager.acceptJobs(new Set(selectedJobHashes));
 
-					// needed to recalculate explorer nodes tree
-					// why cant we rely on reactivity?
-					store.dispatch(
-						actions.setExplorerNodes([
-							cashHashDigest,
-							vscode.workspace.workspaceFolders?.[0]?.uri
-								.fsPath ?? '',
-						]),
-					);
-
 					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
