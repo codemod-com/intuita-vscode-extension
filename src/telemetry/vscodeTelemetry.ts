@@ -2,6 +2,7 @@ import TelemetryReporter from '@vscode/extension-telemetry';
 import { Event, ErrorEvent, Telemetry } from './telemetry';
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
 import { Job } from '../jobs/types';
+import { CaseHash } from '../cases/types';
 
 export class VscodeTelemetry implements Telemetry {
 	constructor(
@@ -29,23 +30,23 @@ export class VscodeTelemetry implements Telemetry {
 	): void {
 		const { deletedJobs } = message;
 
-		const jobsByExecution: Record<string, Job[]> = {};
+		const jobsByExecution: Record<CaseHash, Job[]> = {};
 
 		for (const job of deletedJobs) {
-			const { executionId } = job;
+			const { caseHashDigest } = job;
 
-			if (!jobsByExecution[executionId]) {
-				jobsByExecution[executionId] = [];
+			if (!jobsByExecution[caseHashDigest]) {
+				jobsByExecution[caseHashDigest] = [];
 			}
 
-			jobsByExecution[executionId]?.push(job);
+			jobsByExecution[caseHashDigest]?.push(job);
 		}
 
-		for (const [executionId, jobs] of Object.entries(jobsByExecution)) {
+		for (const [caseHashDigest, jobs] of Object.entries(jobsByExecution)) {
 			this.sendEvent({
 				kind: 'jobsAccepted',
 				jobCount: jobs.length,
-				executionId,
+				caseHashDigest: caseHashDigest as CaseHash,
 			});
 		}
 	}
@@ -58,20 +59,20 @@ export class VscodeTelemetry implements Telemetry {
 		const jobsByExecution: Record<string, Job[]> = {};
 
 		for (const job of deletedJobs) {
-			const { executionId } = job;
+			const { caseHashDigest } = job;
 
-			if (!jobsByExecution[executionId]) {
-				jobsByExecution[executionId] = [];
+			if (!jobsByExecution[caseHashDigest]) {
+				jobsByExecution[caseHashDigest] = [];
 			}
 
-			jobsByExecution[executionId]?.push(job);
+			jobsByExecution[caseHashDigest]?.push(job);
 		}
 
-		for (const [executionId, jobs] of Object.entries(jobsByExecution)) {
+		for (const [caseHashDigest, jobs] of Object.entries(jobsByExecution)) {
 			this.sendEvent({
 				kind: 'jobsRejected',
 				jobCount: jobs.length,
-				executionId,
+				caseHashDigest: caseHashDigest as CaseHash,
 			});
 		}
 	}
@@ -79,23 +80,23 @@ export class VscodeTelemetry implements Telemetry {
 	__onCodemodSetExecuted(
 		message: Message & { kind: MessageKind.codemodSetExecuted },
 	): void {
-		const { halted, executionId, jobs, codemodSetName } = message;
+		const { halted, caseHashDigest, jobs, codemodName } = message;
 
 		if (halted) {
 			this.sendEvent({
 				kind: 'codemodHalted',
-				executionId,
+				caseHashDigest,
 				fileCount: jobs.length,
-				codemodName: codemodSetName,
+				codemodName,
 			});
 			return;
 		}
 
 		this.sendEvent({
 			kind: 'codemodExecuted',
-			executionId,
+			caseHashDigest,
 			fileCount: jobs.length,
-			codemodName: codemodSetName,
+			codemodName,
 		});
 	}
 
