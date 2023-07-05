@@ -8,7 +8,7 @@ import { PanelViewProps } from './panelViewProps';
 import { WebviewMessage, WebviewResponse } from './webviewEvents';
 import { actions } from '../../data/slice';
 import { CodemodDescriptionProvider } from './CodemodDescriptionProvider';
-import { selectNodeData } from '../../selectors/selectExplorerTree';
+import { selectExplorerTree } from '../../selectors/selectExplorerTree';
 import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
@@ -93,7 +93,13 @@ const selectPanelViewProps = (
 		return null;
 	}
 
-	const nodeData = selectNodeData(state, selectedCaseHash);
+	const tree = selectExplorerTree(state, rootPath);
+
+	if (tree === null) {
+		return null;
+	}
+
+	const { nodeData } = tree;
 
 	const jobNodes = nodeData
 		.map(({ node }) => node)

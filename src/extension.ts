@@ -168,7 +168,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const state = store.getState();
 
-					const tree = selectExplorerTree(state);
+					const tree = selectExplorerTree(
+						state,
+						vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ??
+							'',
+					);
 
 					if (tree === null) {
 						store.dispatch(

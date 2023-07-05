@@ -1,10 +1,10 @@
-import platformPath from 'path';
 import {
 	createSlice,
 	createEntityAdapter,
 	PayloadAction,
 } from '@reduxjs/toolkit';
-import { go } from 'fuzzysort';
+
+import * as vscode from 'vscode';
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
@@ -17,25 +17,12 @@ import {
 	RootState,
 } from '../persistedState/codecs';
 import {
+	selectExplorerNodes,
 	selectNodeData,
-	selectSearchPhrase,
 } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
-import {
-	_ExplorerNode,
-	_ExplorerNodeHashDigest,
-} from '../persistedState/explorerNodeCodec';
-import {
-	buildHash,
-	isNeitherNullNorUndefined,
-	findParentExplorerNode,
-} from '../utilities';
-import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import {
-	comparePersistedJobs,
-	doesJobAddNewFile,
-	getPersistedJobUri,
-} from '../selectors/comparePersistedJobs';
+import { _ExplorerNodeHashDigest } from '../persistedState/explorerNodeCodec';
+import { findParentExplorerNode } from '../utilities';
 
 const SLICE_KEY = 'root';
 
@@ -80,7 +67,6 @@ export const getInitialState = (): RootState => {
 		applySelectedInProgress: false,
 		activeTabId: 'codemods',
 		explorerSearchPhrases: {},
-		explorerNodes: {},
 		selectedExplorerNodes: {},
 		// indeterminate explorer node is a node some (but not all) of whose children are deselected.
 		// For such node, we will use indeterminate checkbox icon.
@@ -89,8 +75,6 @@ export const getInitialState = (): RootState => {
 		focusedExplorerNodes: {},
 	};
 };
-
-const FUZZY_SEARCH_MINIMUM_SCORE = -1000;
 
 const rootSlice = createSlice({
 	name: SLICE_KEY,
@@ -129,7 +113,6 @@ const rootSlice = createSlice({
 				}
 
 				delete state.explorerSearchPhrases[caseHash];
-				delete state.explorerNodes[caseHash];
 				delete state.selectedExplorerNodes[caseHash];
 				delete state.indeterminateExplorerNodes[caseHash];
 				delete state.collapsedExplorerNodes[caseHash];
@@ -148,7 +131,6 @@ const rootSlice = createSlice({
 			state.codemodRunsTab.selectedCaseHash = null;
 
 			state.explorerSearchPhrases = {};
-			state.explorerNodes = {};
 			state.selectedExplorerNodes = {};
 			state.indeterminateExplorerNodes = {};
 			state.collapsedExplorerNodes = {};
@@ -264,8 +246,13 @@ const rootSlice = createSlice({
 			action: PayloadAction<[CaseHash, 'prev' | 'next']>,
 		) {
 			const [caseHash, direction] = action.payload;
-
-			const prevNodeData = selectNodeData(state, caseHash);
+			const explorerNodes =
+				selectExplorerNodes(
+					state,
+					caseHash,
+					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+				) ?? [];
+			const prevNodeData = selectNodeData(state, caseHash, explorerNodes);
 			const focused = state.focusedExplorerNodes[caseHash] ?? null;
 
 			const index = prevNodeData.findIndex((nodeDatum) => {
@@ -304,6 +291,7 @@ const rootSlice = createSlice({
 			state.activeTabId = 'codemodRuns';
 			state.codemodRunsTab.changeExplorerCollapsed = false;
 		},
+		// @TODO
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 
@@ -312,160 +300,25 @@ const rootSlice = createSlice({
 
 			state.codemodRunsTab.selectedCaseHash = caseHash;
 
+			const explorerNodes =
+				selectExplorerNodes(state, caseHash, rootPath) ?? [];
+
 			const kase = state.case.entities[caseHash] ?? null;
 
 			if (kase === null) {
 				return;
 			}
 
-			const nodes: Record<_ExplorerNodeHashDigest, _ExplorerNode> = {};
-
-			// we can iterate through the sets based on the insertion order
-			// that's why we can push hashes into the set coming from
-			// the alphanumerical sorting of the job URIs and the iteration order
-			// is maintained
-			const children: Record<
-				_ExplorerNodeHashDigest,
-				Set<_ExplorerNodeHashDigest>
-			> = {};
-
-			const rootNode: _ExplorerNode = {
-				kind: 'ROOT',
-				hashDigest: buildHash('ROOT') as _ExplorerNodeHashDigest,
-				label: platformPath.basename(rootPath),
-				depth: 0,
-			};
-
-			nodes[rootNode.hashDigest] = rootNode;
-			children[rootNode.hashDigest] = new Set();
-
-			const caseJobManager = new LeftRightHashSetManager<
-				CaseHash,
-				JobHash
-			>(new Set(state.caseHashJobHashes));
-
-			const jobs = Array.from(
-				caseJobManager.getRightHashesByLeftHash(kase.hash),
-			)
-				.map((jobHash) => state.job.entities[jobHash])
-				.filter(isNeitherNullNorUndefined);
-
-			if (jobs.length !== 0) {
+			if (explorerNodes.length !== 0) {
 				state.activeTabId = 'codemodRuns';
 			}
 
-			const filteredJobs = jobs.sort(comparePersistedJobs);
+			const focusedExplorerNode = explorerNodes[0]?.hashDigest ?? null;
 
-			const properSearchPhrase = selectSearchPhrase(state, caseHash);
-
-			const allJobPaths = filteredJobs
-				.map((j) => {
-					const uri = getPersistedJobUri(j);
-
-					return uri?.fsPath.toLocaleLowerCase() ?? null;
-				})
-				.filter(isNeitherNullNorUndefined);
-
-			const searchResults = go(properSearchPhrase, allJobPaths)
-				.filter((r) => r.score > FUZZY_SEARCH_MINIMUM_SCORE)
-				.map((r) => r.target);
-
-			for (const job of filteredJobs) {
-				const uri = getPersistedJobUri(job);
-
-				if (uri === null) {
-					continue;
-				}
-
-				if (
-					properSearchPhrase !== '' &&
-					!searchResults.includes(uri.fsPath.toLocaleLowerCase())
-				) {
-					continue;
-				}
-
-				const path = uri.fsPath.replace(rootPath, '');
-
-				path.split(platformPath.sep)
-					.filter((name) => name !== '')
-					.map((name, i, names) => {
-						if (names.length - 1 === i) {
-							return {
-								kind: 'FILE' as const,
-								hashDigest: buildHash(
-									['FILE', job.hash, name].join(''),
-								) as _ExplorerNodeHashDigest,
-								path,
-								label: name,
-								depth: i + 1,
-								jobHash: job.hash,
-								fileAdded: doesJobAddNewFile(job.kind),
-							};
-						}
-
-						const directoryPath = names
-							.slice(0, i + 1)
-							.join(platformPath.sep);
-
-						return {
-							kind: 'DIRECTORY' as const,
-							path,
-							hashDigest: buildHash(
-								['DIRECTORY', directoryPath, name].join(''),
-							) as _ExplorerNodeHashDigest,
-							label: name,
-							depth: i + 1,
-						};
-					})
-					.forEach((node, i, pathNodes) => {
-						const parentNodeHash =
-							i === 0
-								? rootNode.hashDigest
-								: pathNodes[i - 1]?.hashDigest ??
-								  rootNode.hashDigest;
-
-						children[parentNodeHash]?.add(node.hashDigest);
-
-						nodes[node.hashDigest] = node;
-						children[node.hashDigest] =
-							children[node.hashDigest] ?? new Set();
-					});
-			}
-
-			const explorerNodes: _ExplorerNode[] = [];
-
-			const appendExplorerNode = (
-				hashDigest: _ExplorerNodeHashDigest,
-			) => {
-				const node = nodes[hashDigest] ?? null;
-
-				if (node === null) {
-					return;
-				}
-
-				explorerNodes.push(node);
-
-				children[node.hashDigest]?.forEach((child) => {
-					appendExplorerNode(child);
-				});
-			};
-
-			appendExplorerNode(rootNode.hashDigest);
-
-			const fileNodes = explorerNodes.filter<
-				_ExplorerNode & { kind: 'FILE' }
-			>(
-				(node): node is _ExplorerNode & { kind: 'FILE' } =>
-					node.kind === 'FILE',
-			);
-
-			const focusedExplorerNode = fileNodes[0]?.hashDigest ?? null;
-
-			state.explorerNodes[caseHash] = explorerNodes;
 			state.collapsedExplorerNodes[caseHash] = [];
 			state.indeterminateExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
-				({ hashDigest }) => hashDigest,
+				(node) => node.hashDigest,
 			);
 
 			if (focusedExplorerNode === null) {
@@ -480,7 +333,12 @@ const rootSlice = createSlice({
 		) {
 			const [caseHash, explorerNodeHashDigest] = action.payload;
 
-			const explorerNodes = state.explorerNodes[caseHash] ?? [];
+			const explorerNodes =
+				selectExplorerNodes(
+					state,
+					caseHash,
+					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+				) ?? [];
 
 			const index =
 				explorerNodes.findIndex(

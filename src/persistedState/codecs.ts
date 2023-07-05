@@ -6,10 +6,7 @@ import { withFallback } from 'io-ts-types';
 import { persistedJobCodec } from '../jobs/types';
 import { caseCodec, caseHashCodec } from '../cases/types';
 import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
-import {
-	_explorerNodeCodec,
-	_explorerNodeHashDigestCodec,
-} from './explorerNodeCodec';
+import { _explorerNodeHashDigestCodec } from './explorerNodeCodec';
 
 export const syntheticErrorCodec = buildTypeCodec({
 	kind: t.literal('syntheticError'),
@@ -114,10 +111,6 @@ export const persistedStateCodecNew = buildTypeCodec({
 	applySelectedInProgress: withFallback(t.boolean, false),
 	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
 	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
-	explorerNodes: withFallback(
-		t.record(caseHashCodec, t.readonlyArray(_explorerNodeCodec)),
-		{},
-	),
 	selectedExplorerNodes: withFallback(
 		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
 		{},
