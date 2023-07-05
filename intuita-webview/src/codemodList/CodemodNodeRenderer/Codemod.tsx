@@ -75,7 +75,16 @@ const renderActionButtons = (
 					});
 				}}
 			>
-				{doesDisplayShortenedTitle ? '✓' : '✓ Dry Run'}
+				{doesDisplayShortenedTitle ? (
+					<span className={cn('codicon', 'codicon-play')} />
+				) : (
+					<div style={{ display: 'flex' }}>
+						<span
+							className={cn('codicon', 'codicon-play', 'mr-2')}
+						/>
+						Dry Run
+					</div>
+				)}
 			</ActionButton>
 		);
 	}
