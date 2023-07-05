@@ -6,7 +6,7 @@ import { ExecutionError } from '../errors/types';
 
 export const enum MessageKind {
 	/** cases and jobs */
-	upsertCases = 3,
+	upsertCase = 3,
 	upsertJobs = 4,
 
 	rejectCase = 5,
@@ -47,30 +47,21 @@ export const enum MessageKind {
 
 export type Command =
 	| Readonly<{
-			kind: 'repomod';
+			kind: 'executeRepomod';
 			codemodHash: CodemodHash;
-			targetUri: Uri;
-			storageUri: Uri;
-	  }>
-	| Readonly<{
-			kind: 'executeLocalCodemod';
-			codemodUri: Uri;
-			storageUri: Uri;
-			targetUri: Uri;
-			targetUriIsDirectory: boolean;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
-			storageUri: Uri;
-			targetUri: Uri;
-			targetUriIsDirectory: boolean;
+	  }>
+	| Readonly<{
+			kind: 'executeLocalCodemod';
+			codemodUri: Uri;
 	  }>;
 
 export type Message =
 	| Readonly<{
-			// TODO change it later to `upsertCase`
-			kind: MessageKind.upsertCases;
+			kind: MessageKind.upsertCase;
 			kase: Case;
 			jobs: ReadonlyArray<Job>;
 	  }>
@@ -114,6 +105,9 @@ export type Message =
 			command: Command;
 			happenedAt: string;
 			caseHashDigest: CaseHash;
+			storageUri: Uri;
+			targetUri: Uri;
+			targetUriIsDirectory: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
