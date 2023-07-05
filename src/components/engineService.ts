@@ -619,7 +619,6 @@ export class EngineService {
 				kind: MessageKind.upsertCases,
 				kase,
 				jobs: [job],
-				caseHashDigest,
 			});
 		});
 

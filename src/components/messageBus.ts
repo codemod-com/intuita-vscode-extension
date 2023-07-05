@@ -73,7 +73,6 @@ export type Message =
 			kind: MessageKind.upsertCases;
 			kase: Case;
 			jobs: ReadonlyArray<Job>;
-			caseHashDigest: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
