@@ -1,7 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
-import { ReactComponent as UnpublishedMaterialIcon } from '../../assets/material-icons/unpublished.svg';
-import { ReactComponent as CheckCircleMaterialIcon } from '../../assets/material-icons/check_circle.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
@@ -205,9 +203,22 @@ const Codemod = ({
 				>
 					<span style={{ display: 'flex' }}>
 						{intuitaCertified ? (
-							<CheckCircleMaterialIcon fill="var(--vscode-focusBorder)" />
+							<span
+								className={cn('codicon', 'codicon-verified')}
+								style={{
+									width: '16px',
+									height: '16px',
+									color: 'var(--vscode-focusBorder)',
+								}}
+							/>
 						) : (
-							<UnpublishedMaterialIcon fill="var(--vscode-icon-foreground)" />
+							<span
+								className={cn('codicon', 'codicon-unverified')}
+								style={{
+									width: '16px',
+									height: '16px',
+								}}
+							/>
 						)}
 					</span>
 				</IntuitaPopover>
