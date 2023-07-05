@@ -164,8 +164,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const cashHashDigest = validation.right;
-
 					const state = store.getState();
 
 					const tree = selectExplorerTree(
