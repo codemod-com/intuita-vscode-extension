@@ -48,6 +48,7 @@ export const selectExplorerNodes = (
 		hashDigest: buildHash('ROOT') as _ExplorerNodeHashDigest,
 		label: platformPath.basename(rootPath),
 		depth: 0,
+		childCount: 0,
 	};
 
 	nodes[rootNode.hashDigest] = rootNode;
@@ -122,6 +123,7 @@ export const selectExplorerNodes = (
 					) as _ExplorerNodeHashDigest,
 					label: name,
 					depth: i + 1,
+					childCount: 0,
 				};
 			})
 			.forEach((node, i, pathNodes) => {
@@ -143,15 +145,35 @@ export const selectExplorerNodes = (
 	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
 		const node = nodes[hashDigest] ?? null;
 
+		let childCount = 0;
+
 		if (node === null) {
-			return;
+			return childCount;
 		}
 
-		explorerNodes.push(node);
+		childCount = Array.from(children[node.hashDigest] ?? [])
+			.map((childHash) => nodes[childHash])
+			.filter(
+				(node) =>
+					node?.kind === 'FILE' &&
+					state.selectedExplorerNodes[caseHash]?.includes(
+						node.hashDigest,
+					),
+			).length;
+
+		const pushedAtIndex = explorerNodes.push(node) - 1;
 
 		children[node.hashDigest]?.forEach((child) => {
-			appendExplorerNode(child);
+			childCount += appendExplorerNode(child);
 		});
+
+		if (node.kind === 'FILE') {
+			return childCount;
+		}
+
+		explorerNodes[pushedAtIndex] = { ...node, childCount };
+
+		return childCount;
 	};
 
 	appendExplorerNode(rootNode.hashDigest);

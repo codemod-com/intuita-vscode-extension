@@ -25,6 +25,7 @@ export const _explorerNodeCodec = t.union([
 		kind: t.literal('ROOT'),
 		label: t.string,
 		depth: t.number,
+		childCount: t.number,
 	}),
 	buildTypeCodec({
 		hashDigest: _explorerNodeHashDigestCodec,
@@ -32,6 +33,7 @@ export const _explorerNodeCodec = t.union([
 		path: t.string,
 		label: t.string,
 		depth: t.number,
+		childCount: t.number,
 	}),
 	buildTypeCodec({
 		hashDigest: _explorerNodeHashDigestCodec,
