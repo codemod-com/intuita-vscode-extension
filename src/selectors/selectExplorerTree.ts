@@ -159,13 +159,17 @@ export const selectExplorerNodes = (
 	return explorerNodes;
 };
 
-export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
+export const selectNodeData = (
+	state: RootState,
+	caseHash: CaseHash,
+	explorerNodes: _ExplorerNode[],
+) => {
 	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
 
 	let maximumDepth = Number.MAX_SAFE_INTEGER;
 
 	return (
-		state.explorerNodes[caseHash]
+		explorerNodes
 			?.map((node) => {
 				if (maximumDepth < node.depth) {
 					return null;
@@ -197,7 +201,7 @@ export const selectNodeData = (state: RootState, caseHash: CaseHash) => {
 	);
 };
 
-export const selectExplorerTree = (state: RootState) => {
+export const selectExplorerTree = (state: RootState, rootPath: string) => {
 	if (state.codemodExecutionInProgress) {
 		return null;
 	}
@@ -214,8 +218,9 @@ export const selectExplorerTree = (state: RootState) => {
 		return null;
 	}
 
-	const nodeData = selectNodeData(state, caseHash);
-	const nodes = state.explorerNodes[caseHash] ?? [];
+	const explorerNodes = selectExplorerNodes(state, caseHash, rootPath) ?? [];
+	const nodeData = selectNodeData(state, caseHash, explorerNodes);
+	const nodes = explorerNodes;
 
 	const fileNodes = nodes.filter(
 		(node): node is _ExplorerNode & { kind: 'FILE' } =>
