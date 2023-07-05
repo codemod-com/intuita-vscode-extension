@@ -22,9 +22,9 @@ import { actions } from './data/slice';
 import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
-import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
+import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 
 const messageBus = new MessageBus();
 
