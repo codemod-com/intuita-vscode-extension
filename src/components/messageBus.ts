@@ -114,11 +114,11 @@ export type Message =
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 			happenedAt: string;
-			executionId: string;
+			executionId: CaseHash;
 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
-			executionId: string;
+			executionId: CaseHash;
 			codemodSetName: string;
 			halted: boolean;
 			fileCount: number;

@@ -4,7 +4,7 @@ import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { commands, FileSystem, Uri, window, workspace } from 'vscode';
-import { Case, CaseKind } from '../cases/types';
+import { Case, CaseHash } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
@@ -17,7 +17,6 @@ import {
 } from '../utilities';
 import { Command, Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
-import { buildCaseHash } from '../cases/buildCaseHash';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
@@ -101,7 +100,7 @@ export const messageCodec = t.union([
 ]);
 
 type Execution = {
-	readonly executionId: string;
+	readonly executionId: CaseHash;
 	readonly childProcess: ChildProcessWithoutNullStreams;
 	readonly codemodSetName: string;
 	readonly codemodHash?: CodemodHash;
@@ -118,7 +117,7 @@ type ExecuteCodemodMessage = Readonly<{
 	kind: MessageKind.executeCodemodSet;
 	command: Command & { codemodHash: CodemodHash };
 	happenedAt: string;
-	executionId: string;
+	executionId: CaseHash;
 }>;
 
 export class EngineService {
@@ -421,8 +420,6 @@ export class EngineService {
 
 		const args = buildArguments();
 
-		const caseKind = CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE;
-
 		const childProcess = spawn(
 			singleQuotify(this.#noraNodeEngineExecutableUri.fsPath),
 			args,
@@ -661,13 +658,7 @@ export class EngineService {
 			this.#execution.jobs.push(job);
 
 			const kase: Case = {
-				hash: buildCaseHash(
-					{ kind: caseKind, subKind: codemodName },
-					executionId,
-				),
-				kind: caseKind,
-				subKind: codemodName,
-				codemodSetName: job.codemodSetName,
+				hash: executionId,
 				codemodName: job.codemodName,
 				createdAt: Number(this.#execution.happenedAt),
 				path: this.#execution.uri.fsPath,

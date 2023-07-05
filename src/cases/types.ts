@@ -14,15 +14,8 @@ export const caseHashCodec = t.brand(
 
 export type CaseHash = t.TypeOf<typeof caseHashCodec>;
 
-export const enum CaseKind {
-	REWRITE_FILE_BY_NORA_NODE_ENGINE = 2,
-}
-
 export const caseCodec = buildTypeCodec({
-	kind: t.literal(CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE),
-	subKind: t.string,
 	hash: caseHashCodec,
-	codemodSetName: t.string,
 	codemodName: t.string,
 	createdAt: t.number,
 	path: t.string,
