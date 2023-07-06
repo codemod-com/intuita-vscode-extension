@@ -335,6 +335,15 @@ const rootSlice = createSlice({
 				state.focusedExplorerNodes[caseHash] = focusedExplorerNode;
 			}
 		},
+		clearSelectedExplorerNodes(state, action: PayloadAction<CaseHash>) {
+			state.selectedExplorerNodes[action.payload] = [];
+		},
+		clearIndeterminateExplorerNodes(
+			state,
+			action: PayloadAction<CaseHash>,
+		) {
+			state.indeterminateExplorerNodes[action.payload] = [];
+		},
 		flipSelectedExplorerNode(
 			state,
 			action: PayloadAction<[CaseHash, _ExplorerNodeHashDigest]>,
@@ -361,8 +370,6 @@ const rootSlice = createSlice({
 
 			const selectedHashDigests =
 				state.selectedExplorerNodes[caseHash] ?? [];
-			const hashDigestsOfNodesWithDeselectedChildren =
-				state.indeterminateExplorerNodes[caseHash] ?? [];
 
 			if (explorerNode.kind === 'FILE') {
 				if (selectedHashDigests.includes(explorerNodeHashDigest)) {
@@ -391,16 +398,17 @@ const rootSlice = createSlice({
 					hashDigests.push(node.hashDigest);
 				}
 
+				const indeterminateHashDigests =
+					state.indeterminateExplorerNodes[caseHash] ?? [];
+
 				state.indeterminateExplorerNodes[caseHash] =
-					hashDigestsOfNodesWithDeselectedChildren.filter(
+					indeterminateHashDigests.filter(
 						(hashDigest) => !hashDigests.includes(hashDigest),
 					);
 
 				if (
 					selectedHashDigests.includes(explorerNodeHashDigest) ||
-					hashDigestsOfNodesWithDeselectedChildren.includes(
-						explorerNodeHashDigest,
-					)
+					indeterminateHashDigests.includes(explorerNodeHashDigest)
 				) {
 					// deselect the directory and the files within it
 					state.selectedExplorerNodes[caseHash] =
@@ -422,7 +430,7 @@ const rootSlice = createSlice({
 			while (currIndex > 0) {
 				const updatedSelectedHashDigests =
 					state.selectedExplorerNodes[caseHash] ?? [];
-				const updatedHashDigestsOfNodesWithDeselectedChildren =
+				const updatedIndeterminateHashDigests =
 					state.indeterminateExplorerNodes[caseHash] ?? [];
 
 				const currNode = explorerNodes[currIndex] ?? null;
@@ -476,7 +484,7 @@ const rootSlice = createSlice({
 						),
 					);
 					state.indeterminateExplorerNodes[caseHash] =
-						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
+						updatedIndeterminateHashDigests.filter(
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
 				} else if (allDeselected) {
@@ -485,7 +493,7 @@ const rootSlice = createSlice({
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
 					state.indeterminateExplorerNodes[caseHash] =
-						updatedHashDigestsOfNodesWithDeselectedChildren.filter(
+						updatedIndeterminateHashDigests.filter(
 							(hashDigest) => hashDigest !== parentHashDigest,
 						);
 				} else {
@@ -497,9 +505,9 @@ const rootSlice = createSlice({
 
 					state.indeterminateExplorerNodes[caseHash] = Array.from(
 						new Set<_ExplorerNodeHashDigest>(
-							updatedHashDigestsOfNodesWithDeselectedChildren.concat(
-								[parentNode.node.hashDigest],
-							),
+							updatedIndeterminateHashDigests.concat([
+								parentNode.node.hashDigest,
+							]),
 						),
 					);
 				}

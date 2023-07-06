@@ -164,6 +164,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
+					const caseHashDigest = validation.right;
+
 					const state = store.getState();
 
 					const tree = selectExplorerTree(
@@ -182,6 +184,13 @@ export async function activate(context: vscode.ExtensionContext) {
 					const { selectedJobHashes } = tree;
 
 					await jobManager.acceptJobs(new Set(selectedJobHashes));
+
+					store.dispatch(
+						actions.clearSelectedExplorerNodes(caseHashDigest),
+					);
+					store.dispatch(
+						actions.clearIndeterminateExplorerNodes(caseHashDigest),
+					);
 
 					vscode.commands.executeCommand('workbench.view.scm');
 				} catch (e) {
