@@ -316,6 +316,10 @@ export class MainViewProvider implements WebviewViewProvider {
 				actions.collapseChangeExplorerPanel(message.collapsed),
 			);
 		}
+
+		if (message.kind === 'webview.global.requestFocusChange') {
+			console.log(message);
+		}
 	};
 
 	public updateExecutionPath = async ({

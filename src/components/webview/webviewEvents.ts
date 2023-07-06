@@ -35,6 +35,10 @@ export type RunCodemodsCommand = Readonly<{
 
 export type WebviewMessage =
 	| Readonly<{
+			kind: 'webview.global.setFocus';
+			id: string;
+	  }>
+	| Readonly<{
 			kind: 'webview.setPanelViewProps';
 			panelViewProps: PanelViewProps;
 	  }>
@@ -57,6 +61,11 @@ export type WebviewMessage =
 	  }>;
 
 export type WebviewResponse =
+	| Readonly<{
+			kind: 'webview.global.requestFocusChange';
+			id: string;
+			key: string;
+	  }>
 	| Readonly<{
 			kind: 'webview.jobDiffView.webviewMounted';
 	  }>
