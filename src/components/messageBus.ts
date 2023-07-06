@@ -61,6 +61,7 @@ export type Command =
 	| Readonly<{
 			kind: 'executePiranhaRule';
 			configurationUri: Uri;
+			language: string;
 	  }>;
 
 export type Message =

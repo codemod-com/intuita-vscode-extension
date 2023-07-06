@@ -316,11 +316,21 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('No storage URI, aborting the command.');
 				}
 
+				const language =
+					(await vscode.window.showQuickPick(['java', 'ts', 'tsx'], {
+						title: 'Select the language to run Piranha against',
+					})) ?? null;
+
+				if (language == null) {
+					throw new Error('You must specify the language');
+				}
+
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,
 					command: {
 						kind: 'executePiranhaRule',
 						configurationUri,
+						language,
 					},
 					happenedAt: String(Date.now()),
 					caseHashDigest: buildCaseHash(),

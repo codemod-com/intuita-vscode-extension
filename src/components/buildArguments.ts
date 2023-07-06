@@ -19,6 +19,7 @@ export const buildArguments = (
 		args.push('-i', singleQuotify(message.targetUri.fsPath));
 		args.push('-c', singleQuotify(command.configurationUri.fsPath));
 		args.push('-o', singleQuotify(storageUri.fsPath));
+		args.push('-l', command.language);
 
 		// configuration.includePatterns.forEach((includePattern) => {
 		// 	const { fsPath } = Uri.joinPath(message.targetUri, includePattern);

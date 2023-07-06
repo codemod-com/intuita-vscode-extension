@@ -131,7 +131,7 @@ export class EngineService {
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.__codemodEngineNodeExecutableUri =
-			message.noraNodeEngineExecutableUri;
+			message.codemodEngineNodeExecutableUri;
 
 		this.__fetchCodemods();
 	}
