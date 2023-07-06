@@ -84,7 +84,7 @@ const TreeItem = ({
 			) : null}
 			{startDecorator}
 			{icon !== null && (
-				<div className="changeExplorerIcon" style={inlineStyles?.icon}>
+				<div className="defaultIcon" style={inlineStyles?.icon}>
 					{icon}
 				</div>
 			)}

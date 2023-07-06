@@ -202,7 +202,7 @@ const Codemod = ({
 
 	return (
 		<>
-			<div className="changeExplorerIcon">
+			{!editingPath && (
 				<IntuitaPopover
 					content={
 						intuitaCertified
@@ -210,34 +210,30 @@ const Codemod = ({
 							: 'This is a community codemod.'
 					}
 				>
-					<span style={{ display: 'flex' }}>
-						{intuitaCertified ? (
-							<span
-								className={cn('codicon', 'codicon-verified')}
-								style={{
-									color: 'var(--vscode-focusBorder)',
-								}}
-							/>
-						) : (
-							<span
-								className={cn('codicon', 'codicon-unverified')}
-							/>
-						)}
-					</span>
+					{intuitaCertified ? (
+						<span
+							className={cn('codicon', 'codicon-verified')}
+							style={{
+								color: 'var(--vscode-focusBorder)',
+							}}
+						/>
+					) : (
+						<span className={cn('codicon', 'codicon-unverified')} />
+					)}
 				</IntuitaPopover>
-			</div>
+			)}
+
 			<div className="flex w-full flex-col">
 				<span className={styles.labelContainer}>
-					<span
-						style={{
-							...(editingPath && {
-								display: 'none',
-							}),
-							userSelect: 'none',
-						}}
-					>
-						{label}
-					</span>
+					{!editingPath && (
+						<span
+							style={{
+								userSelect: 'none',
+							}}
+						>
+							{label}
+						</span>
+					)}
 					<span
 						className={styles.directorySelector}
 						ref={directorySelectorRef}
@@ -246,6 +242,7 @@ const Codemod = ({
 								display: 'flex',
 								width: '100%',
 								opacity: 1,
+								marginRight: '2.5px',
 							}),
 						}}
 					>
@@ -254,12 +251,7 @@ const Codemod = ({
 								defaultValue={targetPath}
 								displayValue={
 									notEnoughSpace ? (
-										<EditMaterialIcon
-											style={{
-												width: '16px',
-												height: '16px',
-											}}
-										/>
+										<EditMaterialIcon className="defaultIcon" />
 									) : null
 								}
 								rootPath={rootPath}

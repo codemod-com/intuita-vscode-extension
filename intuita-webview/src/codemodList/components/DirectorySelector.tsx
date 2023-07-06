@@ -224,7 +224,7 @@ export const DirectorySelector = ({
 	if (editing) {
 		return (
 			<div
-				className="flex flex-row justify-between ml-10 align-items-center"
+				className="flex flex-row justify-between align-items-center"
 				style={{
 					width: '100%',
 				}}
