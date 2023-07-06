@@ -27,7 +27,8 @@ import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { jobHashCodec } from './jobs/types';
-import { formatText, getConfig } from './formatter';
+import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
+import { Options } from 'prettier';
 
 const messageBus = new MessageBus();
 
@@ -759,7 +760,27 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					const newContent = readFileSync(newContentUri, 'utf8');
-					const formatterConfig = await getConfig(rootUri.fsPath);
+
+					let formatterConfig: Options | null = null;
+
+					try {
+						formatterConfig = await getConfig(rootUri.fsPath);
+					} catch (e) {
+						const positiveChoice = 'Yes, use default';
+						const negativeChoice = 'Cancel';
+
+						const choice = await vscode.window.showWarningMessage(
+							'Unable to resolve config. Would you like to use the default configuration instead?',
+							positiveChoice,
+							negativeChoice,
+						);
+
+						if (choice !== positiveChoice) {
+							return;
+						}
+
+						formatterConfig = DEFAULT_PRETTIER_OPTIONS;
+					}
 
 					const formattedText = await formatText(
 						newContent,
