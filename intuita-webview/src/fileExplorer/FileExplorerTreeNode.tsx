@@ -91,6 +91,7 @@ const FileExplorerTreeNode = ({
 			label={label}
 			subLabel=""
 			icon={<Icon iconName={iconName} />}
+			indent={getIndent(kind, depth)}
 			depth={depth}
 			open={open}
 			focused={focused}
@@ -108,9 +109,6 @@ const FileExplorerTreeNode = ({
 						backgroundColor: 'var(--vscode-list-hoverBackground)',
 					}),
 					paddingRight: 4,
-				},
-				indent: {
-					minWidth: `${getIndent(kind, depth)}px`,
 				},
 			}}
 		/>

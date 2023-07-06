@@ -12,6 +12,7 @@ export type Props = Readonly<{
 	hasChildren: boolean;
 	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
+	indent: number;
 	startDecorator?: ReactNode;
 	endDecorator?: ReactNode;
 	inlineStyles?: {
@@ -20,7 +21,6 @@ export type Props = Readonly<{
 		label?: CSSProperties;
 		subLabel?: CSSProperties;
 		actions?: CSSProperties;
-		indent?: CSSProperties;
 	};
 	onPressChevron?(event: React.MouseEvent<HTMLSpanElement>): void;
 }>;
@@ -35,7 +35,7 @@ const TreeItem = ({
 	startDecorator,
 	hasChildren,
 	onClick,
-	depth,
+	indent,
 	inlineStyles,
 	onPressChevron,
 	endDecorator,
@@ -70,8 +70,7 @@ const TreeItem = ({
 		>
 			<div
 				style={{
-					minWidth: `${depth * 18}px`,
-					...(inlineStyles?.indent ?? {}),
+					minWidth: `${indent}px`,
 				}}
 			/>
 			{hasChildren ? (
