@@ -13,7 +13,7 @@ const DEFAULT_PRETTIER_OPTIONS: Options = {
 	parser: 'typescript',
 };
 
-const getConfig = async (path: string): Promise<Options> => {
+export const getConfig = async (path: string): Promise<Options> => {
 	try {
 		const config = await resolveConfig(path);
 
@@ -35,12 +35,10 @@ const getConfig = async (path: string): Promise<Options> => {
 };
 
 export const formatText = async (
-	path: string,
 	data: string,
+	options: Options,
 ): Promise<string> => {
 	try {
-		const options = await getConfig(path);
-
 		return format(data, options);
 	} catch (err) {
 		return data;

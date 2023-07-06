@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
@@ -25,6 +26,8 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
+import { jobHashCodec } from './jobs/types';
+import { formatText, getConfig } from './formatter';
 
 const messageBus = new MessageBus();
 
@@ -730,4 +733,50 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
 	});
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.formatJobNewContent',
+			async (arg0: unknown) => {
+				try {
+					const validation = jobHashCodec.decode(arg0);
+
+					if (validation._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(validation).join('\n'),
+						);
+					}
+
+					const jobHash = validation.right;
+					const job = store.getState().job.entities[jobHash];
+
+					const newContentUri = job?.newContentUri ?? null;
+
+					if (newContentUri === null) {
+						throw new Error(
+							'Unable to format file: missing newContentUri',
+						);
+					}
+
+					const newContent = readFileSync(newContentUri, 'utf8');
+					const formatterConfig = await getConfig(rootUri.fsPath);
+
+					const formattedText = await formatText(
+						newContent,
+						formatterConfig,
+					);
+
+					jobManager.changeJobContent(jobHash, formattedText);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.formatJobNewContent',
+					});
+				}
+			},
+		),
+	);
 }
