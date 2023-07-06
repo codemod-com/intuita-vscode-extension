@@ -54,6 +54,7 @@ export const App = (
 						subLabel=""
 						icon={<CaseIcon />}
 						depth={props.nodeDatum.depth}
+						indent={props.nodeDatum.depth * 18}
 						open={false}
 						focused={props.nodeDatum.focused}
 						onClick={(event) => {
