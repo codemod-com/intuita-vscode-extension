@@ -177,13 +177,13 @@ export const selectExplorerNodes = (
 
 		const node = nodes[hashDigest] ?? null;
 
-		let selectedFilesCount = 0;
+		let selectedFileCount = 0;
 
 		if (node === null) {
-			return selectedFilesCount;
+			return selectedFileCount;
 		}
 
-		selectedFilesCount = Array.from(children[node.hashDigest] ?? [])
+		selectedFileCount = Array.from(children[node.hashDigest] ?? [])
 			.map((childHash) => nodes[childHash])
 			.filter(
 				(node) =>
@@ -196,19 +196,19 @@ export const selectExplorerNodes = (
 		const pushedAtIndex = explorerNodes.push(node) - 1;
 
 		children[node.hashDigest]?.forEach((child) => {
-			selectedFilesCount += appendExplorerNode(child);
+			selectedFileCount += appendExplorerNode(child);
 		});
 
 		if (node.kind === 'FILE') {
-			return selectedFilesCount;
+			return selectedFileCount;
 		}
 
 		explorerNodes[pushedAtIndex] = {
 			...node,
-			childCount: selectedFilesCount,
+			childCount: selectedFileCount,
 		};
 
-		return selectedFilesCount;
+		return selectedFileCount;
 	};
 
 	appendExplorerNode(rootNode.hashDigest);
