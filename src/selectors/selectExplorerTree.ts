@@ -282,7 +282,6 @@ export const selectExplorerTree = (state: RootState, rootPath: string) => {
 
 	const explorerNodes = selectExplorerNodes(state, caseHash, rootPath) ?? [];
 	const nodeData = selectNodeData(state, caseHash, explorerNodes);
-	console.log(explorerNodes, nodeData, 'selectExplorerTree');
 	const nodes = explorerNodes;
 
 	const fileNodes = nodes.filter(
