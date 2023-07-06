@@ -99,6 +99,7 @@ export const explorerNodeRenderer =
 				id={props.nodeDatum.node.hashDigest}
 				label={getLabel(props.nodeDatum.node, props.nodeDatum.expanded)}
 				iconName={iconName}
+				indent={props.nodeDatum.depth * 18}
 				depth={props.nodeDatum.depth}
 				open={props.nodeDatum.expanded}
 				focused={focused}

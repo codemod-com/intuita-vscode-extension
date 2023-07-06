@@ -14,18 +14,8 @@ import styles from './style.module.css';
 import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
 
-const getContainerInlineStyles = ({
-	depth,
-	node,
-}: NodeDatum<CodemodNodeHashDigest, CodemodNode>) => {
-	return {
-		...(depth > 0 && {
-			minWidth: `${5 + depth * 16}px`,
-		}),
-		...(node.kind === 'CODEMOD' && {
-			minWidth: `${8 + (depth + 1) * 16}px`,
-		}),
-	};
+const getIndent = (depth: number, kind: CodemodNode['kind']) => {
+	return kind === 'CODEMOD' ? 8 + (depth + 1) * 16 : 5 + depth * 16;
 };
 
 type Deps = {
@@ -69,7 +59,14 @@ const getCodemodNodeRenderer =
 				className={cn(styles.root, focused && styles.focused)}
 				onClick={() => onFlip(hashDigest)}
 			>
-				<div style={getContainerInlineStyles(nodeDatum)} />
+				<div
+					style={{
+						minWidth: `${getIndent(
+							nodeDatum.depth,
+							nodeDatum.node.kind,
+						)}px`,
+					}}
+				/>
 				{node.kind === 'CODEMOD' && (
 					<Codemod
 						hashDigest={hashDigest}
