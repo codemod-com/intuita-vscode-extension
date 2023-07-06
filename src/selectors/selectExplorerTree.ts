@@ -142,13 +142,11 @@ export const selectExplorerNodes = (
 
 	const explorerNodes: _ExplorerNode[] = [];
 
-	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
-		let node = nodes[hashDigest] ?? null;
-
-		let selectedFilesCount = 0;
+	const collapseNodes = (hashDigest: _ExplorerNodeHashDigest) => {
+		const node = nodes[hashDigest] ?? null;
 
 		if (node === null) {
-			return selectedFilesCount;
+			return;
 		}
 
 		const childNodes = Array.from(children[node.hashDigest] ?? []).map(
@@ -163,13 +161,26 @@ export const selectExplorerNodes = (
 			};
 
 			nodes[node.hashDigest] = nextNode;
-			node = nextNode;
 
 			const grandchildren = children[firstChild.hashDigest] ?? new Set();
 
 			children[node.hashDigest] = grandchildren;
 			delete nodes[firstChild.hashDigest];
 			delete children[firstChild.hashDigest];
+
+			collapseNodes(node.hashDigest);
+		}
+	};
+
+	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
+		collapseNodes(hashDigest);
+
+		const node = nodes[hashDigest] ?? null;
+
+		let selectedFilesCount = 0;
+
+		if (node === null) {
+			return selectedFilesCount;
 		}
 
 		selectedFilesCount = Array.from(children[node.hashDigest] ?? [])
