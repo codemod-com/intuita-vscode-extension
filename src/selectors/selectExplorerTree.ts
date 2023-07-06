@@ -142,16 +142,48 @@ export const selectExplorerNodes = (
 
 	const explorerNodes: _ExplorerNode[] = [];
 
-	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
+	const collapseNodes = (hashDigest: _ExplorerNodeHashDigest) => {
 		const node = nodes[hashDigest] ?? null;
 
-		let childCount = 0;
-
 		if (node === null) {
-			return childCount;
+			return;
 		}
 
-		childCount = Array.from(children[node.hashDigest] ?? [])
+		const childNodes = Array.from(children[node.hashDigest] ?? []).map(
+			(childHash) => nodes[childHash],
+		);
+
+		if (childNodes.length === 1 && childNodes[0]?.kind === 'DIRECTORY') {
+			const firstChild = childNodes[0];
+			const nextNode = {
+				...node,
+				label: `${node.label}/${childNodes[0].label}`,
+			};
+
+			nodes[node.hashDigest] = nextNode;
+
+			const grandchildren = children[firstChild.hashDigest] ?? new Set();
+
+			children[node.hashDigest] = grandchildren;
+			delete nodes[firstChild.hashDigest];
+			delete children[firstChild.hashDigest];
+
+			collapseNodes(node.hashDigest);
+		}
+	};
+
+	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
+		collapseNodes(hashDigest);
+
+		const node = nodes[hashDigest] ?? null;
+
+		let selectedFileCount = 0;
+
+		if (node === null) {
+			return selectedFileCount;
+		}
+
+		selectedFileCount = Array.from(children[node.hashDigest] ?? [])
 			.map((childHash) => nodes[childHash])
 			.filter(
 				(node) =>
@@ -164,16 +196,19 @@ export const selectExplorerNodes = (
 		const pushedAtIndex = explorerNodes.push(node) - 1;
 
 		children[node.hashDigest]?.forEach((child) => {
-			childCount += appendExplorerNode(child);
+			selectedFileCount += appendExplorerNode(child);
 		});
 
 		if (node.kind === 'FILE') {
-			return childCount;
+			return selectedFileCount;
 		}
 
-		explorerNodes[pushedAtIndex] = { ...node, childCount };
+		explorerNodes[pushedAtIndex] = {
+			...node,
+			childCount: selectedFileCount,
+		};
 
-		return childCount;
+		return selectedFileCount;
 	};
 
 	appendExplorerNode(rootNode.hashDigest);
