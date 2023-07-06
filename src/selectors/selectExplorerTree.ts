@@ -105,7 +105,7 @@ export const selectExplorerNodes = (
 						) as _ExplorerNodeHashDigest,
 						path,
 						label: name,
-						depth: i + 1,
+						depth: 0,
 						jobHash: job.hash,
 						fileAdded: doesJobAddNewFile(job.kind),
 					};
@@ -122,7 +122,7 @@ export const selectExplorerNodes = (
 						['DIRECTORY', directoryPath, name].join(''),
 					) as _ExplorerNodeHashDigest,
 					label: name,
-					depth: i + 1,
+					depth: 0,
 					childCount: 0,
 				};
 			})
@@ -172,16 +172,21 @@ export const selectExplorerNodes = (
 		}
 	};
 
-	const appendExplorerNode = (hashDigest: _ExplorerNodeHashDigest) => {
+	const appendExplorerNode = (
+		hashDigest: _ExplorerNodeHashDigest,
+		depth: number,
+	) => {
 		collapseNodes(hashDigest);
 
-		const node = nodes[hashDigest] ?? null;
+		let node = nodes[hashDigest] ?? null;
 
 		let selectedFileCount = 0;
 
 		if (node === null) {
 			return selectedFileCount;
 		}
+
+		node = { ...node, depth };
 
 		selectedFileCount = Array.from(children[node.hashDigest] ?? [])
 			.map((childHash) => nodes[childHash])
@@ -196,7 +201,7 @@ export const selectExplorerNodes = (
 		const pushedAtIndex = explorerNodes.push(node) - 1;
 
 		children[node.hashDigest]?.forEach((child) => {
-			selectedFileCount += appendExplorerNode(child);
+			selectedFileCount += appendExplorerNode(child, depth + 1);
 		});
 
 		if (node.kind === 'FILE') {
@@ -211,7 +216,7 @@ export const selectExplorerNodes = (
 		return selectedFileCount;
 	};
 
-	appendExplorerNode(rootNode.hashDigest);
+	appendExplorerNode(rootNode.hashDigest, 0);
 
 	return explorerNodes;
 };
@@ -277,6 +282,7 @@ export const selectExplorerTree = (state: RootState, rootPath: string) => {
 
 	const explorerNodes = selectExplorerNodes(state, caseHash, rootPath) ?? [];
 	const nodeData = selectNodeData(state, caseHash, explorerNodes);
+	console.log(explorerNodes, nodeData, 'selectExplorerTree');
 	const nodes = explorerNodes;
 
 	const fileNodes = nodes.filter(
