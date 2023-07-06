@@ -74,27 +74,20 @@ const TreeItem = ({
 				}}
 			/>
 			{hasChildren ? (
-				<div className={styles.codicon}>
-					<span
-						onClick={onPressChevron}
-						className={cn('codicon', {
-							'codicon-chevron-right': !open,
-							'codicon-chevron-down': open,
-						})}
-					/>
-				</div>
+				<span
+					onClick={onPressChevron}
+					className={cn('codicon', {
+						'codicon-chevron-right': !open,
+						'codicon-chevron-down': open,
+					})}
+				/>
 			) : null}
-			{startDecorator && (
-				<div
-					className={styles.startDecorator}
-					style={inlineStyles?.actions}
-				>
-					{startDecorator}
+			{startDecorator}
+			{icon !== null && (
+				<div className="changeExplorerIcon" style={inlineStyles?.icon}>
+					{icon}
 				</div>
 			)}
-			<div className={styles.icon} style={inlineStyles?.icon}>
-				{icon}
-			</div>
 			<span className={styles.label} style={inlineStyles?.label}>
 				{label}
 			</span>
@@ -106,14 +99,7 @@ const TreeItem = ({
 					{subLabel}
 				</span>
 			) : null}
-			{endDecorator && (
-				<div
-					className={styles.endDecorator}
-					style={inlineStyles?.actions}
-				>
-					{endDecorator}
-				</div>
-			)}
+			{endDecorator}
 		</div>
 	);
 };

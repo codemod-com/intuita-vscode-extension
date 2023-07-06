@@ -1,8 +1,5 @@
 import cn from 'classnames';
-
-import { ReactComponent as CaseIcon } from '../assets/case.svg';
 import TreeItem, { Props as TreeItemProps } from '../shared/TreeItem';
-
 import { memo } from 'react';
 import { ReactComponent as CheckboxMaterialIcon } from '../assets/material-icons/check_box.svg';
 import { ReactComponent as CheckboxOutlineBlankMaterialIcon } from '../assets/material-icons/check_box_outline_blank.svg';
@@ -28,19 +25,19 @@ export type IconName =
 	| 'file-add'
 	| 'file';
 
-const Icon = ({ iconName }: { iconName: IconName }) => {
+const getIcon = (iconName: IconName) => {
 	if (iconName === 'root') {
-		return <CaseIcon />;
+		return null;
 	}
 
 	return <span className={cn('codicon', `codicon-${iconName}`)} />;
 };
 
 const getIndent = (kind: _ExplorerNode['kind'], depth: number) => {
-	let offset = 18 * depth;
+	let offset = 17 * depth;
 
 	if (kind === 'FILE') {
-		offset += 16;
+		offset += 17;
 	}
 
 	return offset;
@@ -90,7 +87,7 @@ const FileExplorerTreeNode = ({
 			id={id}
 			label={label}
 			subLabel=""
-			icon={<Icon iconName={iconName} />}
+			icon={getIcon(iconName)}
 			indent={getIndent(kind, depth)}
 			depth={depth}
 			open={open}

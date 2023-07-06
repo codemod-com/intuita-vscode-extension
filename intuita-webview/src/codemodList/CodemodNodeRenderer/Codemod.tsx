@@ -202,7 +202,7 @@ const Codemod = ({
 
 	return (
 		<>
-			<div className={styles.icon}>
+			<div className="changeExplorerIcon">
 				<IntuitaPopover
 					content={
 						intuitaCertified
@@ -215,18 +215,12 @@ const Codemod = ({
 							<span
 								className={cn('codicon', 'codicon-verified')}
 								style={{
-									width: '16px',
-									height: '16px',
 									color: 'var(--vscode-focusBorder)',
 								}}
 							/>
 						) : (
 							<span
 								className={cn('codicon', 'codicon-unverified')}
-								style={{
-									width: '16px',
-									height: '16px',
-								}}
 							/>
 						)}
 					</span>

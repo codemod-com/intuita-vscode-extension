@@ -10,22 +10,18 @@ const Directory = (
 ) => {
 	return (
 		<>
-			<div className={s.codicon}>
-				<span
-					className={cn('codicon', {
-						'codicon-chevron-right': !props.expanded,
-						'codicon-chevron-down': props.expanded,
-					})}
-				/>
-			</div>
-			<div className={s.icon}>
-				<span
-					className={cn('codicon', {
-						'codicon-folder': !props.expanded,
-						'codicon-folder-opened': props.expanded,
-					})}
-				/>
-			</div>
+			<span
+				className={cn('codicon', {
+					'codicon-chevron-right': !props.expanded,
+					'codicon-chevron-down': props.expanded,
+				})}
+			/>
+			<span
+				className={cn('codicon', {
+					'codicon-folder': !props.expanded,
+					'codicon-folder-opened': props.expanded,
+				})}
+			/>
 			<div className="flex w-full flex-col">
 				<span className={s.labelContainer}>
 					<span

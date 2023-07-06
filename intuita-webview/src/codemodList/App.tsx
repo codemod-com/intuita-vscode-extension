@@ -6,7 +6,6 @@ import SearchBar from '../shared/SearchBar';
 
 import TreeView from './TreeView';
 
-import './index.css';
 import styles from './style.module.css';
 
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
