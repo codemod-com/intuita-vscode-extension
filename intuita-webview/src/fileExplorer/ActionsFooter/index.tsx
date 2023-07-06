@@ -49,7 +49,7 @@ export const ActionsFooter = ({
 			className={styles.root}
 			style={{
 				...(screenWidth !== null &&
-					screenWidth < 330 && { marginRight: 'auto' }),
+					screenWidth >= 330 && { justifyContent: 'flex-end' }),
 			}}
 		>
 			<IntuitaPopover content={POPOVER_TEXTS.discard}>
