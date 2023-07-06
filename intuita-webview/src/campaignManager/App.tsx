@@ -22,7 +22,7 @@ const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 				Number(createdAt),
 			).toLocaleTimeString()}`}
 		>
-			<i className={cn('codicon', 'codicon-info', 'cursor-pointer')} />
+			<span className={cn('codicon', 'codicon-info')} />
 		</IntuitaPopover>
 	);
 };

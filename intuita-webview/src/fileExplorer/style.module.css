@@ -16,9 +16,8 @@
 }
 
 .checkbox {
-	margin-bottom: 3px;
-	width: calc(var(--design-unit) * 3.5px);
-	height: calc(var(--design-unit) * 3.5px);
+	width: 16px;
+	height: 16px;
 }
 
 .checkbox svg {

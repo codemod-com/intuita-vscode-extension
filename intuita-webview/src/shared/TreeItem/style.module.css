@@ -9,6 +9,7 @@
 	padding-left: 3px;
 	padding-right: 12px;
 	outline: none;
+	align-items: center;
 }
 
 .root:hover {
@@ -18,21 +19,6 @@
 .focused,
 .focused:hover {
 	background-color: var(--vscode-list-activeSelectionBackground);
-}
-
-.icon {
-	min-width: 22px;
-	max-width: 22px;
-	height: 22px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding-right: 2px;
-}
-
-.icon svg {
-	width: 16px;
-	height: 16px;
 }
 
 .label {
@@ -45,6 +31,7 @@
 	overflow: hidden;
 	white-space: nowrap;
 	user-select: none;
+	margin-left: 2.5px;
 }
 
 .subLabel {
@@ -60,14 +47,6 @@
 	text-align: right;
 }
 
-.startDecorator {
-	display: flex;
-	margin: auto;
-	padding: 0;
-	align-items: center;
-	justify-content: center;
-}
-
 .actions a {
 	display: flex;
 	font-size: 11px;
@@ -80,14 +59,4 @@
 
 .actions a:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
-}
-
-.codicon {
-	flex-shrink: 0;
-	width: 16px;
-	display: flex !important;
-	align-items: center;
-	justify-content: center;
-	font-size: 16px;
-	cursor: pointer;
 }

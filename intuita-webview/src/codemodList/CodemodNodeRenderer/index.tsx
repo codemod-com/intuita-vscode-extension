@@ -15,7 +15,11 @@ import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
 
 const getIndent = (depth: number, kind: CodemodNode['kind']) => {
-	return kind === 'CODEMOD' ? 8 + (depth + 1) * 16 : 5 + depth * 16;
+	let indent = depth * 17;
+	if (kind === 'CODEMOD') {
+		indent += 17;
+	}
+	return indent;
 };
 
 type Deps = {

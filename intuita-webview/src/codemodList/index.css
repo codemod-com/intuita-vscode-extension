@@ -1,7 +1,0 @@
-@import '../shared//util.css';
-
-i.codicon {
-	font-size: var(--vscode-editor-font-size) !important;
-	line-height: inherit !important;
-	margin-right: 4px !important;
-}

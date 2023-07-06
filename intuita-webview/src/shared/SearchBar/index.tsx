@@ -29,7 +29,11 @@ const SearchBar = (props: Props) => {
 			}}
 			className={styles.container}
 		>
-			<span slot="start" className={cn('codicon', 'codicon-search')} />
+			<span
+				slot="start"
+				className={cn('codicon', 'codicon-search')}
+				style={{ marginInlineStart: '2px' }}
+			/>
 		</VSCodeTextField>
 	);
 };
