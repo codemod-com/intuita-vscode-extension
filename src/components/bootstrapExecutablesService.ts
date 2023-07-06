@@ -4,46 +4,36 @@ import { MessageBus, MessageKind } from './messageBus';
 
 // aka bootstrap engines
 export class BootstrapExecutablesService {
-	#downloadService: DownloadService;
-	#globalStorageUri: Uri;
-	#fileSystem: FileSystem;
-	#messageBus: MessageBus;
-
 	constructor(
-		downloadService: DownloadService,
-		globalStorageUri: Uri,
-		fileSystem: FileSystem,
-		messageBus: MessageBus,
+		private readonly __downloadService: DownloadService,
+		private readonly __globalStorageUri: Uri,
+		private readonly __fileSystem: FileSystem,
+		private readonly __messageBus: MessageBus,
 	) {
-		this.#downloadService = downloadService;
-		this.#globalStorageUri = globalStorageUri;
-		this.#fileSystem = fileSystem;
-		this.#messageBus = messageBus;
-
-		messageBus.subscribe(MessageKind.bootstrapEngine, () =>
-			this.#onBootstrapEngines(),
+		__messageBus.subscribe(MessageKind.bootstrapEngine, () =>
+			this.__onBootstrapEngines(),
 		);
 	}
 
-	async #onBootstrapEngines() {
-		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+	private async __onBootstrapEngines() {
+		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
 		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
 		const noraNodeEngineExecutableUri =
-			await this.#bootstrapNoraNodeEngineExecutableUri();
+			await this.__bootstrapNoraNodeEngineExecutableUri();
 
-		const codemodEngineNodeExecutableUri = Uri.parse(
-			'/intuita/codemod-engine-rust/target/release/codemod-engine-rust',
-		);
+		// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
+		const codemodEngineNodeExecutableUri =
+			await this.__bootstrapCodemodEngineRustExecutableUri();
 
-		this.#messageBus.publish({
+		this.__messageBus.publish({
 			kind: MessageKind.engineBootstrapped,
 			noraNodeEngineExecutableUri,
 			codemodEngineNodeExecutableUri,
 		});
 	}
 
-	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
+	private async __bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
@@ -52,13 +42,45 @@ export class BootstrapExecutablesService {
 		const executableBaseName = `nora-node-engine-${platform}`;
 
 		const executableUri = Uri.joinPath(
-			this.#globalStorageUri,
+			this.__globalStorageUri,
 			executableBaseName,
 		);
 
 		try {
-			await this.#downloadService.downloadFileIfNeeded(
+			await this.__downloadService.downloadFileIfNeeded(
 				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
+				executableUri,
+				'755',
+			);
+		} catch (error) {
+			if (!(error instanceof ForbiddenRequestError)) {
+				throw error;
+			}
+
+			throw new Error(
+				`Your platform (${process.platform}) is not supported.`,
+			);
+		}
+
+		return executableUri;
+	}
+
+	private async __bootstrapCodemodEngineRustExecutableUri(): Promise<Uri> {
+		const platform =
+			process.platform === 'darwin'
+				? 'macos'
+				: encodeURIComponent(process.platform);
+
+		const executableBaseName = `codemod-engine-rust-${platform}`;
+
+		const executableUri = Uri.joinPath(
+			this.__globalStorageUri,
+			executableBaseName,
+		);
+
+		try {
+			await this.__downloadService.downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/codemod-engine-rust/${executableBaseName}`,
 				executableUri,
 				'755',
 			);
