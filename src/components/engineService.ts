@@ -4,14 +4,13 @@ import prettyReporter from 'io-ts-reporters';
 import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import * as readline from 'node:readline';
 import { commands, FileSystem, Uri, window, workspace } from 'vscode';
-import { Case, CaseHash } from '../cases/types';
+import { Case } from '../cases/types';
 import { Configuration } from '../configuration';
 import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
 import {
 	buildTypeCodec,
-	doubleQuotify,
 	isNeitherNullNorUndefined,
 	singleQuotify,
 	streamToString,
@@ -22,6 +21,7 @@ import { ExecutionError, executionErrorCodec } from '../errors/types';
 import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
+import { buildArguments } from './buildArguments';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -36,10 +36,8 @@ export const Messages = {
 const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
 
 export const enum EngineMessageKind {
-	change = 1,
 	finish = 2,
 	rewrite = 3,
-	compare = 5,
 	progress = 6,
 	delete = 7,
 	move = 8,
@@ -49,22 +47,9 @@ export const enum EngineMessageKind {
 
 export const messageCodec = t.union([
 	buildTypeCodec({
-		k: t.literal(EngineMessageKind.change),
-		p: t.string,
-		r: t.tuple([t.number, t.number]),
-		t: t.string,
-		c: t.string,
-	}),
-	buildTypeCodec({
 		k: t.literal(EngineMessageKind.rewrite),
 		i: t.string,
 		o: t.string,
-		c: t.string,
-	}),
-	buildTypeCodec({
-		k: t.literal(EngineMessageKind.compare),
-		i: t.string,
-		e: t.boolean,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.finish),
@@ -77,40 +62,34 @@ export const messageCodec = t.union([
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.delete),
 		oldFilePath: t.string,
-		modId: t.string,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.move),
 		oldFilePath: t.string,
 		newFilePath: t.string,
-		modId: t.string,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.create),
 		newFilePath: t.string,
 		newContentPath: t.string,
-		modId: t.string,
 	}),
 	buildTypeCodec({
 		k: t.literal(EngineMessageKind.copy),
 		oldFilePath: t.string,
 		newFilePath: t.string,
-		modId: t.string,
 	}),
 ]);
 
 type Execution = {
-	readonly caseHashDigest: CaseHash;
 	readonly childProcess: ChildProcessWithoutNullStreams;
-	readonly codemodHash?: CodemodHash;
+	readonly codemodHash: CodemodHash | null;
 	readonly jobs: Job[];
 	readonly targetUri: Uri;
 	readonly happenedAt: string;
+	readonly case: Case;
 	totalFileCount: number;
 	halted: boolean;
 	affectedAnyFile: boolean;
-	case: Case;
-	codemodName: string;
 };
 
 type ExecuteCodemodMessage = Message &
@@ -125,7 +104,8 @@ export class EngineService {
 
 	#execution: Execution | null = null;
 	#noraNodeEngineExecutableUri: Uri | null = null;
-	__executionMessageQueue: ExecuteCodemodMessage[] = [];
+	private __codemodEngineNodeExecutableUri: Uri | null = null;
+	private __executionMessageQueue: ExecuteCodemodMessage[] = [];
 
 	public constructor(
 		configurationContainer: Container<Configuration>,
@@ -150,6 +130,8 @@ export class EngineService {
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
+		this.__codemodEngineNodeExecutableUri =
+			message.noraNodeEngineExecutableUri;
 
 		this.__fetchCodemods();
 	}
@@ -161,7 +143,7 @@ export class EngineService {
 	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
 		const executableUri = this.#noraNodeEngineExecutableUri;
 
-		if (!executableUri) {
+		if (executableUri === null) {
 			throw new EngineNotFoundError(
 				'The codemod engine node has not been downloaded yet',
 			);
@@ -255,9 +237,12 @@ export class EngineService {
 			return;
 		}
 
-		if (!this.#noraNodeEngineExecutableUri) {
+		if (
+			!this.#noraNodeEngineExecutableUri ||
+			!this.__codemodEngineNodeExecutableUri
+		) {
 			await window.showErrorMessage(
-				'Wait until the engine has been bootstrapped to execute the operation',
+				'Wait until the engines has been bootstrapped to execute the operation',
 			);
 
 			return;
@@ -276,104 +261,23 @@ export class EngineService {
 			value: 0,
 		});
 
-		const outputUri = Uri.joinPath(message.storageUri, 'nora-node-engine');
+		const storageUri = Uri.joinPath(message.storageUri, 'nora-node-engine');
 
 		await this.#fileSystem.createDirectory(message.storageUri);
-		await this.#fileSystem.createDirectory(outputUri);
+		await this.#fileSystem.createDirectory(storageUri);
 
-		const { fileLimit, includePatterns, excludePatterns } =
-			this.#configurationContainer.get();
-
-		const buildArguments = () => {
-			const args: string[] = [];
-
-			const { command } = message;
-
-			if (command.kind === 'executeRepomod') {
-				args.push('repomod');
-				args.push('-f', singleQuotify(command.codemodHash));
-				args.push('-i', singleQuotify(message.targetUri.fsPath));
-				args.push('-o', singleQuotify(message.storageUri.fsPath));
-
-				return args;
-			}
-
-			if (command.kind === 'executeCodemod') {
-				args.push(
-					'-c',
-					singleQuotify(doubleQuotify(command.codemodHash)),
-				);
-
-				if (message.targetUriIsDirectory) {
-					includePatterns.forEach((includePattern) => {
-						const { fsPath } = Uri.joinPath(
-							message.targetUri,
-							includePattern,
-						);
-
-						args.push('-p', singleQuotify(fsPath));
-					});
-
-					excludePatterns.forEach((excludePattern) => {
-						const { fsPath } = Uri.joinPath(
-							message.targetUri,
-							excludePattern,
-						);
-
-						args.push('-p', `!${singleQuotify(fsPath)}`);
-					});
-				} else {
-					args.push('-p', singleQuotify(message.targetUri.fsPath));
-				}
-
-				args.push(
-					'-w',
-					String(
-						this.#configurationContainer.get().workerThreadCount,
-					),
-				);
-
-				args.push('-l', String(fileLimit));
-
-				args.push('-o', singleQuotify(message.storageUri.fsPath));
-
-				return args;
-			}
-
-			includePatterns.forEach((includePattern) => {
-				const { fsPath } = Uri.joinPath(
-					message.targetUri,
-					includePattern,
-				);
-
-				args.push('-p', singleQuotify(fsPath));
-			});
-
-			excludePatterns.forEach((excludePattern) => {
-				const { fsPath } = Uri.joinPath(
-					message.targetUri,
-					excludePattern,
-				);
-
-				args.push('-p', `!${singleQuotify(fsPath)}`);
-			});
-
-			args.push(
-				'-w',
-				String(this.#configurationContainer.get().workerThreadCount),
-			);
-
-			args.push('-l', String(fileLimit));
-			args.push('-f', singleQuotify(command.codemodUri.fsPath));
-			args.push('-o', singleQuotify(outputUri.fsPath));
-
-			return args;
-		};
-
-		const args = buildArguments();
+		const args = buildArguments(
+			this.#configurationContainer.get(),
+			message,
+			storageUri,
+		);
 
 		const childProcess = spawn(
-			singleQuotify(this.#noraNodeEngineExecutableUri.fsPath),
+			singleQuotify(
+				message.command.kind === 'executePiranhaRule'
+					? this.__codemodEngineNodeExecutableUri.fsPath
+					: this.#noraNodeEngineExecutableUri.fsPath,
+			),
 			args,
 			{
 				stdio: 'pipe',
@@ -392,6 +296,7 @@ export class EngineService {
 
 			try {
 				const stringifiedChunk = chunk.toString();
+
 				const json = JSON.parse(stringifiedChunk);
 
 				const validation = executionErrorCodec.decode(json);
@@ -410,27 +315,34 @@ export class EngineService {
 
 		const caseHashDigest = message.caseHashDigest;
 
+		const codemodName =
+			message.command.kind === 'executePiranhaRule'
+				? `Piranha: ${message.command.configurationUri.fsPath}`
+				: message.command.kind === 'executeLocalCodemod'
+				? `Local: ${message.command.codemodUri.fsPath}`
+				: this.__store.getState().codemod.entities[
+						message.command.codemodHash
+				  ]?.name ?? '';
+
 		this.#execution = {
 			childProcess,
-			caseHashDigest,
 			halted: false,
 			totalFileCount: 0, // that is the lower bound,
 			affectedAnyFile: false,
 			jobs: [],
-			case: {} as Case,
 			targetUri: message.targetUri,
 			happenedAt: message.happenedAt,
-			codemodName: '',
+			case: {
+				hash: caseHashDigest,
+				codemodName,
+				createdAt: Number(message.happenedAt),
+				path: message.targetUri.fsPath,
+			},
+			codemodHash:
+				'codemodHash' in message.command
+					? message.command.codemodHash
+					: null,
 		};
-		if (
-			'kind' in message.command &&
-			message.command.kind === 'executeCodemod'
-		) {
-			this.#execution = {
-				...this.#execution,
-				codemodHash: message.command.codemodHash,
-			};
-		}
 
 		const interfase = readline.createInterface(childProcess.stdout);
 
@@ -476,19 +388,11 @@ export class EngineService {
 				return;
 			}
 
-			if (
-				message.k === EngineMessageKind.finish ||
-				message.k === EngineMessageKind.compare ||
-				message.k === EngineMessageKind.change
-			) {
+			if (message.k === EngineMessageKind.finish) {
 				return;
 			}
 
 			let job: Job;
-
-			const codemodName = 'modId' in message ? message.modId : message.c;
-
-			this.#execution.codemodName = codemodName;
 
 			if (message.k === EngineMessageKind.create) {
 				const newUri = Uri.file(message.newFilePath);
@@ -594,20 +498,13 @@ export class EngineService {
 
 			this.#execution.jobs.push(job);
 
-			const kase: Case = {
-				hash: caseHashDigest,
-				codemodName: job.codemodName,
-				createdAt: Number(this.#execution.happenedAt),
-				path: this.#execution.targetUri.fsPath,
-			};
-
-			this.#execution.case = kase;
-
-			this.__store.dispatch(actions.setSelectedCaseHash(kase.hash));
+			this.__store.dispatch(
+				actions.setSelectedCaseHash(this.#execution.case.hash),
+			);
 
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCase,
-				kase,
+				kase: this.#execution.case,
 				jobs: [job],
 			});
 		});
@@ -616,13 +513,11 @@ export class EngineService {
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
-					caseHashDigest: this.#execution.caseHashDigest,
 					halted: this.#execution.halted,
 					fileCount: this.#execution.totalFileCount,
 					jobs: this.#execution.jobs,
 					case: this.#execution.case,
 					executionErrors,
-					codemodName: this.#execution.codemodName,
 				});
 
 				this.__store.dispatch(

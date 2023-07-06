@@ -288,6 +288,52 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
+			'intuita.executeAsPiranhaRule',
+			async (configurationUri: vscode.Uri) => {
+				const fileStat = await vscode.workspace.fs.stat(
+					configurationUri,
+				);
+				const configurationUriIsDirectory = Boolean(
+					fileStat.type & vscode.FileType.Directory,
+				);
+
+				if (!configurationUriIsDirectory) {
+					throw new Error(
+						`To execute a configuration URI as a Piranha rule, it has to be a directory`,
+					);
+				}
+
+				const targetUri =
+					vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
+
+				if (targetUri == null) {
+					throw new Error('No workspace has been opened.');
+				}
+
+				const { storageUri } = context;
+
+				if (!storageUri) {
+					throw new Error('No storage URI, aborting the command.');
+				}
+
+				messageBus.publish({
+					kind: MessageKind.executeCodemodSet,
+					command: {
+						kind: 'executePiranhaRule',
+						configurationUri,
+					},
+					happenedAt: String(Date.now()),
+					caseHashDigest: buildCaseHash(),
+					storageUri,
+					targetUri,
+					targetUriIsDirectory: configurationUriIsDirectory,
+				});
+			},
+		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
 			'intuita.executeCodemod',
 			async (targetUri: vscode.Uri, codemodHash: CodemodHash) => {
 				try {
