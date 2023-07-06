@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { WebviewMessage } from './types';
 import { vscode } from './utilities/vscode';
 
-const useFocus = (ref: React.MutableRefObject<HTMLElement>, id: string) => {
+const useFocus = (ref: React.RefObject<HTMLElement>, id: string) => {
 	useEffect(() => {
 		const handler = (event: MessageEvent<WebviewMessage>) => {
 			const message = event.data;
