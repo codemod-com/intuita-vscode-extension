@@ -80,23 +80,11 @@ export class VscodeTelemetry implements Telemetry {
 	__onCodemodSetExecuted(
 		message: Message & { kind: MessageKind.codemodSetExecuted },
 	): void {
-		const { halted, caseHashDigest, jobs, codemodName } = message;
-
-		if (halted) {
-			this.sendEvent({
-				kind: 'codemodHalted',
-				executionId: caseHashDigest,
-				fileCount: jobs.length,
-				codemodName,
-			});
-			return;
-		}
-
 		this.sendEvent({
-			kind: 'codemodExecuted',
-			executionId: caseHashDigest,
-			fileCount: jobs.length,
-			codemodName,
+			kind: message.halted ? 'codemodHalted' : 'codemodExecuted',
+			executionId: message.case.hash,
+			fileCount: message.jobs.length,
+			codemodName: message.case.codemodName,
 		});
 	}
 

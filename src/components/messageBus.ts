@@ -57,6 +57,10 @@ export type Command =
 	| Readonly<{
 			kind: 'executeLocalCodemod';
 			codemodUri: Uri;
+	  }>
+	| Readonly<{
+			kind: 'executePiranhaRule';
+			configurationUri: Uri;
 	  }>;
 
 export type Message =
@@ -99,6 +103,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.engineBootstrapped;
 			noraNodeEngineExecutableUri: Uri;
+			codemodEngineNodeExecutableUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
@@ -111,8 +116,6 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
-			codemodName: string;
-			caseHashDigest: CaseHash;
 			halted: boolean;
 			fileCount: number;
 			jobs: Job[];

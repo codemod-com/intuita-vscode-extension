@@ -56,6 +56,10 @@
 				"title": "Intuita: Run as a codemod"
 			},
 			{
+				"command": "intuita.executeAsPiranhaRule",
+				"title": "Intuita: Run as a Piranha Rule"
+			},
+			{
 				"command": "intuita.executeCodemod",
 				"title": "Intuita: Execute Codemod"
 			},
@@ -163,6 +167,10 @@
 					"when": "false"
 				},
 				{
+					"command": "intuita.executeAsPiranhaRule",
+					"when": "false"
+				},
+				{
 					"command": "intuita.executeCodemod",
 					"when": "false"
 				},
@@ -192,6 +200,11 @@
 					"command": "intuita.executeAsCodemod",
 					"group": "2_workspace",
 					"when": "resourceExtname == .js || resourceExtname == .ts"
+				},
+				{
+					"command": "intuita.executeAsPiranhaRule",
+					"group": "2_workspace",
+					"when": "explorerResourceIsFolder"
 				},
 				{
 					"command": "intuita.executeCodemodWithinPath",

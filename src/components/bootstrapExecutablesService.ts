@@ -32,9 +32,14 @@ export class BootstrapExecutablesService {
 		const noraNodeEngineExecutableUri =
 			await this.#bootstrapNoraNodeEngineExecutableUri();
 
+		const codemodEngineNodeExecutableUri = Uri.parse(
+			'/intuita/codemod-engine-rust/target/release/codemod-engine-rust',
+		);
+
 		this.#messageBus.publish({
 			kind: MessageKind.engineBootstrapped,
 			noraNodeEngineExecutableUri,
+			codemodEngineNodeExecutableUri,
 		});
 	}
 
