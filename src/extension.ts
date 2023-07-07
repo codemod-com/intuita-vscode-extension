@@ -824,17 +824,16 @@ export async function activate(context: vscode.ExtensionContext) {
 			'intuita.formatCaseJobs',
 			async (arg0: unknown) => {
 				try {
-					// const validation = caseHashCodec.decode(arg0);
+					const validation = caseHashCodec.decode(arg0);
 
-					// if (validation._tag === 'Left') {
-					// 	throw new Error(
-					// 		prettyReporter.report(validation).join('\n'),
-					// 	);
-					// }
+					if (validation._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(validation).join('\n'),
+						);
+					}
 					const state = store.getState();
 
-					const caseHash = state.case.ids[0] as CaseHash;
-					// const caseHash = validation.right;
+					const caseHash = validation.right;
 
 					const caseHashJobHashSetManager =
 						new LeftRightHashSetManager<CaseHash, JobHash>(

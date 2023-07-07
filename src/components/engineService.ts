@@ -521,6 +521,13 @@ export class EngineService {
 
 				commands.executeCommand('intuitaMainView.focus');
 
+				if (this.#configurationContainer.get().formatWithPrettier) {
+					commands.executeCommand(
+						'intuita.formatCaseJobs',
+						this.#execution.case.hash,
+					);
+				}
+
 				if (
 					!executionErrors.length &&
 					!this.#execution.affectedAnyFile

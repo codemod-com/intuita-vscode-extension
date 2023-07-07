@@ -146,6 +146,8 @@ const selectPanelViewProps = (
 		].includes(job.kind)
 			? readFileSync(job.oldUri.fsPath).toString('utf8')
 			: null;
+			
+	const formattingError: Error | null = null; 
 
 	return {
 		kind: 'JOB',
@@ -157,6 +159,7 @@ const selectPanelViewProps = (
 		newFileTitle,
 		oldFileContent,
 		newFileContent,
+		formattingError, 
 	};
 };
 
