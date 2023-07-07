@@ -106,6 +106,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.fs,
 		context.globalStorageUri,
 		messageBus,
+		store,
 	);
 
 	new IntuitaPanelProvider(
@@ -371,18 +372,35 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
-					const name =
-						store.getState().codemod.entities[codemodHash]?.name ??
-						'';
+					const codemod =
+						store.getState().codemod.entities[codemodHash] ?? null;
 
-					const command: Command = {
-						kind:
-							codemodHash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0'
-								? 'executeRepomod'
-								: 'executeCodemod',
-						codemodHash,
-						name,
-					};
+					if (codemod === null) {
+						throw new Error(
+							'No codemod was found with the provided hash digest.',
+						);
+					}
+
+					const command: Command =
+						codemod.kind === 'piranhaRule'
+							? {
+									kind: 'executePiranhaRule',
+									configurationUri: vscode.Uri.joinPath(
+										context.globalStorageUri,
+										codemod.configurationDirectoryBasename,
+									),
+									language: codemod.language,
+									name: codemod.name,
+							  }
+							: {
+									kind:
+										codemodHash ===
+										'QKEdp-pofR9UnglrKAGDm1Oj6W0'
+											? 'executeRepomod'
+											: 'executeCodemod',
+									codemodHash,
+									name: codemod.name,
+							  };
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
@@ -521,8 +539,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							? {
 									kind: 'executePiranhaRule',
 									configurationUri: vscode.Uri.joinPath(
-										storageUri,
-										'codemod-registry',
+										context.globalStorageUri,
 										codemodEntry.configurationDirectoryBasename,
 									),
 									language: codemodEntry.language,

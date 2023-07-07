@@ -19,6 +19,7 @@ export const codemodEntryCodec = t.union([
 		name: t.string,
 		language: t.string,
 		configurationDirectoryBasename: t.string,
+		rulesTomlFileBasename: t.string,
 	}),
 ]);
 
