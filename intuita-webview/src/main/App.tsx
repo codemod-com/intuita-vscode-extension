@@ -104,7 +104,10 @@ function App() {
 					id="codemodsView"
 				>
 					{mainWebviewViewProps.activeTabId === 'codemods' ? (
-						<CodemodList {...mainWebviewViewProps} />
+						<CodemodList
+							screenWidth={screenWidth}
+							{...mainWebviewViewProps}
+						/>
 					) : null}
 				</VSCodePanelView>
 				<VSCodePanelView

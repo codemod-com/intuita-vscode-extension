@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
@@ -15,7 +15,6 @@ import { CodemodHash } from '../../shared/types';
 import { InfiniteProgress } from '../TreeView/InfiniteProgress';
 import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
-import throttle from '../../shared/utilities/throttle';
 import { Progress } from '../useProgressBar';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
@@ -40,6 +39,7 @@ type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 		rootPath: string;
 		autocompleteItems: ReadonlyArray<string>;
 		progress: Progress | null;
+		screenWidth: number | null;
 	}>;
 
 const renderProgressBar = (progress: Progress | null) => {
@@ -58,12 +58,11 @@ const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
 	queued: boolean,
-	doesDisplayShortenedTitle: boolean,
 ) => {
 	if (!codemodInProgress && !queued) {
 		return (
 			<ActionButton
-				content="Dry-run this codemod (without making change to file system)"
+				content="Dry-run this codemod (without making change to file system)."
 				onClick={(e) => {
 					e.stopPropagation();
 
@@ -73,16 +72,7 @@ const renderActionButtons = (
 					});
 				}}
 			>
-				{doesDisplayShortenedTitle ? (
-					<span className={cn('codicon', 'codicon-play')} />
-				) : (
-					<div style={{ display: 'flex' }}>
-						<span
-							className={cn('codicon', 'codicon-play', 'mr-2')}
-						/>
-						Dry Run
-					</div>
-				)}
+				<span className={cn('codicon', 'codicon-play')} />
 			</ActionButton>
 		);
 	}
@@ -118,9 +108,9 @@ const Codemod = ({
 	progress,
 	queued,
 	intuitaCertified,
+	screenWidth,
 }: Props) => {
-	const [notEnoughSpace, setNotEnoughSpace] = useState<boolean>(false);
-	const directorySelectorRef = useRef<HTMLSpanElement>(null);
+	const notEnoughSpace = screenWidth !== null && screenWidth <= 330;
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
 
@@ -162,44 +152,6 @@ const Codemod = ({
 		setEditingPath(false);
 	}, []);
 
-	// @TODO check if can be implemented using css container queries
-	useEffect(() => {
-		if (ResizeObserver === undefined) {
-			return undefined;
-		}
-
-		const resizeHandler: ResizeObserverCallback = (entries) => {
-			const treeItem = entries[0] ?? null;
-			if (treeItem === null) {
-				return;
-			}
-
-			if (directorySelectorRef.current === null) {
-				return;
-			}
-
-			const xDistance = Math.abs(
-				directorySelectorRef.current.getBoundingClientRect().right -
-					treeItem.target.getBoundingClientRect().right,
-			);
-
-			setNotEnoughSpace(xDistance < 100);
-		};
-
-		const resizeObserver = new ResizeObserver(throttle(resizeHandler, 300));
-
-		const treeItem = document.getElementById(hashDigest);
-
-		if (treeItem === null) {
-			return;
-		}
-		resizeObserver.observe(treeItem);
-
-		return () => {
-			resizeObserver.disconnect();
-		};
-	}, [hashDigest]);
-
 	return (
 		<>
 			{!editingPath && (
@@ -223,65 +175,69 @@ const Codemod = ({
 				</IntuitaPopover>
 			)}
 
-			<div className="flex w-full flex-col">
-				<span className={styles.labelContainer}>
-					{!editingPath && (
-						<span
-							style={{
-								userSelect: 'none',
-							}}
-						>
-							{label}
-						</span>
-					)}
+			<span className={styles.labelContainer}>
+				{!editingPath && (
 					<span
-						className={styles.directorySelector}
-						ref={directorySelectorRef}
+						className={styles.label}
 						style={{
-							...(editingPath && {
-								display: 'flex',
-								width: '100%',
-								opacity: 1,
-								marginRight: '2.5px',
+							...(notEnoughSpace && {
+								flex: screenWidth / 430,
+								...(screenWidth < 250 && {
+									flex: screenWidth / 710,
+								}),
 							}),
 						}}
 					>
-						{executionPath && (
-							<DirectorySelector
-								defaultValue={targetPath}
-								displayValue={
-									notEnoughSpace ? (
-										<EditMaterialIcon className="defaultIcon" />
-									) : null
-								}
-								rootPath={rootPath}
-								error={
-									error === null ? null : { message: error }
-								}
-								codemodHash={
-									hashDigest as unknown as CodemodHash
-								}
-								onEditStart={onEditStart}
-								onEditEnd={onEditEnd}
-								onEditCancel={onEditCancel}
-								onChange={handleCodemodPathChange}
-								autocompleteItems={autocompleteItems}
-							/>
-						)}
+						{label}
 					</span>
+				)}
+				<span
+					className={styles.directorySelector}
+					style={{
+						...(editingPath && {
+							width: '100%',
+							opacity: 1,
+							marginRight: '2.5px',
+						}),
+					}}
+				>
+					{executionPath && (
+						<DirectorySelector
+							defaultValue={targetPath}
+							displayValue={
+								notEnoughSpace ? (
+									<EditMaterialIcon className="defaultIcon" />
+								) : null
+							}
+							rootPath={rootPath}
+							error={error === null ? null : { message: error }}
+							codemodHash={hashDigest as unknown as CodemodHash}
+							onEditStart={onEditStart}
+							onEditEnd={onEditEnd}
+							onEditCancel={onEditCancel}
+							onChange={handleCodemodPathChange}
+							autocompleteItems={autocompleteItems}
+						/>
+					)}
 				</span>
 				{renderProgressBar(progress)}
-			</div>
-			{!editingPath && (
-				<div className={cn(styles.actions)}>
-					{renderActionButtons(
-						hashDigest,
-						progress !== null,
-						queued,
-						notEnoughSpace,
-					)}
-				</div>
-			)}
+				{!editingPath && (
+					<div
+						className={cn(styles.actions)}
+						style={{
+							...(notEnoughSpace && {
+								marginLeft: 0,
+							}),
+						}}
+					>
+						{renderActionButtons(
+							hashDigest,
+							progress !== null,
+							queued,
+						)}
+					</div>
+				)}
+			</span>
 		</>
 	);
 };

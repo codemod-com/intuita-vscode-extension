@@ -24,13 +24,7 @@ const Directory = (
 			/>
 			<div className="flex w-full flex-col">
 				<span className={s.labelContainer}>
-					<span
-						style={{
-							userSelect: 'none',
-						}}
-					>
-						{props.label}
-					</span>
+					<span className={s.label}>{props.label}</span>
 				</span>
 			</div>
 		</>
