@@ -314,15 +314,7 @@ export class EngineService {
 		});
 
 		const caseHashDigest = message.caseHashDigest;
-
-		const codemodName =
-			message.command.kind === 'executePiranhaRule'
-				? `Piranha: ${message.command.configurationUri.fsPath}`
-				: message.command.kind === 'executeLocalCodemod'
-				? `Local: ${message.command.codemodUri.fsPath}`
-				: this.__store.getState().codemod.entities[
-						message.command.codemodHash
-				  ]?.name ?? '';
+		const codemodName = message.command.name;
 
 		this.#execution = {
 			childProcess,
@@ -334,7 +326,7 @@ export class EngineService {
 			happenedAt: message.happenedAt,
 			case: {
 				hash: caseHashDigest,
-				codemodName,
+				codemodName: message.command.name,
 				createdAt: Number(message.happenedAt),
 				path: message.targetUri.fsPath,
 			},

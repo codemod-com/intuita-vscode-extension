@@ -49,17 +49,21 @@ export type Command =
 	| Readonly<{
 			kind: 'executeRepomod';
 			codemodHash: CodemodHash;
+			name: string;
 	  }>
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
+			name: string;
 	  }>
 	| Readonly<{
 			kind: 'executeLocalCodemod';
 			codemodUri: Uri;
+			name: string;
 	  }>
 	| Readonly<{
 			kind: 'executePiranhaRule';
+			name: string;
 			configurationUri: Uri;
 			language: string;
 	  }>;
