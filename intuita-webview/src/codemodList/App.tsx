@@ -18,7 +18,12 @@ const setSearchPhrase = (searchPhrase: string) => {
 };
 
 export const App = memo(
-	(props: MainWebviewViewProps & { activeTabId: 'codemods' }) => (
+	(
+		props: MainWebviewViewProps & {
+			activeTabId: 'codemods';
+			screenWidth: number | null;
+		},
+	) => (
 		<main className={styles.root}>
 			<SearchBar
 				searchPhrase={props.searchPhrase}
@@ -26,6 +31,7 @@ export const App = memo(
 				placeholder="Search codemods..."
 			/>
 			<TreeView
+				screenWidth={props.screenWidth}
 				rootPath={props.rootPath}
 				tree={props.codemodTree}
 				autocompleteItems={props.autocompleteItems}

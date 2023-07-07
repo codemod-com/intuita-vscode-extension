@@ -20,7 +20,7 @@
 
 .root .actions,
 .root .directorySelector {
-	opacity: 0;
+	opacity: 1;
 }
 
 .root:hover .actions,
@@ -43,15 +43,15 @@
 	line-height: 22px;
 	font-size: 13px;
 	cursor: pointer;
-	flex-grow: 1;
 	color: var(--vscode-foreground);
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
 	width: 100%;
 	display: flex;
 	align-items: center;
 	margin-left: 2.5px;
+}
+
+.directorySelector {
+	display: flex;
 }
 
 .description {
@@ -64,11 +64,11 @@
 
 .actions {
 	display: flex;
-	margin: 0 auto;
 	padding: 0 3px 0px 0px;
 	height: 100%;
 	align-items: center;
 	min-width: fit-content;
+	margin-left: auto;
 }
 
 .actions a {
@@ -85,4 +85,11 @@
 
 .actions a:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.label {
+	user-select: none;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
 }

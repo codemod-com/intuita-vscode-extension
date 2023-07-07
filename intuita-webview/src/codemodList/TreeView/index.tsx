@@ -15,6 +15,7 @@ type Props = Readonly<{
 	tree: CodemodTree;
 	autocompleteItems: ReadonlyArray<string>;
 	rootPath: string;
+	screenWidth: number | null;
 }>;
 
 const onFocus = (hashDigest: CodemodNodeHashDigest) => {
@@ -33,7 +34,12 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 	onFocus(hashDigest);
 };
 
-const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
+const TreeView = ({
+	tree,
+	autocompleteItems,
+	rootPath,
+	screenWidth,
+}: Props) => {
 	const progress = useProgressBar();
 
 	return (
@@ -43,6 +49,7 @@ const TreeView = ({ tree, autocompleteItems, rootPath }: Props) => {
 				autocompleteItems,
 				rootPath,
 				progress,
+				screenWidth,
 			})}
 			onFlip={onFlip}
 			onFocus={onFocus}

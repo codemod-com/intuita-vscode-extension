@@ -26,6 +26,7 @@ type Deps = {
 	rootPath: string;
 	autocompleteItems: ReadonlyArray<string>;
 	progress: Progress | null;
+	screenWidth: number | null;
 };
 
 type Props = Readonly<{
@@ -35,7 +36,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({ rootPath, autocompleteItems, progress }: Deps) =>
+	({ rootPath, autocompleteItems, progress, screenWidth }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -86,6 +87,7 @@ const getCodemodNodeRenderer =
 						}
 						queued={node.queued}
 						intuitaCertified={node.intuitaCertified}
+						screenWidth={screenWidth}
 					/>
 				)}
 
