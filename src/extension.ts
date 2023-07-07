@@ -26,9 +26,10 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
-import { jobHashCodec } from './jobs/types';
+import { JobHash, mapPersistedJobToJob } from './jobs/types';
 import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
 import { Options } from 'prettier';
+import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
 
 const messageBus = new MessageBus();
 
@@ -737,29 +738,29 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.formatJobNewContent',
+			'intuita.formatCaseJobs',
 			async (arg0: unknown) => {
 				try {
-					const validation = jobHashCodec.decode(arg0);
+					const validation = caseHashCodec.decode(arg0);
 
 					if (validation._tag === 'Left') {
 						throw new Error(
 							prettyReporter.report(validation).join('\n'),
 						);
 					}
+					const state = store.getState();
 
-					const jobHash = validation.right;
-					const job = store.getState().job.entities[jobHash];
+					const caseHash = validation.right;
 
-					const newContentUri = job?.newContentUri ?? null;
-
-					if (newContentUri === null) {
-						throw new Error(
-							'Unable to format file: missing newContentUri',
+					const caseHashJobHashSetManager =
+						new LeftRightHashSetManager<CaseHash, JobHash>(
+							new Set(state.caseHashJobHashes),
 						);
-					}
 
-					const newContent = readFileSync(newContentUri, 'utf8');
+					const caseJobHashes =
+						caseHashJobHashSetManager.getRightHashesByLeftHash(
+							caseHash,
+						);
 
 					let formatterConfig: Options | null = null;
 
@@ -782,19 +783,40 @@ export async function activate(context: vscode.ExtensionContext) {
 						formatterConfig = DEFAULT_PRETTIER_OPTIONS;
 					}
 
-					const formattedText = await formatText(
-						newContent,
-						formatterConfig,
-					);
+					for (const jobHash of caseJobHashes) {
+						const persistedJob =
+							store.getState().job.entities[jobHash];
 
-					jobManager.changeJobContent(jobHash, formattedText);
+						const newContentUri = persistedJob
+							? mapPersistedJobToJob(persistedJob)?.newContentUri
+							: null;
+
+						if (newContentUri === null) {
+							continue;
+						}
+
+						const newContent = readFileSync(
+							newContentUri.fsPath,
+							'utf8',
+						);
+
+						const formattedText = await formatText(
+							newContent,
+							formatterConfig,
+						);
+
+						await jobManager.changeJobContent(
+							jobHash,
+							formattedText,
+						);
+					}
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
 
 					vscodeTelemetry.sendError({
 						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.formatJobNewContent',
+						commandName: 'intuita.formatCaseJobs',
 					});
 				}
 			},
