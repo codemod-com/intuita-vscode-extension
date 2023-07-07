@@ -4,6 +4,9 @@ import { buildCodemodMetadataHash, buildTypeCodec } from '../../utilities';
 import * as t from 'io-ts';
 import * as E from 'fp-ts/Either';
 import { DownloadService } from '../downloadService';
+import { CodemodEntry, codemodEntryCodec } from '../../codemods/types';
+import { Store } from '../../data';
+import { actions } from '../../data/slice';
 
 const indexItemCodec = buildTypeCodec({
 	kind: t.literal('README'),
@@ -23,6 +26,7 @@ export class CodemodDescriptionProvider {
 		private readonly __fileSystem: FileSystem,
 		private readonly __globalStorageUri: Uri,
 		private readonly __messageBus: MessageBus,
+		private readonly __store: Store,
 	) {
 		this.__messageBus.subscribe(MessageKind.engineBootstrapped, () =>
 			this.__onEngineBootstrapped(),
@@ -52,6 +56,8 @@ export class CodemodDescriptionProvider {
 	}
 
 	private async __onEngineBootstrapped() {
+		await this.__fetchCodemods();
+
 		try {
 			await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
@@ -99,6 +105,70 @@ export class CodemodDescriptionProvider {
 			}
 
 			this.onDidChangeEmitter.fire(null);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	private async __fetchCodemods() {
+		try {
+			await this.__fileSystem.createDirectory(this.__globalStorageUri);
+
+			const codemodsJsonUri = Uri.joinPath(
+				this.__globalStorageUri,
+				'codemods.json',
+			);
+
+			await this.__downloadService.downloadFileIfNeeded(
+				`${BASE_URL}/codemod-registry/codemods.json`,
+				codemodsJsonUri,
+				null,
+			);
+
+			const uint8array = await this.__fileSystem.readFile(
+				codemodsJsonUri,
+			);
+
+			const validation = t
+				.readonlyArray(codemodEntryCodec)
+				.decode(JSON.parse(uint8array.toString()));
+
+			if (E.isLeft(validation)) {
+				throw new Error('Could not decode the response');
+			}
+
+			const codemods = validation.right;
+
+			for (const codemod of codemods) {
+				if (codemod.kind !== 'piranhaRule') {
+					continue;
+				}
+
+				this.__fetchPiranhaConfiguration(codemod);
+			}
+
+			this.__store.dispatch(actions.upsertCodemods(codemods));
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	private async __fetchPiranhaConfiguration(
+		codemod: CodemodEntry & { kind: 'piranhaRule' },
+	): Promise<void> {
+		try {
+			const url = `${BASE_URL}/codemod-registry/${codemod.rulesTomlFileBasename}`;
+
+			const configurationDirectoryUri = Uri.joinPath(
+				this.__globalStorageUri,
+				codemod.configurationDirectoryBasename,
+			);
+
+			const uri = Uri.joinPath(configurationDirectoryUri, 'rules.toml');
+
+			await this.__fileSystem.createDirectory(configurationDirectoryUri);
+
+			await this.__downloadService.downloadFileIfNeeded(url, uri, null);
 		} catch (error) {
 			console.error(error);
 		}
