@@ -273,6 +273,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
+							name: codemodUri.fsPath,
 						},
 						happenedAt,
 						caseHashDigest: buildCaseHash(),
@@ -338,6 +339,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						kind: 'executePiranhaRule',
 						configurationUri,
 						language,
+						name: configurationUri.fsPath,
 					},
 					happenedAt: String(Date.now()),
 					caseHashDigest: buildCaseHash(),
@@ -369,12 +371,17 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
+					const name =
+						store.getState().codemod.entities[codemodHash]?.name ??
+						'';
+
 					const command: Command = {
 						kind:
 							codemodHash === 'QKEdp-pofR9UnglrKAGDm1Oj6W0'
 								? 'executeRepomod'
 								: 'executeCodemod',
 						codemodHash,
+						name,
 					};
 
 					messageBus.publish({
@@ -476,17 +483,18 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					const selectedCodemod = sortedCodemodList.find(
-						({ name }) => name === quickPickItem.label,
-					);
+					const codemodEntry =
+						sortedCodemodList.find(
+							({ name }) => name === quickPickItem.label,
+						) ?? null;
 
-					if (!selectedCodemod) {
+					if (codemodEntry === null) {
 						throw new Error('Codemod is not selected');
 					}
 
 					await mainViewProvider.updateExecutionPath({
 						newPath: targetUri.path,
-						codemodHash: selectedCodemod.hashDigest as CodemodHash,
+						codemodHash: codemodEntry.hashDigest as CodemodHash,
 						fromVSCodeCommand: true,
 						errorMessage: null,
 						warningMessage: null,
@@ -499,7 +507,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					store.dispatch(
 						actions.setFocusedCodemodHashDigest(
-							selectedCodemod.hashDigest as unknown as CodemodNodeHashDigest,
+							codemodEntry.hashDigest as unknown as CodemodNodeHashDigest,
 						),
 					);
 
@@ -508,13 +516,28 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
+					const command: Command =
+						codemodEntry.kind === 'piranhaRule'
+							? {
+									kind: 'executePiranhaRule',
+									configurationUri: vscode.Uri.joinPath(
+										storageUri,
+										'codemod-registry',
+										codemodEntry.configurationDirectoryBasename,
+									),
+									language: codemodEntry.language,
+									name: codemodEntry.name,
+							  }
+							: {
+									kind: 'executeCodemod',
+									codemodHash:
+										codemodEntry.hashDigest as CodemodHash,
+									name: codemodEntry.name,
+							  };
+
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
-						command: {
-							kind: 'executeCodemod',
-							codemodHash:
-								selectedCodemod.hashDigest as CodemodHash,
-						},
+						command,
 						caseHashDigest: buildCaseHash(),
 						happenedAt: String(Date.now()),
 						storageUri,
@@ -580,6 +603,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
+							name: codemodUri.fsPath,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),

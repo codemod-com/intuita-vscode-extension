@@ -29,16 +29,13 @@ export const workspaceStateCodec = t.union([
 	}),
 ]);
 
-const emptyCollection = { ids: [], entities: {} };
-const buildCollectionCodec = <T extends t.Props>(
-	entityCodec: t.ReadonlyC<t.ExactC<t.TypeC<T>>>,
-) => {
+const buildCollectionCodec = <T extends t.Mixed>(entityCodec: T) => {
 	return withFallback(
 		buildTypeCodec({
 			ids: t.readonlyArray(t.union([t.string, t.number])),
 			entities: t.record(t.string, t.union([entityCodec, t.undefined])),
 		}),
-		emptyCollection,
+		{ ids: [], entities: {} },
 	);
 };
 
