@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
-import { getConfiguration } from './configuration';
+import { getConfiguration, setConfigurationProperty } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -28,7 +28,7 @@ import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { JobHash, mapPersistedJobToJob } from './jobs/types';
 import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
-import { Options } from 'prettier';
+import { Options, resolveConfigFile } from 'prettier';
 import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
 
 const messageBus = new MessageBus();
@@ -777,6 +777,37 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.bootstrapEngine,
 	});
 
+	const showIntuitaCustomConfigPrompt = async (): Promise<boolean> => {
+		const positiveChoice = 'Yes, use default';
+		const negativeChoice = 'Cancel';
+
+		const choice = await vscode.window.showWarningMessage(
+			`Unable to resolve config. Would you like to use the Intuita's custom configuration instead?`,
+			positiveChoice,
+			negativeChoice,
+		);
+
+		return choice === positiveChoice;
+	};
+
+	const getFormatterConfig = async (
+		configPath: string | null,
+	): Promise<Options | null> => {
+		try {
+			return await getConfig(rootUri.fsPath, configPath);
+		} catch (e) {
+			const { useCustomPrettierConfig } = configurationContainer.get();
+
+			if (useCustomPrettierConfig) {
+				return DEFAULT_PRETTIER_OPTIONS;
+			}
+
+			return null;
+		}
+	};
+
+	class UnableToResolveConfigError extends Error {}
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.formatCaseJobs',
@@ -789,10 +820,9 @@ export async function activate(context: vscode.ExtensionContext) {
 							prettyReporter.report(validation).join('\n'),
 						);
 					}
+
 					const state = store.getState();
-
 					const caseHash = validation.right;
-
 					const caseHashJobHashSetManager =
 						new LeftRightHashSetManager<CaseHash, JobHash>(
 							new Set(state.caseHashJobHashes),
@@ -803,26 +833,20 @@ export async function activate(context: vscode.ExtensionContext) {
 							caseHash,
 						);
 
-					let formatterConfig: Options | null = null;
+					const formatterConfigPath = await resolveConfigFile(
+						rootUri.fsPath,
+					);
+					const formatterConfig = await getFormatterConfig(
+						formatterConfigPath,
+					);
 
-					try {
-						formatterConfig = await getConfig(rootUri.fsPath);
-					} catch (e) {
-						const positiveChoice = 'Yes, use default';
-						const negativeChoice = 'Cancel';
-
-						const choice = await vscode.window.showWarningMessage(
-							'Unable to resolve config. Would you like to use the default configuration instead?',
-							positiveChoice,
-							negativeChoice,
+					if (formatterConfig === null) {
+						throw new UnableToResolveConfigError(
+							'Unable to resolve Prettier config',
 						);
-
-						if (choice !== positiveChoice) {
-							return;
-						}
-
-						formatterConfig = DEFAULT_PRETTIER_OPTIONS;
 					}
+
+					let formattedFileCount = 0;
 
 					for (const jobHash of caseJobHashes) {
 						const persistedJob =
@@ -850,9 +874,55 @@ export async function activate(context: vscode.ExtensionContext) {
 							jobHash,
 							formattedText,
 						);
+
+						formattedFileCount++;
 					}
+
+					let configLink: string | null = null;
+
+					if (formatterConfigPath !== null) {
+						const formatterConfigUri =
+							vscode.Uri.file(formatterConfigPath);
+
+						const link = vscode.Uri.parse(
+							`command:vscode.open?${encodeURIComponent(
+								JSON.stringify(formatterConfigUri),
+							)}`,
+						);
+
+						configLink = `[Config](${link})`;
+					}
+
+					vscode.window.showInformationMessage(
+						`Formatted ${formattedFileCount} files, using ${
+							configLink !== null
+								? configLink
+								: `Intuita's custom config`
+						}.`,
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
+
+					if (e instanceof UnableToResolveConfigError) {
+						const shouldUseCustomConfig =
+							await showIntuitaCustomConfigPrompt();
+
+						if (shouldUseCustomConfig) {
+							setConfigurationProperty(
+								'useCustomPrettierConfig',
+								shouldUseCustomConfig,
+								vscode.ConfigurationTarget.Workspace,
+							);
+
+							vscode.commands.executeCommand(
+								'intuita.formatCaseJobs',
+								arg0,
+							);
+						}
+
+						return;
+					}
+
 					vscode.window.showErrorMessage(message);
 
 					vscodeTelemetry.sendError({

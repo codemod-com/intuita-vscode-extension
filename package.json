@@ -114,7 +114,12 @@
 				"intuita.formatWithPrettier": {
 					"order": 8,
 					"type": "boolean",
-					"description": "Use the Prettier formatter with the configuration derived from the location of a file to be formatter. If none is found, the extension will use the custom Intuita's config."
+					"description": "Use the Prettier formatter with the configuration derived from the location of a file to be formatter."
+				},
+				"intuita.useCustomPrettierConfig": {
+					"order": 9,
+					"type": "boolean",
+					"description": "Use the custom Intuita's config if Prettier config is not detected."
 				}
 			}
 		},

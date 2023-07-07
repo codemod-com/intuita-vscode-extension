@@ -13,8 +13,14 @@ export const DEFAULT_PRETTIER_OPTIONS: Options = {
 	parser: 'typescript',
 };
 
-export const getConfig = async (path: string): Promise<Options> => {
-	const config = await resolveConfig(path);
+export const getConfig = async (
+	path: string,
+	configPath: string | null,
+): Promise<Options> => {
+	const config = await resolveConfig(path, {
+		editorconfig: false,
+		...(configPath && { config: configPath }),
+	});
 
 	if (config === null || Object.keys(config).length === 0) {
 		throw new Error('Unable to resolve config');
