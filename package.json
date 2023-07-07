@@ -39,10 +39,6 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "intuita.formatCaseJobs",
-				"title": "intuita debug"
-			},
-			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: clear output files"
 			},

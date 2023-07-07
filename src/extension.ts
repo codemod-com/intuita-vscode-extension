@@ -798,20 +798,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		} catch (e) {
 			const { useCustomPrettierConfig } = configurationContainer.get();
 
-			// if (useCustomPrettierConfig === null) {
-			// 	const shouldUseCustomConfig = await intuitaCustomConfigPrompt();
-
-			// 	setConfigurationProperty(
-			// 		'useCustomPrettierConfig',
-			// 		shouldUseCustomConfig,
-			// 		vscode.ConfigurationTarget.Workspace,
-			// 	);
-
-			// 	if (shouldUseCustomConfig) {
-			// 		return DEFAULT_PRETTIER_OPTIONS;
-			// 	}
-			// }
-
 			if (useCustomPrettierConfig) {
 				return DEFAULT_PRETTIER_OPTIONS;
 			}

@@ -33,7 +33,7 @@ export const getConfiguration = () => {
 
 export const setConfigurationProperty = async (
 	propertyName: string,
-	value: any,
+	value: unknown,
 	configurationTarget: vscode.ConfigurationTarget,
 ) => {
 	const configuration = vscode.workspace.getConfiguration('intuita');

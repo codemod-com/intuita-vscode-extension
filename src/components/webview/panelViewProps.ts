@@ -13,7 +13,6 @@ export type PanelViewProps =
 			newFileContent: string | null;
 			oldFileTitle: string | null;
 			newFileTitle: string | null;
-			formattingError: Error | null;
 	  }>
 	| Readonly<{
 			kind: 'CODEMOD';
