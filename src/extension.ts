@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { readFileSync } from 'fs';
+// import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
-import { getConfiguration, setConfigurationProperty } from './configuration';
+import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -26,10 +26,10 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
-import { JobHash, mapPersistedJobToJob } from './jobs/types';
-import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
-import { Options, resolveConfigFile } from 'prettier';
-import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
+// import { JobHash, mapPersistedJobToJob } from './jobs/types';
+// import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
+// import { Options, resolveConfigFile } from 'prettier';
+// import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
 
 const messageBus = new MessageBus();
 
@@ -777,160 +777,160 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.bootstrapEngine,
 	});
 
-	const showIntuitaCustomConfigPrompt = async (): Promise<boolean> => {
-		const positiveChoice = 'Yes, use default';
-		const negativeChoice = 'Cancel';
+	// const showIntuitaCustomConfigPrompt = async (): Promise<boolean> => {
+	// 	const positiveChoice = 'Yes, use default';
+	// 	const negativeChoice = 'Cancel';
 
-		const choice = await vscode.window.showWarningMessage(
-			`Unable to resolve config. Would you like to use the Intuita's custom configuration instead?`,
-			positiveChoice,
-			negativeChoice,
-		);
+	// 	const choice = await vscode.window.showWarningMessage(
+	// 		`Unable to resolve config. Would you like to use the Intuita's custom configuration instead?`,
+	// 		positiveChoice,
+	// 		negativeChoice,
+	// 	);
 
-		return choice === positiveChoice;
-	};
+	// 	return choice === positiveChoice;
+	// };
 
-	const getFormatterConfig = async (
-		configPath: string | null,
-	): Promise<Options | null> => {
-		try {
-			return await getConfig(rootUri.fsPath, configPath);
-		} catch (e) {
-			const { useCustomPrettierConfig } = configurationContainer.get();
+	// const getFormatterConfig = async (
+	// 	configPath: string | null,
+	// ): Promise<Options | null> => {
+	// 	try {
+	// 		return await getConfig(rootUri.fsPath, configPath);
+	// 	} catch (e) {
+	// 		const { useCustomPrettierConfig } = configurationContainer.get();
 
-			if (useCustomPrettierConfig) {
-				return DEFAULT_PRETTIER_OPTIONS;
-			}
+	// 		if (useCustomPrettierConfig) {
+	// 			return DEFAULT_PRETTIER_OPTIONS;
+	// 		}
 
-			return null;
-		}
-	};
+	// 		return null;
+	// 	}
+	// };
 
-	class UnableToResolveConfigError extends Error {}
+	// class UnableToResolveConfigError extends Error {}
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.formatCaseJobs',
-			async (arg0: unknown) => {
-				try {
-					const validation = caseHashCodec.decode(arg0);
+	// context.subscriptions.push(
+	// 	vscode.commands.registerCommand(
+	// 		'intuita.formatCaseJobs',
+	// 		async (arg0: unknown) => {
+	// 			try {
+	// 				const validation = caseHashCodec.decode(arg0);
 
-					if (validation._tag === 'Left') {
-						throw new Error(
-							prettyReporter.report(validation).join('\n'),
-						);
-					}
+	// 				if (validation._tag === 'Left') {
+	// 					throw new Error(
+	// 						prettyReporter.report(validation).join('\n'),
+	// 					);
+	// 				}
 
-					const state = store.getState();
-					const caseHash = validation.right;
-					const caseHashJobHashSetManager =
-						new LeftRightHashSetManager<CaseHash, JobHash>(
-							new Set(state.caseHashJobHashes),
-						);
+	// 				const state = store.getState();
+	// 				const caseHash = validation.right;
+	// 				const caseHashJobHashSetManager =
+	// 					new LeftRightHashSetManager<CaseHash, JobHash>(
+	// 						new Set(state.caseHashJobHashes),
+	// 					);
 
-					const caseJobHashes =
-						caseHashJobHashSetManager.getRightHashesByLeftHash(
-							caseHash,
-						);
+	// 				const caseJobHashes =
+	// 					caseHashJobHashSetManager.getRightHashesByLeftHash(
+	// 						caseHash,
+	// 					);
 
-					const formatterConfigPath = await resolveConfigFile(
-						rootUri.fsPath,
-					);
-					const formatterConfig = await getFormatterConfig(
-						formatterConfigPath,
-					);
+	// 				const formatterConfigPath = await resolveConfigFile(
+	// 					rootUri.fsPath,
+	// 				);
+	// 				const formatterConfig = await getFormatterConfig(
+	// 					formatterConfigPath,
+	// 				);
 
-					if (formatterConfig === null) {
-						throw new UnableToResolveConfigError(
-							'Unable to resolve Prettier config',
-						);
-					}
+	// 				if (formatterConfig === null) {
+	// 					throw new UnableToResolveConfigError(
+	// 						'Unable to resolve Prettier config',
+	// 					);
+	// 				}
 
-					let formattedFileCount = 0;
+	// 				let formattedFileCount = 0;
 
-					for (const jobHash of caseJobHashes) {
-						const persistedJob =
-							store.getState().job.entities[jobHash];
+	// 				for (const jobHash of caseJobHashes) {
+	// 					const persistedJob =
+	// 						store.getState().job.entities[jobHash];
 
-						const newContentUri = persistedJob
-							? mapPersistedJobToJob(persistedJob)?.newContentUri
-							: null;
+	// 					const newContentUri = persistedJob
+	// 						? mapPersistedJobToJob(persistedJob)?.newContentUri
+	// 						: null;
 
-						if (newContentUri === null) {
-							continue;
-						}
+	// 					if (newContentUri === null) {
+	// 						continue;
+	// 					}
 
-						const newContent = readFileSync(
-							newContentUri.fsPath,
-							'utf8',
-						);
+	// 					const newContent = readFileSync(
+	// 						newContentUri.fsPath,
+	// 						'utf8',
+	// 					);
 
-						const formattedText = await formatText(
-							newContent,
-							formatterConfig,
-						);
+	// 					const formattedText = await formatText(
+	// 						newContent,
+	// 						formatterConfig,
+	// 					);
 
-						await jobManager.changeJobContent(
-							jobHash,
-							formattedText,
-						);
+	// 					await jobManager.changeJobContent(
+	// 						jobHash,
+	// 						formattedText,
+	// 					);
 
-						formattedFileCount++;
-					}
+	// 					formattedFileCount++;
+	// 				}
 
-					let configLink: string | null = null;
+	// 				let configLink: string | null = null;
 
-					if (formatterConfigPath !== null) {
-						const formatterConfigUri =
-							vscode.Uri.file(formatterConfigPath);
+	// 				if (formatterConfigPath !== null) {
+	// 					const formatterConfigUri =
+	// 						vscode.Uri.file(formatterConfigPath);
 
-						const link = vscode.Uri.parse(
-							`command:vscode.open?${encodeURIComponent(
-								JSON.stringify(formatterConfigUri),
-							)}`,
-						);
+	// 					const link = vscode.Uri.parse(
+	// 						`command:vscode.open?${encodeURIComponent(
+	// 							JSON.stringify(formatterConfigUri),
+	// 						)}`,
+	// 					);
 
-						configLink = `[Config](${link})`;
-					}
+	// 					configLink = `[Config](${link})`;
+	// 				}
 
-					vscode.window.showInformationMessage(
-						`Formatted ${formattedFileCount} files, using ${
-							configLink !== null
-								? configLink
-								: `Intuita's custom config`
-						}.`,
-					);
-				} catch (e) {
-					const message = e instanceof Error ? e.message : String(e);
+	// 				vscode.window.showInformationMessage(
+	// 					`Formatted ${formattedFileCount} files, using ${
+	// 						configLink !== null
+	// 							? configLink
+	// 							: `Intuita's custom config`
+	// 					}.`,
+	// 				);
+	// 			} catch (e) {
+	// 				const message = e instanceof Error ? e.message : String(e);
 
-					if (e instanceof UnableToResolveConfigError) {
-						const shouldUseCustomConfig =
-							await showIntuitaCustomConfigPrompt();
+	// 				if (e instanceof UnableToResolveConfigError) {
+	// 					const shouldUseCustomConfig =
+	// 						await showIntuitaCustomConfigPrompt();
 
-						if (shouldUseCustomConfig) {
-							setConfigurationProperty(
-								'useCustomPrettierConfig',
-								shouldUseCustomConfig,
-								vscode.ConfigurationTarget.Workspace,
-							);
+	// 					if (shouldUseCustomConfig) {
+	// 						setConfigurationProperty(
+	// 							'useCustomPrettierConfig',
+	// 							shouldUseCustomConfig,
+	// 							vscode.ConfigurationTarget.Workspace,
+	// 						);
 
-							vscode.commands.executeCommand(
-								'intuita.formatCaseJobs',
-								arg0,
-							);
-						}
+	// 						vscode.commands.executeCommand(
+	// 							'intuita.formatCaseJobs',
+	// 							arg0,
+	// 						);
+	// 					}
 
-						return;
-					}
+	// 					return;
+	// 				}
 
-					vscode.window.showErrorMessage(message);
+	// 				vscode.window.showErrorMessage(message);
 
-					vscodeTelemetry.sendError({
-						kind: 'failedToExecuteCommand',
-						commandName: 'intuita.formatCaseJobs',
-					});
-				}
-			},
-		),
-	);
+	// 				vscodeTelemetry.sendError({
+	// 					kind: 'failedToExecuteCommand',
+	// 					commandName: 'intuita.formatCaseJobs',
+	// 				});
+	// 			}
+	// 		},
+	// 	),
+	// );
 }
