@@ -28,7 +28,7 @@ import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { JobHash, mapPersistedJobToJob } from './jobs/types';
 import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
-import { Options } from 'prettier';
+import { Options, resolveConfigFile } from 'prettier';
 import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
 
 const messageBus = new MessageBus();
@@ -777,7 +777,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.bootstrapEngine,
 	});
 
-	const intuitaCustomConfigPrompt = async (): Promise<boolean> => {
+	const showIntuitaCustomConfigPrompt = async (): Promise<boolean> => {
 		const positiveChoice = 'Yes, use default';
 		const negativeChoice = 'Cancel';
 
@@ -790,13 +790,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		return choice === positiveChoice;
 	};
 
-	const getFormatterConfig = async (): Promise<Options | null> => {
+	const getFormatterConfig = async (
+		configPath: string | null,
+	): Promise<Options | null> => {
 		try {
-			return await getConfig(rootUri.fsPath);
+			return await getConfig(rootUri.fsPath, configPath);
 		} catch (e) {
 			const { useCustomPrettierConfig } = configurationContainer.get();
 
-			
 			// if (useCustomPrettierConfig === null) {
 			// 	const shouldUseCustomConfig = await intuitaCustomConfigPrompt();
 
@@ -819,6 +820,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	};
 
+	class UnableToResolveConfigError extends Error {}
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.formatCaseJobs',
@@ -831,10 +834,9 @@ export async function activate(context: vscode.ExtensionContext) {
 							prettyReporter.report(validation).join('\n'),
 						);
 					}
+
 					const state = store.getState();
-
 					const caseHash = validation.right;
-
 					const caseHashJobHashSetManager =
 						new LeftRightHashSetManager<CaseHash, JobHash>(
 							new Set(state.caseHashJobHashes),
@@ -845,11 +847,20 @@ export async function activate(context: vscode.ExtensionContext) {
 							caseHash,
 						);
 
-					const formatterConfig = await getFormatterConfig();
+					const formatterConfigPath = await resolveConfigFile(
+						rootUri.fsPath,
+					);
+					const formatterConfig = await getFormatterConfig(
+						formatterConfigPath,
+					);
 
 					if (formatterConfig === null) {
-						throw new Error('Unable to resolve Prettier config');
+						throw new UnableToResolveConfigError(
+							'Unable to resolve Prettier config',
+						);
 					}
+
+					let formattedFileCount = 0;
 
 					for (const jobHash of caseJobHashes) {
 						const persistedJob =
@@ -877,9 +888,55 @@ export async function activate(context: vscode.ExtensionContext) {
 							jobHash,
 							formattedText,
 						);
+
+						formattedFileCount++;
 					}
+
+					let configLink: string | null = null;
+
+					if (formatterConfigPath !== null) {
+						const formatterConfigUri =
+							vscode.Uri.file(formatterConfigPath);
+
+						const link = vscode.Uri.parse(
+							`command:vscode.open?${encodeURIComponent(
+								JSON.stringify(formatterConfigUri),
+							)}`,
+						);
+
+						configLink = `[Config](${link})`;
+					}
+
+					vscode.window.showInformationMessage(
+						`Formatted ${formattedFileCount} files, using ${
+							configLink !== null
+								? configLink
+								: `Intuita's custom config`
+						}.`,
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
+
+					if (e instanceof UnableToResolveConfigError) {
+						const shouldUseCustomConfig =
+							await showIntuitaCustomConfigPrompt();
+
+						if (shouldUseCustomConfig) {
+							setConfigurationProperty(
+								'useCustomPrettierConfig',
+								shouldUseCustomConfig,
+								vscode.ConfigurationTarget.Workspace,
+							);
+
+							vscode.commands.executeCommand(
+								'intuita.formatCaseJobs',
+								arg0,
+							);
+						}
+
+						return;
+					}
+
 					vscode.window.showErrorMessage(message);
 
 					vscodeTelemetry.sendError({
