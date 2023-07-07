@@ -5,10 +5,7 @@ export const ProgressBar = (
 		percent: number;
 	}>,
 ) => (
-	<div
-		className="flex  align-items-center"
-		style={{ height: '3.5px', width: '95%' }}
-	>
+	<div className="flex mb-2" style={{ height: '3.5px', width: '95%' }}>
 		<Line
 			percent={props.percent}
 			strokeWidth={1.5}
