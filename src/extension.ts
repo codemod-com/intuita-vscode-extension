@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
-import { getConfiguration } from './configuration';
+import { getConfiguration, setConfigurationProperty } from './configuration';
 import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
@@ -777,21 +777,64 @@ export async function activate(context: vscode.ExtensionContext) {
 		kind: MessageKind.bootstrapEngine,
 	});
 
+	const intuitaCustomConfigPrompt = async (): Promise<boolean> => {
+		const positiveChoice = 'Yes, use default';
+		const negativeChoice = 'Cancel';
+
+		const choice = await vscode.window.showWarningMessage(
+			`Unable to resolve config. Would you like to use the Intuita's custom configuration instead?`,
+			positiveChoice,
+			negativeChoice,
+		);
+
+		return choice === positiveChoice;
+	};
+
+	const getFormatterConfig = async (): Promise<Options | null> => {
+		try {
+			return await getConfig(rootUri.fsPath);
+		} catch (e) {
+			const { useCustomPrettierConfig } = configurationContainer.get();
+
+			
+			// if (useCustomPrettierConfig === null) {
+			// 	const shouldUseCustomConfig = await intuitaCustomConfigPrompt();
+
+			// 	setConfigurationProperty(
+			// 		'useCustomPrettierConfig',
+			// 		shouldUseCustomConfig,
+			// 		vscode.ConfigurationTarget.Workspace,
+			// 	);
+
+			// 	if (shouldUseCustomConfig) {
+			// 		return DEFAULT_PRETTIER_OPTIONS;
+			// 	}
+			// }
+
+			if (useCustomPrettierConfig) {
+				return DEFAULT_PRETTIER_OPTIONS;
+			}
+
+			return null;
+		}
+	};
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.formatCaseJobs',
 			async (arg0: unknown) => {
 				try {
-					const validation = caseHashCodec.decode(arg0);
+					// const validation = caseHashCodec.decode(arg0);
 
-					if (validation._tag === 'Left') {
-						throw new Error(
-							prettyReporter.report(validation).join('\n'),
-						);
-					}
+					// if (validation._tag === 'Left') {
+					// 	throw new Error(
+					// 		prettyReporter.report(validation).join('\n'),
+					// 	);
+					// }
 					const state = store.getState();
 
-					const caseHash = validation.right;
+					const caseHash = state.case.ids[0] as CaseHash;
+					// const caseHash = validation.right;
 
 					const caseHashJobHashSetManager =
 						new LeftRightHashSetManager<CaseHash, JobHash>(
@@ -803,25 +846,10 @@ export async function activate(context: vscode.ExtensionContext) {
 							caseHash,
 						);
 
-					let formatterConfig: Options | null = null;
+					const formatterConfig = await getFormatterConfig();
 
-					try {
-						formatterConfig = await getConfig(rootUri.fsPath);
-					} catch (e) {
-						const positiveChoice = 'Yes, use default';
-						const negativeChoice = 'Cancel';
-
-						const choice = await vscode.window.showWarningMessage(
-							'Unable to resolve config. Would you like to use the default configuration instead?',
-							positiveChoice,
-							negativeChoice,
-						);
-
-						if (choice !== positiveChoice) {
-							return;
-						}
-
-						formatterConfig = DEFAULT_PRETTIER_OPTIONS;
+					if (formatterConfig === null) {
+						throw new Error('Unable to resolve Prettier config');
 					}
 
 					for (const jobHash of caseJobHashes) {

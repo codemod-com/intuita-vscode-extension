@@ -18,13 +18,26 @@ export const getConfiguration = () => {
 	const formatWithPrettier =
 		configuration.get<boolean>('formatWithPrettier') ?? false;
 
+	const useCustomPrettierConfig =
+		configuration.get<boolean>('useCustomPrettierConfig') ?? null;
+
 	return {
 		fileLimit,
 		workerThreadCount,
 		includePatterns,
 		excludePatterns,
 		formatWithPrettier,
+		useCustomPrettierConfig,
 	};
 };
 
+export const setConfigurationProperty = async (
+	propertyName: string,
+	value: any,
+	configurationTarget: vscode.ConfigurationTarget,
+) => {
+	const configuration = vscode.workspace.getConfiguration('intuita');
+
+	return configuration.update(propertyName, value, configurationTarget);
+};
 export type Configuration = ReturnType<typeof getConfiguration>;
