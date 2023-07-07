@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
@@ -25,6 +26,10 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
+import { JobHash, mapPersistedJobToJob } from './jobs/types';
+import { DEFAULT_PRETTIER_OPTIONS, formatText, getConfig } from './formatter';
+import { Options } from 'prettier';
+import { LeftRightHashSetManager } from './leftRightHashes/leftRightHashSetManager';
 
 const messageBus = new MessageBus();
 
@@ -730,4 +735,91 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
 	});
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.formatCaseJobs',
+			async (arg0: unknown) => {
+				try {
+					const validation = caseHashCodec.decode(arg0);
+
+					if (validation._tag === 'Left') {
+						throw new Error(
+							prettyReporter.report(validation).join('\n'),
+						);
+					}
+					const state = store.getState();
+
+					const caseHash = validation.right;
+
+					const caseHashJobHashSetManager =
+						new LeftRightHashSetManager<CaseHash, JobHash>(
+							new Set(state.caseHashJobHashes),
+						);
+
+					const caseJobHashes =
+						caseHashJobHashSetManager.getRightHashesByLeftHash(
+							caseHash,
+						);
+
+					let formatterConfig: Options | null = null;
+
+					try {
+						formatterConfig = await getConfig(rootUri.fsPath);
+					} catch (e) {
+						const positiveChoice = 'Yes, use default';
+						const negativeChoice = 'Cancel';
+
+						const choice = await vscode.window.showWarningMessage(
+							'Unable to resolve config. Would you like to use the default configuration instead?',
+							positiveChoice,
+							negativeChoice,
+						);
+
+						if (choice !== positiveChoice) {
+							return;
+						}
+
+						formatterConfig = DEFAULT_PRETTIER_OPTIONS;
+					}
+
+					for (const jobHash of caseJobHashes) {
+						const persistedJob =
+							store.getState().job.entities[jobHash];
+
+						const newContentUri = persistedJob
+							? mapPersistedJobToJob(persistedJob)?.newContentUri
+							: null;
+
+						if (newContentUri === null) {
+							continue;
+						}
+
+						const newContent = readFileSync(
+							newContentUri.fsPath,
+							'utf8',
+						);
+
+						const formattedText = await formatText(
+							newContent,
+							formatterConfig,
+						);
+
+						await jobManager.changeJobContent(
+							jobHash,
+							formattedText,
+						);
+					}
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.formatCaseJobs',
+					});
+				}
+			},
+		),
+	);
 }
