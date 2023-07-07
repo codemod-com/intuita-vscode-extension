@@ -34,7 +34,7 @@ jobs:
             - name: Install dependencies
               run: pnpm install
             - name: Package using webpack
-              run: pnpm run package
+              run: pnpm run build
     Lint:
         runs-on: ubuntu-latest
         steps:
