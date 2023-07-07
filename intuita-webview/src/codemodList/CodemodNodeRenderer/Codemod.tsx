@@ -174,70 +174,75 @@ const Codemod = ({
 					)}
 				</IntuitaPopover>
 			)}
-
-			<span className={styles.labelContainer}>
-				{!editingPath && (
-					<span
-						className={styles.label}
-						style={{
-							...(notEnoughSpace && {
-								flex: screenWidth / 430,
-								...(screenWidth < 250 && {
-									flex: screenWidth / 710,
+			<div className="flex w-full flex-col">
+				<span className={styles.labelContainer}>
+					{!editingPath && (
+						<span
+							className={styles.label}
+							style={{
+								...(notEnoughSpace && {
+									flex: screenWidth / 430,
+									...(screenWidth < 250 && {
+										flex: screenWidth / 710,
+									}),
 								}),
+							}}
+						>
+							{label}
+						</span>
+					)}
+					<span
+						className={styles.directorySelector}
+						style={{
+							...(editingPath && {
+								width: '100%',
+								opacity: 1,
+								marginRight: '2.5px',
 							}),
 						}}
 					>
-						{label}
+						{executionPath && (
+							<DirectorySelector
+								defaultValue={targetPath}
+								displayValue={
+									notEnoughSpace ? (
+										<EditMaterialIcon className="defaultIcon" />
+									) : null
+								}
+								rootPath={rootPath}
+								error={
+									error === null ? null : { message: error }
+								}
+								codemodHash={
+									hashDigest as unknown as CodemodHash
+								}
+								onEditStart={onEditStart}
+								onEditEnd={onEditEnd}
+								onEditCancel={onEditCancel}
+								onChange={handleCodemodPathChange}
+								autocompleteItems={autocompleteItems}
+							/>
+						)}
 					</span>
-				)}
-				<span
-					className={styles.directorySelector}
-					style={{
-						...(editingPath && {
-							width: '100%',
-							opacity: 1,
-							marginRight: '2.5px',
-						}),
-					}}
-				>
-					{executionPath && (
-						<DirectorySelector
-							defaultValue={targetPath}
-							displayValue={
-								notEnoughSpace ? (
-									<EditMaterialIcon className="defaultIcon" />
-								) : null
-							}
-							rootPath={rootPath}
-							error={error === null ? null : { message: error }}
-							codemodHash={hashDigest as unknown as CodemodHash}
-							onEditStart={onEditStart}
-							onEditEnd={onEditEnd}
-							onEditCancel={onEditCancel}
-							onChange={handleCodemodPathChange}
-							autocompleteItems={autocompleteItems}
-						/>
+					{!editingPath && (
+						<div
+							className={cn(styles.actions)}
+							style={{
+								...(notEnoughSpace && {
+									marginLeft: 0,
+								}),
+							}}
+						>
+							{renderActionButtons(
+								hashDigest,
+								progress !== null,
+								queued,
+							)}
+						</div>
 					)}
 				</span>
 				{renderProgressBar(progress)}
-				{!editingPath && (
-					<div
-						className={cn(styles.actions)}
-						style={{
-							...(notEnoughSpace && {
-								marginLeft: 0,
-							}),
-						}}
-					>
-						{renderActionButtons(
-							hashDigest,
-							progress !== null,
-							queued,
-						)}
-					</div>
-				)}
-			</span>
+			</div>
 		</>
 	);
 };
