@@ -64,29 +64,42 @@ export const selectExplorerNodes = (
 
 	const properSearchPhrase = selectSearchPhrase(state, caseHash);
 
-	const allJobPaths = filteredJobs
+	const allJobPaths = jobs
 		.map((j) => {
 			const uri = getPersistedJobUri(j);
 
-			return uri?.fsPath.toLocaleLowerCase() ?? null;
+			return (
+				uri?.fsPath.toLocaleLowerCase().replace(rootPath, '') ?? null
+			);
 		})
 		.filter(isNeitherNullNorUndefined);
 
-	const searchResults = go(properSearchPhrase, allJobPaths).map(
-		(r) => r.target,
-	);
+	const searchResults = Array.from(go(properSearchPhrase, allJobPaths))
+		.sort((a, b) => b.score - a.score)
+		.map((r) => r.target);
 
-	for (const job of filteredJobs) {
+	const orderedJobs = properSearchPhrase.length ? [] : filteredJobs;
+
+	if (properSearchPhrase) {
+		for (const result of searchResults) {
+			const nextJob = jobs.find((j) => {
+				const uri = getPersistedJobUri(j);
+				return (
+					uri?.fsPath.toLocaleLowerCase().replace(rootPath, '') ===
+					result
+				);
+			});
+
+			if (nextJob) {
+				orderedJobs.push(nextJob);
+			}
+		}
+	}
+
+	for (const job of orderedJobs) {
 		const uri = getPersistedJobUri(job);
 
 		if (uri === null) {
-			continue;
-		}
-
-		if (
-			properSearchPhrase !== '' &&
-			!searchResults.includes(uri.fsPath.toLocaleLowerCase())
-		) {
 			continue;
 		}
 
