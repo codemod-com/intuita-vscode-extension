@@ -20,7 +20,7 @@
 
 .root .actions,
 .root .directorySelector {
-	opacity: 1;
+	opacity: 0;
 }
 
 .root:hover .actions,
