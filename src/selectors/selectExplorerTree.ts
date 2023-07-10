@@ -262,11 +262,11 @@ export const selectNodeData = (
 };
 
 export const selectExplorerTree = (state: RootState, rootPath: string) => {
-	if (state.codemodExecutionInProgress) {
+	const caseHash = state.codemodRunsTab.selectedCaseHash as CaseHash | null;
+
+	if (state.caseHashInProgress === caseHash) {
 		return null;
 	}
-
-	const caseHash = state.codemodRunsTab.selectedCaseHash as CaseHash | null;
 
 	if (caseHash === null) {
 		return null;
