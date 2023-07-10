@@ -6,9 +6,8 @@ import SearchBar from '../shared/SearchBar';
 
 import TreeView from './TreeView';
 
-import styles from './style.module.css';
-
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import cn from 'classnames';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -24,7 +23,7 @@ export const App = memo(
 			screenWidth: number | null;
 		},
 	) => (
-		<main className={styles.root}>
+		<main className={cn('w-full', 'h-full', 'overflow-y-auto')}>
 			<SearchBar
 				searchPhrase={props.searchPhrase}
 				setSearchPhrase={setSearchPhrase}

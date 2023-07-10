@@ -27,7 +27,7 @@ const SearchBar = (props: Props) => {
 
 				props.setSearchPhrase(event.target.value);
 			}}
-			className={styles.container}
+			className={cn(styles.container, 'w-full')}
 		>
 			<span
 				slot="start"
