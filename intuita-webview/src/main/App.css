@@ -47,6 +47,10 @@
 	font-size: 11px;
 }
 
+.vscode-tab:focus-visible {
+	border: none;
+}
+
 .vscode-panel-view {
 	padding: 0px;
 }
