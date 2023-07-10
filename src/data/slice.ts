@@ -216,7 +216,7 @@ const rootSlice = createSlice({
 
 			state.caseHashJobHashes = caseHashJobHashes;
 		},
-		setCaseHashInprogress(state, action: PayloadAction<CaseHash>) {
+		setCaseHashInProgress(state, action: PayloadAction<CaseHash>) {
 			state.caseHashInProgress = action.payload;
 		},
 		setApplySelectedInProgress(state, action: PayloadAction<boolean>) {

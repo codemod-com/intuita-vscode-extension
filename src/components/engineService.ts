@@ -286,7 +286,7 @@ export class EngineService {
 		);
 
 		this.__store.dispatch(
-			actions.setCaseHashInprogress(message.caseHashDigest),
+			actions.setCaseHashInProgress(message.caseHashDigest),
 		);
 
 		const executionErrors: ExecutionError[] = [];
