@@ -18,16 +18,12 @@ export const getConfiguration = () => {
 	const formatWithPrettier =
 		configuration.get<boolean>('formatWithPrettier') ?? false;
 
-	const useCustomPrettierConfig =
-		configuration.get<boolean>('useCustomPrettierConfig') ?? null;
-
 	return {
 		fileLimit,
 		workerThreadCount,
 		includePatterns,
 		excludePatterns,
 		formatWithPrettier,
-		useCustomPrettierConfig,
 	};
 };
 

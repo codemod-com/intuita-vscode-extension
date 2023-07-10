@@ -18,7 +18,7 @@ export class BootstrapExecutablesService {
 	private async __onBootstrapEngines() {
 		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
-		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
+		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux')
 		const noraNodeEngineExecutableUri =
 			await this.__bootstrapNoraNodeEngineExecutableUri();
 
