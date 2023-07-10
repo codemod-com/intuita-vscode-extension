@@ -285,7 +285,9 @@ export class EngineService {
 			},
 		);
 
-		this.__store.dispatch(actions.setCodemodExecutionInProgress(true));
+		this.__store.dispatch(
+			actions.setCaseHashInProgress(message.caseHashDigest),
+		);
 
 		const executionErrors: ExecutionError[] = [];
 
@@ -490,10 +492,6 @@ export class EngineService {
 
 			this.#execution.jobs.push(job);
 
-			this.__store.dispatch(
-				actions.setSelectedCaseHash(this.#execution.case.hash),
-			);
-
 			this.#messageBus.publish({
 				kind: MessageKind.upsertCase,
 				kase: this.#execution.case,
@@ -511,6 +509,10 @@ export class EngineService {
 					case: this.#execution.case,
 					executionErrors,
 				});
+
+				this.__store.dispatch(
+					actions.setSelectedCaseHash(this.#execution.case.hash),
+				);
 
 				this.__store.dispatch(
 					actions.setExplorerNodes([

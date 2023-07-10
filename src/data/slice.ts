@@ -63,7 +63,7 @@ export const getInitialState = (): RootState => {
 		jobDiffView: {
 			visible: false,
 		},
-		codemodExecutionInProgress: false,
+		caseHashInProgress: null,
 		applySelectedInProgress: false,
 		activeTabId: 'codemods',
 		explorerSearchPhrases: {},
@@ -216,8 +216,8 @@ const rootSlice = createSlice({
 
 			state.caseHashJobHashes = caseHashJobHashes;
 		},
-		setCodemodExecutionInProgress(state, action: PayloadAction<boolean>) {
-			state.codemodExecutionInProgress = action.payload;
+		setCaseHashInProgress(state, action: PayloadAction<CaseHash>) {
+			state.caseHashInProgress = action.payload;
 		},
 		setApplySelectedInProgress(state, action: PayloadAction<boolean>) {
 			state.applySelectedInProgress = action.payload;
@@ -303,7 +303,7 @@ const rootSlice = createSlice({
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 
-			state.codemodExecutionInProgress = false;
+			state.caseHashInProgress = null;
 			state.applySelectedInProgress = false;
 
 			state.codemodRunsTab.selectedCaseHash = caseHash;
