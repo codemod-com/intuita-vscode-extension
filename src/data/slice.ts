@@ -129,6 +129,7 @@ const rootSlice = createSlice({
 			state.executionErrors = {};
 			state.caseHashJobHashes = [];
 			state.codemodRunsTab.selectedCaseHash = null;
+			state.caseHashInProgress = null;
 
 			state.explorerSearchPhrases = {};
 			state.selectedExplorerNodes = {};

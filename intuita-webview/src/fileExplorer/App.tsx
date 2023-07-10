@@ -81,7 +81,7 @@ export const App = (
 
 	if ((props.changeExplorerTree?.caseHash ?? null) === null) {
 		return codemodExecutionInProgress ? (
-			<LoadingProgress />
+			<LoadingProgress description="Preparing a tree view..." />
 		) : (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
