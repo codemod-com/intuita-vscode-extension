@@ -31,6 +31,7 @@ export const selectMainWebviewViewProps = (
 			applySelectedInProgress: state.applySelectedInProgress,
 			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
 			changeExplorerTree: selectExplorerTree(state, rootUri.fsPath),
+			codemodExecutionInProgress: state.caseHashInProgress !== null,
 			panelGroupSettings: state.codemodRunsTab.panelGroupSettings,
 			resultsCollapsed: state.codemodRunsTab.resultsCollapsed,
 			changeExplorerCollapsed:

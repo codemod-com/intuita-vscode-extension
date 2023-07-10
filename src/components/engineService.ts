@@ -514,6 +514,8 @@ export class EngineService {
 					actions.setSelectedCaseHash(this.#execution.case.hash),
 				);
 
+				this.__store.dispatch(actions.setCaseHashInProgress(null));
+
 				this.__store.dispatch(
 					actions.setExplorerNodes([
 						this.#execution.case.hash,

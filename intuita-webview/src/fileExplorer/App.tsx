@@ -13,6 +13,7 @@ import {
 } from '../../../src/persistedState/explorerNodeCodec';
 import { CaseHash } from '../../../src/cases/types';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import LoadingProgress from '../jobDiffView/Components/LoadingProgress';
 
 const setSearchPhrase = (caseHashDigest: CaseHash, searchPhrase: string) => {
 	vscode.postMessage({
@@ -51,7 +52,7 @@ export const App = (
 			activeTabId: 'codemodRuns';
 		},
 ) => {
-	const { changeExplorerTree } = props;
+	const { changeExplorerTree, codemodExecutionInProgress } = props;
 
 	const caseHash = changeExplorerTree?.caseHash ?? null;
 
@@ -79,7 +80,9 @@ export const App = (
 	);
 
 	if ((props.changeExplorerTree?.caseHash ?? null) === null) {
-		return (
+		return codemodExecutionInProgress ? (
+			<LoadingProgress />
+		) : (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!
 			</p>
