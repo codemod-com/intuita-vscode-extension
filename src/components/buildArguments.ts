@@ -11,11 +11,10 @@ export const buildArguments = (
 	>,
 	storageUri: Uri,
 ) => {
-	const args: string[] = [];
-
 	const { command } = message;
 
 	if (command.kind === 'executePiranhaRule') {
+		const args: string[] = [];
 		args.push('-i', singleQuotify(message.targetUri.fsPath));
 		args.push('-c', singleQuotify(command.configurationUri.fsPath));
 		args.push('-o', singleQuotify(storageUri.fsPath));
@@ -37,15 +36,22 @@ export const buildArguments = (
 	}
 
 	if (command.kind === 'executeRepomod') {
+		const args: string[] = [];
 		args.push('repomod');
 		args.push('-f', singleQuotify(command.codemodHash));
 		args.push('-i', singleQuotify(message.targetUri.fsPath));
 		args.push('-o', singleQuotify(storageUri.fsPath));
 
+		args.push(
+			'--formatWithPrettier',
+			String(configuration.formatWithPrettier),
+		);
+
 		return args;
 	}
 
 	if (command.kind === 'executeCodemod') {
+		const args: string[] = [];
 		args.push('-c', singleQuotify(doubleQuotify(command.codemodHash)));
 
 		if (message.targetUriIsDirectory) {
@@ -76,8 +82,15 @@ export const buildArguments = (
 
 		args.push('-o', singleQuotify(storageUri.fsPath));
 
+		args.push(
+			'--formatWithPrettier',
+			String(configuration.formatWithPrettier),
+		);
+
 		return args;
 	}
+
+	const args: string[] = [];
 
 	configuration.includePatterns.forEach((includePattern) => {
 		const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
@@ -96,6 +109,8 @@ export const buildArguments = (
 	args.push('-l', String(configuration.fileLimit));
 	args.push('-f', singleQuotify(command.codemodUri.fsPath));
 	args.push('-o', singleQuotify(storageUri.fsPath));
+
+	args.push('--formatWithPrettier', String(configuration.formatWithPrettier));
 
 	return args;
 };
