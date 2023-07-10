@@ -9,6 +9,7 @@ import TreeItem from '../shared/TreeItem';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import IntuitaPopover from '../shared/IntuitaPopover';
 import cn from 'classnames';
+import LoadingProgress from '../jobDiffView/Components/LoadingProgress';
 
 type InfoIconProps = {
 	createdAt: number;
@@ -31,7 +32,10 @@ export const App = (
 	props: MainWebviewViewProps & { activeTabId: 'codemodRuns' },
 ) => {
 	if (props.codemodRunsTree.nodeData.length === 0) {
-		return (
+		return props.codemodExecutionInProgress ? (
+			// `nodeData.length` can be zero momentarily even if a codemod is actually in progress
+			<LoadingProgress description="Executing codemod..." />
+		) : (
 			<p className={styles.welcomeMessage}>
 				No change to review! Run some codemods via Codemod Discovery or
 				VS Code Command & check back later!

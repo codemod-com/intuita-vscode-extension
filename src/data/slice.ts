@@ -129,6 +129,7 @@ const rootSlice = createSlice({
 			state.executionErrors = {};
 			state.caseHashJobHashes = [];
 			state.codemodRunsTab.selectedCaseHash = null;
+			state.caseHashInProgress = null;
 
 			state.explorerSearchPhrases = {};
 			state.selectedExplorerNodes = {};
@@ -216,7 +217,7 @@ const rootSlice = createSlice({
 
 			state.caseHashJobHashes = caseHashJobHashes;
 		},
-		setCaseHashInProgress(state, action: PayloadAction<CaseHash>) {
+		setCaseHashInProgress(state, action: PayloadAction<CaseHash | null>) {
 			state.caseHashInProgress = action.payload;
 		},
 		setApplySelectedInProgress(state, action: PayloadAction<boolean>) {
@@ -303,7 +304,6 @@ const rootSlice = createSlice({
 		setExplorerNodes(state, action: PayloadAction<[CaseHash, string]>) {
 			const [caseHash, rootPath] = action.payload;
 
-			state.caseHashInProgress = null;
 			state.applySelectedInProgress = false;
 
 			state.codemodRunsTab.selectedCaseHash = caseHash;
