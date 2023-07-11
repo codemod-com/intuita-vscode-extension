@@ -46,17 +46,3 @@
 	user-select: none;
 	text-align: right;
 }
-
-.actions a {
-	display: flex;
-	font-size: 11px;
-	padding: 3px;
-	border-radius: 5px;
-	text-decoration: none;
-	cursor: pointer;
-	color: var(--vscode-list-inactiveSelectionForeground);
-}
-
-.actions a:hover {
-	background-color: var(--vscode-toolbar-hoverBackground);
-}

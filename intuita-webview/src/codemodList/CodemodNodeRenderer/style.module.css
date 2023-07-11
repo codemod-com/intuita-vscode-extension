@@ -22,15 +22,12 @@
 	outline: none;
 }
 
-.root .actions,
-.root .directorySelector {
+.root .actionGroup {
 	opacity: 0;
 }
 
-.root:hover .actions,
-.root:hover .directorySelector,
-.root:focus .actions,
-.root:focus .directorySelector {
+.root:hover .actionGroup,
+.root:focus .actionGroup {
 	opacity: 1;
 }
 
@@ -46,7 +43,6 @@
 	width: 100%;
 	display: flex;
 	align-items: center;
-	margin-left: 2.5px;
 }
 
 .directorySelector {
@@ -61,28 +57,12 @@
 	display: none;
 }
 
-.actions {
+.actionGroup {
 	display: flex;
-	padding: 0 3px 0px 0px;
+	margin-left: auto;
 	height: 100%;
 	align-items: center;
 	min-width: fit-content;
-}
-
-.actions a {
-	display: flex;
-	align-items: center;
-	font-size: 11px;
-	padding-left: 3px;
-	padding-right: 3px;
-	border-radius: 5px;
-	text-decoration: none;
-	cursor: pointer;
-	color: var(--vscode-list-inactiveSelectionForeground);
-}
-
-.actions a:hover {
-	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .label {
