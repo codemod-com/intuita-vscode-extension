@@ -1,5 +1,4 @@
 import { memo, useCallback, useState } from 'react';
-import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
@@ -191,55 +190,56 @@ const Codemod = ({
 							{label}
 						</span>
 					)}
-					<span
-						className={styles.directorySelector}
+					<div
 						style={{
-							...(editingPath && {
-								width: '100%',
-								opacity: 1,
-								marginRight: '2.5px',
+							display: 'flex',
+							marginLeft: 'auto',
+							...(notEnoughSpace && {
+								marginLeft: 0,
 							}),
 						}}
 					>
-						{executionPath && (
-							<DirectorySelector
-								defaultValue={targetPath}
-								displayValue={
-									notEnoughSpace ? (
-										<EditMaterialIcon className="defaultIcon" />
-									) : null
-								}
-								rootPath={rootPath}
-								error={
-									error === null ? null : { message: error }
-								}
-								codemodHash={
-									hashDigest as unknown as CodemodHash
-								}
-								onEditStart={onEditStart}
-								onEditEnd={onEditEnd}
-								onEditCancel={onEditCancel}
-								onChange={handleCodemodPathChange}
-								autocompleteItems={autocompleteItems}
-							/>
-						)}
-					</span>
-					{!editingPath && (
-						<div
-							className={cn(styles.actions)}
+						<span
+							className={styles.directorySelector}
 							style={{
-								...(notEnoughSpace && {
-									marginLeft: 0,
+								...(editingPath && {
+									width: '100%',
+									opacity: 1,
+									marginRight: '2.5px',
 								}),
 							}}
 						>
-							{renderActionButtons(
-								hashDigest,
-								progress !== null,
-								queued,
+							{executionPath && (
+								<DirectorySelector
+									defaultValue={targetPath}
+									displayValue={'path'}
+									rootPath={rootPath}
+									error={
+										error === null
+											? null
+											: { message: error }
+									}
+									codemodHash={
+										hashDigest as unknown as CodemodHash
+									}
+									onEditStart={onEditStart}
+									onEditEnd={onEditEnd}
+									onEditCancel={onEditCancel}
+									onChange={handleCodemodPathChange}
+									autocompleteItems={autocompleteItems}
+								/>
 							)}
-						</div>
-					)}
+						</span>
+						{!editingPath && (
+							<div className={cn(styles.actions)}>
+								{renderActionButtons(
+									hashDigest,
+									progress !== null,
+									queued,
+								)}
+							</div>
+						)}
+					</div>
 				</span>
 				{renderProgressBar(progress)}
 			</div>
