@@ -188,10 +188,7 @@ export const selectExplorerNodes = (
 
 		// all folders must come before all files given that they are at the same depth
 		const sortedChildren = Array.from(children[node.hashDigest] ?? []).sort(
-			(
-				hashA: _ExplorerNodeHashDigest,
-				hashB: _ExplorerNodeHashDigest,
-			) => {
+			(hashA, hashB) => {
 				const childA = nodes[hashA];
 				const childB = nodes[hashB];
 				if (childA?.kind === 'DIRECTORY' && childB?.kind === 'FILE') {
