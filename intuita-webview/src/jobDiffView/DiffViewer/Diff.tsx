@@ -3,6 +3,7 @@ import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
 import { Disposable } from 'vscode';
+import configure from './configure';
 
 export type { Diff };
 
@@ -89,6 +90,7 @@ export const DiffComponent = memo(
 			<MonacoDiffEditor
 				theme={theme}
 				onRefSet={handleRefSet}
+				onMount={configure}
 				ref={editorRef}
 				options={{
 					readOnly: false,
@@ -113,6 +115,8 @@ export const DiffComponent = memo(
 				loading={<div>Loading content ...</div>}
 				modified={newFileContent ?? undefined}
 				original={oldFileContent ?? undefined}
+				modifiedModelPath="modified.tsx"
+				originalModelPath="original.tsx"
 				language="typescript"
 			/>
 		);
