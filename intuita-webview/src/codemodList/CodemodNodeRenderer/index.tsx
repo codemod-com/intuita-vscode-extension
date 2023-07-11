@@ -53,6 +53,7 @@ const getCodemodNodeRenderer =
 				block: 'center',
 				inline: 'center',
 			});
+			ref.current?.focus();
 		}, [focused]);
 
 		return (
@@ -61,7 +62,7 @@ const getCodemodNodeRenderer =
 				id={hashDigest}
 				tabIndex={0}
 				ref={ref}
-				className={cn(styles.root, focused && styles.focused)}
+				className={styles.root}
 				onClick={() => onFlip(hashDigest)}
 			>
 				<div

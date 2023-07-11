@@ -10,8 +10,12 @@
 	height: 28px;
 }
 
-.root:hover {
+.root:not(:focus):hover {
 	background-color: var(--vscode-list-hoverBackground);
+}
+
+.root:focus {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .root:focus-visible {
@@ -32,11 +36,6 @@
 
 .root:hover .description {
 	display: inline;
-}
-
-.focused,
-.focused:hover {
-	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .labelContainer {
