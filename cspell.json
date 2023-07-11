@@ -63,6 +63,7 @@
 		"webviews",
 		"activeid",
 		"tippyjs",
-		"fuzzysort"
+		"fuzzysort",
+		"redeclared"
 	]
 }
