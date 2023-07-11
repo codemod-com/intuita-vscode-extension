@@ -191,10 +191,13 @@ export const selectExplorerNodes = (
 			(hashA, hashB) => {
 				const childA = nodes[hashA];
 				const childB = nodes[hashB];
-				if (childA?.kind === 'DIRECTORY' && childB?.kind === 'FILE') {
+				if (!childA || !childB) {
+					return 0;
+				}
+				if (childA.kind === 'DIRECTORY' && childB.kind === 'FILE') {
 					return -1;
 				}
-				if (childA?.kind === 'FILE' && childB?.kind === 'DIRECTORY') {
+				if (childA.kind === 'FILE' && childB.kind === 'DIRECTORY') {
 					return 1;
 				}
 				return 0;
