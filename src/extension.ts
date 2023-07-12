@@ -170,6 +170,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const state = store.getState();
 
+					if (
+						caseHashDigest !== state.codemodRunsTab.selectedCaseHash
+					) {
+						return;
+					}
+
 					const tree = selectExplorerTree(
 						state,
 						vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ??
@@ -208,6 +214,56 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			},
 		),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.discardJobs', async (arg0) => {
+			try {
+				const validation = caseHashCodec.decode(arg0);
+
+				if (validation._tag === 'Left') {
+					throw new Error(
+						prettyReporter.report(validation).join('\n'),
+					);
+				}
+
+				const caseHashDigest = validation.right;
+
+				const state = store.getState();
+
+				if (caseHashDigest !== state.codemodRunsTab.selectedCaseHash) {
+					return;
+				}
+
+				const tree = selectExplorerTree(
+					state,
+					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+				);
+
+				if (tree === null) {
+					return;
+				}
+
+				const { selectedJobHashes } = tree;
+
+				jobManager.deleteJobs(selectedJobHashes);
+
+				store.dispatch(
+					actions.clearSelectedExplorerNodes(caseHashDigest),
+				);
+				store.dispatch(
+					actions.clearIndeterminateExplorerNodes(caseHashDigest),
+				);
+			} catch (e) {
+				const message = e instanceof Error ? e.message : String(e);
+				vscode.window.showErrorMessage(message);
+
+				vscodeTelemetry.sendError({
+					kind: 'failedToExecuteCommand',
+					commandName: 'intuita.discardJobs',
+				});
+			}
+		}),
 	);
 
 	context.subscriptions.push(

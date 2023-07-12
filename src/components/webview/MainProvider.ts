@@ -174,8 +174,11 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.global.discardChanges') {
-			commands.executeCommand('intuita.rejectCase', message.caseHash);
+		if (message.kind === 'webview.global.discardSelected') {
+			commands.executeCommand(
+				'intuita.discardJobs',
+				message.caseHashDigest,
+			);
 		}
 
 		if (message.kind === 'webview.global.applySelected') {
