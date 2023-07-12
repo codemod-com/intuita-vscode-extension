@@ -186,7 +186,25 @@ export const selectExplorerNodes = (
 
 		node = { ...node, depth };
 
-		selectedFileCount = Array.from(children[node.hashDigest] ?? [])
+		// all folders must come before all files given that they are at the same depth
+		const sortedChildren = Array.from(children[node.hashDigest] ?? []).sort(
+			(hashA, hashB) => {
+				const childA = nodes[hashA];
+				const childB = nodes[hashB];
+				if (!childA || !childB) {
+					return 0;
+				}
+				if (childA.kind === 'DIRECTORY' && childB.kind === 'FILE') {
+					return -1;
+				}
+				if (childA.kind === 'FILE' && childB.kind === 'DIRECTORY') {
+					return 1;
+				}
+				return 0;
+			},
+		);
+
+		selectedFileCount = sortedChildren
 			.map((childHash) => nodes[childHash])
 			.filter(
 				(node) =>
@@ -198,7 +216,7 @@ export const selectExplorerNodes = (
 
 		const pushedAtIndex = explorerNodes.push(node) - 1;
 
-		children[node.hashDigest]?.forEach((child) => {
+		sortedChildren.forEach((child) => {
 			selectedFileCount += appendExplorerNode(child, depth + 1);
 		});
 
