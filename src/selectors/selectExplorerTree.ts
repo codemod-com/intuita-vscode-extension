@@ -115,7 +115,7 @@ export const selectExplorerNodes = (
 
 				return {
 					kind: 'DIRECTORY' as const,
-					path,
+					path: directoryPath,
 					hashDigest: buildHash(
 						['DIRECTORY', directoryPath, name].join(''),
 					) as _ExplorerNodeHashDigest,
