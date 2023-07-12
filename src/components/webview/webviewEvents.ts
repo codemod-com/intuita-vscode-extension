@@ -130,8 +130,8 @@ export type WebviewResponse =
 			};
 	  }>
 	| Readonly<{
-			kind: 'webview.global.discardChanges';
-			caseHash: CaseHash;
+			kind: 'webview.global.discardSelected';
+			caseHashDigest: CaseHash;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.haltCodemodExecution';
