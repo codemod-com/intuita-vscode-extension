@@ -38,7 +38,7 @@ const updatePath = (
 
 type Props = {
 	defaultValue: string;
-	displayValue: string | ReactNode | null;
+	displayValue: string | ReactNode;
 	rootPath: string;
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
@@ -51,7 +51,7 @@ type Props = {
 
 export const DirectorySelector = ({
 	defaultValue,
-	displayValue: displayValueProp,
+	displayValue,
 	rootPath,
 	codemodHash,
 	onEditStart,
@@ -61,7 +61,6 @@ export const DirectorySelector = ({
 	error,
 	autocompleteItems,
 }: Props) => {
-	const displayValue = displayValueProp || defaultValue;
 	const repoName =
 		rootPath
 			.split('/')
@@ -266,10 +265,10 @@ export const DirectorySelector = ({
 	}
 
 	return (
-		<IntuitaPopover content="Double-click to edit the target path.">
+		<IntuitaPopover content="Change the target path for this codemod.">
 			<VSCodeButton
 				appearance="icon"
-				onDoubleClick={(event) => {
+				onClick={(event) => {
 					event.stopPropagation();
 
 					setEditing(true);
@@ -279,20 +278,7 @@ export const DirectorySelector = ({
 				}}
 				className={styles.targetPathButton}
 			>
-				<span className={styles.label}>
-					{typeof displayValue === 'string' ? (
-						displayValue === `${repoName}/` ? (
-							<em>{`${repoName}/`}</em>
-						) : (
-							displayValue
-								.split('/')
-								.filter((part) => part.length !== 0)
-								.slice(-1)[0]
-						)
-					) : (
-						displayValue
-					)}
-				</span>
+				<span className={styles.label}>{displayValue}</span>
 			</VSCodeButton>
 		</IntuitaPopover>
 	);

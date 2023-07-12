@@ -1,5 +1,4 @@
 import { memo, useCallback, useState } from 'react';
-import { ReactComponent as EditMaterialIcon } from '../../assets/material-icons/edit.svg';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
@@ -40,6 +39,7 @@ type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 		autocompleteItems: ReadonlyArray<string>;
 		progress: Progress | null;
 		screenWidth: number | null;
+		focused: boolean;
 	}>;
 
 const renderProgressBar = (progress: Progress | null) => {
@@ -99,6 +99,55 @@ const renderActionButtons = (
 	);
 };
 
+const getLabelStyle = (
+	areButtonsVisible: boolean,
+	screenWidth: number | null,
+) => {
+	if (screenWidth === null) {
+		return undefined;
+	}
+	if (
+		(areButtonsVisible && screenWidth > 330) ||
+		(!areButtonsVisible && screenWidth > 235)
+	) {
+		return undefined;
+	}
+
+	if (areButtonsVisible) {
+		if (screenWidth <= 190) {
+			return { flex: screenWidth / 830 };
+		}
+		if (screenWidth <= 210) {
+			return { flex: screenWidth / 580 };
+		}
+		if (screenWidth <= 235) {
+			return { flex: screenWidth / 470 };
+		}
+		if (screenWidth <= 265) {
+			return { flex: screenWidth / 420 };
+		}
+	}
+
+	return { flex: screenWidth / 375 };
+};
+
+const getActionGroupStyle = (
+	areButtonsVisible: boolean,
+	screenWidth: number | null,
+) => {
+	if (screenWidth === null || !areButtonsVisible || screenWidth > 330) {
+		return undefined;
+	}
+
+	if (screenWidth <= 235) {
+		return { marginLeft: 0 };
+	}
+	if (screenWidth <= 265) {
+		return { marginLeft: '4px' };
+	}
+	return { marginLeft: '8px' };
+};
+
 const Codemod = ({
 	hashDigest,
 	label,
@@ -109,8 +158,11 @@ const Codemod = ({
 	queued,
 	intuitaCertified,
 	screenWidth,
+	focused,
 }: Props) => {
-	const notEnoughSpace = screenWidth !== null && screenWidth <= 330;
+	const [hovering, setHovering] = useState(false);
+	const areButtonsVisible = focused || hovering;
+
 	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
 	const [editingPath, setEditingPath] = useState(false);
 
@@ -174,72 +226,73 @@ const Codemod = ({
 					)}
 				</IntuitaPopover>
 			)}
-			<div className="flex w-full flex-col">
+			<div
+				className="flex w-full flex-col"
+				onMouseEnter={() => {
+					setHovering(true);
+				}}
+				onMouseLeave={() => {
+					setHovering(false);
+				}}
+				style={{ paddingLeft: '3px', paddingRight: '4px' }}
+			>
 				<span className={styles.labelContainer}>
 					{!editingPath && (
 						<span
 							className={styles.label}
-							style={{
-								...(notEnoughSpace && {
-									flex: screenWidth / 430,
-									...(screenWidth < 250 && {
-										flex: screenWidth / 710,
-									}),
-								}),
-							}}
+							style={getLabelStyle(
+								areButtonsVisible,
+								screenWidth,
+							)}
 						>
 							{label}
 						</span>
 					)}
-					<span
-						className={styles.directorySelector}
-						style={{
-							...(editingPath && {
-								width: '100%',
-								opacity: 1,
-								marginRight: '2.5px',
-							}),
-						}}
-					>
-						{executionPath && (
-							<DirectorySelector
-								defaultValue={targetPath}
-								displayValue={
-									notEnoughSpace ? (
-										<EditMaterialIcon className="defaultIcon" />
-									) : null
-								}
-								rootPath={rootPath}
-								error={
-									error === null ? null : { message: error }
-								}
-								codemodHash={
-									hashDigest as unknown as CodemodHash
-								}
-								onEditStart={onEditStart}
-								onEditEnd={onEditEnd}
-								onEditCancel={onEditCancel}
-								onChange={handleCodemodPathChange}
-								autocompleteItems={autocompleteItems}
-							/>
+					<div
+						className={styles.actionGroup}
+						style={getActionGroupStyle(
+							areButtonsVisible,
+							screenWidth,
 						)}
-					</span>
-					{!editingPath && (
-						<div
-							className={cn(styles.actions)}
+					>
+						<span
+							className={styles.directorySelector}
 							style={{
-								...(notEnoughSpace && {
-									marginLeft: 0,
+								...(editingPath && {
+									width: '100%',
+									opacity: 1,
+									marginRight: '2.5px',
 								}),
 							}}
 						>
-							{renderActionButtons(
+							{executionPath && (
+								<DirectorySelector
+									defaultValue={targetPath}
+									displayValue={'path'}
+									rootPath={rootPath}
+									error={
+										error === null
+											? null
+											: { message: error }
+									}
+									codemodHash={
+										hashDigest as unknown as CodemodHash
+									}
+									onEditStart={onEditStart}
+									onEditEnd={onEditEnd}
+									onEditCancel={onEditCancel}
+									onChange={handleCodemodPathChange}
+									autocompleteItems={autocompleteItems}
+								/>
+							)}
+						</span>
+						{!editingPath &&
+							renderActionButtons(
 								hashDigest,
 								progress !== null,
 								queued,
 							)}
-						</div>
-					)}
+					</div>
 				</span>
 				{renderProgressBar(progress)}
 			</div>

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import cn from 'classnames';
 
 import {
 	CodemodNodeHashDigest,
@@ -86,6 +85,7 @@ const getCodemodNodeRenderer =
 								? progress
 								: null
 						}
+						focused={focused}
 						queued={node.queued}
 						intuitaCertified={node.intuitaCertified}
 						screenWidth={screenWidth}
