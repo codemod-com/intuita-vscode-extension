@@ -19,27 +19,27 @@ export class BootstrapExecutablesService {
 		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
 		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux')
-		const noraNodeEngineExecutableUri =
-			await this.__bootstrapNoraNodeEngineExecutableUri();
+		const codemodEngineNodeExecutableUri =
+			await this.__bootstrapCodemodEngineNodeExecutableUri();
 
 		// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
-		const codemodEngineNodeExecutableUri =
+		const codemodEngineRustExecutableUri =
 			await this.__bootstrapCodemodEngineRustExecutableUri();
 
 		this.__messageBus.publish({
 			kind: MessageKind.engineBootstrapped,
-			noraNodeEngineExecutableUri,
 			codemodEngineNodeExecutableUri,
+			codemodEngineRustExecutableUri,
 		});
 	}
 
-	private async __bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
+	private async __bootstrapCodemodEngineNodeExecutableUri(): Promise<Uri> {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
 				: encodeURIComponent(process.platform);
 
-		const executableBaseName = `nora-node-engine-${platform}`;
+		const executableBaseName = `codemod-engine-node-${platform}`;
 
 		const executableUri = Uri.joinPath(
 			this.__globalStorageUri,
@@ -48,7 +48,7 @@ export class BootstrapExecutablesService {
 
 		try {
 			await this.__downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
+				`https://intuita-public.s3.us-west-1.amazonaws.com/codemod-engine-node/${executableBaseName}`,
 				executableUri,
 				'755',
 			);

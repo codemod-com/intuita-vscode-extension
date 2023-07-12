@@ -107,8 +107,8 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.engineBootstrapped;
-			noraNodeEngineExecutableUri: Uri;
 			codemodEngineNodeExecutableUri: Uri;
+			codemodEngineRustExecutableUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;

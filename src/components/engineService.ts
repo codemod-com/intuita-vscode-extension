@@ -103,8 +103,8 @@ export class EngineService {
 	readonly #messageBus: MessageBus;
 
 	#execution: Execution | null = null;
-	#noraNodeEngineExecutableUri: Uri | null = null;
 	private __codemodEngineNodeExecutableUri: Uri | null = null;
+	private __codemodEngineRustExecutableUri: Uri | null = null;
 	private __executionMessageQueue: ExecuteCodemodMessage[] = [];
 
 	public constructor(
@@ -129,19 +129,20 @@ export class EngineService {
 	#onEnginesBootstrappedMessage(
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
-		this.#noraNodeEngineExecutableUri = message.noraNodeEngineExecutableUri;
 		this.__codemodEngineNodeExecutableUri =
+			message.codemodEngineNodeExecutableUri;
+		this.__codemodEngineRustExecutableUri =
 			message.codemodEngineNodeExecutableUri;
 
 		this.__fetchCodemods();
 	}
 
 	public isEngineBootstrapped() {
-		return this.#noraNodeEngineExecutableUri !== null;
+		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
 	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
-		const executableUri = this.#noraNodeEngineExecutableUri;
+		const executableUri = this.__codemodEngineNodeExecutableUri;
 
 		if (executableUri === null) {
 			throw new EngineNotFoundError(
@@ -238,8 +239,8 @@ export class EngineService {
 		}
 
 		if (
-			!this.#noraNodeEngineExecutableUri ||
-			!this.__codemodEngineNodeExecutableUri
+			!this.__codemodEngineNodeExecutableUri ||
+			!this.__codemodEngineRustExecutableUri
 		) {
 			await window.showErrorMessage(
 				'Wait until the engines has been bootstrapped to execute the operation',
@@ -261,7 +262,10 @@ export class EngineService {
 			value: 0,
 		});
 
-		const storageUri = Uri.joinPath(message.storageUri, 'nora-node-engine');
+		const storageUri = Uri.joinPath(
+			message.storageUri,
+			'codemod-engine-node',
+		);
 
 		await this.#fileSystem.createDirectory(message.storageUri);
 		await this.#fileSystem.createDirectory(storageUri);
@@ -275,8 +279,8 @@ export class EngineService {
 		const childProcess = spawn(
 			singleQuotify(
 				message.command.kind === 'executePiranhaRule'
-					? this.__codemodEngineNodeExecutableUri.fsPath
-					: this.#noraNodeEngineExecutableUri.fsPath,
+					? this.__codemodEngineRustExecutableUri.fsPath
+					: this.__codemodEngineNodeExecutableUri.fsPath,
 			),
 			args,
 			{
@@ -551,7 +555,7 @@ export class EngineService {
 	}
 
 	async clearOutputFiles(storageUri: Uri) {
-		const outputUri = Uri.joinPath(storageUri, 'nora-node-engine');
+		const outputUri = Uri.joinPath(storageUri, 'codemod-engine-node');
 
 		await this.#fileSystem.delete(outputUri, {
 			recursive: true,
