@@ -250,10 +250,13 @@ const Codemod = ({
 					)}
 					<div
 						className={styles.actionGroup}
-						style={getActionGroupStyle(
-							areButtonsVisible,
-							screenWidth,
-						)}
+						style={{
+							...getActionGroupStyle(
+								areButtonsVisible,
+								screenWidth,
+							),
+							...(editingPath && { opacity: 1, width: '100%' }),
+						}}
 					>
 						<span
 							className={styles.directorySelector}
