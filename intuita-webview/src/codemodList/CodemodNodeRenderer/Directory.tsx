@@ -16,12 +16,6 @@ const Directory = (
 					'codicon-chevron-down': props.expanded,
 				})}
 			/>
-			<span
-				className={cn('codicon', {
-					'codicon-folder': !props.expanded,
-					'codicon-folder-opened': props.expanded,
-				})}
-			/>
 			<div className="flex w-full flex-col">
 				<span className={s.labelContainer}>
 					<span className={s.label}>{props.label}</span>

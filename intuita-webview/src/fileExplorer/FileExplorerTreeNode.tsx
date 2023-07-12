@@ -13,20 +13,15 @@ type Props = Omit<
 	'icon' | 'startDecorator' | 'inlineStyles' | 'subLabel'
 > & {
 	kind: _ExplorerNode['kind'];
-	iconName: IconName;
+	iconName: IconName | null;
 	checkboxState: 'checked' | 'blank' | 'indeterminate';
 	onCheckboxClick(e: React.MouseEvent): void;
 };
 
-export type IconName =
-	| 'root'
-	| 'folder'
-	| 'folder-opened'
-	| 'file-add'
-	| 'file';
+export type IconName = 'file-add' | 'file';
 
-const getIcon = (iconName: IconName) => {
-	if (iconName === 'root') {
+const getIcon = (iconName: IconName | null) => {
+	if (iconName !== 'file-add' && iconName !== 'file') {
 		return null;
 	}
 
