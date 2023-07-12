@@ -321,13 +321,15 @@ const rootSlice = createSlice({
 				state.activeTabId = 'codemodRuns';
 			}
 
-			const focusedExplorerNode = explorerNodes[0]?.hashDigest ?? null;
-
 			state.collapsedExplorerNodes[caseHash] = [];
 			state.indeterminateExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				(node) => node.hashDigest,
 			);
+
+			const focusedExplorerNode =
+				explorerNodes.find((node) => node.kind === 'FILE')
+					?.hashDigest ?? null;
 
 			if (focusedExplorerNode === null) {
 				delete state.focusedExplorerNodes[caseHash];
