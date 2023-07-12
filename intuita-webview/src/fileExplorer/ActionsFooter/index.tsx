@@ -8,15 +8,15 @@ import styles from './style.module.css';
 import { CaseHash } from '../../../../src/cases/types';
 
 const POPOVER_TEXTS = {
-	discard: 'Discard all the proposed changes for the highlighted codemod.',
-	apply: 'Save selected changes to file(s) and discard all the deselected changes.',
+	discard: 'Discard selected changes for the highlighted codemod.',
+	apply: 'Save selected changes to file(s).',
 	cannotApply: 'At least one job should be selected to apply the changes.',
 };
 
-const discardChanges = (caseHashDigest: CaseHash) => {
+const discardSelected = (caseHashDigest: CaseHash) => {
 	vscode.postMessage({
-		kind: 'webview.global.discardChanges',
-		caseHash: caseHashDigest,
+		kind: 'webview.global.discardSelected',
+		caseHashDigest,
 	});
 };
 
@@ -27,9 +27,16 @@ const applySelected = (caseHashDigest: CaseHash) => {
 	});
 };
 
-const discardText = 'Discard All';
-const getApplyText = (selectedJobCount: number) =>
-	`Apply ${selectedJobCount} files`;
+const getDiscardText = (selectedJobCount: number) => {
+	return `Discard ${selectedJobCount} ${
+		selectedJobCount === 1 ? 'file' : 'files'
+	}`;
+};
+const getApplyText = (selectedJobCount: number) => {
+	return `Apply ${selectedJobCount} ${
+		selectedJobCount === 1 ? 'file' : 'files'
+	}`;
+};
 
 type Props = Readonly<{
 	caseHash: CaseHash;
@@ -58,11 +65,12 @@ export const ActionsFooter = ({
 					onClick={(event) => {
 						event.preventDefault();
 
-						discardChanges(caseHash);
+						discardSelected(caseHash);
 					}}
 					className={styles.vscodeButton}
+					disabled={selectedJobCount === 0}
 				>
-					{discardText}
+					{getDiscardText(selectedJobCount)}
 				</VSCodeButton>
 			</IntuitaPopover>
 			<IntuitaPopover
@@ -80,7 +88,7 @@ export const ActionsFooter = ({
 						applySelected(caseHash);
 					}}
 					className={styles.vscodeButton}
-					disabled={applySelectedInProgress}
+					disabled={applySelectedInProgress || selectedJobCount === 0}
 				>
 					{applySelectedInProgress && (
 						<VSCodeProgressRing className={styles.progressRing} />
