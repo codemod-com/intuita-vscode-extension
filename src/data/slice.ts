@@ -161,7 +161,12 @@ const rootSlice = createSlice({
 			state.codemodDiscoveryView.executionPaths[codemodHash] = path;
 		},
 		setRecentCodemodHashes(state, action: PayloadAction<string>) {
-			state.lastCodemodHashDigests.push(action.payload);
+			state.lastCodemodHashDigests = [
+				...state.lastCodemodHashDigests.filter(
+					(hashDigest) => hashDigest !== action.payload,
+				),
+				action.payload,
+			].slice(-5);
 		},
 		setFocusedCodemodHashDigest(
 			state,
