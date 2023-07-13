@@ -569,8 +569,6 @@ const rootSlice = createSlice({
 				(hashDigest) => hashDigest === explorerNodeHashDigest,
 			);
 
-			console.log(index, explorerNodeHashDigest);
-
 			if (index !== -1) {
 				reviewedExplorerNodes.splice(index, 1);
 			} else {
