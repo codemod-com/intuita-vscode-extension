@@ -15,6 +15,7 @@ type Props = Omit<
 	kind: _ExplorerNode['kind'];
 	iconName: IconName | null;
 	checkboxState: 'checked' | 'blank' | 'indeterminate';
+	reviewed: boolean;
 	onCheckboxClick(e: React.MouseEvent): void;
 };
 
@@ -69,6 +70,7 @@ const FileExplorerTreeNode = ({
 	depth,
 	open,
 	focused,
+	reviewed,
 	iconName,
 	checkboxState,
 	kind,
@@ -103,6 +105,9 @@ const FileExplorerTreeNode = ({
 					paddingRight: 4,
 				},
 			}}
+			endDecorator={
+				reviewed && <span className={cn('codicon', 'codicon-eye')} />
+			}
 		/>
 	);
 };

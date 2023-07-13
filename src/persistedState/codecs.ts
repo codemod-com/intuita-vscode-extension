@@ -116,6 +116,10 @@ export const persistedStateCodecNew = buildTypeCodec({
 		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
 		{},
 	),
+	reviewedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
 	focusedExplorerNodes: withFallback(
 		t.record(caseHashCodec, _explorerNodeHashDigestCodec),
 		{},

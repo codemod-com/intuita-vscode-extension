@@ -72,6 +72,7 @@ export const getInitialState = (): RootState => {
 		// For such node, we will use indeterminate checkbox icon.
 		indeterminateExplorerNodes: {},
 		collapsedExplorerNodes: {},
+		reviewedExplorerNodes: {},
 		focusedExplorerNodes: {},
 	};
 };
@@ -116,6 +117,7 @@ const rootSlice = createSlice({
 				delete state.selectedExplorerNodes[caseHash];
 				delete state.indeterminateExplorerNodes[caseHash];
 				delete state.collapsedExplorerNodes[caseHash];
+				delete state.reviewedExplorerNodes[caseHash];
 				delete state.focusedExplorerNodes[caseHash];
 			}
 		},
@@ -135,6 +137,7 @@ const rootSlice = createSlice({
 			state.selectedExplorerNodes = {};
 			state.indeterminateExplorerNodes = {};
 			state.collapsedExplorerNodes = {};
+			state.reviewedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
 		},
 		upsertCodemods(
@@ -327,6 +330,7 @@ const rootSlice = createSlice({
 			}
 
 			state.collapsedExplorerNodes[caseHash] = [];
+			state.reviewedExplorerNodes[caseHash] = [];
 			state.indeterminateExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				(node) => node.hashDigest,
@@ -543,6 +547,27 @@ const rootSlice = createSlice({
 
 			state.collapsedExplorerNodes[caseHashDigest] =
 				collapsedExplorerNodes;
+		},
+		flipReviewedExplorerNode(
+			state,
+			action: PayloadAction<[CaseHash, _ExplorerNodeHashDigest]>,
+		) {
+			const [caseHashDigest, explorerNodeHashDigest] = action.payload;
+
+			const reviewedExplorerNodes =
+				state.reviewedExplorerNodes[caseHashDigest] ?? [];
+
+			const index = reviewedExplorerNodes.findIndex(
+				(hashDigest) => hashDigest === explorerNodeHashDigest,
+			);
+
+			if (index !== -1) {
+				reviewedExplorerNodes.splice(index, 1);
+			} else {
+				reviewedExplorerNodes.push(explorerNodeHashDigest);
+			}
+
+			state.reviewedExplorerNodes[caseHashDigest] = reviewedExplorerNodes;
 		},
 		focusExplorerNode(
 			state,

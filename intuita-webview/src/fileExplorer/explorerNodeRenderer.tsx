@@ -31,6 +31,7 @@ export const explorerNodeRenderer =
 	}) => {
 		const iconName = getIconName(props.nodeDatum.node);
 		const focused = props.nodeDatum.focused;
+		const reviewed = props.nodeDatum.reviewed;
 
 		const { onFocus, onFlip, nodeDatum } = props;
 
@@ -89,6 +90,7 @@ export const explorerNodeRenderer =
 				depth={props.nodeDatum.depth}
 				open={props.nodeDatum.expanded}
 				focused={focused}
+				reviewed={reviewed}
 				checkboxState={checkboxState}
 				kind={props.nodeDatum.node.kind}
 				onClick={handleClick}

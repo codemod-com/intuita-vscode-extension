@@ -243,6 +243,7 @@ export const selectNodeData = (
 	explorerNodes: _ExplorerNode[],
 ) => {
 	const collapsedExplorerNodes = state.collapsedExplorerNodes[caseHash] ?? [];
+	const reviewedExplorerNodes = state.reviewedExplorerNodes[caseHash] ?? [];
 
 	let maximumDepth = Number.MAX_SAFE_INTEGER;
 
@@ -265,10 +266,15 @@ export const selectNodeData = (
 					maximumDepth = node.depth;
 				}
 
+				const reviewed =
+					node.kind === 'FILE' &&
+					reviewedExplorerNodes.includes(node.hashDigest);
+
 				return {
 					node,
 					depth: node.depth,
 					expanded: !collapsed,
+					reviewed,
 					focused:
 						state.focusedExplorerNodes[caseHash] ===
 						node.hashDigest,

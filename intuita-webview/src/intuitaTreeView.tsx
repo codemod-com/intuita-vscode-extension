@@ -12,6 +12,7 @@ export type NodeDatum<HD extends string, TN extends TreeNode<HD>> = Readonly<{
 	expanded: boolean;
 	focused: boolean;
 	collapsable: boolean;
+	reviewed: boolean;
 }>;
 
 export type TreeViewProps<

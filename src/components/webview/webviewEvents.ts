@@ -68,7 +68,8 @@ export type WebviewResponse =
 	| Readonly<{
 			kind:
 				| 'webview.global.flipSelectedExplorerNode'
-				| 'webview.global.flipCollapsibleExplorerNode';
+				| 'webview.global.flipCollapsibleExplorerNode'
+				| 'webview.global.flipReviewedExplorerNode';
 			caseHashDigest: CaseHash;
 			explorerNodeHashDigest: _ExplorerNodeHashDigest;
 	  }>
