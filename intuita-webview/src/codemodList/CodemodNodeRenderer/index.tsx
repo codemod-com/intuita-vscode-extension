@@ -13,12 +13,8 @@ import styles from './style.module.css';
 import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
 
-const getIndent = (depth: number, kind: CodemodNode['kind']) => {
-	let indent = depth * 17;
-	if (kind === 'CODEMOD') {
-		indent += 17;
-	}
-	return indent;
+const getIndent = (depth: number) => {
+	return depth * 17;
 };
 
 type Deps = {
@@ -66,10 +62,7 @@ const getCodemodNodeRenderer =
 			>
 				<div
 					style={{
-						minWidth: `${getIndent(
-							nodeDatum.depth,
-							nodeDatum.node.kind,
-						)}px`,
+						minWidth: `${getIndent(nodeDatum.depth)}px`,
 					}}
 				/>
 				{node.kind === 'CODEMOD' && (

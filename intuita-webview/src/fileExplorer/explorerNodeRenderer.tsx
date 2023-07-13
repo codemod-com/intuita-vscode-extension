@@ -8,23 +8,12 @@ import {
 } from '../../../src/persistedState/explorerNodeCodec';
 import { vscode } from '../shared/utilities/vscode';
 
-const getIconName = (
-	explorerNode: _ExplorerNode,
-	opened: boolean,
-): IconName => {
-	if (explorerNode.kind === 'ROOT') {
-		return 'root';
-	}
-
-	if (explorerNode.kind === 'DIRECTORY') {
-		return !opened ? 'folder' : 'folder-opened';
-	}
-
+const getIconName = (explorerNode: _ExplorerNode): IconName | null => {
 	if (explorerNode.kind === 'FILE') {
 		return explorerNode.fileAdded ? 'file-add' : 'file';
 	}
 
-	return 'file';
+	return null;
 };
 
 const getLabel = (explorerNode: _ExplorerNode, opened: boolean): string => {
@@ -40,10 +29,7 @@ export const explorerNodeRenderer =
 		onFlip: (hashDigest: _ExplorerNodeHashDigest) => void;
 		onFocus: (hashDigest: _ExplorerNodeHashDigest) => void;
 	}) => {
-		const iconName = getIconName(
-			props.nodeDatum.node,
-			props.nodeDatum.expanded,
-		);
+		const iconName = getIconName(props.nodeDatum.node);
 		const focused = props.nodeDatum.focused;
 
 		const { onFocus, onFlip, nodeDatum } = props;
