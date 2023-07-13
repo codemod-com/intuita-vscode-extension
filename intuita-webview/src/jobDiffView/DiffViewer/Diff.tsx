@@ -1,9 +1,9 @@
 import { memo, useEffect, useRef } from 'react';
-import MonacoDiffEditor from '../../shared/Snippet/DiffEditor';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
 import type { editor } from 'monaco-editor';
 import { Disposable } from 'vscode';
 import configure from './configure';
+import { DiffEditor, Monaco } from '@monaco-editor/react';
 
 export type { Diff };
 
@@ -21,6 +21,7 @@ const getDiffChanges = (
 	editor: editor.IStandaloneDiffEditor,
 ): Diff | undefined => {
 	const lineChanges = editor.getLineChanges();
+
 	if (!lineChanges) {
 		return;
 	}
@@ -75,23 +76,21 @@ export const DiffComponent = memo(
 
 		reattachHandler();
 
-		const handleRefSet = (editor: editor.IStandaloneDiffEditor) => {
-			editor.onDidUpdateDiff(() => {
-				const diffChanges = getDiffChanges(editor);
-				if (diffChanges) {
-					onDiffCalculated(diffChanges);
-				}
-			});
-
-			reattachHandler(editor);
-		};
-
 		return (
-			<MonacoDiffEditor
+			<DiffEditor
 				theme={theme}
-				onRefSet={handleRefSet}
-				onMount={configure}
-				ref={editorRef}
+				onMount={(e: editor.IStandaloneDiffEditor, m: Monaco) => {
+					editorRef.current = e;
+					e.onDidUpdateDiff(() => {
+						const diffChanges = getDiffChanges(e);
+
+						if (diffChanges) {
+							onDiffCalculated(diffChanges);
+						}
+						reattachHandler(e);
+					});
+					configure(e, m);
+				}}
 				options={{
 					readOnly: false,
 					originalEditable: false,
