@@ -505,31 +505,31 @@ export async function activate(context: vscode.ExtensionContext) {
 					const codemodList = await engineService.getCodemodList();
 
 					// order: least recent to most recent
-					const top3RecentCodemodHashes =
+					const top5RecentCodemodHashes =
 						store.getState().lastCodemodHashDigests;
 
-					const top3RecentCodemods = codemodList.filter((codemod) =>
-						top3RecentCodemodHashes.includes(
+					const top5RecentCodemods = codemodList.filter((codemod) =>
+						top5RecentCodemodHashes.includes(
 							codemod.hashDigest as CodemodHash,
 						),
 					);
 
 					// order: least recent to most recent
-					top3RecentCodemods.sort((a, b) => {
+					top5RecentCodemods.sort((a, b) => {
 						return (
-							top3RecentCodemodHashes.indexOf(
+							top5RecentCodemodHashes.indexOf(
 								a.hashDigest as CodemodHash,
 							) -
-							top3RecentCodemodHashes.indexOf(
+							top5RecentCodemodHashes.indexOf(
 								b.hashDigest as CodemodHash,
 							)
 						);
 					});
 					const sortedCodemodList = [
-						...top3RecentCodemods.reverse(),
+						...top5RecentCodemods.reverse(),
 						...codemodList.filter(
 							(codemod) =>
-								!top3RecentCodemodHashes.includes(
+								!top5RecentCodemodHashes.includes(
 									codemod.hashDigest as CodemodHash,
 								),
 						),
@@ -539,7 +539,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						(await vscode.window.showQuickPick(
 							sortedCodemodList.map(({ name, hashDigest }) => ({
 								label: name,
-								...(top3RecentCodemodHashes.includes(
+								...(top5RecentCodemodHashes.includes(
 									hashDigest as CodemodHash,
 								) && { description: '(recent)' }),
 							})),
