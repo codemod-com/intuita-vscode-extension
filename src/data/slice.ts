@@ -1,3 +1,4 @@
+import platformPath from 'path';
 import {
 	createSlice,
 	createEntityAdapter,
@@ -22,7 +23,7 @@ import {
 } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import { _ExplorerNodeHashDigest } from '../persistedState/explorerNodeCodec';
-import { findParentExplorerNode } from '../utilities';
+import { buildHash, findParentExplorerNode } from '../utilities';
 
 const SLICE_KEY = 'root';
 
@@ -550,16 +551,25 @@ const rootSlice = createSlice({
 		},
 		flipReviewedExplorerNode(
 			state,
-			action: PayloadAction<[CaseHash, _ExplorerNodeHashDigest]>,
+			action: PayloadAction<[CaseHash, JobHash, string]>,
 		) {
-			const [caseHashDigest, explorerNodeHashDigest] = action.payload;
+			const [caseHashDigest, jobHash, path] = action.payload;
 
+			const fileName = path
+				.split(platformPath.sep)
+				.filter((name) => name !== '')
+				.slice(-1)[0];
+			const explorerNodeHashDigest = buildHash(
+				['FILE', jobHash, fileName].join(''),
+			) as _ExplorerNodeHashDigest;
 			const reviewedExplorerNodes =
 				state.reviewedExplorerNodes[caseHashDigest] ?? [];
 
 			const index = reviewedExplorerNodes.findIndex(
 				(hashDigest) => hashDigest === explorerNodeHashDigest,
 			);
+
+			console.log(index, explorerNodeHashDigest);
 
 			if (index !== -1) {
 				reviewedExplorerNodes.splice(index, 1);

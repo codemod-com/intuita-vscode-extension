@@ -66,12 +66,6 @@
 	min-width: 80px;
 }
 
-.viewed-button.disabled {
-	pointer-events: none !important;
-	cursor: not-allowed !important;
-	opacity: var(--disabled-opacity) !important;
-}
-
 .copy-icon {
 	stroke: var(--vscode-icon-foreground);
 	height: 18px;

@@ -5,15 +5,14 @@ import { reportIssue } from '../util';
 import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
-import { JobDiffViewProps } from '../../shared/types';
 import debounce from '../../shared/utilities/debounce';
+import { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 
-type Props = JobDiffViewProps & {
+type Props = PanelViewProps & { kind: 'JOB' } & {
 	viewType: 'inline' | 'side-by-side';
 	diff: Diff | null;
 	onDiffCalculated: (diff: Diff) => void;
 	theme: string;
-	title: string;
 };
 
 export const JobDiffView = memo(
@@ -26,10 +25,12 @@ export const JobDiffView = memo(
 				oldFileContent,
 				newFileContent,
 				oldFileTitle,
+				reviewed,
 				title,
 				onDiffCalculated,
 				diff,
 				theme,
+				caseHash,
 			}: Props,
 			ref,
 		) => {
@@ -79,11 +80,13 @@ export const JobDiffView = memo(
 						headerSticky
 						headerComponent={
 							<Header
-								id={`diffViewHeader-${jobHash}`}
 								diff={diff}
 								oldFileTitle={oldFileTitle ?? ''}
 								jobKind={jobKind}
+								caseHash={caseHash}
+								jobHash={jobHash}
 								title={title ?? ''}
+								reviewed={reviewed}
 								onReportIssue={report}
 							/>
 						}

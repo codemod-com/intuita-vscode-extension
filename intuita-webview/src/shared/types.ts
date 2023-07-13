@@ -1,6 +1,5 @@
 export {
 	WebviewMessage,
-	JobDiffViewProps,
 	Command,
 	RunCodemodsCommand,
 	CodemodHash,

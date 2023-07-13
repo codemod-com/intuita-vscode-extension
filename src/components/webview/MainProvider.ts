@@ -216,15 +216,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.global.flipReviewedExplorerNode') {
-			this.__store.dispatch(
-				actions.flipReviewedExplorerNode([
-					message.caseHashDigest,
-					message.explorerNodeHashDigest,
-				]),
-			);
-		}
-
 		if (message.kind === 'webview.global.focusExplorerNode') {
 			this.__store.dispatch(
 				actions.focusExplorerNode([
