@@ -268,7 +268,7 @@ const Codemod = ({
 								}),
 							}}
 						>
-							{executionPath && (
+							{executionPath && progress === null && (
 								<DirectorySelector
 									defaultValue={targetPath}
 									displayValue={'path'}
