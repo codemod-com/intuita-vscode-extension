@@ -38,6 +38,7 @@ export type NodeDatum = Readonly<{
 	expanded: boolean;
 	focused: boolean;
 	collapsable: boolean;
+	reviewed: boolean;
 }>;
 
 const buildCodemodTitle = (name: string): string => {
@@ -194,6 +195,7 @@ export const selectCodemodTree = (
 				expanded,
 				focused,
 				collapsable: childSet.length !== 0,
+				reviewed: false,
 			});
 		}
 
