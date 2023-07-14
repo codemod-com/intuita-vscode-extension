@@ -115,13 +115,13 @@ const getLabelStyle = (
 
 	if (areButtonsVisible) {
 		if (screenWidth <= 190) {
-			return { flex: screenWidth / 850 };
+			return { flex: screenWidth / 830 };
 		}
 		if (screenWidth <= 210) {
-			return { flex: screenWidth / 540 };
+			return { flex: screenWidth / 580 };
 		}
 		if (screenWidth <= 235) {
-			return { flex: screenWidth / 450 };
+			return { flex: screenWidth / 470 };
 		}
 		if (screenWidth <= 265) {
 			return { flex: screenWidth / 420 };
