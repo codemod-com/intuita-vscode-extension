@@ -115,13 +115,13 @@ const getLabelStyle = (
 
 	if (areButtonsVisible) {
 		if (screenWidth <= 190) {
-			return { flex: screenWidth / 830 };
+			return { flex: screenWidth / 850 };
 		}
 		if (screenWidth <= 210) {
-			return { flex: screenWidth / 580 };
+			return { flex: screenWidth / 540 };
 		}
 		if (screenWidth <= 235) {
-			return { flex: screenWidth / 470 };
+			return { flex: screenWidth / 450 };
 		}
 		if (screenWidth <= 265) {
 			return { flex: screenWidth / 420 };
@@ -203,6 +203,17 @@ const Codemod = ({
 	const onEditCancel = useCallback(() => {
 		setEditingPath(false);
 	}, []);
+
+	const handleCodemodLinkCopy = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		navigator.clipboard.writeText(
+			`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+		);
+		vscode.postMessage({
+			kind: 'webview.global.showInformationMessage',
+			value: 'Codemod link copied to clipboard',
+		});
+	};
 
 	return (
 		<>
@@ -295,6 +306,14 @@ const Codemod = ({
 								progress !== null,
 								queued,
 							)}
+						<ActionButton
+							content="Copy to clipboard the link to this codemod."
+							onClick={handleCodemodLinkCopy}
+						>
+							<span
+								className={cn('codicon', 'codicon-live-share')}
+							/>
+						</ActionButton>
 					</div>
 				</span>
 				{renderProgressBar(progress)}
