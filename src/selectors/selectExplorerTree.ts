@@ -16,7 +16,7 @@ import {
 	getPersistedJobUri,
 } from './comparePersistedJobs';
 
-const FUZZY_SEARCH_MINIMUM_SCORE = -500;
+const FUZZY_SEARCH_MINIMUM_SCORE = -1000;
 export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
 	(state.explorerSearchPhrases[caseHash] ?? '').trim().toLocaleLowerCase();
 
