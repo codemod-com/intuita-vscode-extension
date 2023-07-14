@@ -96,6 +96,7 @@ export const explorerNodeRenderer =
 				onClick={handleClick}
 				onCheckboxClick={handleCheckboxClick}
 				onPressChevron={handleChevronClick}
+				searchPhrase={explorerTree.searchPhrase}
 			/>
 		);
 	};

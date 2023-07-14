@@ -2,10 +2,40 @@ import { CSSProperties, ReactNode, useLayoutEffect, useRef } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
+const getLabelComponent = (
+	label: string,
+	searchPhrase: string,
+	style?: CSSProperties,
+) => {
+	if (
+		searchPhrase.length >= 2 &&
+		label.toLowerCase().includes(searchPhrase.toLowerCase())
+	) {
+		const startIndex = label
+			.toLowerCase()
+			.indexOf(searchPhrase.toLowerCase());
+		const endIndex = startIndex + searchPhrase.length - 1;
+		return (
+			<span className={styles.label} style={style}>
+				{label.slice(0, startIndex)}
+				<span style={{ fontWeight: 800 }}>
+					{label.slice(startIndex, endIndex + 1)}
+				</span>
+				{label.slice(endIndex + 1)}
+			</span>
+		);
+	}
+
+	return (
+		<span className={styles.label} style={style}>
+			{label}
+		</span>
+	);
+};
+
 export type Props = Readonly<{
 	id: string;
 	label: string;
-	subLabel: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
@@ -19,16 +49,15 @@ export type Props = Readonly<{
 		root?: CSSProperties;
 		icon?: CSSProperties;
 		label?: CSSProperties;
-		subLabel?: CSSProperties;
 		actions?: CSSProperties;
 	};
 	onPressChevron?(event: React.MouseEvent<HTMLSpanElement>): void;
+	searchPhrase: string;
 }>;
 
 const TreeItem = ({
 	id,
 	label,
-	subLabel,
 	icon,
 	open,
 	focused,
@@ -39,6 +68,7 @@ const TreeItem = ({
 	inlineStyles,
 	onPressChevron,
 	endDecorator,
+	searchPhrase,
 }: Props) => {
 	const ref = useRef<HTMLDivElement>(null);
 	useLayoutEffect(() => {
@@ -88,17 +118,7 @@ const TreeItem = ({
 					{icon}
 				</div>
 			)}
-			<span className={styles.label} style={inlineStyles?.label}>
-				{label}
-			</span>
-			{subLabel.length > 0 ? (
-				<span
-					className={styles.subLabel}
-					style={inlineStyles?.subLabel}
-				>
-					{subLabel}
-				</span>
-			) : null}
+			{getLabelComponent(label, searchPhrase, inlineStyles?.label)}
 			{endDecorator}
 		</div>
 	);

@@ -17,6 +17,7 @@ type Props = Omit<
 	checkboxState: 'checked' | 'blank' | 'indeterminate';
 	reviewed: boolean;
 	onCheckboxClick(e: React.MouseEvent): void;
+	searchPhrase: string;
 };
 
 export type IconName = 'file-add' | 'file';
@@ -77,13 +78,14 @@ const FileExplorerTreeNode = ({
 	onClick,
 	onCheckboxClick,
 	onPressChevron,
+	searchPhrase,
 }: Props) => {
 	return (
 		<TreeItem
+			searchPhrase={searchPhrase}
 			hasChildren={hasChildren}
 			id={id}
 			label={label}
-			subLabel=""
 			icon={getIcon(iconName)}
 			indent={getIndent(kind, depth)}
 			depth={depth}
