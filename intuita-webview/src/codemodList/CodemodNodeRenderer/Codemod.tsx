@@ -204,6 +204,17 @@ const Codemod = ({
 		setEditingPath(false);
 	}, []);
 
+	const handleCodemodLinkCopy = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		navigator.clipboard.writeText(
+			`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+		);
+		vscode.postMessage({
+			kind: 'webview.global.showInformationMessage',
+			value: 'Codemod link copied to clipboard',
+		});
+	};
+
 	return (
 		<>
 			{!editingPath && (
@@ -295,6 +306,14 @@ const Codemod = ({
 								progress !== null,
 								queued,
 							)}
+						<ActionButton
+							content="Copy to clipboard the link to this codemod."
+							onClick={handleCodemodLinkCopy}
+						>
+							<span
+								className={cn('codicon', 'codicon-live-share')}
+							/>
+						</ActionButton>
 					</div>
 				</span>
 				{renderProgressBar(progress)}

@@ -181,6 +181,10 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
+		if (message.kind === 'webview.global.showInformationMessage') {
+			window.showInformationMessage(message.value);
+		}
+
 		if (message.kind === 'webview.global.applySelected') {
 			commands.executeCommand(
 				'intuita.sourceControl.saveStagedJobsToTheFileSystem',
