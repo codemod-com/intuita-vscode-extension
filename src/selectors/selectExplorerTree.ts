@@ -16,6 +16,7 @@ import {
 	getPersistedJobUri,
 } from './comparePersistedJobs';
 
+const FUZZY_SEARCH_MINIMUM_SCORE = -500;
 export const selectSearchPhrase = (state: RootState, caseHash: CaseHash) =>
 	(state.explorerSearchPhrases[caseHash] ?? '').trim().toLocaleLowerCase();
 
@@ -72,9 +73,9 @@ export const selectExplorerNodes = (
 		})
 		.filter(isNeitherNullNorUndefined);
 
-	const searchResults = go(properSearchPhrase, allJobPaths).map(
-		(r) => r.target,
-	);
+	const searchResults = go(properSearchPhrase, allJobPaths)
+		.filter((r) => r.score > FUZZY_SEARCH_MINIMUM_SCORE)
+		.map((r) => r.target);
 
 	for (const job of filteredJobs) {
 		const uri = getPersistedJobUri(job);
