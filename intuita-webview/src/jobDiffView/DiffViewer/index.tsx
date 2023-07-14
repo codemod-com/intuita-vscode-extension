@@ -42,11 +42,7 @@ export const JobDiffViewContainer = (
 				}
 			/>
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
-				<JobDiffView
-					theme={theme}
-					viewType={viewType}
-					{...props}
-				/>
+				<JobDiffView theme={theme} viewType={viewType} {...props} />
 			</div>
 		</div>
 	);
