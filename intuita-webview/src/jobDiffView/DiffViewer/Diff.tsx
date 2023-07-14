@@ -81,6 +81,7 @@ export const DiffComponent = memo(
 				theme={theme}
 				onMount={(e: editor.IStandaloneDiffEditor, m: Monaco) => {
 					editorRef.current = e;
+
 					e.onDidUpdateDiff(() => {
 						const diffChanges = getDiffChanges(e);
 

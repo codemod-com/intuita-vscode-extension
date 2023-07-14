@@ -16,10 +16,10 @@
 	overflow: hidden;
 }
 
-.job-kind-text {
+.highlighted-text {
 	color: var(--vscode-editorSuggestWidget-focusHighlightForeground);
 	padding: 5px 0px 5px 8px;
-	background: var(--vscode-editor-background);
+	background: transparent;
 	border-radius: 3px;
 	overflow: hidden;
 }
