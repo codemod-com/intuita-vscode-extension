@@ -4,7 +4,6 @@ import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
 import { Header } from './Header';
-import { Diff } from './Diff';
 import { useTheme } from '../../shared/Snippet/useTheme';
 import type { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 import { vscode } from '../../shared/utilities/vscode';
@@ -26,7 +25,6 @@ export const JobDiffViewContainer = (
 ) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
-	const [diff, setDiff] = useState<Diff | null>(null);
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
@@ -46,9 +44,7 @@ export const JobDiffViewContainer = (
 			<div className="w-full pb-2-5 h-full" ref={containerRef}>
 				<JobDiffView
 					theme={theme}
-					diff={diff}
 					viewType={viewType}
-					onDiffCalculated={setDiff}
 					{...props}
 				/>
 			</div>

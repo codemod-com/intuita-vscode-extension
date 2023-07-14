@@ -16,8 +16,9 @@ type HeaderProps = Readonly<{
 	caseHash: (PanelViewProps & { kind: 'JOB' })['caseHash'];
 	jobHash: (PanelViewProps & { kind: 'JOB' })['jobHash'];
 	reviewed: (PanelViewProps & { kind: 'JOB' })['reviewed'];
-	children?: React.ReactNode;
 	onReportIssue(): void;
+	modifiedByUser: boolean;
+	children?: React.ReactNode;
 }>;
 
 export const Header = ({
@@ -27,6 +28,7 @@ export const Header = ({
 	jobKind,
 	caseHash,
 	jobHash,
+	modifiedByUser,
 	children,
 	reviewed,
 	onReportIssue,
@@ -57,7 +59,7 @@ export const Header = ({
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<div className="flex align-items-center flex-1">
 					{jobKindText ? (
-						<h4 className="my-0 ml-2 job-kind-text align-self-center user-select-none">
+						<h4 className="my-0 ml-2 highlighted-text align-self-center user-select-none">
 							{jobKindText}
 						</h4>
 					) : null}
@@ -78,6 +80,11 @@ export const Header = ({
 					>
 						<CopyIcon className="copy-icon" />
 					</VSCodeButton>
+					{modifiedByUser ? (
+						<h4 className="my-0 ml-2 highlighted-text align-self-center user-select-none">
+							(change saved)
+						</h4>
+					) : null}
 				</div>
 
 				<div

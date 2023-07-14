@@ -2,7 +2,7 @@ import { Header } from './Container';
 import { Collapsable } from '../Components/Collapsable';
 import { Diff, DiffComponent } from './Diff';
 import { reportIssue } from '../util';
-import { KeyboardEvent, forwardRef, memo, useCallback } from 'react';
+import { KeyboardEvent, forwardRef, memo, useCallback, useState } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
 import debounce from '../../shared/utilities/debounce';
@@ -10,8 +10,6 @@ import { PanelViewProps } from '../../../../src/components/webview/panelViewProp
 
 type Props = PanelViewProps & { kind: 'JOB' } & {
 	viewType: 'inline' | 'side-by-side';
-	diff: Diff | null;
-	onDiffCalculated: (diff: Diff) => void;
 	theme: string;
 };
 
@@ -27,13 +25,14 @@ export const JobDiffView = memo(
 				oldFileTitle,
 				reviewed,
 				title,
-				onDiffCalculated,
-				diff,
 				theme,
 				caseHash,
 			}: Props,
 			ref,
 		) => {
+			const [diff, setDiff] = useState<Diff | null>(null);
+			const [modifiedByUser, setModifiedByUser] = useState(false);
+
 			const report = useCallback(() => {
 				reportIssue(
 					jobHash,
@@ -42,19 +41,20 @@ export const JobDiffView = memo(
 				);
 			}, [jobHash, oldFileContent, newFileContent]);
 
-			const handleDiffCalculated = useCallback(
-				(diff: Diff) => {
-					onDiffCalculated(diff);
-				},
-				[onDiffCalculated],
-			);
+			const handleDiffCalculated = (diff: Diff) => {
+				setDiff(diff);
+			};
 
 			const handleContentChange = debounce((newContent: string) => {
-				vscode.postMessage({
-					kind: 'webview.panel.contentModified',
-					newContent,
-					jobHash,
-				});
+				const changed = newContent !== newFileContent;
+				if (changed) {
+					vscode.postMessage({
+						kind: 'webview.panel.contentModified',
+						newContent,
+						jobHash,
+					});
+				}
+				setModifiedByUser(changed);
 			}, 1000);
 
 			return (
@@ -81,6 +81,7 @@ export const JobDiffView = memo(
 						headerComponent={
 							<Header
 								diff={diff}
+								modifiedByUser={modifiedByUser}
 								oldFileTitle={oldFileTitle ?? ''}
 								jobKind={jobKind}
 								caseHash={caseHash}
