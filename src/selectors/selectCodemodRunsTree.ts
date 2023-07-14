@@ -22,6 +22,7 @@ export const selectCodemodRunsTree = (state: RootState, rootPath: string) => {
 					expanded: true,
 					focused: kase.hash === selectedCaseHash,
 					collapsable: false,
+					reviewed: false,
 				} as const),
 		);
 

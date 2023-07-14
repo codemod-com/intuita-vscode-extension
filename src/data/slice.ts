@@ -1,3 +1,4 @@
+import platformPath from 'path';
 import {
 	createSlice,
 	createEntityAdapter,
@@ -22,7 +23,7 @@ import {
 } from '../selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from '../selectors/selectCodemodTree';
 import { _ExplorerNodeHashDigest } from '../persistedState/explorerNodeCodec';
-import { findParentExplorerNode } from '../utilities';
+import { buildHash, findParentExplorerNode } from '../utilities';
 
 const SLICE_KEY = 'root';
 
@@ -72,6 +73,7 @@ export const getInitialState = (): RootState => {
 		// For such node, we will use indeterminate checkbox icon.
 		indeterminateExplorerNodes: {},
 		collapsedExplorerNodes: {},
+		reviewedExplorerNodes: {},
 		focusedExplorerNodes: {},
 	};
 };
@@ -116,6 +118,7 @@ const rootSlice = createSlice({
 				delete state.selectedExplorerNodes[caseHash];
 				delete state.indeterminateExplorerNodes[caseHash];
 				delete state.collapsedExplorerNodes[caseHash];
+				delete state.reviewedExplorerNodes[caseHash];
 				delete state.focusedExplorerNodes[caseHash];
 			}
 		},
@@ -135,6 +138,7 @@ const rootSlice = createSlice({
 			state.selectedExplorerNodes = {};
 			state.indeterminateExplorerNodes = {};
 			state.collapsedExplorerNodes = {};
+			state.reviewedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
 		},
 		upsertCodemods(
@@ -327,6 +331,7 @@ const rootSlice = createSlice({
 			}
 
 			state.collapsedExplorerNodes[caseHash] = [];
+			state.reviewedExplorerNodes[caseHash] = [];
 			state.indeterminateExplorerNodes[caseHash] = [];
 			state.selectedExplorerNodes[caseHash] = explorerNodes.map(
 				(node) => node.hashDigest,
@@ -543,6 +548,34 @@ const rootSlice = createSlice({
 
 			state.collapsedExplorerNodes[caseHashDigest] =
 				collapsedExplorerNodes;
+		},
+		flipReviewedExplorerNode(
+			state,
+			action: PayloadAction<[CaseHash, JobHash, string]>,
+		) {
+			const [caseHashDigest, jobHash, path] = action.payload;
+
+			const fileName = path
+				.split(platformPath.sep)
+				.filter((name) => name !== '')
+				.slice(-1)[0];
+			const explorerNodeHashDigest = buildHash(
+				['FILE', jobHash, fileName].join(''),
+			) as _ExplorerNodeHashDigest;
+			const reviewedExplorerNodes =
+				state.reviewedExplorerNodes[caseHashDigest] ?? [];
+
+			const index = reviewedExplorerNodes.findIndex(
+				(hashDigest) => hashDigest === explorerNodeHashDigest,
+			);
+
+			if (index !== -1) {
+				reviewedExplorerNodes.splice(index, 1);
+			} else {
+				reviewedExplorerNodes.push(explorerNodeHashDigest);
+			}
+
+			state.reviewedExplorerNodes[caseHashDigest] = reviewedExplorerNodes;
 		},
 		focusExplorerNode(
 			state,

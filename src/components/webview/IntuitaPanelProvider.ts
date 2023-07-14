@@ -87,7 +87,7 @@ const selectPanelViewProps = (
 	}
 
 	const focusedExplorerNodeHashDigest =
-		state.focusedExplorerNodes[selectedCaseHash];
+		state.focusedExplorerNodes[selectedCaseHash] ?? null;
 
 	if (focusedExplorerNodeHashDigest === null) {
 		return null;
@@ -147,6 +147,10 @@ const selectPanelViewProps = (
 			? readFileSync(job.oldUri.fsPath).toString('utf8')
 			: null;
 
+	const reviewed = (
+		state.reviewedExplorerNodes[selectedCaseHash] ?? []
+	).includes(focusedExplorerNodeHashDigest);
+
 	return {
 		kind: 'JOB',
 		title: newFileTitle ?? oldFileTitle ?? '',
@@ -157,6 +161,7 @@ const selectPanelViewProps = (
 		newFileTitle,
 		oldFileContent,
 		newFileContent,
+		reviewed,
 	};
 };
 
@@ -273,6 +278,19 @@ export class IntuitaPanelProvider {
 						commands.executeCommand(
 							'intuita.redirect',
 							`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
+						);
+					}
+
+					if (
+						message.kind ===
+						'webview.global.flipReviewedExplorerNode'
+					) {
+						this.__store.dispatch(
+							actions.flipReviewedExplorerNode([
+								message.caseHashDigest,
+								message.jobHash,
+								message.path,
+							]),
 						);
 					}
 

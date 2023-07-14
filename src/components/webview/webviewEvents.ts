@@ -1,5 +1,5 @@
 import { Command } from 'vscode';
-import { JobHash, JobKind } from '../../jobs/types';
+import { JobHash } from '../../jobs/types';
 export type { Command } from 'vscode';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
@@ -16,15 +16,6 @@ export type ExecutionPath = T.These<SyntheticError, string>;
 
 export { JobHash };
 export { CodemodHash };
-
-export type JobDiffViewProps = Readonly<{
-	jobHash: JobHash;
-	jobKind: JobKind;
-	oldFileContent: string | null;
-	newFileContent: string | null;
-	oldFileTitle: string | null;
-	newFileTitle: string | null;
-}>;
 
 export type RunCodemodsCommand = Readonly<{
 	title: string;
@@ -71,6 +62,12 @@ export type WebviewResponse =
 				| 'webview.global.flipCollapsibleExplorerNode';
 			caseHashDigest: CaseHash;
 			explorerNodeHashDigest: _ExplorerNodeHashDigest;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.flipReviewedExplorerNode';
+			caseHashDigest: CaseHash;
+			jobHash: JobHash;
+			path: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.focusExplorerNodeSibling';

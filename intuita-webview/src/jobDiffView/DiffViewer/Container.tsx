@@ -1,30 +1,34 @@
 import React from 'react';
-import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
-import { JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
 import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
 import IntuitaPopover from '../../shared/IntuitaPopover';
 import { vscode } from '../../shared/utilities/vscode';
+import { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 
 type HeaderProps = Readonly<{
-	id: string;
 	diff: Diff | null;
 	title: string;
 	oldFileTitle: string;
-	jobKind: JobDiffViewProps['jobKind'];
+	jobKind: (PanelViewProps & { kind: 'JOB' })['jobKind'];
+	caseHash: (PanelViewProps & { kind: 'JOB' })['caseHash'];
+	jobHash: (PanelViewProps & { kind: 'JOB' })['jobHash'];
+	reviewed: (PanelViewProps & { kind: 'JOB' })['reviewed'];
 	children?: React.ReactNode;
 	onReportIssue(): void;
 }>;
 
 export const Header = ({
-	id,
 	diff,
 	title,
 	oldFileTitle,
 	jobKind,
+	caseHash,
+	jobHash,
 	children,
+	reviewed,
 	onReportIssue,
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
@@ -37,12 +41,19 @@ export const Header = ({
 			value: 'File name copied to clipboard',
 		});
 	};
+	const handleReviewedClick = (event: React.MouseEvent) => {
+		event.stopPropagation();
+
+		vscode.postMessage({
+			kind: 'webview.global.flipReviewedExplorerNode',
+			caseHashDigest: caseHash,
+			jobHash,
+			path: title,
+		});
+	};
 
 	return (
-		<div
-			id={id}
-			className="flex w-full align-items-center container-header"
-		>
+		<div className="flex w-full align-items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<div className="flex align-items-center flex-1">
 					{jobKindText ? (
@@ -74,7 +85,22 @@ export const Header = ({
 					onClick={(e) => {
 						e.stopPropagation();
 					}}
+					style={{ height: '28px' }}
 				>
+					<div
+						className="flex align-items-center checkbox-container"
+						onClick={handleReviewedClick}
+					>
+						<VSCodeCheckbox checked={reviewed} />
+						<p
+							className="user-select-none ml-10"
+							style={{
+								color: 'var(--button-secondary-foreground)',
+							}}
+						>
+							Reviewed
+						</p>
+					</div>
 					<IntuitaPopover
 						content={
 							<div
