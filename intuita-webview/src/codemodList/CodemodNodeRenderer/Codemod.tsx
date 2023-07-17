@@ -239,6 +239,7 @@ const Codemod = ({
 				</IntuitaPopover>
 			)}
 			<div
+				id={`${hashDigest}-codemod`}
 				className="flex w-full flex-col"
 				onMouseEnter={() => {
 					setHovering(true);
@@ -309,6 +310,7 @@ const Codemod = ({
 							)}
 						{!editingPath && progress === null && (
 							<ActionButton
+								id={`${hashDigest}-shareButton`}
 								content="Copy to clipboard the link to this codemod."
 								onClick={handleCodemodLinkCopy}
 							>
