@@ -62,6 +62,7 @@ const renderActionButtons = (
 	if (!codemodInProgress && !queued) {
 		return (
 			<ActionButton
+				id={`${hashDigest}-dryRunButton`}
 				content="Dry-run this codemod (without making change to file system)."
 				onClick={(e) => {
 					e.stopPropagation();
