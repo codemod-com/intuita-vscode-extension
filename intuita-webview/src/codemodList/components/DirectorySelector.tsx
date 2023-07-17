@@ -69,6 +69,7 @@ export const DirectorySelector = ({
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [editing, setEditing] = useState(false);
+	const [ignoreEnterKeyUp, setIgnoreEnterKeyUp] = useState(false);
 	const ignoreBlurEvent = useRef(false);
 	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	const hintRef = useRef<HTMLInputElement>(null);
@@ -159,7 +160,7 @@ export const DirectorySelector = ({
 			handleCancel();
 		}
 
-		if (event.key === 'Enter') {
+		if (event.key === 'Enter' && !ignoreEnterKeyUp) {
 			ignoreBlurEvent.current = true;
 			if (value === defaultValue) {
 				handleCancel();
@@ -175,6 +176,7 @@ export const DirectorySelector = ({
 				codemodHash,
 			);
 		}
+		setIgnoreEnterKeyUp(false);
 	};
 
 	useEffect(() => {
@@ -267,7 +269,16 @@ export const DirectorySelector = ({
 	return (
 		<IntuitaPopover content="Change the target path for this codemod.">
 			<VSCodeButton
+				id={`${codemodHash}-pathButton`}
 				appearance="icon"
+				onKeyDown={() => {
+					if (
+						document.activeElement?.id ===
+						`${codemodHash}-pathButton`
+					) {
+						setIgnoreEnterKeyUp(true);
+					}
+				}}
 				onClick={(event) => {
 					event.stopPropagation();
 
