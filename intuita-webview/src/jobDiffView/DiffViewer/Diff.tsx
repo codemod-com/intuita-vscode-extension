@@ -43,8 +43,11 @@ export const DiffComponent = memo(
 		const jobHashRef = useRef<string | null>(null);
 
 		useEffect(() => {
-			editorRef.current?.getModifiedEditor().setScrollTop(0);
-		}, [oldFileContent, newFileContent]);
+			if (editorRef.current === null) {
+				return;
+			}
+			editorRef.current.getModifiedEditor().setScrollTop(0);
+		}, [jobHash]);
 
 		const reattachHandler = (editor?: editor.IStandaloneDiffEditor) => {
 			if (jobHashRef.current === jobHash) {
