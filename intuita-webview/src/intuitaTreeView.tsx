@@ -112,10 +112,31 @@ export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
 		props.onFlip(props.focusedNodeHashDigest);
 	}, [props]);
 
+	const enterCallback = useCallback(() => {
+		if (props.focusedNodeHashDigest === null) {
+			return;
+		}
+
+		const dryRunButton =
+			document.getElementById(
+				`${props.focusedNodeHashDigest}-dryRunButton`,
+			) ?? null;
+		if (dryRunButton === null) {
+			return;
+		}
+
+		if (document.activeElement?.id === dryRunButton.id) {
+			dryRunButton.click();
+			return;
+		}
+		dryRunButton.focus();
+	}, [props]);
+
 	useKey(ref.current, 'ArrowUp', arrowUpCallback);
 	useKey(ref.current, 'ArrowDown', arrowDownCallback);
 	useKey(ref.current, 'ArrowLeft', arrowLeftCallback);
 	useKey(ref.current, 'ArrowRight', arrowRightCallback);
+	useKey(ref.current, 'Enter', enterCallback);
 
 	return (
 		<div ref={ref}>

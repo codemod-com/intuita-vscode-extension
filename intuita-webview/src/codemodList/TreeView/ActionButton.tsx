@@ -4,16 +4,18 @@ import cn from 'classnames';
 import s from './style.module.css';
 
 type Props = {
+	id?: string;
 	content?: string;
 	iconName?: string;
 	children?: React.ReactNode;
 	onClick(e: React.MouseEvent): void;
 };
 
-const ActionButton = ({ content, iconName, children, onClick }: Props) => {
+const ActionButton = ({ content, iconName, children, onClick, id }: Props) => {
 	return (
 		<IntuitaPopover content={content} disabled={!content}>
 			<VSCodeButton
+				id={id}
 				className={s.action}
 				appearance="icon"
 				onClick={(e) => {
