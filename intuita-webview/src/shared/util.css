@@ -184,7 +184,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
+	cursor: inherit;
 	padding: 0 0.5px;
 }
 

@@ -35,7 +35,7 @@ type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
 type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 	Readonly<{
-		rootPath: string;
+		rootPath: string | null;
 		autocompleteItems: ReadonlyArray<string>;
 		progress: Progress | null;
 		screenWidth: number | null;
@@ -58,10 +58,19 @@ const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
 	queued: boolean,
+	rootPath: string | null,
 ) => {
 	if (!codemodInProgress && !queued) {
 		const handleDryRunClick = (e: React.MouseEvent) => {
 			e.stopPropagation();
+
+			if (rootPath === null) {
+				vscode.postMessage({
+					kind: 'webview.global.showWarningMessage',
+					value: 'No workspace is found.',
+				});
+				return;
+			}
 
 			vscode.postMessage({
 				kind: 'webview.codemodList.dryRunCodemod',
@@ -85,6 +94,11 @@ const renderActionButtons = (
 					id={`${hashDigest}-dryRunButton`}
 					content="Dry-run this codemod (without making change to file system)."
 					onClick={handleDryRunClick}
+					style={{
+						...(rootPath === null && {
+							opacity: 'var(--disabled-opacity)',
+						}),
+					}}
 				>
 					<span className={cn('codicon', 'codicon-play')} />
 				</ActionButton>
@@ -185,7 +199,8 @@ const Codemod = ({
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
 
-	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+	const repoName =
+		rootPath !== null ? rootPath.split('/').slice(-1)[0] ?? '' : '';
 	const [editingPath, setEditingPath] = useState(false);
 
 	const error: string | null = pipe(
@@ -212,7 +227,8 @@ const Codemod = ({
 		),
 	);
 
-	const targetPath = buildTargetPath(path, rootPath, repoName);
+	const targetPath =
+		rootPath !== null ? buildTargetPath(path, rootPath, repoName) : '/';
 
 	const onEditStart = useCallback(() => {
 		setEditingPath(true);
@@ -296,7 +312,7 @@ const Codemod = ({
 								<DirectorySelector
 									defaultValue={targetPath}
 									displayValue={'path'}
-									rootPath={rootPath}
+									rootPath={rootPath ?? ''}
 									error={
 										error === null
 											? null
@@ -318,6 +334,7 @@ const Codemod = ({
 								hashDigest,
 								progress !== null,
 								queued,
+								rootPath,
 							)}
 					</div>
 				</span>

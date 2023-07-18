@@ -281,13 +281,24 @@ export const DirectorySelector = ({
 				}}
 				onClick={(event) => {
 					event.stopPropagation();
-
+					if (!rootPath) {
+						vscode.postMessage({
+							kind: 'webview.global.showWarningMessage',
+							value: 'No workspace is found.',
+						});
+						return;
+					}
 					setEditing(true);
 					onEditStart();
 					ignoreBlurEvent.current = false;
 					setValue(defaultValue);
 				}}
 				className={styles.targetPathButton}
+				style={{
+					...(!rootPath && {
+						opacity: 'var(--disabled-opacity)',
+					}),
+				}}
 			>
 				<span className={styles.label}>{displayValue}</span>
 			</VSCodeButton>

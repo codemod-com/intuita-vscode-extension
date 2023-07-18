@@ -14,7 +14,7 @@ import { getCodemodNodeRenderer } from '../CodemodNodeRenderer';
 type Props = Readonly<{
 	tree: CodemodTree;
 	autocompleteItems: ReadonlyArray<string>;
-	rootPath: string;
+	rootPath: string | null;
 	screenWidth: number | null;
 }>;
 
