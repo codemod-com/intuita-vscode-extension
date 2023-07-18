@@ -804,6 +804,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
+					store.dispatch(actions.setCodemodSearchPhrase(''));
 					store.dispatch(
 						actions.setFocusedCodemodHashDigest(
 							codemodHashDigest as unknown as CodemodNodeHashDigest,
