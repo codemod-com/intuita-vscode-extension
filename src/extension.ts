@@ -807,7 +807,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					store.dispatch(actions.setCodemodSearchPhrase(''));
 
-					// Expand collpased parent directories of the relevant codemod
+					// Expand collapsed parent directories of the relevant codemod
 					const state = store.getState();
 					if (codemodHashDigest !== null) {
 						const codemod =
