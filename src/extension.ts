@@ -26,6 +26,7 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
+import { buildHash } from './utilities';
 
 const messageBus = new MessageBus();
 
@@ -803,6 +804,55 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
+
+					const state = store.getState();
+
+					// Expand collapsed parent directories of the relevant codemod
+					if (codemodHashDigest !== null) {
+						const codemod =
+							state.codemod.entities[codemodHashDigest] ?? null;
+						if (codemod === null) {
+							return;
+						}
+						const { name } = codemod;
+						const sep = name.indexOf('/') !== -1 ? '/' : ':';
+
+						const pathParts = name
+							.split(sep)
+							.filter((part) => part !== '');
+
+						if (pathParts.length === 0) {
+							return;
+						}
+
+						pathParts.forEach((name, idx) => {
+							const path = pathParts.slice(0, idx + 1).join(sep);
+
+							if (idx === pathParts.length - 1) {
+								return;
+							}
+
+							const parentHashDigest = buildHash(
+								[path, name].join('_'),
+							) as CodemodNodeHashDigest;
+
+							if (
+								!state.codemodDiscoveryView.collapsedCodemodHashDigests.includes(
+									parentHashDigest,
+								)
+							) {
+								return;
+							}
+
+							store.dispatch(
+								actions.flipCodemodHashDigest(parentHashDigest),
+							);
+						});
+					}
+
+					if (state.codemodDiscoveryView.searchPhrase.length > 0) {
+						store.dispatch(actions.setCodemodSearchPhrase(''));
+					}
 
 					store.dispatch(
 						actions.setFocusedCodemodHashDigest(
