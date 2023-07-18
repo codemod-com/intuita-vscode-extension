@@ -176,27 +176,34 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<CodemodNodeHashDigest | null>,
 		) {
+			const hashDigest = action.payload;
 			state.activeTabId = 'codemods';
-			state.codemodDiscoveryView.focusedCodemodHashDigest =
-				action.payload;
+			state.codemodDiscoveryView.focusedCodemodHashDigest = hashDigest;
 			state.jobDiffView.visible = true;
 		},
 		flipCodemodHashDigest(
 			state,
 			action: PayloadAction<CodemodNodeHashDigest>,
 		) {
+			const hashDigest = action.payload;
+
 			const set = new Set<CodemodNodeHashDigest>(
 				state.codemodDiscoveryView.collapsedCodemodHashDigests,
 			);
 
-			if (set.has(action.payload)) {
-				set.delete(action.payload);
+			if (set.has(hashDigest)) {
+				set.delete(hashDigest);
 			} else {
-				set.add(action.payload);
+				set.add(hashDigest);
 			}
 
-			state.codemodDiscoveryView.collapsedCodemodHashDigests =
-				Array.from(set);
+			state.codemodDiscoveryView.collapsedCodemodHashDigests = Array.from(
+				set,
+			).filter(
+				(hashDigest) =>
+					// do not store hash digests of codemods
+					(state.codemod.entities[hashDigest] ?? null) === null,
+			);
 		},
 		setCodemodSearchPhrase(state, action: PayloadAction<string>) {
 			state.codemodDiscoveryView.searchPhrase = action.payload;
