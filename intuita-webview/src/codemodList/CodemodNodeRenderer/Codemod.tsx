@@ -35,7 +35,7 @@ type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
 type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 	Readonly<{
-		rootPath: string;
+		rootPath: string | null;
 		autocompleteItems: ReadonlyArray<string>;
 		progress: Progress | null;
 		screenWidth: number | null;
@@ -58,23 +58,58 @@ const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	codemodInProgress: boolean,
 	queued: boolean,
+	rootPath: string | null,
 ) => {
 	if (!codemodInProgress && !queued) {
-		return (
-			<ActionButton
-				id={`${hashDigest}-dryRunButton`}
-				content="Dry-run this codemod (without making change to file system)."
-				onClick={(e) => {
-					e.stopPropagation();
+		const handleDryRunClick = (e: React.MouseEvent) => {
+			e.stopPropagation();
 
-					vscode.postMessage({
-						kind: 'webview.codemodList.dryRunCodemod',
-						value: hashDigest as unknown as CodemodHash,
-					});
-				}}
-			>
-				<span className={cn('codicon', 'codicon-play')} />
-			</ActionButton>
+			if (rootPath === null) {
+				vscode.postMessage({
+					kind: 'webview.global.showWarningMessage',
+					value: 'No workspace is found.',
+				});
+				return;
+			}
+
+			vscode.postMessage({
+				kind: 'webview.codemodList.dryRunCodemod',
+				value: hashDigest as unknown as CodemodHash,
+			});
+		};
+		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
+			e.stopPropagation();
+			navigator.clipboard.writeText(
+				`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+			);
+			vscode.postMessage({
+				kind: 'webview.global.showInformationMessage',
+				value: 'Codemod link copied to clipboard',
+			});
+		};
+
+		return (
+			<>
+				<ActionButton
+					id={`${hashDigest}-dryRunButton`}
+					content="Dry-run this codemod (without making change to file system)."
+					onClick={handleDryRunClick}
+					style={{
+						...(rootPath === null && {
+							opacity: 'var(--disabled-opacity)',
+						}),
+					}}
+				>
+					<span className={cn('codicon', 'codicon-play')} />
+				</ActionButton>
+				<ActionButton
+					id={`${hashDigest}-shareButton`}
+					content="Copy to clipboard the link to this codemod."
+					onClick={handleCodemodLinkCopy}
+				>
+					<span className={cn('codicon', 'codicon-live-share')} />
+				</ActionButton>
+			</>
 		);
 	}
 
@@ -164,7 +199,8 @@ const Codemod = ({
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
 
-	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+	const repoName =
+		rootPath !== null ? rootPath.split('/').slice(-1)[0] ?? '' : '';
 	const [editingPath, setEditingPath] = useState(false);
 
 	const error: string | null = pipe(
@@ -191,7 +227,8 @@ const Codemod = ({
 		),
 	);
 
-	const targetPath = buildTargetPath(path, rootPath, repoName);
+	const targetPath =
+		rootPath !== null ? buildTargetPath(path, rootPath, repoName) : '/';
 
 	const onEditStart = useCallback(() => {
 		setEditingPath(true);
@@ -204,17 +241,6 @@ const Codemod = ({
 	const onEditCancel = useCallback(() => {
 		setEditingPath(false);
 	}, []);
-
-	const handleCodemodLinkCopy = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		navigator.clipboard.writeText(
-			`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
-		);
-		vscode.postMessage({
-			kind: 'webview.global.showInformationMessage',
-			value: 'Codemod link copied to clipboard',
-		});
-	};
 
 	return (
 		<>
@@ -286,7 +312,7 @@ const Codemod = ({
 								<DirectorySelector
 									defaultValue={targetPath}
 									displayValue={'path'}
-									rootPath={rootPath}
+									rootPath={rootPath ?? ''}
 									error={
 										error === null
 											? null
@@ -308,21 +334,8 @@ const Codemod = ({
 								hashDigest,
 								progress !== null,
 								queued,
+								rootPath,
 							)}
-						{!editingPath && progress === null && (
-							<ActionButton
-								id={`${hashDigest}-shareButton`}
-								content="Copy to clipboard the link to this codemod."
-								onClick={handleCodemodLinkCopy}
-							>
-								<span
-									className={cn(
-										'codicon',
-										'codicon-live-share',
-									)}
-								/>
-							</ActionButton>
-						)}
 					</div>
 				</span>
 				{renderProgressBar(progress)}

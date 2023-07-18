@@ -18,7 +18,7 @@ const getIndent = (depth: number) => {
 };
 
 type Deps = {
-	rootPath: string;
+	rootPath: string | null;
 	autocompleteItems: ReadonlyArray<string>;
 	progress: Progress | null;
 	screenWidth: number | null;

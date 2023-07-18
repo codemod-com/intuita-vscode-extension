@@ -7,7 +7,7 @@ import { CodemodHash } from '../packageJsonAnalyzer/types';
 
 export const selectMainWebviewViewProps = (
 	state: RootState,
-	rootUri: Uri,
+	rootUri: Uri | null,
 	autocompleteItems: ReadonlyArray<string>,
 	executionQueue: ReadonlyArray<CodemodHash>,
 ) => {
@@ -18,10 +18,10 @@ export const selectMainWebviewViewProps = (
 			autocompleteItems,
 			codemodTree: selectCodemodTree(
 				state,
-				rootUri.fsPath,
+				rootUri?.fsPath ?? null,
 				executionQueue,
 			),
-			rootPath: rootUri.fsPath,
+			rootPath: rootUri?.fsPath ?? null,
 		};
 	}
 
@@ -29,8 +29,14 @@ export const selectMainWebviewViewProps = (
 		return {
 			activeTabId: state.activeTabId,
 			applySelectedInProgress: state.applySelectedInProgress,
-			codemodRunsTree: selectCodemodRunsTree(state, rootUri.fsPath),
-			changeExplorerTree: selectExplorerTree(state, rootUri.fsPath),
+			codemodRunsTree:
+				rootUri !== null
+					? selectCodemodRunsTree(state, rootUri.fsPath)
+					: null,
+			changeExplorerTree:
+				rootUri !== null
+					? selectExplorerTree(state, rootUri.fsPath)
+					: null,
 			codemodExecutionInProgress: state.caseHashInProgress !== null,
 			panelGroupSettings: state.codemodRunsTab.panelGroupSettings,
 			resultsCollapsed: state.codemodRunsTab.resultsCollapsed,
