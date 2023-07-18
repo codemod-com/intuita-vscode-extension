@@ -184,10 +184,8 @@ export const selectCodemodTree = (
 				hashDigest,
 			);
 
-		const focused = isSearching
-			? false
-			: state.codemodDiscoveryView.focusedCodemodHashDigest ===
-			  hashDigest;
+		const focused =
+			state.codemodDiscoveryView.focusedCodemodHashDigest === hashDigest;
 		const childSet = children[node.hashDigest] ?? [];
 
 		if (depth !== -1) {

@@ -200,6 +200,7 @@ const rootSlice = createSlice({
 		},
 		setCodemodSearchPhrase(state, action: PayloadAction<string>) {
 			state.codemodDiscoveryView.searchPhrase = action.payload;
+			state.codemodDiscoveryView.focusedCodemodHashDigest = null;
 		},
 		/**
 		 * Errors
