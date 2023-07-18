@@ -12,6 +12,7 @@ import Codemod from './Codemod';
 import styles from './style.module.css';
 import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
+import cn from 'classnames';
 
 const getIndent = (depth: number) => {
 	return depth * 17;
@@ -57,7 +58,7 @@ const getCodemodNodeRenderer =
 				id={hashDigest}
 				tabIndex={0}
 				ref={ref}
-				className={styles.root}
+				className={cn(styles.root, focused && styles.focused)}
 				onClick={() => onFlip(hashDigest)}
 			>
 				<div
