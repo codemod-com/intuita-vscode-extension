@@ -826,17 +826,15 @@ export async function activate(context: vscode.ExtensionContext) {
 							return;
 						}
 
-						pathParts.forEach((part, idx) => {
-							const codemodDirName = pathParts
-								.slice(0, idx + 1)
-								.join(sep);
+						pathParts.forEach((name, idx) => {
+							const path = pathParts.slice(0, idx + 1).join(sep);
 
 							if (idx === pathParts.length - 1) {
 								return;
 							}
 
 							const parentHashDigest = buildHash(
-								[part, codemodDirName].join('_'),
+								[path, name].join('_'),
 							) as CodemodNodeHashDigest;
 
 							if (
