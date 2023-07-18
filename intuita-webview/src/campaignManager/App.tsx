@@ -31,6 +31,16 @@ const InfoIcon = ({ createdAt, path }: InfoIconProps) => {
 export const App = (
 	props: MainWebviewViewProps & { activeTabId: 'codemodRuns' },
 ) => {
+	if (props.codemodRunsTree === null) {
+		// no workspace is chosen
+		return (
+			<p className={styles.welcomeMessage}>
+				No change to review! Run some codemods via Codemod Discovery or
+				VS Code Command & check back later!
+			</p>
+		);
+	}
+
 	if (props.codemodRunsTree.nodeData.length === 0) {
 		return props.codemodExecutionInProgress ? (
 			// `nodeData.length` can be zero momentarily even if a codemod is actually in progress
