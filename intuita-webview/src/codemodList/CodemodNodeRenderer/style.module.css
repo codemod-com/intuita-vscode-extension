@@ -10,11 +10,11 @@
 	height: 28px;
 }
 
-.root:not(:focus):hover {
+.root:not(.focused):hover {
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.root:focus {
+.focused {
 	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
@@ -27,7 +27,7 @@
 }
 
 .root:hover .actionGroup,
-.root:focus .actionGroup {
+.focused .actionGroup {
 	opacity: 1;
 }
 

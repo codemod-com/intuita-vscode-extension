@@ -295,7 +295,6 @@ const Codemod = ({
 								screenWidth,
 							),
 							...(editingPath && { opacity: 1, width: '100%' }),
-							...(focused && { opacity: 1 }),
 						}}
 					>
 						<span
