@@ -86,7 +86,7 @@ export type CodemodNode =
 
 export const selectCodemodTree = (
 	state: RootState,
-	rootPath: string,
+	rootPath: string | null,
 	executionQueue: ReadonlyArray<CodemodHash>,
 ) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
@@ -134,7 +134,7 @@ export const selectCodemodTree = (
 
 			if (idx === pathParts.length - 1) {
 				const executionPath =
-					executionPaths[codemod.hashDigest] ?? rootPath;
+					executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
 				currNode = buildCodemodNode(
 					codemod,
 					part,

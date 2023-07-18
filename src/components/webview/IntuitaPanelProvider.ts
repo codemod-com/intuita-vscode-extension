@@ -39,7 +39,7 @@ const selectPanelViewProps = (
 	mainWebviewViewProvider: MainViewProvider,
 	codemodDescriptionProvider: CodemodDescriptionProvider,
 	state: RootState,
-	rootPath: string,
+	rootPath: string | null,
 ): PanelViewProps | null => {
 	if (!state.jobDiffView.visible) {
 		return null;
@@ -50,10 +50,6 @@ const selectPanelViewProps = (
 	}
 
 	const { activeTabId } = state;
-
-	if (activeTabId === 'community') {
-		return null;
-	}
 
 	if (activeTabId === 'codemods') {
 		const { focusedCodemodHashDigest } = state.codemodDiscoveryView;
@@ -78,6 +74,14 @@ const selectPanelViewProps = (
 			title: codemod.name,
 			description: description,
 		};
+	}
+
+	if (rootPath === null) {
+		return null;
+	}
+
+	if (activeTabId === 'community') {
+		return null;
 	}
 
 	const { selectedCaseHash } = state.codemodRunsTab;
@@ -174,7 +178,7 @@ export class IntuitaPanelProvider {
 		private readonly __mainWebviewViewProvider: MainViewProvider,
 		messageBus: MessageBus,
 		private readonly __codemodDescriptionProvider: CodemodDescriptionProvider,
-		private readonly __rootPath: string,
+		private readonly __rootPath: string | null,
 		private readonly __jobManager: JobManager,
 	) {
 		let prevViewProps = selectPanelViewProps(

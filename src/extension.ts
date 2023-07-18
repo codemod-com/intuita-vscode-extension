@@ -32,10 +32,6 @@ const messageBus = new MessageBus();
 export async function activate(context: vscode.ExtensionContext) {
 	const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
 
-	if (rootUri === null) {
-		return;
-	}
-
 	messageBus.setDisposables(context.subscriptions);
 
 	const { store } = await buildStore(context.workspaceState);
@@ -111,7 +107,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 		messageBus,
 		codemodDescriptionProvider,
-		rootUri.fsPath,
+		rootUri?.fsPath ?? null,
 		jobManager,
 	);
 

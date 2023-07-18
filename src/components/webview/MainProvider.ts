@@ -52,7 +52,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		context: ExtensionContext,
 		private readonly __engineService: EngineService,
 		private readonly __messageBus: MessageBus,
-		private readonly __rootUri: Uri,
+		private readonly __rootUri: Uri | null,
 		private readonly __store: Store,
 	) {
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
