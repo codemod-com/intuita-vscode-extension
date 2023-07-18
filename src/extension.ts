@@ -805,10 +805,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					store.dispatch(actions.setCodemodSearchPhrase(''));
+					const state = store.getState();
 
 					// Expand collapsed parent directories of the relevant codemod
-					const state = store.getState();
 					if (codemodHashDigest !== null) {
 						const codemod =
 							state.codemod.entities[codemodHashDigest] ?? null;
@@ -849,6 +848,10 @@ export async function activate(context: vscode.ExtensionContext) {
 								actions.flipCodemodHashDigest(parentHashDigest),
 							);
 						});
+					}
+
+					if (state.codemodDiscoveryView.searchPhrase.length > 0) {
+						store.dispatch(actions.setCodemodSearchPhrase(''));
 					}
 
 					store.dispatch(

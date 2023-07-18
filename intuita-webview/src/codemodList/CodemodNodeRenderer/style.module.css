@@ -14,8 +14,10 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.root:focus {
+.root:focus,
+.focused {
 	background-color: var(--vscode-list-activeSelectionBackground);
+	opacity: 1;
 }
 
 .root:focus-visible {

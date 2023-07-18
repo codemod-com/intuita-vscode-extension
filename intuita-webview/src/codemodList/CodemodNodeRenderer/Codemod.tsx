@@ -288,14 +288,15 @@ const Codemod = ({
 						</span>
 					)}
 					<div
-						className={styles.actionGroup}
+						className={cn(styles.actionGroup, {
+							focused: styles.focused,
+						})}
 						style={{
 							...getActionGroupStyle(
 								areButtonsVisible,
 								screenWidth,
 							),
 							...(editingPath && { opacity: 1, width: '100%' }),
-							...(focused && { opacity: 1 }),
 						}}
 					>
 						<span
