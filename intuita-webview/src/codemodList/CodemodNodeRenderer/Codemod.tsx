@@ -107,7 +107,7 @@ const renderActionButtons = (
 					content="Copy to clipboard the link to this codemod."
 					onClick={handleCodemodLinkCopy}
 				>
-					<span className={cn('codicon', 'codicon-live-share')} />
+					<span className={cn('codicon', 'codicon-link')} />
 				</ActionButton>
 			</>
 		);
