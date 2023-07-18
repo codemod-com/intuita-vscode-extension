@@ -10,7 +10,7 @@
 	height: 28px;
 }
 
-.focused:hover {
+.root:not(.focused):hover {
 	background-color: var(--vscode-list-hoverBackground);
 }
 
