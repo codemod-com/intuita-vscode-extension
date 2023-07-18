@@ -76,11 +76,7 @@ const selectPanelViewProps = (
 		};
 	}
 
-	if (rootPath === null) {
-		return null;
-	}
-
-	if (activeTabId === 'community') {
+	if (rootPath === null || activeTabId === 'community') {
 		return null;
 	}
 
