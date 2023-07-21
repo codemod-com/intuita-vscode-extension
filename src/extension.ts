@@ -9,7 +9,7 @@ import { FileService } from './components/fileService';
 import { CaseHash, caseHashCodec } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { EngineService, Messages } from './components/engineService';
+import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { buildCaseHash } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
@@ -27,6 +27,11 @@ import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash } from './utilities';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import { homedir } from 'os';
+import { join } from 'path';
+import { randomBytes } from 'crypto';
+import { existsSync, rmSync } from 'fs';
 
 const messageBus = new MessageBus();
 
@@ -324,6 +329,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							kind: 'executeLocalCodemod',
 							codemodUri,
 							name: codemodUri.fsPath,
+							codemodHash: null,
 						},
 						happenedAt,
 						caseHashDigest: buildCaseHash(),
@@ -444,12 +450,19 @@ export async function activate(context: vscode.ExtensionContext) {
 							: {
 									kind:
 										codemodHash ===
+										// app directory boilerplate
 										'QKEdp-pofR9UnglrKAGDm1Oj6W0'
 											? 'executeRepomod'
 											: 'executeCodemod',
 									codemodHash,
 									name: codemod.name,
 							  };
+
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
+					);
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
@@ -625,8 +638,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeImportedModOnPath',
-			async (targetUri: vscode.Uri) => {
+			'intuita.executePrivateCodemod',
+			async (targetUri: vscode.Uri, codemodHash: CodemodHash) => {
 				try {
 					const { storageUri } = context;
 
@@ -636,32 +649,19 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const codemodUri = vscode.Uri.joinPath(
-						storageUri,
-						'jscodeshiftCodemod.ts',
-					);
-
-					const document = await vscode.workspace.openTextDocument(
-						intuitaTextDocumentContentProvider.URI,
-					);
-
-					const text = document.getText();
-
-					// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
-					if (!text) {
-						vscode.window.showWarningMessage(
-							Messages.noImportedMod,
-						);
-						return;
-					}
-
-					const buffer = Buffer.from(text);
-					const content = new Uint8Array(buffer);
-					vscode.workspace.fs.writeFile(codemodUri, content);
-
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
+					);
+
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
+					);
+
+					const codemodUri = vscode.Uri.file(
+						join(homedir(), '.intuita', codemodHash, 'index.ts'),
 					);
 
 					messageBus.publish({
@@ -669,7 +669,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
-							name: codemodUri.fsPath,
+							name: codemodHash,
+							codemodHash,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),
@@ -677,6 +678,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						targetUri,
 						targetUriIsDirectory,
 					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
@@ -714,6 +719,30 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.deleteFiles,
 				uris,
 			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.clearPrivateCodemods', () => {
+			const state = store.getState();
+			const hashDigests = state.privateCodemods.ids as CodemodHash[];
+			hashDigests.forEach((hashDigest) => {
+				const codemodPath = join(homedir(), '.intuita', hashDigest);
+				if (existsSync(codemodPath)) {
+					rmSync(codemodPath, { recursive: true, force: true });
+				}
+			});
+
+			const codemodNamesPath = join(
+				homedir(),
+				'.intuita',
+				'privateCodemodNames.json',
+			);
+			if (existsSync(codemodNamesPath)) {
+				rmSync(codemodNamesPath);
+			}
+
+			store.dispatch(actions.removePrivateCodemods(hashDigests));
 		}),
 	);
 
@@ -785,22 +814,83 @@ export async function activate(context: vscode.ExtensionContext) {
 				const base64UrlEncodedContent = searchParams.get('c');
 				const codemodHashDigest = searchParams.get('chd');
 
+				// user is exporting codemod from studio into extension
 				if (base64UrlEncodedContent) {
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 					const buffer = Buffer.from(
 						base64UrlEncodedContent,
 						'base64url',
 					);
 
-					const content = buffer.toString('utf8');
+					const globalStoragePath = join(homedir(), '.intuita');
+					const codemodHash = randomBytes(27).toString('base64url');
+					const codemodDirectoryPath = join(
+						globalStoragePath,
+						codemodHash,
+					);
+					await mkdir(codemodDirectoryPath, { recursive: true });
 
-					intuitaTextDocumentContentProvider.setContent(content);
-
-					const document = await vscode.workspace.openTextDocument(
-						intuitaTextDocumentContentProvider.URI,
+					const buildConfigPath = join(
+						codemodDirectoryPath,
+						'config.json',
 					);
 
-					vscode.window.showTextDocument(document);
-				} else if (codemodHashDigest !== null) {
+					await writeFile(
+						buildConfigPath,
+						JSON.stringify({
+							kind: 'codemod',
+							engine: 'jscodeshift',
+							hashDigest: codemodHash,
+							name: codemodHash,
+						}),
+					);
+
+					const buildIndexPath = join(
+						codemodDirectoryPath,
+						'index.ts',
+					);
+
+					await writeFile(buildIndexPath, buffer);
+
+					const newPrivateCodemodNames = [];
+					const privateCodemodNamesPath = join(
+						globalStoragePath,
+						'privateCodemodNames.json',
+					);
+					if (existsSync(privateCodemodNamesPath)) {
+						const privateCodemodNamesJSON = await readFile(
+							privateCodemodNamesPath,
+							{
+								encoding: 'utf8',
+							},
+						);
+						const privateCodemodNames = JSON.parse(
+							privateCodemodNamesJSON,
+						);
+						newPrivateCodemodNames.push(
+							...privateCodemodNames.names,
+						);
+					}
+					newPrivateCodemodNames.push(codemodHash);
+					await writeFile(
+						privateCodemodNamesPath,
+						JSON.stringify({
+							names: newPrivateCodemodNames,
+						}),
+					);
+
+					await engineService.fetchPrivateCodemods();
+
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
+					);
+				}
+				// user is opening a deep link to a specific codemod
+				else if (codemodHashDigest !== null) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
@@ -809,6 +899,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					// Expand collapsed parent directories of the relevant codemod
 					if (codemodHashDigest !== null) {
+						const privateCodemod =
+							state.privateCodemods.entities[codemodHashDigest] ??
+							null;
+
+						if (privateCodemod !== null) {
+							store.dispatch(
+								actions.setFocusedCodemodHashDigest(
+									codemodHashDigest as unknown as CodemodNodeHashDigest,
+								),
+							);
+							return;
+						}
+
 						const codemod =
 							state.codemod.entities[codemodHashDigest] ?? null;
 						if (codemod === null) {

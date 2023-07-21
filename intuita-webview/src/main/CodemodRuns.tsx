@@ -42,7 +42,7 @@ export const CodemodRuns = (
 			getItem: () => JSON.stringify(props.panelGroupSettings),
 			setItem: (_, panelGroupSettings: string): void => {
 				vscode.postMessage({
-					kind: 'webview.main.setPanelGroupSettings',
+					kind: 'webview.main.setCodemodRunsPanelGroupSettings',
 					panelGroupSettings,
 				});
 			},

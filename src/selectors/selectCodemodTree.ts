@@ -67,10 +67,12 @@ export const buildCodemodNode = (
 	name: string,
 	executionPath: string,
 	queued: boolean,
+	isPrivate: boolean,
 ) => {
 	return {
 		kind: 'CODEMOD' as const,
 		name: codemod.name,
+		isPrivate,
 		hashDigest: codemod.hashDigest as CodemodNodeHashDigest,
 		label: buildCodemodTitle(name),
 		executionPath: T.right(executionPath),
@@ -83,6 +85,49 @@ export type CodemodNode =
 	| ReturnType<typeof buildRootNode>
 	| ReturnType<typeof buildDirectoryNode>
 	| ReturnType<typeof buildCodemodNode>;
+
+export const selectPrivateCodemods = (
+	state: RootState,
+	rootPath: string | null,
+	executionQueue: ReadonlyArray<CodemodHash>,
+) => {
+	const codemods = Object.values(
+		state.privateCodemods.entities,
+	) as CodemodEntry[];
+
+	const nodeData: NodeDatum[] = codemods.map((codemod) => {
+		const { name, hashDigest } = codemod;
+		const { executionPaths } = state.codemodDiscoveryView;
+
+		const executionPath =
+			executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
+		const node = buildCodemodNode(
+			codemod,
+			name,
+			executionPath,
+			executionQueue.includes(codemod.hashDigest as CodemodHash),
+			true,
+		);
+
+		return {
+			node,
+			depth: 0,
+			expanded: false,
+			focused:
+				state.codemodDiscoveryView.focusedCodemodHashDigest ===
+				hashDigest,
+			collapsable: false,
+			reviewed: false,
+		};
+	});
+
+	return {
+		nodeData,
+		focusedNodeHashDigest:
+			state.codemodDiscoveryView.focusedCodemodHashDigest,
+		collapsedNodeHashDigests: [],
+	};
+};
 
 export const selectCodemodTree = (
 	state: RootState,
@@ -140,6 +185,7 @@ export const selectCodemodTree = (
 					part,
 					executionPath,
 					executionQueue.includes(codemod.hashDigest as CodemodHash),
+					false,
 				);
 			} else {
 				currNode = buildDirectoryNode(part, codemodDirName);

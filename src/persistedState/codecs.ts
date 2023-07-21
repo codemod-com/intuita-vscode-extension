@@ -54,6 +54,7 @@ export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
+	privateCodemods: buildCollectionCodec(codemodEntryCodec),
 	job: buildCollectionCodec(persistedJobCodec),
 	lastCodemodHashDigests: withFallback(t.readonlyArray(t.string), []),
 	executionErrors: withFallback(
@@ -71,12 +72,20 @@ export const persistedStateCodecNew = buildTypeCodec({
 				codemodNodeHashDigestCodec,
 			),
 			searchPhrase: t.string,
+			publicRegistryCollapsed: withFallback(t.boolean, false),
+			privateRegistryCollapsed: withFallback(t.boolean, false),
+			panelGroupSettings: panelGroupSettingsCodec,
 		}),
 		{
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			expandedNodeHashDigests: [],
 			searchPhrase: '',
+			publicRegistryCollapsed: false,
+			privateRegistryCollapsed: false,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
 		},
 	),
 	codemodRunsTab: withFallback(

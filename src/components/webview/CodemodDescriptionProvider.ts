@@ -49,7 +49,7 @@ export class CodemodDescriptionProvider {
 					console.error(error);
 				});
 
-			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
+			return 'The documentation for this codemod is missing.';
 		}
 
 		return data;

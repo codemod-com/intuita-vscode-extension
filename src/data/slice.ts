@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
-import { JobHash } from '../components/webview/webviewEvents';
+import { CodemodHash, JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import {
@@ -31,6 +31,10 @@ export const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
+export const privateCodemodAdapter = createEntityAdapter<CodemodEntry>({
+	selectId: (codemod) => codemod.hashDigest,
+});
+
 export const caseAdapter = createEntityAdapter<Case>({
 	selectId: (kase) => kase.hash,
 });
@@ -42,6 +46,7 @@ export const jobAdapter = createEntityAdapter<PersistedJob>({
 export const getInitialState = (): RootState => {
 	return {
 		codemod: codemodAdapter.getInitialState(),
+		privateCodemods: privateCodemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
 		job: jobAdapter.getInitialState(),
 		lastCodemodHashDigests: [],
@@ -56,6 +61,11 @@ export const getInitialState = (): RootState => {
 			},
 		},
 		codemodDiscoveryView: {
+			publicRegistryCollapsed: false,
+			privateRegistryCollapsed: false,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
 			executionPaths: {},
 			focusedCodemodHashDigest: null,
 			expandedNodeHashDigests: [],
@@ -146,6 +156,24 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
 		) {
 			codemodAdapter.upsertMany(state.codemod, action.payload);
+		},
+		upsertPrivateCodemods(
+			state,
+			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
+		) {
+			privateCodemodAdapter.upsertMany(
+				state.privateCodemods,
+				action.payload,
+			);
+		},
+		removePrivateCodemods(
+			state,
+			action: PayloadAction<ReadonlyArray<CodemodHash>>,
+		) {
+			privateCodemodAdapter.removeMany(
+				state.privateCodemods,
+				action.payload,
+			);
 		},
 		/**
 		 * Codemod runs
@@ -251,7 +279,28 @@ const rootSlice = createSlice({
 		setActiveTabId(state, action: PayloadAction<ActiveTabId>) {
 			state.activeTabId = action.payload;
 		},
-		setPanelGroupSettings(state, action: PayloadAction<string>) {
+		setCodemodDiscoveryPanelGroupSettings(
+			state,
+			action: PayloadAction<string>,
+		) {
+			try {
+				const validation = panelGroupSettingsCodec.decode(
+					JSON.parse(action.payload),
+				);
+
+				if (validation._tag === 'Left') {
+					throw new Error(
+						'Could not decode the panel group settings',
+					);
+				}
+
+				state.codemodDiscoveryView.panelGroupSettings =
+					validation.right;
+			} catch (error) {
+				console.error(error);
+			}
+		},
+		setCodemodRunsPanelGroupSettings(state, action: PayloadAction<string>) {
 			try {
 				const validation = panelGroupSettingsCodec.decode(
 					JSON.parse(action.payload),
@@ -602,6 +651,13 @@ const rootSlice = createSlice({
 		},
 		collapseChangeExplorerPanel(state, action: PayloadAction<boolean>) {
 			state.codemodRunsTab.changeExplorerCollapsed = action.payload;
+		},
+		collapsePublicRegistryPanel(state, action: PayloadAction<boolean>) {
+			state.codemodDiscoveryView.publicRegistryCollapsed = action.payload;
+		},
+		collapsePrivateRegistryPanel(state, action: PayloadAction<boolean>) {
+			state.codemodDiscoveryView.privateRegistryCollapsed =
+				action.payload;
 		},
 	},
 });

@@ -22,6 +22,10 @@ import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
 import { buildArguments } from './buildArguments';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { readFile, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -135,6 +139,7 @@ export class EngineService {
 			message.codemodEngineNodeExecutableUri;
 
 		this.__fetchCodemods();
+		this.fetchPrivateCodemods();
 	}
 
 	public isEngineBootstrapped() {
@@ -184,11 +189,69 @@ export class EngineService {
 		}
 	}
 
-	private async __fetchCodemods() {
+	private async __fetchCodemods(): Promise<void> {
 		try {
 			const codemods = await this.getCodemodList();
-
 			this.__store.dispatch(actions.upsertCodemods(codemods));
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
+	public async fetchPrivateCodemods(): Promise<void> {
+		try {
+			const privateCodemods: CodemodEntry[] = [];
+			const globalStoragePath = join(homedir(), '.intuita');
+			const privateCodemodNamesPath = join(
+				homedir(),
+				'.intuita',
+				'privateCodemodNames.json',
+			);
+			if (!existsSync(privateCodemodNamesPath)) {
+				return;
+			}
+
+			const privateCodemodNamesJSON = await readFile(
+				privateCodemodNamesPath,
+				{
+					encoding: 'utf8',
+				},
+			);
+			const privateCodemodNames = JSON.parse(
+				privateCodemodNamesJSON,
+			).names;
+
+			const files = await readdir(globalStoragePath);
+			for (const file of files) {
+				const configPath = join(globalStoragePath, file, 'config.json');
+
+				if (!existsSync(configPath)) {
+					continue;
+				}
+				const data = await readFile(configPath, { encoding: 'utf8' });
+				const parsedData = JSON.parse(data);
+
+				const codemodDataOrError = codemodEntryCodec.decode(parsedData);
+
+				if (codemodDataOrError._tag === 'Left') {
+					const report = prettyReporter.report(codemodDataOrError);
+
+					console.error(report);
+					continue;
+				}
+
+				if (
+					!privateCodemodNames.includes(codemodDataOrError.right.name)
+				) {
+					continue;
+				}
+
+				privateCodemods.push(codemodDataOrError.right);
+			}
+
+			this.__store.dispatch(
+				actions.upsertPrivateCodemods(privateCodemods),
+			);
 		} catch (e) {
 			console.error(e);
 		}
@@ -251,7 +314,8 @@ export class EngineService {
 
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
-			message.command.kind === 'executeRepomod'
+			message.command.kind === 'executeRepomod' ||
+			message.command.kind === 'executeLocalCodemod'
 				? message.command.codemodHash
 				: null;
 
@@ -301,7 +365,7 @@ export class EngineService {
 			}
 
 			try {
-				const stringifiedChunk = chunk.toString();
+				const stringifiedChunk = JSON.stringify(chunk.toString());
 
 				const json = JSON.parse(stringifiedChunk);
 
@@ -529,10 +593,7 @@ export class EngineService {
 
 				commands.executeCommand('intuitaMainView.focus');
 
-				if (
-					!executionErrors.length &&
-					!this.#execution.affectedAnyFile
-				) {
+				if (!this.#execution.affectedAnyFile) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
 			}
