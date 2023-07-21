@@ -399,7 +399,6 @@ export class EngineService {
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
-				console.log(either);
 				const report = prettyReporter.report(either);
 
 				console.error(report);
@@ -543,7 +542,6 @@ export class EngineService {
 
 		interfase.on('close', async () => {
 			if (this.#execution) {
-				console.log(this.#execution);
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					halted: this.#execution.halted,

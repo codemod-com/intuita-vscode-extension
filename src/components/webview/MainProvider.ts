@@ -296,7 +296,11 @@ export class MainViewProvider implements WebviewViewProvider {
 
 			const uri = Uri.file(executionPath);
 
-			commands.executeCommand('intuita.executePrivateCodemod', uri, hashDigest);
+			commands.executeCommand(
+				'intuita.executePrivateCodemod',
+				uri,
+				hashDigest,
+			);
 		}
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
