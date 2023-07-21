@@ -663,7 +663,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const codemodUri = vscode.Uri.file(
 						join(homedir(), '.intuita', codemodHash, 'index.ts'),
 					);
-					
+
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
@@ -812,7 +812,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					await writeFile(
 						buildConfigPath,
-						// TODO:  engine must come from studio
 						JSON.stringify({
 							kind: 'codemod',
 							engine: 'jscodeshift',
