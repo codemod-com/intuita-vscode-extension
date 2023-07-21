@@ -82,7 +82,7 @@ const getCodemodNodeRenderer =
 						isPrivate={node.isPrivate}
 						focused={focused}
 						queued={node.queued}
-						intuitaCertified={node.intuitaCertified}
+						icon={node.icon}
 						screenWidth={screenWidth}
 					/>
 				)}

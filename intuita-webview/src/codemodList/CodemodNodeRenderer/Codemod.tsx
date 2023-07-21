@@ -195,7 +195,7 @@ const Codemod = ({
 	autocompleteItems,
 	progress,
 	queued,
-	intuitaCertified,
+	icon,
 	screenWidth,
 	focused,
 	isPrivate,
@@ -246,17 +246,20 @@ const Codemod = ({
 		setEditingPath(false);
 	}, []);
 
+	const popoverText =
+		icon === 'private'
+			? 'This is a private codemod.'
+			: icon === 'certified'
+			? 'This is a high-quality, Intuita-verified codemod.'
+			: 'This is a community codemod.';
+
 	return (
 		<>
 			{!editingPath && (
-				<IntuitaPopover
-					content={
-						intuitaCertified
-							? 'This is a high-quality, Intuita-verified codemod.'
-							: 'This is a community codemod.'
-					}
-				>
-					{intuitaCertified ? (
+				<IntuitaPopover content={popoverText}>
+					{icon === 'private' ? (
+						<span className={cn('codicon', 'codicon-star')} />
+					) : icon === 'certified' ? (
 						<span
 							className={cn('codicon', 'codicon-verified')}
 							style={{

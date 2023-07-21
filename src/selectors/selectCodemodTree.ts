@@ -77,7 +77,11 @@ export const buildCodemodNode = (
 		label: buildCodemodTitle(name),
 		executionPath: T.right(executionPath),
 		queued: queued,
-		intuitaCertified: IntuitaCertifiedCodemods.includes(codemod.name),
+		icon: isPrivate
+			? 'private'
+			: IntuitaCertifiedCodemods.includes(codemod.name)
+			? 'certified'
+			: 'community',
 	} as const;
 };
 
