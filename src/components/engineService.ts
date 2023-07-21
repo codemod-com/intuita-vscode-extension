@@ -287,7 +287,8 @@ export class EngineService {
 
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
-			message.command.kind === 'executeRepomod'
+			message.command.kind === 'executeRepomod' ||
+			message.command.kind === 'executeLocalCodemod'
 				? message.command.codemodHash
 				: null;
 
@@ -542,6 +543,7 @@ export class EngineService {
 
 		interfase.on('close', async () => {
 			if (this.#execution) {
+				console.log(this.#execution);
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
 					halted: this.#execution.halted,

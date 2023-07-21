@@ -328,6 +328,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							kind: 'executeLocalCodemod',
 							codemodUri,
 							name: codemodUri.fsPath,
+							codemodHash: null,
 						},
 						happenedAt,
 						caseHashDigest: buildCaseHash(),
@@ -645,12 +646,18 @@ export async function activate(context: vscode.ExtensionContext) {
 						homedir(),
 						'.intuita',
 						codemodHash,
-						'index.cjs.z',
+						'index.ts',
 					);
 
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
+					);
+
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
 					);
 
 					messageBus.publish({
@@ -659,6 +666,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							kind: 'executeLocalCodemod',
 							codemodUri,
 							name: codemodHash,
+							codemodHash,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),
@@ -802,7 +810,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const buildIndexPath = join(
 						codemodDirectoryPath,
-						'index.cjs.z',
+						'index.ts',
 					);
 
 					await writeFile(buildIndexPath, buffer);
