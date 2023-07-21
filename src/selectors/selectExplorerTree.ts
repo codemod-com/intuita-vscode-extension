@@ -26,7 +26,7 @@ export const selectExplorerNodes = (
 	rootPath: string,
 ) => {
 	const kase = state.case.entities[caseHash] ?? null;
-	console.log(kase, caseHash);
+
 	if (kase === null) {
 		return;
 	}
