@@ -200,8 +200,27 @@ export class EngineService {
 
 	public async fetchPrivateCodemods(): Promise<void> {
 		try {
-			const codemods: CodemodEntry[] = [];
+			const privateCodemods: CodemodEntry[] = [];
 			const globalStoragePath = join(homedir(), '.intuita');
+			const privateCodemodNamesPath = join(
+				homedir(),
+				'.intuita',
+				'privateCodemodNames.json',
+			);
+			if (!existsSync(privateCodemodNamesPath)) {
+				return;
+			}
+
+			const privateCodemodNamesJSON = await readFile(
+				privateCodemodNamesPath,
+				{
+					encoding: 'utf8',
+				},
+			);
+			const privateCodemodNames = JSON.parse(
+				privateCodemodNamesJSON,
+			).names;
+
 			const files = await readdir(globalStoragePath);
 			for (const file of files) {
 				const configPath = join(globalStoragePath, file, 'config.json');
@@ -221,10 +240,18 @@ export class EngineService {
 					continue;
 				}
 
-				codemods.push(codemodDataOrError.right);
+				if (
+					!privateCodemodNames.includes(codemodDataOrError.right.name)
+				) {
+					continue;
+				}
+
+				privateCodemods.push(codemodDataOrError.right);
 			}
 
-			this.__store.dispatch(actions.upsertPrivateCodemods(codemods));
+			this.__store.dispatch(
+				actions.upsertPrivateCodemods(privateCodemods),
+			);
 		} catch (e) {
 			console.error(e);
 		}

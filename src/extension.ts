@@ -649,13 +649,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const codemodUri = join(
-						homedir(),
-						'.intuita',
-						codemodHash,
-						'index.ts',
-					);
-
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
@@ -667,6 +660,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						),
 					);
 
+					const codemodUri = vscode.Uri.file(
+						join(homedir(), '.intuita', codemodHash, 'index.ts'),
+					);
+					
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
