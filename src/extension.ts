@@ -27,10 +27,11 @@ import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash } from './utilities';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
+import { existsSync } from 'fs';
 
 const messageBus = new MessageBus();
 
@@ -814,8 +815,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					await writeFile(
 						buildConfigPath,
-						// TODO: version and engine must be passed from url
-						`{"kind":"codemod","engine":"jscodeshift","hashDigest":"${codemodHash}","name":"${codemodHash}"}`,
+						// TODO:  engine must come from studio
+						JSON.stringify({
+							kind: 'codemod',
+							engine: 'jscodeshift',
+							hashDigest: codemodHash,
+							name: codemodHash,
+						}),
 					);
 
 					const buildIndexPath = join(
@@ -824,6 +830,34 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 
 					await writeFile(buildIndexPath, buffer);
+
+					const newPrivateCodemodNames = [];
+					const privateCodemodNamesPath = join(
+						globalStoragePath,
+						'privateCodemodNames.json',
+					);
+					if (existsSync(privateCodemodNamesPath)) {
+						const privateCodemodNamesJSON = await readFile(
+							privateCodemodNamesPath,
+							{
+								encoding: 'utf8',
+							},
+						);
+						const privateCodemodNames = JSON.parse(
+							privateCodemodNamesJSON,
+						);
+						newPrivateCodemodNames.push(
+							...privateCodemodNames.names,
+						);
+					}
+					newPrivateCodemodNames.push(codemodHash);
+					await writeFile(
+						privateCodemodNamesPath,
+						JSON.stringify({
+							names: newPrivateCodemodNames,
+						}),
+					);
+
 					await engineService.fetchPrivateCodemods();
 
 					store.dispatch(
