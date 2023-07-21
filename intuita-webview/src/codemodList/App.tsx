@@ -122,6 +122,10 @@ export const App = memo(
 								collapsed: !props.privateRegistryCollapsed,
 							});
 						}}
+						style={{
+							backgroundColor:
+								'var(--vscode-tab-inactiveBackground)',
+						}}
 					/>
 					<ResizablePanel
 						collapsible
@@ -130,6 +134,8 @@ export const App = memo(
 						style={{
 							overflowY: 'auto',
 							overflowX: 'hidden',
+							backgroundColor:
+								'var(--vscode-tab-inactiveBackground)',
 						}}
 						ref={privateRegistryRef}
 						onCollapse={(collapsed) => {

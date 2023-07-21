@@ -214,9 +214,14 @@ export class EngineService {
 
 				const codemodDataOrError = codemodEntryCodec.decode(parsedData);
 
-				if (codemodDataOrError._tag === 'Right') {
-					codemods.push(codemodDataOrError.right);
+				if (codemodDataOrError._tag === 'Left') {
+					const report = prettyReporter.report(codemodDataOrError);
+
+					console.error(report);
+					continue;
 				}
+
+				codemods.push(codemodDataOrError.right);
 			}
 
 			this.__store.dispatch(actions.upsertPrivateCodemods(codemods));
@@ -393,6 +398,7 @@ export class EngineService {
 			const either = messageCodec.decode(JSON.parse(line));
 
 			if (either._tag === 'Left') {
+				console.log(either);
 				const report = prettyReporter.report(either);
 
 				console.error(report);
@@ -535,7 +541,6 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			console.log(this.#execution)
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,

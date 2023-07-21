@@ -2,6 +2,7 @@ import cn from 'classnames';
 import s from './style.module.css';
 import { Command } from 'vscode';
 import { vscode } from '../utilities/vscode';
+import { CSSProperties } from 'react';
 
 const handleCommand = (value: Command) => {
 	vscode.postMessage({
@@ -16,10 +17,15 @@ export const SectionHeader = (
 		collapsed: boolean;
 		commands: ReadonlyArray<Command & { icon: string }>;
 		onClick: React.MouseEventHandler<HTMLDivElement>;
+		style?: CSSProperties;
 	}>,
 ) => {
 	return (
-		<div className={s.sectionHeader} onClick={props.onClick}>
+		<div
+			className={s.sectionHeader}
+			onClick={props.onClick}
+			style={props.style}
+		>
 			<span
 				className={cn(
 					s.icon,
