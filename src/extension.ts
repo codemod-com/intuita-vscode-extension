@@ -30,11 +30,7 @@ import { buildHash } from './utilities';
 import { mkdir, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
-import { promisify } from 'util';
-import { deflate } from 'zlib';
 import { randomBytes } from 'crypto';
-
-const promisifiedDeflate = promisify(deflate);
 
 const messageBus = new MessageBus();
 
@@ -651,7 +647,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						codemodHash,
 						'index.cjs.z',
 					);
-					console.log(codemodUri);
+
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
@@ -784,7 +780,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						base64UrlEncodedContent,
 						'base64url',
 					);
-					const compressedBuffer = await promisifiedDeflate(buffer);
 
 					const globalStoragePath = join(homedir(), '.intuita');
 					const codemodHash = randomBytes(27).toString('base64url');
@@ -810,7 +805,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'index.cjs.z',
 					);
 
-					await writeFile(buildIndexPath, compressedBuffer);
+					await writeFile(buildIndexPath, buffer);
 					await engineService.fetchPrivateCodemods();
 				}
 				// user is opening a deep link to a specific codemod
