@@ -27,7 +27,7 @@ import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash } from './utilities';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
@@ -647,11 +647,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const codemodUri = join(
 						homedir(),
-						'.intuita123',
+						'.intuita',
 						codemodHash,
 						'index.cjs.z',
 					);
-
+					console.log(codemodUri);
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
 						fileStat.type & vscode.FileType.Directory,
@@ -662,7 +662,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
-							name: codemodUri.slice(-5),
+							name: codemodHash,
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),
@@ -784,8 +784,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						base64UrlEncodedContent,
 						'base64url',
 					);
+					const compressedBuffer = await promisifiedDeflate(buffer);
 
-					const globalStoragePath = join(homedir(), '.intuita123');
+					const globalStoragePath = join(homedir(), '.intuita');
 					const codemodHash = randomBytes(27).toString('base64url');
 					const codemodDirectoryPath = join(
 						globalStoragePath,
@@ -803,8 +804,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						// TODO: version and engine must be passed from url
 						`{"kind":"codemod","engine":"jscodeshift","hashDigest":"${codemodHash}","name":"${codemodHash}"}`,
 					);
-
-					const compressedBuffer = await promisifiedDeflate(buffer);
 
 					const buildIndexPath = join(
 						codemodDirectoryPath,

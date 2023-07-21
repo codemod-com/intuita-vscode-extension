@@ -201,7 +201,7 @@ export class EngineService {
 	public async fetchPrivateCodemods(): Promise<void> {
 		try {
 			const codemods: CodemodEntry[] = [];
-			const globalStoragePath = join(homedir(), '.intuita123');
+			const globalStoragePath = join(homedir(), '.intuita');
 			const files = await readdir(globalStoragePath);
 			for (const file of files) {
 				const configPath = join(globalStoragePath, file, 'config.json');
@@ -535,6 +535,7 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
+			console.log(this.#execution)
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,

@@ -158,7 +158,7 @@ export class CodemodDescriptionProvider {
 
 	// private async __fetchPrivateCodemods() {
 	// 	try {
-	// 		const globalStoragePath = join(homedir(), '.intuita123');
+	// 		const globalStoragePath = join(homedir(), '.intuita');
 
 	// 		const uint8array = await this.__fileSystem.readFile(
 	// 			codemodsJsonUri,
