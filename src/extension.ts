@@ -792,6 +792,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				// user is exporting codemod from studio into extension
 				if (base64UrlEncodedContent) {
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 					const buffer = Buffer.from(
 						base64UrlEncodedContent,
 						'base64url',
