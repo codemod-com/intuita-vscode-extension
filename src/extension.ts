@@ -842,6 +842,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					// Expand collapsed parent directories of the relevant codemod
 					if (codemodHashDigest !== null) {
+						const privateCodemod =
+							state.privateCodemod.entities[codemodHashDigest] ??
+							null;
+
+						if (privateCodemod !== null) {
+							store.dispatch(
+								actions.setFocusedCodemodHashDigest(
+									codemodHashDigest as unknown as CodemodNodeHashDigest,
+								),
+							);
+							return;
+						}
+
 						const codemod =
 							state.codemod.entities[codemodHashDigest] ?? null;
 						if (codemod === null) {
