@@ -60,7 +60,7 @@ const selectPanelViewProps = (
 
 		const codemod =
 			state.codemod.entities[focusedCodemodHashDigest] ??
-			state.privateCodemod.entities[focusedCodemodHashDigest] ??
+			state.privateCodemods.entities[focusedCodemodHashDigest] ??
 			null;
 
 		if (codemod === null) {

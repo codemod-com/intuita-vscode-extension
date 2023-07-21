@@ -54,7 +54,7 @@ export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
-	privateCodemod: buildCollectionCodec(codemodEntryCodec),
+	privateCodemods: buildCollectionCodec(codemodEntryCodec),
 	job: buildCollectionCodec(persistedJobCodec),
 	lastCodemodHashDigests: withFallback(t.readonlyArray(t.string), []),
 	executionErrors: withFallback(

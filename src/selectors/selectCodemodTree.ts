@@ -92,7 +92,7 @@ export const selectPrivateCodemods = (
 	executionQueue: ReadonlyArray<CodemodHash>,
 ) => {
 	const codemods = Object.values(
-		state.privateCodemod.entities,
+		state.privateCodemods.entities,
 	) as CodemodEntry[];
 
 	const nodeData: NodeDatum[] = codemods.map((codemod) => {

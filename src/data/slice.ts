@@ -46,7 +46,7 @@ export const jobAdapter = createEntityAdapter<PersistedJob>({
 export const getInitialState = (): RootState => {
 	return {
 		codemod: codemodAdapter.getInitialState(),
-		privateCodemod: privateCodemodAdapter.getInitialState(),
+		privateCodemods: privateCodemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
 		job: jobAdapter.getInitialState(),
 		lastCodemodHashDigests: [],
@@ -162,7 +162,7 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
 		) {
 			privateCodemodAdapter.upsertMany(
-				state.privateCodemod,
+				state.privateCodemods,
 				action.payload,
 			);
 		},
