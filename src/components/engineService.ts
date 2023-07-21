@@ -22,6 +22,9 @@ import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
 import { buildArguments } from './buildArguments';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { readFile } from 'node:fs/promises';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -135,6 +138,7 @@ export class EngineService {
 			message.codemodEngineNodeExecutableUri;
 
 		this.__fetchCodemods();
+		this.__fetchPrivateCodemods();
 	}
 
 	public isEngineBootstrapped() {
@@ -184,11 +188,24 @@ export class EngineService {
 		}
 	}
 
-	private async __fetchCodemods() {
+	private async __fetchCodemods(): Promise<void> {
 		try {
 			const codemods = await this.getCodemodList();
-
 			this.__store.dispatch(actions.upsertCodemods(codemods));
+		} catch (e) {
+			console.error(e);
+		}
+	}
+
+	private async __fetchPrivateCodemods(): Promise<void> {
+		try {
+			const globalStoragePath = join(homedir(), '.intuita123');
+			const configPath = join(globalStoragePath, '123', 'config.json');
+
+			const data = await readFile(configPath, { encoding: 'utf8' });
+			const codemods = [JSON.parse(data)];
+
+			this.__store.dispatch(actions.upsertPrivateCodemods(codemods));
 		} catch (e) {
 			console.error(e);
 		}

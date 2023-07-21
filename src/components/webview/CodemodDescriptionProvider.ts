@@ -56,7 +56,10 @@ export class CodemodDescriptionProvider {
 	}
 
 	private async __onEngineBootstrapped() {
-		await this.__fetchCodemods();
+		await Promise.all([
+			this.__fetchCodemods(),
+			// this.__fetchPrivateCodemods(),
+		]);
 
 		try {
 			await this.__fileSystem.createDirectory(this.__globalStorageUri);
@@ -152,6 +155,32 @@ export class CodemodDescriptionProvider {
 			console.error(error);
 		}
 	}
+
+	// private async __fetchPrivateCodemods() {
+	// 	try {
+	// 		const globalStoragePath = join(homedir(), '.intuita123');
+
+	// 		const uint8array = await this.__fileSystem.readFile(
+	// 			codemodsJsonUri,
+	// 		);
+
+	// 		const validation = t
+	// 			.readonlyArray(codemodEntryCodec)
+	// 			.decode(JSON.parse(uint8array.toString()));
+
+	// 		if (E.isLeft(validation)) {
+	// 			throw new Error('Could not decode the response');
+	// 		}
+
+	// 		const privateCodemods = validation.right;
+
+	// 		this.__store.dispatch(
+	// 			actions.upsertPrivateCodemods(privateCodemods),
+	// 		);
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 	}
+	// }
 
 	private async __fetchPiranhaConfiguration(
 		codemod: CodemodEntry & { kind: 'piranhaRule' },

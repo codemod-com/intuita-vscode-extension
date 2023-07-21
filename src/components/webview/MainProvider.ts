@@ -196,9 +196,22 @@ export class MainViewProvider implements WebviewViewProvider {
 			this.__store.dispatch(actions.setActiveTabId(message.activeTabId));
 		}
 
-		if (message.kind === 'webview.main.setPanelGroupSettings') {
+		if (
+			message.kind ===
+			'webview.main.setCodemodDiscoveryPanelGroupSettings'
+		) {
 			this.__store.dispatch(
-				actions.setPanelGroupSettings(message.panelGroupSettings),
+				actions.setCodemodDiscoveryPanelGroupSettings(
+					message.panelGroupSettings,
+				),
+			);
+		}
+
+		if (message.kind === 'webview.main.setCodemodRunsPanelGroupSettings') {
+			this.__store.dispatch(
+				actions.setCodemodRunsPanelGroupSettings(
+					message.panelGroupSettings,
+				),
 			);
 		}
 
@@ -264,6 +277,28 @@ export class MainViewProvider implements WebviewViewProvider {
 			commands.executeCommand('intuita.executeCodemod', uri, hashDigest);
 		}
 
+		if (message.kind === 'webview.codemodList.dryRunPrivateCodemod') {
+			if (this.__rootUri === null) {
+				window.showWarningMessage('No active workspace is found.');
+				return;
+			}
+
+			const hashDigest = message.value;
+			this.__store.dispatch(actions.setRecentCodemodHashes(hashDigest));
+
+			const state = this.__store.getState().codemodDiscoveryView;
+			const executionPath =
+				state.executionPaths[hashDigest] ?? this.__rootUri.fsPath;
+
+			if (executionPath === null) {
+				return;
+			}
+
+			const uri = Uri.file(executionPath);
+
+			commands.executeCommand('intuita.executePrivateCodemod', uri, hashDigest);
+		}
+
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
 			await this.updateExecutionPath(message.value);
 		}
@@ -321,6 +356,18 @@ export class MainViewProvider implements WebviewViewProvider {
 		if (message.kind === 'webview.global.collapseChangeExplorerPanel') {
 			this.__store.dispatch(
 				actions.collapseChangeExplorerPanel(message.collapsed),
+			);
+		}
+
+		if (message.kind === 'webview.global.collapsePublicRegistryPanel') {
+			this.__store.dispatch(
+				actions.collapsePublicRegistryPanel(message.collapsed),
+			);
+		}
+
+		if (message.kind === 'webview.global.collapsePrivateRegistryPanel') {
+			this.__store.dispatch(
+				actions.collapsePrivateRegistryPanel(message.collapsed),
 			);
 		}
 	};

@@ -9,7 +9,7 @@ import { FileService } from './components/fileService';
 import { CaseHash, caseHashCodec } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
-import { EngineService, Messages } from './components/engineService';
+import { EngineService } from './components/engineService';
 import { BootstrapExecutablesService } from './components/bootstrapExecutablesService';
 import { buildCaseHash } from './telemetry/hashes';
 import { IntuitaTextDocumentContentProvider } from './components/textDocumentContentProvider';
@@ -27,6 +27,14 @@ import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash } from './utilities';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import { homedir } from 'os';
+import { join } from 'path';
+import { promisify } from 'util';
+import { deflate } from 'zlib';
+import { randomBytes } from 'crypto';
+
+const promisifiedDeflate = promisify(deflate);
 
 const messageBus = new MessageBus();
 
@@ -444,6 +452,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							: {
 									kind:
 										codemodHash ===
+										// app directory boilerplate
 										'QKEdp-pofR9UnglrKAGDm1Oj6W0'
 											? 'executeRepomod'
 											: 'executeCodemod',
@@ -625,8 +634,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
-			'intuita.executeImportedModOnPath',
-			async (targetUri: vscode.Uri) => {
+			'intuita.executePrivateCodemod',
+			async (targetUri: vscode.Uri, codemodHash: CodemodHash) => {
 				try {
 					const { storageUri } = context;
 
@@ -636,28 +645,18 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const codemodUri = vscode.Uri.joinPath(
-						storageUri,
-						'jscodeshiftCodemod.ts',
+					console.log('HELLO!');
+					const codemodUri = join(
+						homedir(),
+						'.intuita123',
+						codemodHash,
+						'index.cjs.z',
 					);
-
-					const document = await vscode.workspace.openTextDocument(
-						intuitaTextDocumentContentProvider.URI,
-					);
-
-					const text = document.getText();
-
-					// `jscodeshiftCodemod.ts` is empty or the file doesn't exist
-					if (!text) {
-						vscode.window.showWarningMessage(
-							Messages.noImportedMod,
-						);
-						return;
-					}
-
-					const buffer = Buffer.from(text);
-					const content = new Uint8Array(buffer);
-					vscode.workspace.fs.writeFile(codemodUri, content);
+					console.log(codemodUri);
+					// const buffer = await readFile(codemodUri);
+					// console.log(
+					// 	await readFile(codemodUri, { encoding: 'utf-8' }),
+					// );
 
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
@@ -669,7 +668,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
-							name: codemodUri.fsPath,
+							name: codemodUri.slice(-5),
 						},
 						happenedAt: String(Date.now()),
 						caseHashDigest: buildCaseHash(),
@@ -785,22 +784,43 @@ export async function activate(context: vscode.ExtensionContext) {
 				const base64UrlEncodedContent = searchParams.get('c');
 				const codemodHashDigest = searchParams.get('chd');
 
+				// user is exporting codemod from studio into extension
 				if (base64UrlEncodedContent) {
 					const buffer = Buffer.from(
 						base64UrlEncodedContent,
 						'base64url',
 					);
 
-					const content = buffer.toString('utf8');
+					const globalStoragePath = join(homedir(), '.intuita123');
+					const codemodHash = randomBytes(27).toString('base64url');
+					const codemodDirectoryPath = join(
+						globalStoragePath,
+						codemodHash,
+					);
+					await mkdir(codemodDirectoryPath, { recursive: true });
 
-					intuitaTextDocumentContentProvider.setContent(content);
-
-					const document = await vscode.workspace.openTextDocument(
-						intuitaTextDocumentContentProvider.URI,
+					const buildConfigPath = join(
+						codemodDirectoryPath,
+						'config.json',
 					);
 
-					vscode.window.showTextDocument(document);
-				} else if (codemodHashDigest !== null) {
+					writeFile(
+						buildConfigPath,
+						// TODO: version and engine must be passed from url
+						`{"kind":"codemod","engine":"jscodeshift","hashDigest":"${codemodHash}","name":"${codemodHash}"}`,
+					);
+
+					const compressedBuffer = await promisifiedDeflate(buffer);
+
+					const buildIndexPath = join(
+						codemodDirectoryPath,
+						'index.cjs.z',
+					);
+
+					writeFile(buildIndexPath, compressedBuffer);
+				}
+				// user is opening a deep link to a specific codemod
+				else if (codemodHashDigest !== null) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);

@@ -68,10 +68,6 @@
 				"title": "Intuita: Execute Codemod On Path"
 			},
 			{
-				"command": "intuita.executeImportedModOnPath",
-				"title": "Intuita: Execute Imported Mod On Path"
-			},
-			{
 				"command": "intuita.sendAsBeforeSnippet",
 				"title": "Intuita: Send as Before Snippet to the Codemod Studio"
 			},
@@ -177,10 +173,6 @@
 				{
 					"command": "intuita.executeCodemodWithinPath",
 					"when": "editorIsOpen"
-				},
-				{
-					"command": "intuita.executeImportedModOnPath",
-					"when": "false"
 				}
 			],
 			"editor/context": [
@@ -210,11 +202,6 @@
 					"command": "intuita.executeCodemodWithinPath",
 					"group": "2_workspace",
 					"when": "true"
-				},
-				{
-					"command": "intuita.executeImportedModOnPath",
-					"group": "2_workspace",
-					"when": "explorerResourceIsFolder"
 				}
 			]
 		}

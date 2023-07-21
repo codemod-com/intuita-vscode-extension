@@ -18,9 +18,9 @@ export { JobHash };
 export { CodemodHash };
 
 export type RunCodemodsCommand = Readonly<{
-	title: string;
-	description?: string;
-	kind: 'webview.codemodList.dryRunCodemod';
+	kind:
+		| 'webview.codemodList.dryRunCodemod'
+		| 'webview.codemodList.dryRunPrivateCodemod';
 	value: CodemodHash;
 }>;
 
@@ -98,7 +98,9 @@ export type WebviewResponse =
 			searchPhrase: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setCodemodSearchPhrase';
+			kind:
+				| 'webview.global.setCodemodSearchPhrase'
+				| 'webview.global.setPrivateRegistrySearchPhrase';
 			searchPhrase: string;
 	  }>
 	| Readonly<{
@@ -113,7 +115,9 @@ export type WebviewResponse =
 			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
-			kind: 'webview.main.setPanelGroupSettings';
+			kind:
+				| 'webview.main.setCodemodRunsPanelGroupSettings'
+				| 'webview.main.setCodemodDiscoveryPanelGroupSettings';
 			panelGroupSettings: string;
 	  }>
 	| Readonly<{
@@ -155,10 +159,10 @@ export type WebviewResponse =
 			newContent: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.collapseResultsPanel';
-			collapsed: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.global.collapseChangeExplorerPanel';
+			kind:
+				| 'webview.global.collapseResultsPanel'
+				| 'webview.global.collapseChangeExplorerPanel'
+				| 'webview.global.collapsePublicRegistryPanel'
+				| 'webview.global.collapsePrivateRegistryPanel';
 			collapsed: boolean;
 	  }>;

@@ -56,6 +56,7 @@ const renderProgressBar = (progress: Progress | null) => {
 
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
+	isPrivate: CodemodItemNode['isPrivate'],
 	codemodInProgress: boolean,
 	queued: boolean,
 	rootPath: string | null,
@@ -73,7 +74,9 @@ const renderActionButtons = (
 			}
 
 			vscode.postMessage({
-				kind: 'webview.codemodList.dryRunCodemod',
+				kind: isPrivate
+					? 'webview.codemodList.dryRunPrivateCodemod'
+					: 'webview.codemodList.dryRunCodemod',
 				value: hashDigest as unknown as CodemodHash,
 			});
 		};
@@ -195,6 +198,7 @@ const Codemod = ({
 	intuitaCertified,
 	screenWidth,
 	focused,
+	isPrivate,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
@@ -331,6 +335,7 @@ const Codemod = ({
 						{!editingPath &&
 							renderActionButtons(
 								hashDigest,
+								isPrivate,
 								progress !== null,
 								queued,
 								rootPath,

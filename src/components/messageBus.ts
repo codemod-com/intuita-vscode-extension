@@ -58,7 +58,7 @@ export type Command =
 	  }>
 	| Readonly<{
 			kind: 'executeLocalCodemod';
-			codemodUri: Uri;
+			codemodUri: Uri | string;
 			name: string;
 	  }>
 	| Readonly<{

@@ -79,6 +79,7 @@ const getCodemodNodeRenderer =
 								? progress
 								: null
 						}
+						isPrivate={node.isPrivate}
 						focused={focused}
 						queued={node.queued}
 						intuitaCertified={node.intuitaCertified}

@@ -1,7 +1,7 @@
 import type { Uri } from 'vscode';
 import type { RootState } from '../data';
 import { selectCodemodRunsTree } from './selectCodemodRunsTree';
-import { selectCodemodTree } from './selectCodemodTree';
+import { selectCodemodTree, selectPrivateCodemods } from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 
@@ -21,7 +21,17 @@ export const selectMainWebviewViewProps = (
 				rootUri?.fsPath ?? null,
 				executionQueue,
 			),
+			privateCodemods: selectPrivateCodemods(
+				state,
+				rootUri?.fsPath ?? null,
+				executionQueue,
+			),
 			rootPath: rootUri?.fsPath ?? null,
+			publicRegistryCollapsed:
+				state.codemodDiscoveryView.publicRegistryCollapsed,
+			privateRegistryCollapsed:
+				state.codemodDiscoveryView.privateRegistryCollapsed,
+			panelGroupSettings: state.codemodDiscoveryView.panelGroupSettings,
 		};
 	}
 
