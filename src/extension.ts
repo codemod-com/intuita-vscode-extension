@@ -837,7 +837,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							) as CodemodNodeHashDigest;
 
 							if (
-								!state.codemodDiscoveryView.collapsedCodemodHashDigests.includes(
+								state.codemodDiscoveryView.expandedNodeHashDigests.includes(
 									parentHashDigest,
 								)
 							) {
