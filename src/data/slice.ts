@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 
 import { CodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
-import { JobHash } from '../components/webview/webviewEvents';
+import { CodemodHash, JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
 import { PersistedJob } from '../jobs/types';
 import {
@@ -162,6 +162,15 @@ const rootSlice = createSlice({
 			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
 		) {
 			privateCodemodAdapter.upsertMany(
+				state.privateCodemods,
+				action.payload,
+			);
+		},
+		removePrivateCodemod(
+			state,
+			action: PayloadAction<ReadonlyArray<CodemodHash>>,
+		) {
+			privateCodemodAdapter.removeMany(
 				state.privateCodemods,
 				action.payload,
 			);

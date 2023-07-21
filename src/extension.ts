@@ -31,7 +31,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
-import { existsSync } from 'fs';
+import { existsSync, rmSync } from 'fs';
 
 const messageBus = new MessageBus();
 
@@ -719,6 +719,30 @@ export async function activate(context: vscode.ExtensionContext) {
 				kind: MessageKind.deleteFiles,
 				uris,
 			});
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.clearPrivateCodemods', () => {
+			const state = store.getState();
+			const hashDigests = state.privateCodemods.ids as CodemodHash[];
+			hashDigests.forEach((hashDigest) => {
+				const codemodPath = join(homedir(), '.intuita', hashDigest);
+				if (existsSync(codemodPath)) {
+					rmSync(codemodPath, { recursive: true, force: true });
+				}
+			});
+
+			const codemodNamesPath = join(
+				homedir(),
+				'.intuita',
+				'privateCodemodNames.json',
+			);
+			if (existsSync(codemodNamesPath)) {
+				rmSync(codemodNamesPath);
+			}
+
+			store.dispatch(actions.removePrivateCodemod(hashDigests));
 		}),
 	);
 
