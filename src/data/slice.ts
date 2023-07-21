@@ -166,7 +166,7 @@ const rootSlice = createSlice({
 				action.payload,
 			);
 		},
-		removePrivateCodemod(
+		removePrivateCodemods(
 			state,
 			action: PayloadAction<ReadonlyArray<CodemodHash>>,
 		) {

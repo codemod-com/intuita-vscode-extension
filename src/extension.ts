@@ -742,7 +742,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				rmSync(codemodNamesPath);
 			}
 
-			store.dispatch(actions.removePrivateCodemod(hashDigests));
+			store.dispatch(actions.removePrivateCodemods(hashDigests));
 		}),
 	);
 
