@@ -49,17 +49,14 @@ export class CodemodDescriptionProvider {
 					console.error(error);
 				});
 
-			return 'Wait until the Intuita VSCode Extension loads the codemod description.';
+			return 'The documentation for this codemod is missing.';
 		}
 
 		return data;
 	}
 
 	private async __onEngineBootstrapped() {
-		await Promise.all([
-			this.__fetchCodemods(),
-			// this.__fetchPrivateCodemods(),
-		]);
+		await this.__fetchCodemods();
 
 		try {
 			await this.__fileSystem.createDirectory(this.__globalStorageUri);
@@ -155,32 +152,6 @@ export class CodemodDescriptionProvider {
 			console.error(error);
 		}
 	}
-
-	// private async __fetchPrivateCodemods() {
-	// 	try {
-	// 		const globalStoragePath = join(homedir(), '.intuita');
-
-	// 		const uint8array = await this.__fileSystem.readFile(
-	// 			codemodsJsonUri,
-	// 		);
-
-	// 		const validation = t
-	// 			.readonlyArray(codemodEntryCodec)
-	// 			.decode(JSON.parse(uint8array.toString()));
-
-	// 		if (E.isLeft(validation)) {
-	// 			throw new Error('Could not decode the response');
-	// 		}
-
-	// 		const privateCodemods = validation.right;
-
-	// 		this.__store.dispatch(
-	// 			actions.upsertPrivateCodemods(privateCodemods),
-	// 		);
-	// 	} catch (error) {
-	// 		console.error(error);
-	// 	}
-	// }
 
 	private async __fetchPiranhaConfiguration(
 		codemod: CodemodEntry & { kind: 'piranhaRule' },
