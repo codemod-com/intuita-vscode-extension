@@ -457,6 +457,12 @@ export async function activate(context: vscode.ExtensionContext) {
 									name: codemod.name,
 							  };
 
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
+					);
+
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command,
@@ -674,6 +680,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						targetUri,
 						targetUriIsDirectory,
 					});
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
 				} catch (e) {
 					const message = e instanceof Error ? e.message : String(e);
 					vscode.window.showErrorMessage(message);
@@ -815,6 +825,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					await writeFile(buildIndexPath, buffer);
 					await engineService.fetchPrivateCodemods();
+
+					store.dispatch(
+						actions.setFocusedCodemodHashDigest(
+							codemodHash as unknown as CodemodNodeHashDigest,
+						),
+					);
 				}
 				// user is opening a deep link to a specific codemod
 				else if (codemodHashDigest !== null) {
