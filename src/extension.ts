@@ -645,18 +645,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					console.log('HELLO!');
 					const codemodUri = join(
 						homedir(),
 						'.intuita123',
 						codemodHash,
 						'index.cjs.z',
 					);
-					console.log(codemodUri);
-					// const buffer = await readFile(codemodUri);
-					// console.log(
-					// 	await readFile(codemodUri, { encoding: 'utf-8' }),
-					// );
 
 					const fileStat = await vscode.workspace.fs.stat(targetUri);
 					const targetUriIsDirectory = Boolean(
@@ -804,7 +798,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'config.json',
 					);
 
-					writeFile(
+					await writeFile(
 						buildConfigPath,
 						// TODO: version and engine must be passed from url
 						`{"kind":"codemod","engine":"jscodeshift","hashDigest":"${codemodHash}","name":"${codemodHash}"}`,
@@ -817,7 +811,8 @@ export async function activate(context: vscode.ExtensionContext) {
 						'index.cjs.z',
 					);
 
-					writeFile(buildIndexPath, compressedBuffer);
+					await writeFile(buildIndexPath, compressedBuffer);
+					await engineService.fetchPrivateCodemods();
 				}
 				// user is opening a deep link to a specific codemod
 				else if (codemodHashDigest !== null) {

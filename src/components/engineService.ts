@@ -24,7 +24,8 @@ import { Store } from '../data';
 import { buildArguments } from './buildArguments';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -138,7 +139,7 @@ export class EngineService {
 			message.codemodEngineNodeExecutableUri;
 
 		this.__fetchCodemods();
-		this.__fetchPrivateCodemods();
+		this.fetchPrivateCodemods();
 	}
 
 	public isEngineBootstrapped() {
@@ -197,13 +198,26 @@ export class EngineService {
 		}
 	}
 
-	private async __fetchPrivateCodemods(): Promise<void> {
+	public async fetchPrivateCodemods(): Promise<void> {
 		try {
+			const codemods: CodemodEntry[] = [];
 			const globalStoragePath = join(homedir(), '.intuita123');
-			const configPath = join(globalStoragePath, '123', 'config.json');
+			const files = await readdir(globalStoragePath);
+			for (const file of files) {
+				const configPath = join(globalStoragePath, file, 'config.json');
 
-			const data = await readFile(configPath, { encoding: 'utf8' });
-			const codemods = [JSON.parse(data)];
+				if (!existsSync(configPath)) {
+					continue;
+				}
+				const data = await readFile(configPath, { encoding: 'utf8' });
+				const parsedData = JSON.parse(data);
+
+				const codemodDataOrError = codemodEntryCodec.decode(parsedData);
+
+				if (codemodDataOrError._tag === 'Right') {
+					codemods.push(codemodDataOrError.right);
+				}
+			}
 
 			this.__store.dispatch(actions.upsertPrivateCodemods(codemods));
 		} catch (e) {
@@ -318,7 +332,7 @@ export class EngineService {
 			}
 
 			try {
-				const stringifiedChunk = chunk.toString();
+				const stringifiedChunk = JSON.stringify(chunk.toString());
 
 				const json = JSON.parse(stringifiedChunk);
 

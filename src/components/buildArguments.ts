@@ -107,6 +107,7 @@ export const buildArguments = (
 	args.push('-w', String(configuration.workerThreadCount));
 
 	args.push('-l', String(configuration.fileLimit));
+
 	args.push(
 		'-f',
 		singleQuotify(
@@ -115,6 +116,7 @@ export const buildArguments = (
 				: command.codemodUri.fsPath,
 		),
 	);
+
 	args.push('-o', singleQuotify(storageUri.fsPath));
 
 	args.push('--formatWithPrettier', String(configuration.formatWithPrettier));
