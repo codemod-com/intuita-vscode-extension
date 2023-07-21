@@ -161,7 +161,10 @@ const rootSlice = createSlice({
 			state,
 			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
 		) {
-			privateCodemodAdapter.upsertMany(state.privateCodemod, action.payload);
+			privateCodemodAdapter.upsertMany(
+				state.privateCodemod,
+				action.payload,
+			);
 		},
 		/**
 		 * Codemod runs
