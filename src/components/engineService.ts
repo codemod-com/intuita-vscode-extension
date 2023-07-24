@@ -136,7 +136,7 @@ export class EngineService {
 		this.__codemodEngineNodeExecutableUri =
 			message.codemodEngineNodeExecutableUri;
 		this.__codemodEngineRustExecutableUri =
-			message.codemodEngineNodeExecutableUri;
+			message.codemodEngineRustExecutableUri;
 
 		this.__fetchCodemods();
 		this.fetchPrivateCodemods();
