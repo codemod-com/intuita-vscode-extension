@@ -81,9 +81,28 @@ export const Header = ({
 						<CopyIcon className="copy-icon" />
 					</VSCodeButton>
 					{modifiedByUser ? (
-						<h4 className="my-0 ml-2 highlighted-text align-self-center user-select-none">
-							(change saved)
-						</h4>
+						<IntuitaPopover
+							content={
+								<div
+									style={{
+										padding: '8px',
+										backgroundColor:
+											'var(--vscode-tab-inactiveBackground)',
+									}}
+								>
+									Saved in the temporary dry-run file. Not
+									applied to the workspace.
+								</div>
+							}
+							placement="bottom"
+						>
+							<h4
+								className="my-0 ml-2 highlighted-text align-self-center user-select-none"
+								style={{ fontSize: '0.7rem' }}
+							>
+								Saved
+							</h4>
+						</IntuitaPopover>
 					) : null}
 				</div>
 
