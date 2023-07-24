@@ -15,6 +15,9 @@ import { InfiniteProgress } from '../TreeView/InfiniteProgress';
 import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { readFile } from 'node:fs';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -82,12 +85,31 @@ const renderActionButtons = (
 		};
 		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
 			e.stopPropagation();
-			navigator.clipboard.writeText(
-				`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
-			);
+			if (!isPrivate) {
+				navigator.clipboard.writeText(
+					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+				);
+			} else {
+				const url = new URL('https://codemod.studio/');
+				readFile(
+					join(homedir(), '.intuita', hashDigest, 'urlParams.json'),
+					(err, data) => {
+						if (err) {
+							console.error(err);
+							return;
+						}
+						url.search = JSON.parse(
+							data.toString('utf8'),
+						).urlParams;
+					},
+				);
+				navigator.clipboard.writeText(url.toString());
+			}
 			vscode.postMessage({
 				kind: 'webview.global.showInformationMessage',
-				value: 'Codemod link copied to clipboard',
+				value: !isPrivate
+					? 'Codemod link copied to clipboard'
+					: 'Permalink in codemod studio copied to clipboard',
 			});
 		};
 
@@ -107,7 +129,11 @@ const renderActionButtons = (
 				</ActionButton>
 				<ActionButton
 					id={`${hashDigest}-shareButton`}
-					content="Copy to clipboard the link to this codemod."
+					content={
+						isPrivate
+							? 'Copy to clipboard the permalink in codemod studio.'
+							: 'Copy to clipboard the link to this codemod.'
+					}
 					onClick={handleCodemodLinkCopy}
 				>
 					<span className={cn('codicon', 'codicon-link')} />

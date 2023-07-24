@@ -33,6 +33,14 @@ import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 
+export const UrlParamKeys = {
+	engine: 'engine' as const,
+	beforeSnippet: 'beforeSnippet' as const,
+	afterSnippet: 'afterSnippet' as const,
+	codemodSource: 'codemodSource' as const,
+	codemodHashDigest: 'chd' as const,
+};
+
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -813,19 +821,18 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerUriHandler({
 			handleUri: async (uri) => {
-				const searchParams = new URLSearchParams(uri.query);
-				const base64UrlEncodedContent = searchParams.get('c');
-				const codemodHashDigest = searchParams.get('chd');
+				const urlParams = new URLSearchParams(uri.query);
+				const codemodSource = urlParams.get(UrlParamKeys.codemodSource);
+				const codemodHashDigest = urlParams.get(
+					UrlParamKeys.codemodHashDigest,
+				);
 
 				// user is exporting codemod from studio into extension
-				if (base64UrlEncodedContent) {
+				if (codemodSource) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
-					const buffer = Buffer.from(
-						base64UrlEncodedContent,
-						'base64url',
-					);
+					const buffer = Buffer.from(codemodSource, 'base64url');
 
 					const globalStoragePath = join(homedir(), '.intuita');
 					const codemodHash = randomBytes(27).toString('base64url');
@@ -877,12 +884,20 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 					newPrivateCodemodNames.push(codemodHash);
-					await writeFile(
-						privateCodemodNamesPath,
-						JSON.stringify({
-							names: newPrivateCodemodNames,
-						}),
-					);
+					await Promise.all([
+						writeFile(
+							privateCodemodNamesPath,
+							JSON.stringify({
+								names: newPrivateCodemodNames,
+							}),
+						),
+						writeFile(
+							join(globalStoragePath, 'urlParams.json'),
+							JSON.stringify({
+								urlParams: uri.query,
+							}),
+						),
+					]);
 
 					await engineService.fetchPrivateCodemods();
 
