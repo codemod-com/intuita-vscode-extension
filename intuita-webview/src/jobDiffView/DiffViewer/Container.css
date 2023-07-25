@@ -62,10 +62,6 @@
 	background-color: transparent !important;
 }
 
-.diff-changes-container {
-	min-width: 80px;
-}
-
 .copy-icon {
 	stroke: var(--vscode-icon-foreground);
 	height: 18px;

@@ -58,6 +58,26 @@ export const Header = ({
 		<div className="flex w-full align-items-center container-header">
 			<div className="flex flex-row flex-1 justify-between flex-wrap">
 				<div className="flex align-items-center flex-1">
+					{hasDiff ? (
+						<div className="flex align-items-center">
+							<span className="diff-changes diff-removed">
+								-
+								{[
+									JobKind.createFile,
+									JobKind.copyFile,
+									JobKind.moveFile,
+								].includes(jobKind as unknown as JobKind)
+									? '0'
+									: diff.removed}
+							</span>
+
+							<span> / </span>
+
+							<span className="diff-changes diff-added">
+								+{diff.added}
+							</span>
+						</div>
+					) : null}
 					{jobKindText ? (
 						<h4 className="my-0 ml-2 highlighted-text align-self-center user-select-none">
 							{jobKindText}
@@ -70,7 +90,7 @@ export const Header = ({
 						content={`Copied from ${oldFileTitle}`}
 					>
 						<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
-							{title}
+							{title.startsWith('/') ? title.slice(1) : title}
 						</h4>
 					</IntuitaPopover>
 					<VSCodeButton
@@ -149,26 +169,6 @@ export const Header = ({
 							Report Issue
 						</VSCodeButton>
 					</IntuitaPopover>
-					{hasDiff ? (
-						<div className="ml-10 flex align-items-center justify-end diff-changes-container">
-							<span className="diff-changes diff-removed">
-								-
-								{[
-									JobKind.createFile,
-									JobKind.copyFile,
-									JobKind.moveFile,
-								].includes(jobKind as unknown as JobKind)
-									? '0'
-									: diff.removed}
-							</span>
-
-							<span> / </span>
-
-							<span className="diff-changes diff-added">
-								+{diff.added}
-							</span>
-						</div>
-					) : null}
 				</div>
 			</div>
 			{children}
