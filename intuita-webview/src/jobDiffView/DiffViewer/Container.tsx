@@ -120,7 +120,7 @@ export const Header = ({
 								className="my-0 ml-2 highlighted-text align-self-center user-select-none"
 								style={{ fontSize: '0.7rem' }}
 							>
-								Saved
+								Saved...
 							</h4>
 						</IntuitaPopover>
 					) : null}
