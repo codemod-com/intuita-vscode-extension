@@ -10,7 +10,6 @@ export const codemodEntryCodec = t.union([
 			t.literal('jscodeshift'),
 			t.literal('ts-morph'),
 			t.literal('repomod-engine'),
-			t.literal('filemod-engine'),
 		]),
 	}),
 	buildTypeCodec({
@@ -24,3 +23,10 @@ export const codemodEntryCodec = t.union([
 ]);
 
 export type CodemodEntry = t.TypeOf<typeof codemodEntryCodec>;
+
+export const codemodNamesCodec = buildTypeCodec({
+	kind: t.literal('names'),
+	names: t.readonlyArray(t.string),
+});
+
+export type CodemodNames = t.TypeOf<typeof codemodNamesCodec>;

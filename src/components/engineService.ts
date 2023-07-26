@@ -18,7 +18,11 @@ import {
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
-import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
+import {
+	CodemodEntry,
+	codemodEntryCodec,
+	codemodNamesCodec,
+} from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
 import { buildArguments } from './buildArguments';
@@ -138,6 +142,8 @@ export class EngineService {
 		this.__codemodEngineRustExecutableUri =
 			message.codemodEngineRustExecutableUri;
 
+		this.__syncRegistry();
+
 		this.__fetchCodemods();
 		this.fetchPrivateCodemods();
 	}
@@ -146,7 +152,33 @@ export class EngineService {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
-	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+	private async __syncRegistry() {
+		if (this.__codemodEngineNodeExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		const childProcess = spawn(
+			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+			['listNames', '--useJson', '--useCache'],
+			{
+				stdio: 'pipe',
+				shell: true,
+				detached: false,
+			},
+		);
+
+		new Promise<void>((resolve, reject) => {
+			childProcess.once('exit', () => {
+				resolve();
+			});
+
+			childProcess.once('error', (error) => {
+				reject(error);
+			});
+		});
+	}
+
+	public async getCodemodList(): Promise<ReadonlyArray<string>> {
 		const executableUri = this.__codemodEngineNodeExecutableUri;
 
 		if (executableUri === null) {
@@ -157,7 +189,7 @@ export class EngineService {
 
 		const childProcess = spawn(
 			singleQuotify(executableUri.fsPath),
-			['list'],
+			['listNames', '--useJson', '--useCache'],
 			{
 				stdio: 'pipe',
 				shell: true,
@@ -168,16 +200,16 @@ export class EngineService {
 		const codemodListJSON = await streamToString(childProcess.stdout);
 
 		try {
-			const codemodListOrError = t
-				.readonlyArray(codemodEntryCodec)
-				.decode(JSON.parse(codemodListJSON));
+			const codemodListOrError = codemodNamesCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
 
 			if (codemodListOrError._tag === 'Left') {
 				const report = prettyReporter.report(codemodListOrError);
 				throw new InvalidEngineResponseFormatError(report.join(`\n`));
 			}
 
-			return codemodListOrError.right;
+			return codemodListOrError.right.names;
 		} catch (e) {
 			if (e instanceof InvalidEngineResponseFormatError) {
 				throw e;
@@ -192,7 +224,7 @@ export class EngineService {
 	private async __fetchCodemods(): Promise<void> {
 		try {
 			const codemods = await this.getCodemodList();
-			this.__store.dispatch(actions.upsertCodemods(codemods));
+			// this.__store.dispatch(actions.upsertCodemods(codemods));
 		} catch (e) {
 			console.error(e);
 		}

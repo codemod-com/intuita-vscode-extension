@@ -19,8 +19,10 @@ export class BootstrapExecutablesService {
 		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
 		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux')
-		const codemodEngineNodeExecutableUri =
-			await this.__bootstrapCodemodEngineNodeExecutableUri();
+		const codemodEngineNodeExecutableUri = Uri.file(
+			'/intuita/codemod-engine-node/package/intuita-linux',
+		);
+		// await this.__bootstrapCodemodEngineNodeExecutableUri();
 
 		// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
 		const codemodEngineRustExecutableUri =
