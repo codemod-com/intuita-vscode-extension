@@ -250,25 +250,25 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		// const childProcess = spawn(
-		// 	singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
-		// 	['syncRegistry'],
-		// 	{
-		// 		stdio: 'pipe',
-		// 		shell: true,
-		// 		detached: false,
-		// 	},
-		// );
+		const childProcess = spawn(
+			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+			['syncRegistry'],
+			{
+				stdio: 'pipe',
+				shell: true,
+				detached: false,
+			},
+		);
 
-		// return new Promise<void>((resolve, reject) => {
-		// 	childProcess.once('exit', () => {
-		// 		resolve();
-		// 	});
+		return new Promise<void>((resolve, reject) => {
+			childProcess.once('exit', () => {
+				resolve();
+			});
 
-		// 	childProcess.once('error', (error) => {
-		// 		reject(error);
-		// 	});
-		// });
+			childProcess.once('error', (error) => {
+				reject(error);
+			});
+		});
 	}
 
 	public async getCodemodList(): Promise<ReadonlyArray<string>> {
@@ -390,7 +390,7 @@ export class EngineService {
 				// TODO handle recipe
 			}
 
-			this.__store.dispatch(actions.upsertCodemods(codemodEntries));
+			this.__store.dispatch(actions.setCodemods(codemodEntries));
 		} catch (e) {
 			console.error(e);
 		}

@@ -151,11 +151,8 @@ const rootSlice = createSlice({
 			state.reviewedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
 		},
-		upsertCodemods(
-			state,
-			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
-		) {
-			codemodAdapter.upsertMany(state.codemod, action.payload);
+		setCodemods(state, action: PayloadAction<ReadonlyArray<CodemodEntry>>) {
+			codemodAdapter.setAll(state.codemod, action.payload);
 		},
 		upsertPrivateCodemods(
 			state,
