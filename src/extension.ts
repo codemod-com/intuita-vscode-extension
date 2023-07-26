@@ -26,7 +26,7 @@ import { CodemodDescriptionProvider } from './components/webview/CodemodDescript
 import { selectExplorerTree } from './selectors/selectExplorerTree';
 import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
-import { buildHash } from './utilities';
+import { buildHash, isNeitherNullNorUndefined } from './utilities';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -512,7 +512,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					const codemodList = await engineService.getCodemodList();
+					// TODO this should come from the store!
+
+					const codemodList = Object.values(
+						store.getState().codemod.entities,
+					).filter(isNeitherNullNorUndefined);
 
 					// order: least recent to most recent
 					const top5RecentCodemodHashes =
