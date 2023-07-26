@@ -100,11 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	const codemodDescriptionProvider = new CodemodDescriptionProvider(
-		downloadService,
 		vscode.workspace.fs,
-		context.globalStorageUri,
-		messageBus,
-		store,
 	);
 
 	new IntuitaPanelProvider(
