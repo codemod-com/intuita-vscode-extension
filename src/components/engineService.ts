@@ -88,7 +88,98 @@ export const messageCodec = t.union([
 		oldFilePath: t.string,
 		newFilePath: t.string,
 	}),
+	buildTypeCodec({
+		kind: t.literal('rewrite'),
+		oldPath: t.string,
+		newDataPath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('finish'),
+	}),
+	buildTypeCodec({
+		kind: t.literal('progress'),
+		processedFileNumber: t.number,
+		totalFileNumber: t.number,
+	}),
+	buildTypeCodec({
+		kind: t.literal('delete'),
+		oldFilePath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('move'),
+		oldFilePath: t.string,
+		newFilePath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('create'),
+		newFilePath: t.string,
+		newContentPath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('copy'),
+		oldFilePath: t.string,
+		newFilePath: t.string,
+	}),
 ]);
+
+type EngineMessage = t.TypeOf<typeof messageCodec>;
+
+export const verboseEngineMessage = (message: EngineMessage): EngineMessage => {
+	if (!('k' in message)) {
+		return message;
+	}
+
+	if (message.k === EngineMessageKind.rewrite) {
+		return {
+			kind: 'rewrite',
+			oldPath: message.i,
+			newDataPath: message.o,
+		};
+	}
+
+	if (message.k === EngineMessageKind.finish) {
+		return {
+			kind: 'finish',
+		};
+	}
+
+	if (message.k === EngineMessageKind.progress) {
+		return {
+			kind: 'progress',
+			processedFileNumber: message.p,
+			totalFileNumber: message.t,
+		};
+	}
+
+	if (message.k === EngineMessageKind.delete) {
+		return {
+			kind: 'delete',
+			oldFilePath: message.oldFilePath,
+		};
+	}
+
+	if (message.k === EngineMessageKind.move) {
+		return {
+			kind: 'move',
+			oldFilePath: message.oldFilePath,
+			newFilePath: message.newFilePath,
+		};
+	}
+
+	if (message.k === EngineMessageKind.create) {
+		return {
+			kind: 'create',
+			newFilePath: message.newFilePath,
+			newContentPath: message.newContentPath,
+		};
+	}
+
+	return {
+		kind: 'copy',
+		oldFilePath: message.oldFilePath,
+		newFilePath: message.newFilePath,
+	};
+};
 
 type Execution = {
 	readonly childProcess: ChildProcessWithoutNullStreams;
@@ -543,7 +634,7 @@ export class EngineService {
 				return;
 			}
 
-			const message = either.right;
+			let message = either.right;
 
 			if (message.k === EngineMessageKind.progress) {
 				const value =
