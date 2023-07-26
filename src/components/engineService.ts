@@ -30,6 +30,8 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import * as S from '@effect/schema/Schema';
+import { createHash } from 'node:crypto';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -223,8 +225,83 @@ export class EngineService {
 
 	private async __fetchCodemods(): Promise<void> {
 		try {
-			const codemods = await this.getCodemodList();
-			// this.__store.dispatch(actions.upsertCodemods(codemods));
+			const names = await this.getCodemodList();
+
+			const codemodConfigSchema = S.union(
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('piranha'),
+					language: S.literal('java'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('jscodeshift'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('ts-morph'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('repomod-engine'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('recipe'),
+					names: S.array(S.string),
+				}),
+			);
+
+			const codemodEntries: CodemodEntry[] = [];
+
+			for (const name of names) {
+				const hashDigest = createHash('ripemd160')
+					.update(name)
+					.digest('base64url');
+
+				const configPath = join(
+					homedir(),
+					'.intuita',
+					hashDigest,
+					'config.json',
+				);
+
+				const data = await readFile(configPath, 'utf8');
+
+				const configObject = JSON.parse(configPath);
+
+				const config = S.parseSync(codemodConfigSchema)(configObject);
+
+				if (config.engine === 'piranha') {
+					codemodEntries.push({
+						kind: 'piranhaRule',
+						hashDigest,
+						name,
+						language: config.engine,
+						configurationDirectoryBasename: '', // to be removed
+						rulesTomlFileBasename: '', // to be removed
+					});
+
+					continue;
+				}
+
+				if (
+					config.engine === 'jscodeshift' ||
+					config.engine === 'ts-morph' ||
+					config.engine === 'repomod-engine'
+				) {
+					codemodEntries.push({
+						kind: 'codemod',
+						hashDigest,
+						name,
+						engine: config.engine,
+					});
+				}
+
+				// TODO handle recipe
+			}
+
+			this.__store.dispatch(actions.upsertCodemods(codemodEntries));
 		} catch (e) {
 			console.error(e);
 		}

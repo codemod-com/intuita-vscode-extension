@@ -512,8 +512,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					// TODO this should come from the store!
-
 					const codemodList = Object.values(
 						store.getState().codemod.entities,
 					).filter(isNeitherNullNorUndefined);

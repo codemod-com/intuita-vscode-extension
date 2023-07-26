@@ -17,8 +17,8 @@ export const codemodEntryCodec = t.union([
 		hashDigest: t.string,
 		name: t.string,
 		language: t.string,
-		configurationDirectoryBasename: t.string,
-		rulesTomlFileBasename: t.string,
+		configurationDirectoryBasename: t.string, // TO BE REMOVED
+		rulesTomlFileBasename: t.string, // TO BE REMOVED
 	}),
 ]);
 
