@@ -268,9 +268,9 @@ export class EngineService {
 
 				const data = await readFile(configPath, 'utf8');
 
-				const configObject = JSON.parse(configPath);
-
-				const config = S.parseSync(codemodConfigSchema)(configObject);
+				const config = S.parseSync(codemodConfigSchema)(
+					JSON.parse(data),
+				);
 
 				if (config.engine === 'piranha') {
 					codemodEntries.push({
