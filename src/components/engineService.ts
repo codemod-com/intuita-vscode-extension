@@ -154,14 +154,14 @@ export class EngineService {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
-	private async __syncRegistry() {
+	private async __syncRegistry(): Promise<void> {
 		if (this.__codemodEngineNodeExecutableUri === null) {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
 		const childProcess = spawn(
 			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
-			['listNames', '--useJson', '--useCache'],
+			['syncRegistry'],
 			{
 				stdio: 'pipe',
 				shell: true,
@@ -169,7 +169,7 @@ export class EngineService {
 			},
 		);
 
-		new Promise<void>((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			childProcess.once('exit', () => {
 				resolve();
 			});
@@ -253,6 +253,8 @@ export class EngineService {
 			);
 
 			const codemodEntries: CodemodEntry[] = [];
+
+			console.log('names', names);
 
 			for (const name of names) {
 				const hashDigest = createHash('ripemd160')
