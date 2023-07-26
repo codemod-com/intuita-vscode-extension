@@ -377,7 +377,8 @@ export class EngineService {
 				if (
 					config.engine === 'jscodeshift' ||
 					config.engine === 'ts-morph' ||
-					config.engine === 'repomod-engine'
+					config.engine === 'repomod-engine' ||
+					config.engine === 'recipe'
 				) {
 					codemodEntries.push({
 						kind: 'codemod',
@@ -386,8 +387,6 @@ export class EngineService {
 						engine: config.engine,
 					});
 				}
-
-				// TODO handle recipe
 			}
 
 			this.__store.dispatch(actions.setCodemods(codemodEntries));

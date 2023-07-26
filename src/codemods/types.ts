@@ -10,6 +10,7 @@ export const codemodEntryCodec = t.union([
 			t.literal('jscodeshift'),
 			t.literal('ts-morph'),
 			t.literal('repomod-engine'),
+			t.literal('recipe'),
 		]),
 	}),
 	buildTypeCodec({
