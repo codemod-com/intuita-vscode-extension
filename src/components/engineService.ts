@@ -250,25 +250,25 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		const childProcess = spawn(
-			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
-			['syncRegistry'],
-			{
-				stdio: 'pipe',
-				shell: true,
-				detached: false,
-			},
-		);
+		// const childProcess = spawn(
+		// 	singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+		// 	['syncRegistry'],
+		// 	{
+		// 		stdio: 'pipe',
+		// 		shell: true,
+		// 		detached: false,
+		// 	},
+		// );
 
-		return new Promise<void>((resolve, reject) => {
-			childProcess.once('exit', () => {
-				resolve();
-			});
+		// return new Promise<void>((resolve, reject) => {
+		// 	childProcess.once('exit', () => {
+		// 		resolve();
+		// 	});
 
-			childProcess.once('error', (error) => {
-				reject(error);
-			});
-		});
+		// 	childProcess.once('error', (error) => {
+		// 		reject(error);
+		// 	});
+		// });
 	}
 
 	public async getCodemodList(): Promise<ReadonlyArray<string>> {
@@ -514,7 +514,6 @@ export class EngineService {
 
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
-			message.command.kind === 'executeRepomod' ||
 			message.command.kind === 'executeLocalCodemod'
 				? message.command.codemodHash
 				: null;
@@ -564,6 +563,8 @@ export class EngineService {
 				return;
 			}
 
+			console.error(chunk.toString());
+
 			try {
 				const stringifiedChunk = JSON.stringify(chunk.toString());
 
@@ -611,6 +612,8 @@ export class EngineService {
 		let timer: NodeJS.Timeout | null = null;
 
 		interfase.on('line', async (line) => {
+			console.log(line);
+
 			if (timer !== null) {
 				clearTimeout(timer);
 			}
@@ -776,6 +779,8 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
+			console.log('on close');
+
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,

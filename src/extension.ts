@@ -444,12 +444,7 @@ export async function activate(context: vscode.ExtensionContext) {
 									name: codemod.name,
 							  }
 							: {
-									kind:
-										codemodHash ===
-										// app directory boilerplate
-										'QKEdp-pofR9UnglrKAGDm1Oj6W0'
-											? 'executeRepomod'
-											: 'executeCodemod',
+									kind: 'executeCodemod',
 									codemodHash,
 									name: codemod.name,
 							  };
