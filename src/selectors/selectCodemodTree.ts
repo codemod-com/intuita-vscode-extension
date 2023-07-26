@@ -1,4 +1,4 @@
-import { CodemodEntry } from '../codemods/types';
+import { CodemodEntry, PrivateCodemodEntry } from '../codemods/types';
 import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
 import * as t from 'io-ts';
@@ -66,7 +66,7 @@ export const buildDirectoryNode = (name: string, path: string) =>
 	} as const);
 
 export const buildCodemodNode = (
-	codemod: CodemodEntry,
+	codemod: CodemodEntry | PrivateCodemodEntry,
 	name: string,
 	executionPath: string,
 	queued: boolean,
@@ -86,7 +86,7 @@ export const buildCodemodNode = (
 			? 'certified'
 			: 'community',
 		permalink: isPrivate
-			? (codemod as CodemodEntry & { permalink: string | null }).permalink
+			? (codemod as PrivateCodemodEntry).permalink
 			: null,
 	} as const;
 };
@@ -103,7 +103,7 @@ export const selectPrivateCodemods = (
 ) => {
 	const codemods = Object.values(
 		state.privateCodemods.entities,
-	) as (CodemodEntry & { permalink: string | null })[];
+	) as PrivateCodemodEntry[];
 
 	const nodeData: NodeDatum[] = codemods.map((codemod) => {
 		const { name, hashDigest } = codemod;

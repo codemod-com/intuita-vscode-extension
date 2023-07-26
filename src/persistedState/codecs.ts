@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
-import { codemodEntryCodec } from '../codemods/types';
+import { codemodEntryCodec, privateCodemodEntryCodec } from '../codemods/types';
 import { executionErrorCodec } from '../errors/types';
 import { withFallback } from 'io-ts-types';
 import { persistedJobCodec } from '../jobs/types';
@@ -54,7 +54,7 @@ export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
 export const persistedStateCodecNew = buildTypeCodec({
 	case: buildCollectionCodec(caseCodec),
 	codemod: buildCollectionCodec(codemodEntryCodec),
-	privateCodemods: buildCollectionCodec(codemodEntryCodec),
+	privateCodemods: buildCollectionCodec(privateCodemodEntryCodec),
 	job: buildCollectionCodec(persistedJobCodec),
 	lastCodemodHashDigests: withFallback(t.readonlyArray(t.string), []),
 	executionErrors: withFallback(

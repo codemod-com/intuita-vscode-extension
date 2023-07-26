@@ -7,7 +7,7 @@ import {
 
 import * as vscode from 'vscode';
 
-import { CodemodEntry } from '../codemods/types';
+import { CodemodEntry, PrivateCodemodEntry } from '../codemods/types';
 import { ExecutionError } from '../errors/types';
 import { CodemodHash, JobHash } from '../components/webview/webviewEvents';
 import { Case, CaseHash } from '../cases/types';
@@ -31,7 +31,7 @@ export const codemodAdapter = createEntityAdapter<CodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
-export const privateCodemodAdapter = createEntityAdapter<CodemodEntry>({
+export const privateCodemodAdapter = createEntityAdapter<PrivateCodemodEntry>({
 	selectId: (codemod) => codemod.hashDigest,
 });
 
@@ -156,7 +156,7 @@ const rootSlice = createSlice({
 		},
 		upsertPrivateCodemods(
 			state,
-			action: PayloadAction<ReadonlyArray<CodemodEntry>>,
+			action: PayloadAction<ReadonlyArray<PrivateCodemodEntry>>,
 		) {
 			privateCodemodAdapter.upsertMany(
 				state.privateCodemods,
