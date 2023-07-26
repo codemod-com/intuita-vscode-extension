@@ -779,8 +779,6 @@ export class EngineService {
 		});
 
 		interfase.on('close', async () => {
-			console.log('on close');
-
 			if (this.#execution) {
 				this.#messageBus.publish({
 					kind: MessageKind.codemodSetExecuted,
