@@ -30,7 +30,7 @@ import { buildHash, isNeitherNullNorUndefined } from './utilities';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 
 const messageBus = new MessageBus();
@@ -436,9 +436,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						codemod.kind === 'piranhaRule'
 							? {
 									kind: 'executePiranhaRule',
-									configurationUri: vscode.Uri.joinPath(
-										context.globalStorageUri,
-										codemod.configurationDirectoryBasename,
+									configurationUri: vscode.Uri.file(
+										join(
+											homedir(),
+											'.intuita',
+											createHash('ripemd160')
+												.update(codemod.name)
+												.digest('base64url'),
+										),
 									),
 									language: codemod.language,
 									name: codemod.name,
@@ -593,9 +598,14 @@ export async function activate(context: vscode.ExtensionContext) {
 						codemodEntry.kind === 'piranhaRule'
 							? {
 									kind: 'executePiranhaRule',
-									configurationUri: vscode.Uri.joinPath(
-										context.globalStorageUri,
-										codemodEntry.configurationDirectoryBasename,
+									configurationUri: vscode.Uri.file(
+										join(
+											homedir(),
+											'.intuita',
+											createHash('ripemd160')
+												.update(codemodEntry.name)
+												.digest('base64url'),
+										),
 									),
 									language: codemodEntry.language,
 									name: codemodEntry.name,

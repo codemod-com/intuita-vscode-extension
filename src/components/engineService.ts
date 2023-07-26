@@ -369,8 +369,6 @@ export class EngineService {
 						hashDigest,
 						name,
 						language: config.engine,
-						configurationDirectoryBasename: '', // to be removed
-						rulesTomlFileBasename: '', // to be removed
 					});
 
 					continue;
