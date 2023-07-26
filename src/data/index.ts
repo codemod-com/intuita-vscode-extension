@@ -42,17 +42,17 @@ const buildStore = async (workspaceState: Memento) => {
 	const validatedReducer: Reducer<
 		(RootState & PersistPartial) | undefined
 	> = (state, action) => {
-		// if (action.type === 'persist/REHYDRATE') {
-		// 	const decoded = persistedStateCodecNew.decode(action.payload);
+		if (action.type === 'persist/REHYDRATE') {
+			const decoded = persistedStateCodecNew.decode(action.payload);
 
-		// 	const validatedPayload =
-		// 		decoded._tag === 'Right' ? decoded.right : getInitialState();
+			const validatedPayload =
+				decoded._tag === 'Right' ? decoded.right : getInitialState();
 
-		// 	return persistedReducer(state, {
-		// 		...action,
-		// 		payload: validatedPayload,
-		// 	});
-		// }
+			return persistedReducer(state, {
+				...action,
+				payload: validatedPayload,
+			});
+		}
 
 		return persistedReducer(state, action);
 	};
@@ -70,8 +70,8 @@ const buildStore = async (workspaceState: Memento) => {
 	}
 
 	const store = configureStore({
-		reducer: rootReducer,
-		// preloadedState: decodedState.right,
+		reducer: validatedReducer,
+		preloadedState: decodedState.right,
 	});
 
 	const persistor = persistStore(store);
