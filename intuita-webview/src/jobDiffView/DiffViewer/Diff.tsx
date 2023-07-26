@@ -79,7 +79,7 @@ export const DiffComponent = memo(
 				if (content === null) {
 					return;
 				}
-				console.log(content, newFileContent);
+
 				onChange(content);
 			});
 			return () => {
@@ -90,7 +90,7 @@ export const DiffComponent = memo(
 		const currentModifiedContent = editorRef.current
 			?.getModifiedEditor()
 			.getValue();
-		console.log(!!newFileContent, !!currentModifiedContent);
+
 		return (
 			<DiffEditor
 				theme={theme}
