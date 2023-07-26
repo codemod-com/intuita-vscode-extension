@@ -537,8 +537,6 @@ export class EngineService {
 			storageUri,
 		);
 
-		console.log('TEST', args.join(' '));
-
 		const childProcess = spawn(
 			singleQuotify(
 				message.command.kind === 'executePiranhaRule'
@@ -612,8 +610,6 @@ export class EngineService {
 		let timer: NodeJS.Timeout | null = null;
 
 		interfase.on('line', async (line) => {
-			console.log(line);
-
 			if (timer !== null) {
 				clearTimeout(timer);
 			}
