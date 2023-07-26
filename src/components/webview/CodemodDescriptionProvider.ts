@@ -147,7 +147,7 @@ export class CodemodDescriptionProvider {
 				this.__fetchPiranhaConfiguration(codemod);
 			}
 
-			this.__store.dispatch(actions.upsertCodemods(codemods));
+			// this.__store.dispatch(actions.upsertCodemods(codemods));
 		} catch (error) {
 			console.error(error);
 		}

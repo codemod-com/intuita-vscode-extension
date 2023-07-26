@@ -70,7 +70,7 @@ const buildStore = async (workspaceState: Memento) => {
 	}
 
 	const store = configureStore({
-		reducer: validatedReducer,
+		reducer: rootReducer,
 		// preloadedState: decodedState.right,
 	});
 
