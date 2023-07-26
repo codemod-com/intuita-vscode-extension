@@ -39,6 +39,7 @@ export const DiffComponent = memo(
 	}: Props) => {
 		const editorRef = useRef<editor.IStandaloneDiffEditor | null>(null);
 		const [isMounted, setIsMounted] = useState(false);
+		const [modifiedContent, setModifiedContent] = useState(newFileContent);
 
 		useEffect(() => {
 			const editor = editorRef.current;
@@ -73,23 +74,24 @@ export const DiffComponent = memo(
 			}
 
 			const modifiedEditor = editor.getModifiedEditor();
-
 			const disposable = modifiedEditor.onDidChangeModelContent(() => {
 				const content = modifiedEditor.getValue() ?? null;
 				if (content === null) {
 					return;
 				}
-
+				setModifiedContent(content);
 				onChange(content);
 			});
 			return () => {
 				disposable.dispose();
 			};
-		}, [onChange, isMounted, newFileContent]);
+		}, [onChange, isMounted]);
 
-		const currentModifiedContent = editorRef.current
-			?.getModifiedEditor()
-			.getValue();
+		useEffect(() => {
+			// set modified content to `newFileContent` only once when the new job first loads
+			setModifiedContent(newFileContent);
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [jobHash]);
 
 		return (
 			<DiffEditor
@@ -121,7 +123,7 @@ export const DiffComponent = memo(
 					},
 				}}
 				loading={<div>Loading content ...</div>}
-				modified={currentModifiedContent ?? newFileContent ?? undefined}
+				modified={modifiedContent ?? undefined}
 				original={oldFileContent ?? undefined}
 				modifiedModelPath="modified.tsx"
 				originalModelPath="original.tsx"
