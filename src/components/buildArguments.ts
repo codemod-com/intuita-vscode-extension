@@ -1,7 +1,7 @@
 import { Uri } from 'vscode';
 import type { Configuration } from '../configuration';
 import type { Message, MessageKind } from './messageBus';
-import { doubleQuotify, singleQuotify } from '../utilities';
+import { singleQuotify } from '../utilities';
 
 export const buildArguments = (
 	configuration: Configuration,
@@ -35,84 +35,45 @@ export const buildArguments = (
 		return args;
 	}
 
-	if (command.kind === 'executeRepomod') {
-		const args: string[] = [];
-		args.push('repomod');
-		args.push('-f', singleQuotify(command.codemodHash));
-		args.push('-i', singleQuotify(message.targetUri.fsPath));
-		args.push('-o', singleQuotify(storageUri.fsPath));
-
-		args.push(
-			'--formatWithPrettier',
-			String(configuration.formatWithPrettier),
-		);
-
-		return args;
-	}
-
-	if (command.kind === 'executeCodemod') {
-		const args: string[] = [];
-		args.push('-c', singleQuotify(doubleQuotify(command.codemodHash)));
-
-		if (message.targetUriIsDirectory) {
-			configuration.includePatterns.forEach((includePattern) => {
-				const { fsPath } = Uri.joinPath(
-					message.targetUri,
-					includePattern,
-				);
-
-				args.push('-p', singleQuotify(fsPath));
-			});
-
-			configuration.excludePatterns.forEach((excludePattern) => {
-				const { fsPath } = Uri.joinPath(
-					message.targetUri,
-					excludePattern,
-				);
-
-				args.push('-p', `!${singleQuotify(fsPath)}`);
-			});
-		} else {
-			args.push('-p', singleQuotify(message.targetUri.fsPath));
-		}
-
-		args.push('-w', String(configuration.workerThreadCount));
-
-		args.push('-l', String(configuration.fileLimit));
-
-		args.push('-o', singleQuotify(storageUri.fsPath));
-
-		args.push(
-			'--formatWithPrettier',
-			String(configuration.formatWithPrettier),
-		);
-
-		return args;
-	}
-
 	const args: string[] = [];
 
-	configuration.includePatterns.forEach((includePattern) => {
-		const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
+	args.push('--inputDirectoryPath', singleQuotify(message.targetUri.fsPath));
 
-		args.push('-p', singleQuotify(fsPath));
-	});
+	if (message.targetUriIsDirectory) {
+		configuration.includePatterns.forEach((includePattern) => {
+			const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
 
-	configuration.excludePatterns.forEach((excludePattern) => {
-		const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
+			args.push('--includePattern', singleQuotify(fsPath));
+		});
 
-		args.push('-p', `!${singleQuotify(fsPath)}`);
-	});
+		configuration.excludePatterns.forEach((excludePattern) => {
+			const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
 
-	args.push('-w', String(configuration.workerThreadCount));
+			args.push('--excludePattern', `!${singleQuotify(fsPath)}`);
+		});
+	} else {
+		args.push('--includePattern', singleQuotify(message.targetUri.fsPath));
+	}
 
-	args.push('-l', String(configuration.fileLimit));
+	args.push('--threadCount', String(configuration.workerThreadCount));
+	args.push('--fileLimit', String(configuration.fileLimit));
 
-	args.push('-f', singleQuotify(command.codemodUri.fsPath));
+	if (configuration.formatWithPrettier) {
+		args.push('--usePrettier');
+	}
 
-	args.push('-o', singleQuotify(storageUri.fsPath));
+	args.push('--useJson');
+	args.push('--useCache');
 
-	args.push('--formatWithPrettier', String(configuration.formatWithPrettier));
+	args.push('--dryRun');
+	args.push('--outputDirectoryPath', singleQuotify(storageUri.fsPath));
+
+	if (command.kind === 'executeCodemod') {
+		args.push('--name', singleQuotify(command.name));
+	} else {
+		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
+		args.push('--codemodEngine', 'jscodeshift');
+	}
 
 	return args;
 };

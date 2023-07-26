@@ -47,11 +47,6 @@ export const enum MessageKind {
 
 export type Command =
 	| Readonly<{
-			kind: 'executeRepomod';
-			codemodHash: CodemodHash;
-			name: string;
-	  }>
-	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			name: string;

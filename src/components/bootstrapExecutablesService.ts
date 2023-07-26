@@ -18,7 +18,7 @@ export class BootstrapExecutablesService {
 	private async __onBootstrapEngines() {
 		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
-		// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux')
+		// Uri.file('/intuita/nora-node-engine/package/intuita-linux')
 		const codemodEngineNodeExecutableUri =
 			await this.__bootstrapCodemodEngineNodeExecutableUri();
 
@@ -39,7 +39,7 @@ export class BootstrapExecutablesService {
 				? 'macos'
 				: encodeURIComponent(process.platform);
 
-		const executableBaseName = `codemod-engine-node-${platform}`;
+		const executableBaseName = `intuita-${platform}`;
 
 		const executableUri = Uri.joinPath(
 			this.__globalStorageUri,
@@ -48,7 +48,7 @@ export class BootstrapExecutablesService {
 
 		try {
 			await this.__downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/codemod-engine-node/${executableBaseName}`,
+				`https://intuita-public.s3.us-west-1.amazonaws.com/intuita/${executableBaseName}`,
 				executableUri,
 				'755',
 			);

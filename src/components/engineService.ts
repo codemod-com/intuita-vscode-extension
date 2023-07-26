@@ -18,7 +18,11 @@ import {
 import { Message, MessageBus, MessageKind } from './messageBus';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
-import { CodemodEntry, codemodEntryCodec } from '../codemods/types';
+import {
+	CodemodEntry,
+	codemodEntryCodec,
+	codemodNamesCodec,
+} from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
 import { buildArguments } from './buildArguments';
@@ -26,6 +30,8 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import * as S from '@effect/schema/Schema';
+import { createHash } from 'node:crypto';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -82,7 +88,98 @@ export const messageCodec = t.union([
 		oldFilePath: t.string,
 		newFilePath: t.string,
 	}),
+	buildTypeCodec({
+		kind: t.literal('rewrite'),
+		oldPath: t.string,
+		newDataPath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('finish'),
+	}),
+	buildTypeCodec({
+		kind: t.literal('progress'),
+		processedFileNumber: t.number,
+		totalFileNumber: t.number,
+	}),
+	buildTypeCodec({
+		kind: t.literal('delete'),
+		oldFilePath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('move'),
+		oldFilePath: t.string,
+		newFilePath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('create'),
+		newFilePath: t.string,
+		newContentPath: t.string,
+	}),
+	buildTypeCodec({
+		kind: t.literal('copy'),
+		oldFilePath: t.string,
+		newFilePath: t.string,
+	}),
 ]);
+
+type EngineMessage = t.TypeOf<typeof messageCodec>;
+
+export const verboseEngineMessage = (message: EngineMessage): EngineMessage => {
+	if (!('k' in message)) {
+		return message;
+	}
+
+	if (message.k === EngineMessageKind.rewrite) {
+		return {
+			kind: 'rewrite',
+			oldPath: message.i,
+			newDataPath: message.o,
+		};
+	}
+
+	if (message.k === EngineMessageKind.finish) {
+		return {
+			kind: 'finish',
+		};
+	}
+
+	if (message.k === EngineMessageKind.progress) {
+		return {
+			kind: 'progress',
+			processedFileNumber: message.p,
+			totalFileNumber: message.t,
+		};
+	}
+
+	if (message.k === EngineMessageKind.delete) {
+		return {
+			kind: 'delete',
+			oldFilePath: message.oldFilePath,
+		};
+	}
+
+	if (message.k === EngineMessageKind.move) {
+		return {
+			kind: 'move',
+			oldFilePath: message.oldFilePath,
+			newFilePath: message.newFilePath,
+		};
+	}
+
+	if (message.k === EngineMessageKind.create) {
+		return {
+			kind: 'create',
+			newFilePath: message.newFilePath,
+			newContentPath: message.newContentPath,
+		};
+	}
+
+	return {
+		kind: 'copy',
+		oldFilePath: message.oldFilePath,
+		newFilePath: message.newFilePath,
+	};
+};
 
 type Execution = {
 	readonly childProcess: ChildProcessWithoutNullStreams;
@@ -130,7 +227,7 @@ export class EngineService {
 		});
 	}
 
-	#onEnginesBootstrappedMessage(
+	async #onEnginesBootstrappedMessage(
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.__codemodEngineNodeExecutableUri =
@@ -138,15 +235,43 @@ export class EngineService {
 		this.__codemodEngineRustExecutableUri =
 			message.codemodEngineRustExecutableUri;
 
-		this.__fetchCodemods();
-		this.fetchPrivateCodemods();
+		await this.__syncRegistry();
+
+		await this.__fetchCodemods();
+		await this.fetchPrivateCodemods();
 	}
 
 	public isEngineBootstrapped() {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
-	public async getCodemodList(): Promise<Readonly<CodemodEntry[]>> {
+	private async __syncRegistry(): Promise<void> {
+		if (this.__codemodEngineNodeExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		const childProcess = spawn(
+			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+			['syncRegistry'],
+			{
+				stdio: 'pipe',
+				shell: true,
+				detached: false,
+			},
+		);
+
+		return new Promise<void>((resolve, reject) => {
+			childProcess.once('exit', () => {
+				resolve();
+			});
+
+			childProcess.once('error', (error) => {
+				reject(error);
+			});
+		});
+	}
+
+	public async __getCodemodNames(): Promise<ReadonlyArray<string>> {
 		const executableUri = this.__codemodEngineNodeExecutableUri;
 
 		if (executableUri === null) {
@@ -157,7 +282,7 @@ export class EngineService {
 
 		const childProcess = spawn(
 			singleQuotify(executableUri.fsPath),
-			['list'],
+			['listNames', '--useJson', '--useCache'],
 			{
 				stdio: 'pipe',
 				shell: true,
@@ -168,16 +293,16 @@ export class EngineService {
 		const codemodListJSON = await streamToString(childProcess.stdout);
 
 		try {
-			const codemodListOrError = t
-				.readonlyArray(codemodEntryCodec)
-				.decode(JSON.parse(codemodListJSON));
+			const codemodListOrError = codemodNamesCodec.decode(
+				JSON.parse(codemodListJSON),
+			);
 
 			if (codemodListOrError._tag === 'Left') {
 				const report = prettyReporter.report(codemodListOrError);
 				throw new InvalidEngineResponseFormatError(report.join(`\n`));
 			}
 
-			return codemodListOrError.right;
+			return codemodListOrError.right.names;
 		} catch (e) {
 			if (e instanceof InvalidEngineResponseFormatError) {
 				throw e;
@@ -191,8 +316,81 @@ export class EngineService {
 
 	private async __fetchCodemods(): Promise<void> {
 		try {
-			const codemods = await this.getCodemodList();
-			this.__store.dispatch(actions.upsertCodemods(codemods));
+			const names = await this.__getCodemodNames();
+
+			const codemodConfigSchema = S.union(
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('piranha'),
+					language: S.literal('java'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('jscodeshift'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('ts-morph'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('repomod-engine'),
+				}),
+				S.struct({
+					schemaVersion: S.literal('1.0.0'),
+					engine: S.literal('recipe'),
+					names: S.array(S.string),
+				}),
+			);
+
+			const codemodEntries: CodemodEntry[] = [];
+
+			for (const name of names) {
+				const hashDigest = createHash('ripemd160')
+					.update(name)
+					.digest('base64url');
+
+				const configPath = join(
+					homedir(),
+					'.intuita',
+					hashDigest,
+					'config.json',
+				);
+
+				const data = await readFile(configPath, 'utf8');
+
+				const config = S.parseSync(codemodConfigSchema)(
+					JSON.parse(data),
+				);
+
+				if (config.engine === 'piranha') {
+					codemodEntries.push({
+						kind: 'piranhaRule',
+						hashDigest,
+						name,
+						language: config.engine,
+					});
+
+					continue;
+				}
+
+				if (
+					config.engine === 'jscodeshift' ||
+					config.engine === 'ts-morph' ||
+					config.engine === 'repomod-engine'
+				) {
+					codemodEntries.push({
+						kind: 'codemod',
+						hashDigest,
+						name,
+						engine: config.engine,
+					});
+				}
+
+				// TODO handle recipe
+			}
+
+			this.__store.dispatch(actions.setCodemods(codemodEntries));
 		} catch (e) {
 			console.error(e);
 		}
@@ -314,7 +512,6 @@ export class EngineService {
 
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
-			message.command.kind === 'executeRepomod' ||
 			message.command.kind === 'executeLocalCodemod'
 				? message.command.codemodHash
 				: null;
@@ -363,6 +560,8 @@ export class EngineService {
 			if (!(chunk instanceof Buffer)) {
 				return;
 			}
+
+			console.error(chunk.toString());
 
 			try {
 				const stringifiedChunk = JSON.stringify(chunk.toString());
@@ -432,12 +631,20 @@ export class EngineService {
 				return;
 			}
 
-			const message = either.right;
+			const message = verboseEngineMessage(either.right);
 
-			if (message.k === EngineMessageKind.progress) {
+			if ('k' in message) {
+				return;
+			}
+
+			if (message.kind === 'progress') {
 				const value =
-					message.t > 0
-						? Math.round((message.p / message.t) * 100)
+					message.totalFileNumber > 0
+						? Math.round(
+								(message.processedFileNumber /
+									message.totalFileNumber) *
+									100,
+						  )
 						: 0;
 
 				this.#messageBus.publish({
@@ -446,17 +653,17 @@ export class EngineService {
 					progressKind: 'finite',
 					value,
 				});
-				this.#execution.totalFileCount = message.t;
+				this.#execution.totalFileCount = message.totalFileNumber;
 				return;
 			}
 
-			if (message.k === EngineMessageKind.finish) {
+			if (message.kind === 'finish') {
 				return;
 			}
 
 			let job: Job;
 
-			if (message.k === EngineMessageKind.create) {
+			if (message.kind === 'create') {
 				const newUri = Uri.file(message.newFilePath);
 				const newContentUri = Uri.file(message.newContentPath);
 
@@ -475,9 +682,9 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.rewrite) {
-				const oldUri = Uri.file(message.i);
-				const newContentUri = Uri.file(message.o);
+			} else if (message.kind === 'rewrite') {
+				const oldUri = Uri.file(message.oldPath);
+				const newContentUri = Uri.file(message.newDataPath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
 					kind: JobKind.rewriteFile,
@@ -494,7 +701,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.delete) {
+			} else if (message.kind === 'delete') {
 				const oldUri = Uri.file(message.oldFilePath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
@@ -512,7 +719,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.move) {
+			} else if (message.kind === 'move') {
 				const oldUri = Uri.file(message.oldFilePath);
 				const newUri = Uri.file(message.newFilePath);
 
@@ -531,7 +738,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.copy) {
+			} else if (message.kind === 'copy') {
 				const oldUri = Uri.file(message.oldFilePath);
 				const newUri = Uri.file(message.newFilePath);
 
