@@ -37,6 +37,8 @@ export const buildArguments = (
 
 	const args: string[] = [];
 
+	args.push('--inputDirectoryPath', singleQuotify(message.targetUri.fsPath));
+
 	if (message.targetUriIsDirectory) {
 		configuration.includePatterns.forEach((includePattern) => {
 			const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
@@ -56,7 +58,10 @@ export const buildArguments = (
 	args.push('--threadCount', String(configuration.workerThreadCount));
 	args.push('--fileLimit', String(configuration.fileLimit));
 
-	args.push('--usePrettier', String(configuration.formatWithPrettier));
+	if (configuration.formatWithPrettier) {
+		args.push('--usePrettier');
+	}
+
 	args.push('--useJson');
 	args.push('--useCache');
 
