@@ -1,7 +1,6 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
-import type { editor } from 'monaco-editor';
-import { Disposable } from 'vscode';
+import { editor } from 'monaco-editor';
 import configure from './configure';
 import { DiffEditor, Monaco } from '@monaco-editor/react';
 
@@ -39,45 +38,58 @@ export const DiffComponent = memo(
 		jobHash,
 	}: Props) => {
 		const editorRef = useRef<editor.IStandaloneDiffEditor | null>(null);
-		const handlerRef = useRef<Disposable | null>(null);
-		const jobHashRef = useRef<string | null>(null);
+		const [isMounted, setIsMounted] = useState(false);
 
 		useEffect(() => {
-			if (editorRef.current === null) {
+			const editor = editorRef.current;
+			if (editor === null) {
 				return;
 			}
-			editorRef.current.getModifiedEditor().setScrollTop(0);
+			editor.getModifiedEditor().setScrollTop(0);
 		}, [jobHash]);
 
-		const reattachHandler = (editor?: editor.IStandaloneDiffEditor) => {
-			if (jobHashRef.current === jobHash) {
+		useEffect(() => {
+			const editor = editorRef.current;
+			if (editor === null || !isMounted) {
 				return;
 			}
 
-			const modifiedEditor =
-				(editor ?? editorRef.current)?.getModifiedEditor() ?? null;
+			const disposable = editor.onDidUpdateDiff(() => {
+				const diffChanges = getDiffChanges(editor);
 
-			if (modifiedEditor === null) {
+				if (diffChanges) {
+					onDiffCalculated(diffChanges);
+				}
+			});
+			return () => {
+				disposable.dispose();
+			};
+		}, [onDiffCalculated, isMounted]);
+
+		useEffect(() => {
+			const editor = editorRef.current;
+			if (editor === null || !isMounted) {
 				return;
 			}
 
-			if (handlerRef.current !== null) {
-				handlerRef.current.dispose();
-			}
+			const modifiedEditor = editor.getModifiedEditor();
 
-			handlerRef.current = modifiedEditor.onDidChangeModelContent(() => {
-				const content = modifiedEditor.getModel()?.getValue() ?? null;
+			const disposable = modifiedEditor.onDidChangeModelContent(() => {
+				const content = modifiedEditor.getValue() ?? null;
 				if (content === null) {
 					return;
 				}
 
 				onChange(content);
 			});
+			return () => {
+				disposable.dispose();
+			};
+		}, [onChange, isMounted, newFileContent]);
 
-			jobHashRef.current = jobHash;
-		};
-
-		reattachHandler();
+		const currentModifiedContent = editorRef.current
+			?.getModifiedEditor()
+			.getValue();
 
 		return (
 			<DiffEditor
@@ -85,15 +97,8 @@ export const DiffComponent = memo(
 				onMount={(e: editor.IStandaloneDiffEditor, m: Monaco) => {
 					editorRef.current = e;
 
-					e.onDidUpdateDiff(() => {
-						const diffChanges = getDiffChanges(e);
-
-						if (diffChanges) {
-							onDiffCalculated(diffChanges);
-						}
-						reattachHandler(e);
-					});
 					configure(e, m);
+					setIsMounted(true);
 				}}
 				options={{
 					readOnly: false,
@@ -116,7 +121,7 @@ export const DiffComponent = memo(
 					},
 				}}
 				loading={<div>Loading content ...</div>}
-				modified={newFileContent ?? undefined}
+				modified={currentModifiedContent ?? newFileContent ?? undefined}
 				original={oldFileContent ?? undefined}
 				modifiedModelPath="modified.tsx"
 				originalModelPath="original.tsx"
