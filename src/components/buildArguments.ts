@@ -90,6 +90,9 @@ export const buildArguments = (
 			String(configuration.formatWithPrettier),
 		);
 
+		args.push('--useJson');
+		args.push('--useCache');
+
 		return args;
 	}
 
@@ -117,6 +120,9 @@ export const buildArguments = (
 	args.push('--outputDirectoryPath', singleQuotify(storageUri.fsPath));
 
 	args.push('--usePrettier', String(configuration.formatWithPrettier));
+
+	args.push('--useJson');
+	args.push('--useCache');
 
 	return args;
 };

@@ -345,8 +345,6 @@ export class EngineService {
 
 			const codemodEntries: CodemodEntry[] = [];
 
-			console.log('names', names);
-
 			for (const name of names) {
 				const hashDigest = createHash('ripemd160')
 					.update(name)
@@ -634,12 +632,20 @@ export class EngineService {
 				return;
 			}
 
-			let message = either.right;
+			const message = verboseEngineMessage(either.right);
 
-			if (message.k === EngineMessageKind.progress) {
+			if ('k' in message) {
+				return;
+			}
+
+			if (message.kind === 'progress') {
 				const value =
-					message.t > 0
-						? Math.round((message.p / message.t) * 100)
+					message.totalFileNumber > 0
+						? Math.round(
+								(message.processedFileNumber /
+									message.totalFileNumber) *
+									100,
+						  )
 						: 0;
 
 				this.#messageBus.publish({
@@ -648,17 +654,17 @@ export class EngineService {
 					progressKind: 'finite',
 					value,
 				});
-				this.#execution.totalFileCount = message.t;
+				this.#execution.totalFileCount = message.totalFileNumber;
 				return;
 			}
 
-			if (message.k === EngineMessageKind.finish) {
+			if (message.kind === 'finish') {
 				return;
 			}
 
 			let job: Job;
 
-			if (message.k === EngineMessageKind.create) {
+			if (message.kind === 'create') {
 				const newUri = Uri.file(message.newFilePath);
 				const newContentUri = Uri.file(message.newContentPath);
 
@@ -677,9 +683,9 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.rewrite) {
-				const oldUri = Uri.file(message.i);
-				const newContentUri = Uri.file(message.o);
+			} else if (message.kind === 'rewrite') {
+				const oldUri = Uri.file(message.oldPath);
+				const newContentUri = Uri.file(message.newDataPath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
 					kind: JobKind.rewriteFile,
@@ -696,7 +702,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.delete) {
+			} else if (message.kind === 'delete') {
 				const oldUri = Uri.file(message.oldFilePath);
 
 				const hashlessJob: Omit<Job, 'hash'> = {
@@ -714,7 +720,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.move) {
+			} else if (message.kind === 'move') {
 				const oldUri = Uri.file(message.oldFilePath);
 				const newUri = Uri.file(message.newFilePath);
 
@@ -733,7 +739,7 @@ export class EngineService {
 					...hashlessJob,
 					hash: buildJobHash(hashlessJob, caseHashDigest),
 				};
-			} else if (message.k === EngineMessageKind.copy) {
+			} else if (message.kind === 'copy') {
 				const oldUri = Uri.file(message.oldFilePath);
 				const newUri = Uri.file(message.newFilePath);
 
