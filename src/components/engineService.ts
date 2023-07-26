@@ -20,8 +20,9 @@ import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError, executionErrorCodec } from '../errors/types';
 import {
 	CodemodEntry,
-	codemodEntryCodec,
 	codemodNamesCodec,
+	PrivateCodemodEntry,
+	privateCodemodEntryCodec,
 } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
@@ -397,7 +398,7 @@ export class EngineService {
 
 	public async fetchPrivateCodemods(): Promise<void> {
 		try {
-			const privateCodemods: CodemodEntry[] = [];
+			const privateCodemods: PrivateCodemodEntry[] = [];
 			const globalStoragePath = join(homedir(), '.intuita');
 			const privateCodemodNamesPath = join(
 				homedir(),
@@ -425,21 +426,44 @@ export class EngineService {
 				if (!existsSync(configPath)) {
 					continue;
 				}
+
+				const urlParamsPath = join(
+					globalStoragePath,
+					file,
+					'urlParams.json',
+				);
+
+				if (!existsSync(urlParamsPath)) {
+					continue;
+				}
+
 				const data = await readFile(configPath, { encoding: 'utf8' });
 				const parsedData = JSON.parse(data);
 
-				const codemodDataOrError = codemodEntryCodec.decode(parsedData);
+				if (!privateCodemodNames.includes(parsedData.name)) {
+					continue;
+				}
+
+				const permalink = existsSync(urlParamsPath)
+					? new URL('https://codemod.studio/')
+					: null;
+
+				if (permalink !== null) {
+					const urlParamsData = await readFile(urlParamsPath, {
+						encoding: 'utf8',
+					});
+					permalink.search = JSON.parse(urlParamsData).urlParams;
+				}
+
+				const codemodDataOrError = privateCodemodEntryCodec.decode({
+					...parsedData,
+					permalink: permalink === null ? null : permalink.toString(),
+				});
 
 				if (codemodDataOrError._tag === 'Left') {
 					const report = prettyReporter.report(codemodDataOrError);
 
 					console.error(report);
-					continue;
-				}
-
-				if (
-					!privateCodemodNames.includes(codemodDataOrError.right.name)
-				) {
 					continue;
 				}
 

@@ -57,6 +57,7 @@ const renderProgressBar = (progress: Progress | null) => {
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	isPrivate: CodemodItemNode['isPrivate'],
+	permalink: CodemodItemNode['permalink'],
 	codemodInProgress: boolean,
 	queued: boolean,
 	rootPath: string | null,
@@ -82,12 +83,29 @@ const renderActionButtons = (
 		};
 		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
 			e.stopPropagation();
-			navigator.clipboard.writeText(
-				`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
-			);
+
+			if (!isPrivate) {
+				navigator.clipboard.writeText(
+					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+				);
+				vscode.postMessage({
+					kind: 'webview.global.showInformationMessage',
+					value: 'Codemod link copied to clipboard',
+				});
+				return;
+			}
+			if (permalink === null) {
+				vscode.postMessage({
+					kind: 'webview.global.showWarningMessage',
+					value: 'Permalink for this codemod is missing. Re-export it from Codemod studio.',
+				});
+				return;
+			}
+
+			navigator.clipboard.writeText(permalink);
 			vscode.postMessage({
 				kind: 'webview.global.showInformationMessage',
-				value: 'Codemod link copied to clipboard',
+				value: 'Permalink in codemod studio copied to clipboard',
 			});
 		};
 
@@ -107,7 +125,11 @@ const renderActionButtons = (
 				</ActionButton>
 				<ActionButton
 					id={`${hashDigest}-shareButton`}
-					content="Copy to clipboard the link to this codemod."
+					content={
+						isPrivate
+							? 'Copy to clipboard the permalink in codemod studio.'
+							: 'Copy to clipboard the link to this codemod.'
+					}
 					onClick={handleCodemodLinkCopy}
 				>
 					<span className={cn('codicon', 'codicon-link')} />
@@ -199,6 +221,7 @@ const Codemod = ({
 	screenWidth,
 	focused,
 	isPrivate,
+	permalink,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
@@ -339,6 +362,7 @@ const Codemod = ({
 							renderActionButtons(
 								hashDigest,
 								isPrivate,
+								permalink,
 								progress !== null,
 								queued,
 								rootPath,

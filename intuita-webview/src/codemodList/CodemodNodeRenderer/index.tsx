@@ -84,6 +84,7 @@ const getCodemodNodeRenderer =
 						queued={node.queued}
 						icon={node.icon}
 						screenWidth={screenWidth}
+						permalink={node.permalink}
 					/>
 				)}
 
