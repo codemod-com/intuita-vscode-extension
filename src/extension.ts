@@ -892,7 +892,7 @@ export async function activate(context: vscode.ExtensionContext) {
 							}),
 						),
 						writeFile(
-							join(globalStoragePath, 'urlParams.json'),
+							join(codemodDirectoryPath, 'urlParams.json'),
 							JSON.stringify({
 								urlParams: uri.query,
 							}),

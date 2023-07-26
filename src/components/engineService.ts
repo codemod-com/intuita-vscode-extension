@@ -397,7 +397,9 @@ export class EngineService {
 
 	public async fetchPrivateCodemods(): Promise<void> {
 		try {
-			const privateCodemods: CodemodEntry[] = [];
+			const privateCodemods: (CodemodEntry & {
+				permalink: string | null;
+			})[] = [];
 			const globalStoragePath = join(homedir(), '.intuita');
 			const privateCodemodNamesPath = join(
 				homedir(),
@@ -443,7 +445,32 @@ export class EngineService {
 					continue;
 				}
 
-				privateCodemods.push(codemodDataOrError.right);
+				const urlParamsPath = join(
+					globalStoragePath,
+					file,
+					'urlParams.json',
+				);
+				const permalink = existsSync(urlParamsPath)
+					? new URL('https://codemod.studio/')
+					: null;
+
+				if (permalink !== null) {
+					const data = await readFile(
+						join(
+							homedir(),
+							'.intuita',
+							codemodDataOrError.right.hashDigest,
+							'urlParams.json',
+						),
+						{ encoding: 'utf8' },
+					);
+					permalink.search = JSON.parse(data).urlParams;
+				}
+
+				privateCodemods.push({
+					...codemodDataOrError.right,
+					permalink: permalink === null ? null : permalink.toString(),
+				});
 			}
 
 			this.__store.dispatch(

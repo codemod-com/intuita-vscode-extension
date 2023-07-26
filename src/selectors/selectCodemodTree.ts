@@ -85,6 +85,9 @@ export const buildCodemodNode = (
 			: IntuitaCertifiedCodemods.includes(codemod.name)
 			? 'certified'
 			: 'community',
+		permalink: isPrivate
+			? (codemod as CodemodEntry & { permalink: string | null }).permalink
+			: null,
 	} as const;
 };
 
@@ -100,7 +103,7 @@ export const selectPrivateCodemods = (
 ) => {
 	const codemods = Object.values(
 		state.privateCodemods.entities,
-	) as CodemodEntry[];
+	) as (CodemodEntry & { permalink: string | null })[];
 
 	const nodeData: NodeDatum[] = codemods.map((codemod) => {
 		const { name, hashDigest } = codemod;

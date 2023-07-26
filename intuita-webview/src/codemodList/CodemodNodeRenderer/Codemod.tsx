@@ -15,9 +15,6 @@ import { InfiniteProgress } from '../TreeView/InfiniteProgress';
 import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-import { readFile } from 'node:fs';
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -60,6 +57,7 @@ const renderProgressBar = (progress: Progress | null) => {
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
 	isPrivate: CodemodItemNode['isPrivate'],
+	permalink: CodemodItemNode['permalink'],
 	codemodInProgress: boolean,
 	queued: boolean,
 	rootPath: string | null,
@@ -85,26 +83,18 @@ const renderActionButtons = (
 		};
 		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
 			e.stopPropagation();
-			if (!isPrivate) {
-				navigator.clipboard.writeText(
-					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
-				);
-			} else {
-				const url = new URL('https://codemod.studio/');
-				readFile(
-					join(homedir(), '.intuita', hashDigest, 'urlParams.json'),
-					(err, data) => {
-						if (err) {
-							console.error(err);
-							return;
-						}
-						url.search = JSON.parse(
-							data.toString('utf8'),
-						).urlParams;
-					},
-				);
-				navigator.clipboard.writeText(url.toString());
+
+			if (
+				(isPrivate && permalink === null) ||
+				(!isPrivate && permalink !== null)
+			) {
+				return;
 			}
+			console.log(permalink);
+			navigator.clipboard.writeText(
+				permalink ||
+					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+			);
 			vscode.postMessage({
 				kind: 'webview.global.showInformationMessage',
 				value: !isPrivate
@@ -225,6 +215,7 @@ const Codemod = ({
 	screenWidth,
 	focused,
 	isPrivate,
+	permalink,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
@@ -365,6 +356,7 @@ const Codemod = ({
 							renderActionButtons(
 								hashDigest,
 								isPrivate,
+								permalink,
 								progress !== null,
 								queued,
 								rootPath,
