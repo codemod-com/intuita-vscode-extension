@@ -84,22 +84,28 @@ const renderActionButtons = (
 		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
 			e.stopPropagation();
 
-			if (
-				(isPrivate && permalink === null) ||
-				(!isPrivate && permalink !== null)
-			) {
+			if (!isPrivate) {
+				navigator.clipboard.writeText(
+					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
+				);
+				vscode.postMessage({
+					kind: 'webview.global.showInformationMessage',
+					value: 'Codemod link copied to clipboard',
+				});
 				return;
 			}
-			console.log(permalink);
-			navigator.clipboard.writeText(
-				permalink ||
-					`vscode://intuita.intuita-vscode-extension/showCodemod?chd=${hashDigest}`,
-			);
+			if (permalink === null) {
+				vscode.postMessage({
+					kind: 'webview.global.showWarningMessage',
+					value: 'Permalink for this codemod is missing. Re-export it from Codemod studio.',
+				});
+				return;
+			}
+
+			navigator.clipboard.writeText(permalink);
 			vscode.postMessage({
 				kind: 'webview.global.showInformationMessage',
-				value: !isPrivate
-					? 'Codemod link copied to clipboard'
-					: 'Permalink in codemod studio copied to clipboard',
+				value: 'Permalink in codemod studio copied to clipboard',
 			});
 		};
 
