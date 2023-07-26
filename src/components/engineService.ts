@@ -227,7 +227,7 @@ export class EngineService {
 		});
 	}
 
-	#onEnginesBootstrappedMessage(
+	async #onEnginesBootstrappedMessage(
 		message: Message & { kind: MessageKind.engineBootstrapped },
 	) {
 		this.__codemodEngineNodeExecutableUri =
@@ -235,10 +235,10 @@ export class EngineService {
 		this.__codemodEngineRustExecutableUri =
 			message.codemodEngineRustExecutableUri;
 
-		this.__syncRegistry();
+		await this.__syncRegistry();
 
-		this.__fetchCodemods();
-		this.fetchPrivateCodemods();
+		await this.__fetchCodemods();
+		await this.fetchPrivateCodemods();
 	}
 
 	public isEngineBootstrapped() {
@@ -271,7 +271,7 @@ export class EngineService {
 		});
 	}
 
-	public async getCodemodList(): Promise<ReadonlyArray<string>> {
+	public async __getCodemodNames(): Promise<ReadonlyArray<string>> {
 		const executableUri = this.__codemodEngineNodeExecutableUri;
 
 		if (executableUri === null) {
@@ -316,7 +316,7 @@ export class EngineService {
 
 	private async __fetchCodemods(): Promise<void> {
 		try {
-			const names = await this.getCodemodList();
+			const names = await this.__getCodemodNames();
 
 			const codemodConfigSchema = S.union(
 				S.struct({
