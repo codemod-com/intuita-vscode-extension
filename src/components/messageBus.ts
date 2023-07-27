@@ -1,16 +1,12 @@
 import { Disposable, EventEmitter, Uri } from 'vscode';
-import type { CaseHash, CaseKind, CaseWithJobHashes } from '../cases/types';
+import type { Case, CaseHash } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
-import { RecipeName } from '../recipes/codecs';
-import type { Configuration } from '../configuration';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
+import { ExecutionError } from '../errors/types';
 
 export const enum MessageKind {
-	/** the elements are tree entries */
-	updateElements = 2,
-
 	/** cases and jobs */
-	upsertCases = 3,
+	upsertCase = 3,
 	upsertJobs = 4,
 
 	rejectCase = 5,
@@ -21,16 +17,9 @@ export const enum MessageKind {
 	acceptJobs = 9,
 	jobsAccepted = 10,
 
-	/** file comparison */
-	compareFiles = 11,
-	filesCompared = 12,
-
 	/** bootstrap */
-	bootstrapEngines = 13,
-	enginesBootstrapped = 14,
-
-	/** state */
-	clearState = 16,
+	bootstrapEngine = 13,
+	engineBootstrapped = 14,
 
 	/** information message */
 	showInformationMessage = 17,
@@ -39,10 +28,6 @@ export const enum MessageKind {
 	executeCodemodSet = 18,
 	codemodSetExecuted = 19,
 
-	/** extension states */
-	extensionActivated = 20,
-	extensionDeactivated = 21,
-
 	/** file system operations */
 	updateFile = 22,
 	deleteFiles = 23,
@@ -50,82 +35,44 @@ export const enum MessageKind {
 	createFile = 25,
 
 	/**
-	 * account events
-	 */
-	accountLinked = 26,
-	accountUnlinked = 27,
-
-	/**
-	 * config events
-	 */
-
-	configurationChanged = 28,
-
-	/**
-	 * create issue
-	 */
-
-	beforeIssueCreated = 29,
-	afterIssueCreated = 30,
-	/**
 	 * show progress
 	 */
 	showProgress = 31,
-	/**
-	 * create PR
-	 */
 
-	beforePRCreated = 33,
-	afterPRCreated = 34,
+	focusFile = 37,
 
-	focusCodemod = 35,
+	mainWebviewViewVisibilityChange = 38,
+	executionQueueChange = 39,
 }
-
-export type Engine = 'node' | 'rust';
 
 export type Command =
 	| Readonly<{
-			kind: 'repomod';
-			engine: Engine;
-			inputPath: Uri;
-			storageUri: Uri;
-			repomodFilePath: string;
-	  }>
-	| Readonly<{
-			recipeName: RecipeName;
-			engine: Engine;
-			storageUri: Uri;
-			uri: Uri;
-	  }>
-	| Readonly<{
-			fileUri: Uri;
-			engine: Engine;
-			storageUri: Uri;
-			uri: Uri;
-	  }>
-	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
-			engine: Engine;
-			storageUri: Uri;
-			uri: Uri;
+			name: string;
+	  }>
+	| Readonly<{
+			kind: 'executeLocalCodemod';
+			codemodUri: Uri;
+			codemodHash: CodemodHash | null;
+			name: string;
+	  }>
+	| Readonly<{
+			kind: 'executePiranhaRule';
+			name: string;
+			configurationUri: Uri;
+			language: string;
 	  }>;
 
 export type Message =
 	| Readonly<{
-			kind: MessageKind.updateElements;
-	  }>
-	| Readonly<{
-			kind: MessageKind.upsertCases;
-			casesWithJobHashes: ReadonlyArray<CaseWithJobHashes>;
+			kind: MessageKind.upsertCase;
+			kase: Case;
 			jobs: ReadonlyArray<Job>;
-			inactiveJobHashes: ReadonlySet<JobHash>;
-			executionId: string;
 	  }>
 	| Readonly<{
 			kind: MessageKind.upsertJobs;
 			jobs: ReadonlyArray<Job>;
-			inactiveJobHashes: ReadonlySet<JobHash>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.rejectCase;
@@ -137,9 +84,7 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsRejected;
-			deletedJobHashes: ReadonlySet<JobHash>;
-			codemodSetName: string;
-			codemodName: string;
+			deletedJobs: ReadonlySet<Job>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.acceptCase;
@@ -151,64 +96,32 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.jobsAccepted;
-			deletedJobHashes: ReadonlySet<JobHash>;
-			codemodSetName: string;
-			codemodName: string;
+			deletedJobs: ReadonlySet<Job>;
 	  }>
 	| Readonly<{
-			kind: MessageKind.compareFiles;
-			noraRustEngineExecutableUri: Uri;
-			job: Job;
-			caseKind: CaseKind;
-			caseSubKind: string;
-			executionId: string;
-			codemodSetName: string;
-			codemodName: string;
+			kind: MessageKind.bootstrapEngine;
 	  }>
 	| Readonly<{
-			kind: MessageKind.filesCompared;
-			jobHash: JobHash;
-			equal: boolean;
-			executionId: string;
-			codemodSetName: string;
-			codemodName: string;
-	  }>
-	| Readonly<{
-			kind: MessageKind.bootstrapEngines;
-	  }>
-	| Readonly<{
-			kind: MessageKind.enginesBootstrapped;
-			noraNodeEngineExecutableUri: Uri;
-			noraRustEngineExecutableUri: Uri;
-	  }>
-	| Readonly<{
-			kind: MessageKind.clearState;
-	  }>
-	| Readonly<{
-			kind: MessageKind.showInformationMessage;
-			packageSettingsUri: Uri;
-			dependencyName: string;
-			dependencyOldVersion: string;
-			dependencyNewVersion: string | null;
+			kind: MessageKind.engineBootstrapped;
+			codemodEngineNodeExecutableUri: Uri;
+			codemodEngineRustExecutableUri: Uri;
 	  }>
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;
 			command: Command;
 			happenedAt: string;
-			executionId: string;
+			caseHashDigest: CaseHash;
+			storageUri: Uri;
+			targetUri: Uri;
+			targetUriIsDirectory: boolean;
 	  }>
 	| Readonly<{
 			kind: MessageKind.codemodSetExecuted;
-			executionId: string;
-			codemodSetName: string;
 			halted: boolean;
 			fileCount: number;
-	  }>
-	| Readonly<{
-			kind: MessageKind.extensionActivated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.extensionDeactivated;
+			jobs: Job[];
+			case: Case;
+			executionErrors: ReadonlyArray<ExecutionError>;
 	  }>
 	| Readonly<{
 			kind: MessageKind.updateFile;
@@ -232,40 +145,17 @@ export type Message =
 			newContentUri: Uri;
 	  }>
 	| Readonly<{
-			kind: MessageKind.accountUnlinked;
-	  }>
-	| Readonly<{
-			kind: MessageKind.accountLinked;
-			account: string;
-	  }>
-	| Readonly<{
-			kind: MessageKind.configurationChanged;
-			nextConfiguration: Configuration;
-	  }>
-	| Readonly<{
-			kind: MessageKind.beforeIssueCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.beforeIssueCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.afterIssueCreated;
-	  }>
-	| Readonly<{
 			kind: MessageKind.showProgress;
-			processedFiles: number;
-			codemodHash?: CodemodHash;
-			totalFiles: number;
+			codemodHash: CodemodHash | null;
+			progressKind: 'finite' | 'infinite';
+			value: number;
 	  }>
 	| Readonly<{
-			kind: MessageKind.beforePRCreated;
+			kind: MessageKind.mainWebviewViewVisibilityChange;
 	  }>
 	| Readonly<{
-			kind: MessageKind.afterPRCreated;
-	  }>
-	| Readonly<{
-			kind: MessageKind.focusCodemod;
-			codemodHashDigest: CodemodHash;
+			kind: MessageKind.executionQueueChange;
+			queuedCodemodHashes: ReadonlyArray<CodemodHash>;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

@@ -1,131 +1,52 @@
-import { useCallback, useEffect, useState } from 'react';
-import { vscode } from '../shared/utilities/vscode';
-import {
-	View,
-	WebviewMessage,
-	JobDiffViewProps,
-	JobAction,
-} from '../shared/types';
+import ReactMarkdown from 'react-markdown';
+import { useEffect, useState } from 'react';
+import { WebviewMessage } from '../shared/types';
 import { JobDiffViewContainer } from './DiffViewer/index';
 import './index.css';
+import type { PanelViewProps } from '../../../src/components/webview/panelViewProps';
+import { vscode } from '../shared/utilities/vscode';
+import styles from './style.module.css';
 
-const getViewComponent = (
-	view: View,
-	postMessage: (arg: JobAction) => void,
-) => {
-	switch (view.viewId) {
-		case 'jobDiffView':
-			const { data, title, diffId } = view.viewProps;
-
-			return (
-				<JobDiffViewContainer
-					diffId={diffId}
-					title={title}
-					jobs={data}
-					postMessage={postMessage}
-				/>
-			);
-
-		default:
-			return null;
+declare global {
+	interface Window {
+		panelViewProps: PanelViewProps;
 	}
-};
+}
 
-function App() {
-	const [view, setView] = useState<View | null>(null);
-
-	const eventHandler = useCallback(
-		(event: MessageEvent<WebviewMessage>) => {
-			const { data: message } = event;
-			if (message.kind === 'webview.global.setView') {
-				setView(message.value);
-			}
-
-			if (view === null) {
-				return;
-			}
-
-			if (
-				message.kind === 'webview.diffView.updateDiffViewProps' &&
-				view.viewId === 'jobDiffView'
-			) {
-				const jobHash = message.data.jobHash;
-				const nextData = view.viewProps.data.map((element) =>
-					element.jobHash === jobHash ? message.data : element,
-				);
-
-				setView({
-					...view,
-					viewProps: {
-						...view.viewProps,
-						data: nextData,
-					},
-				});
-			}
-
-			if (message.kind === 'webview.diffView.focusFile') {
-				const elementId = `diffViewHeader-${message.jobHash}`;
-				const element = document.getElementById(elementId);
-				element?.scrollIntoView();
-			}
-
-			if (
-				message.kind === 'webview.diffView.focusFolder' &&
-				view.viewId === 'jobDiffView' &&
-				view.viewProps.diffId
-			) {
-				const folderPathExcludingRootPath = message.folderPath.slice(
-					message.folderPath.indexOf('/'),
-				);
-
-				const element =
-					document.getElementById(
-						`diffViewer-${view.viewProps.diffId}`,
-					) ?? null;
-
-				if (element === null) {
-					return;
-				}
-
-				const fileInsideSelectedFolder =
-					Array.from(element.children).find((child) =>
-						child.id.includes(folderPathExcludingRootPath),
-					) ?? null;
-
-				if (fileInsideSelectedFolder === null) {
-					return;
-				}
-
-				fileInsideSelectedFolder.scrollIntoView();
-			}
-		},
-		[view],
-	);
+export const App = () => {
+	const [viewProps, setViewProps] = useState(window.panelViewProps);
 
 	useEffect(() => {
+		vscode.postMessage({
+			kind: 'webview.jobDiffView.webviewMounted',
+		});
+	}, []);
+
+	useEffect(() => {
+		const eventHandler = (event: MessageEvent<WebviewMessage>) => {
+			if (event.data.kind === 'webview.setPanelViewProps') {
+				setViewProps(event.data.panelViewProps);
+			}
+		};
+
 		window.addEventListener('message', eventHandler);
 
 		return () => {
 			window.removeEventListener('message', eventHandler);
 		};
-	}, [eventHandler, view]);
-
-	useEffect(() => {
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
 	}, []);
 
-	const postMessage = useCallback((event: JobAction) => {
-		vscode.postMessage({
-			kind: event.command,
-			value: event.arguments,
-		});
-	}, []);
-
-	if (!view) {
-		return null;
+	if (viewProps.kind === 'CODEMOD') {
+		return (
+			<main className={styles.markdownContainer}>
+				<ReactMarkdown children={viewProps.description} />
+			</main>
+		);
 	}
 
-	return <main className="App">{getViewComponent(view, postMessage)}</main>;
-}
-export type { JobDiffViewProps };
-export default App;
+	return (
+		<main className={styles.app}>
+			<JobDiffViewContainer {...viewProps} />
+		</main>
+	);
+};

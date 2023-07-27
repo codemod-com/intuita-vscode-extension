@@ -1,244 +1,85 @@
 import { Command } from 'vscode';
-import { JobHash, JobKind } from '../../jobs/types';
-import { ElementHash } from '../../elements/types';
+import { JobHash } from '../../jobs/types';
 export type { Command } from 'vscode';
-import * as E from 'fp-ts/Either';
+import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
+import { SyntheticError } from '../../errors/types';
+import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
+import { PanelViewProps } from './panelViewProps';
+import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
+import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
+import { ActiveTabId } from '../../persistedState/codecs';
+import { ErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
 
+export type ExecutionPath = T.These<SyntheticError, string>;
+
+export { JobHash };
 export { CodemodHash };
-export type JobActionCommands =
-	| 'intuita.rejectJob'
-	| 'intuita.createIssue'
-	| 'intuita.createPR'
-	| 'intuita.acceptJob'
-	| 'intuita.unapplyJob'
-	| 'intuita.applyJob';
 
-export type JobAction = {
-	title: string;
-	command: JobActionCommands;
-	arguments: JobHash[];
-};
-export type JobDiffViewProps = Readonly<{
-	jobHash: JobHash;
-	jobKind: JobKind;
-	oldFileContent: string | null;
-	newFileContent: string | null;
-	oldFileTitle: string | null;
-	newFileTitle: string | null;
-	title: string | null;
-	actions?: JobAction[];
-	staged: boolean;
+export type RunCodemodsCommand = Readonly<{
+	kind:
+		| 'webview.codemodList.dryRunCodemod'
+		| 'webview.codemodList.dryRunPrivateCodemod';
+	value: CodemodHash;
 }>;
-
-export type CommitChangesFormData = Readonly<{
-	remoteUrl: string;
-	currentBranchName: string;
-	newBranchName: string;
-	commitMessage: string;
-	createNewBranch: boolean;
-	stagedJobs: { hash: string; label: string }[];
-	pullRequestTitle: string;
-	pullRequestBody: string;
-}>;
-
-export type RunCodemodsCommand =
-	| Readonly<{
-			title: string;
-			description?: string;
-			kind: 'webview.codemodList.runCodemod';
-			value: CodemodHash;
-	  }>
-	| Readonly<{
-			title: string;
-			description?: string;
-			kind: 'webview.codemodList.dryRunCodemod';
-			value: CodemodHash;
-	  }>;
-
-export type CodemodTreeNode<T = undefined> = {
-	id: CodemodHash;
-	kind: 'codemodItem' | 'path';
-	label: string;
-	description?: string;
-	iconName?: string;
-	command?:
-		| (Command & {
-				command: 'intuita.openJobDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseDiff';
-				arguments?: ElementHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseByFolderDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openFolderDiff';
-				arguments?: JobHash[];
-		  });
-	actions?: RunCodemodsCommand[];
-	children: CodemodTreeNode<T>[];
-	extraData?: T;
-};
-
-export type CaseTreeNode = {
-	id: CaseHash;
-	kind: 'caseElement';
-	label?: string;
-	iconName: 'case.svg';
-	command?: Command & {
-		command: 'intuita.openCaseDiff';
-		arguments?: ElementHash[];
-	};
-	actions?: Command[];
-	children: TreeNode[];
-	caseApplied: boolean;
-};
-
-export type TreeNode = {
-	id: string;
-	kind: string;
-	label?: string;
-	iconName?: string;
-	command?:
-		| (Command & {
-				command: 'intuita.openJobDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseDiff';
-				arguments?: ElementHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openCaseByFolderDiff';
-				arguments?: JobHash[];
-		  })
-		| (Command & {
-				command: 'intuita.openFolderDiff';
-				arguments?: JobHash[];
-		  });
-	actions?: Command[];
-	children: TreeNode[];
-};
 
 export type WebviewMessage =
 	| Readonly<{
-			kind: 'webview.createIssue.setFormData';
-			value: Partial<{
-				title: string;
-				description: string;
-			}>;
+			kind: 'webview.setPanelViewProps';
+			panelViewProps: PanelViewProps;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setUserAccount';
-			value: string | null;
+			kind: 'webview.error.setProps';
+			errorWebviewViewProps: ErrorWebviewViewProps;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setView';
-			value: View;
-	  }>
-	| Readonly<{
-			kind: 'webview.diffView.updateDiffViewProps';
-			data: JobDiffViewProps;
-	  }>
-	| Readonly<{
-			kind: 'webview.diffview.rejectedJob';
-			data: [JobHash];
-	  }>
-	| Readonly<{
-			kind: 'webview.diffView.focusFile';
-			jobHash: JobHash;
-	  }>
-	| Readonly<{
-			kind: 'webview.diffView.focusFolder';
-			folderPath: string;
-	  }>
-	| Readonly<{
-			kind: 'webview.campaignManager.selectCase';
-			node: CaseTreeNode;
-	  }>
-	| Readonly<{
-			kind: 'webview.createIssue.submittingIssue';
-			value: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.createPR.setPullRequestSubmitting';
-			value: boolean;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemods.setPublicCodemods';
-			data: E.Either<Error, CodemodTreeNode<string> | null>;
-	  }>
-	| Readonly<{
-			kind: 'webview.codemodList.updatePathResponse';
-			data: E.Either<Error, string | null>;
+			kind: 'webview.main.setProps';
+			props: MainWebviewViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.setCodemodExecutionProgress';
-			value: number;
 			codemodHash: CodemodHash;
+			progressKind: 'finite' | 'infinite';
+			value: number;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';
-	  }>
-	| Readonly<{
-			kind: 'webview.codemods.focusCodemod';
-			codemodHashDigest: CodemodHash;
 	  }>;
 
 export type WebviewResponse =
 	| Readonly<{
-			kind: 'webview.createIssue.submitIssue';
-			value: {
-				title: string;
-				body: string;
-				remoteUrl: string;
-			};
+			kind: 'webview.jobDiffView.webviewMounted';
 	  }>
 	| Readonly<{
-			kind: 'webview.global.redirectToSignIn';
+			kind: 'webview.global.focusExplorerNode';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.openConfiguration';
+			kind:
+				| 'webview.global.flipSelectedExplorerNode'
+				| 'webview.global.flipCollapsibleExplorerNode';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.afterWebviewMounted';
+			kind: 'webview.global.flipReviewedExplorerNode';
+			caseHashDigest: CaseHash;
+			jobHash: JobHash;
+			path: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.createPR.submitPR';
-			value: CommitChangesFormData;
+			kind: 'webview.global.focusExplorerNodeSibling';
+			caseHashDigest: CaseHash;
+			direction: 'prev' | 'next';
 	  }>
 	| Readonly<{
-			kind: 'webview.createPR.commitChanges';
-			value: CommitChangesFormData;
-	  }>
-	| Readonly<{
-			kind: 'webview.tree.clearOutputFiles';
-	  }>
-	| Readonly<{
-			kind: 'webview.global.requestFeature';
-	  }>
-	| Readonly<{
-			kind: 'webview.global.openYouTubeChannel';
+			kind: 'webview.panel.focusOnChangeExplorer';
 	  }>
 	| Readonly<{
 			kind: 'webview.command';
 			value: Command;
-	  }>
-	| Readonly<{
-			kind: 'webview.createPR.formDataChanged';
-			value: CommitChangesFormData;
-	  }>
-	| Readonly<{
-			kind: JobActionCommands;
-			value: JobHash[];
-	  }>
-	| Readonly<{
-			kind: 'webview.global.closeView';
 	  }>
 	| Readonly<{
 			kind: 'webview.global.reportIssue';
@@ -248,89 +89,80 @@ export type WebviewResponse =
 	  }>
 	| Omit<RunCodemodsCommand, 'title' | 'description'>
 	| Readonly<{
-			kind: 'webview.global.navigateToCommitView';
-			jobHashes: JobHash[];
-			diffId: string;
-	  }>
-	| Readonly<{
 			kind: 'webview.global.applySelected';
-			jobHashes: JobHash[];
-			diffId: string;
+			caseHashDigest: CaseHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.stageJobs';
-			jobHashes: JobHash[];
+			kind: 'webview.global.setChangeExplorerSearchPhrase';
+			caseHashDigest: CaseHash;
+			searchPhrase: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.campaignManager.caseSelected';
-			hash: CaseHash;
+			kind:
+				| 'webview.global.setCodemodSearchPhrase'
+				| 'webview.global.setPrivateRegistrySearchPhrase';
+			searchPhrase: string;
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.folderSelected';
-			id: string;
+			kind: 'webview.global.flipChangeExplorerNodeHashDigests';
+			caseHashDigest: CaseHash;
+			explorerNodeHashDigest: _ExplorerNodeHashDigest;
+	  }>
+	| Readonly<{ kind: 'webview.global.showInformationMessage'; value: string }>
+	| Readonly<{ kind: 'webview.global.showWarningMessage'; value: string }>
+	| Readonly<{
+			kind: 'webview.main.setActiveTabId';
+			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
-			kind: 'webview.fileExplorer.fileSelected';
-			id: string;
+			kind:
+				| 'webview.main.setCodemodRunsPanelGroupSettings'
+				| 'webview.main.setCodemodDiscoveryPanelGroupSettings';
+			panelGroupSettings: string;
 	  }>
 	| Readonly<{
 			kind: 'webview.codemodList.updatePathToExecute';
 			value: {
-				codemodHash: CodemodHash;
 				newPath: string;
+				codemodHash: CodemodHash;
+				errorMessage: string | null;
+				warningMessage: string | null;
+				revertToPrevExecutionIfInvalid: boolean;
 			};
 	  }>
 	| Readonly<{
-			kind: 'webview.global.discardChanges';
+			kind: 'webview.global.discardSelected';
+			caseHashDigest: CaseHash;
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.haltCodemodExecution';
+	  }>
+	| Readonly<{
+			kind: 'webview.codemodList.codemodPathChange';
+			codemodPath: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.campaignManager.setSelectedCaseHash';
 			caseHash: CaseHash;
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodeList.haltCodemodExecution';
-			value: CodemodHash;
-	  }>;
-
-export type View =
-	| Readonly<{
-			viewId: 'createIssue';
-			viewProps: {
-				error: string;
-				loading: boolean;
-				initialFormData: Partial<{
-					title: string;
-					body: string;
-					remoteUrl: string;
-				}>;
-				remoteOptions: string[];
-			};
+			kind: 'webview.global.selectCodemodNodeHashDigest';
+			selectedCodemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>
 	| Readonly<{
-			viewId: 'treeView';
-			viewProps: {
-				node: TreeNode;
-				nodeIds: string[];
-				fileNodes: TreeNode[];
-			} | null;
+			kind: 'webview.global.flipCodemodHashDigest';
+			codemodNodeHashDigest: CodemodNodeHashDigest;
 	  }>
 	| Readonly<{
-			viewId: 'campaignManagerView';
-			viewProps: {
-				nodes: CaseTreeNode[];
-			} | null;
+			kind: 'webview.panel.contentModified';
+			jobHash: JobHash;
+			newContent: string;
 	  }>
 	| Readonly<{
-			viewId: 'jobDiffView';
-			viewProps: {
-				diffId: string;
-				title: string;
-				data: JobDiffViewProps[];
-			};
-	  }>
-	| Readonly<{
-			viewId: 'commitView';
-			viewProps: {
-				loading: boolean;
-				error: string;
-				remoteOptions: string[];
-				initialFormData: Partial<CommitChangesFormData>;
-			};
+			kind:
+				| 'webview.global.collapseResultsPanel'
+				| 'webview.global.collapseChangeExplorerPanel'
+				| 'webview.global.collapsePublicRegistryPanel'
+				| 'webview.global.collapsePrivateRegistryPanel';
+			collapsed: boolean;
 	  }>;

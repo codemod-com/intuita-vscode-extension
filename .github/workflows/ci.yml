@@ -11,9 +11,13 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Run cSpell
-              run: yarn spellcheck
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install dependencies
+              run: pnpm install
+            - name: Check spelling
+              run: pnpm spellcheck
     Build:
         runs-on: ubuntu-latest
         steps:
@@ -22,13 +26,15 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
-            - name: Install PNPM
-              run: npm install -g pnpm
-            - name: Compile using webpack
-              run: yarn compile
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install vsce
+              run: pnpm add -g @vscode/vsce
+            - name: Install dependencies
+              run: pnpm install
             - name: Package using webpack
-              run: yarn package
+              run: pnpm run build
     Lint:
         runs-on: ubuntu-latest
         steps:
@@ -37,9 +43,13 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install dependencies
+              run: pnpm install
             - name: Run ESLint
-              run: yarn eslint src --ext ts
+              run: pnpm eslint src --ext ts
     Prettier:
         runs-on: ubuntu-latest
         steps:
@@ -48,6 +58,10 @@ jobs:
                   node-version: 16
             - uses: actions/checkout@v2
             - name: Install modules
-              uses: bahmutov/npm-install@v1
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install dependencies
+              run: pnpm install
             - name: Ensure Prettier was run
-              run: yarn prettier --check .
+              run: pnpm prettier --check .

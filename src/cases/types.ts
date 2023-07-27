@@ -1,22 +1,24 @@
-import type { JobHash } from '../jobs/types';
+import { buildTypeCodec } from '../utilities';
+import * as t from 'io-ts';
 
-export type CaseHash = string & { readonly __CaseHash: '__CaseHash' };
-
-export const enum CaseKind {
-	REWRITE_FILE_BY_POLYGLOT_PIRANHA = 1,
-	REWRITE_FILE_BY_NORA_NODE_ENGINE = 2,
-	REWRITE_FILE_BY_NORA_RUST_ENGINE = 3,
+interface CaseHashBrand {
+	readonly __CaseHash: unique symbol;
 }
 
-export type Case = Readonly<{
-	kind: CaseKind;
-	subKind: string;
-	hash: CaseHash;
-	codemodSetName: string;
-	codemodName: string;
-}>;
+export const caseHashCodec = t.brand(
+	t.string,
+	(hashDigest): hashDigest is t.Branded<string, CaseHashBrand> =>
+		hashDigest.length > 0,
+	'__CaseHash',
+);
 
-export type CaseWithJobHashes = Case &
-	Readonly<{
-		jobHashes: ReadonlySet<JobHash>;
-	}>;
+export type CaseHash = t.TypeOf<typeof caseHashCodec>;
+
+export const caseCodec = buildTypeCodec({
+	hash: caseHashCodec,
+	codemodName: t.string,
+	createdAt: t.number,
+	path: t.string,
+});
+
+export type Case = t.TypeOf<typeof caseCodec>;

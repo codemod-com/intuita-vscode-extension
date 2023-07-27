@@ -36,6 +36,7 @@ If you run into an issue while running a codemod, please [let us know →](https
 
 - **To learn more about codemod.studio, registry, and the CLI visit the [Intuita docs here](https://docs.intuita.io/docs/intro).**
 
+
 ## Telemetry 🔭
 
 - The extension collects telemetry data to help us improve the product for you.

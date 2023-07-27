@@ -1,69 +1,49 @@
-import { useState } from 'react';
-import { JobDiffViewProps } from '../App';
-import { JobAction } from '../../../../src/components/webview/webviewEvents';
+import { useRef, useState } from 'react';
 import { JobDiffView } from './DiffItem';
 import { DiffViewType } from '../../shared/types';
 import { useCTLKey } from '../hooks/useKey';
 
-import Header from './Header';
+import { Header } from './Header';
+import { useTheme } from '../../shared/Snippet/useTheme';
+import type { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 import { vscode } from '../../shared/utilities/vscode';
+import { CaseHash } from '../../../../src/cases/types';
 
-type JobDiffViewContainerProps = {
-	postMessage: (arg: JobAction) => void;
-	jobs: JobDiffViewProps[];
-	title: string;
-	diffId: string;
+const focusExplorerNodeSibling = (
+	caseHashDigest: CaseHash,
+	direction: 'prev' | 'next',
+) => {
+	vscode.postMessage({
+		kind: 'webview.global.focusExplorerNodeSibling',
+		caseHashDigest,
+		direction,
+	});
 };
 
-export const JobDiffViewContainer = ({
-	title,
-	jobs,
-	diffId,
-	postMessage,
-}: JobDiffViewContainerProps) => {
+export const JobDiffViewContainer = (
+	props: PanelViewProps & { kind: 'JOB' },
+) => {
+	const containerRef = useRef<HTMLDivElement>(null);
 	const [viewType, setViewType] = useState<DiffViewType>('side-by-side');
 
 	useCTLKey('d', () => {
 		setViewType((v) => (v === 'side-by-side' ? 'inline' : 'side-by-side'));
 	});
 
+	const theme = useTheme();
+
 	return (
-		<div className="m-10 mt-0" id={`diffViewer-${diffId}`}>
+		<div className="w-full h-full flex flex-col">
 			<Header
 				onViewChange={setViewType}
 				viewType={viewType}
-				title={title}
-				jobs={jobs}
-				diffId={diffId}
+				changeJob={(direction) =>
+					focusExplorerNodeSibling(props.caseHash, direction)
+				}
 			/>
-			{/* Reversing the array sorts the items in an alphabetical order of directories */}
-			{jobs.reverse().map((el) => (
-				<JobDiffView
-					ViewType={viewType}
-					key={el.jobHash}
-					postMessage={postMessage}
-					jobStaged={el.staged}
-					onToggleJob={() => {
-						const stagedJobs = new Set(
-							jobs.filter((job) => job.staged),
-						);
-
-						if (stagedJobs.has(el)) {
-							stagedJobs.delete(el);
-						} else {
-							stagedJobs.add(el);
-						}
-
-						vscode.postMessage({
-							kind: 'webview.global.stageJobs',
-							jobHashes: Array.from(stagedJobs).map(
-								({ jobHash }) => jobHash,
-							),
-						});
-					}}
-					{...el}
-				/>
-			))}
+			<div className="w-full pb-2-5 h-full" ref={containerRef}>
+				<JobDiffView theme={theme} viewType={viewType} {...props} />
+			</div>
 		</div>
 	);
 };

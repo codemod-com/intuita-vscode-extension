@@ -1,124 +1,74 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { VSCodeButton, VSCodeCheckbox } from '@vscode/webview-ui-toolkit/react';
 import './Container.css';
-import { JobAction, JobDiffViewProps } from '../../shared/types';
 import { JobKind } from '../../shared/constants';
+import { ReactComponent as CopyIcon } from '../../assets/copy.svg';
 import { Diff } from './Diff';
-import Popover from '../../shared/Popover';
-
-type ContainerProps = Readonly<{
-	oldFileName: string | null;
-	newFileName: string | null;
-	viewType: 'inline' | 'side-by-side';
-	children?: React.ReactNode;
-}>;
-
-export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	({ oldFileName, newFileName, children, viewType }: ContainerProps, ref) => {
-		return (
-			<div
-				className="flex  flex-wrap w-full container flex-col"
-				ref={ref}
-			>
-				{viewType === 'side-by-side' && newFileName && oldFileName && (
-					<div className="flex flex-row w-full">
-						<div className="w-half ml-50">
-							<p>{oldFileName}</p>
-						</div>
-						<div className="w-half ml-30">
-							<p>{newFileName}</p>
-						</div>
-					</div>
-				)}
-
-				<div className="flex flex-wrap flex-col w-full">{children}</div>
-			</div>
-		);
-	},
-);
+import IntuitaPopover from '../../shared/IntuitaPopover';
+import { vscode } from '../../shared/utilities/vscode';
+import { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 
 type HeaderProps = Readonly<{
-	id: string;
 	diff: Diff | null;
 	title: string;
-	newFileTitle: string;
 	oldFileTitle: string;
-	jobKind: JobDiffViewProps['jobKind'];
-	viewType: 'inline' | 'side-by-side';
-	viewed?: boolean;
-	children?: React.ReactNode;
-	actions: JobDiffViewProps['actions'];
-	jobStaged: boolean;
-	onAction: (arg: JobAction) => void;
-	onViewedChange: () => void;
-	onViewTypeChange: (viewType: 'inline' | 'side-by-side') => void;
+	jobKind: (PanelViewProps & { kind: 'JOB' })['jobKind'];
+	caseHash: (PanelViewProps & { kind: 'JOB' })['caseHash'];
+	jobHash: (PanelViewProps & { kind: 'JOB' })['jobHash'];
+	reviewed: (PanelViewProps & { kind: 'JOB' })['reviewed'];
 	onReportIssue(): void;
-	onToggleJob(staged: boolean): void;
+	modifiedByUser: boolean;
+	children?: React.ReactNode;
 }>;
 
 export const Header = ({
-	id,
 	diff,
 	title,
+	oldFileTitle,
 	jobKind,
+	caseHash,
+	jobHash,
+	modifiedByUser,
 	children,
-	viewed,
-	actions,
-	jobStaged,
-	onToggleJob,
-	onViewedChange,
-	onAction,
+	reviewed,
 	onReportIssue,
 }: HeaderProps) => {
-	const shouldShowDiff = diff && showDiff(jobKind as unknown as JobKind);
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
-	return (
-		<div id={id} className="flex w-full items-center container-header">
-			<div className="flex flex-row flex-1 justify-between flex-wrap">
-				<Popover
-					trigger={
-						<VSCodeCheckbox
-							checked={jobStaged}
-							onClick={(e) => {
-								e.stopPropagation();
-								onToggleJob(!jobStaged);
-							}}
-						/>
-					}
-					popoverText="Select / Unselect to include or exclude the change."
-				/>
-				<div className="flex items-center flex-1">
-					{jobKindText ? (
-						<h4 className="my-0 ml-2 job-kind-text align-self-center">
-							{jobKindText}
-						</h4>
-					) : null}
-					<h4 className="my-0 ml-1 diff-title align-self-center">
-						{title}
-					</h4>
-				</div>
+	const hasDiff = diff !== null;
+	const handleCopyFileName = (event: React.FormEvent<HTMLElement>) => {
+		event.stopPropagation();
+		navigator.clipboard.writeText(title);
+		vscode.postMessage({
+			kind: 'webview.global.showInformationMessage',
+			value: 'File name copied to clipboard',
+		});
+	};
+	const handleReviewedClick = (event: React.MouseEvent) => {
+		event.stopPropagation();
 
-				<div
-					className="flex gap-4"
-					onClick={(e) => {
-						e.stopPropagation();
-					}}
-				>
-					<Popover
-						trigger={
-							<VSCodeButton
-								appearance="secondary"
-								onClick={onReportIssue}
-							>
-								Report Issue
-							</VSCodeButton>
-						}
-						popoverText="Open a Github issue with a provided template to report a problem."
-					/>
-					{shouldShowDiff && (
-						<div className="ml-10 flex items-center justify-end diff-changes-container">
+		vscode.postMessage({
+			kind: 'webview.global.flipReviewedExplorerNode',
+			caseHashDigest: caseHash,
+			jobHash,
+			path: title,
+		});
+	};
+
+	return (
+		<div className="flex w-full align-items-center container-header">
+			<div className="flex flex-row flex-1 justify-between flex-wrap">
+				<div className="flex align-items-center flex-1">
+					{hasDiff ? (
+						<div className="flex align-items-center">
 							<span className="diff-changes diff-removed">
-								-{diff.removed}
+								-
+								{[
+									JobKind.createFile,
+									JobKind.copyFile,
+									JobKind.moveFile,
+								].includes(jobKind as unknown as JobKind)
+									? '0'
+									: diff.removed}
 							</span>
 
 							<span> / </span>
@@ -127,27 +77,98 @@ export const Header = ({
 								+{diff.added}
 							</span>
 						</div>
-					)}
-					{actions &&
-						actions?.map((el) => (
-							<VSCodeButton
-								onClick={() => onAction(el)}
-								appearance="secondary"
-								key={el.command}
-							>
-								{el.title}
-							</VSCodeButton>
-						))}
-					<div
-						className="viewed-button flex ml-10 justify-between checkbox-container items-center"
-						onClick={(e) => {
-							e.stopPropagation();
-							onViewedChange();
-						}}
+					) : null}
+					{jobKindText ? (
+						<h4 className="my-0 ml-2 highlighted-text align-self-center user-select-none">
+							{jobKindText}
+						</h4>
+					) : null}
+					<IntuitaPopover
+						disabled={
+							(jobKind as unknown as JobKind) !== JobKind.copyFile
+						}
+						content={`Copied from ${oldFileTitle}`}
 					>
-						<VSCodeCheckbox checked={viewed} />
-						<p className="my-0 ml-10">Viewed</p>
+						<h4 className="my-0 ml-1 diff-title align-self-center user-select-none">
+							{title.startsWith('/') ? title.slice(1) : title}
+						</h4>
+					</IntuitaPopover>
+					<VSCodeButton
+						onClick={handleCopyFileName}
+						appearance="icon"
+						className="vscode-button"
+					>
+						<CopyIcon className="copy-icon" />
+					</VSCodeButton>
+					{modifiedByUser ? (
+						<IntuitaPopover
+							content={
+								<div
+									style={{
+										padding: '8px',
+										backgroundColor:
+											'var(--vscode-tab-inactiveBackground)',
+									}}
+								>
+									Saved in the temporary dry-run file. Not
+									applied to the workspace.
+								</div>
+							}
+							placement="bottom"
+						>
+							<h4
+								className="my-0 ml-2 highlighted-text align-self-center user-select-none"
+								style={{ fontSize: '0.7rem' }}
+							>
+								Saved...
+							</h4>
+						</IntuitaPopover>
+					) : null}
+				</div>
+
+				<div
+					className="flex gap-4"
+					onClick={(e) => {
+						e.stopPropagation();
+					}}
+					style={{ height: '28px' }}
+				>
+					<div
+						className="flex align-items-center checkbox-container"
+						onClick={handleReviewedClick}
+					>
+						<VSCodeCheckbox checked={reviewed} />
+						<p
+							className="user-select-none ml-10"
+							style={{
+								color: 'var(--button-secondary-foreground)',
+							}}
+						>
+							Reviewed
+						</p>
 					</div>
+					<IntuitaPopover
+						content={
+							<div
+								style={{
+									padding: '8px',
+									backgroundColor:
+										'var(--vscode-tab-inactiveBackground)',
+								}}
+							>
+								Open a Github issue with a provided template to
+								report a problem.
+							</div>
+						}
+						placement="bottom"
+					>
+						<VSCodeButton
+							appearance="secondary"
+							onClick={onReportIssue}
+						>
+							Report Issue
+						</VSCodeButton>
+					</IntuitaPopover>
 				</div>
 			</div>
 			{children}
@@ -155,21 +176,9 @@ export const Header = ({
 	);
 };
 
-const showDiff = (jobKind: JobKind): boolean => {
-	switch (jobKind) {
-		case JobKind.copyFile:
-		case JobKind.moveFile:
-		case JobKind.deleteFile:
-			return false;
-		default:
-			return true;
-	}
-};
-
 const getJobKindText = (jobKind: JobKind): string => {
 	switch (jobKind) {
 		case JobKind.copyFile:
-			return '(copied)';
 		case JobKind.createFile:
 			return '(created)';
 		case JobKind.deleteFile:

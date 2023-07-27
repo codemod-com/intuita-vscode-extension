@@ -1,8 +1,7 @@
 import * as t from 'io-ts';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
-import { Element, ElementKind } from './elements/types';
-import { JobKind } from './jobs/types';
+import { _ExplorerNode } from './persistedState/explorerNodeCodec';
 
 export type IntuitaRange = Readonly<[number, number, number, number]>;
 
@@ -67,84 +66,12 @@ export function getUri(
 	return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
 }
 
-export const getElementIconBaseName = (
-	kind: Element['kind'],
-	jobKind: JobKind | null,
-): string => {
-	switch (kind) {
-		case ElementKind.CASE:
-			return 'case.svg';
-		case ElementKind.FILE:
-			return jobKind !== null &&
-				[
-					JobKind.copyFile,
-					JobKind.createFile,
-					JobKind.moveAndRewriteFile,
-					JobKind.moveFile,
-				].includes(jobKind)
-				? 'newFile.svg'
-				: 'file.svg';
-		case ElementKind.JOB:
-			return 'bluelightbulb.svg';
-		case ElementKind.ROOT:
-			return 'wrench.svg';
-		default:
-			return 'bluelightbulb.svg';
-	}
-};
-
-export const branchNameFromStr = (str: string): string => {
-	let branchName = str
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9-]/g, '-')
-		.replace(/--+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	if (branchName.length > 63) {
-		branchName = branchName.substr(0, 63);
-	}
-
-	if (!/^[a-z0-9]/.test(branchName)) {
-		branchName = 'x-' + branchName;
-	}
-
-	return branchName;
-};
-
 export const capitalize = (str: string): string => {
 	if (!str) {
 		return '';
 	}
 
 	return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-export const buildTreeRootLabel = (caseLabel: string | null) => {
-	if (!caseLabel) {
-		return 'Recipe';
-	}
-
-	// this is based on the current phrase system in the Codemod Registry repo: https://github.com/intuita-inc/codemod-registry
-	const [framework, version] = caseLabel.split('/');
-	if (!framework || !version) {
-		return 'Recipe';
-	}
-
-	return `Upgrade ${capitalize(framework)} to v${version}`;
-};
-
-export const buildStackedBranchPRMessage = (
-	stackedBranches: readonly string[],
-): string => {
-	let message = `Current dependencies on/for this PR: \n`;
-
-	stackedBranches.forEach((branchName, i) => {
-		const ident = '   '.repeat(i);
-		message += ` \n ${ident} ${i !== 0 ? '\u{231E}' : ''} ${branchName}`;
-	});
-
-	return message;
 };
 
 // taken from https://stackoverflow.com/a/63361543
@@ -161,4 +88,33 @@ export const streamToString = async (stream: NodeJS.ReadableStream) => {
 	}
 
 	return Buffer.concat(chunks).toString('utf-8');
+};
+
+export const buildCodemodMetadataHash = (name: string) =>
+	createHash('ripemd160')
+		.update('README.md')
+		.update(name)
+		.digest('base64url');
+
+export const findParentExplorerNode = (
+	index: number,
+	explorerNodes: _ExplorerNode[],
+): { node: _ExplorerNode; index: number } | null => {
+	const explorerNode = explorerNodes[index] ?? null;
+	if (explorerNode === null) {
+		return null;
+	}
+
+	for (let i = index - 1; i >= 0; i--) {
+		const node = explorerNodes[i] ?? null;
+
+		if (node === null) {
+			return null;
+		}
+
+		if (node.depth < explorerNode.depth) {
+			return { node, index: i };
+		}
+	}
+	return null;
 };

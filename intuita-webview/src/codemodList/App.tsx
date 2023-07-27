@@ -1,71 +1,166 @@
-import { useEffect, useState } from 'react';
+import areEqual from 'fast-deep-equal';
+import { memo, useEffect, useMemo, useRef } from 'react';
+
+import {
+	PanelResizeHandle,
+	PanelGroupStorage,
+	ImperativePanelHandle,
+} from 'react-resizable-panels';
+import { ResizablePanel, PanelGroup } from '../shared/Panel';
+
 import { vscode } from '../shared/utilities/vscode';
-import type { WebviewMessage, CodemodTreeNode } from '../shared/types';
+import SearchBar from '../shared/SearchBar';
+
 import TreeView from './TreeView';
-import { Container, LoadingContainer } from './components/Container';
-import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
-import * as E from 'fp-ts/Either';
-import './index.css';
 
-function App() {
-	const [publicCodemods, setPublicCodemods] = useState<
-		E.Either<Error, CodemodTreeNode<string> | null>
-	>(E.right(null));
+import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import cn from 'classnames';
+import { SectionHeader } from '../shared/SectionHeader';
 
-	const [pathEditResponse, setPathEditResponse] = useState<
-		E.Either<Error, string | null>
-	>(E.right(null));
+const setSearchPhrase = (searchPhrase: string) => {
+	vscode.postMessage({
+		kind: 'webview.global.setCodemodSearchPhrase',
+		searchPhrase,
+	});
+};
 
-	useEffect(() => {
-		const handler = (e: MessageEvent<WebviewMessage>) => {
-			const message = e.data;
+export const App = memo(
+	(
+		props: MainWebviewViewProps & {
+			activeTabId: 'codemods';
+			screenWidth: number | null;
+		},
+	) => {
+		const publicRegistryRef = useRef<ImperativePanelHandle | null>(null);
+		const privateRegistryRef = useRef<ImperativePanelHandle | null>(null);
 
-			if (message.kind === 'webview.codemods.setPublicCodemods') {
-				setPublicCodemods(message.data);
+		useEffect(() => {
+			if (props.publicRegistryCollapsed) {
+				publicRegistryRef.current?.collapse();
+			} else {
+				publicRegistryRef.current?.expand();
 			}
-			if (message.kind === 'webview.codemodList.updatePathResponse') {
-				setPathEditResponse(message.data);
+
+			if (props.privateRegistryCollapsed) {
+				privateRegistryRef.current?.collapse();
+			} else {
+				privateRegistryRef.current?.expand();
 			}
-		};
+		}, [props.publicRegistryCollapsed, props.privateRegistryCollapsed]);
 
-		window.addEventListener('message', handler);
+		const storage = useMemo(
+			(): PanelGroupStorage => ({
+				getItem: () => JSON.stringify(props.panelGroupSettings),
+				setItem: (_, panelGroupSettings: string): void => {
+					vscode.postMessage({
+						kind: 'webview.main.setCodemodDiscoveryPanelGroupSettings',
+						panelGroupSettings,
+					});
+				},
+			}),
+			[props.panelGroupSettings],
+		);
 
-		vscode.postMessage({ kind: 'webview.global.afterWebviewMounted' });
+		return (
+			<main className={cn('w-full', 'h-full', 'overflow-y-auto')}>
+				<PanelGroup
+					direction="vertical"
+					storage={storage}
+					autoSaveId="codemodListPanelGroup"
+				>
+					<SectionHeader
+						title={'Public Registry'}
+						commands={[]}
+						collapsed={props.publicRegistryCollapsed}
+						onClick={(event) => {
+							event.preventDefault();
 
-		return () => {
-			window.removeEventListener('message', handler);
-		};
-	}, []);
+							vscode.postMessage({
+								kind: 'webview.global.collapsePublicRegistryPanel',
+								collapsed: !props.publicRegistryCollapsed,
+							});
+						}}
+					/>
+					<ResizablePanel
+						collapsible
+						minSize={0}
+						defaultSize={props.panelGroupSettings['0,0']?.[0] ?? 50}
+						style={{
+							overflowY: 'auto',
+							overflowX: 'hidden',
+						}}
+						ref={publicRegistryRef}
+						onCollapse={(collapsed) => {
+							vscode.postMessage({
+								kind: 'webview.global.collapsePublicRegistryPanel',
+								collapsed,
+							});
+						}}
+					>
+						<SearchBar
+							searchPhrase={props.searchPhrase}
+							setSearchPhrase={setSearchPhrase}
+							placeholder="Search public codemods..."
+						/>
+						<TreeView
+							screenWidth={props.screenWidth}
+							rootPath={props.rootPath}
+							tree={props.codemodTree}
+							autocompleteItems={props.autocompleteItems}
+						/>
+					</ResizablePanel>
+					<PanelResizeHandle className="resize-handle" />
+					<SectionHeader
+						title={'Private Registry'}
+						commands={[
+							{
+								icon: 'clear-all',
+								title: 'Clear all',
+								command: 'intuita.clearPrivateCodemods',
+							},
+						]}
+						collapsed={props.privateRegistryCollapsed}
+						onClick={(event) => {
+							event.preventDefault();
 
-	return (
-		<main className="App">
-			<Container
-				defaultExpanded
-				headerTitle="Public Codemods"
-				className="content-border-top h-full"
-			>
-				<div>
-					{E.isRight(publicCodemods) &&
-						publicCodemods.right !== null && (
-							<TreeView
-								response={pathEditResponse}
-								node={publicCodemods.right}
-							/>
-						)}
-					{E.isRight(publicCodemods) &&
-						publicCodemods.right === null && (
-							<LoadingContainer>
-								<VSCodeProgressRing className="progressBar" />
-								<span aria-label="loading">Loading ...</span>
-							</LoadingContainer>
-						)}
-					{E.isLeft(publicCodemods) && (
-						<p>{publicCodemods.left.message}</p>
-					)}
-				</div>
-			</Container>
-		</main>
-	);
-}
-
-export default App;
+							vscode.postMessage({
+								kind: 'webview.global.collapsePrivateRegistryPanel',
+								collapsed: !props.privateRegistryCollapsed,
+							});
+						}}
+						style={{
+							backgroundColor:
+								'var(--vscode-tab-inactiveBackground)',
+						}}
+					/>
+					<ResizablePanel
+						collapsible
+						minSize={0}
+						defaultSize={props.panelGroupSettings['0,0']?.[1] ?? 50}
+						style={{
+							overflowY: 'auto',
+							overflowX: 'hidden',
+							backgroundColor:
+								'var(--vscode-tab-inactiveBackground)',
+						}}
+						ref={privateRegistryRef}
+						onCollapse={(collapsed) => {
+							vscode.postMessage({
+								kind: 'webview.global.collapsePrivateRegistryPanel',
+								collapsed,
+							});
+						}}
+					>
+						<TreeView
+							screenWidth={props.screenWidth}
+							rootPath={props.rootPath}
+							tree={props.privateCodemods}
+							autocompleteItems={props.autocompleteItems}
+						/>
+					</ResizablePanel>
+				</PanelGroup>
+			</main>
+		);
+	},
+	areEqual,
+);

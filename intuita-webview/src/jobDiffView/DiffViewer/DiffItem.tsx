@@ -1,116 +1,109 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Container, Header } from './Container';
-import { JobDiffViewProps } from '../App';
-import {
-	Collapsable,
-	CollapsableRefMethods,
-} from '../../shared/Collapsable/Collapsable';
-import { useDiffViewer } from './Diff';
-import { JobAction } from '../../../../src/components/webview/webviewEvents';
-import { DiffViewType } from '../../shared/types';
+import { Header } from './Container';
+import { Collapsable } from '../Components/Collapsable';
+import { Diff, DiffComponent } from './Diff';
+import { reportIssue } from '../util';
+import { KeyboardEvent, forwardRef, memo, useCallback, useState } from 'react';
+import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
+import debounce from '../../shared/utilities/debounce';
+import { PanelViewProps } from '../../../../src/components/webview/panelViewProps';
 
-type Props = JobDiffViewProps & {
-	postMessage: (arg: JobAction) => void;
-	ViewType: 'inline' | 'side-by-side';
-	jobStaged: boolean;
-	onToggleJob(staged: boolean): void;
+type Props = PanelViewProps & { kind: 'JOB' } & {
+	viewType: 'inline' | 'side-by-side';
+	theme: string;
 };
 
-export const JobDiffView = ({
-	ViewType,
-	actions,
-	jobHash,
-	jobKind,
-	oldFileContent,
-	newFileContent,
-	oldFileTitle,
-	newFileTitle,
-	title,
-	jobStaged,
-	postMessage,
-	onToggleJob,
-}: Props) => {
-	const collapsableRef = useRef<CollapsableRefMethods>(null);
-	const [viewType, setViewType] = useState<DiffViewType>(ViewType);
+export const JobDiffView = memo(
+	forwardRef<HTMLDivElement, Props>(
+		(
+			{
+				viewType,
+				jobHash,
+				jobKind,
+				oldFileContent,
+				newFileContent,
+				oldFileTitle,
+				reviewed,
+				title,
+				theme,
+				caseHash,
+			}: Props,
+			ref,
+		) => {
+			const [diff, setDiff] = useState<Diff | null>(null);
+			const [modifiedByUser, setModifiedByUser] = useState(false);
 
-	useEffect(() => {
-		setViewType(ViewType);
-	}, [ViewType]);
+			const report = useCallback(() => {
+				reportIssue(
+					jobHash,
+					oldFileContent ?? '',
+					newFileContent ?? '',
+				);
+			}, [jobHash, oldFileContent, newFileContent]);
 
-	const [isVisible, setVisible] = useState(true);
+			const handleDiffCalculated = (diff: Diff) => {
+				setDiff(diff);
+			};
 
-	const toggleViewed = useCallback(() => {
-		setVisible((v) => !v);
-	}, [setVisible]);
+			const handleContentChange = debounce((newContent: string) => {
+				const changed = newContent !== newFileContent;
+				if (changed) {
+					vscode.postMessage({
+						kind: 'webview.panel.contentModified',
+						newContent,
+						jobHash,
+					});
+				}
+				setModifiedByUser(changed);
+			}, 1000);
 
-	useEffect(() => {
-		if (isVisible) {
-			collapsableRef.current?.expand();
-		} else {
-			collapsableRef.current?.collapse();
-		}
-	}, [isVisible]);
+			return (
+				<div
+					ref={ref}
+					className="px-5 pb-2-5 diff-view-container h-full"
+					tabIndex={0}
+					onKeyDown={(event: KeyboardEvent) => {
+						if (event.key === 'ArrowLeft') {
+							event.preventDefault();
 
-	const onAction = (action: JobAction) => {
-		postMessage(action);
-	};
-	const { diff, diffViewer } = useDiffViewer({
-		viewType,
-		oldFileTitle,
-		newFileTitle,
-		jobKind,
-		oldFileContent,
-		newFileContent,
-		jobHash,
-		title,
-	});
-
-	const reportIssue = () => {
-		vscode.postMessage({
-			kind: 'webview.global.reportIssue',
-			faultyJobHash: jobHash,
-			oldFileContent: oldFileContent ?? '',
-			newFileContent: newFileContent ?? '',
-		});
-	};
-
-	return (
-		<Collapsable
-			id={newFileTitle ?? ''}
-			ref={collapsableRef}
-			defaultExpanded={true}
-			className="overflow-hidden my-10 rounded "
-			headerClassName="p-10"
-			contentClassName="p-10"
-			headerSticky
-			headerComponent={
-				<Header
-					id={`diffViewHeader-${jobHash}`}
-					diff={diff}
-					oldFileTitle={oldFileTitle ?? ''}
-					newFileTitle={newFileTitle ?? ''}
-					jobKind={jobKind}
-					onViewedChange={toggleViewed}
-					viewed={!isVisible}
-					onAction={onAction}
-					actions={actions}
-					title={title ?? ''}
-					viewType={viewType}
-					jobStaged={jobStaged}
-					onToggleJob={onToggleJob}
-					onViewTypeChange={setViewType}
-					onReportIssue={reportIssue}
-				/>
-			}
-		>
-			<Container
-				viewType={viewType}
-				oldFileName={oldFileTitle}
-				newFileName={newFileTitle}
-			>
-				{diffViewer}
-			</Container>
-		</Collapsable>
-	);
-};
+							vscode.postMessage({
+								kind: 'webview.panel.focusOnChangeExplorer',
+							});
+						}
+					}}
+				>
+					<Collapsable
+						defaultExpanded={true}
+						className="overflow-hidden rounded h-full"
+						headerClassName="p-10"
+						contentClassName="p-10 h-full"
+						headerSticky
+						headerComponent={
+							<Header
+								diff={diff}
+								modifiedByUser={modifiedByUser}
+								oldFileTitle={oldFileTitle ?? ''}
+								jobKind={jobKind}
+								caseHash={caseHash}
+								jobHash={jobHash}
+								title={title ?? ''}
+								reviewed={reviewed}
+								onReportIssue={report}
+							/>
+						}
+					>
+						<DiffComponent
+							theme={theme}
+							viewType={viewType}
+							oldFileContent={oldFileContent}
+							newFileContent={newFileContent}
+							onDiffCalculated={handleDiffCalculated}
+							onChange={handleContentChange}
+							jobHash={jobHash}
+						/>
+					</Collapsable>
+				</div>
+			);
+		},
+	),
+);

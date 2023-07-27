@@ -1,66 +1,115 @@
-import { useRef, useState } from 'react';
-import MonacoDiffEditor, { monaco } from '../../shared/Snippet/DiffEditor';
-import { JobDiffViewProps } from '../App';
+import { memo, useEffect, useRef, useState } from 'react';
 import { getDiff, Diff } from '../../shared/Snippet/calculateDiff';
-import { getDiffEditorHeight } from '../../shared/Snippet/getDiffEditorHeight';
+import { editor } from 'monaco-editor';
+import configure from './configure';
+import { DiffEditor, Monaco } from '@monaco-editor/react';
 
 export type { Diff };
 
-export const useDiffViewer = ({
-	oldFileContent,
-	newFileContent,
-	viewType,
-}: Omit<JobDiffViewProps, 'staged'> & {
+type Props = Readonly<{
+	jobHash: string;
+	oldFileContent: string | null;
+	newFileContent: string | null;
 	viewType: 'inline' | 'side-by-side';
-}) => {
-	const editorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
-	const [diff, setDiff] = useState<Diff | null>(null);
-	const [height, setHeight] = useState<string>('90vh');
+	theme: string;
+	onDiffCalculated: (diff: Diff) => void;
+	onChange(content: string): void;
+}>;
 
-	const getDiffChanges = (): Diff | undefined => {
-		if (!editorRef.current) {
-			return;
-		}
-		const lineChanges = editorRef.current.getLineChanges();
-		if (!lineChanges) {
-			return;
-		}
-		return getDiff(lineChanges);
-	};
+const getDiffChanges = (
+	editor: editor.IStandaloneDiffEditor,
+): Diff | undefined => {
+	const lineChanges = editor.getLineChanges();
 
-	const getHeight = () => {
-		if (!editorRef.current) {
-			return;
-		}
-		const editorHeight = getDiffEditorHeight(editorRef.current);
-		if (editorHeight) {
-			setHeight(`${editorHeight}px`);
-		}
-	};
+	if (!lineChanges) {
+		return;
+	}
+	return getDiff(lineChanges);
+};
 
-	const handleRefSet = () => {
-		const diffChanges = getDiffChanges();
-		setDiff(diffChanges ?? null);
-		getHeight();
-	};
+export const DiffComponent = memo(
+	({
+		oldFileContent,
+		newFileContent,
+		viewType,
+		onDiffCalculated,
+		onChange,
+		theme,
+		jobHash,
+	}: Props) => {
+		const editorRef = useRef<editor.IStandaloneDiffEditor | null>(null);
+		const [isMounted, setIsMounted] = useState(false);
+		const [modifiedContent, setModifiedContent] = useState(newFileContent);
 
-	const getDiffViewer = (
-		<div
-			className="w-full"
-			style={{
-				height: height,
-			}}
-		>
-			<MonacoDiffEditor
-				height={height}
-				width={'100%'}
-				onRefSet={handleRefSet}
-				ref={editorRef}
+		useEffect(() => {
+			const editor = editorRef.current;
+			if (editor === null) {
+				return;
+			}
+			editor.getModifiedEditor().setScrollTop(0);
+		}, [jobHash]);
+
+		useEffect(() => {
+			const editor = editorRef.current;
+			if (editor === null || !isMounted) {
+				return;
+			}
+
+			const disposable = editor.onDidUpdateDiff(() => {
+				const diffChanges = getDiffChanges(editor);
+
+				if (diffChanges) {
+					onDiffCalculated(diffChanges);
+				}
+			});
+			return () => {
+				disposable.dispose();
+			};
+		}, [onDiffCalculated, isMounted]);
+
+		useEffect(() => {
+			const editor = editorRef.current;
+			if (editor === null || !isMounted) {
+				return;
+			}
+
+			const modifiedEditor = editor.getModifiedEditor();
+			const disposable = modifiedEditor.onDidChangeModelContent(() => {
+				const content = modifiedEditor.getValue() ?? null;
+				if (content === null) {
+					return;
+				}
+				setModifiedContent(content);
+				onChange(content);
+			});
+			return () => {
+				disposable.dispose();
+			};
+		}, [onChange, isMounted]);
+
+		useEffect(() => {
+			// set modified content to `newFileContent` only once when the new job first loads
+			setModifiedContent(newFileContent);
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [jobHash]);
+
+		return (
+			<DiffEditor
+				theme={theme}
+				onMount={(e: editor.IStandaloneDiffEditor, m: Monaco) => {
+					editorRef.current = e;
+
+					configure(e, m);
+					setIsMounted(true);
+				}}
 				options={{
-					readOnly: true,
+					readOnly: false,
+					originalEditable: false,
 					renderSideBySide: viewType === 'side-by-side',
 					wrappingStrategy: 'advanced',
 					wordWrap: 'wordWrapColumn',
+					wordWrapColumn: 75,
+					wrappingIndent: 'indent',
 					scrollBeyondLastLine: false,
 					wordBreak: 'normal',
 					diffAlgorithm: 'smart',
@@ -74,12 +123,12 @@ export const useDiffViewer = ({
 					},
 				}}
 				loading={<div>Loading content ...</div>}
-				modified={newFileContent ?? undefined}
+				modified={modifiedContent ?? undefined}
 				original={oldFileContent ?? undefined}
+				modifiedModelPath="modified.tsx"
+				originalModelPath="original.tsx"
 				language="typescript"
 			/>
-		</div>
-	);
-
-	return { diffViewer: getDiffViewer, diff };
-};
+		);
+	},
+);

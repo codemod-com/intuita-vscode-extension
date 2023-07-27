@@ -1,143 +1,67 @@
 import { Message, MessageBus, MessageKind } from '../components/messageBus';
+import { Store } from '../data';
+import { actions } from '../data/slice';
 import { JobHash } from '../jobs/types';
 import { LeftRightHashSetManager } from '../leftRightHashes/leftRightHashSetManager';
-import { Case, CaseWithJobHashes, CaseHash } from './types';
+import { isNeitherNullNorUndefined } from '../utilities';
+import { CaseHash } from './types';
 
 export class CaseManager {
-	#newCaseHash: CaseHash | null;
-	readonly #messageBus: MessageBus;
-	readonly #cases: Map<CaseHash, Case>;
-	readonly #caseHashJobHashSetManager: LeftRightHashSetManager<
-		CaseHash,
-		JobHash
-	>;
-
 	public constructor(
-		cases: ReadonlyArray<Case>,
-		caseHashJobHashes: ReadonlySet<string>,
-		messageBus: MessageBus,
+		private readonly __messageBus: MessageBus,
+		private readonly __store: Store,
 	) {
-		this.#messageBus = messageBus;
-		this.#newCaseHash = null;
-		this.#cases = new Map(cases.map((kase) => [kase.hash, kase]));
-		this.#caseHashJobHashSetManager = new LeftRightHashSetManager(
-			caseHashJobHashes,
-		);
-
-		this.#messageBus.subscribe(MessageKind.upsertCases, (message) =>
+		this.__messageBus.subscribe(MessageKind.upsertCase, (message) =>
 			this.#onUpsertCasesMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.acceptCase, (message) =>
+		this.__messageBus.subscribe(MessageKind.acceptCase, (message) =>
 			this.#onAcceptCaseMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.rejectCase, (message) =>
+		this.__messageBus.subscribe(MessageKind.rejectCase, (message) =>
 			this.#onRejectCaseMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
+		this.__messageBus.subscribe(MessageKind.jobsAccepted, (message) =>
 			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.jobsRejected, (message) =>
+		this.__messageBus.subscribe(MessageKind.jobsRejected, (message) =>
 			this.#onJobsAcceptedOrJobsRejectedMessage(message),
 		);
-		this.#messageBus.subscribe(MessageKind.clearState, () =>
-			this.#onClearStateMessage(),
+	}
+
+	#onUpsertCasesMessage(message: Message & { kind: MessageKind.upsertCase }) {
+		const caseHashJobHashes = message.jobs.map(
+			({ hash }) => `${message.kase.hash}${hash}`,
 		);
-	}
 
-	public getNewCaseHash(): CaseHash | null {
-		return this.#newCaseHash;
-	}
+		this.__store.dispatch(
+			actions.upsertCase([message.kase, caseHashJobHashes]),
+		);
 
-	public getCases(): IterableIterator<Case> {
-		return this.#cases.values();
-	}
-
-	public getCase(caseHash: CaseHash): Case | undefined {
-		return this.#cases.get(caseHash);
-	}
-
-	public getCaseCount(): number {
-		return this.#cases.size;
-	}
-
-	public getCaseHashJobHashSetValues(): IterableIterator<string> {
-		return this.#caseHashJobHashSetManager.getSetValues();
-	}
-
-	public getJobHashes(caseHashes: Iterable<CaseHash>): ReadonlySet<JobHash> {
-		const jobHashes = new Set<JobHash>();
-
-		for (const caseHash of caseHashes) {
-			const caseJobHashes =
-				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-					caseHash,
-				);
-
-			for (const jobHash of caseJobHashes) {
-				jobHashes.add(jobHash);
-			}
-		}
-
-		return jobHashes;
-	}
-
-	public getCasesWithJobHashes(): ReadonlySet<CaseWithJobHashes> {
-		const caseWithJobHashes = new Set<CaseWithJobHashes>();
-
-		for (const kase of this.#cases.values()) {
-			const jobHashes =
-				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-					kase.hash,
-				);
-
-			caseWithJobHashes.add({
-				...kase,
-				jobHashes,
-			});
-		}
-
-		return caseWithJobHashes;
-	}
-
-	#onUpsertCasesMessage(
-		message: Message & { kind: MessageKind.upsertCases },
-	) {
-		const newCaseHash = message.casesWithJobHashes[0]?.hash ?? null;
-		if (newCaseHash === null) {
-			return;
-		}
-		this.#newCaseHash = newCaseHash;
-		message.casesWithJobHashes.map((caseWithJobHash) => {
-			this.#cases.set(caseWithJobHash.hash, caseWithJobHash);
-
-			for (const jobHash of caseWithJobHash.jobHashes) {
-				this.#caseHashJobHashSetManager.upsert(
-					caseWithJobHash.hash,
-					jobHash,
-				);
-			}
-		});
-
-		this.#messageBus.publish({
+		this.__messageBus.publish({
 			kind: MessageKind.upsertJobs,
 			jobs: message.jobs,
-			inactiveJobHashes: message.inactiveJobHashes,
 		});
 	}
 
 	#onAcceptCaseMessage(message: Message & { kind: MessageKind.acceptCase }) {
-		if (!this.#cases.has(message.caseHash)) {
+		const state = this.__store.getState();
+
+		if (!state.case.ids.includes(message.caseHash)) {
 			throw new Error('You tried to accept a case that does not exist.');
 		}
 
+		const caseHashJobHashSetManager = new LeftRightHashSetManager<
+			CaseHash,
+			JobHash
+		>(new Set(state.caseHashJobHashes));
+
 		// we are not removing cases and jobs here
 		// we wait for the jobs accepted message for data removal
-		const jobHashes =
-			this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-				message.caseHash,
-			);
+		const jobHashes = caseHashJobHashSetManager.getRightHashesByLeftHash(
+			message.caseHash,
+		);
 
-		this.#messageBus.publish({
+		this.__messageBus.publish({
 			kind: MessageKind.acceptJobs,
 			jobHashes,
 		});
@@ -148,53 +72,59 @@ export class CaseManager {
 			kind: MessageKind.jobsAccepted | MessageKind.jobsRejected;
 		},
 	) {
-		for (const kase of this.#cases.values()) {
+		const state = this.__store.getState();
+
+		const cases = Object.values(state.case.entities).filter(
+			isNeitherNullNorUndefined,
+		);
+
+		const caseHashJobHashSetManager = new LeftRightHashSetManager<
+			CaseHash,
+			JobHash
+		>(new Set(state.caseHashJobHashes));
+
+		const removableCaseHashes: CaseHash[] = [];
+
+		for (const kase of cases) {
 			const caseJobHashes =
-				this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-					kase.hash,
-				);
+				caseHashJobHashSetManager.getRightHashesByLeftHash(kase.hash);
 
 			let deletedCount = 0;
 
-			for (const jobHash of message.deletedJobHashes) {
-				const deleted = this.#caseHashJobHashSetManager.delete(
+			for (const job of message.deletedJobs) {
+				const deleted = caseHashJobHashSetManager.delete(
 					kase.hash,
-					jobHash,
+					job.hash,
 				);
 
 				deletedCount += Number(deleted);
 			}
 
 			if (caseJobHashes.size <= deletedCount) {
-				this.#cases.delete(kase.hash);
+				removableCaseHashes.push(kase.hash);
 			}
 		}
 
-		this.#messageBus.publish({
-			kind: MessageKind.updateElements,
-		});
+		this.__store.dispatch(actions.removeCases(removableCaseHashes));
 	}
 
 	#onRejectCaseMessage(message: Message & { kind: MessageKind.rejectCase }) {
-		const deleted = this.#cases.delete(message.caseHash);
+		const state = this.__store.getState();
 
-		if (!deleted) {
-			throw new Error('You tried to remove a case that does not exist.');
-		}
+		const caseHashJobHashSetManager = new LeftRightHashSetManager<
+			CaseHash,
+			JobHash
+		>(new Set(state.caseHashJobHashes));
 
-		const jobHashes =
-			this.#caseHashJobHashSetManager.getRightHashesByLeftHash(
-				message.caseHash,
-			);
+		const jobHashes = caseHashJobHashSetManager.getRightHashesByLeftHash(
+			message.caseHash,
+		);
 
-		this.#messageBus.publish({
+		this.__store.dispatch(actions.removeCases([message.caseHash]));
+
+		this.__messageBus.publish({
 			kind: MessageKind.rejectJobs,
 			jobHashes,
 		});
-	}
-
-	#onClearStateMessage() {
-		this.#cases.clear();
-		this.#caseHashJobHashSetManager.clear();
 	}
 }

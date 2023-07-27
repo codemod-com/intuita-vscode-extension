@@ -1,67 +1,125 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties, ReactNode, useLayoutEffect, useRef } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 
-type Props = Readonly<{
+const getLabelComponent = (
+	label: string,
+	searchPhrase: string,
+	style?: CSSProperties,
+) => {
+	if (
+		searchPhrase.length >= 2 &&
+		label.toLowerCase().includes(searchPhrase.toLowerCase())
+	) {
+		const startIndex = label
+			.toLowerCase()
+			.indexOf(searchPhrase.toLowerCase());
+		const endIndex = startIndex + searchPhrase.length - 1;
+		return (
+			<span className={styles.label} style={style}>
+				{label.slice(0, startIndex)}
+				<span style={{ fontWeight: 800 }}>
+					{label.slice(startIndex, endIndex + 1)}
+				</span>
+				{label.slice(endIndex + 1)}
+			</span>
+		);
+	}
+
+	return (
+		<span className={styles.label} style={style}>
+			{label}
+		</span>
+	);
+};
+
+export type Props = Readonly<{
 	id: string;
 	label: string;
-	subLabel: string;
 	open: boolean;
 	focused: boolean;
 	icon: ReactNode;
-	actionButtons: ReactNode;
 	hasChildren: boolean;
-	kind: string;
-	onClick(): void;
+	onClick(event: React.MouseEvent<HTMLDivElement>): void;
 	depth: number;
-	index: number;
-	style?: CSSProperties;
-	onPressChevron?(): void;
+	indent: number;
+	startDecorator?: ReactNode;
+	endDecorator?: ReactNode;
+	inlineStyles?: {
+		root?: CSSProperties;
+		icon?: CSSProperties;
+		label?: CSSProperties;
+		actions?: CSSProperties;
+	};
+	onPressChevron?(event: React.MouseEvent<HTMLSpanElement>): void;
+	searchPhrase: string;
 }>;
 
 const TreeItem = ({
 	id,
 	label,
-	subLabel,
 	icon,
 	open,
 	focused,
-	actionButtons,
+	startDecorator,
 	hasChildren,
 	onClick,
-	depth,
-	style,
+	indent,
+	inlineStyles,
 	onPressChevron,
+	endDecorator,
+	searchPhrase,
 }: Props) => {
+	const ref = useRef<HTMLDivElement>(null);
+	useLayoutEffect(() => {
+		if (focused) {
+			const timeout = setTimeout(() => {
+				ref.current?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'nearest',
+					inline: 'center',
+				});
+			}, 0);
+
+			return () => {
+				clearTimeout(timeout);
+			};
+		}
+
+		return () => {};
+	}, [focused]);
+
 	return (
 		<div
-			id={id}
+			key={id}
+			ref={ref}
+			tabIndex={0}
 			className={cn(styles.root, focused && styles.focused)}
 			onClick={onClick}
-			style={style}
+			style={inlineStyles?.root}
 		>
 			<div
 				style={{
-					minWidth: `${depth * 18}px`,
+					minWidth: `${indent}px`,
 				}}
 			/>
 			{hasChildren ? (
-				<div className={styles.codicon}>
-					<span
-						onClick={onPressChevron}
-						className={cn('codicon', {
-							'codicon-chevron-right': !open,
-							'codicon-chevron-down': open,
-						})}
-					/>
+				<span
+					onClick={onPressChevron}
+					className={cn('codicon', {
+						'codicon-chevron-right': !open,
+						'codicon-chevron-down': open,
+					})}
+				/>
+			) : null}
+			{startDecorator}
+			{icon !== null && (
+				<div className="defaultIcon" style={inlineStyles?.icon}>
+					{icon}
 				</div>
-			) : null}
-			<div className={styles.icon}>{icon}</div>
-			<span className={styles.label}>{label}</span>
-			{subLabel.length > 0 ? (
-				<span className={styles.subLabel}>{subLabel}</span>
-			) : null}
-			<div className={styles.actions}>{actionButtons}</div>
+			)}
+			{getLabelComponent(label, searchPhrase, inlineStyles?.label)}
+			{endDecorator}
 		</div>
 	);
 };

@@ -23,8 +23,12 @@ export const useCTLKey = (key: string, callback: () => void) => {
 /**
  * Hook that detects when some key is pressed
  */
-export const useKey = (key: string, callback: () => void) => {
-	const keyPressCallback = useCallback(
+export const useKey = (
+	container: HTMLElement | null,
+	key: KeyboardEvent['key'],
+	callback: () => void,
+) => {
+	const keyDownCallback = useCallback(
 		(event: KeyboardEvent) => {
 			if (event.key === key) {
 				event.preventDefault();
@@ -35,8 +39,13 @@ export const useKey = (key: string, callback: () => void) => {
 	);
 
 	useEffect(() => {
-		document.addEventListener('keydown', keyPressCallback);
+		if (container === null) {
+			return;
+		}
+		container.addEventListener('keydown', keyDownCallback);
 
-		return () => document.removeEventListener('keydown', keyPressCallback);
-	}, [keyPressCallback]);
+		return () => {
+			container.removeEventListener('keydown', keyDownCallback);
+		};
+	}, [keyDownCallback, container]);
 };

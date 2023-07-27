@@ -1,71 +1,54 @@
 import { FileSystem, Uri } from 'vscode';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
-import { StatusBarItemManager } from './statusBarItemManager';
 
 // aka bootstrap engines
 export class BootstrapExecutablesService {
-	#downloadService: DownloadService;
-	#globalStorageUri: Uri;
-	#fileSystem: FileSystem;
-	#messageBus: MessageBus;
-	#statusBarItemManager: StatusBarItemManager;
-
 	constructor(
-		downloadService: DownloadService,
-		globalStorageUri: Uri,
-		fileSystem: FileSystem,
-		messageBus: MessageBus,
-		statusBarItemManager: StatusBarItemManager,
+		private readonly __downloadService: DownloadService,
+		private readonly __globalStorageUri: Uri,
+		private readonly __fileSystem: FileSystem,
+		private readonly __messageBus: MessageBus,
 	) {
-		this.#downloadService = downloadService;
-		this.#globalStorageUri = globalStorageUri;
-		this.#fileSystem = fileSystem;
-		this.#messageBus = messageBus;
-		this.#statusBarItemManager = statusBarItemManager;
-
-		messageBus.subscribe(MessageKind.bootstrapEngines, () =>
-			this.#onBootstrapEngines(),
+		__messageBus.subscribe(MessageKind.bootstrapEngine, () =>
+			this.__onBootstrapEngines(),
 		);
 	}
 
-	async #onBootstrapEngines() {
-		await this.#fileSystem.createDirectory(this.#globalStorageUri);
+	private async __onBootstrapEngines() {
+		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
-		this.#statusBarItemManager.moveToBootstrap();
+		// Uri.file('/intuita/nora-node-engine/package/intuita-linux')
+		const codemodEngineNodeExecutableUri =
+			await this.__bootstrapCodemodEngineNodeExecutableUri();
 
-		const [noraNodeEngineExecutableUri, noraRustEngineExecutableUri] =
-			await Promise.all([
-				this.#bootstrapNoraNodeEngineExecutableUri(),
-				// Uri.file('/intuita/nora-node-engine/apps/nne/build/nne-linux'),
-				this.#bootstrapNoraRustEngineExecutableUri(),
-			]);
+		// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
+		const codemodEngineRustExecutableUri =
+			await this.__bootstrapCodemodEngineRustExecutableUri();
 
-		this.#statusBarItemManager.moveToStandby();
-
-		this.#messageBus.publish({
-			kind: MessageKind.enginesBootstrapped,
-			noraNodeEngineExecutableUri,
-			noraRustEngineExecutableUri,
+		this.__messageBus.publish({
+			kind: MessageKind.engineBootstrapped,
+			codemodEngineNodeExecutableUri,
+			codemodEngineRustExecutableUri,
 		});
 	}
 
-	async #bootstrapNoraNodeEngineExecutableUri(): Promise<Uri> {
+	private async __bootstrapCodemodEngineNodeExecutableUri(): Promise<Uri> {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
 				: encodeURIComponent(process.platform);
 
-		const executableBaseName = `nora-node-engine-${platform}`;
+		const executableBaseName = `intuita-${platform}`;
 
 		const executableUri = Uri.joinPath(
-			this.#globalStorageUri,
+			this.__globalStorageUri,
 			executableBaseName,
 		);
 
 		try {
-			await this.#downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-node-engine/${executableBaseName}`,
+			await this.__downloadService.downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/intuita/${executableBaseName}`,
 				executableUri,
 				'755',
 			);
@@ -82,22 +65,22 @@ export class BootstrapExecutablesService {
 		return executableUri;
 	}
 
-	async #bootstrapNoraRustEngineExecutableUri(): Promise<Uri> {
+	private async __bootstrapCodemodEngineRustExecutableUri(): Promise<Uri> {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
 				: encodeURIComponent(process.platform);
 
-		const executableBaseName = `nora-rust-engine-${platform}`;
+		const executableBaseName = `codemod-engine-rust-${platform}`;
 
 		const executableUri = Uri.joinPath(
-			this.#globalStorageUri,
+			this.__globalStorageUri,
 			executableBaseName,
 		);
 
 		try {
-			await this.#downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/nora-rust-engine/${executableBaseName}`,
+			await this.__downloadService.downloadFileIfNeeded(
+				`https://intuita-public.s3.us-west-1.amazonaws.com/codemod-engine-rust/${executableBaseName}`,
 				executableUri,
 				'755',
 			);

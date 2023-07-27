@@ -1,49 +1,142 @@
 import * as t from 'io-ts';
-import { withFallback } from 'io-ts-types/lib/withFallback';
-import { CaseKind } from '../cases/types';
-import { JobKind } from '../jobs/types';
 import { buildTypeCodec } from '../utilities';
+import { codemodEntryCodec, privateCodemodEntryCodec } from '../codemods/types';
+import { executionErrorCodec } from '../errors/types';
+import { withFallback } from 'io-ts-types';
+import { persistedJobCodec } from '../jobs/types';
+import { caseCodec, caseHashCodec } from '../cases/types';
+import { codemodNodeHashDigestCodec } from '../selectors/selectCodemodTree';
+import { _explorerNodeHashDigestCodec } from './explorerNodeCodec';
 
-export const persistedJobCodec = buildTypeCodec({
-	kind: t.union([
-		t.literal(JobKind.rewriteFile),
-		t.literal(JobKind.createFile),
-		t.literal(JobKind.deleteFile),
-		t.literal(JobKind.moveAndRewriteFile),
-		t.literal(JobKind.moveFile),
-		t.literal(JobKind.copyFile),
-	]),
-	oldPath: t.union([t.string, t.null]),
-	newPath: t.union([t.string, t.null]),
-	oldContentPath: t.union([t.string, t.null]),
-	newContentPath: t.union([t.string, t.null]),
-	hash: t.string,
-	codemodSetName: t.string,
-	codemodName: t.string,
+export const syntheticErrorCodec = buildTypeCodec({
+	kind: t.literal('syntheticError'),
+	message: t.string,
 });
 
-export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
+export const workspaceStateCodec = t.union([
+	buildTypeCodec({
+		_tag: t.literal('Left'),
+		left: syntheticErrorCodec,
+	}),
+	buildTypeCodec({
+		_tag: t.literal('Right'),
+		right: t.string,
+	}),
+	buildTypeCodec({
+		_tag: t.literal('Both'),
+		left: syntheticErrorCodec,
+		right: t.string,
+	}),
+]);
 
-export const persistedCaseCodec = buildTypeCodec({
-	kind: t.union([
-		t.literal(CaseKind.REWRITE_FILE_BY_POLYGLOT_PIRANHA),
-		t.literal(CaseKind.REWRITE_FILE_BY_NORA_NODE_ENGINE),
-		t.literal(CaseKind.REWRITE_FILE_BY_NORA_RUST_ENGINE),
-	]),
-	subKind: t.string,
-	hash: t.string,
-	codemodSetName: t.string,
-	codemodName: t.string,
+const buildCollectionCodec = <T extends t.Mixed>(entityCodec: T) => {
+	return withFallback(
+		buildTypeCodec({
+			ids: t.readonlyArray(t.union([t.string, t.number])),
+			entities: t.record(t.string, t.union([entityCodec, t.undefined])),
+		}),
+		{ ids: [], entities: {} },
+	);
+};
+
+const activeTabIdCodec = t.union([
+	t.literal('codemods'),
+	t.literal('codemodRuns'),
+	t.literal('community'),
+]);
+
+export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
+
+export const panelGroupSettingsCodec = t.record(t.string, t.array(t.number));
+
+export type PanelGroupSettings = t.TypeOf<typeof panelGroupSettingsCodec>;
+
+export const persistedStateCodecNew = buildTypeCodec({
+	case: buildCollectionCodec(caseCodec),
+	codemod: buildCollectionCodec(codemodEntryCodec),
+	privateCodemods: buildCollectionCodec(privateCodemodEntryCodec),
+	job: buildCollectionCodec(persistedJobCodec),
+	lastCodemodHashDigests: withFallback(t.readonlyArray(t.string), []),
+	executionErrors: withFallback(
+		t.record(t.string, t.readonlyArray(executionErrorCodec)),
+		{},
+	),
+	codemodDiscoveryView: withFallback(
+		buildTypeCodec({
+			executionPaths: t.record(t.string, t.string),
+			focusedCodemodHashDigest: t.union([
+				codemodNodeHashDigestCodec,
+				t.null,
+			]),
+			expandedNodeHashDigests: t.readonlyArray(
+				codemodNodeHashDigestCodec,
+			),
+			searchPhrase: t.string,
+			publicRegistryCollapsed: withFallback(t.boolean, false),
+			privateRegistryCollapsed: withFallback(t.boolean, false),
+			panelGroupSettings: panelGroupSettingsCodec,
+		}),
+		{
+			executionPaths: {},
+			focusedCodemodHashDigest: null,
+			expandedNodeHashDigests: [],
+			searchPhrase: '',
+			publicRegistryCollapsed: false,
+			privateRegistryCollapsed: false,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
+		},
+	),
+	codemodRunsTab: withFallback(
+		buildTypeCodec({
+			resultsCollapsed: withFallback(t.boolean, false),
+			changeExplorerCollapsed: withFallback(t.boolean, false),
+			selectedCaseHash: t.union([caseHashCodec, t.null]),
+			panelGroupSettings: panelGroupSettingsCodec,
+		}),
+		{
+			resultsCollapsed: false,
+			changeExplorerCollapsed: false,
+			selectedCaseHash: null,
+			panelGroupSettings: {
+				'0,0': [50, 50],
+			},
+		},
+	),
+	jobDiffView: withFallback(
+		buildTypeCodec({
+			visible: withFallback(t.boolean, false),
+		}),
+		{
+			visible: false,
+		},
+	),
+	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
+	caseHashInProgress: withFallback(t.union([caseHashCodec, t.null]), null),
+	applySelectedInProgress: withFallback(t.boolean, false),
+	activeTabId: withFallback(activeTabIdCodec, 'codemods'),
+	explorerSearchPhrases: withFallback(t.record(caseHashCodec, t.string), {}),
+	selectedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
+	collapsedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
+	reviewedExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
+	focusedExplorerNodes: withFallback(
+		t.record(caseHashCodec, _explorerNodeHashDigestCodec),
+		{},
+	),
+	indeterminateExplorerNodes: withFallback(
+		t.record(caseHashCodec, t.readonlyArray(_explorerNodeHashDigestCodec)),
+		{},
+	),
 });
 
-export type PersistedCase = t.TypeOf<typeof persistedCaseCodec>;
-
-export const persistedStateCodec = buildTypeCodec({
-	cases: t.readonlyArray(persistedCaseCodec),
-	jobs: t.readonlyArray(persistedJobCodec),
-	caseHashJobHashes: t.readonlyArray(t.string),
-	appliedJobsHashes: withFallback(t.readonlyArray(t.string), []),
-	remoteUrl: withFallback(t.union([t.string, t.null]), null),
-});
-
-export type PersistedState = t.TypeOf<typeof persistedStateCodec>;
+export type RootState = t.TypeOf<typeof persistedStateCodecNew>;

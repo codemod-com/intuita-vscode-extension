@@ -1,16 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import type { CaseHash } from '../cases/types';
 
-export const buildSessionId = (): string => {
-	const buffer = randomBytes(8);
-
-	const bigUint = buffer.readBigInt64BE();
-
-	return String(bigUint);
-};
-
-export const buildExecutionId = (): string => {
-	const buffer = randomBytes(2);
-	const uint = buffer.readInt16BE();
-
-	return String(uint);
-};
+export const buildCaseHash = (): CaseHash =>
+	randomBytes(20).toString('base64url') as CaseHash;
