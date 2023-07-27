@@ -32,6 +32,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
+import { CodemodConfig } from './data/codemodConfigSchema';
 
 export const UrlParamKeys = {
 	engine: 'engine' as const,
@@ -850,11 +851,9 @@ export async function activate(context: vscode.ExtensionContext) {
 					await writeFile(
 						buildConfigPath,
 						JSON.stringify({
-							kind: 'codemod',
+							schemaVersion: '1.0.0',
 							engine: 'jscodeshift',
-							hashDigest: codemodHash,
-							name: codemodHash,
-						}),
+						} satisfies CodemodConfig),
 					);
 
 					const buildIndexPath = join(
