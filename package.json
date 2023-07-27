@@ -86,29 +86,29 @@
 					"description": "The maximum number of files to execute any codemod over"
 				},
 				"intuita.workerThreadCount": {
-					"order": 3,
+					"order": 2,
 					"type": "number",
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
 				},
-				"intuita.includePatterns": {
-					"order": 5,
+				"intuita.engineIncludePatterns": {
+					"order": 3,
 					"type": "array",
+					"description": "The glob pattern to use when searching for files to execute codemods over",
 					"default": [
 						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
-					],
-					"description": "The glob pattern to use when searching for files to execute codemods over"
+					]
 				},
-				"intuita.excludePatterns": {
-					"order": 6,
+				"intuita.engineExcludePatterns": {
+					"order": 4,
 					"type": "array",
+					"description": "The glob pattern to use when searching for files to exclude from codemod execution",
 					"default": [
-						"**/node_modules"
-					],
-					"description": "The glob pattern to use when searching for files to exclude from codemod execution"
+						"**/node_modules/**/*.*"
+					]
 				},
 				"intuita.formatWithPrettier": {
-					"order": 8,
+					"order": 5,
 					"type": "boolean",
 					"description": "Use the Prettier formatter with the configuration derived from the location of a file to be formatter."
 				}
