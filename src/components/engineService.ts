@@ -22,17 +22,16 @@ import {
 	CodemodEntry,
 	codemodNamesCodec,
 	PrivateCodemodEntry,
-	privateCodemodEntryCodec,
 } from '../codemods/types';
 import { actions } from '../data/slice';
 import { Store } from '../data';
 import { buildArguments } from './buildArguments';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import * as S from '@effect/schema/Schema';
 import { createHash } from 'node:crypto';
+import { parseCodemodConfigSchema } from '../data/codemodConfigSchema';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -319,31 +318,6 @@ export class EngineService {
 		try {
 			const names = await this.__getCodemodNames();
 
-			const codemodConfigSchema = S.union(
-				S.struct({
-					schemaVersion: S.literal('1.0.0'),
-					engine: S.literal('piranha'),
-					language: S.literal('java'),
-				}),
-				S.struct({
-					schemaVersion: S.literal('1.0.0'),
-					engine: S.literal('jscodeshift'),
-				}),
-				S.struct({
-					schemaVersion: S.literal('1.0.0'),
-					engine: S.literal('ts-morph'),
-				}),
-				S.struct({
-					schemaVersion: S.literal('1.0.0'),
-					engine: S.literal('repomod-engine'),
-				}),
-				S.struct({
-					schemaVersion: S.literal('1.0.0'),
-					engine: S.literal('recipe'),
-					names: S.array(S.string),
-				}),
-			);
-
 			const codemodEntries: CodemodEntry[] = [];
 
 			for (const name of names) {
@@ -360,9 +334,7 @@ export class EngineService {
 
 				const data = await readFile(configPath, 'utf8');
 
-				const config = S.parseSync(codemodConfigSchema)(
-					JSON.parse(data),
-				);
+				const config = parseCodemodConfigSchema(JSON.parse(data));
 
 				if (config.engine === 'piranha') {
 					codemodEntries.push({
@@ -415,13 +387,14 @@ export class EngineService {
 					encoding: 'utf8',
 				},
 			);
-			const privateCodemodNames = JSON.parse(
+
+			// TODO validate
+			const privateCodemodNames: ReadonlyArray<string> = JSON.parse(
 				privateCodemodNamesJSON,
 			).names;
 
-			const files = await readdir(globalStoragePath);
-			for (const file of files) {
-				const configPath = join(globalStoragePath, file, 'config.json');
+			for (const name of privateCodemodNames) {
+				const configPath = join(globalStoragePath, name, 'config.json');
 
 				if (!existsSync(configPath)) {
 					continue;
@@ -429,7 +402,7 @@ export class EngineService {
 
 				const urlParamsPath = join(
 					globalStoragePath,
-					file,
+					name,
 					'urlParams.json',
 				);
 
@@ -438,36 +411,35 @@ export class EngineService {
 				}
 
 				const data = await readFile(configPath, { encoding: 'utf8' });
-				const parsedData = JSON.parse(data);
 
-				if (!privateCodemodNames.includes(parsedData.name)) {
-					continue;
+				try {
+					const configSchema = parseCodemodConfigSchema(
+						JSON.parse(data),
+					);
+
+					const permalink = existsSync(urlParamsPath)
+						? new URL('https://codemod.studio/')
+						: null;
+
+					if (permalink !== null) {
+						const urlParamsData = await readFile(urlParamsPath, {
+							encoding: 'utf8',
+						});
+						permalink.search = JSON.parse(urlParamsData).urlParams;
+					}
+
+					if (configSchema.engine === 'jscodeshift') {
+						privateCodemods.push({
+							kind: 'codemod',
+							engine: 'jscodeshift',
+							hashDigest: name,
+							name,
+							permalink: permalink?.toString() ?? null,
+						});
+					}
+				} catch (error) {
+					console.error(error);
 				}
-
-				const permalink = existsSync(urlParamsPath)
-					? new URL('https://codemod.studio/')
-					: null;
-
-				if (permalink !== null) {
-					const urlParamsData = await readFile(urlParamsPath, {
-						encoding: 'utf8',
-					});
-					permalink.search = JSON.parse(urlParamsData).urlParams;
-				}
-
-				const codemodDataOrError = privateCodemodEntryCodec.decode({
-					...parsedData,
-					permalink: permalink === null ? null : permalink.toString(),
-				});
-
-				if (codemodDataOrError._tag === 'Left') {
-					const report = prettyReporter.report(codemodDataOrError);
-
-					console.error(report);
-					continue;
-				}
-
-				privateCodemods.push(codemodDataOrError.right);
 			}
 
 			this.__store.dispatch(
