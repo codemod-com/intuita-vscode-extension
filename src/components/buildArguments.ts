@@ -49,7 +49,7 @@ export const buildArguments = (
 		configuration.excludePatterns.forEach((excludePattern) => {
 			const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
 
-			args.push('--excludePattern', `!${singleQuotify(fsPath)}`);
+			args.push('--excludePattern', singleQuotify(fsPath));
 		});
 	} else {
 		args.push('--includePattern', singleQuotify(message.targetUri.fsPath));
