@@ -14,6 +14,7 @@ export type PanelViewProps =
 			oldFileTitle: string | null;
 			newFileTitle: string | null;
 			reviewed: boolean;
+			modifiedByUser: boolean;
 	  }>
 	| Readonly<{
 			kind: 'CODEMOD';

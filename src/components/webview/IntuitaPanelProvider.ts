@@ -159,6 +159,7 @@ const selectPanelViewProps = (
 		caseHash: selectedCaseHash,
 		jobHash: job.hash,
 		jobKind: job.kind,
+		modifiedByUser: job.modifiedByUser,
 		oldFileTitle,
 		newFileTitle,
 		oldFileContent,
