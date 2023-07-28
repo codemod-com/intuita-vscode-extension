@@ -99,6 +99,7 @@ export const DiffComponent = memo(
 				onMount={(e: editor.IStandaloneDiffEditor, m: Monaco) => {
 					editorRef.current = e;
 
+					console.log('hello');
 					configure(e, m);
 					setIsMounted(true);
 				}}

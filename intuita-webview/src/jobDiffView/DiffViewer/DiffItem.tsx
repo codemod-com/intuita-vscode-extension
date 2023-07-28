@@ -26,12 +26,12 @@ export const JobDiffView = memo(
 				reviewed,
 				title,
 				theme,
+				modifiedByUser,
 				caseHash,
 			}: Props,
 			ref,
 		) => {
 			const [diff, setDiff] = useState<Diff | null>(null);
-			const [modifiedByUser, setModifiedByUser] = useState(false);
 
 			const report = useCallback(() => {
 				reportIssue(
@@ -54,7 +54,6 @@ export const JobDiffView = memo(
 						jobHash,
 					});
 				}
-				setModifiedByUser(changed);
 			}, 1000);
 
 			return (
