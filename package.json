@@ -91,15 +91,15 @@
 					"default": 4,
 					"description": "The number of worker threads to execute any codemod over"
 				},
-				"intuita.engineIncludePatterns": {
+				"intuita.include": {
 					"order": 3,
 					"type": "array",
 					"description": "The glob pattern to use when searching for files to execute codemods over",
 					"default": [
-						"**/*.{js,ts,jsx,tsx,cjs,mjs}"
+						"**/*.*{ts,tsx,js,jsx,mjs,cjs,mdx}"
 					]
 				},
-				"intuita.engineExcludePatterns": {
+				"intuita.exclude": {
 					"order": 4,
 					"type": "array",
 					"description": "The glob pattern to use when searching for files to exclude from codemod execution",
