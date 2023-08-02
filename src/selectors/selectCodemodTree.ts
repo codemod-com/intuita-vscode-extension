@@ -16,10 +16,12 @@ const IntuitaCertifiedCodemods = [
 	'next/13/remove-get-static-props',
 	'next/13/remove-next-export',
 	'next/13/replace-next-head',
+	'next/13/replace-next-head-v2',
 	'next/13/replace-next-router',
 	'next/13/upsert-use-client-directive',
 	'next/13/replace-next-head-repomod',
 	'next/13/app-router',
+	'next/13/app-router-recipe',
 ];
 
 interface CodemodNodeHashDigestBrand {
