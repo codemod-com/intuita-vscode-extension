@@ -248,11 +248,12 @@ const rootSlice = createSlice({
 			state.executionErrors[caseHash] = [...errors];
 		},
 		deleteJobs(state, action: PayloadAction<ReadonlyArray<JobHash>>) {
-			jobAdapter.removeMany(state.job, action.payload);
+			const jobHashes = action.payload;
+			jobAdapter.removeMany(state.job, jobHashes);
 
 			const caseHashJobHashes = state.caseHashJobHashes.filter(
 				(caseHashJobHash) =>
-					action.payload.every(
+					jobHashes.every(
 						(jobHash) => !caseHashJobHash.endsWith(jobHash),
 					),
 			);

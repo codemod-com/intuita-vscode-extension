@@ -61,8 +61,19 @@ export class JobManager {
 		});
 	}
 
-	public deleteJobs(jobHash: ReadonlyArray<JobHash>) {
-		this.__store.dispatch(actions.deleteJobs(jobHash));
+	public deleteJobs(jobHashes: ReadonlyArray<JobHash>) {
+		this.__store.dispatch(actions.deleteJobs(jobHashes));
+		const state = this.__store.getState();
+
+		const deletedJobs = Array.from(jobHashes)
+			.map((jobHash) => state.job.entities[jobHash])
+			.filter(isNeitherNullNorUndefined)
+			.map(mapPersistedJobToJob);
+
+		this.__messageBus.publish({
+			kind: MessageKind.jobsRejected,
+			deletedJobs: new Set(deletedJobs),
+		});
 	}
 
 	private __onRejectJobsMessage(
