@@ -31,7 +31,7 @@ export class CodemodDescriptionProvider {
 				this.onDidChangeEmitter.fire(null);
 			});
 
-			return 'The documentation for this codemod is missing.';
+			return 'No description or metadata found.';
 		}
 
 		return data;
