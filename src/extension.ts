@@ -39,6 +39,7 @@ export const UrlParamKeys = {
 	beforeSnippet: 'beforeSnippet' as const,
 	afterSnippet: 'afterSnippet' as const,
 	codemodSource: 'codemodSource' as const,
+	codemodName: 'codemodName' as const,
 	codemodHashDigest: 'chd' as const,
 };
 
@@ -833,7 +834,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
-					const buffer = Buffer.from(codemodSource, 'base64url');
+					const codemodSourceBuffer = Buffer.from(
+						codemodSource,
+						'base64url',
+					);
 
 					const globalStoragePath = join(homedir(), '.intuita');
 					const codemodHash = randomBytes(27).toString('base64url');
@@ -861,7 +865,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						'index.ts',
 					);
 
-					await writeFile(buildIndexPath, buffer);
+					await writeFile(buildIndexPath, codemodSourceBuffer);
 
 					const newPrivateCodemodNames = [];
 					const privateCodemodNamesPath = join(
