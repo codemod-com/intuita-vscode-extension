@@ -33,15 +33,11 @@ import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
-
-export const UrlParamKeys = {
-	engine: 'engine' as const,
-	beforeSnippet: 'beforeSnippet' as const,
-	afterSnippet: 'afterSnippet' as const,
-	codemodSource: 'codemodSource' as const,
-	codemodName: 'codemodName' as const,
-	codemodHashDigest: 'chd' as const,
-};
+import {
+	UrlParamKeys,
+	extractValueFromURLParams,
+	getUrlParams,
+} from './studio/getUrlParams';
 
 const messageBus = new MessageBus();
 
@@ -673,16 +669,38 @@ export async function activate(context: vscode.ExtensionContext) {
 						),
 					);
 
-					const codemodUri = vscode.Uri.file(
-						join(homedir(), '.intuita', codemodHash, 'index.ts'),
+					const tsFilePath = join(
+						homedir(),
+						'.intuita',
+						codemodHash,
+						'index.ts',
 					);
+					const cjsFilePath = join(
+						homedir(),
+						'.intuita',
+						codemodHash,
+						'index.cjs',
+					);
+					const uri = existsSync(tsFilePath)
+						? tsFilePath
+						: cjsFilePath;
+
+					const codemodUri = vscode.Uri.file(uri);
+					const urlParams = await getUrlParams(codemodHash);
+					const codemodName =
+						urlParams !== null
+							? extractValueFromURLParams(
+									urlParams,
+									UrlParamKeys.codemodName,
+							  ) ?? codemodHash
+							: codemodHash;
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
-							name: codemodHash,
+							name: codemodName,
 							codemodHash,
 						},
 						happenedAt: String(Date.now()),
@@ -834,10 +852,6 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
-					const codemodSourceBuffer = Buffer.from(
-						codemodSource,
-						'base64url',
-					);
 
 					const globalStoragePath = join(homedir(), '.intuita');
 					const codemodHash = randomBytes(27).toString('base64url');
@@ -862,9 +876,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					const buildIndexPath = join(
 						codemodDirectoryPath,
-						'index.ts',
+						'index.cjs',
 					);
 
+					const codemodSourceBuffer = Buffer.from(
+						codemodSource,
+						'base64url',
+					);
 					await writeFile(buildIndexPath, codemodSourceBuffer);
 
 					const newPrivateCodemodNames = [];

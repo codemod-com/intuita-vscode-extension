@@ -32,7 +32,11 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { parseCodemodConfigSchema } from '../data/codemodConfigSchema';
-import { UrlParamKeys } from '../extension';
+import {
+	UrlParamKeys,
+	extractValueFromURLParams,
+	getUrlParams,
+} from '../studio/getUrlParams';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -395,34 +399,25 @@ export class EngineService {
 			).names;
 
 			for (const hash of privateCodemodHashes) {
-				const configPath = join(globalStoragePath, hash, 'config.json');
-
-				if (!existsSync(configPath)) {
-					continue;
-				}
-
-				const urlParamsPath = join(
-					globalStoragePath,
-					hash,
-					'urlParams.json',
-				);
-
-				if (!existsSync(urlParamsPath)) {
-					continue;
-				}
-
-				const data = await readFile(configPath, { encoding: 'utf8' });
-
 				try {
+					const configPath = join(
+						globalStoragePath,
+						hash,
+						'config.json',
+					);
+
+					if (!existsSync(configPath)) {
+						continue;
+					}
+
+					const data = await readFile(configPath, {
+						encoding: 'utf8',
+					});
+
 					const configSchema = parseCodemodConfigSchema(
 						JSON.parse(data),
 					);
-
-					const urlParamsData = existsSync(urlParamsPath)
-						? await readFile(urlParamsPath, {
-								encoding: 'utf8',
-						  })
-						: null;
+					const urlParamsData = await getUrlParams(hash);
 
 					const permalink =
 						urlParamsData !== null
@@ -433,24 +428,13 @@ export class EngineService {
 						permalink.search = JSON.parse(urlParamsData).urlParams;
 					}
 
-					let name = hash;
-
-					if (urlParamsData !== null) {
-						// find codemod name from the stored url parameters
-						const urlParams = new URLSearchParams(
-							JSON.parse(urlParamsData).urlParams,
-						);
-						const codemodName = urlParams.get(
-							UrlParamKeys.codemodName,
-						);
-						if (codemodName !== null) {
-							const decodedCodemodName = Buffer.from(
-								codemodName,
-								'base64url',
-							).toString('utf8');
-							name = decodedCodemodName;
-						}
-					}
+					const name =
+						urlParamsData !== null
+							? extractValueFromURLParams(
+									urlParamsData,
+									UrlParamKeys.codemodName,
+							  ) ?? hash
+							: hash;
 
 					if (configSchema.engine === 'jscodeshift') {
 						privateCodemods.push({
