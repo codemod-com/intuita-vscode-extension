@@ -33,6 +33,11 @@ import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
+import { ShareableCodemod } from './schemata/shareableCodemodSchemata';
+import { deflate } from 'node:zlib';
+import { promisify } from 'util';
+
+const promisifiedDeflate = promisify(deflate);
 
 export const UrlParamKeys = {
 	engine: 'engine' as const,
@@ -800,13 +805,32 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 
 				const selection = activeTextEditor.selection;
-				const text = activeTextEditor.document.getText(selection);
+				const afterSnippet =
+					activeTextEditor.document.getText(selection);
 
-				const afterSnippet = Buffer.from(text).toString('base64url');
-
-				const uri = vscode.Uri.parse(
-					`https://codemod.studio?afterSnippet=${afterSnippet}`,
+				const inputBuffer = Buffer.from(
+					JSON.stringify({
+						a: afterSnippet,
+					} satisfies ShareableCodemod),
 				);
+
+				const outputBuffer = await promisifiedDeflate(inputBuffer, {
+					level: 9,
+				});
+
+				const output = encodeURIComponent(
+					outputBuffer.toString('base64'),
+				);
+
+				const searchParams = new URLSearchParams({
+					// compressed shareable codemod
+					csc: output,
+				});
+
+				const url = new URL('https://codemod.studio');
+				url.search = searchParams.toString();
+
+				const uri = vscode.Uri.parse(url.toString());
 
 				await vscode.env.openExternal(uri);
 			},
