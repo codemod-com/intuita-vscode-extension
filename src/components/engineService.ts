@@ -556,11 +556,12 @@ export class EngineService {
 		);
 
 		const childProcess = spawn(
-			singleQuotify("'node'"),
-			[
-				"'/Users/mac1/work/Projects/intuita/codemod-engine-node/dist/index.cjs'",
-				...args,
-			],
+			singleQuotify(
+				message.command.kind === 'executePiranhaRule'
+					? this.__codemodEngineRustExecutableUri.fsPath
+					: this.__codemodEngineNodeExecutableUri.fsPath,
+			),
+			args,
 			{
 				stdio: 'pipe',
 				shell: true,
