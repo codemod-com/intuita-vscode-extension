@@ -37,22 +37,29 @@ export const buildArguments = (
 
 	const args: string[] = [];
 
-	args.push('--inputDirectoryPath', singleQuotify(message.targetUri.fsPath));
+	if (command.kind === 'executeCodemod') {
+		args.push(singleQuotify(command.name));
+	} else {
+		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
+		args.push('--codemodEngine', 'jscodeshift');
+	}
+
+	args.push('--targetPath', singleQuotify(message.targetUri.fsPath));
 
 	if (message.targetUriIsDirectory) {
 		configuration.includePatterns.forEach((includePattern) => {
 			const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
 
-			args.push('--includePattern', singleQuotify(fsPath));
+			args.push('--include', singleQuotify(fsPath));
 		});
 
 		configuration.excludePatterns.forEach((excludePattern) => {
 			const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
 
-			args.push('--excludePattern', singleQuotify(fsPath));
+			args.push('--exclude', singleQuotify(fsPath));
 		});
 	} else {
-		args.push('--includePattern', singleQuotify(message.targetUri.fsPath));
+		args.push('--include', singleQuotify(message.targetUri.fsPath));
 	}
 
 	args.push('--threadCount', String(configuration.workerThreadCount));
@@ -67,13 +74,6 @@ export const buildArguments = (
 
 	args.push('--dryRun');
 	args.push('--outputDirectoryPath', singleQuotify(storageUri.fsPath));
-
-	if (command.kind === 'executeCodemod') {
-		args.push('--name', singleQuotify(command.name));
-	} else {
-		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
-		args.push('--codemodEngine', 'jscodeshift');
-	}
 
 	return args;
 };
