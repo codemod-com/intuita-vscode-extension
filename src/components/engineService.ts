@@ -44,7 +44,7 @@ export const Messages = {
 	noImportedMod: 'No imported codemod was found' as const,
 };
 
-const TERMINATE_IDLE_PROCESS_TIMEOUT = 15 * 1000;
+const TERMINATE_IDLE_PROCESS_TIMEOUT = 30 * 1000;
 
 export const enum EngineMessageKind {
 	finish = 2,
@@ -320,7 +320,6 @@ export class EngineService {
 			const names = await this.__getCodemodNames();
 
 			const codemodEntries: CodemodEntry[] = [];
-
 			for (const name of names) {
 				const hashDigest = createHash('ripemd160')
 					.update(name)
