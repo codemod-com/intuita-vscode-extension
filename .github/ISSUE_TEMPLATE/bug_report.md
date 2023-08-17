@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG] example bug in extension"
+title: "[bug] example bug in extension"
 labels: bug
 assignees: ''
 
@@ -29,9 +29,9 @@ A clear and concise description of what actually happened.
 A clear and concise description of what you expected to happen.
 
 ### Environment:
- - Intuita extension version: [e.g v0.36.5]
+ - Intuita extension version: [e.g. v0.36.5]
  - OS: [e.g. MacOS 13.0.1]
- - Node.js version: [e.g v16.16.0]
+ - Node.js version: [e.g. v16.16.0]
 
 ### Additional context
 Add any other context about the problem here.
