@@ -90,7 +90,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
 
-	const telemetryKey = '63abdc2f-f7d2-4777-a320-c0e596a6f114';
+	const telemetryKey = 'd9f8ad27-50df-46e3-8acf-81ea279c8444';
 	const vscodeTelemetry = new VscodeTelemetry(
 		new TelemetryReporter(telemetryKey),
 		messageBus,
