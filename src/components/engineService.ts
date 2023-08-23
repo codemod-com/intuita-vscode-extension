@@ -283,7 +283,7 @@ export class EngineService {
 
 		const childProcess = spawn(
 			singleQuotify(executableUri.fsPath),
-			['listNames', '--useJson', '--useCache'],
+			['list', '--useJson', '--useCache'],
 			{
 				stdio: 'pipe',
 				shell: true,
