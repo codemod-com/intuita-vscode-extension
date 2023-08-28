@@ -127,7 +127,7 @@ export const DiffComponent = memo(
 				original={oldFileContent ?? undefined}
 				modifiedModelPath="modified.tsx"
 				originalModelPath="original.tsx"
-				language="typescript"
+				language="javascript"
 			/>
 		);
 	},
