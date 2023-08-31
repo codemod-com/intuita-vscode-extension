@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -97,6 +97,9 @@ devDependencies:
   vite:
     specifier: ^4.3.1
     version: 4.3.1(@types/node@16.18.23)
+  vite-plugin-monaco-editor:
+    specifier: ^1.1.0
+    version: 1.1.0(monaco-editor@0.37.1)
   vite-plugin-svgr:
     specifier: ^2.4.0
     version: 2.4.0(rollup@2.79.1)(vite@4.3.1)
@@ -7836,7 +7839,6 @@ packages:
 
   /monaco-editor@0.37.1:
     resolution: {integrity: sha512-jLXEEYSbqMkT/FuJLBZAVWGuhIb4JNwHE9kPTorAVmsdZ4UzHAfgWxLsVtD7pLRFaOwYPhNG9nUCpmFL1t/dIg==}
-    dev: false
 
   /mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -10876,6 +10878,14 @@ packages:
       unist-util-stringify-position: 3.0.3
       vfile-message: 3.1.4
     dev: false
+
+  /vite-plugin-monaco-editor@1.1.0(monaco-editor@0.37.1):
+    resolution: {integrity: sha512-IvtUqZotrRoVqwT0PBBDIZPNraya3BxN/bfcNfnxZ5rkJiGcNtO5eAOWWSgT7zullIAEqQwxMU83yL9J5k7gww==}
+    peerDependencies:
+      monaco-editor: '>=0.33.0'
+    dependencies:
+      monaco-editor: 0.37.1
+    dev: true
 
   /vite-plugin-svgr@2.4.0(rollup@2.79.1)(vite@4.3.1):
     resolution: {integrity: sha512-q+mJJol6ThvqkkJvvVFEndI4EaKIjSI0I3jNFgSoC9fXAz1M7kYTVUin8fhUsFojFDKZ9VHKtX6NXNaOLpbsHA==}
