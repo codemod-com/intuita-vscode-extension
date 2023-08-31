@@ -35,5 +35,10 @@ export default defineConfig({
 	define: {
 		'process.env': {},
 	},
-	plugins: [react(), viteTsconfigPaths(), svgrPlugin(), monacoEditorPlugin({})],
+	plugins: [
+		react(),
+		viteTsconfigPaths(),
+		svgrPlugin(),
+		monacoEditorPlugin({}),
+	],
 });

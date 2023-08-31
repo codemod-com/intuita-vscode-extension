@@ -3,19 +3,19 @@ import { randomBytes } from 'crypto';
 import { getUri } from '../../utilities';
 
 const monacoWorkers: Record<string, string> = {
-	"editorWorkerService": "editor.worker.bundle.js",
-	"css": "css.worker.bundle.js",
-	"html": "html.worker.bundle.js",
-	"json": "json.worker.bundle.js",
-	"typescript": "ts.worker.bundle.js",
-	"javascript": "ts.worker.bundle.js",
-	"less": "css.worker.bundle.js",
-	"scss": "css.worker.bundle.js",
-	"handlebars": "html.worker.bundle.js",
-	"razor": "html.worker.bundle.js"
-}
+	editorWorkerService: 'editor.worker.bundle.js',
+	css: 'css.worker.bundle.js',
+	html: 'html.worker.bundle.js',
+	json: 'json.worker.bundle.js',
+	typescript: 'ts.worker.bundle.js',
+	javascript: 'ts.worker.bundle.js',
+	less: 'css.worker.bundle.js',
+	scss: 'css.worker.bundle.js',
+	handlebars: 'html.worker.bundle.js',
+	razor: 'html.worker.bundle.js',
+};
 export class WebviewResolver {
-	constructor(private readonly __extensionPath: Uri) { }
+	constructor(private readonly __extensionPath: Uri) {}
 
 	public getWebviewOptions() {
 		return {
@@ -70,19 +70,11 @@ export class WebviewResolver {
 			'codicon.css',
 		]);
 
-		const scriptSources = [
-			`'nonce-${nonce}'`,
-		];
+		const scriptSources = [`'nonce-${nonce}'`];
 
-		const styleSources = [
-			webview.cspSource,
-			`'self'`,
-			`'unsafe-inline'`,
-		];
+		const styleSources = [webview.cspSource, `'self'`, `'unsafe-inline'`];
 
-		const fontSources = [
-			webview.cspSource,
-		];
+		const fontSources = [webview.cspSource];
 
 		const imageSources = [
 			webview.cspSource,
@@ -92,13 +84,14 @@ export class WebviewResolver {
 			`https:`,
 		];
 
-		const getWorkerUri = (name: string) => getUri(webview, this.__extensionPath, [
-			'intuita-webview',
-			'build',
-			webviewName,
-			'monacoeditorwork',
-			monacoWorkers[name] ?? '',
-		]);
+		const getWorkerUri = (name: string) =>
+			getUri(webview, this.__extensionPath, [
+				'intuita-webview',
+				'build',
+				webviewName,
+				'monacoeditorwork',
+				monacoWorkers[name] ?? '',
+			]);
 
 		return /*html*/ `
 			<!DOCTYPE html>
@@ -140,12 +133,12 @@ export class WebviewResolver {
 							}
 						};
 					})({
-							"editorWorkerService": "${getWorkerUri("editorWorkerService")}",
-							"css": "${getWorkerUri("css")}",
-							"html": "${getWorkerUri("html")}",
-							"json": "${getWorkerUri("json")}",
-							"typescript": "${getWorkerUri("typescript")}",
-							"javascript": "${getWorkerUri("javascript")}"
+							"editorWorkerService": "${getWorkerUri('editorWorkerService')}",
+							"css": "${getWorkerUri('css')}",
+							"html": "${getWorkerUri('html')}",
+							"json": "${getWorkerUri('json')}",
+							"typescript": "${getWorkerUri('typescript')}",
+							"javascript": "${getWorkerUri('javascript')}"
 					});
 			</script>
 				</body>
