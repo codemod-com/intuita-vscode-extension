@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { readFileSync } from 'fs';
 import {
 	commands,
@@ -296,32 +297,42 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const expected =
-							job.modifiedByUser && job.newContentUri !== null
-								? await workspace.fs
-										.readFile(Uri.parse(job.newContentUri))
-										.then((uint8array) =>
-											uint8array.toString(),
-										)
-								: null;
+						try {
+							const expected =
+								job.modifiedByUser && job.newContentUri !== null
+									? await workspace.fs
+											.readFile(
+												Uri.parse(job.newContentUri),
+											)
+											.then((uint8array) =>
+												uint8array.toString(),
+											)
+									: null;
 
-						const body = buildIssueTemplate(
-							job.codemodName,
-							message.oldFileContent,
-							message.newFileContent,
-							expected,
-						);
+							const title = `[Codemod:${job.codemodName}] Invalid codemod output`;
+							const body = buildIssueTemplate(
+								job.codemodName,
+								message.oldFileContent,
+								message.newFileContent,
+								expected,
+							);
+							const REPORT_ISSUE_API_URL =
+								'https://telemetry.intuita.io/reportIssue';
+							const result = await axios.post(
+								REPORT_ISSUE_API_URL,
+								{
+									title,
+									body,
+								},
+							);
 
-						const query = new URLSearchParams({
-							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
-							body,
-							template: 'report-faulty-codemod.md',
-						}).toString();
-
-						commands.executeCommand(
-							'intuita.redirect',
-							`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
-						);
+							commands.executeCommand(
+								'intuita.redirect',
+								result.data.html_url,
+							);
+						} catch (err) {
+							console.error(err);
+						}
 					}
 
 					if (
