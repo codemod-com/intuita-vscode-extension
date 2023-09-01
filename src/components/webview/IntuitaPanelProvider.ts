@@ -1,12 +1,6 @@
 import { readFileSync } from 'fs';
-import {
-	commands,
-	Uri,
-	ViewColumn,
-	WebviewPanel,
-	window,
-	workspace,
-} from 'vscode';
+import { diffTrimmedLines } from 'diff';
+import { commands, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { JobKind, mapPersistedJobToJob } from '../../jobs/types';
 import { WebviewResolver } from './WebviewResolver';
@@ -20,6 +14,27 @@ import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
 import { JobManager } from '../jobManager';
+import { Project } from 'ts-morph';
+
+const getSourceFile = (filePath: string, content: string) => {
+	const project = new Project({
+		useInMemoryFileSystem: true,
+		compilerOptions: {
+			allowJs: true,
+		},
+	});
+
+	return project.createSourceFile(filePath, content);
+};
+
+// remove all special characters and whitespaces
+const removeSpecialCharacters = (str: string) =>
+	str.replace(/[{}()[\]:;,/?'"<>|=`!]/g, '').replace(/\s/g, '');
+
+const removeLineBreaksAtStartAndEnd = (str: string) =>
+	str
+		.replace(/^\n+/, '') // remove all occurrences of `\n` at the start
+		.replace(/\n+$/, ''); // remove all occurrences of `\n` at the end
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -296,26 +311,99 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const expected =
-							job.modifiedByUser && job.newContentUri !== null
-								? await workspace.fs
-										.readFile(Uri.parse(job.newContentUri))
-										.then((uint8array) =>
-											uint8array.toString(),
-										)
-								: null;
+						const oldSourceFile = getSourceFile(
+							'oldFileContent',
+							message.oldFileContent,
+						);
+						const sourceFile = getSourceFile(
+							'newFileContent',
+							message.newFileContent,
+						);
+
+						const beforeNodeTexts = new Set<string>();
+						const afterNodeTexts = new Set<string>();
+
+						const diffObjs = diffTrimmedLines(
+							message.oldFileContent,
+							message.newFileContent,
+							{
+								newlineIsToken: true,
+							},
+						);
+
+						for (const diffObj of diffObjs) {
+							if (!diffObj.added && !diffObj.removed) {
+								continue;
+							}
+							const codeString = removeLineBreaksAtStartAndEnd(
+								diffObj.value.trim(),
+							);
+
+							if (
+								removeSpecialCharacters(codeString).length === 0
+							) {
+								continue;
+							}
+
+							if (diffObj.removed) {
+								oldSourceFile.forEachChild((node) => {
+									const content = node.getFullText();
+
+									if (
+										content.includes(codeString) &&
+										!beforeNodeTexts.has(content)
+									) {
+										beforeNodeTexts.add(content);
+									}
+								});
+							}
+
+							if (diffObj.added) {
+								sourceFile.forEachChild((node) => {
+									const content = node.getFullText();
+									if (
+										content.includes(codeString) &&
+										!afterNodeTexts.has(content)
+									) {
+										afterNodeTexts.add(content);
+									}
+								});
+							}
+						}
+
+						const irrelevantNodeTexts = new Set<string>();
+
+						beforeNodeTexts.forEach((text) => {
+							if (afterNodeTexts.has(text)) {
+								irrelevantNodeTexts.add(text);
+							}
+						});
+
+						irrelevantNodeTexts.forEach((text) => {
+							beforeNodeTexts.delete(text);
+							afterNodeTexts.delete(text);
+						});
+
+						const beforeSnippet = removeLineBreaksAtStartAndEnd(
+							Array.from(beforeNodeTexts).join(''),
+						);
+
+						const afterSnippet = removeLineBreaksAtStartAndEnd(
+							Array.from(afterNodeTexts).join(''),
+						);
 
 						const body = buildIssueTemplate(
 							job.codemodName,
-							message.oldFileContent,
-							message.newFileContent,
-							expected,
+							beforeSnippet,
+							afterSnippet,
+							null,
 						);
 
 						const query = new URLSearchParams({
-							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
-							body,
-							template: 'report-faulty-codemod.md',
+							title: encodeURIComponent(
+								`[${job.codemodName}] codemod bug report`,
+							),
+							body: encodeURIComponent(body),
 						}).toString();
 
 						commands.executeCommand(
