@@ -1,5 +1,12 @@
 import { readFileSync } from 'fs';
-import { commands, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import {
+	commands,
+	Uri,
+	ViewColumn,
+	WebviewPanel,
+	window,
+	workspace,
+} from 'vscode';
 import type { RootState, Store } from '../../data';
 import { JobKind, mapPersistedJobToJob } from '../../jobs/types';
 import { WebviewResolver } from './WebviewResolver';
@@ -17,7 +24,12 @@ import { JobManager } from '../jobManager';
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
 
-const buildIssueTemplate = (codemodName: string): string => {
+const buildIssueTemplate = (
+	codemodName: string,
+	before: string | null,
+	after: string | null,
+	expected: string | null,
+): string => {
 	return `
 ---
 :warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
@@ -26,10 +38,22 @@ const buildIssueTemplate = (codemodName: string): string => {
 Codemod: ${codemodName}
 
 **1. Code before transformation (Input for codemod)**
-	
+
+\`\`\`jsx
+${before ?? '// paste code here'}
+\`\`\`
+
 **2. Expected code after transformation (Desired output of codemod)**
 
+\`\`\`jsx
+${expected ?? '// paste code here'}
+\`\`\`
+
 **3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
+
+\`\`\`jsx
+${after ?? '// paste code here'}
+\`\`\`
 
 ---	
 **Additional context**`;
@@ -272,9 +296,25 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
+						const expected =
+							job.modifiedByUser && job.newContentUri !== null
+								? await workspace.fs
+										.readFile(Uri.parse(job.newContentUri))
+										.then((uint8array) =>
+											uint8array.toString(),
+										)
+								: null;
+
+						const body = buildIssueTemplate(
+							job.codemodName,
+							message.oldFileContent,
+							message.newFileContent,
+							expected,
+						);
+
 						const query = new URLSearchParams({
 							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
-							body: buildIssueTemplate(job.codemodName),
+							body,
 							template: 'report-faulty-codemod.md',
 						}).toString();
 
