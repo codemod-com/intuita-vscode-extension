@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 import svgrPlugin from 'vite-plugin-svgr';
+import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
 const target = process.env.TARGET_APP ?? '';
 
@@ -34,5 +35,10 @@ export default defineConfig({
 	define: {
 		'process.env': {},
 	},
-	plugins: [react(), viteTsconfigPaths(), svgrPlugin()],
+	plugins: [
+		react(),
+		viteTsconfigPaths(),
+		svgrPlugin(),
+		monacoEditorPlugin({}),
+	],
 });

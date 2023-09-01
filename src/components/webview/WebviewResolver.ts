@@ -1,6 +1,19 @@
 import { Webview, Uri } from 'vscode';
 import { randomBytes } from 'crypto';
 import { getUri } from '../../utilities';
+
+const monacoWorkers: Record<string, string> = {
+	editorWorkerService: 'editor.worker.bundle.js',
+	css: 'css.worker.bundle.js',
+	html: 'html.worker.bundle.js',
+	json: 'json.worker.bundle.js',
+	typescript: 'ts.worker.bundle.js',
+	javascript: 'ts.worker.bundle.js',
+	less: 'css.worker.bundle.js',
+	scss: 'css.worker.bundle.js',
+	handlebars: 'html.worker.bundle.js',
+	razor: 'html.worker.bundle.js',
+};
 export class WebviewResolver {
 	constructor(private readonly __extensionPath: Uri) {}
 
@@ -57,22 +70,11 @@ export class WebviewResolver {
 			'codicon.css',
 		]);
 
-		const scriptSources = [
-			`'nonce-${nonce}'`,
-			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/',
-		];
+		const scriptSources = [`'nonce-${nonce}'`];
 
-		const styleSources = [
-			webview.cspSource,
-			`'self'`,
-			`'unsafe-inline'`,
-			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/',
-		];
+		const styleSources = [webview.cspSource, `'self'`, `'unsafe-inline'`];
 
-		const fontSources = [
-			webview.cspSource,
-			'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1',
-		];
+		const fontSources = [webview.cspSource];
 
 		const imageSources = [
 			webview.cspSource,
@@ -81,6 +83,15 @@ export class WebviewResolver {
 			`vscode-resource:`,
 			`https:`,
 		];
+
+		const getWorkerUri = (name: string) =>
+			getUri(webview, this.__extensionPath, [
+				'intuita-webview',
+				'build',
+				webviewName,
+				'monacoeditorwork',
+				monacoWorkers[name] ?? '',
+			]);
 
 		return /*html*/ `
 			<!DOCTYPE html>
@@ -94,7 +105,7 @@ export class WebviewResolver {
 					script-src ${scriptSources.join(' ')}; 
 					font-src ${fontSources.join(' ')};
 					style-src ${styleSources.join(' ')};
-					worker-src blob:;
+					worker-src 'self';
 					img-src ${imageSources.join(' ')};
 					">
 					<link href="${codiconsUri}" type="text/css" rel="stylesheet" />
@@ -114,6 +125,22 @@ export class WebviewResolver {
 					window.${initialStateKey}=${initialData}
 					</script>
 					<script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+					<script nonce="${nonce}">self["MonacoEnvironment"] = (function (paths) {
+						return {
+							globalAPI: false,
+							getWorkerUrl : function (moduleId, label) {
+								return paths[label];
+							}
+						};
+					})({
+							"editorWorkerService": "${getWorkerUri('editorWorkerService')}",
+							"css": "${getWorkerUri('css')}",
+							"html": "${getWorkerUri('html')}",
+							"json": "${getWorkerUri('json')}",
+							"typescript": "${getWorkerUri('typescript')}",
+							"javascript": "${getWorkerUri('javascript')}"
+					});
+			</script>
 				</body>
 			</html>
 		`;
