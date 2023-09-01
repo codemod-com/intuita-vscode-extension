@@ -298,7 +298,7 @@ export class IntuitaPanelProvider {
 						}
 
 						try {
-							const expected =
+							const modifiedCodemod =
 								job.modifiedByUser && job.newContentUri !== null
 									? await workspace.fs
 											.readFile(
@@ -314,7 +314,7 @@ export class IntuitaPanelProvider {
 								job.codemodName,
 								message.oldFileContent,
 								message.newFileContent,
-								expected,
+								modifiedCodemod,
 							);
 							const REPORT_ISSUE_API_URL =
 								'https://telemetry.intuita.io/reportIssue';
