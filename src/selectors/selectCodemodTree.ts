@@ -147,6 +147,7 @@ export const selectCodemodTree = (
 	executionQueue: ReadonlyArray<CodemodHash>,
 ) => {
 	const codemods = Object.values(state.codemod.entities) as CodemodEntry[];
+	codemods.sort((a, b) => a.name.localeCompare(b.name));
 	const { executionPaths, searchPhrase } = state.codemodDiscoveryView;
 
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
