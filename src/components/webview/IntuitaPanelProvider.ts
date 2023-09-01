@@ -400,10 +400,9 @@ export class IntuitaPanelProvider {
 						);
 
 						const query = new URLSearchParams({
-							title: encodeURIComponent(
-								`[${job.codemodName}] codemod bug report`,
-							),
-							body: encodeURIComponent(body),
+							title: `[${job.codemodName}] codemod bug report`,
+
+							body,
 						}).toString();
 
 						commands.executeCommand(
