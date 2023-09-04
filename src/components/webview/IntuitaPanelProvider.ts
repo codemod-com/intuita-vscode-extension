@@ -1,12 +1,6 @@
 import { readFileSync } from 'fs';
-import {
-	commands,
-	Uri,
-	ViewColumn,
-	WebviewPanel,
-	window,
-	workspace,
-} from 'vscode';
+import { diffTrimmedLines } from 'diff';
+import { commands, Uri, ViewColumn, WebviewPanel, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { JobKind, mapPersistedJobToJob } from '../../jobs/types';
 import { WebviewResolver } from './WebviewResolver';
@@ -20,6 +14,11 @@ import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
 import { JobManager } from '../jobManager';
+import {
+	createInMemorySourceFile,
+	removeLineBreaksAtStartAndEnd,
+	removeSpecialCharacters,
+} from '../../utilities';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -296,26 +295,99 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const expected =
-							job.modifiedByUser && job.newContentUri !== null
-								? await workspace.fs
-										.readFile(Uri.parse(job.newContentUri))
-										.then((uint8array) =>
-											uint8array.toString(),
-										)
-								: null;
+						const oldSourceFile = createInMemorySourceFile(
+							'oldFileContent',
+							message.oldFileContent,
+						);
+						const sourceFile = createInMemorySourceFile(
+							'newFileContent',
+							message.newFileContent,
+						);
+
+						const beforeNodeTexts = new Set<string>();
+						const afterNodeTexts = new Set<string>();
+
+						const diffObjs = diffTrimmedLines(
+							message.oldFileContent,
+							message.newFileContent,
+							{
+								newlineIsToken: true,
+							},
+						);
+
+						for (const diffObj of diffObjs) {
+							if (!diffObj.added && !diffObj.removed) {
+								continue;
+							}
+							const codeString = removeLineBreaksAtStartAndEnd(
+								diffObj.value.trim(),
+							);
+
+							if (
+								removeSpecialCharacters(codeString).length === 0
+							) {
+								continue;
+							}
+
+							if (diffObj.removed) {
+								oldSourceFile.forEachChild((node) => {
+									const content = node.getFullText();
+
+									if (
+										content.includes(codeString) &&
+										!beforeNodeTexts.has(content)
+									) {
+										beforeNodeTexts.add(content);
+									}
+								});
+							}
+
+							if (diffObj.added) {
+								sourceFile.forEachChild((node) => {
+									const content = node.getFullText();
+									if (
+										content.includes(codeString) &&
+										!afterNodeTexts.has(content)
+									) {
+										afterNodeTexts.add(content);
+									}
+								});
+							}
+						}
+
+						const irrelevantNodeTexts = new Set<string>();
+
+						beforeNodeTexts.forEach((text) => {
+							if (afterNodeTexts.has(text)) {
+								irrelevantNodeTexts.add(text);
+							}
+						});
+
+						irrelevantNodeTexts.forEach((text) => {
+							beforeNodeTexts.delete(text);
+							afterNodeTexts.delete(text);
+						});
+
+						const beforeSnippet = removeLineBreaksAtStartAndEnd(
+							Array.from(beforeNodeTexts).join(''),
+						);
+
+						const afterSnippet = removeLineBreaksAtStartAndEnd(
+							Array.from(afterNodeTexts).join(''),
+						);
+						beforeSnippet;
+						afterSnippet;
 
 						const body = buildIssueTemplate(
 							job.codemodName,
-							message.oldFileContent,
-							message.newFileContent,
-							expected,
+							null,
+							null,
+							null,
 						);
 
 						const query = new URLSearchParams({
 							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
 							body,
-							template: 'report-faulty-codemod.md',
 						}).toString();
 
 						commands.executeCommand(

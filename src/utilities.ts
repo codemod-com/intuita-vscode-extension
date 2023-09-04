@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import { Project } from 'ts-morph';
 import { createHash } from 'crypto';
 import { Uri, Webview } from 'vscode';
 import { _ExplorerNode } from './persistedState/explorerNodeCodec';
@@ -117,4 +118,24 @@ export const findParentExplorerNode = (
 		}
 	}
 	return null;
+};
+
+// remove all special characters and whitespace
+export const removeSpecialCharacters = (str: string) =>
+	str.replace(/[{}()[\]:;,/?'"<>|=`!]/g, '').replace(/\s/g, '');
+
+export const removeLineBreaksAtStartAndEnd = (str: string) =>
+	str
+		.replace(/^\n+/, '') // remove all occurrences of `\n` at the start
+		.replace(/\n+$/, ''); // remove all occurrences of `\n` at the end
+
+export const createInMemorySourceFile = (filePath: string, content: string) => {
+	const project = new Project({
+		useInMemoryFileSystem: true,
+		compilerOptions: {
+			allowJs: true,
+		},
+	});
+
+	return project.createSourceFile(filePath, content);
 };
