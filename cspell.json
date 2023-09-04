@@ -66,6 +66,7 @@
 		"tippyjs",
 		"fuzzysort",
 		"redeclared",
-		"monacoeditorwork"
+		"monacoeditorwork",
+		"whitespace"
 	]
 }

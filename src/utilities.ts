@@ -120,7 +120,7 @@ export const findParentExplorerNode = (
 	return null;
 };
 
-// remove all special characters and whitespaces
+// remove all special characters and whitespace
 export const removeSpecialCharacters = (str: string) =>
 	str.replace(/[{}()[\]:;,/?'"<>|=`!]/g, '').replace(/\s/g, '');
 
