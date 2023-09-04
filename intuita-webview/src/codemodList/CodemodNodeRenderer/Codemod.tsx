@@ -61,6 +61,7 @@ const renderActionButtons = (
 	codemodInProgress: boolean,
 	queued: boolean,
 	rootPath: string | null,
+	label: string,
 ) => {
 	if (!codemodInProgress && !queued) {
 		const handleDryRunClick = (e: React.MouseEvent) => {
@@ -79,6 +80,7 @@ const renderActionButtons = (
 					? 'webview.codemodList.dryRunPrivateCodemod'
 					: 'webview.codemodList.dryRunCodemod',
 				value: hashDigest as unknown as CodemodHash,
+				name: label,
 			});
 		};
 		const handleCodemodLinkCopy = (e: React.MouseEvent) => {
@@ -366,6 +368,7 @@ const Codemod = ({
 								progress !== null,
 								queued,
 								rootPath,
+								label,
 							)}
 					</div>
 				</span>

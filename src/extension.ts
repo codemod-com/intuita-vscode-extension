@@ -652,7 +652,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'intuita.executePrivateCodemod',
-			async (targetUri: vscode.Uri, codemodHash: CodemodHash) => {
+			async (
+				targetUri: vscode.Uri,
+				codemodHash: CodemodHash,
+				codemodName: string,
+			) => {
 				try {
 					const { storageUri } = context;
 
@@ -682,7 +686,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						command: {
 							kind: 'executeLocalCodemod',
 							codemodUri,
-							name: codemodHash,
+							name: codemodName,
 							codemodHash,
 						},
 						happenedAt: String(Date.now()),
