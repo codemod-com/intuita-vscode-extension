@@ -14,27 +14,11 @@ import { _ExplorerNode } from '../../persistedState/explorerNodeCodec';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
 import { JobManager } from '../jobManager';
-import { Project } from 'ts-morph';
-
-const getSourceFile = (filePath: string, content: string) => {
-	const project = new Project({
-		useInMemoryFileSystem: true,
-		compilerOptions: {
-			allowJs: true,
-		},
-	});
-
-	return project.createSourceFile(filePath, content);
-};
-
-// remove all special characters and whitespaces
-const removeSpecialCharacters = (str: string) =>
-	str.replace(/[{}()[\]:;,/?'"<>|=`!]/g, '').replace(/\s/g, '');
-
-const removeLineBreaksAtStartAndEnd = (str: string) =>
-	str
-		.replace(/^\n+/, '') // remove all occurrences of `\n` at the start
-		.replace(/\n+$/, ''); // remove all occurrences of `\n` at the end
+import {
+	createInMemorySourceFile,
+	removeLineBreaksAtStartAndEnd,
+	removeSpecialCharacters,
+} from '../../utilities';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
@@ -311,11 +295,11 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const oldSourceFile = getSourceFile(
+						const oldSourceFile = createInMemorySourceFile(
 							'oldFileContent',
 							message.oldFileContent,
 						);
-						const sourceFile = getSourceFile(
+						const sourceFile = createInMemorySourceFile(
 							'newFileContent',
 							message.newFileContent,
 						);
