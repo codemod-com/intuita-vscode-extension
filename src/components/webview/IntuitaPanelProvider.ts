@@ -402,8 +402,7 @@ export class IntuitaPanelProvider {
 						);
 
 						const query = new URLSearchParams({
-							title: `[${job.codemodName}] codemod bug report`,
-
+							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
 							body,
 						}).toString();
 
