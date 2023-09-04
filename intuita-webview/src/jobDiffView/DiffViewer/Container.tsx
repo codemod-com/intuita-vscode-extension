@@ -17,6 +17,7 @@ type HeaderProps = Readonly<{
 	jobHash: (PanelViewProps & { kind: 'JOB' })['jobHash'];
 	reviewed: (PanelViewProps & { kind: 'JOB' })['reviewed'];
 	onReportIssue(): void;
+	onFixInStudio(): void;
 	modifiedByUser: boolean;
 	children?: React.ReactNode;
 }>;
@@ -32,6 +33,7 @@ export const Header = ({
 	children,
 	reviewed,
 	onReportIssue,
+	onFixInStudio,
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
 	const hasDiff = diff !== null;
@@ -165,10 +167,17 @@ export const Header = ({
 						<VSCodeButton
 							appearance="secondary"
 							onClick={onReportIssue}
+							className="mr-1"
 						>
 							Report Issue
 						</VSCodeButton>
 					</IntuitaPopover>
+					<VSCodeButton
+						appearance="secondary"
+						onClick={onFixInStudio}
+					>
+						Fix in Studio
+					</VSCodeButton>
 				</div>
 			</div>
 			{children}

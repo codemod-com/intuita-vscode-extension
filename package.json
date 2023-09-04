@@ -264,7 +264,8 @@
 		"prettier": "^2.8.8",
 		"redux-persist": "^6.0.0",
 		"semver": "^7.3.8",
-		"ts-morph": "^19.0.0"
+		"ts-morph": "^19.0.0",
+		"universal-base64url": "^1.1.0"
 	},
 	"extensionDependencies": [
 		"vscode.git"

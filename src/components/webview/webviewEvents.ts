@@ -88,6 +88,12 @@ export type WebviewResponse =
 			oldFileContent: string;
 			newFileContent: string;
 	  }>
+	| Readonly<{
+			kind: 'webview.global.exportToCodemodStudio';
+			faultyJobHash: JobHash;
+			oldFileContent: string;
+			newFileContent: string;
+	  }>
 	| Omit<RunCodemodsCommand, 'title' | 'description'>
 	| Readonly<{
 			kind: 'webview.global.applySelected';
