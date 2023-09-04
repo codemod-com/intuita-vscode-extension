@@ -391,11 +391,13 @@ export class IntuitaPanelProvider {
 						const afterSnippet = removeLineBreaksAtStartAndEnd(
 							Array.from(afterNodeTexts).join(''),
 						);
+						beforeSnippet;
+						afterSnippet;
 
 						const body = buildIssueTemplate(
 							job.codemodName,
-							beforeSnippet,
-							afterSnippet,
+							null,
+							null,
 							null,
 						);
 
