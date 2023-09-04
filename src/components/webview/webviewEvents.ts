@@ -22,6 +22,7 @@ export type RunCodemodsCommand = Readonly<{
 		| 'webview.codemodList.dryRunCodemod'
 		| 'webview.codemodList.dryRunPrivateCodemod';
 	value: CodemodHash;
+	name: string;
 }>;
 
 export type WebviewMessage =

@@ -300,6 +300,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				'intuita.executePrivateCodemod',
 				uri,
 				hashDigest,
+				message.name,
 			);
 		}
 
