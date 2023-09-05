@@ -167,7 +167,7 @@ HeaderProps) => {
 						<VSCodeButton
 							appearance="secondary"
 							onClick={onReportIssue}
-							className="mr-1"
+							// className="mr-1"
 						>
 							Report Issue
 						</VSCodeButton>
