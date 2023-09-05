@@ -74,6 +74,13 @@ export const getInitialState = (): RootState => {
 		jobDiffView: {
 			visible: false,
 		},
+		sourceControl: {
+			kind: null,
+			visible: false,
+			jobHash: null,
+			oldFileContent: null,
+			newFileContent: null,
+		},
 		caseHashInProgress: null,
 		applySelectedInProgress: false,
 		activeTabId: 'codemods',
@@ -643,6 +650,25 @@ const rootSlice = createSlice({
 		},
 		setJobDiffViewVisible(state, action: PayloadAction<boolean>) {
 			state.jobDiffView.visible = action.payload;
+		},
+		setSourceControlViewVisible(state, action: PayloadAction<boolean>) {
+			state.sourceControl.visible = action.payload;
+		},
+		setSourceControlViewProps(
+			state,
+			action: PayloadAction<{
+				kind: 'CREATE_ISSUE';
+				jobHash: string;
+				oldFileContent: string;
+				newFileContent: string;
+			}>,
+		) {
+			const { kind, jobHash, oldFileContent, newFileContent } =
+				action.payload;
+			state.sourceControl.kind = kind;
+			state.sourceControl.jobHash = jobHash;
+			state.sourceControl.oldFileContent = oldFileContent;
+			state.sourceControl.newFileContent = newFileContent;
 		},
 		collapseResultsPanel(state, action: PayloadAction<boolean>) {
 			state.codemodRunsTab.resultsCollapsed = action.payload;

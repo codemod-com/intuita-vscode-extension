@@ -11,11 +11,17 @@ import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec'
 import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 import { ActiveTabId } from '../../persistedState/codecs';
 import { ErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
+import { SourceControlViewProps } from './sourceControlViewProps';
 
 export type ExecutionPath = T.These<SyntheticError, string>;
 
 export { JobHash };
 export { CodemodHash };
+
+export type IssueFormData = {
+	title: string;
+	body: string;
+};
 
 export type RunCodemodsCommand = Readonly<{
 	kind:
@@ -29,6 +35,10 @@ export type WebviewMessage =
 	| Readonly<{
 			kind: 'webview.setPanelViewProps';
 			panelViewProps: PanelViewProps;
+	  }>
+	| Readonly<{
+			kind: 'webview.setSourceControlViewProps';
+			sourceControlViewProps: SourceControlViewProps;
 	  }>
 	| Readonly<{
 			kind: 'webview.error.setProps';
@@ -51,6 +61,9 @@ export type WebviewMessage =
 export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.jobDiffView.webviewMounted';
+	  }>
+	| Readonly<{
+			kind: 'webview.sourceControl.webviewMounted';
 	  }>
 	| Readonly<{
 			kind: 'webview.global.focusExplorerNode';
@@ -83,7 +96,7 @@ export type WebviewResponse =
 			value: Command;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.reportIssue';
+			kind: 'webview.global.openCreateIssue';
 			faultyJobHash: JobHash;
 			oldFileContent: string;
 			newFileContent: string;
@@ -93,6 +106,10 @@ export type WebviewResponse =
 			faultyJobHash: JobHash;
 			oldFileContent: string;
 			newFileContent: string;
+	  }>
+	| Readonly<{
+			kind: 'webview.sourceControl.createIssue';
+			data: IssueFormData;
 	  }>
 	| Omit<RunCodemodsCommand, 'title' | 'description'>
 	| Readonly<{

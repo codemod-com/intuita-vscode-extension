@@ -34,7 +34,7 @@ const CS_SEARCH_PARAMS_KEYS = Object.freeze({
 	COMPRESSED_SHAREABLE_CODEMOD: 'c' as const,
 });
 
-const createBeforeAfterSnippets = (
+export const createBeforeAfterSnippets = (
 	beforeContent: string,
 	afterContent: string,
 ): { beforeSnippet: string; afterSnippet: string } => {
@@ -108,41 +108,6 @@ const createBeforeAfterSnippets = (
 		Array.from(afterNodeTexts).join(''),
 	);
 	return { beforeSnippet, afterSnippet };
-};
-
-const buildIssueTemplate = (
-	codemodName: string,
-	before: string | null,
-	after: string | null,
-	expected: string | null,
-): string => {
-	return `
----
-:warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
-
----
-Codemod: ${codemodName}
-
-**1. Code before transformation (Input for codemod)**
-
-\`\`\`jsx
-${before ?? '// paste code here'}
-\`\`\`
-
-**2. Expected code after transformation (Desired output of codemod)**
-
-\`\`\`jsx
-${expected ?? '// paste code here'}
-\`\`\`
-
-**3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
-
-\`\`\`jsx
-${after ?? '// paste code here'}
-\`\`\`
-
----	
-**Additional context**`;
 };
 
 const selectPanelViewProps = (
@@ -372,7 +337,7 @@ export class IntuitaPanelProvider {
 						);
 					}
 
-					if (message.kind === 'webview.global.reportIssue') {
+					if (message.kind === 'webview.global.openCreateIssue') {
 						const state = this.__store.getState();
 
 						const job =
@@ -382,30 +347,13 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const { beforeSnippet, afterSnippet } =
-							createBeforeAfterSnippets(
-								message.oldFileContent,
-								message.newFileContent,
-							);
-
-						beforeSnippet;
-						afterSnippet;
-
-						const body = buildIssueTemplate(
-							job.codemodName,
-							null,
-							null,
-							null,
-						);
-
-						const query = new URLSearchParams({
-							title: `[Codemod:${job.codemodName}] Invalid codemod output`,
-							body,
-						}).toString();
-
-						commands.executeCommand(
-							'intuita.redirect',
-							`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
+						this.__store.dispatch(
+							actions.setSourceControlViewProps({
+								jobHash: message.faultyJobHash,
+								oldFileContent: message.oldFileContent,
+								newFileContent: message.newFileContent,
+								kind: 'CREATE_ISSUE',
+							}),
 						);
 					}
 
