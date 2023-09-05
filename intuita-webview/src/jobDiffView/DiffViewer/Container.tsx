@@ -33,7 +33,7 @@ export const Header = ({
 	children,
 	reviewed,
 	onReportIssue,
-	onFixInStudio,
+	// onFixInStudio,
 }: HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
 	const hasDiff = diff !== null;
@@ -172,12 +172,12 @@ export const Header = ({
 							Report Issue
 						</VSCodeButton>
 					</IntuitaPopover>
-					<VSCodeButton
+					{/* <VSCodeButton
 						appearance="secondary"
 						onClick={onFixInStudio}
 					>
 						Fix in Studio
-					</VSCodeButton>
+					</VSCodeButton> */}
 				</div>
 			</div>
 			{children}
