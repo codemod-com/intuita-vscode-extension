@@ -22,6 +22,7 @@ const IntuitaCertifiedCodemods = [
 	'next/13/replace-next-head-repomod',
 	'next/13/app-router',
 	'next/13/app-router-recipe',
+	'next/13/replace-api-routes',
 ];
 
 interface CodemodNodeHashDigestBrand {
