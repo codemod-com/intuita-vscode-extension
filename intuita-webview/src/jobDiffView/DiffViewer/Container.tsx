@@ -33,8 +33,8 @@ export const Header = ({
 	children,
 	reviewed,
 	onReportIssue,
-	// onFixInStudio,
-}: HeaderProps) => {
+}: // onFixInStudio,
+HeaderProps) => {
 	const jobKindText = getJobKindText(jobKind as unknown as JobKind);
 	const hasDiff = diff !== null;
 	const handleCopyFileName = (event: React.FormEvent<HTMLElement>) => {
