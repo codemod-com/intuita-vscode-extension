@@ -1,7 +1,7 @@
 import { Header } from './Container';
 import { Collapsable } from '../Components/Collapsable';
 import { Diff, DiffComponent } from './Diff';
-import { reportIssue } from '../util';
+import { reportIssue, exportToCodemodStudio } from '../util';
 import { KeyboardEvent, forwardRef, memo, useCallback, useState } from 'react';
 import './DiffItem.css';
 import { vscode } from '../../shared/utilities/vscode';
@@ -35,6 +35,14 @@ export const JobDiffView = memo(
 
 			const report = useCallback(() => {
 				reportIssue(
+					jobHash,
+					oldFileContent ?? '',
+					newFileContent ?? '',
+				);
+			}, [jobHash, oldFileContent, newFileContent]);
+
+			const exportToCS = useCallback(() => {
+				exportToCodemodStudio(
 					jobHash,
 					oldFileContent ?? '',
 					newFileContent ?? '',
@@ -88,6 +96,7 @@ export const JobDiffView = memo(
 								title={title ?? ''}
 								reviewed={reviewed}
 								onReportIssue={report}
+								onFixInStudio={exportToCS}
 							/>
 						}
 					>

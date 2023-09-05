@@ -56,6 +56,9 @@ dependencies:
   ts-morph:
     specifier: ^19.0.0
     version: 19.0.0
+  universal-base64url:
+    specifier: ^1.1.0
+    version: 1.1.0
 
 devDependencies:
   '@types/chai':
@@ -3629,6 +3632,16 @@ packages:
     dependencies:
       crypto-random-string: 2.0.0
     dev: true
+
+  /universal-base64@2.1.0:
+    resolution: {integrity: sha512-WeOkACVnIXJZr/qlv7++Rl1zuZOHN96v2yS5oleUuv8eJOs5j9M5U3xQEIoWqn1OzIuIcgw0fswxWnUVGDfW6g==}
+    dev: false
+
+  /universal-base64url@1.1.0:
+    resolution: {integrity: sha512-qWv2+8KCaAWdpqqXwU8W0Yj9pflYDXP37/a3kec6Y4Je7bYzgIfxEVRjZWeLR67be7iot1lGCy5Nuo+xB0fojA==}
+    dependencies:
+      universal-base64: 2.1.0
+    dev: false
 
   /update-browserslist-db@1.0.11(browserslist@4.21.5):
     resolution: {integrity: sha512-dCwEFf0/oT85M1fHBg4F0jtLwJrutGoHSQXCh7u4o2t1drG+c0a9Flnqww6XUKSfQMPpJBRjU8d4RXB09qtvaA==}

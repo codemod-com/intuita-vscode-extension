@@ -19,9 +19,96 @@ import {
 	removeLineBreaksAtStartAndEnd,
 	removeSpecialCharacters,
 } from '../../utilities';
+import { encode } from 'universal-base64url';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
+
+const CS_SEARCH_PARAMS_KEYS = Object.freeze({
+	ENGINE: 'engine' as const,
+	BEFORE_SNIPPET: 'beforeSnippet' as const,
+	AFTER_SNIPPET: 'afterSnippet' as const,
+	CODEMOD_SOURCE: 'codemodSource' as const,
+	CODEMOD_NAME: 'codemodName' as const,
+	COMMAND: 'command' as const,
+	COMPRESSED_SHAREABLE_CODEMOD: 'c' as const,
+});
+
+const createBeforeAfterSnippets = (
+	beforeContent: string,
+	afterContent: string,
+): { beforeSnippet: string; afterSnippet: string } => {
+	const oldSourceFile = createInMemorySourceFile(
+		'oldFileContent',
+		beforeContent,
+	);
+	const sourceFile = createInMemorySourceFile('newFileContent', afterContent);
+
+	const beforeNodeTexts = new Set<string>();
+	const afterNodeTexts = new Set<string>();
+
+	const diffObjs = diffTrimmedLines(beforeContent, afterContent, {
+		newlineIsToken: true,
+	});
+
+	for (const diffObj of diffObjs) {
+		if (!diffObj.added && !diffObj.removed) {
+			continue;
+		}
+		const codeString = removeLineBreaksAtStartAndEnd(diffObj.value.trim());
+
+		if (removeSpecialCharacters(codeString).length === 0) {
+			continue;
+		}
+
+		if (diffObj.removed) {
+			oldSourceFile.forEachChild((node) => {
+				const content = node.getFullText();
+
+				if (
+					content.includes(codeString) &&
+					!beforeNodeTexts.has(content)
+				) {
+					beforeNodeTexts.add(content);
+				}
+			});
+		}
+
+		if (diffObj.added) {
+			sourceFile.forEachChild((node) => {
+				const content = node.getFullText();
+				if (
+					content.includes(codeString) &&
+					!afterNodeTexts.has(content)
+				) {
+					afterNodeTexts.add(content);
+				}
+			});
+		}
+	}
+
+	const irrelevantNodeTexts = new Set<string>();
+
+	beforeNodeTexts.forEach((text) => {
+		if (afterNodeTexts.has(text)) {
+			irrelevantNodeTexts.add(text);
+		}
+	});
+
+	irrelevantNodeTexts.forEach((text) => {
+		beforeNodeTexts.delete(text);
+		afterNodeTexts.delete(text);
+	});
+
+	const beforeSnippet = removeLineBreaksAtStartAndEnd(
+		Array.from(beforeNodeTexts).join(''),
+	);
+
+	const afterSnippet = removeLineBreaksAtStartAndEnd(
+		Array.from(afterNodeTexts).join(''),
+	);
+	return { beforeSnippet, afterSnippet };
+};
 
 const buildIssueTemplate = (
 	codemodName: string,
@@ -295,86 +382,12 @@ export class IntuitaPanelProvider {
 							throw new Error('Unable to get the job');
 						}
 
-						const oldSourceFile = createInMemorySourceFile(
-							'oldFileContent',
-							message.oldFileContent,
-						);
-						const sourceFile = createInMemorySourceFile(
-							'newFileContent',
-							message.newFileContent,
-						);
-
-						const beforeNodeTexts = new Set<string>();
-						const afterNodeTexts = new Set<string>();
-
-						const diffObjs = diffTrimmedLines(
-							message.oldFileContent,
-							message.newFileContent,
-							{
-								newlineIsToken: true,
-							},
-						);
-
-						for (const diffObj of diffObjs) {
-							if (!diffObj.added && !diffObj.removed) {
-								continue;
-							}
-							const codeString = removeLineBreaksAtStartAndEnd(
-								diffObj.value.trim(),
+						const { beforeSnippet, afterSnippet } =
+							createBeforeAfterSnippets(
+								message.oldFileContent,
+								message.newFileContent,
 							);
 
-							if (
-								removeSpecialCharacters(codeString).length === 0
-							) {
-								continue;
-							}
-
-							if (diffObj.removed) {
-								oldSourceFile.forEachChild((node) => {
-									const content = node.getFullText();
-
-									if (
-										content.includes(codeString) &&
-										!beforeNodeTexts.has(content)
-									) {
-										beforeNodeTexts.add(content);
-									}
-								});
-							}
-
-							if (diffObj.added) {
-								sourceFile.forEachChild((node) => {
-									const content = node.getFullText();
-									if (
-										content.includes(codeString) &&
-										!afterNodeTexts.has(content)
-									) {
-										afterNodeTexts.add(content);
-									}
-								});
-							}
-						}
-
-						const irrelevantNodeTexts = new Set<string>();
-
-						beforeNodeTexts.forEach((text) => {
-							if (afterNodeTexts.has(text)) {
-								irrelevantNodeTexts.add(text);
-							}
-						});
-
-						irrelevantNodeTexts.forEach((text) => {
-							beforeNodeTexts.delete(text);
-							afterNodeTexts.delete(text);
-						});
-
-						const beforeSnippet = removeLineBreaksAtStartAndEnd(
-							Array.from(beforeNodeTexts).join(''),
-						);
-
-						const afterSnippet = removeLineBreaksAtStartAndEnd(
-							Array.from(afterNodeTexts).join(''),
-						);
 						beforeSnippet;
 						afterSnippet;
 
@@ -394,6 +407,49 @@ export class IntuitaPanelProvider {
 							'intuita.redirect',
 							`https://github.com/intuita-inc/codemod-registry/issues/new?${query}`,
 						);
+					}
+
+					if (
+						message.kind === 'webview.global.exportToCodemodStudio'
+					) {
+						const state = this.__store.getState();
+
+						const job =
+							state.job.entities[message.faultyJobHash] ?? null;
+
+						if (job === null) {
+							throw new Error('Unable to get the job');
+						}
+
+						const { beforeSnippet, afterSnippet } =
+							createBeforeAfterSnippets(
+								message.oldFileContent,
+								message.newFileContent,
+							);
+
+						const searchParams = new URLSearchParams();
+
+						searchParams.set(
+							CS_SEARCH_PARAMS_KEYS.BEFORE_SNIPPET,
+							encode(beforeSnippet),
+						);
+						searchParams.set(
+							CS_SEARCH_PARAMS_KEYS.AFTER_SNIPPET,
+							encode(afterSnippet),
+						);
+						searchParams.set(
+							CS_SEARCH_PARAMS_KEYS.CODEMOD_NAME,
+							encode(job.codemodName),
+						);
+						// searchParams.set(
+						// 	CS_SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
+						// 	encode(internalContent ?? ''),
+						// );
+
+						const url = new URL('https://codemod.studio');
+						url.search = searchParams.toString();
+
+						commands.executeCommand('intuita.redirect', url);
 					}
 
 					if (
