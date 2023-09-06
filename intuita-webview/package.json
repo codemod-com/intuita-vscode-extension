@@ -5,6 +5,9 @@
 	"dependencies": {
 		"@monaco-editor/react": "^4.5.0",
 		"@tippyjs/react": "^4.2.6",
+		"@tiptap/pm": "^2.1.8",
+		"@tiptap/react": "^2.1.8",
+		"@tiptap/starter-kit": "^2.1.8",
 		"@vscode/webview-ui-toolkit": "^1.2.2",
 		"classnames": "^2.3.2",
 		"fp-ts": "^2.14.0",
