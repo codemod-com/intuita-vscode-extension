@@ -188,8 +188,8 @@ export class SourceControlPanelProvider {
 							const searchParams = new URLSearchParams();
 
 							searchParams.set(
-								SEARCH_PARAMS_KEYS.REPORT_ISSUE,
-								encode('github'),
+								SEARCH_PARAMS_KEYS.USER_TOKEN_REQUEST_FROM_VSCODE,
+								encode('request'),
 							);
 
 							const url = new URL('https://codemod.studio');

@@ -49,7 +49,7 @@ export const SEARCH_PARAMS_KEYS = Object.freeze({
 	COMMAND: 'command' as const,
 	COMPRESSED_SHAREABLE_CODEMOD: 'c' as const,
 	CODEMOD_HASH_DIGEST: 'chd' as const,
-	REPORT_ISSUE: 'reportIssue' as const,
+	USER_TOKEN_REQUEST_FROM_VSCODE: 'userTokenRequestFromVSCode' as const,
 	USER_TOKEN: 'userToken' as const,
 });
 
