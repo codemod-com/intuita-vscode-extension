@@ -1,4 +1,4 @@
-import { Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import { Uri, ViewColumn, WebviewPanel, commands, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { WebviewResolver } from './WebviewResolver';
 import areEqual from 'fast-deep-equal';
@@ -9,6 +9,9 @@ import { SourceControlViewProps } from './sourceControlViewProps';
 import { createBeforeAfterSnippets } from './IntuitaPanelProvider';
 import { removeLineBreaksAtStartAndEnd } from '../../utilities';
 import { actions } from '../../data/slice';
+import { SEARCH_PARAMS_KEYS } from '../../extension';
+import { encode } from 'universal-base64url';
+import { UserService } from '../userService';
 
 const buildIssueTemplate = (
 	codemodName: string,
@@ -94,6 +97,7 @@ export class SourceControlPanelProvider {
 		private readonly __extensionUri: Uri,
 		private readonly __store: Store,
 		private readonly __mainWebviewViewProvider: MainViewProvider,
+		private readonly __userService: UserService,
 		messageBus: MessageBus,
 	) {
 		let prevViewProps = selectSourceControlViewProps(
@@ -174,6 +178,29 @@ export class SourceControlPanelProvider {
 						} satisfies WebviewMessage);
 
 						this.__webviewPanel.reveal(undefined, preserveFocus);
+					}
+
+					if (message.kind === 'webview.sourceControl.createIssue') {
+						const storedClerkToken =
+							this.__userService.getLinkedToken();
+
+						if (storedClerkToken === null) {
+							const searchParams = new URLSearchParams();
+
+							searchParams.set(
+								SEARCH_PARAMS_KEYS.REPORT_ISSUE,
+								encode('github'),
+							);
+
+							const url = new URL('https://codemod.studio');
+							url.search = searchParams.toString();
+
+							commands.executeCommand('intuita.redirect', url);
+							return;
+						}
+
+						// const { title, body } = message.data;
+						// call API to create Github Issue
 					}
 				},
 			);

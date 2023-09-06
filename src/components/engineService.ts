@@ -32,9 +32,9 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { parseCodemodConfigSchema } from '../data/codemodConfigSchema';
-import { UrlParamKeys } from '../extension';
 import { parsePrivateCodemodsEnvelope } from '../data/privateCodemodsEnvelopeSchema';
 import { parseUrlParamsEnvelope } from '../data/urlParamsEnvelopeSchema';
+import { SEARCH_PARAMS_KEYS } from '../extension';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -450,7 +450,7 @@ export class EngineService {
 						);
 
 						const codemodName = urlParams.get(
-							UrlParamKeys.codemodName,
+							SEARCH_PARAMS_KEYS.CODEMOD_NAME,
 						);
 
 						if (codemodName !== null) {

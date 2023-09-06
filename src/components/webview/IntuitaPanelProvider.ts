@@ -20,19 +20,10 @@ import {
 	removeSpecialCharacters,
 } from '../../utilities';
 import { encode } from 'universal-base64url';
+import { SEARCH_PARAMS_KEYS } from '../../extension';
 
 const TYPE = 'intuitaPanel';
 const WEBVIEW_NAME = 'jobDiffView';
-
-const CS_SEARCH_PARAMS_KEYS = Object.freeze({
-	ENGINE: 'engine' as const,
-	BEFORE_SNIPPET: 'beforeSnippet' as const,
-	AFTER_SNIPPET: 'afterSnippet' as const,
-	CODEMOD_SOURCE: 'codemodSource' as const,
-	CODEMOD_NAME: 'codemodName' as const,
-	COMMAND: 'command' as const,
-	COMPRESSED_SHAREABLE_CODEMOD: 'c' as const,
-});
 
 export const createBeforeAfterSnippets = (
 	beforeContent: string,
@@ -378,19 +369,19 @@ export class IntuitaPanelProvider {
 						const searchParams = new URLSearchParams();
 
 						searchParams.set(
-							CS_SEARCH_PARAMS_KEYS.BEFORE_SNIPPET,
+							SEARCH_PARAMS_KEYS.BEFORE_SNIPPET,
 							encode(beforeSnippet),
 						);
 						searchParams.set(
-							CS_SEARCH_PARAMS_KEYS.AFTER_SNIPPET,
+							SEARCH_PARAMS_KEYS.AFTER_SNIPPET,
 							encode(afterSnippet),
 						);
 						searchParams.set(
-							CS_SEARCH_PARAMS_KEYS.CODEMOD_NAME,
+							SEARCH_PARAMS_KEYS.CODEMOD_NAME,
 							encode(job.codemodName),
 						);
 						// searchParams.set(
-						// 	CS_SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
+						// 	SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
 						// 	encode(internalContent ?? ''),
 						// );
 
