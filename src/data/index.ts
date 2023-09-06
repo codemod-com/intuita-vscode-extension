@@ -17,8 +17,16 @@ const deserializeState = (serializedState: string) => {
 	try {
 		const rawState = JSON.parse(serializedState);
 
-		Object.keys(rawState).forEach((key) => {
-			parsedState[key] = JSON.parse(rawState[key]);
+		if (typeof rawState !== 'object' || rawState === null) {
+			return;
+		}
+
+		Object.entries(rawState).forEach(([key, value]) => {
+			if (typeof value !== 'string') {
+				return;
+			}
+
+			parsedState[key] = JSON.parse(value);
 		});
 	} catch (e) {
 		console.error(e);

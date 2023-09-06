@@ -33,6 +33,8 @@ import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { parseCodemodConfigSchema } from '../data/codemodConfigSchema';
 import { UrlParamKeys } from '../extension';
+import { parsePrivateCodemodsEnvelope } from '../data/privateCodemodsEnvelopeSchema';
+import { parseUrlParamsEnvelope } from '../data/urlParamsEnvelopeSchema';
 
 export class EngineNotFoundError extends Error {}
 export class UnableToParseEngineResponseError extends Error {}
@@ -388,12 +390,11 @@ export class EngineService {
 				},
 			);
 
-			// TODO validate
-			const privateCodemodHashes: ReadonlyArray<string> = JSON.parse(
-				privateCodemodNamesJSON,
-			).names;
+			const json = JSON.parse(privateCodemodNamesJSON);
 
-			for (const hash of privateCodemodHashes) {
+			const { names } = parsePrivateCodemodsEnvelope(json);
+
+			for (const hash of names) {
 				const configPath = join(globalStoragePath, hash, 'config.json');
 
 				if (!existsSync(configPath)) {
@@ -429,19 +430,29 @@ export class EngineService {
 							: null;
 
 					if (permalink !== null && urlParamsData !== null) {
-						permalink.search = JSON.parse(urlParamsData).urlParams;
+						const { urlParams } = parseUrlParamsEnvelope(
+							JSON.parse(urlParamsData),
+						);
+
+						permalink.search = urlParams;
 					}
 
 					let name = hash;
 
 					if (urlParamsData !== null) {
 						// find codemod name from the stored url parameters
-						const urlParams = new URLSearchParams(
-							JSON.parse(urlParamsData).urlParams,
+						const envelope = parseUrlParamsEnvelope(
+							JSON.parse(urlParamsData),
 						);
+
+						const urlParams = new URLSearchParams(
+							envelope.urlParams,
+						);
+
 						const codemodName = urlParams.get(
 							UrlParamKeys.codemodName,
 						);
+
 						if (codemodName !== null) {
 							const decodedCodemodName = Buffer.from(
 								codemodName,
