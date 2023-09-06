@@ -8,6 +8,7 @@ import { MessageBus, MessageKind } from '../messageBus';
 import { SourceControlViewProps } from './sourceControlViewProps';
 import { createBeforeAfterSnippets } from './IntuitaPanelProvider';
 import { removeLineBreaksAtStartAndEnd } from '../../utilities';
+import { actions } from '../../data/slice';
 
 const buildIssueTemplate = (
 	codemodName: string,
@@ -179,6 +180,12 @@ export class SourceControlPanelProvider {
 
 			this.__webviewPanel.onDidDispose(() => {
 				this.__webviewPanel = null;
+
+				this.__store.dispatch(
+					actions.setSourceControlViewProps({
+						kind: 'IDLENESS',
+					}),
+				);
 			});
 
 			return;

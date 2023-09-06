@@ -649,16 +649,9 @@ const rootSlice = createSlice({
 		},
 		setSourceControlViewProps(
 			state,
-			action: PayloadAction<{
-				jobHash: string;
-				oldFileContent: string;
-				newFileContent: string;
-			}>,
+			action: PayloadAction<RootState['sourceControl']>,
 		) {
-			state.sourceControl = {
-				kind: 'ISSUE_CREATION',
-				...action.payload,
-			};
+			state.sourceControl = action.payload;
 		},
 		collapseResultsPanel(state, action: PayloadAction<boolean>) {
 			state.codemodRunsTab.resultsCollapsed = action.payload;

@@ -349,6 +349,7 @@ export class IntuitaPanelProvider {
 
 						this.__store.dispatch(
 							actions.setSourceControlViewProps({
+								kind: 'ISSUE_CREATION',
 								jobHash: message.faultyJobHash,
 								oldFileContent: message.oldFileContent,
 								newFileContent: message.newFileContent,
