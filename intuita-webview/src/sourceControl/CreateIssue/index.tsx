@@ -1,3 +1,5 @@
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import {
 	VSCodeButton,
 	VSCodeTextArea,
@@ -7,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../../shared/utilities/vscode';
 import styles from './style.module.css';
 import { IssueFormData } from '../../../../src/components/webview/webviewEvents';
+import './tiptap.css';
 
 type Props = Readonly<{
 	title: string;
@@ -48,6 +51,22 @@ const CreateIssue = ({ title, body }: Props) => {
 		});
 	};
 
+	const extensions = [StarterKit];
+
+	const content = '<p>Hello World!</p>';
+
+	const editor = useEditor({
+		extensions,
+		content,
+		editable: true,
+		onUpdate: ({ editor }) => {
+			setFormData((prevData) => ({
+				...prevData,
+				body: editor.getText(),
+			}));
+		},
+	});
+
 	return (
 		<div className={styles.root}>
 			<h1 className={styles.header}>
@@ -62,14 +81,9 @@ const CreateIssue = ({ title, body }: Props) => {
 				>
 					Title
 				</VSCodeTextField>
-				<VSCodeTextArea
-					placeholder="Description"
-					value={formData.body}
-					onInput={onChangeFormField('body')}
-					className={styles.body}
-				>
-					Description
-				</VSCodeTextArea>
+				<label className={styles.label}>Description</label>
+				<EditorContent editor={editor} />
+
 				<div className={styles.actions}>
 					<VSCodeButton
 						disabled={loading}
