@@ -33,6 +33,7 @@ import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
+import { SourceControlPanelProvider } from './components/webview/SourceControlPanelProvider';
 
 export const UrlParamKeys = {
 	engine: 'engine' as const,
@@ -121,6 +122,13 @@ export async function activate(context: vscode.ExtensionContext) {
 		codemodDescriptionProvider,
 		rootUri?.fsPath ?? null,
 		jobManager,
+	);
+
+	new SourceControlPanelProvider(
+		context.extensionUri,
+		store,
+		mainViewProvider,
+		messageBus,
 	);
 
 	context.subscriptions.push(mainView);

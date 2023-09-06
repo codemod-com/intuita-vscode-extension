@@ -74,6 +74,9 @@ export const getInitialState = (): RootState => {
 		jobDiffView: {
 			visible: false,
 		},
+		sourceControl: {
+			kind: 'IDLENESS',
+		},
 		caseHashInProgress: null,
 		applySelectedInProgress: false,
 		activeTabId: 'codemods',
@@ -643,6 +646,12 @@ const rootSlice = createSlice({
 		},
 		setJobDiffViewVisible(state, action: PayloadAction<boolean>) {
 			state.jobDiffView.visible = action.payload;
+		},
+		setSourceControlViewProps(
+			state,
+			action: PayloadAction<RootState['sourceControl']>,
+		) {
+			state.sourceControl = action.payload;
 		},
 		collapseResultsPanel(state, action: PayloadAction<boolean>) {
 			state.codemodRunsTab.resultsCollapsed = action.payload;
