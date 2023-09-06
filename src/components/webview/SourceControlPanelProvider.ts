@@ -3,7 +3,6 @@ import type { RootState, Store } from '../../data';
 import { WebviewResolver } from './WebviewResolver';
 import areEqual from 'fast-deep-equal';
 import { WebviewMessage, WebviewResponse } from './webviewEvents';
-import { actions } from '../../data/slice';
 import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
 import { SourceControlViewProps } from './sourceControlViewProps';
@@ -57,27 +56,19 @@ const selectSourceControlViewProps = (
 		return null;
 	}
 
-	const { kind, oldFileContent, newFileContent, jobHash } =
-		state.sourceControl;
-
-	if (
-		kind !== 'CREATE_ISSUE' ||
-		oldFileContent === null ||
-		newFileContent === null ||
-		jobHash === null
-	) {
+	if (state.sourceControl.kind !== 'ISSUE_CREATION') {
 		return null;
 	}
 
-	const job = state.job.entities[jobHash] ?? null;
+	const job = state.job.entities[state.sourceControl.jobHash] ?? null;
 
 	if (job === null) {
 		throw new Error('Unable to get the job');
 	}
 
 	const { beforeSnippet, afterSnippet } = createBeforeAfterSnippets(
-		oldFileContent,
-		newFileContent,
+		state.sourceControl.oldFileContent,
+		state.sourceControl.newFileContent,
 	);
 
 	const body = removeLineBreaksAtStartAndEnd(
@@ -87,7 +78,6 @@ const selectSourceControlViewProps = (
 	const title = `[Codemod:${job.codemodName}] Invalid codemod output`;
 
 	return {
-		kind,
 		title,
 		body,
 	};
@@ -189,9 +179,6 @@ export class SourceControlPanelProvider {
 
 			this.__webviewPanel.onDidDispose(() => {
 				this.__webviewPanel = null;
-				this.__store.dispatch(
-					actions.setSourceControlViewVisible(false),
-				);
 			});
 
 			return;

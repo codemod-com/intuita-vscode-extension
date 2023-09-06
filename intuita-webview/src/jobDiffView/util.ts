@@ -7,7 +7,7 @@ export const reportIssue = (
 	newFileContent: string,
 ) => {
 	vscode.postMessage({
-		kind: 'webview.global.openCreateIssue',
+		kind: 'webview.global.openIssueCreation',
 		faultyJobHash,
 		oldFileContent,
 		newFileContent,

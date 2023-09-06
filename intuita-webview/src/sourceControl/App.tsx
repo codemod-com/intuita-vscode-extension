@@ -35,15 +35,9 @@ export const App = () => {
 		};
 	}, []);
 
-	const { kind, ...others } = viewProps;
-
-	if (kind !== 'CREATE_ISSUE') {
-		return null;
-	}
-
 	return (
 		<main className={styles.app}>
-			<CreateIssue {...others} />
+			<CreateIssue body={viewProps.body} title={viewProps.title} />
 		</main>
 	);
 };

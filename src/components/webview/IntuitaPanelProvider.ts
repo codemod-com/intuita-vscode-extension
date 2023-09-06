@@ -337,7 +337,7 @@ export class IntuitaPanelProvider {
 						);
 					}
 
-					if (message.kind === 'webview.global.openCreateIssue') {
+					if (message.kind === 'webview.global.openIssueCreation') {
 						const state = this.__store.getState();
 
 						const job =
@@ -352,7 +352,6 @@ export class IntuitaPanelProvider {
 								jobHash: message.faultyJobHash,
 								oldFileContent: message.oldFileContent,
 								newFileContent: message.newFileContent,
-								kind: 'CREATE_ISSUE',
 							}),
 						);
 					}

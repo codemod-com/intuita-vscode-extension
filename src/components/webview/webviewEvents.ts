@@ -18,10 +18,10 @@ export type ExecutionPath = T.These<SyntheticError, string>;
 export { JobHash };
 export { CodemodHash };
 
-export type IssueFormData = {
+export type IssueFormData = Readonly<{
 	title: string;
 	body: string;
-};
+}>;
 
 export type RunCodemodsCommand = Readonly<{
 	kind:
@@ -96,7 +96,7 @@ export type WebviewResponse =
 			value: Command;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.openCreateIssue';
+			kind: 'webview.global.openIssueCreation';
 			faultyJobHash: JobHash;
 			oldFileContent: string;
 			newFileContent: string;

@@ -113,19 +113,26 @@ export const persistedStateCodecNew = buildTypeCodec({
 		},
 	),
 	sourceControl: withFallback(
-		buildTypeCodec({
-			visible: withFallback(t.boolean, false),
-			kind: t.union([t.literal('CREATE_ISSUE'), t.null]),
-			jobHash: t.union([t.string, t.null]),
-			oldFileContent: t.union([t.string, t.null]),
-			newFileContent: t.union([t.string, t.null]),
-		}),
+		t.union([
+			buildTypeCodec({
+				kind: t.literal('ISSUE_CREATION'),
+				jobHash: t.string,
+				oldFileContent: t.string,
+				newFileContent: t.string,
+			}),
+			buildTypeCodec({
+				kind: t.literal('IDLENESS'),
+			}),
+		]),
+		// buildTypeCodec({
+		// 	visible: withFallback(t.boolean, false),
+		// 	kind: t.union([t.literal('CREATE_ISSUE'), t.null]),
+		// 	jobHash: t.union([t.string, t.null]),
+		// 	oldFileContent: t.union([t.string, t.null]),
+		// 	newFileContent: t.union([t.string, t.null]),
+		// }),
 		{
-			kind: null,
-			visible: false,
-			jobHash: null,
-			oldFileContent: null,
-			newFileContent: null,
+			kind: 'IDLENESS',
 		},
 	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),

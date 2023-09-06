@@ -51,7 +51,7 @@ const CreateIssue = ({ title, body }: Props) => {
 	return (
 		<div className={styles.root}>
 			<h1 className={styles.header}>
-				Report a Github Issue to Team Intuita
+				Report a Github Issue to the Intuita Team
 			</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<VSCodeTextField
