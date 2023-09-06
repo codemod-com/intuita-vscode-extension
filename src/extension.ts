@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-// import { readFileSync } from 'fs';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { getConfiguration } from './configuration';
 import { buildContainer } from './container';
@@ -33,6 +32,7 @@ import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
+import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 
 export const UrlParamKeys = {
 	engine: 'engine' as const,
@@ -886,9 +886,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						const privateCodemodNames = JSON.parse(
 							privateCodemodNamesJSON,
 						);
-						newPrivateCodemodNames.push(
-							...privateCodemodNames.names,
-						);
+
+						const { names } =
+							parsePrivateCodemodsEnvelope(privateCodemodNames);
+
+						newPrivateCodemodNames.push(...names);
 					}
 					newPrivateCodemodNames.push(codemodHash);
 					await Promise.all([
