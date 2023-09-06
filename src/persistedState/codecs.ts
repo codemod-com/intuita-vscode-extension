@@ -124,13 +124,6 @@ export const persistedStateCodecNew = buildTypeCodec({
 				kind: t.literal('IDLENESS'),
 			}),
 		]),
-		// buildTypeCodec({
-		// 	visible: withFallback(t.boolean, false),
-		// 	kind: t.union([t.literal('CREATE_ISSUE'), t.null]),
-		// 	jobHash: t.union([t.string, t.null]),
-		// 	oldFileContent: t.union([t.string, t.null]),
-		// 	newFileContent: t.union([t.string, t.null]),
-		// }),
 		{
 			kind: 'IDLENESS',
 		},
