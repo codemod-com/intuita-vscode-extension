@@ -1028,7 +1028,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						if (e instanceof AlreadyLinkedError) {
 							const result =
 								await vscode.window.showInformationMessage(
-									'It seems like your extension is already linked to another Intuita account. Would you like to link your new Intuita account instead?',
+									'A different Intuita account is already linked to Intuita VSCode Extension. Would you like to link your new Intuita account?',
 									{ modal: true },
 									'Link account',
 								);

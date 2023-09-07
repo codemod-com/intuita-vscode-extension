@@ -185,6 +185,16 @@ export class SourceControlPanelProvider {
 							this.__userService.getLinkedToken();
 
 						if (storedClerkToken === null) {
+							const result = await window.showInformationMessage(
+								'To report issues, sign in to Intuita.',
+								{ modal: true },
+								'Sign in with Github',
+							);
+
+							if (result !== 'Sign in with Github') {
+								return;
+							}
+
 							const searchParams = new URLSearchParams();
 
 							searchParams.set(
