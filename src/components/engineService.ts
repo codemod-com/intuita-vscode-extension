@@ -590,10 +590,8 @@ export class EngineService {
 				return;
 			}
 
-			console.error(chunk.toString());
-
 			try {
-				const stringifiedChunk = JSON.stringify(chunk.toString());
+				const stringifiedChunk = chunk.toString();
 
 				const json = JSON.parse(stringifiedChunk);
 

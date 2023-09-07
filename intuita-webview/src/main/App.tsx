@@ -12,6 +12,13 @@ import { CodemodRuns } from './CodemodRuns';
 import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
 import { ActiveTabId } from '../../../src/persistedState/codecs';
+import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+
+declare global {
+	interface Window {
+		mainWebviewViewProps: MainWebviewViewProps;
+	}
+}
 
 function App() {
 	const ref = useRef(null);
