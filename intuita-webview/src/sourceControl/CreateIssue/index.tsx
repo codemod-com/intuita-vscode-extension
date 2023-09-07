@@ -2,7 +2,6 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import {
 	VSCodeButton,
-	VSCodeTextArea,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
@@ -53,7 +52,7 @@ const CreateIssue = ({ title, body }: Props) => {
 
 	const extensions = [StarterKit];
 
-	const content = '<p>Hello World!</p>';
+	const content = formData.body;
 
 	const editor = useEditor({
 		extensions,
@@ -65,6 +64,7 @@ const CreateIssue = ({ title, body }: Props) => {
 				body: editor.getText(),
 			}));
 		},
+		autofocus: 'end',
 	});
 
 	return (
