@@ -1,4 +1,4 @@
-import Axios from 'axios';
+import axios from 'axios';
 import { Mode } from 'node:fs';
 import { FileSystem, Uri } from 'vscode';
 import { FileSystemUtilities } from './fileSystemUtilities';
@@ -29,13 +29,13 @@ export class DownloadService {
 		let response;
 
 		try {
-			response = await Axios.head(url, { timeout: 5000 });
+			response = await axios.head(url, { timeout: 5000 });
 		} catch (error) {
 			if (localModificationTime > 0) {
 				return false;
 			}
 
-			if (!Axios.isAxiosError(error)) {
+			if (!axios.isAxiosError(error)) {
 				throw error;
 			}
 
@@ -69,7 +69,7 @@ export class DownloadService {
 		uri: Uri,
 		chmod: Mode | null,
 	): Promise<void> {
-		const response = await Axios.get(url, { responseType: 'arraybuffer' });
+		const response = await axios.get(url, { responseType: 'arraybuffer' });
 		const content = new Uint8Array(response.data);
 
 		await this.#fileSystem.writeFile(uri, content);

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { Uri, ViewColumn, WebviewPanel, commands, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { WebviewResolver } from './WebviewResolver';
@@ -12,6 +13,7 @@ import { actions } from '../../data/slice';
 import { SEARCH_PARAMS_KEYS } from '../../extension';
 import { encode } from 'universal-base64url';
 import { UserService } from '../userService';
+import { createIssueResponseCodec } from '../../github/types';
 
 const buildIssueTemplate = (
 	codemodName: string,
@@ -209,8 +211,33 @@ export class SourceControlPanelProvider {
 							return;
 						}
 
-						// const { title, body } = message.data;
+						const { title, body } = message.data;
 						// call API to create Github Issue
+						const codemodRegistryRepo =
+							'https://github.com/intuita-inc/codemod-registry';
+						const { data } = await axios.post(
+							'https://telemetry.intuita.io/sourceControl/github/issues',
+							{
+								title,
+								body,
+								userId: storedClerkToken,
+								repo: codemodRegistryRepo,
+							},
+						);
+
+						const validation =
+							createIssueResponseCodec.decode(data);
+
+						if (validation._tag === 'Left') {
+							window.showErrorMessage(
+								'Creating Github issue failed.',
+							);
+							return;
+						}
+
+						const html_url = validation.right;
+
+						commands.executeCommand('intuita.redirect', html_url);
 					}
 				},
 			);
