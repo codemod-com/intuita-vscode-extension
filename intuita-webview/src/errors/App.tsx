@@ -6,19 +6,15 @@ import {
 	VSCodeDataGridCell,
 } from '@vscode/webview-ui-toolkit/react';
 import type { WebviewMessage } from '../../../src/components/webview/webviewEvents';
-import { ExecutionError } from '../../../src/errors/types';
-import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
-import { ErrorWebviewViewProps } from '../../../src/selectors/selectErrorWebviewViewProps';
+import type { ExecutionError } from '../../../src/errors/types';
+import type { ErrorWebviewViewProps } from '../../../src/selectors/selectErrorWebviewViewProps';
 
 const header = (
 	<VSCodeDataGridRow row-type="sticky-header">
 		<VSCodeDataGridCell cell-type="columnheader" grid-column="1">
-			Kind
-		</VSCodeDataGridCell>
-		<VSCodeDataGridCell cell-type="columnheader" grid-column="2">
 			Message
 		</VSCodeDataGridCell>
-		<VSCodeDataGridCell cell-type="columnheader" grid-column="3">
+		<VSCodeDataGridCell cell-type="columnheader" grid-column="2">
 			File Path
 		</VSCodeDataGridCell>
 	</VSCodeDataGridRow>
@@ -28,27 +24,14 @@ const buildExecutionErrorRow = (
 	executionError: ExecutionError,
 	index: number,
 ) => {
-	const kind =
-		typeof executionError !== 'string'
-			? executionError.kind ?? 'errorRunningCodemod'
-			: 'errorRunningCodemod';
-
-	const humanKind =
-		kind === 'errorRunningCodemod' ? 'Execution Error' : 'Invalid Codemod';
-
-	const message =
-		typeof executionError !== 'string'
-			? executionError.message
-			: executionError;
-
-	const filePath =
-		typeof executionError !== 'string' ? executionError.filePath ?? '' : '';
-
 	return (
 		<VSCodeDataGridRow key={index}>
-			<VSCodeDataGridCell grid-column="1">{humanKind}</VSCodeDataGridCell>
-			<VSCodeDataGridCell grid-column="2">{message}</VSCodeDataGridCell>
-			<VSCodeDataGridCell grid-column="3">{filePath}</VSCodeDataGridCell>
+			<VSCodeDataGridCell grid-column="1">
+				{executionError.message}
+			</VSCodeDataGridCell>
+			<VSCodeDataGridCell grid-column="2">
+				{executionError.path ?? ''}
+			</VSCodeDataGridCell>
 		</VSCodeDataGridRow>
 	);
 };
@@ -56,7 +39,6 @@ const buildExecutionErrorRow = (
 declare global {
 	interface Window {
 		errorWebviewViewProps: ErrorWebviewViewProps;
-		mainWebviewViewProps: MainWebviewViewProps;
 	}
 }
 
@@ -107,7 +89,7 @@ export const App = () => {
 
 	return (
 		<main>
-			<VSCodeDataGrid gridTemplateColumns="10% 45% 45%">
+			<VSCodeDataGrid gridTemplateColumns="50% 50%">
 				{header}
 				{rows}
 			</VSCodeDataGrid>

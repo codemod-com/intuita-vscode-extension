@@ -68,14 +68,10 @@ export class ErrorWebviewProvider implements WebviewViewProvider {
 		this.__webviewView = webviewView;
 
 		const resolve = () => {
-			const errorProps = this.__buildViewProps();
-
 			this.__webviewResolver.resolveWebview(
 				webviewView.webview,
 				'errors',
-				JSON.stringify({
-					errorProps,
-				}),
+				JSON.stringify(this.__buildViewProps()),
 				'errorWebviewViewProps',
 			);
 		};

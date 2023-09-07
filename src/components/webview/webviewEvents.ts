@@ -1,10 +1,8 @@
 import { Command } from 'vscode';
 import { JobHash } from '../../jobs/types';
 export type { Command } from 'vscode';
-import * as T from 'fp-ts/These';
 import { CodemodHash } from '../../packageJsonAnalyzer/types';
 import { CaseHash } from '../../cases/types';
-import { SyntheticError } from '../../errors/types';
 import { CodemodNodeHashDigest } from '../../selectors/selectCodemodTree';
 import { PanelViewProps } from './panelViewProps';
 import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec';
@@ -12,8 +10,6 @@ import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps
 import { ActiveTabId } from '../../persistedState/codecs';
 import { ErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
 import { SourceControlViewProps } from './sourceControlViewProps';
-
-export type ExecutionPath = T.These<SyntheticError, string>;
 
 export { JobHash };
 export { CodemodHash };
