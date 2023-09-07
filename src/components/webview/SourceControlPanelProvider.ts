@@ -185,6 +185,16 @@ export class SourceControlPanelProvider {
 							this.__userService.getLinkedToken();
 
 						if (storedClerkToken === null) {
+							const result = await window.showInformationMessage(
+								'No Github account is linked to Intuita VSCode Extension. You need to sign in with Github to proceed.',
+								{ modal: true },
+								'Sign in with Github',
+							);
+
+							if (result !== 'Sign in with Github') {
+								return;
+							}
+
 							const searchParams = new URLSearchParams();
 
 							searchParams.set(
