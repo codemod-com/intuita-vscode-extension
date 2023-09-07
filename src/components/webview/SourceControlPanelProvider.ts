@@ -7,42 +7,29 @@ import { MainViewProvider } from './MainProvider';
 import { MessageBus, MessageKind } from '../messageBus';
 import { SourceControlViewProps } from './sourceControlViewProps';
 import { createBeforeAfterSnippets } from './IntuitaPanelProvider';
-import { removeLineBreaksAtStartAndEnd } from '../../utilities';
 import { actions } from '../../data/slice';
 
-const buildIssueTemplate = (
+const buildIssueTemplateInHTML = (
 	codemodName: string,
 	before: string | null,
 	after: string | null,
 	expected: string | null,
 ): string => {
 	return `
----
-:warning::warning: Please do not include any proprietary code in the issue. :warning::warning:
-
----
-Codemod: ${codemodName}
-
-**1. Code before transformation (Input for codemod)**
-
-\`\`\`jsx
-${before ?? '// paste code here'}
-\`\`\`
-
-**2. Expected code after transformation (Desired output of codemod)**
-
-\`\`\`jsx
-${expected ?? '// paste code here'}
-\`\`\`
-
-**3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)**
-
-\`\`\`jsx
-${after ?? '// paste code here'}
-\`\`\`
-
----	
-**Additional context**`;
+		<hr>
+		<p>
+		<span style="font-size: 18px; font-weight: bold; color: #FFA500;">⚠️⚠️ Please do not include any proprietary code in the issue. ⚠️⚠️</span>
+		</p>
+		<hr>
+		<h3>Codemod: ${codemodName}</h3>
+		<p><strong>1. Code before transformation (Input for codemod)</strong></p>
+		<pre><code>${before ?? '// paste code here'}</code></pre>
+		<p><strong>2. Expected code after transformation (Desired output of codemod)</strong></p>
+		<pre><code>${expected ?? '// paste code here'}</code></pre>
+		<p><strong>3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)</strong></p>
+		<pre><code>${after ?? '// paste code here'}</code></pre>
+		<h3>Additional context</h3>
+	`;
 };
 
 const selectSourceControlViewProps = (
@@ -72,8 +59,11 @@ const selectSourceControlViewProps = (
 		state.sourceControl.newFileContent,
 	);
 
-	const body = removeLineBreaksAtStartAndEnd(
-		buildIssueTemplate(job.codemodName, beforeSnippet, afterSnippet, null),
+	const body = buildIssueTemplateInHTML(
+		job.codemodName,
+		beforeSnippet,
+		afterSnippet,
+		null,
 	);
 
 	const title = `[Codemod:${job.codemodName}] Invalid codemod output`;

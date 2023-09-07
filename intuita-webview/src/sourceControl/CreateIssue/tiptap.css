@@ -2,6 +2,7 @@
 	background: var(--input-background);
 	outline: none;
 	height: 70vh;
+	overflow: auto;
 	padding: 1px calc(var(--design-unit) * 2px + 1px);
 }
 
