@@ -3,13 +3,13 @@ import { Memento } from 'vscode';
 export class GlobalStateTokenStorage {
 	constructor(private readonly __globalState: Memento) {}
 
-	getUserToken() {
-		const clerkToken = this.__globalState.get('userToken');
-		return typeof clerkToken === 'string' ? clerkToken : null;
+	getUserToken(): string | null {
+		const accessToken = this.__globalState.get('userToken');
+		return typeof accessToken === 'string' ? accessToken : null;
 	}
 
-	setUserToken(clerkToken: string | undefined) {
-		this.__globalState.update('userToken', clerkToken);
+	setUserToken(accessToken: string | undefined): void {
+		this.__globalState.update('userToken', accessToken);
 	}
 }
 
@@ -19,13 +19,8 @@ export class AlreadyLinkedError extends Error {
 	}
 }
 
-export interface IGlobalStateTokenStorage {
-	getUserToken(): string | null;
-	setUserToken(value: string | undefined): void;
-}
-
 export class UserService {
-	constructor(private readonly __storage: IGlobalStateTokenStorage) {}
+	constructor(private readonly __storage: GlobalStateTokenStorage) {}
 
 	getLinkedToken() {
 		return this.__storage.getUserToken();

@@ -380,10 +380,6 @@ export class IntuitaPanelProvider {
 							SEARCH_PARAMS_KEYS.CODEMOD_NAME,
 							encode(job.codemodName),
 						);
-						// searchParams.set(
-						// 	SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
-						// 	encode(internalContent ?? ''),
-						// );
 
 						const url = new URL('https://codemod.studio');
 						url.search = searchParams.toString();

@@ -40,18 +40,18 @@ import {
 	UserService,
 } from './components/userService';
 
-export const SEARCH_PARAMS_KEYS = Object.freeze({
-	ENGINE: 'engine' as const,
-	BEFORE_SNIPPET: 'beforeSnippet' as const,
-	AFTER_SNIPPET: 'afterSnippet' as const,
-	CODEMOD_SOURCE: 'codemodSource' as const,
-	CODEMOD_NAME: 'codemodName' as const,
-	COMMAND: 'command' as const,
-	COMPRESSED_SHAREABLE_CODEMOD: 'c' as const,
-	CODEMOD_HASH_DIGEST: 'chd' as const,
-	USER_TOKEN_REQUEST_FROM_VSCODE: 'userTokenRequestFromVSCode' as const,
-	USER_TOKEN: 'userToken' as const,
-});
+export const enum SEARCH_PARAMS_KEYS {
+	ENGINE = 'engine',
+	BEFORE_SNIPPET = 'beforeSnippet',
+	AFTER_SNIPPET = 'afterSnippet',
+	CODEMOD_SOURCE = 'codemodSource',
+	CODEMOD_NAME = 'codemodName',
+	COMMAND = 'command',
+	COMPRESSED_SHAREABLE_CODEMOD = 'c',
+	CODEMOD_HASH_DIGEST = 'chd',
+	USER_TOKEN_REQUEST_FROM_VSCODE = 'userTokenRequestFromVSCode',
+	USER_TOKEN = 'userToken',
+}
 
 const messageBus = new MessageBus();
 
