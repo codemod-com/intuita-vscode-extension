@@ -220,7 +220,7 @@ export class SourceControlPanelProvider {
 							{
 								title,
 								body,
-								userId: storedClerkToken,
+								token: storedClerkToken,
 								repo: codemodRegistryRepo,
 							},
 						);
