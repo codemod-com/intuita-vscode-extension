@@ -35,13 +35,13 @@ export class UserService {
 		this.__storage.setUserToken(undefined);
 	}
 
-	linkUserIntuitaAccount(clerkToken: string): void {
+	linkUserIntuitaAccount(accessToken: string): void {
 		const linkedToken = this.getLinkedToken();
 
-		if (linkedToken !== null && linkedToken !== clerkToken) {
+		if (linkedToken !== null && linkedToken !== accessToken) {
 			throw new AlreadyLinkedError();
 		}
 
-		this.__storage.setUserToken(clerkToken);
+		this.__storage.setUserToken(accessToken);
 	}
 }

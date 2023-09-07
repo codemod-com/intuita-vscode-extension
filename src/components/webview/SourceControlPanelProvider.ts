@@ -15,6 +15,30 @@ import { encode } from 'universal-base64url';
 import { UserService } from '../userService';
 import { createIssueResponseCodec } from '../../github/types';
 
+const routeUserToStudioToAuthenticate = async () => {
+	const result = await window.showInformationMessage(
+		'To report issues, sign in to Intuita.',
+		{ modal: true },
+		'Sign in with Github',
+	);
+
+	if (result !== 'Sign in with Github') {
+		return;
+	}
+
+	const searchParams = new URLSearchParams();
+
+	searchParams.set(
+		SEARCH_PARAMS_KEYS.USER_TOKEN_REQUEST_FROM_VSCODE,
+		encode('request'),
+	);
+
+	const url = new URL('https://codemod.studio');
+	url.search = searchParams.toString();
+
+	commands.executeCommand('intuita.redirect', url);
+};
+
 const buildIssueTemplate = (
 	codemodName: string,
 	before: string | null,
@@ -183,31 +207,10 @@ export class SourceControlPanelProvider {
 					}
 
 					if (message.kind === 'webview.sourceControl.createIssue') {
-						const storedClerkToken =
-							this.__userService.getLinkedToken();
+						const accessToken = this.__userService.getLinkedToken();
 
-						if (storedClerkToken === null) {
-							const result = await window.showInformationMessage(
-								'To report issues, sign in to Intuita.',
-								{ modal: true },
-								'Sign in with Github',
-							);
-
-							if (result !== 'Sign in with Github') {
-								return;
-							}
-
-							const searchParams = new URLSearchParams();
-
-							searchParams.set(
-								SEARCH_PARAMS_KEYS.USER_TOKEN_REQUEST_FROM_VSCODE,
-								encode('request'),
-							);
-
-							const url = new URL('https://codemod.studio');
-							url.search = searchParams.toString();
-
-							commands.executeCommand('intuita.redirect', url);
+						if (accessToken === null) {
+							await routeUserToStudioToAuthenticate();
 							return;
 						}
 
@@ -215,15 +218,21 @@ export class SourceControlPanelProvider {
 						// call API to create Github Issue
 						const codemodRegistryRepo =
 							'https://github.com/intuita-inc/codemod-registry';
-						const { data } = await axios.post(
+						const result = await axios.post(
 							'https://telemetry.intuita.io/sourceControl/github/issues',
 							{
 								title,
 								body,
-								accessToken: storedClerkToken,
+								accessToken,
 								repo: codemodRegistryRepo,
 							},
 						);
+						if (result.status !== 200) {
+							this.__userService.unlinkUserIntuitaAccount();
+							await routeUserToStudioToAuthenticate();
+						}
+
+						const { data } = result;
 
 						const validation =
 							createIssueResponseCodec.decode(data);

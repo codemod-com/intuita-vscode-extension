@@ -857,7 +857,9 @@ export async function activate(context: vscode.ExtensionContext) {
 				const codemodHashDigest = urlParams.get(
 					SEARCH_PARAMS_KEYS.CODEMOD_HASH_DIGEST,
 				);
-				const clerkToken = urlParams.get(SEARCH_PARAMS_KEYS.USER_TOKEN);
+				const accessToken = urlParams.get(
+					SEARCH_PARAMS_KEYS.USER_TOKEN,
+				);
 
 				// user is exporting codemod from studio into extension
 				if (codemodSource !== null) {
@@ -1015,12 +1017,12 @@ export async function activate(context: vscode.ExtensionContext) {
 							codemodHashDigest as unknown as CodemodNodeHashDigest,
 						),
 					);
-				} else if (clerkToken !== null) {
+				} else if (accessToken !== null) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
 					try {
-						userService.linkUserIntuitaAccount(clerkToken);
+						userService.linkUserIntuitaAccount(accessToken);
 						vscode.window.showInformationMessage(
 							"You successfully linked your Intuita account. Press 'Create Issue' to resume the Github issue creation.",
 						);
@@ -1035,7 +1037,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 							if (result === 'Link account') {
 								userService.unlinkUserIntuitaAccount();
-								userService.linkUserIntuitaAccount(clerkToken);
+								userService.linkUserIntuitaAccount(accessToken);
 							}
 						}
 					}
