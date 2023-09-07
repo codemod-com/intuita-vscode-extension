@@ -186,7 +186,7 @@ export class SourceControlPanelProvider {
 
 						if (storedClerkToken === null) {
 							const result = await window.showInformationMessage(
-								'No Github account is linked to Intuita VSCode Extension. You need to sign in with Github to proceed.',
+								'To report issues, sign in to Intuita.',
 								{ modal: true },
 								'Sign in with Github',
 							);
