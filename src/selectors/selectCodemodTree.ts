@@ -1,5 +1,5 @@
 import { CodemodEntry, PrivateCodemodEntry } from '../codemods/types';
-import { buildHash, capitalize } from '../utilities';
+import { buildHash, capitalize, isNeitherNullNorUndefined } from '../utilities';
 import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
@@ -289,6 +289,30 @@ export const selectCodemodTree = (
 
 export const selectExecutionPaths = (state: RootState) => {
 	return state.codemodDiscoveryView.executionPaths;
+};
+
+export const selectCodemodArguments = (state: RootState) => {
+	const hashDigest =
+		state.codemodDiscoveryView.codemodArgumentsPopupHashDigest;
+
+	if (hashDigest === null) {
+		return [];
+	}
+
+	const args =
+		Object.values(state.codemod.entities)
+			.filter(isNeitherNullNorUndefined)
+			.find((codemodEntry) => codemodEntry.hashDigest === hashDigest)
+			?.arguments ?? [];
+
+	const savedArgsValues =
+		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
+
+	return args.map(({ name, default: defaultValue, ...rest }) => ({
+		...rest,
+		name,
+		value: savedArgsValues?.[name] ?? String(defaultValue) ?? '',
+	}));
 };
 
 export type CodemodTree = NonNullable<ReturnType<typeof selectCodemodTree>>;

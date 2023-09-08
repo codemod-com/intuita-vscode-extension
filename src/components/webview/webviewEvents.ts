@@ -177,4 +177,13 @@ export type WebviewResponse =
 				| 'webview.global.collapsePublicRegistryPanel'
 				| 'webview.global.collapsePrivateRegistryPanel';
 			collapsed: boolean;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodArgumentsPopupHashDigest';
+			hashDigest: CodemodNodeHashDigest | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.global.setCodemodArguments';
+			hashDigest: CodemodNodeHashDigest;
+			arguments: Record<string, string>;
 	  }>;

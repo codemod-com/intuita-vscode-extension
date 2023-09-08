@@ -45,11 +45,14 @@ export const enum MessageKind {
 	executionQueueChange = 39,
 }
 
+export type CodemodArguments = ReadonlyArray<{ name: string; value: string }>;
+
 export type Command =
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			name: string;
+			arguments?: CodemodArguments;
 	  }>
 	| Readonly<{
 			kind: 'executeLocalCodemod';
@@ -62,6 +65,7 @@ export type Command =
 			name: string;
 			configurationUri: Uri;
 			language: string;
+			arguments?: CodemodArguments;
 	  }>;
 
 export type Message =

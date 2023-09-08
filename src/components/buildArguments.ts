@@ -20,17 +20,10 @@ export const buildArguments = (
 		args.push('-o', singleQuotify(storageUri.fsPath));
 		args.push('-l', command.language);
 
-		// configuration.includePatterns.forEach((includePattern) => {
-		// 	const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
-
-		// 	args.push('-p', singleQuotify(fsPath));
-		// });
-
-		// configuration.excludePatterns.forEach((excludePattern) => {
-		// 	const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
-
-		// 	args.push('-a', singleQuotify(fsPath));
-		// });
+		const codemodArguments = (command.arguments ?? []).flatMap(
+			({ name, value }) => [`--arg:${name}`, String(value)],
+		);
+		args.push(...codemodArguments);
 
 		return args;
 	}
@@ -39,6 +32,10 @@ export const buildArguments = (
 
 	if (command.kind === 'executeCodemod') {
 		args.push(singleQuotify(command.name));
+		const codemodArguments = (command.arguments ?? []).flatMap(
+			({ name, value }) => [`--arg:${name}`, String(value)],
+		);
+		args.push(...codemodArguments);
 	} else {
 		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
 		args.push('--codemodEngine', 'jscodeshift');

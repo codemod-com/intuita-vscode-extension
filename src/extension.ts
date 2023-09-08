@@ -455,6 +455,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
+					const args = Object.entries(
+						store.getState().codemodDiscoveryView.codemodArguments[
+							codemodHash
+						] ?? {},
+					).map(([name, value]) => ({ name, value }));
+
 					const command: Command =
 						codemod.kind === 'piranhaRule'
 							? {
@@ -470,11 +476,13 @@ export async function activate(context: vscode.ExtensionContext) {
 									),
 									language: codemod.language,
 									name: codemod.name,
+									arguments: args,
 							  }
 							: {
 									kind: 'executeCodemod',
 									codemodHash,
 									name: codemod.name,
+									arguments: args,
 							  };
 
 					store.dispatch(
@@ -617,6 +625,12 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
+					const args = Object.entries(
+						store.getState().codemodDiscoveryView.codemodArguments[
+							codemodEntry.hashDigest
+						] ?? {},
+					).map(([name, value]) => ({ name, value }));
+
 					const command: Command =
 						codemodEntry.kind === 'piranhaRule'
 							? {
@@ -632,12 +646,14 @@ export async function activate(context: vscode.ExtensionContext) {
 									),
 									language: codemodEntry.language,
 									name: codemodEntry.name,
+									arguments: args,
 							  }
 							: {
 									kind: 'executeCodemod',
 									codemodHash:
 										codemodEntry.hashDigest as CodemodHash,
 									name: codemodEntry.name,
+									arguments: args,
 							  };
 
 					messageBus.publish({

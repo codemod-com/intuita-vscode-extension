@@ -1,7 +1,11 @@
 import type { Uri } from 'vscode';
 import type { RootState } from '../data';
 import { selectCodemodRunsTree } from './selectCodemodRunsTree';
-import { selectCodemodTree, selectPrivateCodemods } from './selectCodemodTree';
+import {
+	selectCodemodArguments,
+	selectCodemodTree,
+	selectPrivateCodemods,
+} from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { selectSourceControlTabProps } from './selectSourceControlTabProps';
@@ -22,6 +26,11 @@ export const selectMainWebviewViewProps = (
 				rootUri?.fsPath ?? null,
 				executionQueue,
 			),
+			codemodArgumentsPopup: {
+				arguments: selectCodemodArguments(state),
+				hashDigest:
+					state.codemodDiscoveryView.codemodArgumentsPopupHashDigest,
+			},
 			privateCodemods: selectPrivateCodemods(
 				state,
 				rootUri?.fsPath ?? null,

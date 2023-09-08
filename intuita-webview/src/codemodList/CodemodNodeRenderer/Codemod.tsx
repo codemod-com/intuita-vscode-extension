@@ -111,8 +111,27 @@ const renderActionButtons = (
 			});
 		};
 
+		const handleCodemodSettingsClick = () => {
+			vscode.postMessage({
+				kind: 'webview.global.setCodemodArgumentsPopupHashDigest',
+				hashDigest,
+			});
+		};
+
 		return (
 			<>
+				<ActionButton
+					id={`${hashDigest}-dryRunButton`}
+					content="Dry-run this codemod (without making change to file system)."
+					onClick={handleCodemodSettingsClick}
+					style={{
+						...(rootPath === null && {
+							opacity: 'var(--disabled-opacity)',
+						}),
+					}}
+				>
+					<span className={cn('codicon', 'codicon-settings-gear')} />
+				</ActionButton>
 				<ActionButton
 					id={`${hashDigest}-dryRunButton`}
 					content="Dry-run this codemod (without making change to file system)."

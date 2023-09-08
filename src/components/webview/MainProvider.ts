@@ -498,6 +498,23 @@ export class MainViewProvider implements WebviewViewProvider {
 				await routeUserToStudioToAuthenticate();
 			}
 		}
+
+		if (
+			message.kind === 'webview.global.setCodemodArgumentsPopupHashDigest'
+		) {
+			this.__store.dispatch(
+				actions.setCodemodArgumentsPopupHashDigest(message.hashDigest),
+			);
+		}
+
+		if (message.kind === 'webview.global.setCodemodArguments') {
+			this.__store.dispatch(
+				actions.setCodemodArguments({
+					hashDigest: message.hashDigest,
+					arguments: message.arguments,
+				}),
+			);
+		}
 	};
 
 	public updateExecutionPath = async ({

@@ -344,6 +344,7 @@ export class EngineService {
 						hashDigest,
 						name,
 						language: config.engine,
+						arguments: config.arguments,
 					});
 
 					continue;
@@ -360,6 +361,7 @@ export class EngineService {
 						hashDigest,
 						name,
 						engine: config.engine,
+						arguments: config.arguments,
 					});
 				}
 			}
