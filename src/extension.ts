@@ -49,7 +49,7 @@ export const enum SEARCH_PARAMS_KEYS {
 	COMMAND = 'command',
 	COMPRESSED_SHAREABLE_CODEMOD = 'c',
 	CODEMOD_HASH_DIGEST = 'chd',
-	USER_TOKEN_REQUEST_FROM_VSCODE = 'userTokenRequestFromVSCode',
+	ACCESS_TOKEN_REQUESTED = 'accessTokenRequested',
 	USER_TOKEN = 'userToken',
 }
 

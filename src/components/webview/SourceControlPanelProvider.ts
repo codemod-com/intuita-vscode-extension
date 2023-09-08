@@ -29,7 +29,7 @@ const routeUserToStudioToAuthenticate = async () => {
 	const searchParams = new URLSearchParams();
 
 	searchParams.set(
-		SEARCH_PARAMS_KEYS.USER_TOKEN_REQUEST_FROM_VSCODE,
+		SEARCH_PARAMS_KEYS.ACCESS_TOKEN_REQUESTED,
 		encode('request'),
 	);
 
