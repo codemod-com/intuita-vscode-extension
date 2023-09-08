@@ -50,7 +50,7 @@ export const enum SEARCH_PARAMS_KEYS {
 	COMPRESSED_SHAREABLE_CODEMOD = 'c',
 	CODEMOD_HASH_DIGEST = 'chd',
 	ACCESS_TOKEN_REQUESTED = 'accessTokenRequested',
-	USER_TOKEN = 'userToken',
+	ACCESS_TOKEN = 'accessToken',
 }
 
 const messageBus = new MessageBus();
@@ -858,7 +858,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					SEARCH_PARAMS_KEYS.CODEMOD_HASH_DIGEST,
 				);
 				const accessToken = urlParams.get(
-					SEARCH_PARAMS_KEYS.USER_TOKEN,
+					SEARCH_PARAMS_KEYS.ACCESS_TOKEN,
 				);
 
 				// user is exporting codemod from studio into extension
