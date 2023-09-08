@@ -61,8 +61,8 @@ export const selectMainWebviewViewProps = (
 
 		return {
 			activeTabId: state.activeTabId,
-			title: sourceControlTabProps?.title ?? null,
-			body: sourceControlTabProps?.body ?? null,
+			title: sourceControlTabProps?.title ?? '',
+			body: sourceControlTabProps?.body ?? '',
 		};
 	}
 

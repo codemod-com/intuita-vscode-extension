@@ -16,6 +16,7 @@ type Props = Readonly<{
 }>;
 
 const CreateIssue = ({ title, body }: Props) => {
+	// TODO: handle loading for creating issue
 	const [loading] = useState(false);
 	const [formData, setFormData] = useState<IssueFormData>({
 		title,
@@ -86,7 +87,11 @@ const CreateIssue = ({ title, body }: Props) => {
 
 				<div className={styles.actions}>
 					<VSCodeButton
-						disabled={loading}
+						disabled={
+							loading ||
+							formData.title.length <= 3 ||
+							formData.body.length <= 5
+						}
 						type="submit"
 						className={styles.actionButton}
 					>

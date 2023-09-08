@@ -146,15 +146,10 @@ function App() {
 					id="createIssueView"
 				>
 					{mainWebviewViewProps.activeTabId === 'sourceControl' ? (
-						mainWebviewViewProps.title !== null &&
-						mainWebviewViewProps.body !== null ? (
-							<CreateIssue
-								title={mainWebviewViewProps.title}
-								body={mainWebviewViewProps.body}
-							/>
-						) : (
-							<p>No issue in progress</p>
-						)
+						<CreateIssue
+							title={mainWebviewViewProps.title}
+							body={mainWebviewViewProps.body}
+						/>
 					) : null}
 				</VSCodePanelView>
 			</VSCodePanels>

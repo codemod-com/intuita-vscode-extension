@@ -24,10 +24,10 @@ const buildIssueTemplateInHTML = (
 	`;
 };
 
-type SourceControlTabProps = {
+type SourceControlTabProps = Readonly<{
 	title: string;
 	body: string;
-};
+}>;
 
 export const selectSourceControlTabProps = (
 	state: RootState,
