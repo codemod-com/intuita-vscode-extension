@@ -11,7 +11,6 @@ import { createBeforeAfterSnippets } from './IntuitaPanelProvider';
 import { removeLineBreaksAtStartAndEnd } from '../../utilities';
 import { actions } from '../../data/slice';
 import { SEARCH_PARAMS_KEYS } from '../../extension';
-import { encode } from 'universal-base64url';
 import { UserService } from '../userService';
 import { createIssueResponseCodec } from '../../github/types';
 
@@ -28,10 +27,7 @@ const routeUserToStudioToAuthenticate = async () => {
 
 	const searchParams = new URLSearchParams();
 
-	searchParams.set(
-		SEARCH_PARAMS_KEYS.ACCESS_TOKEN_REQUESTED,
-		encode('request'),
-	);
+	searchParams.set(SEARCH_PARAMS_KEYS.COMMAND, 'accessTokenRequested');
 
 	const url = new URL('https://codemod.studio');
 	url.search = searchParams.toString();

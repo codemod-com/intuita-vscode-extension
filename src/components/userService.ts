@@ -3,13 +3,13 @@ import { Memento } from 'vscode';
 export class GlobalStateTokenStorage {
 	constructor(private readonly __globalState: Memento) {}
 
-	getUserToken(): string | null {
-		const accessToken = this.__globalState.get('userToken');
+	getAccessToken(): string | null {
+		const accessToken = this.__globalState.get('accessToken');
 		return typeof accessToken === 'string' ? accessToken : null;
 	}
 
-	setUserToken(accessToken: string | undefined): void {
-		this.__globalState.update('userToken', accessToken);
+	setAccessToken(accessToken: string | undefined): void {
+		this.__globalState.update('accessToken', accessToken);
 	}
 }
 
@@ -23,11 +23,11 @@ export class UserService {
 	constructor(private readonly __storage: GlobalStateTokenStorage) {}
 
 	getLinkedToken() {
-		return this.__storage.getUserToken();
+		return this.__storage.getAccessToken();
 	}
 
 	unlinkUserIntuitaAccount(): void {
-		this.__storage.setUserToken(undefined);
+		this.__storage.setAccessToken(undefined);
 	}
 
 	linkUserIntuitaAccount(accessToken: string): void {
@@ -37,6 +37,6 @@ export class UserService {
 			throw new AlreadyLinkedError();
 		}
 
-		this.__storage.setUserToken(accessToken);
+		this.__storage.setAccessToken(accessToken);
 	}
 }

@@ -49,7 +49,6 @@ export const enum SEARCH_PARAMS_KEYS {
 	COMMAND = 'command',
 	COMPRESSED_SHAREABLE_CODEMOD = 'c',
 	CODEMOD_HASH_DIGEST = 'chd',
-	ACCESS_TOKEN_REQUESTED = 'accessTokenRequested',
 	ACCESS_TOKEN = 'accessToken',
 }
 
