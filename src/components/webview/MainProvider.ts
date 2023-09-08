@@ -494,7 +494,6 @@ export class MainViewProvider implements WebviewViewProvider {
 					}),
 				);
 				await routeUserToStudioToAuthenticate();
-				return;
 			}
 		}
 	};
