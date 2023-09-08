@@ -16,7 +16,10 @@ import { CodemodHash } from './packageJsonAnalyzer/types';
 import { VscodeTelemetry } from './telemetry/vscodeTelemetry';
 import prettyReporter from 'io-ts-reporters';
 import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider';
-import { MainViewProvider } from './components/webview/MainProvider';
+import {
+	MainViewProvider,
+	createIssue,
+} from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
 import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider';
@@ -33,7 +36,6 @@ import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
-import { SourceControlPanelProvider } from './components/webview/SourceControlPanelProvider';
 import {
 	AlreadyLinkedError,
 	GlobalStateTokenStorage,
@@ -112,6 +114,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const mainViewProvider = new MainViewProvider(
 		context,
+		userService,
 		engineService,
 		messageBus,
 		rootUri,
@@ -135,14 +138,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		codemodDescriptionProvider,
 		rootUri?.fsPath ?? null,
 		jobManager,
-	);
-
-	new SourceControlPanelProvider(
-		context.extensionUri,
-		store,
-		mainViewProvider,
-		userService,
-		messageBus,
 	);
 
 	context.subscriptions.push(mainView);
@@ -859,6 +854,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const accessToken = urlParams.get(
 					SEARCH_PARAMS_KEYS.ACCESS_TOKEN,
 				);
+				const state = store.getState();
 
 				// user is exporting codemod from studio into extension
 				if (codemodSource !== null) {
@@ -949,8 +945,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					const state = store.getState();
-
 					// Expand collapsed parent directories of the relevant codemod
 					if (codemodHashDigest !== null) {
 						const privateCodemod =
@@ -1022,8 +1016,29 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 					try {
 						userService.linkUserIntuitaAccount(accessToken);
-						vscode.window.showInformationMessage(
-							"You successfully linked your Intuita account. Press 'Create Issue' to resume the Github issue creation.",
+						if (
+							state.sourceControl.kind !==
+							'ISSUE_CREATION_WAITING_FOR_AUTH'
+						) {
+							return;
+						}
+
+						const onSuccess = () => {
+							store.dispatch(
+								actions.setSourceControlTabProps({
+									kind: 'IDLENESS',
+								}),
+							);
+							store.dispatch(
+								actions.setActiveTabId('codemodRuns'),
+							);
+						};
+
+						await createIssue(
+							state.sourceControl.title,
+							state.sourceControl.body,
+							accessToken,
+							onSuccess,
 						);
 					} catch (e) {
 						if (e instanceof AlreadyLinkedError) {

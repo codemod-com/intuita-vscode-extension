@@ -9,7 +9,6 @@ import { _ExplorerNodeHashDigest } from '../../persistedState/explorerNodeCodec'
 import { MainWebviewViewProps } from '../../selectors/selectMainWebviewViewProps';
 import { ActiveTabId } from '../../persistedState/codecs';
 import { ErrorWebviewViewProps } from '../../selectors/selectErrorWebviewViewProps';
-import { SourceControlViewProps } from './sourceControlViewProps';
 
 export { JobHash };
 export { CodemodHash };
@@ -33,10 +32,6 @@ export type WebviewMessage =
 			panelViewProps: PanelViewProps;
 	  }>
 	| Readonly<{
-			kind: 'webview.setSourceControlViewProps';
-			sourceControlViewProps: SourceControlViewProps;
-	  }>
-	| Readonly<{
 			kind: 'webview.error.setProps';
 			errorWebviewViewProps: ErrorWebviewViewProps;
 	  }>
@@ -57,9 +52,6 @@ export type WebviewMessage =
 export type WebviewResponse =
 	| Readonly<{
 			kind: 'webview.jobDiffView.webviewMounted';
-	  }>
-	| Readonly<{
-			kind: 'webview.sourceControl.webviewMounted';
 	  }>
 	| Readonly<{
 			kind: 'webview.global.focusExplorerNode';

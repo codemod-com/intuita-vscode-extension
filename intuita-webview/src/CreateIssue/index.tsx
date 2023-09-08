@@ -5,9 +5,9 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
-import { vscode } from '../../shared/utilities/vscode';
+import { vscode } from '../shared/utilities/vscode';
 import styles from './style.module.css';
-import { IssueFormData } from '../../../../src/components/webview/webviewEvents';
+import { IssueFormData } from '../../../src/components/webview/webviewEvents';
 import './tiptap.css';
 
 type Props = Readonly<{
@@ -16,6 +16,7 @@ type Props = Readonly<{
 }>;
 
 const CreateIssue = ({ title, body }: Props) => {
+	// TODO: handle loading for creating issue
 	const [loading] = useState(false);
 	const [formData, setFormData] = useState<IssueFormData>({
 		title,
@@ -86,7 +87,11 @@ const CreateIssue = ({ title, body }: Props) => {
 
 				<div className={styles.actions}>
 					<VSCodeButton
-						disabled={loading}
+						disabled={
+							loading ||
+							formData.title.length <= 3 ||
+							formData.body.length <= 5
+						}
 						type="submit"
 						className={styles.actionButton}
 					>

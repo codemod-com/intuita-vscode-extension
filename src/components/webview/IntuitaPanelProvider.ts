@@ -339,7 +339,10 @@ export class IntuitaPanelProvider {
 						}
 
 						this.__store.dispatch(
-							actions.setSourceControlViewProps({
+							actions.setActiveTabId('sourceControl'),
+						);
+						this.__store.dispatch(
+							actions.setSourceControlTabProps({
 								kind: 'ISSUE_CREATION',
 								jobHash: message.faultyJobHash,
 								oldFileContent: message.oldFileContent,

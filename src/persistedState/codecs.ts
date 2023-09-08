@@ -43,6 +43,7 @@ const activeTabIdCodec = t.union([
 	t.literal('codemods'),
 	t.literal('codemodRuns'),
 	t.literal('community'),
+	t.literal('sourceControl'),
 ]);
 
 export type ActiveTabId = t.TypeOf<typeof activeTabIdCodec>;
@@ -119,6 +120,11 @@ export const persistedStateCodecNew = buildTypeCodec({
 				jobHash: t.string,
 				oldFileContent: t.string,
 				newFileContent: t.string,
+			}),
+			buildTypeCodec({
+				kind: t.literal('ISSUE_CREATION_WAITING_FOR_AUTH'),
+				title: t.string,
+				body: t.string,
 			}),
 			buildTypeCodec({
 				kind: t.literal('IDLENESS'),
