@@ -24,14 +24,14 @@ const buildIssueTemplateInHTML = (
 	`;
 };
 
-type SoureControlTabProps = {
+type SourceControlTabProps = {
 	title: string;
 	body: string;
 };
 
 export const selectSourceControlTabProps = (
 	state: RootState,
-): SoureControlTabProps | null => {
+): SourceControlTabProps | null => {
 	if (!state.jobDiffView.visible) {
 		return null;
 	}
