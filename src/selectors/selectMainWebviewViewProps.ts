@@ -4,7 +4,7 @@ import { selectCodemodRunsTree } from './selectCodemodRunsTree';
 import { selectCodemodTree, selectPrivateCodemods } from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
-import { selectSoureControlTabProps } from './selectSoureControlTabProps';
+import { selectSourceControlTabProps } from './selectSourceControlTabProps';
 
 export const selectMainWebviewViewProps = (
 	state: RootState,
@@ -57,7 +57,7 @@ export const selectMainWebviewViewProps = (
 	}
 
 	if (state.activeTabId === 'sourceControl') {
-		const sourceControlTabProps = selectSoureControlTabProps(state);
+		const sourceControlTabProps = selectSourceControlTabProps(state);
 
 		return {
 			activeTabId: state.activeTabId,

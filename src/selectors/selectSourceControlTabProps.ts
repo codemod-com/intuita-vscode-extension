@@ -29,7 +29,7 @@ type SoureControlTabProps = {
 	body: string;
 };
 
-export const selectSoureControlTabProps = (
+export const selectSourceControlTabProps = (
 	state: RootState,
 ): SoureControlTabProps | null => {
 	if (!state.jobDiffView.visible) {
