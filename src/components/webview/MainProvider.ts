@@ -26,7 +26,8 @@ import { SEARCH_PARAMS_KEYS } from '../../extension';
 import axios from 'axios';
 import { UserService } from '../userService';
 
-const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token';
+const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
+
 export const createIssue = async (
 	title: string,
 	body: string,
@@ -455,6 +456,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.sourceControl.createIssue') {
 			const accessToken = this.__userService.getLinkedToken();
+
 			const { title, body } = message.data;
 
 			if (accessToken === null) {

@@ -13,12 +13,6 @@ export class GlobalStateTokenStorage {
 	}
 }
 
-export class AlreadyLinkedError extends Error {
-	constructor() {
-		super('Already linked to different account');
-	}
-}
-
 export class UserService {
 	constructor(private readonly __storage: GlobalStateTokenStorage) {}
 
@@ -31,12 +25,6 @@ export class UserService {
 	}
 
 	linkUserIntuitaAccount(accessToken: string): void {
-		const linkedToken = this.getLinkedToken();
-
-		if (linkedToken !== null && linkedToken !== accessToken) {
-			throw new AlreadyLinkedError();
-		}
-
 		this.__storage.setAccessToken(accessToken);
 	}
 }
