@@ -36,11 +36,7 @@ import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
-import {
-	AlreadyLinkedError,
-	GlobalStateTokenStorage,
-	UserService,
-} from './components/userService';
+import { GlobalStateTokenStorage, UserService } from './components/userService';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -1014,47 +1010,31 @@ export async function activate(context: vscode.ExtensionContext) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
-					try {
-						userService.linkUserIntuitaAccount(accessToken);
-						if (
-							state.sourceControl.kind !==
-							'ISSUE_CREATION_WAITING_FOR_AUTH'
-						) {
-							return;
-						}
 
-						const onSuccess = () => {
-							store.dispatch(
-								actions.setSourceControlTabProps({
-									kind: 'IDLENESS',
-								}),
-							);
-							store.dispatch(
-								actions.setActiveTabId('codemodRuns'),
-							);
-						};
+					userService.linkUserIntuitaAccount(accessToken);
 
-						await createIssue(
-							state.sourceControl.title,
-							state.sourceControl.body,
-							accessToken,
-							onSuccess,
-						);
-					} catch (e) {
-						if (e instanceof AlreadyLinkedError) {
-							const result =
-								await vscode.window.showInformationMessage(
-									'A different Intuita account is already linked to Intuita VSCode Extension. Would you like to link your new Intuita account?',
-									{ modal: true },
-									'Link account',
-								);
-
-							if (result === 'Link account') {
-								userService.unlinkUserIntuitaAccount();
-								userService.linkUserIntuitaAccount(accessToken);
-							}
-						}
+					if (
+						state.sourceControl.kind !==
+						'ISSUE_CREATION_WAITING_FOR_AUTH'
+					) {
+						return;
 					}
+
+					const onSuccess = () => {
+						store.dispatch(
+							actions.setSourceControlTabProps({
+								kind: 'IDLENESS',
+							}),
+						);
+						store.dispatch(actions.setActiveTabId('codemodRuns'));
+					};
+
+					await createIssue(
+						state.sourceControl.title,
+						state.sourceControl.body,
+						accessToken,
+						onSuccess,
+					);
 				}
 			},
 		}),
