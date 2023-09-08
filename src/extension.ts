@@ -34,15 +34,23 @@ import { existsSync, rmSync } from 'fs';
 import { CodemodConfig } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 import { SourceControlPanelProvider } from './components/webview/SourceControlPanelProvider';
+import {
+	AlreadyLinkedError,
+	GlobalStateTokenStorage,
+	UserService,
+} from './components/userService';
 
-export const UrlParamKeys = {
-	engine: 'engine' as const,
-	beforeSnippet: 'beforeSnippet' as const,
-	afterSnippet: 'afterSnippet' as const,
-	codemodSource: 'codemodSource' as const,
-	codemodName: 'codemodName' as const,
-	codemodHashDigest: 'chd' as const,
-};
+export const enum SEARCH_PARAMS_KEYS {
+	ENGINE = 'engine',
+	BEFORE_SNIPPET = 'beforeSnippet',
+	AFTER_SNIPPET = 'afterSnippet',
+	CODEMOD_SOURCE = 'codemodSource',
+	CODEMOD_NAME = 'codemodName',
+	COMMAND = 'command',
+	COMPRESSED_SHAREABLE_CODEMOD = 'c',
+	CODEMOD_HASH_DIGEST = 'chd',
+	ACCESS_TOKEN = 'accessToken',
+}
 
 const messageBus = new MessageBus();
 
@@ -52,6 +60,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	messageBus.setDisposables(context.subscriptions);
 
 	const { store } = await buildStore(context.workspaceState);
+
+	const globalStateTokenStorage = new GlobalStateTokenStorage(
+		context.globalState,
+	);
+	const userService = new UserService(globalStateTokenStorage);
 
 	const configurationContainer = buildContainer(getConfiguration());
 
@@ -128,6 +141,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.extensionUri,
 		store,
 		mainViewProvider,
+		userService,
 		messageBus,
 	);
 
@@ -836,13 +850,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerUriHandler({
 			handleUri: async (uri) => {
 				const urlParams = new URLSearchParams(uri.query);
-				const codemodSource = urlParams.get(UrlParamKeys.codemodSource);
+				const codemodSource = urlParams.get(
+					SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
+				);
 				const codemodHashDigest = urlParams.get(
-					UrlParamKeys.codemodHashDigest,
+					SEARCH_PARAMS_KEYS.CODEMOD_HASH_DIGEST,
+				);
+				const accessToken = urlParams.get(
+					SEARCH_PARAMS_KEYS.ACCESS_TOKEN,
 				);
 
 				// user is exporting codemod from studio into extension
-				if (codemodSource) {
+				if (codemodSource !== null) {
 					vscode.commands.executeCommand(
 						'workbench.view.extension.intuitaViewId',
 					);
@@ -997,6 +1016,30 @@ export async function activate(context: vscode.ExtensionContext) {
 							codemodHashDigest as unknown as CodemodNodeHashDigest,
 						),
 					);
+				} else if (accessToken !== null) {
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+					try {
+						userService.linkUserIntuitaAccount(accessToken);
+						vscode.window.showInformationMessage(
+							"You successfully linked your Intuita account. Press 'Create Issue' to resume the Github issue creation.",
+						);
+					} catch (e) {
+						if (e instanceof AlreadyLinkedError) {
+							const result =
+								await vscode.window.showInformationMessage(
+									'A different Intuita account is already linked to Intuita VSCode Extension. Would you like to link your new Intuita account?',
+									{ modal: true },
+									'Link account',
+								);
+
+							if (result === 'Link account') {
+								userService.unlinkUserIntuitaAccount();
+								userService.linkUserIntuitaAccount(accessToken);
+							}
+						}
+					}
 				}
 			},
 		}),

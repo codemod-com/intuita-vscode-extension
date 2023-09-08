@@ -1,4 +1,5 @@
-import { Uri, ViewColumn, WebviewPanel, window } from 'vscode';
+import axios from 'axios';
+import { Uri, ViewColumn, WebviewPanel, commands, window } from 'vscode';
 import type { RootState, Store } from '../../data';
 import { WebviewResolver } from './WebviewResolver';
 import areEqual from 'fast-deep-equal';
@@ -8,6 +9,30 @@ import { MessageBus, MessageKind } from '../messageBus';
 import { SourceControlViewProps } from './sourceControlViewProps';
 import { createBeforeAfterSnippets } from './IntuitaPanelProvider';
 import { actions } from '../../data/slice';
+import { SEARCH_PARAMS_KEYS } from '../../extension';
+import { UserService } from '../userService';
+import { createIssueResponseCodec } from '../../github/types';
+
+const routeUserToStudioToAuthenticate = async () => {
+	const result = await window.showInformationMessage(
+		'To report issues, sign in to Intuita.',
+		{ modal: true },
+		'Sign in with Github',
+	);
+
+	if (result !== 'Sign in with Github') {
+		return;
+	}
+
+	const searchParams = new URLSearchParams();
+
+	searchParams.set(SEARCH_PARAMS_KEYS.COMMAND, 'accessTokenRequested');
+
+	const url = new URL('https://codemod.studio');
+	url.search = searchParams.toString();
+
+	commands.executeCommand('intuita.redirect', url);
+};
 
 const buildIssueTemplateInHTML = (
 	codemodName: string,
@@ -84,6 +109,7 @@ export class SourceControlPanelProvider {
 		private readonly __extensionUri: Uri,
 		private readonly __store: Store,
 		private readonly __mainWebviewViewProvider: MainViewProvider,
+		private readonly __userService: UserService,
 		messageBus: MessageBus,
 	) {
 		let prevViewProps = selectSourceControlViewProps(
@@ -164,6 +190,49 @@ export class SourceControlPanelProvider {
 						} satisfies WebviewMessage);
 
 						this.__webviewPanel.reveal(undefined, preserveFocus);
+					}
+
+					if (message.kind === 'webview.sourceControl.createIssue') {
+						const accessToken = this.__userService.getLinkedToken();
+
+						if (accessToken === null) {
+							await routeUserToStudioToAuthenticate();
+							return;
+						}
+
+						const { title, body } = message.data;
+						// call API to create Github Issue
+						const codemodRegistryRepo =
+							'https://github.com/intuita-inc/codemod-registry';
+						const result = await axios.post(
+							'https://telemetry.intuita.io/sourceControl/github/issues',
+							{
+								title,
+								body,
+								accessToken,
+								repo: codemodRegistryRepo,
+							},
+						);
+						if (result.status !== 200) {
+							this.__userService.unlinkUserIntuitaAccount();
+							await routeUserToStudioToAuthenticate();
+						}
+
+						const { data } = result;
+
+						const validation =
+							createIssueResponseCodec.decode(data);
+
+						if (validation._tag === 'Left') {
+							window.showErrorMessage(
+								'Creating Github issue failed.',
+							);
+							return;
+						}
+
+						const html_url = validation.right;
+
+						commands.executeCommand('intuita.redirect', html_url);
 					}
 				},
 			);
