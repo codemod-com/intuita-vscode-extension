@@ -13,6 +13,7 @@ import { WebviewMessage } from '../shared/types';
 import { vscode } from '../shared/utilities/vscode';
 import { ActiveTabId } from '../../../src/persistedState/codecs';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
+import CreateIssue from '../CreateIssue';
 
 declare global {
 	interface Window {
@@ -106,6 +107,10 @@ function App() {
 				<VSCodePanelTab className="vscode-tab" id={'community'}>
 					Community
 				</VSCodePanelTab>
+				<VSCodePanelTab className="vscode-tab" id={'sourceControl'}>
+					Github Issue
+				</VSCodePanelTab>
+
 				<VSCodePanelView
 					className="vscode-panel-view h-full w-full"
 					id="codemodsView"
@@ -134,6 +139,22 @@ function App() {
 				>
 					{mainWebviewViewProps.activeTabId === 'community' ? (
 						<CommunityTab />
+					) : null}
+				</VSCodePanelView>
+				<VSCodePanelView
+					className="vscode-panel-view h-full w-full"
+					id="createIssueView"
+				>
+					{mainWebviewViewProps.activeTabId === 'sourceControl' ? (
+						mainWebviewViewProps.title !== null &&
+						mainWebviewViewProps.body !== null ? (
+							<CreateIssue
+								title={mainWebviewViewProps.title}
+								body={mainWebviewViewProps.body}
+							/>
+						) : (
+							<p>No issue in progress</p>
+						)
 					) : null}
 				</VSCodePanelView>
 			</VSCodePanels>

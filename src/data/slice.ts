@@ -647,7 +647,7 @@ const rootSlice = createSlice({
 		setJobDiffViewVisible(state, action: PayloadAction<boolean>) {
 			state.jobDiffView.visible = action.payload;
 		},
-		setSourceControlViewProps(
+		setSourceControlTabProps(
 			state,
 			action: PayloadAction<RootState['sourceControl']>,
 		) {

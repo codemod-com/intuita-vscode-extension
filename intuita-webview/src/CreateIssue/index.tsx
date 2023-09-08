@@ -5,9 +5,9 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
-import { vscode } from '../../shared/utilities/vscode';
+import { vscode } from '../shared/utilities/vscode';
 import styles from './style.module.css';
-import { IssueFormData } from '../../../../src/components/webview/webviewEvents';
+import { IssueFormData } from '../../../src/components/webview/webviewEvents';
 import './tiptap.css';
 
 type Props = Readonly<{

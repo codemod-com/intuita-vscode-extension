@@ -4,6 +4,7 @@ import { selectCodemodRunsTree } from './selectCodemodRunsTree';
 import { selectCodemodTree, selectPrivateCodemods } from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
+import { selectSoureControlTabProps } from './selectSoureControlTabProps';
 
 export const selectMainWebviewViewProps = (
 	state: RootState,
@@ -52,6 +53,16 @@ export const selectMainWebviewViewProps = (
 			resultsCollapsed: state.codemodRunsTab.resultsCollapsed,
 			changeExplorerCollapsed:
 				state.codemodRunsTab.changeExplorerCollapsed,
+		};
+	}
+
+	if (state.activeTabId === 'sourceControl') {
+		const sourceControlTabProps = selectSoureControlTabProps(state);
+
+		return {
+			activeTabId: state.activeTabId,
+			title: sourceControlTabProps?.title ?? null,
+			body: sourceControlTabProps?.body ?? null,
 		};
 	}
 
