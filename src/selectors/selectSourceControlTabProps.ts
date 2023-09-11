@@ -8,20 +8,22 @@ const buildIssueTemplateInHTML = (
 	expected: string | null,
 ): string => {
 	return `
-		<hr>
-		<p>
-		<span style="font-size: 18px; font-weight: bold; color: #FFA500;">⚠️⚠️ Please do not include any proprietary code in the issue. ⚠️⚠️</span>
-		</p>
-		<hr>
-		<h3>Codemod: ${codemodName}</h3>
-		<p><strong>1. Code before transformation (Input for codemod)</strong></p>
-		<pre><code>${before ?? '// paste code here'}</code></pre>
-		<p><strong>2. Expected code after transformation (Desired output of codemod)</strong></p>
-		<pre><code>${expected ?? '// paste code here'}</code></pre>
-		<p><strong>3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)</strong></p>
-		<pre><code>${after ?? '// paste code here'}</code></pre>
-		<h3>Additional context</h3>
-	`;
+<hr>
+<p>
+<span style="font-size: 18px; font-weight: bold; color: #FFA500;">⚠️⚠️ Please do not include any proprietary code in the issue. ⚠️⚠️</span>
+</p>
+<hr>
+<h3>Codemod: ${codemodName}</h3>
+<p><strong>1. Code before transformation (Input for codemod)</strong></p>
+<pre><code>${before ?? '// paste code here'}</code></pre>
+<p><strong>2. Expected code after transformation (Desired output of codemod)</strong></p>
+<pre><code>${expected ?? '// paste code here'}</code></pre>
+<p><strong>3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)</strong></p>
+<pre><code>${after ?? '// paste code here'}</code></pre>
+<h3>Additional context</h3>
+You can provide any relevant context here.
+<hr>
+`;
 };
 
 type SourceControlTabProps = Readonly<{
