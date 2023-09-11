@@ -26,7 +26,7 @@ import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider'
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { selectExplorerTree } from './selectors/selectExplorerTree';
-import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
+import { CodemodNodeHashDigest, selectCodemodArgumentsAsArray } from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash, isNeitherNullNorUndefined } from './utilities';
 import { mkdir, readFile, writeFile } from 'fs/promises';
@@ -204,7 +204,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const tree = selectExplorerTree(
 						state,
 						vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ??
-							'',
+						'',
 					);
 
 					if (tree === null) {
@@ -461,35 +461,31 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const args = Object.entries(
-						store.getState().codemodDiscoveryView.codemodArguments[
-							codemodHash
-						] ?? {},
-					).map(([name, value]) => ({ name, value }));
+					const args = selectCodemodArgumentsAsArray(store.getState());
 
 					const command: Command =
 						codemod.kind === 'piranhaRule'
 							? {
-									kind: 'executePiranhaRule',
-									configurationUri: vscode.Uri.file(
-										join(
-											homedir(),
-											'.intuita',
-											createHash('ripemd160')
-												.update(codemod.name)
-												.digest('base64url'),
-										),
+								kind: 'executePiranhaRule',
+								configurationUri: vscode.Uri.file(
+									join(
+										homedir(),
+										'.intuita',
+										createHash('ripemd160')
+											.update(codemod.name)
+											.digest('base64url'),
 									),
-									language: codemod.language,
-									name: codemod.name,
-									arguments: args,
-							  }
+								),
+								language: codemod.language,
+								name: codemod.name,
+								arguments: args,
+							}
 							: {
-									kind: 'executeCodemod',
-									codemodHash,
-									name: codemod.name,
-									arguments: args,
-							  };
+								kind: 'executeCodemod',
+								codemodHash,
+								name: codemod.name,
+								arguments: args,
+							};
 
 					store.dispatch(
 						actions.setFocusedCodemodHashDigest(
@@ -631,36 +627,32 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
-					const args = Object.entries(
-						store.getState().codemodDiscoveryView.codemodArguments[
-							codemodEntry.hashDigest
-						] ?? {},
-					).map(([name, value]) => ({ name, value }));
+					const args = selectCodemodArgumentsAsArray(store.getState());
 
 					const command: Command =
 						codemodEntry.kind === 'piranhaRule'
 							? {
-									kind: 'executePiranhaRule',
-									configurationUri: vscode.Uri.file(
-										join(
-											homedir(),
-											'.intuita',
-											createHash('ripemd160')
-												.update(codemodEntry.name)
-												.digest('base64url'),
-										),
+								kind: 'executePiranhaRule',
+								configurationUri: vscode.Uri.file(
+									join(
+										homedir(),
+										'.intuita',
+										createHash('ripemd160')
+											.update(codemodEntry.name)
+											.digest('base64url'),
 									),
-									language: codemodEntry.language,
-									name: codemodEntry.name,
-									arguments: args,
-							  }
+								),
+								language: codemodEntry.language,
+								name: codemodEntry.name,
+								arguments: args,
+							}
 							: {
-									kind: 'executeCodemod',
-									codemodHash:
-										codemodEntry.hashDigest as CodemodHash,
-									name: codemodEntry.name,
-									arguments: args,
-							  };
+								kind: 'executeCodemod',
+								codemodHash:
+									codemodEntry.hashDigest as CodemodHash,
+								name: codemodEntry.name,
+								arguments: args,
+							};
 
 					messageBus.publish({
 						kind: MessageKind.executeCodemodSet,

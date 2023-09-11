@@ -62,6 +62,13 @@ export const App = memo(
 			[props.panelGroupSettings],
 		);
 
+		const node = props.codemodTree.nodeData.find(
+			(node) =>
+				node.node.hashDigest === props.codemodArgumentsPopup.hashDigest,
+		);
+		const executionPath =
+			node?.node.kind === 'CODEMOD' ? node.node.executionPath : null;
+
 		return (
 			<>
 				<main className={cn('w-full', 'h-full', 'overflow-y-auto')}>
@@ -108,9 +115,7 @@ export const App = memo(
 							/>
 							<TreeView
 								screenWidth={props.screenWidth}
-								rootPath={props.rootPath}
 								tree={props.codemodTree}
-								autocompleteItems={props.autocompleteItems}
 							/>
 						</ResizablePanel>
 						<PanelResizeHandle className="resize-handle" />
@@ -165,13 +170,13 @@ export const App = memo(
 					</PanelGroup>
 				</main>
 				{props.codemodArgumentsPopup.hashDigest !== null &&
-				props.codemodArgumentsPopup.arguments !== null &&
-				props.codemodArgumentsPopup.arguments.length !== 0 ? (
+				executionPath ? (
 					<CodemodArgumentsPopup
 						hashDigest={props.codemodArgumentsPopup.hashDigest}
 						arguments={props.codemodArgumentsPopup.arguments}
 						rootPath={props.rootPath}
 						autocompleteItems={props.autocompleteItems}
+						executionPath={executionPath}
 					/>
 				) : null}
 			</>

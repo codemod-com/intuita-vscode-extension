@@ -55,18 +55,18 @@ const buildCodemodTitle = (name: string): string => {
 };
 
 export const buildRootNode = () =>
-	({
-		hashDigest: buildHash('ROOT') as CodemodNodeHashDigest,
-		kind: 'ROOT' as const,
-		label: '',
-	} as const);
+({
+	hashDigest: buildHash('ROOT') as CodemodNodeHashDigest,
+	kind: 'ROOT' as const,
+	label: '',
+} as const);
 
 export const buildDirectoryNode = (name: string, path: string) =>
-	({
-		hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
-		kind: 'DIRECTORY' as const,
-		label: name,
-	} as const);
+({
+	hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
+	kind: 'DIRECTORY' as const,
+	label: name,
+} as const);
 
 export const buildCodemodNode = (
 	codemod: CodemodEntry | PrivateCodemodEntry,
@@ -86,8 +86,8 @@ export const buildCodemodNode = (
 		icon: isPrivate
 			? 'private'
 			: IntuitaCertifiedCodemods.includes(codemod.name)
-			? 'certified'
-			: 'community',
+				? 'certified'
+				: 'community',
 		permalink: isPrivate
 			? (codemod as PrivateCodemodEntry).permalink
 			: null,
@@ -313,6 +313,12 @@ export const selectCodemodArguments = (state: RootState) => {
 		name,
 		value: savedArgsValues?.[name] ?? String(defaultValue) ?? '',
 	}));
+
+	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
+
+export const selectCodemodArgumentsAsArray = (state: RootState) => Object.entries(
+	selectCodemodArguments(state)
+).map(([name, { value }]) => ({ name, value }));
 
 export type CodemodTree = NonNullable<ReturnType<typeof selectCodemodTree>>;

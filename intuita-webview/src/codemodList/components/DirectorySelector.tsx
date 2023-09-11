@@ -43,9 +43,7 @@ type Props = {
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
 	autocompleteItems: ReadonlyArray<string>;
-	onEditStart(): void;
-	onEditEnd(): void;
-	onEditCancel(): void;
+	
 	onChange(value: string): void;
 };
 
@@ -54,9 +52,6 @@ export const DirectorySelector = ({
 	displayValue,
 	rootPath,
 	codemodHash,
-	onEditStart,
-	onEditEnd,
-	onEditCancel,
 	onChange,
 	error,
 	autocompleteItems,
@@ -125,7 +120,6 @@ export const DirectorySelector = ({
 
 	const handleCancel = () => {
 		updatePath(defaultValue, null, null, false, rootPath, codemodHash);
-		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
 
@@ -149,7 +143,6 @@ export const DirectorySelector = ({
 			rootPath,
 			codemodHash,
 		);
-		onEditCancel();
 		setEditing(false);
 		setValue(defaultValue);
 	};
@@ -186,8 +179,7 @@ export const DirectorySelector = ({
 
 		// this is here rather than inside `onEditDone()`. Otherwise, in case of invalid path,
 		// edit mode is still true and the "Dry Run" button will get displayed (which we don't want)
-		onEditEnd();
-	}, [defaultValue, onEditEnd]);
+	}, [defaultValue]);
 
 	useEffect(() => {
 		ignoreBlurEvent.current = false;
@@ -289,7 +281,6 @@ export const DirectorySelector = ({
 						return;
 					}
 					setEditing(true);
-					onEditStart();
 					ignoreBlurEvent.current = false;
 					setValue(defaultValue);
 				}}

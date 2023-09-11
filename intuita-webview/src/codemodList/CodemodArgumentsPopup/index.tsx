@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react';
 import {
 	CodemodNode,
 	CodemodNodeHashDigest,
@@ -60,20 +59,6 @@ const CodemodArgumentsPopup = ({
 	rootPath,
 	executionPath,
 }: Props) => {
-	const [editingPath, setEditingPath] = useState(false);
-
-	const onEditStart = useCallback(() => {
-		setEditingPath(true);
-	}, []);
-
-	const onEditEnd = useCallback(() => {
-		setEditingPath(false);
-	}, []);
-
-	const onEditCancel = useCallback(() => {
-		setEditingPath(false);
-	}, []);
-
 	const formData = buildFormDataFromArguments(args);
 
 	const onChangeFormField =
@@ -142,9 +127,6 @@ const CodemodArgumentsPopup = ({
 					rootPath={rootPath ?? ''}
 					error={error === null ? null : { message: error }}
 					codemodHash={hashDigest as unknown as CodemodHash}
-					onEditStart={onEditStart}
-					onEditEnd={onEditEnd}
-					onEditCancel={onEditCancel}
 					onChange={handleCodemodPathChange}
 					autocompleteItems={autocompleteItems}
 				/>
