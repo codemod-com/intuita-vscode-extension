@@ -22,15 +22,16 @@ const CreateIssue = (props: Props) => {
 
 	const onChangeTitle = (e: Event | React.FormEvent<HTMLElement>) => {
 		const value =
-			'target' in e && e.target !== null
-				? (e.target as HTMLTextAreaElement).value
+			'target' in e && e.target !== null && 'value' in e.target
+				? String(e.target.value)
 				: null;
+
 		if (value === null) {
 			return;
 		}
+
 		setTitle(value);
 	};
-
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
@@ -86,7 +87,7 @@ const CreateIssue = (props: Props) => {
 						disabled={
 							loading ||
 							title.length <= 3 ||
-							(editor?.getText() || '').length <= 5
+							(editor?.getText() ?? '').length <= 5
 						}
 						type="submit"
 						className={styles.actionButton}
