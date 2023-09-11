@@ -12,30 +12,29 @@ export const buildArguments = (
 	storageUri: Uri,
 ) => {
 	const { command } = message;
+	const args: string[] = [];
+
+	const codemodArguments =
+		command.kind !== 'executeLocalCodemod'
+			? (command.arguments ?? []).flatMap(({ name, value }) => [
+					`--arg:${name}`,
+					String(value),
+			  ])
+			: [];
+
+	args.push(...codemodArguments);
 
 	if (command.kind === 'executePiranhaRule') {
-		const args: string[] = [];
 		args.push('-i', singleQuotify(message.targetUri.fsPath));
 		args.push('-c', singleQuotify(command.configurationUri.fsPath));
 		args.push('-o', singleQuotify(storageUri.fsPath));
 		args.push('-l', command.language);
 
-		const codemodArguments = (command.arguments ?? []).flatMap(
-			({ name, value }) => [`--arg:${name}`, String(value)],
-		);
-		args.push(...codemodArguments);
-
 		return args;
 	}
 
-	const args: string[] = [];
-
 	if (command.kind === 'executeCodemod') {
 		args.push(singleQuotify(command.name));
-		const codemodArguments = (command.arguments ?? []).flatMap(
-			({ name, value }) => [`--arg:${name}`, String(value)],
-		);
-		args.push(...codemodArguments);
 	} else {
 		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
 		args.push('--codemodEngine', 'jscodeshift');
