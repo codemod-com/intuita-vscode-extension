@@ -159,9 +159,7 @@ export const App = memo(
 						>
 							<TreeView
 								screenWidth={props.screenWidth}
-								rootPath={props.rootPath}
 								tree={props.privateCodemods}
-								autocompleteItems={props.autocompleteItems}
 							/>
 						</ResizablePanel>
 					</PanelGroup>
@@ -172,6 +170,8 @@ export const App = memo(
 					<CodemodArgumentsPopup
 						hashDigest={props.codemodArgumentsPopup.hashDigest}
 						arguments={props.codemodArgumentsPopup.arguments}
+						rootPath={props.rootPath}
+						autocompleteItems={props.autocompleteItems}
 					/>
 				) : null}
 			</>

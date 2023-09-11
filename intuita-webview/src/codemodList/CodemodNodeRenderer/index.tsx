@@ -19,8 +19,6 @@ const getIndent = (depth: number) => {
 };
 
 type Deps = {
-	rootPath: string | null;
-	autocompleteItems: ReadonlyArray<string>;
 	progress: Progress | null;
 	screenWidth: number | null;
 };
@@ -32,7 +30,7 @@ type Props = Readonly<{
 }>;
 
 const getCodemodNodeRenderer =
-	({ rootPath, autocompleteItems, progress, screenWidth }: Deps) =>
+	({ progress, screenWidth }: Deps) =>
 	({ nodeDatum, onFlip }: Props) => {
 		const { node, focused, expanded } = nodeDatum;
 		const { hashDigest, label } = node;
@@ -69,10 +67,7 @@ const getCodemodNodeRenderer =
 				{node.kind === 'CODEMOD' && (
 					<Codemod
 						hashDigest={hashDigest}
-						executionPath={node.executionPath}
 						label={label}
-						autocompleteItems={autocompleteItems}
-						rootPath={rootPath}
 						progress={
 							progress?.codemodHash ===
 							(node.hashDigest as unknown as CodemodHash)
@@ -88,13 +83,9 @@ const getCodemodNodeRenderer =
 					/>
 				)}
 
-				{node.kind === 'DIRECTORY' && (
+				{['DIRECTORY', 'ROOT'].includes(node.kind) ? (
 					<Directory expanded={expanded} label={label} />
-				)}
-
-				{node.kind === 'ROOT' && (
-					<Directory expanded={expanded} label={label} />
-				)}
+				) : null}
 			</div>
 		);
 	};

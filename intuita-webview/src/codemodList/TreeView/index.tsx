@@ -13,8 +13,6 @@ import { getCodemodNodeRenderer } from '../CodemodNodeRenderer';
 
 type Props = Readonly<{
 	tree: CodemodTree;
-	autocompleteItems: ReadonlyArray<string>;
-	rootPath: string | null;
 	screenWidth: number | null;
 }>;
 
@@ -36,8 +34,6 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 
 const TreeView = ({
 	tree,
-	autocompleteItems,
-	rootPath,
 	screenWidth,
 }: Props) => {
 	const progress = useProgressBar();
@@ -46,8 +42,6 @@ const TreeView = ({
 		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
 			{...tree}
 			nodeRenderer={getCodemodNodeRenderer({
-				autocompleteItems,
-				rootPath,
 				progress,
 				screenWidth,
 			})}
