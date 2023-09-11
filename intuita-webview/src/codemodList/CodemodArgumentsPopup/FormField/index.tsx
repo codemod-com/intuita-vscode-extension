@@ -38,7 +38,7 @@ const FormField = ({
 			</label>
 			<VSCodeCheckbox
 				title={description}
-				checked={!!value}
+				checked={value}
 				onChange={onChange}
 			/>
 		</div>

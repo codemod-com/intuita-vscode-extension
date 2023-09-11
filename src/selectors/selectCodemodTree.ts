@@ -4,7 +4,6 @@ import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
-import { CodemodArgument } from '../data/codemodConfigSchema';
 
 const IntuitaCertifiedCodemods = [
 	'next/13/app-directory-boilerplate',
@@ -292,9 +291,31 @@ export const selectExecutionPaths = (state: RootState) => {
 	return state.codemodDiscoveryView.executionPaths;
 };
 
-export type CodemodArgumentWithValue = CodemodArgument & {
-	value: CodemodArgument['default'];
-};
+export type CodemodArgumentWithValue =
+	| {
+			kind: 'string';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: string;
+			value: string;
+	  }
+	| {
+			kind: 'number';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: number;
+			value: number;
+	  }
+	| {
+			kind: 'boolean';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: boolean;
+			value: boolean;
+	  };
 
 export const selectCodemodArguments = (
 	state: RootState,
@@ -313,11 +334,36 @@ export const selectCodemodArguments = (
 	const savedArgsValues =
 		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
 
-	return args.map(({ name, default: defaultValue, ...rest }) => ({
-		...rest,
-		name,
-		value: savedArgsValues?.[name] ?? String(defaultValue) ?? '',
-	}));
+	return args.map(({ name, kind, default: defaultValue, ...rest }) => {
+		const value = savedArgsValues?.[name] ?? defaultValue ?? '';
+
+		switch (kind) {
+			case 'string': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: String(value),
+				};
+			}
+			case 'number': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: Number(value),
+				};
+			}
+			case 'boolean': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: Boolean(value),
+				};
+			}
+		}
+	});
 
 	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
