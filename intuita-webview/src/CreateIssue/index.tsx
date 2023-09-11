@@ -14,7 +14,7 @@ type Props = Readonly<{
 	body: string;
 }>;
 
-const CreateIssue = ({ title: titleProp, body }: Props) => {
+const CreateIssue = (props: Props) => {
 	// TODO: handle loading for creating issue
 	const [loading] = useState(false);
 
@@ -45,20 +45,20 @@ const CreateIssue = ({ title: titleProp, body }: Props) => {
 
 	const editor = useEditor({
 		extensions,
-		content: body,
+		content: props.body,
 		editable: true,
 	});
 
 	useEffect(() => {
-		setTitle(titleProp);
-	}, [titleProp]);
+		setTitle(props.title);
+	}, [props.title]);
 
 	useEffect(() => {
 		if (editor === null) {
 			return;
 		}
-		editor.commands.setContent(body, false);
-	}, [editor, body]);
+		editor.commands.setContent(props.body, false);
+	}, [editor, props.body]);
 
 	return (
 		<div className={styles.root}>
