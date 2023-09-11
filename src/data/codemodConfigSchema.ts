@@ -5,16 +5,22 @@ export const argumentsSchema = S.array(
 		S.struct({
 			name: S.string,
 			kind: S.literal('string'),
+			description: S.optional(S.string).withDefault(() => ''),
+			required: S.optional(S.boolean).withDefault(() => false),
 			default: S.union(S.string, S.undefined),
 		}),
 		S.struct({
 			name: S.string,
 			kind: S.literal('number'),
+			description: S.optional(S.string).withDefault(() => ''),
+			required: S.optional(S.boolean).withDefault(() => false),
 			default: S.union(S.number, S.undefined),
 		}),
 		S.struct({
 			name: S.string,
 			kind: S.literal('boolean'),
+			description: S.optional(S.string).withDefault(() => ''),
+			required: S.optional(S.boolean).withDefault(() => false),
 			default: S.union(S.boolean, S.undefined),
 		}),
 		// S.struct({

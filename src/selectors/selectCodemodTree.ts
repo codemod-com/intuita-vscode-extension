@@ -317,8 +317,7 @@ export const selectCodemodArguments = (state: RootState) => {
 	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
 
-export const selectCodemodArgumentsAsArray = (state: RootState) => Object.entries(
-	selectCodemodArguments(state)
-).map(([name, { value }]) => ({ name, value }));
+export const selectCodemodArgumentsAsArray = (state: RootState) => selectCodemodArguments(state)
+	.map(({ name, value }) => ({ name, value }));
 
 export type CodemodTree = NonNullable<ReturnType<typeof selectCodemodTree>>;
