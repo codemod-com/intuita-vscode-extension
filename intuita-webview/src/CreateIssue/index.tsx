@@ -62,7 +62,7 @@ const CreateIssue = ({ title, body }: Props) => {
 		onUpdate: ({ editor }) => {
 			setFormData((prevData) => ({
 				...prevData,
-				body: editor.getText(),
+				body: editor.getHTML(),
 			}));
 		},
 		autofocus: 'end',
