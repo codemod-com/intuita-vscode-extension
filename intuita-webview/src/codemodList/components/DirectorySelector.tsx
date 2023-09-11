@@ -58,17 +58,12 @@ export const DirectorySelector = ({
 			.slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
-	const [editing] = useState(false);
 	const [ignoreEnterKeyUp, setIgnoreEnterKeyUp] = useState(false);
 	const ignoreBlurEvent = useRef(false);
 	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
 	const hintRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
-		if (!editing) {
-			return;
-		}
-
 		const inputElement = document
 			.querySelector('vscode-text-field#directory-selector')
 			?.shadowRoot?.querySelector('input');
@@ -90,7 +85,7 @@ export const DirectorySelector = ({
 		return () => {
 			inputElement.removeEventListener('scroll', onInputScroll);
 		};
-	}, [editing]);
+	}, []);
 
 	useEffect(() => {
 		setAutocompleteIndex(0);

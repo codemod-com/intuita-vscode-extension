@@ -29,6 +29,7 @@ import {
 	CodemodNodeHashDigest,
 	selectCodemodArguments,
 } from '../../selectors/selectCodemodTree';
+import { isNeitherNullNorUndefined } from '../../utilities';
 
 const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
 
@@ -363,7 +364,7 @@ export class MainViewProvider implements WebviewViewProvider {
 			).every(
 				({ required, value }) =>
 					!required ||
-					(value !== null && value !== undefined && value !== ''),
+					(isNeitherNullNorUndefined(value) && value !== ''),
 			);
 
 			if (!argumentsSpecified) {
@@ -530,9 +531,9 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.global.setCodemodArguments') {
+		if (message.kind === 'webview.global.setCodemodArgument') {
 			this.__store.dispatch(
-				actions.setCodemodArguments({
+				actions.setCodemodArgument({
 					hashDigest: message.hashDigest,
 					name: message.name,
 					value: message.value,

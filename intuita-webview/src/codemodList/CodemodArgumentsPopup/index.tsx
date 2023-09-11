@@ -1,6 +1,5 @@
 import {
 	CodemodArgumentWithValue,
-	CodemodNode,
 	CodemodNodeHashDigest,
 } from '../../../../src/selectors/selectCodemodTree';
 import { CodemodHash } from '../../shared/types';
@@ -22,7 +21,7 @@ type Props = Readonly<{
 	arguments: ReadonlyArray<CodemodArgumentWithValue>;
 	autocompleteItems: ReadonlyArray<string>;
 	rootPath: string | null;
-	executionPath: (CodemodNode & { kind: 'CODEMOD' })['executionPath'];
+	executionPath: T.These<{ message: string }, string>;
 }>;
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
@@ -53,7 +52,7 @@ const CodemodArgumentsPopup = ({
 				.value;
 
 			vscode.postMessage({
-				kind: 'webview.global.setCodemodArguments',
+				kind: 'webview.global.setCodemodArgument',
 				hashDigest,
 				name: fieldName,
 				value,

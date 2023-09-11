@@ -83,9 +83,9 @@ const getCodemodNodeRenderer =
 					/>
 				)}
 
-				{['DIRECTORY', 'ROOT'].includes(node.kind) ? (
+				{['DIRECTORY', 'ROOT'].includes(node.kind) && (
 					<Directory expanded={expanded} label={label} />
-				) : null}
+				)}
 			</div>
 		);
 	};

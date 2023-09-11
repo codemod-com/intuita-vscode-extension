@@ -41,7 +41,6 @@ const FormField = ({
 				checked={!!value}
 				onChange={onChange}
 			/>
-			;
 		</div>
 	);
 };

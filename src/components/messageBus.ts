@@ -52,7 +52,7 @@ export type Command =
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			name: string;
-			arguments?: CodemodArgumentWithValue[];
+			arguments?: ReadonlyArray<CodemodArgumentWithValue>;
 	  }>
 	| Readonly<{
 			kind: 'executeLocalCodemod';
@@ -65,7 +65,7 @@ export type Command =
 			name: string;
 			configurationUri: Uri;
 			language: PiranhaLanguage;
-			arguments?: CodemodArgumentWithValue[];
+			arguments?: ReadonlyArray<CodemodArgumentWithValue>;
 	  }>;
 
 export type Message =

@@ -675,7 +675,7 @@ const rootSlice = createSlice({
 			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
 				action.payload;
 		},
-		setCodemodArguments(
+		setCodemodArgument(
 			state,
 			action: PayloadAction<{
 				hashDigest: CodemodNodeHashDigest;
