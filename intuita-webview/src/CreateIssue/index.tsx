@@ -61,10 +61,7 @@ const CreateIssue = (props: Props) => {
 	}, [props.title]);
 
 	useEffect(() => {
-		if (editor === null) {
-			return;
-		}
-		editor.commands.setContent(props.body, false);
+		editor?.commands.setContent(props.body, false);
 	}, [editor, props.body]);
 
 	return (
