@@ -22,14 +22,12 @@ export const buildArguments = (
 			  ])
 			: [];
 
-	args.push(...codemodArguments);
-
 	if (command.kind === 'executePiranhaRule') {
 		args.push('-i', singleQuotify(message.targetUri.fsPath));
 		args.push('-c', singleQuotify(command.configurationUri.fsPath));
 		args.push('-o', singleQuotify(storageUri.fsPath));
 		args.push('-l', command.language);
-
+		args.push(...codemodArguments);
 		return args;
 	}
 
@@ -70,6 +68,6 @@ export const buildArguments = (
 
 	args.push('--dryRun');
 	args.push('--outputDirectoryPath', singleQuotify(storageUri.fsPath));
-
+	args.push(...codemodArguments);
 	return args;
 };
