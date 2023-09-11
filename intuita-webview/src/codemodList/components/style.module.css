@@ -1,5 +1,6 @@
 .textField {
 	flex-grow: 1;
+	bottom: 0;
 }
 
 .textFieldError::part(root):focus,
@@ -58,8 +59,4 @@
 	width: 100%;
 	text-overflow: ellipsis;
 	box-sizing: border-box;
-}
-
-.inputContainer {
-	background-color: var(--input-background);
 }

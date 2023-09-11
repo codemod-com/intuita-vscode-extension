@@ -32,10 +32,7 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 	onFocus(hashDigest);
 };
 
-const TreeView = ({
-	tree,
-	screenWidth,
-}: Props) => {
+const TreeView = ({ tree, screenWidth }: Props) => {
 	const progress = useProgressBar();
 
 	return (

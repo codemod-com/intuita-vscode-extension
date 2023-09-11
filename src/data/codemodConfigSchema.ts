@@ -1,37 +1,37 @@
 import * as S from '@effect/schema/Schema';
 
-export const argumentsSchema = S.array(
-	S.union(
-		S.struct({
-			name: S.string,
-			kind: S.literal('string'),
-			description: S.optional(S.string).withDefault(() => ''),
-			required: S.optional(S.boolean).withDefault(() => false),
-			default: S.union(S.string, S.undefined),
-		}),
-		S.struct({
-			name: S.string,
-			kind: S.literal('number'),
-			description: S.optional(S.string).withDefault(() => ''),
-			required: S.optional(S.boolean).withDefault(() => false),
-			default: S.union(S.number, S.undefined),
-		}),
-		S.struct({
-			name: S.string,
-			kind: S.literal('boolean'),
-			description: S.optional(S.string).withDefault(() => ''),
-			required: S.optional(S.boolean).withDefault(() => false),
-			default: S.union(S.boolean, S.undefined),
-		}),
-		// S.struct({
-		// 	name: S.string,
-		// 	kind: S.literal('selection'),
-		// 	description: S.string,
-		// 	options: S.array(S.string),
-		// 	default: S.union(S.string, S.undefined),
-		// }),
-	),
+export const argumentSchema = S.union(
+	S.struct({
+		name: S.string,
+		kind: S.literal('string'),
+		description: S.optional(S.string).withDefault(() => ''),
+		required: S.optional(S.boolean).withDefault(() => false),
+		default: S.optional(S.string),
+	}),
+	S.struct({
+		name: S.string,
+		kind: S.literal('number'),
+		description: S.optional(S.string).withDefault(() => ''),
+		required: S.optional(S.boolean).withDefault(() => false),
+		default: S.optional(S.number),
+	}),
+	S.struct({
+		name: S.string,
+		kind: S.literal('boolean'),
+		description: S.optional(S.string).withDefault(() => ''),
+		required: S.optional(S.boolean).withDefault(() => false),
+		default: S.optional(S.boolean),
+	}),
+	// S.struct({
+	// 	name: S.string,
+	// 	kind: S.literal('selection'),
+	// 	description: S.string,
+	// 	options: S.array(S.string),
+	// 	default: S.union(S.string, S.undefined),
+	// }),
 );
+
+export const argumentsSchema = S.array(argumentSchema);
 
 export const PIRANHA_LANGUAGES = [
 	'java',
@@ -84,4 +84,5 @@ export const codemodConfigSchema = S.union(
 
 export const parseCodemodConfigSchema = S.parseSync(codemodConfigSchema);
 
+export type CodemodArgument = S.To<typeof argumentSchema>;
 export type CodemodConfig = S.To<typeof codemodConfigSchema>;

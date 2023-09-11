@@ -1,4 +1,5 @@
 import {
+	CodemodArgumentWithValue,
 	CodemodNode,
 	CodemodNodeHashDigest,
 } from '../../../../src/selectors/selectCodemodTree';
@@ -18,17 +19,11 @@ import * as O from 'fp-ts/Option';
 
 type Props = Readonly<{
 	hashDigest: CodemodNodeHashDigest;
-	arguments: ReadonlyArray<{
-		kind: 'string' | 'number' | 'boolean';
-		name: string;
-		value: string;
-	}>;
+	arguments: ReadonlyArray<CodemodArgumentWithValue>;
 	autocompleteItems: ReadonlyArray<string>;
 	rootPath: string | null;
 	executionPath: (CodemodNode & { kind: 'CODEMOD' })['executionPath'];
 }>;
-
-type FormData = Record<string, string>;
 
 const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
 	return path.replace(rootPath, '').length === 0
@@ -45,13 +40,6 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 	});
 }, 50);
 
-const buildFormDataFromArguments = (args: Props['arguments']): FormData => {
-	return args.reduce<Record<string, string>>((formData, arg) => {
-		formData[arg.name] = arg.value;
-		return formData;
-	}, {});
-};
-
 const CodemodArgumentsPopup = ({
 	hashDigest,
 	arguments: args,
@@ -59,8 +47,6 @@ const CodemodArgumentsPopup = ({
 	rootPath,
 	executionPath,
 }: Props) => {
-	const formData = buildFormDataFromArguments(args);
-
 	const onChangeFormField =
 		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
 			const value = (e as React.ChangeEvent<HTMLInputElement>).target
@@ -69,10 +55,8 @@ const CodemodArgumentsPopup = ({
 			vscode.postMessage({
 				kind: 'webview.global.setCodemodArguments',
 				hashDigest,
-				arguments: {
-					...formData,
-					[fieldName]: value,
-				},
+				name: fieldName,
+				value,
 			});
 		};
 
@@ -130,12 +114,10 @@ const CodemodArgumentsPopup = ({
 					onChange={handleCodemodPathChange}
 					autocompleteItems={autocompleteItems}
 				/>
-				{args.map(({ kind, name }) => (
+				{args.map((props) => (
 					<FormField
-						kind={kind}
-						name={name}
-						value={formData[name] ?? ''}
-						onChange={onChangeFormField(name)}
+						{...props}
+						onChange={onChangeFormField(props.name)}
 					/>
 				))}
 			</form>

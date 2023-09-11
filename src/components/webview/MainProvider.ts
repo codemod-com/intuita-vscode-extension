@@ -25,7 +25,10 @@ import { createIssueResponseCodec } from '../../github/types';
 import { SEARCH_PARAMS_KEYS } from '../../extension';
 import axios from 'axios';
 import { UserService } from '../userService';
-import { CodemodNodeHashDigest, selectCodemodArguments } from '../../selectors/selectCodemodTree';
+import {
+	CodemodNodeHashDigest,
+	selectCodemodArguments,
+} from '../../selectors/selectCodemodTree';
 
 const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
 
@@ -354,10 +357,20 @@ export class MainViewProvider implements WebviewViewProvider {
 			const uri = Uri.file(executionPath);
 
 			// if missing some required arguments, open arguments popup
-			const argumentsSpecified = selectCodemodArguments(this.__store.getState()).every(({ required, value }) => !required || value !== null && value !== undefined && value !== '')
+			const argumentsSpecified = selectCodemodArguments(
+				this.__store.getState(),
+			).every(
+				({ required, value }) =>
+					!required ||
+					(value !== null && value !== undefined && value !== ''),
+			);
 
 			if (!argumentsSpecified) {
-				this.__store.dispatch(actions.setCodemodArgumentsPopupHashDigest(hashDigest as unknown as CodemodNodeHashDigest))
+				this.__store.dispatch(
+					actions.setCodemodArgumentsPopupHashDigest(
+						hashDigest as unknown as CodemodNodeHashDigest,
+					),
+				);
 				return;
 			}
 
@@ -520,7 +533,8 @@ export class MainViewProvider implements WebviewViewProvider {
 			this.__store.dispatch(
 				actions.setCodemodArguments({
 					hashDigest: message.hashDigest,
-					arguments: message.arguments,
+					name: message.name,
+					value: message.value,
 				}),
 			);
 		}

@@ -5,14 +5,10 @@ import React, {
 	useRef,
 	useState,
 } from 'react';
-import {
-	VSCodeButton,
-	VSCodeTextField,
-} from '@vscode/webview-ui-toolkit/react';
+import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
-import IntuitaPopover from '../../shared/IntuitaPopover';
 import cn from 'classnames';
 
 const updatePath = (
@@ -43,13 +39,12 @@ type Props = {
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
 	autocompleteItems: ReadonlyArray<string>;
-	
+
 	onChange(value: string): void;
 };
 
 export const DirectorySelector = ({
 	defaultValue,
-	displayValue,
 	rootPath,
 	codemodHash,
 	onChange,
@@ -63,7 +58,7 @@ export const DirectorySelector = ({
 			.slice(-1)[0] ?? '';
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
-	const [editing, setEditing] = useState(false);
+	const [editing] = useState(false);
 	const [ignoreEnterKeyUp, setIgnoreEnterKeyUp] = useState(false);
 	const ignoreBlurEvent = useRef(false);
 	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
@@ -120,7 +115,6 @@ export const DirectorySelector = ({
 
 	const handleCancel = () => {
 		updatePath(defaultValue, null, null, false, rootPath, codemodHash);
-		setEditing(false);
 		setValue(defaultValue);
 
 		if (value !== defaultValue) {
@@ -143,7 +137,6 @@ export const DirectorySelector = ({
 			rootPath,
 			codemodHash,
 		);
-		setEditing(false);
 		setValue(defaultValue);
 	};
 
@@ -171,15 +164,6 @@ export const DirectorySelector = ({
 		}
 		setIgnoreEnterKeyUp(false);
 	};
-
-	useEffect(() => {
-		// this is here rather than inside `onEditDone()` because otherwise
-		// the old target path is displayed for a split second
-		setEditing(false);
-
-		// this is here rather than inside `onEditDone()`. Otherwise, in case of invalid path,
-		// edit mode is still true and the "Dry Run" button will get displayed (which we don't want)
-	}, [defaultValue]);
 
 	useEffect(() => {
 		ignoreBlurEvent.current = false;
@@ -214,85 +198,42 @@ export const DirectorySelector = ({
 		e.preventDefault();
 	};
 
-	if (editing) {
-		return (
-			<div
-				className="flex flex-row justify-between align-items-center"
-				style={{
-					width: '100%',
-				}}
-			>
-				<div
-					className={cn(
-						'flex flex-col w-full overflow-hidden relative',
-						styles.inputContainer,
-					)}
-				>
-					{autocompleteContent ? (
-						<input
-							ref={hintRef}
-							className={styles.autocomplete}
-							aria-hidden={true}
-							readOnly
-							value={autocompleteContent}
-						/>
-					) : null}
-					<VSCodeTextField
-						id="directory-selector"
-						className={cn(
-							styles.textField,
-							showErrorStyle && styles.textFieldError,
-						)}
-						value={value}
-						onInput={handleChange}
-						onKeyUp={handleKeyUp}
-						onKeyDown={handleKeyDown}
-						autoFocus
-						onBlur={handleBlur}
-						onClick={(e) => {
-							e.stopPropagation();
-						}}
-					/>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<IntuitaPopover content="Change the target path for this codemod.">
-			<VSCodeButton
-				id={`${codemodHash}-pathButton`}
-				appearance="icon"
-				onKeyDown={() => {
-					if (
-						document.activeElement?.id ===
-						`${codemodHash}-pathButton`
-					) {
-						setIgnoreEnterKeyUp(true);
-					}
-				}}
-				onClick={(event) => {
-					event.stopPropagation();
-					if (!rootPath) {
-						vscode.postMessage({
-							kind: 'webview.global.showWarningMessage',
-							value: 'No workspace is found.',
-						});
-						return;
-					}
-					setEditing(true);
-					ignoreBlurEvent.current = false;
-					setValue(defaultValue);
-				}}
-				className={styles.targetPathButton}
-				style={{
-					...(!rootPath && {
-						opacity: 'var(--disabled-opacity)',
-					}),
-				}}
-			>
-				<span className={styles.label}>{displayValue}</span>
-			</VSCodeButton>
-		</IntuitaPopover>
+		<div
+			className="flex flex-row justify-between align-items-center"
+			style={{
+				width: '100%',
+			}}
+		>
+			<div className="flex flex-col w-full overflow-hidden relative">
+				{autocompleteContent ? (
+					<input
+						ref={hintRef}
+						className={styles.autocomplete}
+						aria-hidden={true}
+						readOnly
+						value={autocompleteContent}
+					/>
+				) : null}
+				<VSCodeTextField
+					id="directory-selector"
+					className={cn(
+						styles.textField,
+						showErrorStyle && styles.textFieldError,
+					)}
+					value={value}
+					onInput={handleChange}
+					onKeyUp={handleKeyUp}
+					onKeyDown={handleKeyDown}
+					autoFocus
+					onBlur={handleBlur}
+					onClick={(e) => {
+						e.stopPropagation();
+					}}
+				>
+					Target path
+				</VSCodeTextField>
+			</div>
+		</div>
 	);
 };
