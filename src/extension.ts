@@ -34,7 +34,11 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { createHash, randomBytes } from 'crypto';
 import { existsSync, rmSync } from 'fs';
-import { CodemodConfig } from './data/codemodConfigSchema';
+import {
+	CodemodConfig,
+	PIRANHA_LANGUAGES,
+	parsePiranhaLanguage,
+} from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 import { GlobalStateTokenStorage, UserService } from './components/userService';
 
@@ -399,14 +403,16 @@ export async function activate(context: vscode.ExtensionContext) {
 					throw new Error('No storage URI, aborting the command.');
 				}
 
-				const language =
-					(await vscode.window.showQuickPick(['java', 'ts', 'tsx'], {
+				const quickPick =
+					(await vscode.window.showQuickPick(PIRANHA_LANGUAGES, {
 						title: 'Select the language to run Piranha against',
 					})) ?? null;
 
-				if (language == null) {
+				if (quickPick == null) {
 					throw new Error('You must specify the language');
 				}
+
+				const language = parsePiranhaLanguage(quickPick);
 
 				messageBus.publish({
 					kind: MessageKind.executeCodemodSet,

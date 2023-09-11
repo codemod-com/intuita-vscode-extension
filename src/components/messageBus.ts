@@ -3,6 +3,7 @@ import type { Case, CaseHash } from '../cases/types';
 import type { Job, JobHash } from '../jobs/types';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError } from '../errors/types';
+import { PiranhaLanguage } from '../data/codemodConfigSchema';
 
 export const enum MessageKind {
 	/** cases and jobs */
@@ -64,7 +65,7 @@ export type Command =
 			kind: 'executePiranhaRule';
 			name: string;
 			configurationUri: Uri;
-			language: string;
+			language: PiranhaLanguage;
 			arguments?: CodemodArguments;
 	  }>;
 
