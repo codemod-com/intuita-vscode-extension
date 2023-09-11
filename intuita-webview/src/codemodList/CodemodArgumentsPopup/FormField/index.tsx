@@ -4,12 +4,12 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
 
-type Props = {
+type Props = Readonly<{
 	kind: 'string' | 'boolean' | 'number';
 	name: string;
 	value: string;
 	onChange(e: Event | React.FormEvent<HTMLElement>): void;
-};
+}>;
 
 const FormField = ({ kind, name, value, onChange }: Props) => {
 	if (kind === 'string' || kind === 'number') {
