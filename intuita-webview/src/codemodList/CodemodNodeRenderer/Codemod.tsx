@@ -91,7 +91,7 @@ const renderActionButtons = (
 			<>
 				<ActionButton
 					id={`${hashDigest}-dryRunButton`}
-					content="Dry-run this codemod (without making change to file system)."
+					content="Set codemod arguments"
 					onClick={handleCodemodSettingsClick}
 				>
 					<span className={cn('codicon', 'codicon-settings-gear')} />
