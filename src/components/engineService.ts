@@ -343,7 +343,7 @@ export class EngineService {
 						kind: 'piranhaRule',
 						hashDigest,
 						name,
-						language: config.engine,
+						language: config.language,
 						arguments: config.arguments,
 					});
 

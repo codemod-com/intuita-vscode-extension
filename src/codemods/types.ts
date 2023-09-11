@@ -41,7 +41,17 @@ export const codemodEntryCodec = t.union([
 		kind: t.literal('piranhaRule'),
 		hashDigest: t.string,
 		name: t.string,
-		language: t.string,
+		// TODO migrate to @effect/schema once all the codecs are migrated
+		language: t.union([
+			t.literal('java'),
+			t.literal('kt'),
+			t.literal('go'),
+			t.literal('py'),
+			t.literal('swift'),
+			t.literal('ts'),
+			t.literal('tsx'),
+			t.literal('scala'),
+		]),
 		arguments: argumentsCodec,
 	}),
 ]);

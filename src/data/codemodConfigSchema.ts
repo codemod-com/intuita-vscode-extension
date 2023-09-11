@@ -27,11 +27,30 @@ export const argumentsSchema = S.array(
 	),
 );
 
+export const PIRANHA_LANGUAGES = [
+	'java',
+	'kt',
+	'go',
+	'py',
+	'swift',
+	'ts',
+	'tsx',
+	'scala',
+] as const;
+
+const piranhaLanguageSchema = S.union(
+	...PIRANHA_LANGUAGES.map((language) => S.literal(language)),
+);
+
+export type PiranhaLanguage = S.To<typeof piranhaLanguageSchema>;
+
+export const parsePiranhaLanguage = S.parseSync(piranhaLanguageSchema);
+
 export const codemodConfigSchema = S.union(
 	S.struct({
 		schemaVersion: S.literal('1.0.0'),
 		engine: S.literal('piranha'),
-		language: S.literal('java'),
+		language: piranhaLanguageSchema,
 		arguments: S.optional(argumentsSchema),
 	}),
 	S.struct({
