@@ -21,7 +21,13 @@ const CreateIssue = (props: Props) => {
 	const [title, setTitle] = useState('');
 
 	const onChangeTitle = (e: Event | React.FormEvent<HTMLElement>) => {
-		const value = (e as React.ChangeEvent<HTMLInputElement>).target.value;
+		const value =
+			'target' in e && e.target !== null
+				? (e.target as HTMLTextAreaElement).value
+				: null;
+		if (value === null) {
+			return;
+		}
 		setTitle(value);
 	};
 
