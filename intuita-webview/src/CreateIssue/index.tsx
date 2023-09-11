@@ -18,7 +18,7 @@ const CreateIssue = ({ title: titleProp, body }: Props) => {
 	// TODO: handle loading for creating issue
 	const [loading] = useState(false);
 
-	const [title, setTitle] = useState(titleProp);
+	const [title, setTitle] = useState('');
 
 	const onChangeTitle = (e: Event | React.FormEvent<HTMLElement>) => {
 		const value = (e as React.ChangeEvent<HTMLInputElement>).target.value;
@@ -50,8 +50,8 @@ const CreateIssue = ({ title: titleProp, body }: Props) => {
 	});
 
 	useEffect(() => {
-		setTitle(title);
-	}, [title]);
+		setTitle(titleProp);
+	}, [titleProp]);
 
 	useEffect(() => {
 		if (editor === null) {
