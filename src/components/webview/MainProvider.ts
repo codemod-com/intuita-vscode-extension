@@ -359,6 +359,7 @@ export class MainViewProvider implements WebviewViewProvider {
 			// if missing some required arguments, open arguments popup
 			const argumentsSpecified = selectCodemodArguments(
 				this.__store.getState(),
+				hashDigest as unknown as CodemodNodeHashDigest,
 			).every(
 				({ required, value }) =>
 					!required ||

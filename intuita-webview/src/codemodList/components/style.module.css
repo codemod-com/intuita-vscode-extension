@@ -58,5 +58,5 @@
 	width: 100%;
 	text-overflow: ellipsis;
 	box-sizing: border-box;
-	bottom: 0!important;
+	bottom: 0 !important;
 }

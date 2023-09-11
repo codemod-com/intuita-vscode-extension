@@ -298,10 +298,8 @@ export type CodemodArgumentWithValue = CodemodArgument & {
 
 export const selectCodemodArguments = (
 	state: RootState,
+	hashDigest: CodemodNodeHashDigest | null,
 ): CodemodArgumentWithValue[] => {
-	const hashDigest =
-		state.codemodDiscoveryView.codemodArgumentsPopupHashDigest;
-
 	if (hashDigest === null) {
 		return [];
 	}

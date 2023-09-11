@@ -464,8 +464,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const args = selectCodemodArguments(store.getState());
-
+					const args = selectCodemodArguments(
+						store.getState(),
+						codemodHash as unknown as CodemodNodeHashDigest,
+					);
 					const command: Command =
 						codemod.kind === 'piranhaRule'
 							? {
@@ -630,7 +632,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
-					const args = selectCodemodArguments(store.getState());
+					const args = selectCodemodArguments(
+						store.getState(),
+						codemodEntry.hashDigest as unknown as CodemodNodeHashDigest,
+					);
 
 					const command: Command =
 						codemodEntry.kind === 'piranhaRule'

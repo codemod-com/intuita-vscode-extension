@@ -568,6 +568,8 @@ export class EngineService {
 			storageUri,
 		);
 
+		console.log(args, message.command, '??');
+
 		const childProcess = spawn(
 			singleQuotify(
 				message.command.kind === 'executePiranhaRule'
