@@ -70,9 +70,7 @@ const CreateIssue = ({ title, body }: Props) => {
 
 	return (
 		<div className={styles.root}>
-			<h1 className={styles.header}>
-				Report codemod issue
-			</h1>
+			<h1 className={styles.header}>Report codemod issue</h1>
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<VSCodeTextField
 					placeholder="Title"
