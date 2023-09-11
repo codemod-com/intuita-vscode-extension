@@ -76,6 +76,11 @@ export const persistedStateCodecNew = buildTypeCodec({
 			publicRegistryCollapsed: withFallback(t.boolean, false),
 			privateRegistryCollapsed: withFallback(t.boolean, false),
 			panelGroupSettings: panelGroupSettingsCodec,
+			codemodArgumentsPopupHashDigest: t.union([
+				codemodNodeHashDigestCodec,
+				t.null,
+			]),
+			codemodArguments: t.record(t.string, t.record(t.string, t.string)),
 		}),
 		{
 			executionPaths: {},
@@ -87,6 +92,8 @@ export const persistedStateCodecNew = buildTypeCodec({
 			panelGroupSettings: {
 				'0,0': [50, 50],
 			},
+			codemodArgumentsPopupHashDigest: null,
+			codemodArguments: {},
 		},
 	),
 	codemodRunsTab: withFallback(

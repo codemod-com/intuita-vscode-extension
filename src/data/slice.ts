@@ -70,6 +70,8 @@ export const getInitialState = (): RootState => {
 			focusedCodemodHashDigest: null,
 			expandedNodeHashDigests: [],
 			searchPhrase: '',
+			codemodArgumentsPopupHashDigest: null,
+			codemodArguments: {},
 		},
 		jobDiffView: {
 			visible: false,
@@ -665,6 +667,24 @@ const rootSlice = createSlice({
 		collapsePrivateRegistryPanel(state, action: PayloadAction<boolean>) {
 			state.codemodDiscoveryView.privateRegistryCollapsed =
 				action.payload;
+		},
+		setCodemodArgumentsPopupHashDigest(
+			state,
+			action: PayloadAction<CodemodNodeHashDigest | null>,
+		) {
+			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
+				action.payload;
+		},
+		setCodemodArguments(
+			state,
+			action: PayloadAction<{
+				hashDigest: CodemodNodeHashDigest;
+				arguments: Record<string, string>;
+			}>,
+		) {
+			Object.assign(state.codemodDiscoveryView.codemodArguments, {
+				[action.payload.hashDigest]: action.payload.arguments,
+			});
 		},
 	},
 });
