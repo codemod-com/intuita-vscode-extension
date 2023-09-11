@@ -63,13 +63,14 @@ export const createIssue = async (
 		return { status: 406, html_url: null };
 	}
 
+	onSuccess();
+
 	const decision = await window.showInformationMessage(
 		'Github issue is successfully created.',
-		'See the issue',
+		'See issue in Github',
 	);
-	onSuccess();
 	const { html_url } = validation.right;
-	if (decision === 'See the issue') {
+	if (decision === 'See issue in Github') {
 		commands.executeCommand('intuita.redirect', html_url);
 	}
 	return {

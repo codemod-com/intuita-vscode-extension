@@ -7,7 +7,6 @@ import {
 import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import styles from './style.module.css';
-import { IssueFormData } from '../../../src/components/webview/webviewEvents';
 import './tiptap.css';
 
 type Props = Readonly<{
@@ -15,58 +14,55 @@ type Props = Readonly<{
 	body: string;
 }>;
 
-const CreateIssue = ({ title, body }: Props) => {
+const CreateIssue = (props: Props) => {
 	// TODO: handle loading for creating issue
 	const [loading] = useState(false);
-	const [formData, setFormData] = useState<IssueFormData>({
-		title,
-		body,
-	});
 
-	useEffect(() => {
-		setFormData((prevData) => ({
-			...prevData,
-			title,
-			body,
-		}));
-	}, [title, body]);
+	const [title, setTitle] = useState('');
 
-	const onChangeFormField =
-		(fieldName: keyof IssueFormData) =>
-		(e: Event | React.FormEvent<HTMLElement>) => {
-			const value = (e as React.ChangeEvent<HTMLInputElement>).target
-				.value;
-			setFormData((prevData) => ({
-				...prevData,
-				[fieldName]: value,
-			}));
-		};
+	const onChangeTitle = (e: Event | React.FormEvent<HTMLElement>) => {
+		const value =
+			'target' in e && e.target !== null && 'value' in e.target
+				? String(e.target.value)
+				: null;
 
+		if (value === null) {
+			return;
+		}
+
+		setTitle(value);
+	};
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
+		if (editor === null) {
+			return;
+		}
+
 		vscode.postMessage({
 			kind: 'webview.sourceControl.createIssue',
-			data: formData,
+			data: {
+				title,
+				body: editor.getHTML(),
+			},
 		});
 	};
 
 	const extensions = [StarterKit];
 
-	const content = formData.body;
-
 	const editor = useEditor({
 		extensions,
-		content,
+		content: props.body,
 		editable: true,
-		onUpdate: ({ editor }) => {
-			setFormData((prevData) => ({
-				...prevData,
-				body: editor.getHTML(),
-			}));
-		},
-		autofocus: 'end',
 	});
+
+	useEffect(() => {
+		setTitle(props.title);
+	}, [props.title]);
+
+	useEffect(() => {
+		editor?.commands.setContent(props.body, false);
+	}, [editor, props.body]);
 
 	return (
 		<div className={styles.root}>
@@ -74,8 +70,8 @@ const CreateIssue = ({ title, body }: Props) => {
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<VSCodeTextField
 					placeholder="Title"
-					value={formData.title}
-					onInput={onChangeFormField('title')}
+					value={title}
+					onInput={onChangeTitle}
 					className={styles.title}
 				>
 					Title
@@ -87,8 +83,8 @@ const CreateIssue = ({ title, body }: Props) => {
 					<VSCodeButton
 						disabled={
 							loading ||
-							formData.title.length <= 3 ||
-							formData.body.length <= 5
+							title.length <= 3 ||
+							(editor?.getText() ?? '').length <= 5
 						}
 						type="submit"
 						className={styles.actionButton}
