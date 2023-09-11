@@ -25,6 +25,11 @@ import { createIssueResponseCodec } from '../../github/types';
 import { SEARCH_PARAMS_KEYS } from '../../extension';
 import axios from 'axios';
 import { UserService } from '../userService';
+import {
+	CodemodNodeHashDigest,
+	selectCodemodArguments,
+} from '../../selectors/selectCodemodTree';
+import { isNeitherNullNorUndefined } from '../../utilities';
 
 const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
 
@@ -353,6 +358,25 @@ export class MainViewProvider implements WebviewViewProvider {
 
 			const uri = Uri.file(executionPath);
 
+			// if missing some required arguments, open arguments popup
+			const argumentsSpecified = selectCodemodArguments(
+				this.__store.getState(),
+				hashDigest as unknown as CodemodNodeHashDigest,
+			).every(
+				({ required, value }) =>
+					!required ||
+					(isNeitherNullNorUndefined(value) && value !== ''),
+			);
+
+			if (!argumentsSpecified) {
+				this.__store.dispatch(
+					actions.setCodemodArgumentsPopupHashDigest(
+						hashDigest as unknown as CodemodNodeHashDigest,
+					),
+				);
+				return;
+			}
+
 			commands.executeCommand('intuita.executeCodemod', uri, hashDigest);
 		}
 
@@ -508,11 +532,12 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
-		if (message.kind === 'webview.global.setCodemodArguments') {
+		if (message.kind === 'webview.global.setCodemodArgument') {
 			this.__store.dispatch(
-				actions.setCodemodArguments({
+				actions.setCodemodArgument({
 					hashDigest: message.hashDigest,
-					arguments: message.arguments,
+					name: message.name,
+					value: message.value,
 				}),
 			);
 		}

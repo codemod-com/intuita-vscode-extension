@@ -675,16 +675,22 @@ const rootSlice = createSlice({
 			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
 				action.payload;
 		},
-		setCodemodArguments(
+		setCodemodArgument(
 			state,
 			action: PayloadAction<{
 				hashDigest: CodemodNodeHashDigest;
-				arguments: Record<string, string>;
+				name: string;
+				value: string | number | boolean;
 			}>,
 		) {
-			Object.assign(state.codemodDiscoveryView.codemodArguments, {
-				[action.payload.hashDigest]: action.payload.arguments,
-			});
+			const { hashDigest, name, value } = action.payload;
+			const prevCodemodArguments =
+				state.codemodDiscoveryView.codemodArguments[hashDigest] ?? {};
+
+			state.codemodDiscoveryView.codemodArguments[hashDigest] = {
+				...prevCodemodArguments,
+				[name]: String(value),
+			};
 		},
 	},
 });

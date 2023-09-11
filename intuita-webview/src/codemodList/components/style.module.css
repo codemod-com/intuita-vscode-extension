@@ -58,8 +58,5 @@
 	width: 100%;
 	text-overflow: ellipsis;
 	box-sizing: border-box;
-}
-
-.inputContainer {
-	background-color: var(--input-background);
+	bottom: 0 !important;
 }

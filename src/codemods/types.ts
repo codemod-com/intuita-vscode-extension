@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
+import { withFallback } from 'io-ts-types';
 
 export const argumentsCodec = t.union([
 	t.readonlyArray(
@@ -8,16 +9,22 @@ export const argumentsCodec = t.union([
 				name: t.string,
 				kind: t.literal('string'),
 				default: t.union([t.string, t.undefined]),
+				description: withFallback(t.string, ''),
+				required: withFallback(t.boolean, false),
 			}),
 			buildTypeCodec({
 				name: t.string,
 				kind: t.literal('number'),
 				default: t.union([t.number, t.undefined]),
+				description: withFallback(t.string, ''),
+				required: withFallback(t.boolean, false),
 			}),
 			buildTypeCodec({
 				name: t.string,
 				kind: t.literal('boolean'),
 				default: t.union([t.boolean, t.undefined]),
+				description: withFallback(t.string, ''),
+				required: withFallback(t.boolean, false),
 			}),
 		]),
 	),

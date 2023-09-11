@@ -18,5 +18,5 @@
 .closeIcon {
 	right: 1em;
 	position: absolute;
-	cursor: pointer;
+	cursor: pointer !important;
 }

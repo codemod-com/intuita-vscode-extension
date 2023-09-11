@@ -4,6 +4,7 @@ import type { Job, JobHash } from '../jobs/types';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { ExecutionError } from '../errors/types';
 import { PiranhaLanguage } from '../data/codemodConfigSchema';
+import { CodemodArgumentWithValue } from '../selectors/selectCodemodTree';
 
 export const enum MessageKind {
 	/** cases and jobs */
@@ -46,14 +47,12 @@ export const enum MessageKind {
 	executionQueueChange = 39,
 }
 
-export type CodemodArguments = ReadonlyArray<{ name: string; value: string }>;
-
 export type Command =
 	| Readonly<{
 			kind: 'executeCodemod';
 			codemodHash: CodemodHash;
 			name: string;
-			arguments?: CodemodArguments;
+			arguments?: ReadonlyArray<CodemodArgumentWithValue>;
 	  }>
 	| Readonly<{
 			kind: 'executeLocalCodemod';
@@ -66,7 +65,7 @@ export type Command =
 			name: string;
 			configurationUri: Uri;
 			language: PiranhaLanguage;
-			arguments?: CodemodArguments;
+			arguments?: ReadonlyArray<CodemodArgumentWithValue>;
 	  }>;
 
 export type Message =

@@ -1,12 +1,7 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
-import { DirectorySelector } from '../components/DirectorySelector';
-import { pipe } from 'fp-ts/lib/function';
-import * as T from 'fp-ts/These';
-import * as O from 'fp-ts/Option';
-import debounce from '../../shared/utilities/debounce';
 import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
@@ -16,27 +11,10 @@ import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
 
-const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
-	return path.replace(rootPath, '').length === 0
-		? `${repoName}/`
-		: path.replace(rootPath, repoName);
-};
-
-const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
-	const codemodPath = rawCodemodPath.trim();
-
-	vscode.postMessage({
-		kind: 'webview.codemodList.codemodPathChange',
-		codemodPath,
-	});
-}, 50);
-
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
+type Props = Omit<CodemodItemNode, 'name' | 'kind' | 'executionPath'> &
 	Readonly<{
-		rootPath: string | null;
-		autocompleteItems: ReadonlyArray<string>;
 		progress: Progress | null;
 		screenWidth: number | null;
 		focused: boolean;
@@ -60,20 +38,11 @@ const renderActionButtons = (
 	permalink: CodemodItemNode['permalink'],
 	codemodInProgress: boolean,
 	queued: boolean,
-	rootPath: string | null,
 	label: string,
 ) => {
 	if (!codemodInProgress && !queued) {
 		const handleDryRunClick = (e: React.MouseEvent) => {
 			e.stopPropagation();
-
-			if (rootPath === null) {
-				vscode.postMessage({
-					kind: 'webview.global.showWarningMessage',
-					value: 'No workspace is found.',
-				});
-				return;
-			}
 
 			vscode.postMessage({
 				kind: isPrivate
@@ -122,13 +91,8 @@ const renderActionButtons = (
 			<>
 				<ActionButton
 					id={`${hashDigest}-dryRunButton`}
-					content="Dry-run this codemod (without making change to file system)."
+					content="Set codemod arguments"
 					onClick={handleCodemodSettingsClick}
-					style={{
-						...(rootPath === null && {
-							opacity: 'var(--disabled-opacity)',
-						}),
-					}}
 				>
 					<span className={cn('codicon', 'codicon-settings-gear')} />
 				</ActionButton>
@@ -136,11 +100,6 @@ const renderActionButtons = (
 					id={`${hashDigest}-dryRunButton`}
 					content="Dry-run this codemod (without making change to file system)."
 					onClick={handleDryRunClick}
-					style={{
-						...(rootPath === null && {
-							opacity: 'var(--disabled-opacity)',
-						}),
-					}}
 				>
 					<span className={cn('codicon', 'codicon-play')} />
 				</ActionButton>
@@ -233,9 +192,6 @@ const getActionGroupStyle = (
 const Codemod = ({
 	hashDigest,
 	label,
-	executionPath,
-	rootPath,
-	autocompleteItems,
 	progress,
 	queued,
 	icon,
@@ -247,49 +203,6 @@ const Codemod = ({
 	const [hovering, setHovering] = useState(false);
 	const areButtonsVisible = focused || hovering;
 
-	const repoName =
-		rootPath !== null ? rootPath.split('/').slice(-1)[0] ?? '' : '';
-	const [editingPath, setEditingPath] = useState(false);
-
-	const error: string | null = pipe(
-		O.fromNullable(executionPath),
-		O.fold(
-			() => null,
-			T.fold(
-				({ message }) => message,
-				() => null,
-				({ message }) => message,
-			),
-		),
-	);
-
-	const path: string = pipe(
-		O.fromNullable(executionPath),
-		O.fold(
-			() => '',
-			T.fold(
-				() => '',
-				(p) => p,
-				(_, p) => p,
-			),
-		),
-	);
-
-	const targetPath =
-		rootPath !== null ? buildTargetPath(path, rootPath, repoName) : '/';
-
-	const onEditStart = useCallback(() => {
-		setEditingPath(true);
-	}, []);
-
-	const onEditEnd = useCallback(() => {
-		setEditingPath(false);
-	}, []);
-
-	const onEditCancel = useCallback(() => {
-		setEditingPath(false);
-	}, []);
-
 	const popoverText =
 		icon === 'private'
 			? 'This is a private codemod.'
@@ -299,22 +212,20 @@ const Codemod = ({
 
 	return (
 		<>
-			{!editingPath && (
-				<IntuitaPopover content={popoverText}>
-					{icon === 'private' ? (
-						<span className={cn('codicon', 'codicon-star')} />
-					) : icon === 'certified' ? (
-						<span
-							className={cn('codicon', 'codicon-verified')}
-							style={{
-								color: 'var(--vscode-focusBorder)',
-							}}
-						/>
-					) : (
-						<span className={cn('codicon', 'codicon-unverified')} />
-					)}
-				</IntuitaPopover>
-			)}
+			<IntuitaPopover content={popoverText}>
+				{icon === 'private' ? (
+					<span className={cn('codicon', 'codicon-star')} />
+				) : icon === 'certified' ? (
+					<span
+						className={cn('codicon', 'codicon-verified')}
+						style={{
+							color: 'var(--vscode-focusBorder)',
+						}}
+					/>
+				) : (
+					<span className={cn('codicon', 'codicon-unverified')} />
+				)}
+			</IntuitaPopover>
 			<div
 				id={`${hashDigest}-codemod`}
 				className="flex w-full flex-col"
@@ -327,17 +238,12 @@ const Codemod = ({
 				style={{ paddingLeft: '3px', paddingRight: '4px' }}
 			>
 				<span className={styles.labelContainer}>
-					{!editingPath && (
-						<span
-							className={styles.label}
-							style={getLabelStyle(
-								areButtonsVisible,
-								screenWidth,
-							)}
-						>
-							{label}
-						</span>
-					)}
+					<span
+						className={styles.label}
+						style={getLabelStyle(areButtonsVisible, screenWidth)}
+					>
+						{label}
+					</span>
 					<div
 						className={styles.actionGroup}
 						style={{
@@ -345,50 +251,16 @@ const Codemod = ({
 								areButtonsVisible,
 								screenWidth,
 							),
-							...(editingPath && { opacity: 1, width: '100%' }),
 						}}
 					>
-						<span
-							className={styles.directorySelector}
-							style={{
-								...(editingPath && {
-									width: '100%',
-									opacity: 1,
-									marginRight: '2.5px',
-								}),
-							}}
-						>
-							{executionPath && progress === null && (
-								<DirectorySelector
-									defaultValue={targetPath}
-									displayValue={'path'}
-									rootPath={rootPath ?? ''}
-									error={
-										error === null
-											? null
-											: { message: error }
-									}
-									codemodHash={
-										hashDigest as unknown as CodemodHash
-									}
-									onEditStart={onEditStart}
-									onEditEnd={onEditEnd}
-									onEditCancel={onEditCancel}
-									onChange={handleCodemodPathChange}
-									autocompleteItems={autocompleteItems}
-								/>
-							)}
-						</span>
-						{!editingPath &&
-							renderActionButtons(
-								hashDigest,
-								isPrivate,
-								permalink,
-								progress !== null,
-								queued,
-								rootPath,
-								label,
-							)}
+						{renderActionButtons(
+							hashDigest,
+							isPrivate,
+							permalink,
+							progress !== null,
+							queued,
+							label,
+						)}
 					</div>
 				</span>
 				{renderProgressBar(progress)}

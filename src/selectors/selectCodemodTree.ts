@@ -291,10 +291,36 @@ export const selectExecutionPaths = (state: RootState) => {
 	return state.codemodDiscoveryView.executionPaths;
 };
 
-export const selectCodemodArguments = (state: RootState) => {
-	const hashDigest =
-		state.codemodDiscoveryView.codemodArgumentsPopupHashDigest;
+export type CodemodArgumentWithValue =
+	| {
+			kind: 'string';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: string;
+			value: string;
+	  }
+	| {
+			kind: 'number';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: number;
+			value: number;
+	  }
+	| {
+			kind: 'boolean';
+			name: string;
+			description: string;
+			required: boolean;
+			default?: boolean;
+			value: boolean;
+	  };
 
+export const selectCodemodArguments = (
+	state: RootState,
+	hashDigest: CodemodNodeHashDigest | null,
+): CodemodArgumentWithValue[] => {
 	if (hashDigest === null) {
 		return [];
 	}
@@ -308,11 +334,38 @@ export const selectCodemodArguments = (state: RootState) => {
 	const savedArgsValues =
 		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
 
-	return args.map(({ name, default: defaultValue, ...rest }) => ({
-		...rest,
-		name,
-		value: savedArgsValues?.[name] ?? String(defaultValue) ?? '',
-	}));
+	return args.map(({ name, kind, default: defaultValue, ...rest }) => {
+		const value = savedArgsValues?.[name] ?? defaultValue ?? '';
+
+		switch (kind) {
+			case 'string': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: String(value),
+				};
+			}
+			case 'number': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: Number(value),
+				};
+			}
+			case 'boolean': {
+				return {
+					...rest,
+					kind,
+					name,
+					value: Boolean(value),
+				};
+			}
+		}
+	});
+
+	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
 
 export type CodemodTree = NonNullable<ReturnType<typeof selectCodemodTree>>;

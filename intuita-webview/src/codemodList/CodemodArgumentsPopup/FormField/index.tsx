@@ -3,29 +3,46 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
+import { CodemodArgumentWithValue } from '../../../../../src/selectors/selectCodemodTree';
 
-type Props = Readonly<{
-	kind: 'string' | 'boolean' | 'number';
-	name: string;
-	value: string;
+type Props = CodemodArgumentWithValue & {
 	onChange(e: Event | React.FormEvent<HTMLElement>): void;
-}>;
+};
 
-const FormField = ({ kind, name, value, onChange }: Props) => {
+const FormField = ({
+	kind,
+	name,
+	required,
+	value,
+	description,
+	onChange,
+}: Props) => {
 	if (kind === 'string' || kind === 'number') {
 		return (
 			<VSCodeTextField
 				placeholder={name}
-				value={value}
+				value={String(value)}
 				onInput={onChange}
 				className={styles.field}
+				title={description}
 			>
-				{name}
+				{name} {required && '*'}
 			</VSCodeTextField>
 		);
 	}
 
-	return <VSCodeCheckbox checked={value === 'true'} onChange={onChange} />;
+	return (
+		<div className={styles.fieldLayout}>
+			<label className={styles.label}>
+				{name} {required && '*'}
+			</label>
+			<VSCodeCheckbox
+				title={description}
+				checked={value}
+				onChange={onChange}
+			/>
+		</div>
+	);
 };
 
 export default FormField;

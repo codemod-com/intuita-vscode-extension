@@ -26,7 +26,10 @@ import { IntuitaPanelProvider } from './components/webview/IntuitaPanelProvider'
 import { CaseManager } from './cases/caseManager';
 import { CodemodDescriptionProvider } from './components/webview/CodemodDescriptionProvider';
 import { selectExplorerTree } from './selectors/selectExplorerTree';
-import { CodemodNodeHashDigest } from './selectors/selectCodemodTree';
+import {
+	CodemodNodeHashDigest,
+	selectCodemodArguments,
+} from './selectors/selectCodemodTree';
 import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash, isNeitherNullNorUndefined } from './utilities';
 import { mkdir, readFile, writeFile } from 'fs/promises';
@@ -461,12 +464,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						);
 					}
 
-					const args = Object.entries(
-						store.getState().codemodDiscoveryView.codemodArguments[
-							codemodHash
-						] ?? {},
-					).map(([name, value]) => ({ name, value }));
-
+					const args = selectCodemodArguments(
+						store.getState(),
+						codemodHash as unknown as CodemodNodeHashDigest,
+					);
 					const command: Command =
 						codemod.kind === 'piranhaRule'
 							? {
@@ -631,11 +632,10 @@ export async function activate(context: vscode.ExtensionContext) {
 						fileStat.type & vscode.FileType.Directory,
 					);
 
-					const args = Object.entries(
-						store.getState().codemodDiscoveryView.codemodArguments[
-							codemodEntry.hashDigest
-						] ?? {},
-					).map(([name, value]) => ({ name, value }));
+					const args = selectCodemodArguments(
+						store.getState(),
+						codemodEntry.hashDigest as unknown as CodemodNodeHashDigest,
+					);
 
 					const command: Command =
 						codemodEntry.kind === 'piranhaRule'

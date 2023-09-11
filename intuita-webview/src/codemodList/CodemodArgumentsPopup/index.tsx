@@ -1,44 +1,61 @@
-import { CodemodNodeHashDigest } from '../../../../src/selectors/selectCodemodTree';
+import {
+	CodemodArgumentWithValue,
+	CodemodNodeHashDigest,
+} from '../../../../src/selectors/selectCodemodTree';
+import { CodemodHash } from '../../shared/types';
 import { vscode } from '../../shared/utilities/vscode';
 
 import FormField from './FormField';
 import styles from './styles.module.css';
 
 import cn from 'classnames';
+import debounce from '../../shared/utilities/debounce';
+import { DirectorySelector } from '../components/DirectorySelector';
+
+import { pipe } from 'fp-ts/lib/function';
+import * as T from 'fp-ts/These';
+import * as O from 'fp-ts/Option';
 
 type Props = Readonly<{
 	hashDigest: CodemodNodeHashDigest;
-	arguments: ReadonlyArray<{
-		kind: 'string' | 'number' | 'boolean';
-		name: string;
-		value: string;
-	}>;
+	arguments: ReadonlyArray<CodemodArgumentWithValue>;
+	autocompleteItems: ReadonlyArray<string>;
+	rootPath: string | null;
+	executionPath: T.These<{ message: string }, string>;
 }>;
 
-type FormData = Record<string, string>;
-
-const buildFormDataFromArguments = (args: Props['arguments']): FormData => {
-	return args.reduce<Record<string, string>>((formData, arg) => {
-		formData[arg.name] = arg.value;
-		return formData;
-	}, {});
+const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
+	return path.replace(rootPath, '').length === 0
+		? `${repoName}/`
+		: path.replace(rootPath, repoName);
 };
 
-const CodemodArgumentsPopup = ({ hashDigest, arguments: args }: Props) => {
-	const formData = buildFormDataFromArguments(args);
+const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
+	const codemodPath = rawCodemodPath.trim();
 
+	vscode.postMessage({
+		kind: 'webview.codemodList.codemodPathChange',
+		codemodPath,
+	});
+}, 50);
+
+const CodemodArgumentsPopup = ({
+	hashDigest,
+	arguments: args,
+	autocompleteItems,
+	rootPath,
+	executionPath,
+}: Props) => {
 	const onChangeFormField =
 		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
 			const value = (e as React.ChangeEvent<HTMLInputElement>).target
 				.value;
 
 			vscode.postMessage({
-				kind: 'webview.global.setCodemodArguments',
+				kind: 'webview.global.setCodemodArgument',
 				hashDigest,
-				arguments: {
-					...formData,
-					[fieldName]: value,
-				},
+				name: fieldName,
+				value,
 			});
 		};
 
@@ -49,6 +66,36 @@ const CodemodArgumentsPopup = ({ hashDigest, arguments: args }: Props) => {
 		});
 	};
 
+	const error: string | null = pipe(
+		O.fromNullable(executionPath),
+		O.fold(
+			() => null,
+			T.fold(
+				({ message }) => message,
+				() => null,
+				({ message }) => message,
+			),
+		),
+	);
+
+	const path: string = pipe(
+		O.fromNullable(executionPath),
+		O.fold(
+			() => '',
+			T.fold(
+				() => '',
+				(p) => p,
+				(_, p) => p,
+			),
+		),
+	);
+
+	const repoName =
+		rootPath !== null ? rootPath.split('/').slice(-1)[0] ?? '' : '';
+
+	const targetPath =
+		rootPath !== null ? buildTargetPath(path, rootPath, repoName) : '/';
+
 	return (
 		<div className={styles.root}>
 			<span
@@ -57,12 +104,19 @@ const CodemodArgumentsPopup = ({ hashDigest, arguments: args }: Props) => {
 			/>
 			<h1>Codemod Arguments</h1>
 			<form className={styles.form}>
-				{args.map(({ kind, name }) => (
+				<DirectorySelector
+					defaultValue={targetPath}
+					displayValue={'path'}
+					rootPath={rootPath ?? ''}
+					error={error === null ? null : { message: error }}
+					codemodHash={hashDigest as unknown as CodemodHash}
+					onChange={handleCodemodPathChange}
+					autocompleteItems={autocompleteItems}
+				/>
+				{args.map((props) => (
 					<FormField
-						kind={kind}
-						name={name}
-						value={formData[name] ?? ''}
-						onChange={onChangeFormField(name)}
+						{...props}
+						onChange={onChangeFormField(props.name)}
 					/>
 				))}
 			</form>

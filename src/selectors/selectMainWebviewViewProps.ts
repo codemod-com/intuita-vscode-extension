@@ -27,7 +27,10 @@ export const selectMainWebviewViewProps = (
 				executionQueue,
 			),
 			codemodArgumentsPopup: {
-				arguments: selectCodemodArguments(state),
+				arguments: selectCodemodArguments(
+					state,
+					state.codemodDiscoveryView.codemodArgumentsPopupHashDigest,
+				),
 				hashDigest:
 					state.codemodDiscoveryView.codemodArgumentsPopupHashDigest,
 			},

@@ -183,7 +183,8 @@ export type WebviewResponse =
 			hashDigest: CodemodNodeHashDigest | null;
 	  }>
 	| Readonly<{
-			kind: 'webview.global.setCodemodArguments';
+			kind: 'webview.global.setCodemodArgument';
 			hashDigest: CodemodNodeHashDigest;
-			arguments: Record<string, string>;
+			name: string;
+			value: string | boolean | number;
 	  }>;
