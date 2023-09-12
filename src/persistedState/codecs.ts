@@ -134,6 +134,11 @@ export const persistedStateCodecNew = buildTypeCodec({
 				body: t.string,
 			}),
 			buildTypeCodec({
+				kind: t.literal('WAITING_FOR_ISSUE_CREATION_API_RESPONSE'),
+				title: t.string,
+				body: t.string,
+			}),
+			buildTypeCodec({
 				kind: t.literal('IDLENESS'),
 			}),
 		]),

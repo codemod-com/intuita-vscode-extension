@@ -1033,14 +1033,16 @@ export async function activate(context: vscode.ExtensionContext) {
 						'workbench.view.extension.intuitaViewId',
 					);
 
-					userService.linkUserIntuitaAccount(accessToken);
+					const sourceControlState = state.sourceControl;
 
 					if (
-						state.sourceControl.kind !==
+						sourceControlState.kind !==
 						'ISSUE_CREATION_WAITING_FOR_AUTH'
 					) {
 						return;
 					}
+
+					userService.linkUserIntuitaAccount(accessToken);
 
 					const onSuccess = () => {
 						store.dispatch(
@@ -1051,11 +1053,56 @@ export async function activate(context: vscode.ExtensionContext) {
 						store.dispatch(actions.setActiveTabId('codemodRuns'));
 					};
 
+					const routeUserToStudioToAuthenticate = async () => {
+						const result = await vscode.window.showErrorMessage(
+							'Invalid access token. Try signing in again.',
+							{ modal: true },
+							'Sign in with Github',
+						);
+
+						if (result !== 'Sign in with Github') {
+							return;
+						}
+
+						const searchParams = new URLSearchParams();
+
+						searchParams.set(
+							SEARCH_PARAMS_KEYS.COMMAND,
+							'accessTokenRequested',
+						);
+
+						const url = new URL('https://codemod.studio');
+						url.search = searchParams.toString();
+
+						vscode.commands.executeCommand('intuita.redirect', url);
+					};
+
+					const onFail = async () => {
+						userService.unlinkUserIntuitaAccount();
+						store.dispatch(
+							actions.setSourceControlTabProps({
+								kind: 'ISSUE_CREATION_WAITING_FOR_AUTH',
+								title: sourceControlState.title,
+								body: sourceControlState.body,
+							}),
+						);
+						await routeUserToStudioToAuthenticate();
+					};
+
+					store.dispatch(
+						actions.setSourceControlTabProps({
+							kind: 'WAITING_FOR_ISSUE_CREATION_API_RESPONSE',
+							title: sourceControlState.title,
+							body: sourceControlState.body,
+						}),
+					);
+
 					await createIssue(
-						state.sourceControl.title,
-						state.sourceControl.body,
+						sourceControlState.title,
+						sourceControlState.body,
 						accessToken,
 						onSuccess,
+						onFail,
 					);
 				}
 			},

@@ -42,3 +42,14 @@
 	color: var(--foreground);
 	user-select: none;
 }
+
+.loadingContainer {
+	display: flex;
+	align-items: center;
+}
+
+.progressRing {
+	width: 16px;
+	height: 16px;
+	margin-right: 12px;
+}

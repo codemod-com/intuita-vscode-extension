@@ -38,6 +38,7 @@ export const createIssue = async (
 	body: string,
 	accessToken: string,
 	onSuccess: () => void,
+	onFail: () => Promise<void>,
 ): Promise<{ status: number; html_url: string | null }> => {
 	// call API to create Github Issue
 	const codemodRegistryRepo =
@@ -56,6 +57,7 @@ export const createIssue = async (
 		},
 	);
 	if (result.status !== 200) {
+		await onFail();
 		return { status: result.status, html_url: null };
 	}
 
@@ -64,6 +66,7 @@ export const createIssue = async (
 	const validation = createIssueResponseCodec.decode(data);
 
 	if (validation._tag === 'Left') {
+		await onFail();
 		window.showErrorMessage('Creating Github issue failed.');
 		return { status: 406, html_url: null };
 	}
@@ -504,14 +507,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				this.__store.dispatch(actions.setActiveTabId('codemodRuns'));
 			};
 
-			const { status } = await createIssue(
-				title,
-				body,
-				accessToken,
-				onSuccess,
-			);
-
-			if (status !== 200) {
+			const onFail = async () => {
 				this.__userService.unlinkUserIntuitaAccount();
 				this.__store.dispatch(
 					actions.setSourceControlTabProps({
@@ -521,7 +517,16 @@ export class MainViewProvider implements WebviewViewProvider {
 					}),
 				);
 				await routeUserToStudioToAuthenticate();
-			}
+			};
+
+			this.__store.dispatch(
+				actions.setSourceControlTabProps({
+					kind: 'WAITING_FOR_ISSUE_CREATION_API_RESPONSE',
+					title,
+					body,
+				}),
+			);
+			await createIssue(title, body, accessToken, onSuccess, onFail);
 		}
 
 		if (

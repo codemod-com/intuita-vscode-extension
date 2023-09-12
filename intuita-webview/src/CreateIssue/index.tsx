@@ -4,6 +4,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import {
 	VSCodeButton,
+	VSCodeProgressRing,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import { useEffect, useState } from 'react';
@@ -16,12 +17,10 @@ const lowlight = createLowlight(common);
 type Props = Readonly<{
 	title: string;
 	body: string;
+	loading: boolean;
 }>;
 
 const CreateIssue = (props: Props) => {
-	// TODO: handle loading for creating issue
-	const [loading] = useState(false);
-
 	const [title, setTitle] = useState('');
 
 	const onChangeTitle = (e: Event | React.FormEvent<HTMLElement>) => {
@@ -100,14 +99,23 @@ const CreateIssue = (props: Props) => {
 				<div className={styles.actions}>
 					<VSCodeButton
 						disabled={
-							loading ||
+							props.loading ||
 							title.length <= 3 ||
 							(editor?.getText() ?? '').length <= 5
 						}
 						type="submit"
 						className={styles.actionButton}
 					>
-						{loading ? 'Submitting...' : 'Create Issue'}
+						{props.loading ? (
+							<div className={styles.loadingContainer}>
+								<VSCodeProgressRing
+									className={styles.progressRing}
+								/>
+								<span>Creating...</span>
+							</div>
+						) : (
+							'Create Issue'
+						)}
 					</VSCodeButton>
 				</div>
 			</form>
