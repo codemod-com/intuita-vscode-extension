@@ -60,7 +60,7 @@ const CreateIssue = (props: Props) => {
 			lowlight,
 			// in our editor, we provide 1 syntax highlighting for all languages;
 			// once transmitted to Github, the syntax highlighting will be handled there, and therefore
-			// different syntax highlightings will be applied to different languages there;
+			// different syntax highlighting will be applied to different languages there;
 			defaultLanguage: 'typescript',
 			HTMLAttributes: {
 				class: 'typescript',

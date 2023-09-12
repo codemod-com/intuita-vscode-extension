@@ -68,6 +68,8 @@
 		"redeclared",
 		"monacoeditorwork",
 		"whitespace",
-		"tiptap"
+		"tiptap",
+		"lowlight",
+		"lowlights"
 	]
 }
