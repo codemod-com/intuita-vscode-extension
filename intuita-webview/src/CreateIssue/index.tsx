@@ -1,5 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
 import {
 	VSCodeButton,
 	VSCodeTextField,
@@ -8,6 +10,8 @@ import { useEffect, useState } from 'react';
 import { vscode } from '../shared/utilities/vscode';
 import styles from './style.module.css';
 import './tiptap.css';
+
+const lowlight = createLowlight(common);
 
 type Props = Readonly<{
 	title: string;
@@ -48,7 +52,21 @@ const CreateIssue = (props: Props) => {
 		});
 	};
 
-	const extensions = [StarterKit];
+	const extensions = [
+		StarterKit.configure({
+			codeBlock: false,
+		}),
+		CodeBlockLowlight.configure({
+			lowlight,
+			// in our editor, we provide 1 syntax highlighting for all languages;
+			// once transmitted to Github, the syntax highlighting will be handled there, and therefore
+			// different syntax highlightings will be applied to different languages there;
+			defaultLanguage: 'typescript',
+			HTMLAttributes: {
+				class: 'typescript',
+			},
+		}),
+	];
 
 	const editor = useEditor({
 		extensions,
