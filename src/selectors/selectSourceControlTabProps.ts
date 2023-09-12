@@ -29,6 +29,7 @@ You can provide any relevant context here.
 type SourceControlTabProps = Readonly<{
 	title: string;
 	body: string;
+	loading: boolean;
 }>;
 
 export const selectSourceControlTabProps = (
@@ -37,26 +38,36 @@ export const selectSourceControlTabProps = (
 	if (!state.jobDiffView.visible) {
 		return null;
 	}
-	if (state.sourceControl.kind === 'IDLENESS') {
+	const sourceControlState = state.sourceControl;
+	if (sourceControlState.kind === 'IDLENESS') {
 		return null;
 	}
 
-	if (state.sourceControl.kind === 'ISSUE_CREATION_WAITING_FOR_AUTH') {
+	if (sourceControlState.kind === 'ISSUE_CREATION_WAITING_FOR_AUTH') {
 		return {
-			title: state.sourceControl.title,
-			body: state.sourceControl.body,
+			title: sourceControlState.title,
+			body: sourceControlState.body,
+			loading: false,
 		};
 	}
 
-	const job = state.job.entities[state.sourceControl.jobHash] ?? null;
+	if (sourceControlState.kind === 'WAITING_FOR_ISSUE_CREATION_API_RESPONSE') {
+		return {
+			title: sourceControlState.title,
+			body: sourceControlState.body,
+			loading: true,
+		};
+	}
+
+	const job = state.job.entities[sourceControlState.jobHash] ?? null;
 
 	if (job === null) {
 		throw new Error('Unable to get the job');
 	}
 
 	const { beforeSnippet, afterSnippet } = createBeforeAfterSnippets(
-		state.sourceControl.oldFileContent,
-		state.sourceControl.newFileContent,
+		sourceControlState.oldFileContent,
+		sourceControlState.newFileContent,
 	);
 
 	const body = buildIssueTemplateInHTML(
@@ -71,5 +82,6 @@ export const selectSourceControlTabProps = (
 	return {
 		title,
 		body,
+		loading: false,
 	};
 };
