@@ -53,3 +53,7 @@
 	height: 16px;
 	margin-right: 12px;
 }
+
+.progressRing::part(indeterminate-indicator-1) {
+	stroke: var(--vscode-icon-foreground);
+}
