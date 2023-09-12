@@ -21,8 +21,7 @@
 }
 
 .tiptap code {
-	background-color: rgba(#616161, 0.1);
-	color: #616161;
+	background-color: transparent;
 }
 
 .tiptap pre {
@@ -57,4 +56,61 @@
 	border: none;
 	border-top: 2px solid white;
 	margin: 2rem 0;
+}
+
+/* 
+- styling for syntax highlights; we don't support different syntax highlights for different languages
+- copied from .scss file of demo in https://tiptap.dev/api/nodes/code-block-lowlight#usage
+*/
+
+.tiptap .hljs-comment,
+.tiptap .hljs-quote {
+	color: #616161;
+}
+
+.tiptap .hljs-variable,
+.tiptap .hljs-template-variable,
+.tiptap .hljs-attribute,
+.tiptap .hljs-tag,
+.tiptap .hljs-name,
+.tiptap .hljs-regexp,
+.tiptap .hljs-link,
+.tiptap .hljs-name,
+.tiptap .hljs-selector-id,
+.tiptap .hljs-selector-class {
+	color: #f98181;
+}
+
+.tiptap .hljs-number,
+.tiptap .hljs-meta,
+.tiptap .hljs-built_in,
+.tiptap .hljs-builtin-name,
+.tiptap .hljs-literal,
+.tiptap .hljs-type,
+.tiptap .hljs-params {
+	color: #fbbc88;
+}
+
+.tiptap .hljs-string,
+.tiptap .hljs-symbol,
+.tiptap .hljs-bullet {
+	color: #b9f18d;
+}
+
+.tiptap .hljs-title,
+.tiptap .hljs-section {
+	color: #faf594;
+}
+
+.tiptap .hljs-keyword,
+.tiptap .hljs-selector-tag {
+	color: #70cff8;
+}
+
+.tiptap .hljs-emphasis {
+	font-style: italic;
+}
+
+.tiptap .hljs-strong {
+	font-weight: 700;
 }
