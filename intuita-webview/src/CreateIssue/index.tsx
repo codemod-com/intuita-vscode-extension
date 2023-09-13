@@ -14,6 +14,17 @@ import './tiptap.css';
 
 const lowlight = createLowlight(common);
 
+const convertHTMLCodeBlockToMarkdownString = (htmlSnippet: string) => {
+	return htmlSnippet.replace(
+		/<pre><code(?:\s+class="language-(.*?)")?>(.*?)<\/code><\/pre>/gs,
+		function (_match, language, content) {
+			return `\n\n\`\`\`${
+				language ?? 'typescript'
+			}\n${content}\n\`\`\`\n\n`;
+		},
+	);
+};
+
 type Props = Readonly<{
 	title: string;
 	body: string;
@@ -42,11 +53,13 @@ const CreateIssue = (props: Props) => {
 			return;
 		}
 
+		const htmlSnippet = editor.getHTML();
+
 		vscode.postMessage({
 			kind: 'webview.sourceControl.createIssue',
 			data: {
 				title,
-				body: editor.getHTML(),
+				body: convertHTMLCodeBlockToMarkdownString(htmlSnippet),
 			},
 		});
 	};
@@ -61,9 +74,6 @@ const CreateIssue = (props: Props) => {
 			// once transmitted to Github, the syntax highlighting will be handled there, and therefore
 			// different syntax highlighting will be applied to different languages there;
 			defaultLanguage: 'typescript',
-			HTMLAttributes: {
-				class: 'typescript',
-			},
 		}),
 	];
 
@@ -78,8 +88,11 @@ const CreateIssue = (props: Props) => {
 	}, [props.title]);
 
 	useEffect(() => {
+		if (props.loading) {
+			return;
+		}
 		editor?.commands.setContent(props.body, false);
-	}, [editor, props.body]);
+	}, [editor, props.body, props.loading]);
 
 	return (
 		<div className={styles.root}>
