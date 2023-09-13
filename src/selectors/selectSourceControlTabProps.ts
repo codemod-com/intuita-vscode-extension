@@ -1,6 +1,9 @@
 import { createBeforeAfterSnippets } from '../components/webview/IntuitaPanelProvider';
 import type { RootState } from '../data';
 
+const sanitizeCodeBlock = (codeBlock: string) =>
+	codeBlock.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 const buildIssueTemplateInHTML = (
 	codemodName: string,
 	before: string | null,
@@ -15,11 +18,17 @@ const buildIssueTemplateInHTML = (
 <hr>
 <h3>Codemod: ${codemodName}</h3>
 <p><strong>1. Code before transformation (Input for codemod)</strong></p>
-<pre><code>${before ?? '// paste code here'}</code></pre>
+<pre><code>${
+		before !== null ? sanitizeCodeBlock(before) : '// paste code here'
+	}</code></pre>
 <p><strong>2. Expected code after transformation (Desired output of codemod)</strong></p>
-<pre><code>${expected ?? '// paste code here'}</code></pre>
+<pre><code>${
+		expected !== null ? sanitizeCodeBlock(expected) : '// paste code here'
+	}</code></pre>
 <p><strong>3. Faulty code obtained after running the current version of the codemod (Actual output of codemod)</strong></p>
-<pre><code>${after ?? '// paste code here'}</code></pre>
+<pre><code>${
+		after !== null ? sanitizeCodeBlock(after) : '// paste code here'
+	}</code></pre>
 <h3>Additional context</h3>
 You can provide any relevant context here.
 <hr>
