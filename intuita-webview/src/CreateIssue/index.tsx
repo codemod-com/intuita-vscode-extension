@@ -14,16 +14,12 @@ import './tiptap.css';
 
 const lowlight = createLowlight(common);
 
-const convertHTMLCodeBlockToMarkdownString = (htmlSnippet: string) => {
-	return htmlSnippet.replace(
+const convertHTMLCodeBlockToMarkdownString = (htmlSnippet: string) =>
+	htmlSnippet.replace(
 		/<pre><code(?:\s+class="language-(.*?)")?>(.*?)<\/code><\/pre>/gs,
-		function (_match, language, content) {
-			return `\n\n\`\`\`${
-				language ?? 'typescript'
-			}\n${content}\n\`\`\`\n\n`;
-		},
+		(_match, language, content) =>
+			`\n\n\`\`\`${language ?? 'typescript'}\n${content}\n\`\`\`\n\n`,
 	);
-};
 
 type Props = Readonly<{
 	title: string;
