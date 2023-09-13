@@ -87,7 +87,9 @@ const CreateIssue = (props: Props) => {
 		if (props.loading) {
 			return;
 		}
-		editor?.commands.setContent(props.body, false);
+		editor?.commands.setContent(props.body, false, {
+			preserveWhitespace: true,
+		});
 	}, [editor, props.body, props.loading]);
 
 	return (
