@@ -13,12 +13,16 @@ import styles from './style.module.css';
 import './tiptap.css';
 
 const lowlight = createLowlight(common);
+const unsanitizeCodeBlock = (codeBlock: string) =>
+	codeBlock.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
 const convertHTMLCodeBlockToMarkdownString = (htmlSnippet: string) =>
 	htmlSnippet.replace(
 		/<pre><code(?:\s+class="language-(.*?)")?>(.*?)<\/code><\/pre>/gs,
 		(_match, language, content) =>
-			`\n\n\`\`\`${language ?? 'typescript'}\n${content}\n\`\`\`\n\n`,
+			`\n\n\`\`\`${language ?? 'typescript'}\n${unsanitizeCodeBlock(
+				content,
+			)}\n\`\`\`\n\n`,
 	);
 
 type Props = Readonly<{
