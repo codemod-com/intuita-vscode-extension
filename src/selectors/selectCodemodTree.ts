@@ -360,7 +360,7 @@ export const selectCodemodArguments = (
 	const savedArgsValues =
 		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
 
-	const arg = args.map((arg) => {
+	return args.map((arg) => {
 		const value = savedArgsValues?.[arg.name] ?? arg.default ?? '';
 
 		switch (arg.kind) {
@@ -385,16 +385,6 @@ export const selectCodemodArguments = (
 		}
 	});
 
-	arg.push({
-		kind: 'string',
-		default: undefined,
-		description: 'desc',
-		value: '',
-		name: 'options',
-		required: true,
-	})
-
-	return arg;
 	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
 
