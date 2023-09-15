@@ -218,7 +218,6 @@ const Codemod = ({
 			: 'This is a community codemod.';
 
 	return (
-		<div className="w-full">
 			<div
 				id={`${hashDigest}-codemod`}
 				className={styles.codemodRoot}
@@ -228,7 +227,6 @@ const Codemod = ({
 				onMouseLeave={() => {
 					setHovering(false);
 				}}
-				style={{ paddingLeft: '3px', paddingRight: '4px' }}
 			>
 				<IntuitaPopover content={popoverText}>
 					{icon === 'private' ? (
@@ -273,7 +271,6 @@ const Codemod = ({
 				</span>
 				{renderProgressBar(progress)}
 			</div>
-		</div>
 	);
 };
 
