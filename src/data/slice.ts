@@ -210,6 +210,11 @@ const rootSlice = createSlice({
 			state.activeTabId = 'codemods';
 			state.codemodDiscoveryView.focusedCodemodHashDigest = hashDigest;
 			state.jobDiffView.visible = true;
+
+			// close previously opened argument menu, when next codemod is focused
+			if (hashDigest !== state.codemodDiscoveryView.codemodArgumentsPopupHashDigest) {
+				state.codemodDiscoveryView.codemodArgumentsPopupHashDigest = null;
+			}
 		},
 		flipCodemodHashDigest(
 			state,
@@ -674,6 +679,10 @@ const rootSlice = createSlice({
 		) {
 			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
 				action.payload;
+				
+			if(action.payload !== null) {
+				state.codemodDiscoveryView.focusedCodemodHashDigest = action.payload;
+			}
 		},
 		setCodemodArgument(
 			state,

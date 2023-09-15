@@ -12,6 +12,7 @@ type Props = {
 	onClick(e: React.MouseEvent): void;
 	disabled?: boolean;
 	style?: CSSProperties;
+	active?: boolean;
 };
 
 const ActionButton = ({
@@ -19,15 +20,16 @@ const ActionButton = ({
 	disabled,
 	iconName,
 	children,
-	onClick,
 	style,
 	id,
+	active, 
+	onClick,
 }: Props) => {
 	return (
 		<IntuitaPopover content={content} disabled={!content}>
 			<VSCodeButton
 				id={id}
-				className={s.action}
+				className={cn(s.action, {[s.active!]: active })}
 				appearance="icon"
 				onClick={(e) => {
 					e.stopPropagation();
@@ -35,6 +37,7 @@ const ActionButton = ({
 				}}
 				disabled={disabled}
 				style={style}
+				
 			>
 				{iconName ? (
 					<span className={cn('codicon', 'mr-2', iconName)} />

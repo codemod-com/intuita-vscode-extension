@@ -45,6 +45,7 @@ export type NodeDatum = Readonly<{
 	focused: boolean;
 	collapsable: boolean;
 	reviewed: boolean;
+	argumentsExpanded: boolean;
 }>;
 
 const buildCodemodTitle = (name: string): string => {
@@ -55,18 +56,18 @@ const buildCodemodTitle = (name: string): string => {
 };
 
 export const buildRootNode = () =>
-	({
-		hashDigest: buildHash('ROOT') as CodemodNodeHashDigest,
-		kind: 'ROOT' as const,
-		label: '',
-	} as const);
+({
+	hashDigest: buildHash('ROOT') as CodemodNodeHashDigest,
+	kind: 'ROOT' as const,
+	label: '',
+} as const);
 
 export const buildDirectoryNode = (name: string, path: string) =>
-	({
-		hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
-		kind: 'DIRECTORY' as const,
-		label: name,
-	} as const);
+({
+	hashDigest: buildHash([path, name].join('_')) as CodemodNodeHashDigest,
+	kind: 'DIRECTORY' as const,
+	label: name,
+} as const);
 
 export const buildCodemodNode = (
 	codemod: CodemodEntry | PrivateCodemodEntry,
@@ -74,6 +75,7 @@ export const buildCodemodNode = (
 	executionPath: string,
 	queued: boolean,
 	isPrivate: boolean,
+	args: ReadonlyArray<CodemodArgumentWithValue>
 ) => {
 	return {
 		kind: 'CODEMOD' as const,
@@ -86,11 +88,12 @@ export const buildCodemodNode = (
 		icon: isPrivate
 			? 'private'
 			: IntuitaCertifiedCodemods.includes(codemod.name)
-			? 'certified'
-			: 'community',
+				? 'certified'
+				: 'community',
 		permalink: isPrivate
 			? (codemod as PrivateCodemodEntry).permalink
 			: null,
+		args,
 	} as const;
 };
 
@@ -112,14 +115,20 @@ export const selectPrivateCodemods = (
 		const { name, hashDigest } = codemod;
 		const { executionPaths } = state.codemodDiscoveryView;
 
+
+
 		const executionPath =
 			executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
+
+
+
 		const node = buildCodemodNode(
 			codemod,
 			name,
 			executionPath,
 			executionQueue.includes(codemod.hashDigest as CodemodHash),
 			true,
+			[],
 		);
 
 		return {
@@ -131,6 +140,7 @@ export const selectPrivateCodemods = (
 				hashDigest,
 			collapsable: false,
 			reviewed: false,
+			argumentsExpanded: false, 
 		};
 	});
 
@@ -194,12 +204,16 @@ export const selectCodemodTree = (
 			if (idx === pathParts.length - 1) {
 				const executionPath =
 					executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
+
+				const args = selectCodemodArguments(state, codemod.hashDigest as CodemodNodeHashDigest);
+				
 				currNode = buildCodemodNode(
 					codemod,
 					part,
 					executionPath,
 					executionQueue.includes(codemod.hashDigest as CodemodHash),
 					false,
+					args
 				);
 			} else {
 				currNode = buildDirectoryNode(part, codemodDirName);
@@ -247,6 +261,8 @@ export const selectCodemodTree = (
 		const focused =
 			state.codemodDiscoveryView.focusedCodemodHashDigest === hashDigest;
 		const childSet = children[node.hashDigest] ?? [];
+		
+		const argumentsExpanded = state.codemodDiscoveryView.codemodArgumentsPopupHashDigest === hashDigest;
 
 		if (depth !== -1) {
 			nodeData.push({
@@ -256,6 +272,7 @@ export const selectCodemodTree = (
 				focused,
 				collapsable: childSet.length !== 0,
 				reviewed: false,
+				argumentsExpanded, 
 			});
 		}
 
@@ -293,29 +310,38 @@ export const selectExecutionPaths = (state: RootState) => {
 
 export type CodemodArgumentWithValue =
 	| {
-			kind: 'string';
-			name: string;
-			description: string;
-			required: boolean;
-			default?: string;
-			value: string;
-	  }
+		kind: 'string';
+		name: string;
+		description: string;
+		required: boolean;
+		default?: string;
+		value: string;
+	}
 	| {
-			kind: 'number';
-			name: string;
-			description: string;
-			required: boolean;
-			default?: number;
-			value: number;
-	  }
+		kind: 'number';
+		name: string;
+		description: string;
+		required: boolean;
+		default?: number;
+		value: number;
+	}
 	| {
-			kind: 'boolean';
-			name: string;
-			description: string;
-			required: boolean;
-			default?: boolean;
-			value: boolean;
-	  };
+		kind: 'boolean';
+		name: string;
+		description: string;
+		required: boolean;
+		default?: boolean;
+		value: boolean;
+	}
+	| {
+		kind: 'options';
+		name: string;
+		description: string;
+		required: boolean;
+		default?: string;
+		options: ReadonlyArray<string>;
+		value: string;
+	}
 
 export const selectCodemodArguments = (
 	state: RootState,
@@ -334,37 +360,41 @@ export const selectCodemodArguments = (
 	const savedArgsValues =
 		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
 
-	return args.map(({ name, kind, default: defaultValue, ...rest }) => {
-		const value = savedArgsValues?.[name] ?? defaultValue ?? '';
+	const arg = args.map((arg) => {
+		const value = savedArgsValues?.[arg.name] ?? arg.default ?? '';
 
-		switch (kind) {
+		switch (arg.kind) {
 			case 'string': {
 				return {
-					...rest,
-					kind,
-					name,
+					...arg,
 					value: String(value),
 				};
 			}
 			case 'number': {
 				return {
-					...rest,
-					kind,
-					name,
+					...arg,
 					value: Number(value),
 				};
 			}
 			case 'boolean': {
 				return {
-					...rest,
-					kind,
-					name,
+					...arg,
 					value: Boolean(value),
 				};
 			}
 		}
 	});
 
+	arg.push({
+		kind: 'string',
+		default: undefined,
+		description: 'desc',
+		value: '',
+		name: 'options',
+		required: true,
+	})
+
+	return arg;
 	// @TODO remove `state.codemodDiscoveryView.executionPaths` state. Execution path should be a part of codemodArguments
 };
 

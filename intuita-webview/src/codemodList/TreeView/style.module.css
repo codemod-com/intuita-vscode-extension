@@ -3,3 +3,9 @@
 	display: flex;
 	align-items: center;
 }
+
+.active {
+	background: var(--button-icon-hover-background);
+  outline: 1px dotted var(--contrast-active-border);
+  outline-offset: -1px;
+}

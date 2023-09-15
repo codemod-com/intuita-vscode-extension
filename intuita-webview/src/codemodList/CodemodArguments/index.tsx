@@ -8,7 +8,6 @@ import { vscode } from '../../shared/utilities/vscode';
 import FormField from './FormField';
 import styles from './styles.module.css';
 
-import cn from 'classnames';
 import debounce from '../../shared/utilities/debounce';
 import { DirectorySelector } from '../components/DirectorySelector';
 
@@ -39,7 +38,7 @@ const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
 	});
 }, 50);
 
-const CodemodArgumentsPopup = ({
+const CodemodArguments = ({
 	hashDigest,
 	arguments: args,
 	autocompleteItems,
@@ -59,12 +58,7 @@ const CodemodArgumentsPopup = ({
 			});
 		};
 
-	const handleClose = () => {
-		vscode.postMessage({
-			kind: 'webview.global.setCodemodArgumentsPopupHashDigest',
-			hashDigest: null,
-		});
-	};
+	
 
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),
@@ -98,11 +92,6 @@ const CodemodArgumentsPopup = ({
 
 	return (
 		<div className={styles.root}>
-			<span
-				className={cn(styles.closeIcon, 'codicon codicon-close')}
-				onClick={() => handleClose()}
-			/>
-			<h1>Codemod Arguments</h1>
 			<form className={styles.form}>
 				<DirectorySelector
 					defaultValue={targetPath}
@@ -124,4 +113,4 @@ const CodemodArgumentsPopup = ({
 	);
 };
 
-export default CodemodArgumentsPopup;
+export default CodemodArguments;

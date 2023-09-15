@@ -1,5 +1,7 @@
 import {
 	VSCodeCheckbox,
+	VSCodeDropdown,
+	VSCodeOption,
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
@@ -9,14 +11,8 @@ type Props = CodemodArgumentWithValue & {
 	onChange(e: Event | React.FormEvent<HTMLElement>): void;
 };
 
-const FormField = ({
-	kind,
-	name,
-	required,
-	value,
-	description,
-	onChange,
-}: Props) => {
+const FormField = (props: Props) => {
+	const { name, kind, value, description, required, onChange } = props;
 	if (kind === 'string' || kind === 'number') {
 		return (
 			<VSCodeTextField
@@ -28,6 +24,16 @@ const FormField = ({
 			>
 				{name} {required && '*'}
 			</VSCodeTextField>
+		);
+	}
+
+	if (kind === 'options') {
+		return (
+			<VSCodeDropdown onChange={onChange} value={value}>
+				{props.options.map((o) => (
+					<VSCodeOption value={o}>{o}</VSCodeOption>
+				))}
+			</VSCodeDropdown>
 		);
 	}
 

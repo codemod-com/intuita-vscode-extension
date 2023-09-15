@@ -13,12 +13,16 @@ import { Progress } from '../useProgressBar';
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
-type Props = Omit<CodemodItemNode, 'name' | 'kind' | 'executionPath'> &
+type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 	Readonly<{
 		progress: Progress | null;
 		screenWidth: number | null;
 		focused: boolean;
+		rootPath: string | null;
+		autocompleteItems: ReadonlyArray<string>;
+		argumentsExpanded: boolean;
 	}>;
+
 
 const renderProgressBar = (progress: Progress | null) => {
 	if (progress === null) {
@@ -39,6 +43,7 @@ const renderActionButtons = (
 	codemodInProgress: boolean,
 	queued: boolean,
 	label: string,
+	argumentsExpanded: boolean,
 ) => {
 	if (!codemodInProgress && !queued) {
 		const handleDryRunClick = (e: React.MouseEvent) => {
@@ -80,10 +85,10 @@ const renderActionButtons = (
 			});
 		};
 
-		const handleCodemodSettingsClick = () => {
+		const handleCodemodArgumentsClick = () => {
 			vscode.postMessage({
 				kind: 'webview.global.setCodemodArgumentsPopupHashDigest',
-				hashDigest,
+				hashDigest: argumentsExpanded ? null : hashDigest,
 			});
 		};
 
@@ -92,7 +97,8 @@ const renderActionButtons = (
 				<ActionButton
 					id={`${hashDigest}-dryRunButton`}
 					content="Set codemod arguments"
-					onClick={handleCodemodSettingsClick}
+					onClick={handleCodemodArgumentsClick}
+					active={argumentsExpanded}
 				>
 					<span className={cn('codicon', 'codicon-settings-gear')} />
 				</ActionButton>
@@ -199,8 +205,10 @@ const Codemod = ({
 	focused,
 	isPrivate,
 	permalink,
+	argumentsExpanded,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
+
 	const areButtonsVisible = focused || hovering;
 
 	const popoverText =
@@ -211,24 +219,10 @@ const Codemod = ({
 			: 'This is a community codemod.';
 
 	return (
-		<>
-			<IntuitaPopover content={popoverText}>
-				{icon === 'private' ? (
-					<span className={cn('codicon', 'codicon-star')} />
-				) : icon === 'certified' ? (
-					<span
-						className={cn('codicon', 'codicon-verified')}
-						style={{
-							color: 'var(--vscode-focusBorder)',
-						}}
-					/>
-				) : (
-					<span className={cn('codicon', 'codicon-unverified')} />
-				)}
-			</IntuitaPopover>
+		<div className="w-full">
 			<div
 				id={`${hashDigest}-codemod`}
-				className="flex w-full flex-col"
+				className={styles.codemodRoot}
 				onMouseEnter={() => {
 					setHovering(true);
 				}}
@@ -237,6 +231,20 @@ const Codemod = ({
 				}}
 				style={{ paddingLeft: '3px', paddingRight: '4px' }}
 			>
+				<IntuitaPopover content={popoverText}>
+					{icon === 'private' ? (
+						<span className={cn('codicon', 'codicon-star')} />
+					) : icon === 'certified' ? (
+						<span
+							className={cn('codicon', 'codicon-verified')}
+							style={{
+								color: 'var(--vscode-focusBorder)',
+							}}
+						/>
+					) : (
+						<span className={cn('codicon', 'codicon-unverified')} />
+					)}
+				</IntuitaPopover>
 				<span className={styles.labelContainer}>
 					<span
 						className={styles.label}
@@ -260,12 +268,14 @@ const Codemod = ({
 							progress !== null,
 							queued,
 							label,
+							argumentsExpanded,
 						)}
 					</div>
 				</span>
 				{renderProgressBar(progress)}
 			</div>
-		</>
+			
+		</div>
 	);
 };
 
