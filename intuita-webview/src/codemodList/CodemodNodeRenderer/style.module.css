@@ -77,10 +77,10 @@
 	align-items: center;
 	width: 100%;
 	padding: 0 3px;
+	min-height: 28px;
+	box-sizing: border-box;
 }
 
 .expandableContent {
-	/* transition: max-height 1s ease-in-out; */
-	/* overflow-y: auto; */
 	background-color: var(--vscode-panel-background);
 }

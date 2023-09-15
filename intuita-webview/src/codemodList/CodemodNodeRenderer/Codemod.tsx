@@ -218,61 +218,55 @@ const Codemod = ({
 			: 'This is a community codemod.';
 
 	return (
-		<div className="w-full">
-			<div
-				id={`${hashDigest}-codemod`}
-				className={styles.codemodRoot}
-				onMouseEnter={() => {
-					setHovering(true);
-				}}
-				onMouseLeave={() => {
-					setHovering(false);
-				}}
-				style={{ paddingLeft: '3px', paddingRight: '4px' }}
-			>
-				<IntuitaPopover content={popoverText}>
-					{icon === 'private' ? (
-						<span className={cn('codicon', 'codicon-star')} />
-					) : icon === 'certified' ? (
-						<span
-							className={cn('codicon', 'codicon-verified')}
-							style={{
-								color: 'var(--vscode-focusBorder)',
-							}}
-						/>
-					) : (
-						<span className={cn('codicon', 'codicon-unverified')} />
-					)}
-				</IntuitaPopover>
-				<span className={styles.labelContainer}>
+		<div
+			id={`${hashDigest}-codemod`}
+			className={styles.codemodRoot}
+			onMouseEnter={() => {
+				setHovering(true);
+			}}
+			onMouseLeave={() => {
+				setHovering(false);
+			}}
+		>
+			<IntuitaPopover content={popoverText}>
+				{icon === 'private' ? (
+					<span className={cn('codicon', 'codicon-star')} />
+				) : icon === 'certified' ? (
 					<span
-						className={styles.label}
-						style={getLabelStyle(areButtonsVisible, screenWidth)}
-					>
-						{label}
-					</span>
-					<div
-						className={styles.actionGroup}
+						className={cn('codicon', 'codicon-verified')}
 						style={{
-							...getActionGroupStyle(
-								areButtonsVisible,
-								screenWidth,
-							),
+							color: 'var(--vscode-focusBorder)',
 						}}
-					>
-						{renderActionButtons(
-							hashDigest,
-							isPrivate,
-							permalink,
-							progress !== null,
-							queued,
-							label,
-							argumentsExpanded,
-						)}
-					</div>
+					/>
+				) : (
+					<span className={cn('codicon', 'codicon-unverified')} />
+				)}
+			</IntuitaPopover>
+			<span className={styles.labelContainer}>
+				<span
+					className={styles.label}
+					style={getLabelStyle(areButtonsVisible, screenWidth)}
+				>
+					{label}
 				</span>
-				{renderProgressBar(progress)}
-			</div>
+				<div
+					className={styles.actionGroup}
+					style={{
+						...getActionGroupStyle(areButtonsVisible, screenWidth),
+					}}
+				>
+					{renderActionButtons(
+						hashDigest,
+						isPrivate,
+						permalink,
+						progress !== null,
+						queued,
+						label,
+						argumentsExpanded,
+					)}
+				</div>
+			</span>
+			{renderProgressBar(progress)}
 		</div>
 	);
 };
