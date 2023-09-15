@@ -22,14 +22,14 @@ const ActionButton = ({
 	children,
 	style,
 	id,
-	active, 
+	active,
 	onClick,
 }: Props) => {
 	return (
 		<IntuitaPopover content={content} disabled={!content}>
 			<VSCodeButton
 				id={id}
-				className={cn(s.action, {[s.active!]: active })}
+				className={cn(s.action, { [s.active!]: active })}
 				appearance="icon"
 				onClick={(e) => {
 					e.stopPropagation();
@@ -37,7 +37,6 @@ const ActionButton = ({
 				}}
 				disabled={disabled}
 				style={style}
-				
 			>
 				{iconName ? (
 					<span className={cn('codicon', 'mr-2', iconName)} />

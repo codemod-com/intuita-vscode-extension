@@ -16,7 +16,6 @@ import CodemodArguments from '../CodemodArguments';
 
 const EXPANDABLE_CONTENT_MAX_HEIGHT = 1000;
 
-
 const getIndent = (depth: number) => {
 	return depth * 17;
 };
@@ -70,7 +69,7 @@ const getCodemodNodeRenderer =
 					}}
 				/>
 				{node.kind === 'CODEMOD' && (
-					<div className='w-full'>
+					<div className="w-full">
 						<Codemod
 							hashDigest={hashDigest}
 							label={label}
@@ -95,7 +94,7 @@ const getCodemodNodeRenderer =
 						<div
 							className={styles.expandableContent}
 							style={{
-								marginLeft: `-${getIndent(nodeDatum.depth)}px`, 
+								marginLeft: `-${getIndent(nodeDatum.depth)}px`,
 								maxHeight: argumentsExpanded
 									? `${EXPANDABLE_CONTENT_MAX_HEIGHT}px`
 									: 0,

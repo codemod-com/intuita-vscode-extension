@@ -1,10 +1,7 @@
 import type { Uri } from 'vscode';
 import type { RootState } from '../data';
 import { selectCodemodRunsTree } from './selectCodemodRunsTree';
-import {
-	selectCodemodTree,
-	selectPrivateCodemods,
-} from './selectCodemodTree';
+import { selectCodemodTree, selectPrivateCodemods } from './selectCodemodTree';
 import { selectExplorerTree } from './selectExplorerTree';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
 import { selectSourceControlTabProps } from './selectSourceControlTabProps';

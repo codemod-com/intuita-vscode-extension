@@ -61,7 +61,6 @@ export const App = memo(
 			[props.panelGroupSettings],
 		);
 
-
 		return (
 			<>
 				<main className={cn('w-full', 'h-full', 'overflow-y-auto')}>
@@ -111,7 +110,6 @@ export const App = memo(
 								tree={props.codemodTree}
 								rootPath={props.rootPath}
 								autocompleteItems={props.autocompleteItems}
-								
 							/>
 						</ResizablePanel>
 						<PanelResizeHandle className="resize-handle" />

@@ -212,8 +212,12 @@ const rootSlice = createSlice({
 			state.jobDiffView.visible = true;
 
 			// close previously opened argument menu, when next codemod is focused
-			if (hashDigest !== state.codemodDiscoveryView.codemodArgumentsPopupHashDigest) {
-				state.codemodDiscoveryView.codemodArgumentsPopupHashDigest = null;
+			if (
+				hashDigest !==
+				state.codemodDiscoveryView.codemodArgumentsPopupHashDigest
+			) {
+				state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
+					null;
 			}
 		},
 		flipCodemodHashDigest(
@@ -679,9 +683,10 @@ const rootSlice = createSlice({
 		) {
 			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest =
 				action.payload;
-				
-			if(action.payload !== null) {
-				state.codemodDiscoveryView.focusedCodemodHashDigest = action.payload;
+
+			if (action.payload !== null) {
+				state.codemodDiscoveryView.focusedCodemodHashDigest =
+					action.payload;
 			}
 		},
 		setCodemodArgument(

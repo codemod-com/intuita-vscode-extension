@@ -23,7 +23,6 @@ type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 		argumentsExpanded: boolean;
 	}>;
 
-
 const renderProgressBar = (progress: Progress | null) => {
 	if (progress === null) {
 		return null;
@@ -274,7 +273,6 @@ const Codemod = ({
 				</span>
 				{renderProgressBar(progress)}
 			</div>
-			
 		</div>
 	);
 };

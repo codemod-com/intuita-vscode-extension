@@ -34,10 +34,12 @@ const onFlip = (hashDigest: CodemodNodeHashDigest) => {
 	onFocus(hashDigest);
 };
 
-const TreeView = ({ tree,
+const TreeView = ({
+	tree,
 	autocompleteItems,
 	rootPath,
-	screenWidth, }: Props) => {
+	screenWidth,
+}: Props) => {
 	const progress = useProgressBar();
 
 	return (

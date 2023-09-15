@@ -58,8 +58,6 @@ const CodemodArguments = ({
 			});
 		};
 
-	
-
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),
 		O.fold(
