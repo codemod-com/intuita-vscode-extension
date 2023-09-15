@@ -16,7 +16,6 @@ import TreeView from './TreeView';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import cn from 'classnames';
 import { SectionHeader } from '../shared/SectionHeader';
-import CodemodArgumentsPopup from './CodemodArgumentsPopup';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -61,13 +60,6 @@ export const App = memo(
 			}),
 			[props.panelGroupSettings],
 		);
-
-		const node = props.codemodTree.nodeData.find(
-			(node) =>
-				node.node.hashDigest === props.codemodArgumentsPopup.hashDigest,
-		);
-		const executionPath =
-			node?.node.kind === 'CODEMOD' ? node.node.executionPath : null;
 
 		return (
 			<>
@@ -116,6 +108,8 @@ export const App = memo(
 							<TreeView
 								screenWidth={props.screenWidth}
 								tree={props.codemodTree}
+								rootPath={props.rootPath}
+								autocompleteItems={props.autocompleteItems}
 							/>
 						</ResizablePanel>
 						<PanelResizeHandle className="resize-handle" />
@@ -165,20 +159,12 @@ export const App = memo(
 							<TreeView
 								screenWidth={props.screenWidth}
 								tree={props.privateCodemods}
+								rootPath={props.rootPath}
+								autocompleteItems={props.autocompleteItems}
 							/>
 						</ResizablePanel>
 					</PanelGroup>
 				</main>
-				{props.codemodArgumentsPopup.hashDigest !== null &&
-				executionPath ? (
-					<CodemodArgumentsPopup
-						hashDigest={props.codemodArgumentsPopup.hashDigest}
-						arguments={props.codemodArgumentsPopup.arguments}
-						rootPath={props.rootPath}
-						autocompleteItems={props.autocompleteItems}
-						executionPath={executionPath}
-					/>
-				) : null}
 			</>
 		);
 	},

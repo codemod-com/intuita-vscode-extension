@@ -5,9 +5,8 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-wrap: nowrap;
-	padding-left: 3px;
 	align-items: center;
-	height: 28px;
+	min-height: 28px;
 }
 
 .root:not(.focused):hover {
@@ -70,4 +69,18 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
+}
+
+.codemodRoot {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	width: 100%;
+	padding: 0 3px;
+}
+
+.expandableContent {
+	/* transition: max-height 1s ease-in-out; */
+	/* overflow-y: auto; */
+	background-color: var(--vscode-panel-background);
 }
