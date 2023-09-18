@@ -39,6 +39,16 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "intuita.signIn",
+				"title": "Sign in",
+				"icon": "$(sign-in)"
+			},
+			{
+				"command": "intuita.signedIn",
+				"title": "Signed in",
+				"icon": "$(accounts-view-bar-icon)"
+			},
+			{
 				"command": "intuita.clearOutputFiles",
 				"title": "Intuita: clear output files"
 			},
@@ -149,6 +159,18 @@
 			]
 		},
 		"menus": {
+			"view/title": [
+				{
+					"command": "intuita.signIn",
+					"when": "view == intuitaMainView && !intuita.signedIn",
+					"group": "navigation"
+				},
+				{
+					"command": "intuita.signedIn",
+					"when": "view == intuitaMainView && intuita.signedIn",
+					"group": "navigation"
+				}
+			],
 			"commandPalette": [
 				{
 					"command": "intuita.clearState",

@@ -1,3 +1,4 @@
+import * as t from 'io-ts';
 import areEqual from 'fast-deep-equal';
 import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/lib/function';
@@ -29,9 +30,35 @@ import {
 	CodemodNodeHashDigest,
 	selectCodemodArguments,
 } from '../../selectors/selectCodemodTree';
-import { isNeitherNullNorUndefined } from '../../utilities';
+import { buildTypeCodec, isNeitherNullNorUndefined } from '../../utilities';
 
 const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
+
+export const validateAccessToken = async (
+	accessToken: string,
+): Promise<boolean> => {
+	const result = await axios.post(
+		'https://telemetry.intuita.io/validateAccessToken',
+		{},
+		{
+			headers: {
+				[X_INTUITA_ACCESS_TOKEN]: accessToken,
+			},
+		},
+	);
+	const { data } = result;
+	const validation = buildTypeCodec({
+		success: t.boolean,
+	}).decode(data);
+
+	if (validation._tag === 'Left') {
+		return false;
+	}
+
+	const { success } = validation.right;
+
+	return success;
+};
 
 export const createIssue = async (
 	title: string,
