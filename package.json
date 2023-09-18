@@ -162,12 +162,12 @@
 			"view/title": [
 				{
 					"command": "intuita.signIn",
-					"when": "view == intuitaMainView && !intuita.handleSignedInUser",
+					"when": "view == intuitaMainView && !intuita.signedIn",
 					"group": "navigation"
 				},
 				{
 					"command": "intuita.handleSignedInUser",
-					"when": "view == intuitaMainView && intuita.handleSignedInUser",
+					"when": "view == intuitaMainView && intuita.signedIn",
 					"group": "navigation"
 				}
 			],
