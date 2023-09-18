@@ -212,10 +212,10 @@ const Codemod = ({
 
 	const popoverText =
 		icon === 'private'
-			? 'This is a private codemod.'
+			? 'Private codemod'
 			: icon === 'certified'
-			? 'This is a high-quality, Intuita-verified codemod.'
-			: 'This is a community codemod.';
+			? 'Codemod maintained by Intuita'
+			: 'Codemod maintained by the community';
 
 	return (
 		<>
@@ -240,7 +240,7 @@ const Codemod = ({
 							}}
 						/>
 					) : (
-						<span className={cn('codicon', 'codicon-unverified')} />
+						<span className={cn('codicon', 'codicon-verified')} />
 					)}
 				</IntuitaPopover>
 				<span className={styles.labelContainer}>
