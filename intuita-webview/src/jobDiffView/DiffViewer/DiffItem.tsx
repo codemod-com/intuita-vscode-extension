@@ -71,7 +71,7 @@ export const JobDiffView = memo(
 					});
 				}
 			}, 1000);
-			console.log(newFileContent, originalNewFileContent);
+
 			return (
 				<div
 					ref={ref}
