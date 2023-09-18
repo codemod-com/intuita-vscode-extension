@@ -36,19 +36,26 @@ const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
 export const validateAccessToken = async (
 	accessToken: string,
 ): Promise<boolean> => {
-	const result = await axios.post(
-		'https://telemetry.intuita.io/validateAccessToken',
-		{},
-		{
-			headers: {
-				[X_INTUITA_ACCESS_TOKEN]: accessToken,
+	try {
+		const response = await axios.post(
+			'https://telemetry.intuita.io/validateAccessToken',
+			{},
+			{
+				headers: {
+					[X_INTUITA_ACCESS_TOKEN]: accessToken,
+				},
+				timeout: 5000,
 			},
-			timeout: 5000,
-		},
-	);
-	const { data } = result;
+		);
 
-	return data.success;
+		return response.status === 200;
+	} catch (error) {
+		if (!axios.isAxiosError(error)) {
+			console.error(error);
+		}
+
+		return false;
+	}
 };
 
 export const createIssue = async (
