@@ -19,6 +19,7 @@ import { ErrorWebviewProvider } from './components/webview/ErrorWebviewProvider'
 import {
 	MainViewProvider,
 	createIssue,
+	validateAccessToken,
 } from './components/webview/MainProvider';
 import { buildStore } from './data';
 import { actions } from './data/slice';
@@ -70,6 +71,14 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalState,
 	);
 	const userService = new UserService(globalStateTokenStorage);
+
+	const accessToken = userService.getLinkedToken();
+
+	vscode.commands.executeCommand(
+		'setContext',
+		'intuita.signedIn',
+		accessToken !== null,
+	);
 
 	const configurationContainer = buildContainer(getConfiguration());
 
@@ -161,6 +170,44 @@ export async function activate(context: vscode.ExtensionContext) {
 				vscode.window.showWarningMessage('Invalid URL:' + arg0);
 			}
 		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.signIn', () => {
+			const searchParams = new URLSearchParams();
+
+			searchParams.set(
+				SEARCH_PARAMS_KEYS.COMMAND,
+				'accessTokenRequested',
+			);
+
+			const url = new URL('https://codemod.studio');
+			url.search = searchParams.toString();
+
+			vscode.commands.executeCommand('intuita.redirect', url);
+		}),
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			'intuita.handleSignedInUser',
+			async () => {
+				const decision = await vscode.window.showInformationMessage(
+					'You are already signed-in.',
+					'Do you want to sign out?',
+				);
+
+				if (decision === 'Do you want to sign out?') {
+					userService.unlinkUserIntuitaAccount();
+					vscode.commands.executeCommand(
+						'setContext',
+						'intuita.signedIn',
+						false,
+					);
+					vscode.window.showInformationMessage('You are signed out.');
+				}
+			},
+		),
 	);
 
 	context.subscriptions.push(
@@ -1029,30 +1076,6 @@ export async function activate(context: vscode.ExtensionContext) {
 						),
 					);
 				} else if (accessToken !== null) {
-					vscode.commands.executeCommand(
-						'workbench.view.extension.intuitaViewId',
-					);
-
-					const sourceControlState = state.sourceControl;
-
-					if (
-						sourceControlState.kind !==
-						'ISSUE_CREATION_WAITING_FOR_AUTH'
-					) {
-						return;
-					}
-
-					userService.linkUserIntuitaAccount(accessToken);
-
-					const onSuccess = () => {
-						store.dispatch(
-							actions.setSourceControlTabProps({
-								kind: 'IDLENESS',
-							}),
-						);
-						store.dispatch(actions.setActiveTabId('codemodRuns'));
-					};
-
 					const routeUserToStudioToAuthenticate = async () => {
 						const result = await vscode.window.showErrorMessage(
 							'Invalid access token. Try signing in again.',
@@ -1075,6 +1098,44 @@ export async function activate(context: vscode.ExtensionContext) {
 						url.search = searchParams.toString();
 
 						vscode.commands.executeCommand('intuita.redirect', url);
+					};
+
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+
+					const valid = await validateAccessToken(accessToken);
+					if (valid) {
+						userService.linkUserIntuitaAccount(accessToken);
+						vscode.commands.executeCommand(
+							'setContext',
+							'intuita.signedIn',
+							true,
+						);
+						vscode.window.showInformationMessage(
+							'You are successfully signed in.',
+						);
+					} else {
+						await routeUserToStudioToAuthenticate();
+						return;
+					}
+
+					const sourceControlState = state.sourceControl;
+
+					if (
+						sourceControlState.kind !==
+						'ISSUE_CREATION_WAITING_FOR_AUTH'
+					) {
+						return;
+					}
+
+					const onSuccess = () => {
+						store.dispatch(
+							actions.setSourceControlTabProps({
+								kind: 'IDLENESS',
+							}),
+						);
+						store.dispatch(actions.setActiveTabId('codemodRuns'));
 					};
 
 					const onFail = async () => {

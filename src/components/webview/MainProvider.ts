@@ -33,6 +33,31 @@ import { isNeitherNullNorUndefined } from '../../utilities';
 
 const X_INTUITA_ACCESS_TOKEN = 'X-Intuita-Access-Token'.toLocaleLowerCase();
 
+export const validateAccessToken = async (
+	accessToken: string,
+): Promise<boolean> => {
+	try {
+		const response = await axios.post(
+			'https://telemetry.intuita.io/validateAccessToken',
+			{},
+			{
+				headers: {
+					[X_INTUITA_ACCESS_TOKEN]: accessToken,
+				},
+				timeout: 5000,
+			},
+		);
+
+		return response.status === 200;
+	} catch (error) {
+		if (!axios.isAxiosError(error)) {
+			console.error(error);
+		}
+
+		return false;
+	}
+};
+
 export const createIssue = async (
 	title: string,
 	body: string,
