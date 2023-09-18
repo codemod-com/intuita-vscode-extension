@@ -22,11 +22,11 @@ export const JobDiffView = memo(
 				jobKind,
 				oldFileContent,
 				newFileContent,
+				originalNewFileContent,
 				oldFileTitle,
 				reviewed,
 				title,
 				theme,
-				modifiedByUser,
 				caseHash,
 			}: Props,
 			ref,
@@ -37,9 +37,17 @@ export const JobDiffView = memo(
 				reportIssue(
 					jobHash,
 					oldFileContent ?? '',
-					newFileContent ?? '',
+					originalNewFileContent ?? '',
+					originalNewFileContent !== newFileContent
+						? newFileContent
+						: null,
 				);
-			}, [jobHash, oldFileContent, newFileContent]);
+			}, [
+				jobHash,
+				oldFileContent,
+				newFileContent,
+				originalNewFileContent,
+			]);
 
 			const exportToCS = useCallback(() => {
 				exportToCodemodStudio(
@@ -88,7 +96,9 @@ export const JobDiffView = memo(
 						headerComponent={
 							<Header
 								diff={diff}
-								modifiedByUser={modifiedByUser}
+								modifiedByUser={
+									originalNewFileContent !== newFileContent
+								}
 								oldFileTitle={oldFileTitle ?? ''}
 								jobKind={jobKind}
 								caseHash={caseHash}

@@ -127,6 +127,7 @@ export const persistedStateCodecNew = buildTypeCodec({
 				jobHash: t.string,
 				oldFileContent: t.string,
 				newFileContent: t.string,
+				modifiedFileContent: t.union([t.string, t.null]),
 			}),
 			buildTypeCodec({
 				kind: t.literal('ISSUE_CREATION_WAITING_FOR_AUTH'),

@@ -88,6 +88,7 @@ export type WebviewResponse =
 			faultyJobHash: JobHash;
 			oldFileContent: string;
 			newFileContent: string;
+			modifiedFileContent: string | null;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.exportToCodemodStudio';

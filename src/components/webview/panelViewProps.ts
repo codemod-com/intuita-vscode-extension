@@ -11,10 +11,10 @@ export type PanelViewProps =
 			jobKind: JobKind;
 			oldFileContent: string | null;
 			newFileContent: string | null;
+			originalNewFileContent: string | null;
 			oldFileTitle: string | null;
 			newFileTitle: string | null;
 			reviewed: boolean;
-			modifiedByUser: boolean;
 	  }>
 	| Readonly<{
 			kind: 'CODEMOD';

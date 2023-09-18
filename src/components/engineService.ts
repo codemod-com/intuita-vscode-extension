@@ -29,7 +29,7 @@ import { buildArguments } from './buildArguments';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { parseCodemodConfigSchema } from '../data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from '../data/privateCodemodsEnvelopeSchema';
@@ -701,10 +701,12 @@ export class EngineService {
 					oldUri: null,
 					newUri,
 					newContentUri,
+					originalNewContent: readFileSync(
+						newContentUri.fsPath,
+					).toString('utf8'),
 					codemodName,
 					createdAt: Date.now(),
 					caseHashDigest,
-					modifiedByUser: false,
 				};
 
 				job = {
@@ -720,10 +722,12 @@ export class EngineService {
 					oldUri,
 					newUri: oldUri,
 					newContentUri,
+					originalNewContent: readFileSync(
+						newContentUri.fsPath,
+					).toString('utf8'),
 					codemodName,
 					createdAt: Date.now(),
 					caseHashDigest,
-					modifiedByUser: false,
 				};
 
 				job = {
@@ -738,10 +742,10 @@ export class EngineService {
 					oldUri,
 					newUri: null,
 					newContentUri: null,
+					originalNewContent: null,
 					codemodName,
 					createdAt: Date.now(),
 					caseHashDigest,
-					modifiedByUser: false,
 				};
 
 				job = {
@@ -757,10 +761,12 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
+					originalNewContent: readFileSync(oldUri.fsPath).toString(
+						'utf8',
+					),
 					codemodName,
 					createdAt: Date.now(),
 					caseHashDigest,
-					modifiedByUser: false,
 				};
 
 				job = {
@@ -776,10 +782,12 @@ export class EngineService {
 					oldUri,
 					newUri,
 					newContentUri: oldUri,
+					originalNewContent: readFileSync(oldUri.fsPath).toString(
+						'utf8',
+					),
 					codemodName,
 					createdAt: Date.now(),
 					caseHashDigest,
-					modifiedByUser: false,
 				};
 
 				job = {

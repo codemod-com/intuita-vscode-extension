@@ -69,22 +69,42 @@ export const selectSourceControlTabProps = (
 	const job = state.job.entities[sourceControlState.jobHash] ?? null;
 
 	if (job === null) {
-		throw new Error('Unable to get the job');
+		return null;
 	}
 
-	const { beforeSnippet, afterSnippet } = createBeforeAfterSnippets(
+	const title = `[Codemod:${job.codemodName}] Invalid codemod output`;
+	const { beforeSnippet, afterSnippet: newFileSnippet } =
+		createBeforeAfterSnippets(
+			sourceControlState.oldFileContent,
+			sourceControlState.newFileContent,
+		);
+
+	if (sourceControlState.modifiedFileContent === null) {
+		const body = buildIssueTemplateInHTML(
+			job.codemodName,
+			beforeSnippet,
+			newFileSnippet,
+			null,
+		);
+
+		return {
+			title,
+			body,
+			loading: false,
+		};
+	}
+
+	const { afterSnippet: modifiedFileSnippet } = createBeforeAfterSnippets(
 		sourceControlState.oldFileContent,
-		sourceControlState.newFileContent,
+		sourceControlState.modifiedFileContent,
 	);
 
 	const body = buildIssueTemplateInHTML(
 		job.codemodName,
 		beforeSnippet,
-		afterSnippet,
-		null,
+		newFileSnippet,
+		modifiedFileSnippet,
 	);
-
-	const title = `[Codemod:${job.codemodName}] Invalid codemod output`;
 
 	return {
 		title,

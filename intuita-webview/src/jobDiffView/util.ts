@@ -5,12 +5,14 @@ export const reportIssue = (
 	faultyJobHash: JobHash,
 	oldFileContent: string,
 	newFileContent: string,
+	modifiedFileContent: string | null,
 ) => {
 	vscode.postMessage({
 		kind: 'webview.global.openIssueCreation',
 		faultyJobHash,
 		oldFileContent,
 		newFileContent,
+		modifiedFileContent,
 	});
 };
 

@@ -1,7 +1,6 @@
 import { Uri } from 'vscode';
 import * as t from 'io-ts';
 import { buildTypeCodec } from '../utilities';
-import { withFallback } from 'io-ts-types';
 import { CaseHash, caseHashCodec } from '../cases/types';
 
 interface JobHashBrand {
@@ -32,10 +31,10 @@ export type Job = Readonly<{
 	oldUri: Uri | null;
 	newUri: Uri | null;
 	newContentUri: Uri | null;
+	originalNewContent: string | null;
 	codemodName: string;
 	createdAt: number;
 	caseHashDigest: CaseHash;
-	modifiedByUser: boolean;
 }>;
 
 export const persistedJobCodec = buildTypeCodec({
@@ -51,10 +50,10 @@ export const persistedJobCodec = buildTypeCodec({
 	oldUri: t.union([t.string, t.null]),
 	newUri: t.union([t.string, t.null]),
 	newContentUri: t.union([t.string, t.null]),
+	originalNewContent: t.union([t.string, t.null]),
 	codemodName: t.string,
 	caseHashDigest: caseHashCodec,
 	createdAt: t.number,
-	modifiedByUser: withFallback(t.boolean, false),
 });
 
 export type PersistedJob = t.TypeOf<typeof persistedJobCodec>;
@@ -65,7 +64,7 @@ export const mapJobToPersistedJob = (job: Job): PersistedJob => {
 		oldUri: job.oldUri?.toString() ?? null,
 		newUri: job.newUri?.toString() ?? null,
 		newContentUri: job.newContentUri?.toString() ?? null,
-		modifiedByUser: job.modifiedByUser,
+		originalNewContent: job.originalNewContent,
 	};
 };
 
@@ -77,6 +76,6 @@ export const mapPersistedJobToJob = (persistedJob: PersistedJob): Job => {
 		newContentUri: persistedJob.newContentUri
 			? Uri.parse(persistedJob.newContentUri)
 			: null,
-		modifiedByUser: persistedJob.modifiedByUser,
+		originalNewContent: persistedJob.originalNewContent,
 	};
 };
