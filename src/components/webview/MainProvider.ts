@@ -46,7 +46,11 @@ export const validateAccessToken = async (
 			},
 		},
 	);
-	const { data } = result;
+	const { data, status } = result;
+	if (status !== 200) {
+		return false;
+	}
+
 	const validation = buildTypeCodec({
 		success: t.boolean,
 	}).decode(data);
