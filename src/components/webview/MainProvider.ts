@@ -44,12 +44,10 @@ export const validateAccessToken = async (
 			headers: {
 				[X_INTUITA_ACCESS_TOKEN]: accessToken,
 			},
+			timeout: 5000,
 		},
 	);
-	const { data, status } = result;
-	if (status !== 200) {
-		return false;
-	}
+	const { data } = result;
 
 	const validation = buildTypeCodec({
 		success: t.boolean,
