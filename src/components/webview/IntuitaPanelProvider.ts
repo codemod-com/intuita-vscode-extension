@@ -225,11 +225,11 @@ const selectPanelViewProps = (
 		caseHash: selectedCaseHash,
 		jobHash: job.hash,
 		jobKind: job.kind,
-		modifiedByUser: job.modifiedByUser,
 		oldFileTitle,
 		newFileTitle,
 		oldFileContent,
 		newFileContent,
+		originalNewFileContent: job.originalNewContent,
 		reviewed,
 	};
 };
@@ -347,6 +347,8 @@ export class IntuitaPanelProvider {
 								jobHash: message.faultyJobHash,
 								oldFileContent: message.oldFileContent,
 								newFileContent: message.newFileContent,
+								modifiedFileContent:
+									message.modifiedFileContent,
 							}),
 						);
 					}

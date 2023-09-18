@@ -129,8 +129,6 @@ export class JobManager {
 			content: newJobContent,
 		});
 
-		this.__store.dispatch(
-			actions.upsertJobs([{ ...job, modifiedByUser: true }]),
-		);
+		this.__store.dispatch(actions.upsertJobs([{ ...job }]));
 	}
 }
