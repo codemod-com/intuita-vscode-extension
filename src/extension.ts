@@ -76,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.executeCommand(
 		'setContext',
-		'intuita.signedIn',
+		'intuita.handleSignedInUser',
 		accessToken !== null,
 	);
 
@@ -189,22 +189,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.signedIn', async () => {
-			const decision = await vscode.window.showInformationMessage(
-				'You are already signed-in.',
-				'Do you want to sign out?',
-			);
-
-			if (decision === 'Do you want to sign out?') {
-				userService.unlinkUserIntuitaAccount();
-				vscode.commands.executeCommand(
-					'setContext',
-					'intuita.signedIn',
-					false,
+		vscode.commands.registerCommand(
+			'intuita.handleSignedInUser',
+			async () => {
+				const decision = await vscode.window.showInformationMessage(
+					'You are already signed-in.',
+					'Do you want to sign out?',
 				);
-				vscode.window.showInformationMessage('You are signed out.');
-			}
-		}),
+
+				if (decision === 'Do you want to sign out?') {
+					userService.unlinkUserIntuitaAccount();
+					vscode.commands.executeCommand(
+						'setContext',
+						'intuita.handleSignedInUser',
+						false,
+					);
+					vscode.window.showInformationMessage('You are signed out.');
+				}
+			},
+		),
 	);
 
 	context.subscriptions.push(
@@ -1106,7 +1109,7 @@ export async function activate(context: vscode.ExtensionContext) {
 						userService.linkUserIntuitaAccount(accessToken);
 						vscode.commands.executeCommand(
 							'setContext',
-							'intuita.signedIn',
+							'intuita.handleSignedInUser',
 							true,
 						);
 					} else {

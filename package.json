@@ -44,7 +44,7 @@
 				"icon": "$(sign-in)"
 			},
 			{
-				"command": "intuita.signedIn",
+				"command": "intuita.handleSignedInUser",
 				"title": "Signed in",
 				"icon": "$(accounts-view-bar-icon)"
 			},
@@ -162,12 +162,12 @@
 			"view/title": [
 				{
 					"command": "intuita.signIn",
-					"when": "view == intuitaMainView && !intuita.signedIn",
+					"when": "view == intuitaMainView && !intuita.handleSignedInUser",
 					"group": "navigation"
 				},
 				{
-					"command": "intuita.signedIn",
-					"when": "view == intuitaMainView && intuita.signedIn",
+					"command": "intuita.handleSignedInUser",
+					"when": "view == intuitaMainView && intuita.handleSignedInUser",
 					"group": "navigation"
 				}
 			],
