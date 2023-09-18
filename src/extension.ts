@@ -1112,6 +1112,9 @@ export async function activate(context: vscode.ExtensionContext) {
 							'intuita.signedIn',
 							true,
 						);
+						vscode.window.showInformationMessage(
+							'You are successfully signed in.',
+						);
 					} else {
 						await routeUserToStudioToAuthenticate();
 						return;
