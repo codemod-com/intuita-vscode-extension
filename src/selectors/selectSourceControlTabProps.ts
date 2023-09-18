@@ -44,10 +44,8 @@ type SourceControlTabProps = Readonly<{
 export const selectSourceControlTabProps = (
 	state: RootState,
 ): SourceControlTabProps | null => {
-	if (!state.jobDiffView.visible) {
-		return null;
-	}
 	const sourceControlState = state.sourceControl;
+
 	if (sourceControlState.kind === 'IDLENESS') {
 		return null;
 	}
