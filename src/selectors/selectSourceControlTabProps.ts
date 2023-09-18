@@ -72,7 +72,6 @@ export const selectSourceControlTabProps = (
 
 	if (job === null) {
 		return null;
-		throw new Error('Unable to get the job');
 	}
 
 	const title = `[Codemod:${job.codemodName}] Invalid codemod output`;
