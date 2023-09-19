@@ -125,6 +125,18 @@ function App() {
 							{...mainWebviewViewProps}
 						/>
 					) : null}
+					<ToastContainer
+						containerId="codemodListToastContainer"
+						pauseOnHover={false}
+						pauseOnFocusLoss={false}
+						autoClose={false}
+						hideProgressBar={false}
+						position="bottom-right"
+						closeOnClick={false}
+						closeButton={false}
+						theme={theme === 'vs-light' ? 'light' : 'dark'}
+						draggable={false}
+					/>
 				</VSCodePanelView>
 				<VSCodePanelView
 					className="vscode-panel-view h-full w-full"
@@ -154,16 +166,6 @@ function App() {
 					) : null}
 				</VSCodePanelView>
 			</VSCodePanels>
-			<ToastContainer
-				pauseOnHover={false}
-				pauseOnFocusLoss={false}
-				autoClose={false}
-				hideProgressBar={false}
-				position="bottom-right"
-				closeOnClick={false}
-				theme={theme === 'vs-light' ? 'light' : 'dark'}
-				draggable={false}
-			/>
 		</main>
 	);
 }
