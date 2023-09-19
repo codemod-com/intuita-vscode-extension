@@ -4,7 +4,6 @@ Upgrade your projects with the help of codemods created by experts in the commun
 
 > 🎁 What frameworks should we support next? [Let us know →](https://feedback.intuita.io/codemod-requests)
 
-
 ## 1. Discover
 
 - Intuita is **a one-stop shop for discovering & sharing quality-governed codemods.** You don't need to install and run many codemod engines for each dependency. Simply search for your framework codemods and click run. With codemod deep links, you can reach & run your target codemod with just one click.
