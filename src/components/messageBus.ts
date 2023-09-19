@@ -152,7 +152,8 @@ export type Message =
 			kind: MessageKind.showProgress;
 			codemodHash: CodemodHash | null;
 			progressKind: 'finite' | 'infinite';
-			value: number;
+			totalFileNumber: number;
+			processedFileNumber: number;
 	  }>
 	| Readonly<{
 			kind: MessageKind.mainWebviewViewVisibilityChange;

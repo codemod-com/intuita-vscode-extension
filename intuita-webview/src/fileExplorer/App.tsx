@@ -14,6 +14,7 @@ import {
 import { CaseHash } from '../../../src/cases/types';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import LoadingProgress from '../jobDiffView/Components/LoadingProgress';
+import { useProgressBar } from '../codemodList/useProgressBar';
 
 const setSearchPhrase = (caseHashDigest: CaseHash, searchPhrase: string) => {
 	vscode.postMessage({
@@ -53,7 +54,7 @@ export const App = (
 		},
 ) => {
 	const { changeExplorerTree, codemodExecutionInProgress } = props;
-
+	const progress = useProgressBar();
 	const caseHash = changeExplorerTree?.caseHash ?? null;
 
 	const handleFocus = useCallback(
@@ -81,7 +82,13 @@ export const App = (
 
 	if ((props.changeExplorerTree?.caseHash ?? null) === null) {
 		return codemodExecutionInProgress ? (
-			<LoadingProgress description="Preparing a tree view..." />
+			<LoadingProgress
+				description={
+					progress === null
+						? 'Processing files...'
+						: `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber}`
+				}
+			/>
 		) : (
 			<p className={styles.welcomeMessage}>
 				Choose a Codemod from Codemod Runs to explore its changes!

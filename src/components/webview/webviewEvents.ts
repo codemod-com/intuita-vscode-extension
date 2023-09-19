@@ -43,7 +43,8 @@ export type WebviewMessage =
 			kind: 'webview.global.setCodemodExecutionProgress';
 			codemodHash: CodemodHash;
 			progressKind: 'finite' | 'infinite';
-			value: number;
+			totalFileNumber: number;
+			processedFileNumber: number;
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';

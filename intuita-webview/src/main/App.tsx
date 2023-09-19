@@ -14,6 +14,9 @@ import { vscode } from '../shared/utilities/vscode';
 import { ActiveTabId } from '../../../src/persistedState/codecs';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import CreateIssue from '../CreateIssue';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from '../shared/Snippet/useTheme';
 
 declare global {
 	interface Window {
@@ -23,6 +26,7 @@ declare global {
 
 function App() {
 	const ref = useRef(null);
+	const theme = useTheme();
 	const [screenWidth, setScreenWidth] = useState<number | null>(null);
 	const [mainWebviewViewProps, setMainWebviewViewProps] = useState(
 		window.mainWebviewViewProps,
@@ -121,6 +125,18 @@ function App() {
 							{...mainWebviewViewProps}
 						/>
 					) : null}
+					<ToastContainer
+						containerId="codemodListToastContainer"
+						pauseOnHover={false}
+						pauseOnFocusLoss={false}
+						autoClose={false}
+						hideProgressBar={false}
+						position="bottom-right"
+						closeOnClick={false}
+						closeButton={false}
+						theme={theme === 'vs-light' ? 'light' : 'dark'}
+						draggable={false}
+					/>
 				</VSCodePanelView>
 				<VSCodePanelView
 					className="vscode-panel-view h-full w-full"
