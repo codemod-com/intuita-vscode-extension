@@ -71,6 +71,8 @@
 		"tiptap",
 		"lowlight",
 		"lowlights",
-		"unsanitize"
+		"unsanitize",
+		"toastify",
+		"Toastify"
 	]
 }
