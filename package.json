@@ -39,6 +39,11 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "intuita.globalConfigSettings",
+				"title": "Configure global settings",
+				"icon": "$(settings-gear)"
+			},
+			{
 				"command": "intuita.signIn",
 				"title": "Sign in",
 				"icon": "$(sign-in)"
@@ -160,6 +165,11 @@
 		},
 		"menus": {
 			"view/title": [
+				{
+					"command": "intuita.globalConfigSettings",
+					"when": "view == intuitaMainView",
+					"group": "navigation"
+				},
 				{
 					"command": "intuita.signIn",
 					"when": "view == intuitaMainView && !intuita.signedIn",
