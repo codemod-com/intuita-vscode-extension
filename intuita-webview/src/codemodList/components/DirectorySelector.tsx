@@ -36,7 +36,7 @@ export const DirectorySelector = ({
 	const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
 	const [showOptions, setShowOptions] = useState(false);
 
-	console.log(defaultValue, '?')
+	console.log(defaultValue, '?');
 	useEffect(() => {
 		setValue(defaultValue);
 	}, [defaultValue]);
@@ -123,7 +123,7 @@ export const DirectorySelector = ({
 								id={`option_${i}`}
 								className={styles.option}
 								onClick={() => {
-									console.log(item)
+									console.log(item);
 									setShowOptions(false);
 									setValue(item);
 									updatePath(item, codemodHash);

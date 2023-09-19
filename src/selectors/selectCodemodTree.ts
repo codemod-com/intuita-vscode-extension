@@ -166,7 +166,7 @@ export const selectCodemodTree = (
 	codemods.sort((a, b) => a.name.localeCompare(b.name));
 	const { executionPaths, searchPhrase } = state.codemodDiscoveryView;
 
-	console.log(executionPaths, '?')
+	console.log(executionPaths, '?');
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
 

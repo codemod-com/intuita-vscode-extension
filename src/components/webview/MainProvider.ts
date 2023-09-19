@@ -145,9 +145,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		private readonly __rootUri: Uri | null,
 		private readonly __store: Store,
 	) {
-
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
-
 
 		this.__messageBus.subscribe(MessageKind.showProgress, (message) => {
 			if (message.codemodHash === null) {
@@ -214,7 +212,6 @@ export class MainViewProvider implements WebviewViewProvider {
 			});
 		});
 
-
 		this.__getDirectoryPaths();
 	}
 
@@ -251,12 +248,14 @@ export class MainViewProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__directoryPaths = ((await glob(`${this.__rootUri?.fsPath}/**`, {
-			fs: workspace.fs,
-			nodir: false,
-			// ignore node_modules and files, match only directories
-			ignore: ['**/node_modules/**', '**/*.*']
-		})) ?? []).map(p => relative(basePath, p));
+		this.__directoryPaths = (
+			(await glob(`${this.__rootUri?.fsPath}/**`, {
+				fs: workspace.fs,
+				nodir: false,
+				// ignore node_modules and files, match only directories
+				ignore: ['**/node_modules/**', '**/*.*'],
+			})) ?? []
+		).map((p) => relative(basePath, p));
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -461,7 +460,7 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
 			await this.updateExecutionPath(message.value);
-			
+
 			this.__postMessage({
 				kind: 'webview.main.setProps',
 				props: this.__buildProps(),
@@ -611,9 +610,12 @@ export class MainViewProvider implements WebviewViewProvider {
 		try {
 			await workspace.fs.stat(Uri.file(newPathAbsolute));
 			this.__store.dispatch(
-				actions.setExecutionPath({ codemodHash, path: newPathAbsolute }),
+				actions.setExecutionPath({
+					codemodHash,
+					path: newPathAbsolute,
+				}),
 			);
-			
+
 			if (newPathAbsolute !== oldExecutionPath && !fromVSCodeCommand) {
 				window.showInformationMessage(
 					'Successfully updated the execution path.',

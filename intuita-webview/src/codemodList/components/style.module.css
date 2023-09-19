@@ -2,7 +2,6 @@
 	flex-grow: 1;
 }
 
-
 .textField::part(control) {
 	font-size: 12px;
 	opacity: 0.75;
@@ -10,9 +9,9 @@
 
 .option {
 	min-height: 20px;
-  width: 100%;
-  display: inline-block;
-  line-height: 20px;
+	width: 100%;
+	display: inline-block;
+	line-height: 20px;
 }
 
 .autocompleteItems {

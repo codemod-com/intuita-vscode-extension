@@ -54,7 +54,6 @@ const CodemodArguments = ({
 		),
 	);
 
-
 	const targetPath =
 		rootPath !== null ? buildTargetPath(path, rootPath) : '/';
 
