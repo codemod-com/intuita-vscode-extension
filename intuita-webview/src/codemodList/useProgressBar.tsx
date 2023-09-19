@@ -4,7 +4,8 @@ import { CodemodHash, WebviewMessage } from '../shared/types';
 export type Progress = Readonly<{
 	codemodHash: CodemodHash;
 	progressKind: 'finite' | 'infinite';
-	value: number;
+	totalFileNumber: number;
+	processedFileNumber: number;
 }>;
 
 export const useProgressBar = (): Progress | null => {
@@ -19,7 +20,8 @@ export const useProgressBar = (): Progress | null => {
 				setCodemodExecutionProgress({
 					codemodHash: message.codemodHash,
 					progressKind: message.progressKind,
-					value: message.value,
+					totalFileNumber: message.totalFileNumber,
+					processedFileNumber: message.processedFileNumber,
 				});
 			}
 

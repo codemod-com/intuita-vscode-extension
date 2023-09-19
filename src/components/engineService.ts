@@ -551,7 +551,8 @@ export class EngineService {
 			kind: MessageKind.showProgress,
 			codemodHash,
 			progressKind: 'infinite',
-			value: 0,
+			totalFileNumber: 0,
+			processedFileNumber: 0,
 		});
 
 		const storageUri = Uri.joinPath(
@@ -667,20 +668,12 @@ export class EngineService {
 			}
 
 			if (message.kind === 'progress') {
-				const value =
-					message.totalFileNumber > 0
-						? Math.round(
-								(message.processedFileNumber /
-									message.totalFileNumber) *
-									100,
-						  )
-						: 0;
-
 				this.#messageBus.publish({
 					kind: MessageKind.showProgress,
 					codemodHash: this.#execution.codemodHash ?? null,
 					progressKind: 'finite',
-					value,
+					totalFileNumber: message.totalFileNumber,
+					processedFileNumber: message.processedFileNumber,
 				});
 				this.#execution.totalFileCount = message.totalFileNumber;
 				return;

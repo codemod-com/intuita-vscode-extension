@@ -178,7 +178,8 @@ export class MainViewProvider implements WebviewViewProvider {
 				kind: 'webview.global.setCodemodExecutionProgress',
 				codemodHash: message.codemodHash,
 				progressKind: message.progressKind,
-				value: message.value,
+				totalFileNumber: message.totalFileNumber,
+				processedFileNumber: message.processedFileNumber,
 			});
 		});
 

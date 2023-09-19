@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
@@ -6,10 +6,11 @@ import { vscode } from '../../shared/utilities/vscode';
 import areEqual from 'fast-deep-equal';
 import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
 import { CodemodHash } from '../../shared/types';
-import { InfiniteProgress } from '../TreeView/InfiniteProgress';
-import { ProgressBar } from '../TreeView/ProgressBar';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
+import { ToastContainer, toast } from 'react-toastify';
+import { useTheme } from '../../shared/Snippet/useTheme';
+import 'react-toastify/dist/ReactToastify.css';
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
 
@@ -22,18 +23,6 @@ type Props = Omit<CodemodItemNode, 'name' | 'kind'> &
 		autocompleteItems: ReadonlyArray<string>;
 		argumentsExpanded: boolean;
 	}>;
-
-const renderProgressBar = (progress: Progress | null) => {
-	if (progress === null) {
-		return null;
-	}
-
-	if (progress.progressKind === 'infinite') {
-		return <InfiniteProgress />;
-	}
-
-	return <ProgressBar percent={progress.value} />;
-};
 
 const renderActionButtons = (
 	hashDigest: CodemodItemNode['hashDigest'],
@@ -207,7 +196,7 @@ const Codemod = ({
 	argumentsExpanded,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
-
+	const theme = useTheme();
 	const areButtonsVisible = focused || hovering;
 
 	const popoverText =
@@ -216,6 +205,40 @@ const Codemod = ({
 			: icon === 'certified'
 			? 'Codemod maintained by Intuita'
 			: 'Codemod maintained by the community';
+
+	useEffect(() => {
+		if (progress === null) {
+			return;
+		}
+
+		if (
+			progress.totalFileNumber > 0 &&
+			progress.processedFileNumber === progress.totalFileNumber
+		) {
+			toast.done(progress.codemodHash);
+		}
+
+		if (progress.progressKind === 'infinite') {
+			return;
+		}
+
+		const value =
+			progress.totalFileNumber > 0
+				? progress.processedFileNumber / progress.totalFileNumber
+				: 0;
+
+		if (toast.isActive(progress.codemodHash)) {
+			toast.update(progress.codemodHash, {
+				progress: value,
+				render: `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`,
+			});
+		} else {
+			toast(`Processed 0 / ${progress.totalFileNumber} files`, {
+				toastId: progress.codemodHash,
+				progress: 0,
+			});
+		}
+	}, [progress, theme]);
 
 	return (
 		<>
@@ -271,7 +294,16 @@ const Codemod = ({
 					</div>
 				</span>
 			</div>
-			{renderProgressBar(progress)}
+			<ToastContainer
+				pauseOnHover={false}
+				pauseOnFocusLoss={false}
+				autoClose={false}
+				hideProgressBar={false}
+				position="bottom-right"
+				closeOnClick={false}
+				theme={theme === 'vs-light' ? 'light' : 'dark'}
+				draggable={false}
+			/>
 		</>
 	);
 };
