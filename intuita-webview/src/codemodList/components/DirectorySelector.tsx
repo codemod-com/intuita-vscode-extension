@@ -1,11 +1,13 @@
 import React, {
-	KeyboardEvent,
-	ReactNode,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react';
-import { VSCodeTextField } from '@vscode/webview-ui-toolkit/react';
+import {
+	VSCodeOption,
+	VSCodeTextField,
+} from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
 import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
@@ -13,9 +15,6 @@ import cn from 'classnames';
 
 const updatePath = (
 	value: string,
-	errorMessage: string | null,
-	warningMessage: string | null,
-	revertToPrevExecutionIfInvalid: boolean,
 	rootPath: string,
 	codemodHash: CodemodHash,
 ) => {
@@ -25,29 +24,27 @@ const updatePath = (
 		value: {
 			newPath: value.replace(repoName, rootPath),
 			codemodHash,
-			errorMessage,
-			warningMessage,
-			revertToPrevExecutionIfInvalid,
+			errorMessage: '',
+			warningMessage: '',
+			revertToPrevExecutionIfInvalid: false,
 		},
 	});
 };
 
 type Props = {
 	defaultValue: string;
-	displayValue: string | ReactNode;
 	rootPath: string;
 	codemodHash: CodemodHash;
 	error: { message: string } | null;
 	autocompleteItems: ReadonlyArray<string>;
-
-	onChange(value: string): void;
+	onQueryChanged(value: string): void;
 };
 
 export const DirectorySelector = ({
 	defaultValue,
 	rootPath,
 	codemodHash,
-	onChange,
+	onQueryChanged,
 	error,
 	autocompleteItems,
 }: Props) => {
@@ -56,45 +53,17 @@ export const DirectorySelector = ({
 			.split('/')
 			.filter((part) => part.length !== 0)
 			.slice(-1)[0] ?? '';
+
 	const [value, setValue] = useState(defaultValue);
 	const [showErrorStyle, setShowErrorStyle] = useState(false);
 	const [ignoreEnterKeyUp, setIgnoreEnterKeyUp] = useState(false);
 	const ignoreBlurEvent = useRef(false);
-	const [autocompleteIndex, setAutocompleteIndex] = useState(0);
-	const hintRef = useRef<HTMLInputElement>(null);
+	const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
+	const [showOptions, setShowOptions] = useState(false);
 
-	useEffect(() => {
-		const inputElement = document
-			.querySelector('vscode-text-field#directory-selector')
-			?.shadowRoot?.querySelector('input');
-
-		if (!inputElement) {
-			return;
-		}
-
-		const onInputScroll = (e: Event) => {
-			if (hintRef.current) {
-				// adjust hint position when scrolling the main input
-				// @ts-ignore
-				hintRef.current.scrollLeft = e.target?.scrollLeft;
-			}
-		};
-
-		inputElement.addEventListener('scroll', onInputScroll);
-
-		return () => {
-			inputElement.removeEventListener('scroll', onInputScroll);
-		};
-	}, []);
-
-	useEffect(() => {
-		setAutocompleteIndex(0);
-	}, [autocompleteItems]);
-
-	const autocompleteContent = autocompleteItems[autocompleteIndex]?.replace(
-		rootPath,
-		repoName,
-	);
+	const autocompleteOptions = autocompleteItems
+		.map((item) => item.replace(rootPath, repoName))
+		.slice(0, 10);
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		ignoreBlurEvent.current = false;
@@ -105,11 +74,11 @@ export const DirectorySelector = ({
 			? `${repoName}/`
 			: newValue;
 		setValue(validString);
-		onChange(validString.replace(repoName, rootPath));
+		onQueryChanged(validString.replace(repoName, rootPath));
 	};
 
 	const handleCancel = () => {
-		updatePath(defaultValue, null, null, false, rootPath, codemodHash);
+		updatePath(defaultValue, rootPath, codemodHash);
 		setValue(defaultValue);
 
 		if (value !== defaultValue) {
@@ -120,19 +89,8 @@ export const DirectorySelector = ({
 		}
 	};
 
-	const handleBlur = () => {
-		if (ignoreBlurEvent.current) {
-			return;
-		}
-		updatePath(
-			value,
-			null,
-			value === defaultValue ? null : 'Change Reverted.',
-			true,
-			rootPath,
-			codemodHash,
-		);
-		setValue(defaultValue);
+	const handleFocus = () => {
+		setShowOptions(true);
 	};
 
 	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -148,14 +106,7 @@ export const DirectorySelector = ({
 				return;
 			}
 
-			updatePath(
-				value,
-				'The specified execution path does not exist.',
-				null,
-				false,
-				rootPath,
-				codemodHash,
-			);
+			updatePath(value, rootPath, codemodHash);
 		}
 		setIgnoreEnterKeyUp(false);
 	};
@@ -165,33 +116,42 @@ export const DirectorySelector = ({
 		setShowErrorStyle(error !== null);
 	}, [error]);
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-		if (e.key !== 'Tab') {
-			return;
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+		const maxLength = autocompleteOptions.length;
+
+		if(e.key === 'Esc') {
+			setFocusedOptionIdx(0);
+			setShowOptions(false);	
+		}
+		
+		if (e.key === 'Enter') {
+			const nextValue = autocompleteItems[focusedOptionIdx] ?? '';
+			updatePath(nextValue, rootPath, codemodHash);
 		}
 
-		let nextAutocompleteIndex = autocompleteIndex;
-		const completed =
-			autocompleteItems[nextAutocompleteIndex]?.replace(
-				rootPath,
-				repoName,
-			) === value;
-
-		if (completed) {
-			nextAutocompleteIndex =
-				(autocompleteIndex + 1) % autocompleteItems.length;
+		if (e.key === 'ArrowUp') {
+			setFocusedOptionIdx((focusedOptionIdx - 1 + maxLength) % maxLength);
+			e.stopPropagation();
+			e.preventDefault();
 		}
 
-		setValue(
-			(prevValue) =>
-				autocompleteItems[nextAutocompleteIndex]?.replace(
-					rootPath,
-					repoName,
-				) ?? prevValue,
-		);
-		setAutocompleteIndex(nextAutocompleteIndex);
-		e.preventDefault();
+		if (e.key === 'ArrowDown') {
+			setFocusedOptionIdx((focusedOptionIdx + 1) % maxLength);
+			e.stopPropagation();
+			e.preventDefault();
+		}
+
+		if (e.key === 'Tab') {
+			setFocusedOptionIdx((focusedOptionIdx + 1) % maxLength);
+			e.stopPropagation();
+			e.preventDefault();
+		}
 	};
+
+	console.log(focusedOptionIdx, '?');
+	useLayoutEffect(() => {
+		document.getElementById(`option_${focusedOptionIdx}`)?.focus();
+	}, [focusedOptionIdx]);
 
 	return (
 		<div
@@ -199,17 +159,13 @@ export const DirectorySelector = ({
 			style={{
 				width: '100%',
 			}}
+			onKeyDown={handleKeyDown}
+			tabIndex={0}
 		>
-			<div className="flex flex-col w-full overflow-hidden relative">
-				{autocompleteContent ? (
-					<input
-						ref={hintRef}
-						className={styles.autocomplete}
-						aria-hidden={true}
-						readOnly
-						value={autocompleteContent}
-					/>
-				) : null}
+			<div
+				className="flex flex-col w-full overflow-hidden relative"
+				tabIndex={0}
+			>
 				<VSCodeTextField
 					id="directory-selector"
 					className={cn(
@@ -219,15 +175,25 @@ export const DirectorySelector = ({
 					value={value}
 					onInput={handleChange}
 					onKeyUp={handleKeyUp}
-					onKeyDown={handleKeyDown}
-					autoFocus
-					onBlur={handleBlur}
-					onClick={(e) => {
-						e.stopPropagation();
-					}}
+					onFocus={handleFocus}
 				>
 					Target path
 				</VSCodeTextField>
+				<div className={styles.autocompleteItems}>
+					{showOptions &&
+						autocompleteOptions.map((item, i) => (
+							<VSCodeOption
+								tabIndex={0}
+								id={`option_${i}`}
+								className={styles.option}
+								onClick={() => {
+									updatePath(item, rootPath, codemodHash);
+								}}
+							>
+								{item}
+							</VSCodeOption>
+						))}
+				</div>
 			</div>
 		</div>
 	);

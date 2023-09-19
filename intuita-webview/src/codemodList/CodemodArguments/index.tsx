@@ -89,11 +89,10 @@ const CodemodArguments = ({
 			<form className={styles.form}>
 				<DirectorySelector
 					defaultValue={targetPath}
-					displayValue={'path'}
 					rootPath={rootPath ?? ''}
 					error={error === null ? null : { message: error }}
 					codemodHash={hashDigest as unknown as CodemodHash}
-					onChange={handleCodemodPathChange}
+					onQueryChanged={handleCodemodPathChange}
 					autocompleteItems={autocompleteItems}
 				/>
 				{args.map((props) => (

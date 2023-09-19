@@ -4,6 +4,8 @@ import { pipe } from 'fp-ts/lib/function';
 import * as TE from 'fp-ts/TaskEither';
 import { readdir } from 'node:fs/promises';
 import { join, parse } from 'node:path';
+import { glob } from 'glob';
+
 import {
 	WebviewViewProvider,
 	WebviewView,
@@ -158,6 +160,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	private __webviewResolver: WebviewResolver;
 	private __autocompleteItems: string[] = [];
 	private __executionQueue: ReadonlyArray<CodemodHash> = [];
+	private __directoryPaths: ReadonlyArray<string> = [];
 
 	constructor(
 		context: ExtensionContext,
@@ -167,7 +170,9 @@ export class MainViewProvider implements WebviewViewProvider {
 		private readonly __rootUri: Uri | null,
 		private readonly __store: Store,
 	) {
+
 		this.__webviewResolver = new WebviewResolver(context.extensionUri);
+
 
 		this.__messageBus.subscribe(MessageKind.showProgress, (message) => {
 			if (message.codemodHash === null) {
@@ -233,6 +238,9 @@ export class MainViewProvider implements WebviewViewProvider {
 				props: nextProps,
 			});
 		});
+		
+		
+		this.__getDirectoryPaths();
 	}
 
 	public isVisible(): boolean {
@@ -259,6 +267,11 @@ export class MainViewProvider implements WebviewViewProvider {
 				this.__resolveWebview(this.__view);
 			}
 		});
+	}
+
+	private async __getDirectoryPaths() {
+		console.log(this.__rootUri?.fsPath, '?')
+		this.__directoryPaths = (await glob(`${this.__rootUri?.fsPath}/*`)) ?? [];
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -473,6 +486,8 @@ export class MainViewProvider implements WebviewViewProvider {
 			const completionItemsOrError = await getCompletionItems(
 				message.codemodPath,
 			)();
+			
+			console.log(this.__directoryPaths, 'test')
 
 			pipe(
 				completionItemsOrError,
