@@ -39,6 +39,11 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "intuita.showIntuitaSettings",
+				"title": "Configure Intuita settings",
+				"icon": "$(settings-gear)"
+			},
+			{
 				"command": "intuita.signIn",
 				"title": "Sign in",
 				"icon": "$(sign-in)"
@@ -160,6 +165,11 @@
 		},
 		"menus": {
 			"view/title": [
+				{
+					"command": "intuita.showIntuitaSettings",
+					"when": "view == intuitaMainView",
+					"group": "navigation"
+				},
 				{
 					"command": "intuita.signIn",
 					"when": "view == intuitaMainView && !intuita.signedIn",
