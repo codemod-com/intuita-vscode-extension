@@ -1,5 +1,5 @@
 import { CodemodEntry, PrivateCodemodEntry } from '../codemods/types';
-import { buildHash, capitalize, isNeitherNullNorUndefined } from '../utilities';
+import { buildHash, capitalize } from '../utilities';
 import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
@@ -118,14 +118,23 @@ export const selectPrivateCodemods = (
 		const executionPath =
 			executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
 
+		const args = selectCodemodArguments(
+			state,
+			codemod.hashDigest as CodemodNodeHashDigest,
+		);
+
 		const node = buildCodemodNode(
 			codemod,
 			name,
 			executionPath,
 			executionQueue.includes(codemod.hashDigest as CodemodHash),
 			true,
-			[],
+			args,
 		);
+
+		const argumentsExpanded =
+			state.codemodDiscoveryView.codemodArgumentsPopupHashDigest ===
+			hashDigest;
 
 		return {
 			node,
@@ -136,7 +145,7 @@ export const selectPrivateCodemods = (
 				hashDigest,
 			collapsable: false,
 			reviewed: false,
-			argumentsExpanded: false,
+			argumentsExpanded,
 		};
 	});
 
@@ -352,17 +361,16 @@ export const selectCodemodArguments = (
 		return [];
 	}
 
-	const args =
-		Object.values(state.codemod.entities)
-			.filter(isNeitherNullNorUndefined)
-			.find((codemodEntry) => codemodEntry.hashDigest === hashDigest)
-			?.arguments ?? [];
+	const argumentsSchema =
+		Object.values(state.codemod.entities).find(
+			(codemodEntry) => codemodEntry?.hashDigest === hashDigest,
+		)?.arguments ?? [];
 
-	const savedArgsValues =
+	const codemodArgumentsValues =
 		state.codemodDiscoveryView.codemodArguments[hashDigest] ?? null;
 
-	return args.map((arg) => {
-		const value = savedArgsValues?.[arg.name] ?? arg.default ?? '';
+	return argumentsSchema.map((arg) => {
+		const value = codemodArgumentsValues?.[arg.name] ?? arg.default ?? '';
 
 		switch (arg.kind) {
 			case 'string': {
