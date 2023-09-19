@@ -8,8 +8,8 @@ import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
 import { CodemodHash } from '../../shared/types';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
-import { ToastContainer, toast } from 'react-toastify';
 import { useTheme } from '../../shared/Snippet/useTheme';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
@@ -294,16 +294,6 @@ const Codemod = ({
 					</div>
 				</span>
 			</div>
-			<ToastContainer
-				pauseOnHover={false}
-				pauseOnFocusLoss={false}
-				autoClose={false}
-				hideProgressBar={false}
-				position="bottom-right"
-				closeOnClick={false}
-				theme={theme === 'vs-light' ? 'light' : 'dark'}
-				draggable={false}
-			/>
 		</>
 	);
 };
