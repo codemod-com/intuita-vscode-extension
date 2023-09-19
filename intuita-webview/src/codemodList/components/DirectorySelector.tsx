@@ -1,9 +1,4 @@
-import React, {
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
 	VSCodeOption,
 	VSCodeTextField,
@@ -13,16 +8,11 @@ import { vscode } from '../../shared/utilities/vscode';
 import { CodemodHash } from '../../shared/types';
 import cn from 'classnames';
 
-const updatePath = (
-	value: string,
-	rootPath: string,
-	codemodHash: CodemodHash,
-) => {
-	const repoName = rootPath.split('/').slice(-1)[0] ?? '';
+const updatePath = (value: string, codemodHash: CodemodHash) => {
 	vscode.postMessage({
 		kind: 'webview.codemodList.updatePathToExecute',
 		value: {
-			newPath: value.replace(repoName, rootPath),
+			newPath: value,
 			codemodHash,
 			errorMessage: '',
 			warningMessage: '',
@@ -33,100 +23,51 @@ const updatePath = (
 
 type Props = {
 	defaultValue: string;
-	rootPath: string;
 	codemodHash: CodemodHash;
-	error: { message: string } | null;
 	autocompleteItems: ReadonlyArray<string>;
-	onQueryChanged(value: string): void;
 };
 
 export const DirectorySelector = ({
 	defaultValue,
-	rootPath,
 	codemodHash,
-	onQueryChanged,
-	error,
 	autocompleteItems,
 }: Props) => {
-	const repoName =
-		rootPath
-			.split('/')
-			.filter((part) => part.length !== 0)
-			.slice(-1)[0] ?? '';
-
 	const [value, setValue] = useState(defaultValue);
-	const [showErrorStyle, setShowErrorStyle] = useState(false);
-	const [ignoreEnterKeyUp, setIgnoreEnterKeyUp] = useState(false);
-	const ignoreBlurEvent = useRef(false);
 	const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
 	const [showOptions, setShowOptions] = useState(false);
 
+	console.log(defaultValue, '?')
+	useEffect(() => {
+		setValue(defaultValue);
+	}, [defaultValue]);
+
 	const autocompleteOptions = autocompleteItems
-		.map((item) => item.replace(rootPath, repoName))
-		.slice(0, 10);
+		.filter((i) =>
+			i.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase()),
+		)
+		.slice(0, 5);
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
-		ignoreBlurEvent.current = false;
-		const newValue = (e.target as HTMLInputElement).value.trim();
-		// path must start with repo name + slash
-		// e.g., "cal.com/"
-		const validString = !newValue.startsWith(`${repoName}/`)
-			? `${repoName}/`
-			: newValue;
-		setValue(validString);
-		onQueryChanged(validString.replace(repoName, rootPath));
-	};
-
-	const handleCancel = () => {
-		updatePath(defaultValue, rootPath, codemodHash);
-		setValue(defaultValue);
-
-		if (value !== defaultValue) {
-			vscode.postMessage({
-				kind: 'webview.global.showWarningMessage',
-				value: 'Change Reverted.',
-			});
-		}
+		setValue((e.target as HTMLInputElement)?.value);
 	};
 
 	const handleFocus = () => {
 		setShowOptions(true);
 	};
 
-	const handleKeyUp = (event: React.KeyboardEvent<HTMLElement>) => {
-		if (event.key === 'Escape') {
-			ignoreBlurEvent.current = true;
-			handleCancel();
-		}
-
-		if (event.key === 'Enter' && !ignoreEnterKeyUp) {
-			ignoreBlurEvent.current = true;
-			if (value === defaultValue) {
-				handleCancel();
-				return;
-			}
-
-			updatePath(value, rootPath, codemodHash);
-		}
-		setIgnoreEnterKeyUp(false);
-	};
-
-	useEffect(() => {
-		ignoreBlurEvent.current = false;
-		setShowErrorStyle(error !== null);
-	}, [error]);
-
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
 		const maxLength = autocompleteOptions.length;
 
-		if(e.key === 'Esc') {
+		if (e.key === 'Esc') {
 			setFocusedOptionIdx(0);
-			setShowOptions(false);	
+			setShowOptions(false);
 		}
-		
+
 		if (e.key === 'Enter') {
-			const nextValue = autocompleteItems[focusedOptionIdx] ?? '';
-			updatePath(nextValue, rootPath, codemodHash);
+			const nextValue = autocompleteOptions[focusedOptionIdx] ?? '';
+			setShowOptions(false);
+			setValue(nextValue);
+			updatePath(nextValue, codemodHash);
 		}
 
 		if (e.key === 'ArrowUp') {
@@ -148,7 +89,6 @@ export const DirectorySelector = ({
 		}
 	};
 
-	console.log(focusedOptionIdx, '?');
 	useLayoutEffect(() => {
 		document.getElementById(`option_${focusedOptionIdx}`)?.focus();
 	}, [focusedOptionIdx]);
@@ -168,13 +108,9 @@ export const DirectorySelector = ({
 			>
 				<VSCodeTextField
 					id="directory-selector"
-					className={cn(
-						styles.textField,
-						showErrorStyle && styles.textFieldError,
-					)}
+					className={cn(styles.textField)}
 					value={value}
 					onInput={handleChange}
-					onKeyUp={handleKeyUp}
 					onFocus={handleFocus}
 				>
 					Target path
@@ -187,7 +123,10 @@ export const DirectorySelector = ({
 								id={`option_${i}`}
 								className={styles.option}
 								onClick={() => {
-									updatePath(item, rootPath, codemodHash);
+									console.log(item)
+									setShowOptions(false);
+									setValue(item);
+									updatePath(item, codemodHash);
 								}}
 							>
 								{item}

@@ -2,10 +2,6 @@
 	flex-grow: 1;
 }
 
-.textFieldError::part(root):focus,
-.textFieldError::part(root):focus-within {
-	border-color: var(--vscode-inputValidation-errorBorder);
-}
 
 .textField::part(control) {
 	font-size: 12px;
@@ -13,8 +9,13 @@
 }
 
 .option {
-	min-height: 28px;
+	min-height: 20px;
   width: 100%;
   display: inline-block;
-  line-height: 28px;
+  line-height: 20px;
+}
+
+.autocompleteItems {
+	background-color: var(--vscode-editor-background);
+	padding: 4px;
 }

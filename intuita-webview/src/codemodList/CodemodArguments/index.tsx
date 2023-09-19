@@ -8,7 +8,6 @@ import { vscode } from '../../shared/utilities/vscode';
 import FormField from './FormField';
 import styles from './styles.module.css';
 
-import debounce from '../../shared/utilities/debounce';
 import { DirectorySelector } from '../components/DirectorySelector';
 
 import { pipe } from 'fp-ts/lib/function';
@@ -23,20 +22,9 @@ type Props = Readonly<{
 	executionPath: T.These<{ message: string }, string>;
 }>;
 
-const buildTargetPath = (path: string, rootPath: string, repoName: string) => {
-	return path.replace(rootPath, '').length === 0
-		? `${repoName}/`
-		: path.replace(rootPath, repoName);
+const buildTargetPath = (path: string, rootPath: string) => {
+	return path.replace(rootPath, '');
 };
-
-const handleCodemodPathChange = debounce((rawCodemodPath: string) => {
-	const codemodPath = rawCodemodPath.trim();
-
-	vscode.postMessage({
-		kind: 'webview.codemodList.codemodPathChange',
-		codemodPath,
-	});
-}, 50);
 
 const CodemodArguments = ({
 	hashDigest,
@@ -54,18 +42,6 @@ const CodemodArguments = ({
 		});
 	};
 
-	const error: string | null = pipe(
-		O.fromNullable(executionPath),
-		O.fold(
-			() => null,
-			T.fold(
-				({ message }) => message,
-				() => null,
-				({ message }) => message,
-			),
-		),
-	);
-
 	const path: string = pipe(
 		O.fromNullable(executionPath),
 		O.fold(
@@ -78,21 +54,16 @@ const CodemodArguments = ({
 		),
 	);
 
-	const repoName =
-		rootPath !== null ? rootPath.split('/').slice(-1)[0] ?? '' : '';
 
 	const targetPath =
-		rootPath !== null ? buildTargetPath(path, rootPath, repoName) : '/';
+		rootPath !== null ? buildTargetPath(path, rootPath) : '/';
 
 	return (
 		<div className={styles.root}>
 			<form className={styles.form}>
 				<DirectorySelector
 					defaultValue={targetPath}
-					rootPath={rootPath ?? ''}
-					error={error === null ? null : { message: error }}
 					codemodHash={hashDigest as unknown as CodemodHash}
-					onQueryChanged={handleCodemodPathChange}
 					autocompleteItems={autocompleteItems}
 				/>
 				{args.map((props) => (

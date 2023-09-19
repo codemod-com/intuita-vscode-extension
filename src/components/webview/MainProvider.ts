@@ -1,9 +1,5 @@
 import areEqual from 'fast-deep-equal';
-import * as E from 'fp-ts/Either';
-import { pipe } from 'fp-ts/lib/function';
-import * as TE from 'fp-ts/TaskEither';
-import { readdir } from 'node:fs/promises';
-import { join, parse } from 'node:path';
+import { relative, join } from 'node:path';
 import { glob } from 'glob';
 
 import {
@@ -135,30 +131,9 @@ const routeUserToStudioToAuthenticate = async () => {
 	commands.executeCommand('intuita.redirect', url);
 };
 
-const getCompletionItems = (path: string) =>
-	pipe(parsePath(path), ({ dir, base }) =>
-		pipe(
-			readDir(dir),
-			TE.map((paths) => toCompletions(paths, dir, base)),
-		),
-	);
-
-const readDir = (path: string): TE.TaskEither<Error, string[]> =>
-	TE.tryCatch(
-		() => readdir(path),
-		(reason) => new Error(String(reason)),
-	);
-// parsePath should be IO?
-const parsePath = (path: string): { dir: string; base: string } =>
-	path.endsWith('/') ? { dir: path, base: '' } : parse(path);
-
-const toCompletions = (paths: string[], dir: string, base: string) =>
-	paths.filter((path) => path.startsWith(base)).map((c) => join(dir, c));
-
 export class MainViewProvider implements WebviewViewProvider {
 	private __view: WebviewView | null = null;
 	private __webviewResolver: WebviewResolver;
-	private __autocompleteItems: string[] = [];
 	private __executionQueue: ReadonlyArray<CodemodHash> = [];
 	private __directoryPaths: ReadonlyArray<string> = [];
 
@@ -238,8 +213,8 @@ export class MainViewProvider implements WebviewViewProvider {
 				props: nextProps,
 			});
 		});
-		
-		
+
+
 		this.__getDirectoryPaths();
 	}
 
@@ -270,8 +245,18 @@ export class MainViewProvider implements WebviewViewProvider {
 	}
 
 	private async __getDirectoryPaths() {
-		console.log(this.__rootUri?.fsPath, '?')
-		this.__directoryPaths = (await glob(`${this.__rootUri?.fsPath}/*`)) ?? [];
+		const basePath = this.__rootUri?.fsPath ?? null;
+
+		if (basePath === null) {
+			return;
+		}
+
+		this.__directoryPaths = ((await glob(`${this.__rootUri?.fsPath}/**`, {
+			fs: workspace.fs,
+			nodir: false,
+			// ignore node_modules and files, match only directories
+			ignore: ['**/node_modules/**', '**/*.*']
+		})) ?? []).map(p => relative(basePath, p));
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -291,7 +276,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		return selectMainWebviewViewProps(
 			this.__store.getState(),
 			this.__rootUri,
-			this.__autocompleteItems,
+			this.__directoryPaths,
 			this.__executionQueue,
 		);
 	}
@@ -476,32 +461,15 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		if (message.kind === 'webview.codemodList.updatePathToExecute') {
 			await this.updateExecutionPath(message.value);
-		}
-
-		if (message.kind === 'webview.global.showWarningMessage') {
-			window.showWarningMessage(message.value);
-		}
-
-		if (message.kind === 'webview.codemodList.codemodPathChange') {
-			const completionItemsOrError = await getCompletionItems(
-				message.codemodPath,
-			)();
 			
-			console.log(this.__directoryPaths, 'test')
-
-			pipe(
-				completionItemsOrError,
-				E.fold(
-					() => (this.__autocompleteItems = []),
-					(autocompleteItems) =>
-						(this.__autocompleteItems = autocompleteItems),
-				),
-			);
-
 			this.__postMessage({
 				kind: 'webview.main.setProps',
 				props: this.__buildProps(),
 			});
+		}
+
+		if (message.kind === 'webview.global.showWarningMessage') {
+			window.showWarningMessage(message.value);
 		}
 
 		if (message.kind === 'webview.global.flipCodemodHashDigest') {
@@ -638,15 +606,15 @@ export class MainViewProvider implements WebviewViewProvider {
 		const persistedExecutionPath = state.executionPaths[codemodHash];
 
 		const oldExecutionPath = persistedExecutionPath ?? null;
+		const newPathAbsolute = join(this.__rootUri.fsPath, newPath);
 
 		try {
-			await workspace.fs.stat(Uri.file(newPath));
-
+			await workspace.fs.stat(Uri.file(newPathAbsolute));
 			this.__store.dispatch(
-				actions.setExecutionPath({ codemodHash, path: newPath }),
+				actions.setExecutionPath({ codemodHash, path: newPathAbsolute }),
 			);
-
-			if (newPath !== oldExecutionPath && !fromVSCodeCommand) {
+			
+			if (newPathAbsolute !== oldExecutionPath && !fromVSCodeCommand) {
 				window.showInformationMessage(
 					'Successfully updated the execution path.',
 				);
