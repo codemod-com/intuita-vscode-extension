@@ -39,8 +39,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "intuita.globalConfigSettings",
-				"title": "Configure global settings",
+				"command": "intuita.showIntuitaSettings",
+				"title": "Configure Intuita settings",
 				"icon": "$(settings-gear)"
 			},
 			{
@@ -166,7 +166,7 @@
 		"menus": {
 			"view/title": [
 				{
-					"command": "intuita.globalConfigSettings",
+					"command": "intuita.showIntuitaSettings",
 					"when": "view == intuitaMainView",
 					"group": "navigation"
 				},

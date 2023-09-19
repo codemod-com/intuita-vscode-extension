@@ -173,7 +173,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.globalConfigSettings', () => {
+		vscode.commands.registerCommand('intuita.showIntuitaSettings', () => {
 			vscode.commands.executeCommand(
 				'workbench.action.openSettings',
 				'Intuita',
