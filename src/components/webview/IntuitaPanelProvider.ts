@@ -269,8 +269,6 @@ export class IntuitaPanelProvider {
 
 			if (nextViewProps !== null) {
 				await this.__upsertPanel(nextViewProps, true);
-			} else {
-				this.__disposePanel();
 			}
 		};
 
@@ -473,11 +471,5 @@ export class IntuitaPanelProvider {
 			panelViewProps,
 		} satisfies WebviewMessage);
 		this.__webviewPanel.reveal(undefined, preserveFocus);
-	}
-
-	private __disposePanel() {
-		this.__webviewPanel?.dispose();
-
-		this.__webviewPanel = null;
 	}
 }
