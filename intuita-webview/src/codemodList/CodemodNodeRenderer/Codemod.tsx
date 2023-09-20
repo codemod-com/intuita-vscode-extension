@@ -231,10 +231,12 @@ const Codemod = ({
 			toast.update(progress.codemodHash, {
 				progress: value,
 				render: `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`,
+				containerId: 'codemodListToastContainer',
 			});
 		} else {
 			toast(`Processed 0 / ${progress.totalFileNumber} files`, {
 				toastId: progress.codemodHash,
+				containerId: 'codemodListToastContainer',
 				progress: 0,
 			});
 		}

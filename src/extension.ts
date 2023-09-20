@@ -217,25 +217,35 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			'intuita.handleSignedInUser',
-			async () => {
-				const decision = await vscode.window.showInformationMessage(
-					'You are already signed-in.',
-					'Do you want to sign out?',
-				);
+		vscode.commands.registerCommand('intuita.signOut', () => {
+			userService.unlinkUserIntuitaAccount();
+			vscode.commands.executeCommand(
+				'setContext',
+				'intuita.signedIn',
+				false,
+			);
+			store.dispatch(
+				actions.setToaster({
+					toastId: 'signOut',
+					containerId: 'primarySidebarToastContainer',
+					content: 'Signed out',
+					autoClose: 3000,
+				}),
+			);
+		}),
+	);
 
-				if (decision === 'Do you want to sign out?') {
-					userService.unlinkUserIntuitaAccount();
-					vscode.commands.executeCommand(
-						'setContext',
-						'intuita.signedIn',
-						false,
-					);
-					vscode.window.showInformationMessage('You are signed out.');
-				}
-			},
-		),
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.handleSignedInUser', () => {
+			store.dispatch(
+				actions.setToaster({
+					toastId: 'handleSignedInUser',
+					containerId: 'primarySidebarToastContainer',
+					content: 'Already signed-in',
+					autoClose: 5000,
+				}),
+			);
+		}),
 	);
 
 	context.subscriptions.push(
@@ -1140,8 +1150,13 @@ export async function activate(context: vscode.ExtensionContext) {
 							'intuita.signedIn',
 							true,
 						);
-						vscode.window.showInformationMessage(
-							'You are successfully signed in.',
+						store.dispatch(
+							actions.setToaster({
+								toastId: 'signIn',
+								containerId: 'primarySidebarToastContainer',
+								content: 'Successfully signed in',
+								autoClose: 3000,
+							}),
 						);
 					} else {
 						await routeUserToStudioToAuthenticate();
