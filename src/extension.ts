@@ -860,27 +860,48 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.clearPrivateCodemods', () => {
-			const state = store.getState();
-			const hashDigests = state.privateCodemods.ids as CodemodHash[];
-			hashDigests.forEach((hashDigest) => {
-				const codemodPath = join(homedir(), '.intuita', hashDigest);
-				if (existsSync(codemodPath)) {
-					rmSync(codemodPath, { recursive: true, force: true });
+		vscode.commands.registerCommand(
+			'intuita.removePrivateCodemod',
+			(arg0: unknown) => {
+				try {
+					const hashDigest: string | null =
+						typeof arg0 === 'string' ? arg0 : null;
+
+					if (hashDigest === null) {
+						throw new Error(
+							'Did not pass the hashDigest into the command.',
+						);
+					}
+					const codemodPath = join(homedir(), '.intuita', hashDigest);
+					if (existsSync(codemodPath)) {
+						rmSync(codemodPath, { recursive: true, force: true });
+					}
+
+					const codemodNamesPath = join(
+						homedir(),
+						'.intuita',
+						'privateCodemodNames.json',
+					);
+					if (existsSync(codemodNamesPath)) {
+						rmSync(codemodNamesPath);
+					}
+
+					store.dispatch(
+						actions.removePrivateCodemods([
+							hashDigest as CodemodHash,
+						]),
+					);
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					vscode.window.showErrorMessage(message);
+
+					vscodeTelemetry.sendError({
+						kind: 'failedToExecuteCommand',
+						commandName: 'intuita.removePrivateCodemod',
+					});
 				}
-			});
-
-			const codemodNamesPath = join(
-				homedir(),
-				'.intuita',
-				'privateCodemodNames.json',
-			);
-			if (existsSync(codemodNamesPath)) {
-				rmSync(codemodNamesPath);
-			}
-
-			store.dispatch(actions.removePrivateCodemods(hashDigests));
-		}),
+			},
+		),
 	);
 
 	context.subscriptions.push(

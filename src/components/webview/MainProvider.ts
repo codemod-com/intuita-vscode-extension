@@ -336,6 +336,13 @@ export class MainViewProvider implements WebviewViewProvider {
 			commands.executeCommand('intuita.signOut');
 		}
 
+		if (message.kind === 'webview.main.removePrivateCodemod') {
+			commands.executeCommand(
+				'intuita.removePrivateCodemod',
+				message.hashDigest,
+			);
+		}
+
 		if (message.kind === 'webview.global.flipSelectedExplorerNode') {
 			this.__store.dispatch(
 				actions.flipSelectedExplorerNode([

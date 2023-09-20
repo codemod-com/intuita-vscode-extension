@@ -80,6 +80,13 @@ const renderActionButtons = (
 			});
 		};
 
+		const handleRemovePrivateCodemod = () => {
+			vscode.postMessage({
+				kind: 'webview.main.removePrivateCodemod',
+				hashDigest,
+			});
+		};
+
 		return (
 			<>
 				<ActionButton
@@ -108,6 +115,15 @@ const renderActionButtons = (
 				>
 					<span className={cn('codicon', 'codicon-link')} />
 				</ActionButton>
+				{isPrivate && (
+					<ActionButton
+						id={`${hashDigest}-deleteButton`}
+						content={'Remove from Private Registry'}
+						onClick={handleRemovePrivateCodemod}
+					>
+						<span className={cn('codicon', 'codicon-trash')} />
+					</ActionButton>
+				)}
 			</>
 		);
 	}
