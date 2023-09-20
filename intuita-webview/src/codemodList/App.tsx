@@ -16,6 +16,7 @@ import TreeView from './TreeView';
 import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import cn from 'classnames';
 import { SectionHeader } from '../shared/SectionHeader';
+import styles from './style.module.css';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -114,7 +115,7 @@ export const App = memo(
 						</ResizablePanel>
 						<PanelResizeHandle className="resize-handle" />
 						<SectionHeader
-							title={'Private Registry'}
+							title="Private Registry"
 							commands={[
 								{
 									icon: 'clear-all',
@@ -156,12 +157,38 @@ export const App = memo(
 								});
 							}}
 						>
-							<TreeView
-								screenWidth={props.screenWidth}
-								tree={props.privateCodemods}
-								rootPath={props.rootPath}
-								autocompleteItems={props.autocompleteItems}
-							/>
+							{props.privateCodemods.nodeData.length > 0 ? (
+								<TreeView
+									screenWidth={props.screenWidth}
+									tree={props.privateCodemods}
+									rootPath={props.rootPath}
+									autocompleteItems={props.autocompleteItems}
+								/>
+							) : (
+								<div
+									className={
+										styles.privateCodemodWelcomeMessage
+									}
+								>
+									<p>
+										Make your own codemods in{' '}
+										<a
+											rel="noopener noreferrer"
+											target="_blank"
+											href="https://codemod.studio/"
+										>
+											Codemod Studio
+										</a>{' '}
+										with the help of AI and specialized
+										debuggers.
+									</p>
+									<p>
+										You can also kick off your codemod
+										creation by creating a diff and running
+										this CLI command: `intuita learn`.
+									</p>
+								</div>
+							)}
 						</ResizablePanel>
 					</PanelGroup>
 				</main>
