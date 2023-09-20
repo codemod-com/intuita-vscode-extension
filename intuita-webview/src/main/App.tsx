@@ -20,7 +20,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from '../shared/Snippet/useTheme';
 
-const ToastContainerProps = {
+const toastContainerProps = {
 	pauseOnHover: false,
 	pauseOnFocusLoss: false,
 	hideProgressBar: false,
@@ -174,7 +174,7 @@ function App() {
 						/>
 					) : null}
 					<ToastContainer
-						{...ToastContainerProps}
+						{...toastContainerProps}
 						containerId="codemodListToastContainer"
 						position="bottom-right"
 						theme={theme === 'vs-light' ? 'light' : 'dark'}
@@ -209,7 +209,7 @@ function App() {
 				</VSCodePanelView>
 			</VSCodePanels>
 			<ToastContainer
-				{...ToastContainerProps}
+				{...toastContainerProps}
 				containerId="primarySidebarToastContainer"
 				theme={theme === 'vs-light' ? 'light' : 'dark'}
 				position="top-right"
