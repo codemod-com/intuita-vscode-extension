@@ -73,12 +73,31 @@ export async function activate(context: vscode.ExtensionContext) {
 	const userService = new UserService(globalStateTokenStorage);
 
 	const accessToken = userService.getLinkedToken();
+	if (accessToken !== null) {
+		const valid = await validateAccessToken(accessToken);
+		vscode.commands.executeCommand('setContext', 'intuita.signedIn', valid);
 
-	vscode.commands.executeCommand(
-		'setContext',
-		'intuita.signedIn',
-		accessToken !== null,
-	);
+		if (!valid) {
+			userService.unlinkUserIntuitaAccount();
+			const decision = await vscode.window.showInformationMessage(
+				'You are signed out because your session has expired.',
+				'Do you want to sign in again?',
+			);
+			if (decision === 'Do you want to sign in again?') {
+				const searchParams = new URLSearchParams();
+
+				searchParams.set(
+					SEARCH_PARAMS_KEYS.COMMAND,
+					'accessTokenRequested',
+				);
+
+				const url = new URL('https://codemod.studio');
+				url.search = searchParams.toString();
+
+				vscode.commands.executeCommand('intuita.redirect', url);
+			}
+		}
+	}
 
 	const configurationContainer = buildContainer(getConfiguration());
 
