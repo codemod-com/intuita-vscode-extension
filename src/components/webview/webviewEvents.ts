@@ -138,6 +138,10 @@ export type WebviewResponse =
 			} | null;
 	  }>
 	| Readonly<{
+			kind: 'webview.main.removePrivateCodemod';
+			hashDigest: CodemodNodeHashDigest;
+	  }>
+	| Readonly<{
 			kind: 'webview.main.signOut';
 	  }>
 	| Readonly<{
