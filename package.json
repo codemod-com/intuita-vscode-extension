@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.36.14",
+	"version": "0.36.15",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
