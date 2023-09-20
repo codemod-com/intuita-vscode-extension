@@ -90,6 +90,7 @@ export const getInitialState = (): RootState => {
 		collapsedExplorerNodes: {},
 		reviewedExplorerNodes: {},
 		focusedExplorerNodes: {},
+		toaster: null,
 	};
 };
 
@@ -663,6 +664,9 @@ const rootSlice = createSlice({
 			action: PayloadAction<RootState['sourceControl']>,
 		) {
 			state.sourceControl = action.payload;
+		},
+		setToaster(state, action: PayloadAction<RootState['toaster']>) {
+			state.toaster = action.payload;
 		},
 		collapseResultsPanel(state, action: PayloadAction<boolean>) {
 			state.codemodRunsTab.resultsCollapsed = action.payload;

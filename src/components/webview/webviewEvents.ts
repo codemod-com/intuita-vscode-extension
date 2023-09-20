@@ -129,6 +129,18 @@ export type WebviewResponse =
 			activeTabId: ActiveTabId;
 	  }>
 	| Readonly<{
+			kind: 'webview.main.setToaster';
+			value: {
+				containerId: string;
+				toastId: string;
+				content: string;
+				autoClose: number;
+			} | null;
+	  }>
+	| Readonly<{
+			kind: 'webview.main.signOut';
+	  }>
+	| Readonly<{
 			kind:
 				| 'webview.main.setCodemodRunsPanelGroupSettings'
 				| 'webview.main.setCodemodDiscoveryPanelGroupSettings';

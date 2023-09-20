@@ -15,6 +15,7 @@ export const selectMainWebviewViewProps = (
 	if (state.activeTabId === 'codemods') {
 		return {
 			activeTabId: state.activeTabId,
+			toaster: state.toaster,
 			searchPhrase: state.codemodDiscoveryView.searchPhrase,
 			autocompleteItems,
 			codemodTree: selectCodemodTree(
@@ -39,6 +40,7 @@ export const selectMainWebviewViewProps = (
 	if (state.activeTabId === 'codemodRuns') {
 		return {
 			activeTabId: state.activeTabId,
+			toaster: state.toaster,
 			applySelectedInProgress: state.applySelectedInProgress,
 			codemodRunsTree:
 				rootUri !== null
@@ -61,6 +63,7 @@ export const selectMainWebviewViewProps = (
 
 		return {
 			activeTabId: state.activeTabId,
+			toaster: state.toaster,
 			title: sourceControlTabProps?.title ?? '',
 			body: sourceControlTabProps?.body ?? '',
 			loading: sourceControlTabProps?.loading ?? false,
@@ -69,6 +72,7 @@ export const selectMainWebviewViewProps = (
 
 	return {
 		activeTabId: state.activeTabId,
+		toaster: state.toaster,
 	};
 };
 
