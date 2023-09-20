@@ -80,6 +80,13 @@ const renderActionButtons = (
 			});
 		};
 
+		const handleRemovePrivateCodemod = () => {
+			vscode.postMessage({
+				kind: 'webview.main.removePrivateCodemod',
+				hashDigest,
+			});
+		};
+
 		return (
 			<>
 				<ActionButton
@@ -108,6 +115,15 @@ const renderActionButtons = (
 				>
 					<span className={cn('codicon', 'codicon-link')} />
 				</ActionButton>
+				{isPrivate && (
+					<ActionButton
+						id={`${hashDigest}-deleteButton`}
+						content={'Remove from Private Registry'}
+						onClick={handleRemovePrivateCodemod}
+					>
+						<span className={cn('codicon', 'codicon-trash')} />
+					</ActionButton>
+				)}
 			</>
 		);
 	}
@@ -231,10 +247,12 @@ const Codemod = ({
 			toast.update(progress.codemodHash, {
 				progress: value,
 				render: `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`,
+				containerId: 'codemodListToastContainer',
 			});
 		} else {
 			toast(`Processed 0 / ${progress.totalFileNumber} files`, {
 				toastId: progress.codemodHash,
+				containerId: 'codemodListToastContainer',
 				progress: 0,
 			});
 		}

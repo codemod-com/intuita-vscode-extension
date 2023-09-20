@@ -147,6 +147,18 @@ export const persistedStateCodecNew = buildTypeCodec({
 			kind: 'IDLENESS',
 		},
 	),
+	toaster: withFallback(
+		t.union([
+			buildTypeCodec({
+				containerId: t.string,
+				toastId: t.string,
+				content: t.string,
+				autoClose: t.number,
+			}),
+			t.null,
+		]),
+		null,
+	),
 	caseHashJobHashes: withFallback(t.readonlyArray(t.string), []),
 	caseHashInProgress: withFallback(t.union([caseHashCodec, t.null]), null),
 	applySelectedInProgress: withFallback(t.boolean, false),

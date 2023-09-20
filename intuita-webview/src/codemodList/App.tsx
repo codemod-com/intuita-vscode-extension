@@ -116,13 +116,7 @@ export const App = memo(
 						<PanelResizeHandle className="resize-handle" />
 						<SectionHeader
 							title="Private Registry"
-							commands={[
-								{
-									icon: 'clear-all',
-									title: 'Clear all',
-									command: 'intuita.clearPrivateCodemods',
-								},
-							]}
+							commands={[]}
 							collapsed={props.privateRegistryCollapsed}
 							onClick={(event) => {
 								event.preventDefault();

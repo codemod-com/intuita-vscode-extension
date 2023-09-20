@@ -1,6 +1,8 @@
+import { toast } from 'react-toastify';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+	VSCodeButton,
 	VSCodePanels,
 	VSCodePanelTab,
 	VSCodePanelView,
@@ -17,6 +19,17 @@ import CreateIssue from '../CreateIssue';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from '../shared/Snippet/useTheme';
+
+const toastContainerProps = {
+	pauseOnHover: false,
+	pauseOnFocusLoss: false,
+	hideProgressBar: false,
+	closeOnClick: false,
+	closeButton: false,
+	draggable: false,
+	autoClose: false as const,
+	enableMultiContainer: true,
+};
 
 declare global {
 	interface Window {
@@ -76,6 +89,41 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (mainWebviewViewProps.toaster === null) {
+			return;
+		}
+
+		const { content, ...toasterProps } = mainWebviewViewProps.toaster;
+		let componentToRender = null;
+
+		if (toasterProps.toastId === 'handleSignedInUser') {
+			componentToRender = (
+				<div className="toasterComponent">
+					<p>{content}</p>
+					<VSCodeButton
+						appearance="secondary"
+						onClick={() => {
+							toast.dismiss(toasterProps.toastId);
+							vscode.postMessage({
+								kind: 'webview.main.signOut',
+							});
+						}}
+					>
+						Sign out
+					</VSCodeButton>
+				</div>
+			);
+		}
+		toast(componentToRender ?? content, toasterProps);
+
+		// remove the current toaster props from Redux state
+		vscode.postMessage({
+			kind: 'webview.main.setToaster',
+			value: null,
+		});
+	}, [mainWebviewViewProps.toaster]);
+
 	const handlePanelTabClick = (id: ActiveTabId) => {
 		vscode.postMessage({
 			kind: 'webview.main.setActiveTabId',
@@ -126,16 +174,10 @@ function App() {
 						/>
 					) : null}
 					<ToastContainer
+						{...toastContainerProps}
 						containerId="codemodListToastContainer"
-						pauseOnHover={false}
-						pauseOnFocusLoss={false}
-						autoClose={false}
-						hideProgressBar={false}
 						position="bottom-right"
-						closeOnClick={false}
-						closeButton={false}
 						theme={theme === 'vs-light' ? 'light' : 'dark'}
-						draggable={false}
 					/>
 				</VSCodePanelView>
 				<VSCodePanelView
@@ -166,6 +208,12 @@ function App() {
 					) : null}
 				</VSCodePanelView>
 			</VSCodePanels>
+			<ToastContainer
+				{...toastContainerProps}
+				containerId="primarySidebarToastContainer"
+				theme={theme === 'vs-light' ? 'light' : 'dark'}
+				position="top-right"
+			/>
 		</main>
 	);
 }

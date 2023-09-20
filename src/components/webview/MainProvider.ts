@@ -328,6 +328,21 @@ export class MainViewProvider implements WebviewViewProvider {
 			);
 		}
 
+		if (message.kind === 'webview.main.setToaster') {
+			this.__store.dispatch(actions.setToaster(message.value));
+		}
+
+		if (message.kind === 'webview.main.signOut') {
+			commands.executeCommand('intuita.signOut');
+		}
+
+		if (message.kind === 'webview.main.removePrivateCodemod') {
+			commands.executeCommand(
+				'intuita.removePrivateCodemod',
+				message.hashDigest,
+			);
+		}
+
 		if (message.kind === 'webview.global.flipSelectedExplorerNode') {
 			this.__store.dispatch(
 				actions.flipSelectedExplorerNode([
