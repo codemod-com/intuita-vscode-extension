@@ -111,7 +111,7 @@
 					"type": "array",
 					"description": "The glob pattern to use when searching for files to execute codemods over",
 					"default": [
-						"**/*.*{ts,tsx,js,jsx,mjs,cjs,mdx}"
+						"**/*.*{ts,tsx,js,jsx,mjs,cjs,mdx,json}"
 					]
 				},
 				"intuita.exclude": {
