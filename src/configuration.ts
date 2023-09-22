@@ -9,7 +9,7 @@ export const getConfiguration = () => {
 		configuration.get<number>('workerThreadCount') ?? 4;
 
 	const includePatterns = configuration.get<string[]>('include') ?? [
-		'**/*.*{ts,tsx,js,jsx,mjs,cjs,mdx}',
+		'**/*.*{ts,tsx,js,jsx,mjs,cjs,mdx,json}',
 	];
 	const excludePatterns = configuration.get<string[]>('exclude') ?? [
 		'**/node_modules/**/*.*',
