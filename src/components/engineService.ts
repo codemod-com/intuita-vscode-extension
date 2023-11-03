@@ -671,7 +671,11 @@ export class EngineService {
 				this.#messageBus.publish({
 					kind: MessageKind.showProgress,
 					codemodHash: this.#execution.codemodHash ?? null,
-					progressKind: 'finite',
+					progressKind:
+						this.#execution.codemodHash ===
+						'QKEdp-pofR9UnglrKAGDm1Oj6W0' // app router boilerplate
+							? 'infinite'
+							: 'finite',
 					totalFileNumber: message.totalFileNumber,
 					processedFileNumber: message.processedFileNumber,
 				});
