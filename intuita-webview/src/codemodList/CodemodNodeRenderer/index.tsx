@@ -13,6 +13,8 @@ import { Progress } from '../useProgressBar';
 import { CodemodHash } from '../../shared/types';
 import cn from 'classnames';
 import CodemodArguments from '../CodemodArguments';
+import { InfiniteProgress } from '../TreeView/InfiniteProgress';
+import ProgressBar from '../TreeView/ProgressBar';
 
 const EXPANDABLE_CONTENT_MAX_HEIGHT = 1000;
 
@@ -32,6 +34,23 @@ type Props = Readonly<{
 	onFlip: (hashDigest: CodemodNodeHashDigest) => void;
 	onFocus: (hashDigest: CodemodNodeHashDigest) => void;
 }>;
+
+const renderProgressBar = (progress: Progress | null) => {
+	if (progress === null) {
+		return null;
+	}
+
+	if (progress.progressKind === 'infinite') {
+		return <InfiniteProgress />;
+	}
+
+	const value =
+		progress.totalFileNumber > 0
+			? (progress.processedFileNumber / progress.totalFileNumber) * 100
+			: 0;
+
+	return <ProgressBar percent={value} />;
+};
 
 const getCodemodNodeRenderer =
 	({ rootPath, autocompleteItems, progress, screenWidth }: Deps) =>
@@ -91,16 +110,16 @@ const getCodemodNodeRenderer =
 							argumentsExpanded={argumentsExpanded}
 							args={node.args}
 						/>
-						<div
-							className={styles.expandableContent}
-							style={{
-								marginLeft: `-${getIndent(nodeDatum.depth)}px`,
-								maxHeight: argumentsExpanded
-									? `${EXPANDABLE_CONTENT_MAX_HEIGHT}px`
-									: 0,
-							}}
-						>
-							{argumentsExpanded && (
+						{argumentsExpanded && (
+							<div
+								className={styles.expandableContent}
+								style={{
+									marginLeft: `-${getIndent(
+										nodeDatum.depth,
+									)}px`,
+									maxHeight: `${EXPANDABLE_CONTENT_MAX_HEIGHT}px`,
+								}}
+							>
 								<CodemodArguments
 									autocompleteItems={autocompleteItems}
 									rootPath={rootPath}
@@ -108,8 +127,34 @@ const getCodemodNodeRenderer =
 									hashDigest={hashDigest}
 									arguments={node.args}
 								/>
+							</div>
+						)}
+						{progress !== null &&
+							(hashDigest as unknown as CodemodHash) ===
+								progress.codemodHash && (
+								<div
+									className={styles.expandableContent}
+									style={{
+										marginLeft: `-${getIndent(
+											nodeDatum.depth,
+										)}px`,
+									}}
+								>
+									<div className={styles.progressContainer}>
+										<p
+											className={
+												styles.progressStatusLabel
+											}
+										>
+											{progress.progressKind === 'finite'
+												? `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`
+												: 'Processing all files...'}
+										</p>
+
+										{renderProgressBar(progress)}
+									</div>
+								</div>
 							)}
-						</div>
 					</div>
 				)}
 

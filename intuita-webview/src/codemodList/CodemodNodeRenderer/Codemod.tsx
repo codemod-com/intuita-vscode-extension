@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import styles from './style.module.css';
 import cn from 'classnames';
 import IntuitaPopover from '../../shared/IntuitaPopover';
@@ -8,8 +8,6 @@ import { CodemodNode } from '../../../../src/selectors/selectCodemodTree';
 import { CodemodHash } from '../../shared/types';
 import ActionButton from '../TreeView/ActionButton';
 import { Progress } from '../useProgressBar';
-import { useTheme } from '../../shared/Snippet/useTheme';
-import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 type CodemodItemNode = CodemodNode & { kind: 'CODEMOD' };
@@ -212,7 +210,6 @@ const Codemod = ({
 	argumentsExpanded,
 }: Props) => {
 	const [hovering, setHovering] = useState(false);
-	const theme = useTheme();
 	const areButtonsVisible = focused || hovering;
 
 	const popoverText =
@@ -221,42 +218,6 @@ const Codemod = ({
 			: icon === 'certified'
 			? 'Codemod maintained by Intuita'
 			: 'Codemod maintained by the community';
-
-	useEffect(() => {
-		if (progress === null) {
-			return;
-		}
-
-		if (
-			progress.totalFileNumber > 0 &&
-			progress.processedFileNumber === progress.totalFileNumber
-		) {
-			toast.done(progress.codemodHash);
-		}
-
-		if (progress.progressKind === 'infinite') {
-			return;
-		}
-
-		const value =
-			progress.totalFileNumber > 0
-				? progress.processedFileNumber / progress.totalFileNumber
-				: 0;
-
-		if (toast.isActive(progress.codemodHash)) {
-			toast.update(progress.codemodHash, {
-				progress: value,
-				render: `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`,
-				containerId: 'codemodListToastContainer',
-			});
-		} else {
-			toast(`Processed 0 / ${progress.totalFileNumber} files`, {
-				toastId: progress.codemodHash,
-				containerId: 'codemodListToastContainer',
-				progress: 0,
-			});
-		}
-	}, [progress, theme]);
 
 	return (
 		<>
