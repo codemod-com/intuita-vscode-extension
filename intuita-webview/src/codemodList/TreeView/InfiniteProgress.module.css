@@ -3,8 +3,9 @@
 .progressContainer {
 	position: relative;
 	width: 100%;
-	height: 3.5px;
+	height: 2.5px;
 	overflow: hidden;
+	border-radius: 10px;
 }
 
 .progress {
@@ -12,6 +13,7 @@
 	width: 100%;
 	height: 100%;
 	background: var(--vscode-progressBar-background);
+	border-radius: 10px;
 	left: -100%;
 	animation: loading 1s linear infinite;
 }

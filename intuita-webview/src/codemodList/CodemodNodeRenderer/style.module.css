@@ -84,3 +84,20 @@
 .expandableContent {
 	background-color: var(--vscode-panel-background);
 }
+
+.progressContainer {
+	width: 100%;
+	padding: 0.5em;
+	padding-top: 0.1em;
+	box-sizing: border-box;
+}
+
+.progressStatusLabel {
+	font-size: var(--type-ramp-base-font-size);
+	line-height: var(--type-ramp-base-line-height);
+	color: var(--foreground);
+	user-select: none;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
