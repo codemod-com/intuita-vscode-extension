@@ -39,7 +39,7 @@ If you run into an issue while running a codemod, please [let us know →](https
 ## Telemetry 🔭
 
 - The extension collects telemetry data to help us improve the product for you.
-- **We never send PII, OS information, file, or folder names.**
+- **We never send PII, file, or folder names.**
 - Telemetry can be disabled in the settings.
 - See more details in our [telemetry compliance considerations](https://docs.intuita.io/docs/about-intuita/legal/telemetry-compliance) doc.
 
