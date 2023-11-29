@@ -180,6 +180,20 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 	);
 
+	vscode.window.onDidChangeWindowState((event) => {
+		let syncRegistryIntervalId;
+		if (event.focused) {
+			// Interval in milliseconds (15 minutes)
+			const interval = 15 * 60 * 1000;
+
+			// Start the interval
+			syncRegistryIntervalId = setInterval(async () => {
+				await engineService.syncRegistry();
+			}, interval);
+		} else {
+			clearInterval(syncRegistryIntervalId);
+		}
+	});
 	// this is only used by the intuita panel's webview
 	context.subscriptions.push(
 		vscode.commands.registerCommand('intuita.redirect', (arg0) => {
