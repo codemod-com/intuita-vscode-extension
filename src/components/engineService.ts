@@ -238,7 +238,7 @@ export class EngineService {
 		this.__codemodEngineRustExecutableUri =
 			message.codemodEngineRustExecutableUri;
 
-		await this.__syncRegistry();
+		await this.syncRegistry();
 
 		await this.__fetchCodemods();
 		await this.fetchPrivateCodemods();
@@ -248,7 +248,7 @@ export class EngineService {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
-	private async __syncRegistry(): Promise<void> {
+	public async syncRegistry(): Promise<void> {
 		if (this.__codemodEngineNodeExecutableUri === null) {
 			throw new Error('The engines are not bootstrapped.');
 		}
