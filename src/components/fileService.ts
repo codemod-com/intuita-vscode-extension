@@ -23,6 +23,10 @@ export class FileService {
 		this.#messageBus.subscribe(MessageKind.deleteFiles, (message) =>
 			this.#onDeleteFile(message),
 		);
+
+		this.#messageBus.subscribe(MessageKind.deleteDirectories, (message) =>
+			this.#onDeleteDirectory(message),
+		);
 	}
 
 	async #onCreateFile(message: Message & { kind: MessageKind.createFile }) {
@@ -39,6 +43,12 @@ export class FileService {
 
 	async #onDeleteFile(message: Message & { kind: MessageKind.deleteFiles }) {
 		await this.deleteFiles(message);
+	}
+
+	async #onDeleteDirectory(
+		message: Message & { kind: MessageKind.deleteDirectories },
+	) {
+		await this.deleteDirectories(message);
 	}
 
 	public async createFile(params: {
@@ -80,6 +90,17 @@ export class FileService {
 		await workspace.fs.writeFile(params.newUri, content);
 
 		await this.deleteFiles({ uris: [params.oldUri] });
+	}
+
+	public async deleteDirectories(params: {
+		uris: ReadonlyArray<Uri>;
+	}): Promise<void> {
+		for (const uri of params.uris) {
+			await workspace.fs.delete(uri, {
+				recursive: true,
+				useTrash: false,
+			});
+		}
 	}
 
 	public async deleteFiles(params: {

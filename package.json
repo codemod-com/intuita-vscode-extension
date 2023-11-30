@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.36.16",
+	"version": "0.36.17",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -250,7 +250,7 @@
 		"install:webview": "cd intuita-webview && pnpm install",
 		"build:webview": "cd intuita-webview && pnpm build",
 		"watch:webview": "cd intuita-webview && pnpm start",
-		"package": "vsce package --no-dependencies"
+		"package": "vsce package --no-dependencies --no-yarn"
 	},
 	"devDependencies": {
 		"@total-typescript/ts-reset": "^0.5.1",

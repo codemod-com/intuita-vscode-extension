@@ -35,6 +35,7 @@ export const enum MessageKind {
 	deleteFiles = 23,
 	moveFile = 24,
 	createFile = 25,
+	deleteDirectories = 26,
 
 	/**
 	 * show progress
@@ -134,6 +135,10 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.deleteFiles;
+			uris: ReadonlyArray<Uri>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.deleteDirectories;
 			uris: ReadonlyArray<Uri>;
 	  }>
 	| Readonly<{
