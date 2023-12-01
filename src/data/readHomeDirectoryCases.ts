@@ -66,13 +66,15 @@ const readHomeDirectoryCase = async (
 		if (
 			!surfaceAgnosticCase.absoluteTargetPath.startsWith(rootUri.fsPath)
 		) {
-			console.log('HERE1');
+			console.info(
+				'The current case does not belong to the opened workspace',
+			);
 			fileEventEmitter.emit('close');
 			return;
 		}
 
 		if (!caseHashCodec.is(surfaceAgnosticCase.caseHashDigest)) {
-			console.log('HERE2');
+			console.error('Could not validate the case hash digest');
 			fileEventEmitter.emit('close');
 			return;
 		}
@@ -94,8 +96,14 @@ const readHomeDirectoryCase = async (
 	const jobHandler = (data: unknown) => {
 		const surfaceAgnosticJob = parseSurfaceAgnosticJob(data);
 
-		if (!kase || !jobHashCodec.is(surfaceAgnosticJob.jobHashDigest)) {
-			console.log('HERE3');
+		if (!kase) {
+			console.error('You need to have a case to create a job');
+			fileEventEmitter.emit('close');
+			return;
+		}
+
+		if (!jobHashCodec.is(surfaceAgnosticJob.jobHashDigest)) {
+			console.error('Could not validate the job hash digest');
 			fileEventEmitter.emit('close');
 			return;
 		}
