@@ -48,6 +48,7 @@ export const enum MessageKind {
 	executionQueueChange = 39,
 
 	loadHomeDirectoryData = 40,
+	loadHomeDirectoryCase = 41,
 }
 
 export type Command =
@@ -171,6 +172,10 @@ export type Message =
 	  }>
 	| Readonly<{
 			kind: MessageKind.loadHomeDirectoryData;
+	  }>
+	| Readonly<{
+			kind: MessageKind.loadHomeDirectoryCase;
+			caseHashDigest: CaseHash;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {
