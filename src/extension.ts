@@ -46,6 +46,7 @@ import {
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 import { GlobalStateTokenStorage, UserService } from './components/userService';
 import { HomeDirectoryService } from './data/readHomeDirectoryCases';
+import { isLeft } from 'fp-ts/lib/Either';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -988,6 +989,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				const codemodSource = urlParams.get(
 					SEARCH_PARAMS_KEYS.CODEMOD_SOURCE,
 				);
+
 				const codemodHashDigest = urlParams.get(
 					SEARCH_PARAMS_KEYS.CODEMOD_HASH_DIGEST,
 				);
@@ -995,6 +997,37 @@ export async function activate(context: vscode.ExtensionContext) {
 					SEARCH_PARAMS_KEYS.ACCESS_TOKEN,
 				);
 				const state = store.getState();
+
+				const [hash, casesString] = uri.toString().split('/').reverse();
+				const codemodRunCaseHash =
+					casesString === 'cases' && hash ? hash : null;
+
+				// user is routed to a specific dry run case
+				if (codemodRunCaseHash !== null) {
+					vscode.commands.executeCommand(
+						'workbench.view.extension.intuitaViewId',
+					);
+
+					const validation = caseHashCodec.decode(codemodRunCaseHash);
+					if (isLeft(validation)) {
+						throw new Error(
+							prettyReporter.report(validation).join('\n'),
+						);
+					}
+					const hash = validation.right;
+
+					// if there is no such hash in runs
+					if (!state.case.ids.includes(hash)) {
+						vscode.window.showErrorMessage(
+							'Requested hash does not exist',
+						);
+						return;
+					}
+
+					// otherwise open tab and set selected run
+					store.dispatch(actions.setActiveTabId('codemodRuns'));
+					store.dispatch(actions.setSelectedCaseHash(hash));
+				}
 
 				// user is exporting codemod from studio into extension
 				if (codemodSource !== null) {
