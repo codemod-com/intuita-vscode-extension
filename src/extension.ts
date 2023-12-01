@@ -1018,7 +1018,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 					// if there is no such hash in runs
 					if (!state.case.ids.includes(hash)) {
-						vscode.window.showErrorMessage('Unexistent case hash');
+						vscode.window.showErrorMessage(
+							'Requested hash does not exist',
+						);
 						return;
 					}
 
