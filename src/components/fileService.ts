@@ -23,6 +23,10 @@ export class FileService {
 		this.#messageBus.subscribe(MessageKind.deleteFiles, (message) =>
 			this.#onDeleteFile(message),
 		);
+
+		this.#messageBus.subscribe(MessageKind.deleteDirectories, (message) =>
+			this.#onDeleteDirectory(message),
+		);
 	}
 
 	async #onCreateFile(message: Message & { kind: MessageKind.createFile }) {
@@ -39,6 +43,12 @@ export class FileService {
 
 	async #onDeleteFile(message: Message & { kind: MessageKind.deleteFiles }) {
 		await this.deleteFiles(message);
+	}
+
+	async #onDeleteDirectory(
+		message: Message & { kind: MessageKind.deleteDirectories },
+	) {
+		await this.deleteDirectories(message);
 	}
 
 	public async createFile(params: {
@@ -82,14 +92,33 @@ export class FileService {
 		await this.deleteFiles({ uris: [params.oldUri] });
 	}
 
+	public async deleteDirectories(params: {
+		uris: ReadonlyArray<Uri>;
+	}): Promise<void> {
+		for (const uri of params.uris) {
+			try {
+				await workspace.fs.delete(uri, {
+					recursive: true,
+					useTrash: false,
+				});
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	}
+
 	public async deleteFiles(params: {
 		uris: ReadonlyArray<Uri>;
 	}): Promise<void> {
 		for (const uri of params.uris) {
-			await workspace.fs.delete(uri, {
-				recursive: false,
-				useTrash: false,
-			});
+			try {
+				await workspace.fs.delete(uri, {
+					recursive: false,
+					useTrash: false,
+				});
+			} catch (error) {
+				console.error(error);
+			}
 		}
 	}
 }

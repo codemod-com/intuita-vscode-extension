@@ -856,7 +856,8 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (
 					!job ||
 					!doesJobAddNewFile(job.kind) ||
-					job.newContentUri === null
+					job.newContentUri === null ||
+					job.newContentUri.includes('.intuita/cases')
 				) {
 					continue;
 				}
@@ -867,8 +868,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			store.dispatch(actions.clearState());
 
 			messageBus.publish({
-				kind: MessageKind.deleteFiles,
-				uris,
+				kind: MessageKind.deleteDirectories,
+				uris: [vscode.Uri.parse(join(homedir(), '.intuita', 'cases'))],
 			});
 		}),
 	);
