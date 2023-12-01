@@ -1,5 +1,7 @@
 {
-	"ignorePaths": ["**/*.d.ts"],
+	"ignorePaths": [
+		"**/*.d.ts"
+	],
 	"dictionaries": [
 		"en_US",
 		"typescript",
@@ -73,6 +75,10 @@
 		"lowlights",
 		"unsanitize",
 		"toastify",
-		"Toastify"
+		"Toastify",
+		"POSTAMBLE",
+		"INTC",
+		"INTJ",
+		"INTE"
 	]
 }
