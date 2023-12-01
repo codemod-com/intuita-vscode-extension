@@ -73,6 +73,10 @@
 		"lowlights",
 		"unsanitize",
 		"toastify",
-		"Toastify"
+		"Toastify",
+		"POSTAMBLE",
+		"INTC",
+		"INTJ",
+		"INTE"
 	]
 }

@@ -45,6 +45,7 @@ import {
 } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 import { GlobalStateTokenStorage, UserService } from './components/userService';
+import { HomeDirectoryService } from './data/readHomeDirectoryCases';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -1258,5 +1259,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
+	});
+
+	new HomeDirectoryService(messageBus, store, rootUri);
+
+	messageBus.publish({
+		kind: MessageKind.loadHomeDirectoryData,
 	});
 }

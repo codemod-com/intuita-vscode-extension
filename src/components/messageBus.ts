@@ -46,6 +46,8 @@ export const enum MessageKind {
 
 	mainWebviewViewVisibilityChange = 38,
 	executionQueueChange = 39,
+
+	loadHomeDirectoryData = 40,
 }
 
 export type Command =
@@ -166,6 +168,9 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.executionQueueChange;
 			queuedCodemodHashes: ReadonlyArray<CodemodHash>;
+	  }>
+	| Readonly<{
+			kind: MessageKind.loadHomeDirectoryData;
 	  }>;
 
 type EmitterMap<K extends MessageKind> = {

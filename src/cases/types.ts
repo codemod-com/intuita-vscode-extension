@@ -1,7 +1,7 @@
 import { buildTypeCodec } from '../utilities';
 import * as t from 'io-ts';
 
-interface CaseHashBrand {
+export interface CaseHashBrand {
 	readonly __CaseHash: unique symbol;
 }
 
