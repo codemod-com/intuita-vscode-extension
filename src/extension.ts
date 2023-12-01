@@ -5,7 +5,7 @@ import { buildContainer } from './container';
 import { Command, MessageBus, MessageKind } from './components/messageBus';
 import { JobManager } from './components/jobManager';
 import { FileService } from './components/fileService';
-import { CaseHash, caseHashCodec } from './cases/types';
+import { Case, CaseHash, caseHashCodec } from './cases/types';
 import { DownloadService } from './components/downloadService';
 import { FileSystemUtilities } from './components/fileSystemUtilities';
 import { EngineService } from './components/engineService';
@@ -45,6 +45,11 @@ import {
 } from './data/codemodConfigSchema';
 import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSchema';
 import { GlobalStateTokenStorage, UserService } from './components/userService';
+import {
+	HomeDirectoryService,
+	readHomeDirectoryCases,
+} from './data/readHomeDirectoryCases';
+import { Job } from './jobs/types';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -1257,5 +1262,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	messageBus.publish({
 		kind: MessageKind.bootstrapEngine,
+	});
+
+	const homeDirectoryService = new HomeDirectoryService(
+		messageBus,
+		store,
+		rootUri,
+	);
+
+	messageBus.publish({
+		kind: MessageKind.loadHomeDirectoryData,
 	});
 }
