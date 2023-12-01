@@ -96,10 +96,14 @@ export class FileService {
 		uris: ReadonlyArray<Uri>;
 	}): Promise<void> {
 		for (const uri of params.uris) {
-			await workspace.fs.delete(uri, {
-				recursive: true,
-				useTrash: false,
-			});
+			try {
+				await workspace.fs.delete(uri, {
+					recursive: true,
+					useTrash: false,
+				});
+			} catch (error) {
+				console.error(error);
+			}
 		}
 	}
 
