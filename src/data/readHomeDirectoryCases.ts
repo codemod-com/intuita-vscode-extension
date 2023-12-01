@@ -1,9 +1,9 @@
 import { createReadStream } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { FileType, Uri, workspace } from 'vscode';
+import { FileType, Uri, window, workspace } from 'vscode';
 import { readSurfaceAgnosticCase } from './readSurfaceAgnosticCase';
-import { Case, caseHashCodec } from '../cases/types';
+import { Case, CaseHash, caseHashCodec } from '../cases/types';
 import { Job, JobKind, jobHashCodec } from '../jobs/types';
 import { parseSurfaceAgnosticCase } from './schemata/surfaceAgnosticCaseSchema';
 import {
@@ -14,6 +14,7 @@ import { CodemodEntry } from '../codemods/types';
 import EventEmitter from 'events';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { Store } from '.';
+import { actions } from './slice';
 
 interface HomeDirectoryEventEmitter extends EventEmitter {
 	emit(event: 'start'): boolean;
@@ -174,6 +175,39 @@ const readHomeDirectoryCase = async (
 	});
 };
 
+export const readSingleHomeDirectoryCase = async (
+	rootUri: Uri,
+	codemodEntities: Record<string, CodemodEntry | undefined>,
+	caseHashDigest: CaseHash,
+) => {
+	const path = join(
+		homedir(),
+		'.intuita',
+		'cases',
+		caseHashDigest,
+		'case.data',
+	);
+
+	const eventEmitter: HomeDirectoryEventEmitter = new EventEmitter();
+
+	eventEmitter.once('start', async () => {
+		try {
+			await readHomeDirectoryCase(
+				eventEmitter,
+				rootUri,
+				codemodEntities,
+				path,
+			);
+		} catch (error) {
+			console.error(error);
+		}
+
+		eventEmitter.emit('end');
+	});
+
+	return eventEmitter;
+};
+
 export const readHomeDirectoryCases = async (
 	rootUri: Uri,
 	codemodEntities: Record<string, CodemodEntry | undefined>,
@@ -248,5 +282,55 @@ export class HomeDirectoryService {
 
 			eventEmitter?.emit('start');
 		});
+
+		__messageBus.subscribe(
+			MessageKind.loadHomeDirectoryCase,
+			async ({ caseHashDigest }) => {
+				await this.__handleLoadHomeDirectoryCase(caseHashDigest);
+			},
+		);
+	}
+
+	private async __handleLoadHomeDirectoryCase(caseHashDigest: CaseHash) {
+		if (!this.__rootUri) {
+			return;
+		}
+
+		const eventEmitter = await readSingleHomeDirectoryCase(
+			this.__rootUri,
+			this.__store.getState().codemod.entities,
+			caseHashDigest,
+		);
+
+		let caseExists = false;
+
+		const jobHandler = (kase: Case, jobs: ReadonlyArray<Job>) => {
+			this.__messageBus.publish({
+				kind: MessageKind.upsertCase,
+				kase,
+				jobs,
+			});
+
+			if (!caseExists) {
+				caseExists = true;
+
+				this.__store.dispatch(actions.setActiveTabId('codemodRuns'));
+				this.__store.dispatch(
+					actions.setSelectedCaseHash(caseHashDigest),
+				);
+			}
+		};
+
+		eventEmitter?.once('end', () => {
+			if (!caseExists) {
+				window.showErrorMessage('The requested dry-run does not exist');
+			}
+
+			eventEmitter.off('job', jobHandler);
+		});
+
+		eventEmitter?.on('job', jobHandler);
+
+		eventEmitter?.emit('start');
 	}
 }

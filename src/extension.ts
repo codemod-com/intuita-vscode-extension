@@ -1014,19 +1014,11 @@ export async function activate(context: vscode.ExtensionContext) {
 							prettyReporter.report(validation).join('\n'),
 						);
 					}
-					const hash = validation.right;
 
-					// if there is no such hash in runs
-					if (!state.case.ids.includes(hash)) {
-						vscode.window.showErrorMessage(
-							'Requested hash does not exist',
-						);
-						return;
-					}
-
-					// otherwise open tab and set selected run
-					store.dispatch(actions.setActiveTabId('codemodRuns'));
-					store.dispatch(actions.setSelectedCaseHash(hash));
+					messageBus.publish({
+						kind: MessageKind.loadHomeDirectoryCase,
+						caseHashDigest: validation.right,
+					});
 				}
 
 				// user is exporting codemod from studio into extension
