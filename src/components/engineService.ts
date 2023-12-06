@@ -353,6 +353,7 @@ export class EngineService {
 				if (
 					config.engine === 'jscodeshift' ||
 					config.engine === 'ts-morph' ||
+					config.engine === 'filemod' ||
 					config.engine === 'repomod-engine' ||
 					config.engine === 'recipe'
 				) {

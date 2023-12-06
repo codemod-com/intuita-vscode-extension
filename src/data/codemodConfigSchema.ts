@@ -71,6 +71,11 @@ export const codemodConfigSchema = S.union(
 	}),
 	S.struct({
 		schemaVersion: S.literal('1.0.0'),
+		engine: S.literal('filemod'),
+		arguments: S.optional(argumentsSchema),
+	}),
+	S.struct({
+		schemaVersion: S.literal('1.0.0'),
 		engine: S.literal('repomod-engine'),
 		arguments: S.optional(argumentsSchema),
 	}),
