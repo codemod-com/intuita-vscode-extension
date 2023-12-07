@@ -60,3 +60,8 @@
 	flex-direction: column;
 	align-items: center;
 }
+
+.clearing-progress-ring {
+	height: 4em;
+	width: 100%;
+}

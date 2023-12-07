@@ -13,6 +13,8 @@ import { App as FileExplorer } from '../fileExplorer/App';
 import { MainWebviewViewProps } from '../../../src/selectors/selectMainWebviewViewProps';
 import { vscode } from '../shared/utilities/vscode';
 import { useEffect, useMemo, useRef } from 'react';
+import { Command } from '../shared/types';
+import { VSCodeProgressRing } from '@vscode/webview-ui-toolkit/react';
 
 export const CodemodRuns = (
 	props: MainWebviewViewProps & {
@@ -50,6 +52,22 @@ export const CodemodRuns = (
 		[props.panelGroupSettings],
 	);
 
+	const commands: (Command & { icon: string })[] = [];
+
+	if (props.clearingInProgress) {
+		commands.push({
+			icon: 'circle-slash',
+			title: 'Stop clearing',
+			command: 'intuita.stopStateClearing',
+		});
+	} else {
+		commands.push({
+			icon: 'clear-all',
+			title: 'Clear all',
+			command: 'intuita.clearState',
+		});
+	}
+
 	return (
 		<div className="w-full h-full">
 			<PanelGroup
@@ -59,13 +77,7 @@ export const CodemodRuns = (
 			>
 				<SectionHeader
 					title={'Results'}
-					commands={[
-						{
-							icon: 'clear-all',
-							title: 'Clear all',
-							command: 'intuita.clearState',
-						},
-					]}
+					commands={commands}
 					collapsed={props.resultsCollapsed}
 					onClick={(event) => {
 						event.preventDefault();
@@ -92,7 +104,11 @@ export const CodemodRuns = (
 						});
 					}}
 				>
-					<CampaignManager {...props} />
+					{props.clearingInProgress ? (
+						<VSCodeProgressRing className="clearing-progress-ring" />
+					) : (
+						<CampaignManager {...props} />
+					)}
 				</ResizablePanel>
 				<PanelResizeHandle className="resize-handle" />
 				<SectionHeader

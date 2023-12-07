@@ -31,7 +31,6 @@ import {
 	CodemodNodeHashDigest,
 	selectCodemodArguments,
 } from './selectors/selectCodemodTree';
-import { doesJobAddNewFile } from './selectors/comparePersistedJobs';
 import { buildHash, isNeitherNullNorUndefined } from './utilities';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from 'os';
@@ -47,6 +46,7 @@ import { parsePrivateCodemodsEnvelope } from './data/privateCodemodsEnvelopeSche
 import { GlobalStateTokenStorage, UserService } from './components/userService';
 import { HomeDirectoryService } from './data/readHomeDirectoryCases';
 import { isLeft } from 'fp-ts/lib/Either';
+import { createClearStateCommand } from './commands/clearStateCommand';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -849,30 +849,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('intuita.clearState', () => {
-			const state = store.getState();
+		vscode.commands.registerCommand(
+			'intuita.clearState',
+			createClearStateCommand({ fileService, store }),
+		),
+	);
 
-			const uris: vscode.Uri[] = [];
-
-			for (const job of Object.values(state.job.entities)) {
-				if (
-					!job ||
-					!doesJobAddNewFile(job.kind) ||
-					job.newContentUri === null ||
-					job.newContentUri.includes('.intuita/cases')
-				) {
-					continue;
-				}
-
-				uris.push(vscode.Uri.parse(job.newContentUri));
-			}
-
-			store.dispatch(actions.clearState());
-
-			messageBus.publish({
-				kind: MessageKind.deleteDirectories,
-				uris: [vscode.Uri.parse(join(homedir(), '.intuita', 'cases'))],
-			});
+	context.subscriptions.push(
+		vscode.commands.registerCommand('intuita.stopStateClearing', () => {
+			store.dispatch(actions.onStateCleared());
 		}),
 	);
 
