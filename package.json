@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.38.0",
+	"version": "0.38.1",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -243,7 +243,7 @@
 		"vscode:prepublish": "pnpm run build",
 		"compile": "webpack",
 		"watch": "webpack --watch",
-		"build": "pnpm install:webview && pnpm build:webview && pnpm install && NODE_ENV='production' webpack --mode production --devtool hidden-source-map",
+		"build": "pnpm install:webview && pnpm build:webview && pnpm install && NODE_ENV='production' webpack --devtool hidden-source-map",
 		"lint:eslint": "eslint src --fix --ext ts",
 		"lint:prettier": "prettier --write .",
 		"spellcheck": "pnpm cspell-cli '**/*.{ts,tsx}'",
@@ -277,14 +277,15 @@
 		"ts-node": "^10.9.1",
 		"typescript": "5.1.6",
 		"umd-compat-loader": "^2.1.2",
-		"webpack": "^5.75.0",
-		"webpack-cli": "^5.0.1"
+		"webpack": "5.89.0",
+		"webpack-cli": "5.1.4"
 	},
 	"dependencies": {
-		"@effect/schema": "0.30.3",
+		"@effect/schema": "^0.52.0",
 		"@intuita-inc/utilities": "^1.0.2",
 		"@reduxjs/toolkit": "^1.9.5",
 		"@vscode/extension-telemetry": "^0.7.7",
+		"@vscode/vsce": "^2.22.0",
 		"axios": "^1.2.2",
 		"diff": "^5.1.0",
 		"fast-deep-equal": "^3.1.3",
