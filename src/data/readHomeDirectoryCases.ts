@@ -72,6 +72,8 @@ export class HomeDirectoryService {
 
 				const caseEventEmitter = this._createEventEmitter(path);
 
+				this._caseEventEmitters.set(path, caseEventEmitter);
+
 				caseEventEmitter.once('finish', () => {
 					this._caseEventEmitters.delete(path);
 				});
@@ -81,8 +83,6 @@ export class HomeDirectoryService {
 
 					this._caseEventEmitters.delete(path);
 				});
-
-				this._caseEventEmitters.set(path, caseEventEmitter);
 			}
 		} catch (error) {
 			console.error(error);
@@ -109,6 +109,16 @@ export class HomeDirectoryService {
 		const caseEventEmitter = this._createEventEmitter(path);
 
 		this._caseEventEmitters.set(path, caseEventEmitter);
+
+		caseEventEmitter.once('finish', () => {
+			this._caseEventEmitters.delete(path);
+		});
+
+		caseEventEmitter.once('error', (error) => {
+			console.error(error);
+
+			this._caseEventEmitters.delete(path);
+		});
 	}
 
 	protected _createEventEmitter(path: string): CaseEventEmitter {
