@@ -3,7 +3,7 @@ import { join } from 'path';
 import { FileType, Uri, workspace } from 'vscode';
 import { Case, CaseHash, caseHashCodec } from '../cases/types';
 import { Job, JobKind, jobHashCodec } from '../jobs/types';
-import EventEmitter from 'events';
+import EventEmitter from 'node:events';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { Store } from '.';
 import {
@@ -11,16 +11,19 @@ import {
 	JOB_KIND,
 	SurfaceAgnosticJob,
 } from '@intuita-inc/utilities';
+import { actions } from './slice';
 
 interface CaseEventEmitter extends EventEmitter {
+	emit(event: 'case'): boolean;
 	emit(event: 'finish'): boolean;
 	emit(event: 'error', error: Error): boolean;
 
+	once(event: 'case', callback: () => void): this;
 	once(event: 'finish', callback: () => void): this;
 	once(event: 'error', callback: (error: Error) => void): boolean;
 }
 
-class CaseEventEmitter implements EventEmitter {}
+class CaseEventEmitter extends EventEmitter {}
 
 export class HomeDirectoryService {
 	protected readonly _caseEventEmitters: Map<string, CaseEventEmitter> =
@@ -66,7 +69,7 @@ export class HomeDirectoryService {
 					'case.data',
 				);
 
-				if (!this._caseEventEmitters.has(path)) {
+				if (this._caseEventEmitters.has(path)) {
 					continue;
 				}
 
@@ -110,6 +113,11 @@ export class HomeDirectoryService {
 
 		this._caseEventEmitters.set(path, caseEventEmitter);
 
+		caseEventEmitter.once('case', () => {
+			this.__store.dispatch(actions.setActiveTabId('codemodRuns'));
+			this.__store.dispatch(actions.setSelectedCaseHash(caseHashDigest));
+		});
+
 		caseEventEmitter.once('finish', () => {
 			this._caseEventEmitters.delete(path);
 		});
@@ -129,6 +137,8 @@ export class HomeDirectoryService {
 		let kase: Case | null = null;
 
 		caseReadingService.once('case', (surfaceAgnosticCase) => {
+			console.log('emitting case');
+
 			if (
 				!this.__rootUri ||
 				!surfaceAgnosticCase.absoluteTargetPath.startsWith(
@@ -166,9 +176,13 @@ export class HomeDirectoryService {
 				kase,
 				jobs: [],
 			});
+
+			caseEventEmitter.emit('case');
 		});
 
 		const jobHandler = (surfaceAgnosticJob: SurfaceAgnosticJob) => {
+			console.log('emitting job');
+
 			if (!kase) {
 				console.error('You need to have a case to create a job');
 				caseReadingService.emit('finish');
@@ -196,7 +210,8 @@ export class HomeDirectoryService {
 				};
 
 				this.__messageBus.publish({
-					kind: MessageKind.upsertJobs,
+					kind: MessageKind.upsertCase,
+					kase,
 					jobs: [job],
 				});
 			}
@@ -235,6 +250,7 @@ export class HomeDirectoryService {
 		});
 
 		caseReadingService.once('finish', () => {
+			console.log('XXXXX');
 			if (timedOut) {
 				return;
 			}
@@ -254,9 +270,11 @@ export class HomeDirectoryService {
 			caseEventEmitter.emit('finish');
 		});
 
-		caseReadingService
-			.initialize()
-			.catch((error) => caseEventEmitter.emit('error', error));
+		caseReadingService.initialize().catch((error) => {
+			clearTimeout(timeout);
+
+			caseEventEmitter.emit('error', error);
+		});
 
 		return caseEventEmitter;
 	}
