@@ -14,6 +14,10 @@ import {
 
 interface CaseEventEmitter extends EventEmitter {
 	emit(event: 'finish'): boolean;
+	emit(event: 'error', error: Error): boolean;
+
+	once(event: 'finish', callback: () => void): this;
+	once(event: 'error', callback: (error: Error) => void): boolean;
 }
 
 class CaseEventEmitter implements EventEmitter {}
@@ -68,6 +72,16 @@ export class HomeDirectoryService {
 
 				const caseEventEmitter = this._createEventEmitter(path);
 
+				caseEventEmitter.once('finish', () => {
+					this._caseEventEmitters.delete(path);
+				});
+
+				caseEventEmitter.once('error', (error) => {
+					console.error(error);
+
+					this._caseEventEmitters.delete(path);
+				});
+
 				this._caseEventEmitters.set(path, caseEventEmitter);
 			}
 		} catch (error) {
@@ -106,8 +120,9 @@ export class HomeDirectoryService {
 
 		caseReadingService.once('case', (surfaceAgnosticCase) => {
 			if (
+				!this.__rootUri ||
 				!surfaceAgnosticCase.absoluteTargetPath.startsWith(
-					this.__rootUri!.fsPath,
+					this.__rootUri.fsPath,
 				)
 			) {
 				console.info(
@@ -191,7 +206,10 @@ export class HomeDirectoryService {
 			caseReadingService.off('job', jobHandler);
 			caseReadingService.emit('finish');
 
-			reject(new Error(`Reading the case timed out after ${TIMEOUT}ms`));
+			caseEventEmitter.emit(
+				'error',
+				new Error(`Reading the case timed out after ${TIMEOUT}ms`),
+			);
 		}, TIMEOUT);
 
 		caseReadingService.once('error', (error) => {
@@ -202,7 +220,8 @@ export class HomeDirectoryService {
 			caseReadingService.off('job', jobHandler);
 
 			clearTimeout(timeout);
-			reject(error);
+
+			caseEventEmitter.emit('error', error);
 		});
 
 		caseReadingService.once('finish', () => {
@@ -215,14 +234,19 @@ export class HomeDirectoryService {
 			clearTimeout(timeout);
 
 			if (kase === null) {
-				reject(new Error('Could not extract the case'));
+				caseEventEmitter.emit(
+					'error',
+					new Error('Could not extract the case'),
+				);
 				return;
 			}
 
-			resolve();
+			caseEventEmitter.emit('finish');
 		});
 
-		caseReadingService.initialize().catch((error) => reject(error));
+		caseReadingService
+			.initialize()
+			.catch((error) => caseEventEmitter.emit('error', error));
 
 		return caseEventEmitter;
 	}
