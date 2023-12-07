@@ -1,20 +1,18 @@
-import { createReadStream } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { FileType, Uri, window, workspace } from 'vscode';
-import { readSurfaceAgnosticCase } from './readSurfaceAgnosticCase';
 import { Case, CaseHash, caseHashCodec } from '../cases/types';
 import { Job, JobKind, jobHashCodec } from '../jobs/types';
-import { parseSurfaceAgnosticCase } from './schemata/surfaceAgnosticCaseSchema';
-import {
-	JOB_KIND,
-	parseSurfaceAgnosticJob,
-} from './schemata/surfaceAgnosticJobSchema';
 import { CodemodEntry } from '../codemods/types';
 import EventEmitter from 'events';
 import { MessageBus, MessageKind } from '../components/messageBus';
 import { Store } from '.';
 import { actions } from './slice';
+import {
+	CaseReadingService,
+	JOB_KIND,
+	SurfaceAgnosticJob,
+} from '@intuita-inc/utilities';
 
 interface HomeDirectoryEventEmitter extends EventEmitter {
 	emit(event: 'start'): boolean;
@@ -35,48 +33,24 @@ const readHomeDirectoryCase = async (
 	codemodEntities: Record<string, CodemodEntry | undefined>,
 	caseDataPath: string,
 ) => {
-	const readStream = createReadStream(caseDataPath);
-
-	await new Promise<void>((resolve, reject) => {
-		let timedOut = false;
-
-		const timeout = setTimeout(() => {
-			timedOut = true;
-			reject(
-				`Opening the read stream for ${caseDataPath} timed out after 1s.`,
-			);
-		}, 1000);
-
-		readStream.once('open', () => {
-			if (timedOut) {
-				return;
-			}
-
-			clearTimeout(timeout);
-			resolve();
-		});
-	});
+	const caseReadingService = new CaseReadingService(caseDataPath);
 
 	let kase: Case | null = null;
 
-	const fileEventEmitter = readSurfaceAgnosticCase(readStream);
-
-	fileEventEmitter.once('case', (data: unknown) => {
-		const surfaceAgnosticCase = parseSurfaceAgnosticCase(data);
-
+	caseReadingService.once('case', (surfaceAgnosticCase) => {
 		if (
 			!surfaceAgnosticCase.absoluteTargetPath.startsWith(rootUri.fsPath)
 		) {
 			console.info(
 				'The current case does not belong to the opened workspace',
 			);
-			fileEventEmitter.emit('close');
+			caseReadingService.emit('finish');
 			return;
 		}
 
 		if (!caseHashCodec.is(surfaceAgnosticCase.caseHashDigest)) {
 			console.error('Could not validate the case hash digest');
-			fileEventEmitter.emit('close');
+			caseReadingService.emit('finish');
 			return;
 		}
 
@@ -94,22 +68,20 @@ const readHomeDirectoryCase = async (
 		homeDirectoryEventEmitter.emit('job', kase, []);
 	});
 
-	const jobHandler = (data: unknown) => {
-		const surfaceAgnosticJob = parseSurfaceAgnosticJob(data);
-
+	const jobHandler = (surfaceAgnosticJob: SurfaceAgnosticJob) => {
 		if (!kase) {
 			console.error('You need to have a case to create a job');
-			fileEventEmitter.emit('close');
+			caseReadingService.emit('finish');
 			return;
 		}
 
 		if (!jobHashCodec.is(surfaceAgnosticJob.jobHashDigest)) {
 			console.error('Could not validate the job hash digest');
-			fileEventEmitter.emit('close');
+			caseReadingService.emit('finish');
 			return;
 		}
 
-		if (surfaceAgnosticJob.kind === JOB_KIND.REWRITE_FILE) {
+		if (surfaceAgnosticJob.kind === JOB_KIND.UPDATE_FILE) {
 			const job: Job = {
 				hash: surfaceAgnosticJob.jobHashDigest,
 				originalNewContent: null,
@@ -118,8 +90,8 @@ const readHomeDirectoryCase = async (
 				caseHashDigest: kase.hash,
 				// variant
 				kind: JobKind.rewriteFile,
-				oldUri: Uri.file(surfaceAgnosticJob.oldUri),
-				newContentUri: Uri.file(surfaceAgnosticJob.newUri),
+				oldUri: Uri.file(surfaceAgnosticJob.pathUri),
+				newContentUri: Uri.file(surfaceAgnosticJob.newDataUri),
 				newUri: null,
 			};
 
@@ -129,7 +101,7 @@ const readHomeDirectoryCase = async (
 		// TODO implement more job kinds
 	};
 
-	fileEventEmitter.on('job', jobHandler);
+	caseReadingService.on('job', jobHandler);
 
 	const TIMEOUT = 120_000;
 
@@ -139,29 +111,29 @@ const readHomeDirectoryCase = async (
 		const timeout = setTimeout(() => {
 			timedOut = true;
 
-			fileEventEmitter.off('job', jobHandler);
-			fileEventEmitter.emit('close');
+			caseReadingService.off('job', jobHandler);
+			caseReadingService.emit('finish');
 
 			reject(new Error(`Reading the case timed out after ${TIMEOUT}ms`));
 		}, TIMEOUT);
 
-		fileEventEmitter.once('error', (error) => {
+		caseReadingService.once('error', (error) => {
 			if (timedOut) {
 				return;
 			}
 
-			fileEventEmitter.off('job', jobHandler);
+			caseReadingService.off('job', jobHandler);
 
 			clearTimeout(timeout);
 			reject(error);
 		});
 
-		fileEventEmitter.once('end', () => {
+		caseReadingService.once('finish', () => {
 			if (timedOut) {
 				return;
 			}
 
-			fileEventEmitter.off('job', jobHandler);
+			caseReadingService.off('job', jobHandler);
 
 			clearTimeout(timeout);
 
@@ -172,6 +144,8 @@ const readHomeDirectoryCase = async (
 
 			resolve();
 		});
+
+		caseReadingService.initialize().catch((error) => reject(error));
 	});
 };
 
@@ -230,7 +204,7 @@ export const readHomeDirectoryCases = async (
 				.filter(([, fileType]) => fileType === FileType.Directory)
 				.map(([name]) => join(casesDirectoryPath, name, 'case.data'));
 
-			await Promise.allSettled(
+			const results = await Promise.allSettled(
 				caseDataPaths.map((path) =>
 					readHomeDirectoryCase(
 						eventEmitter,
@@ -240,6 +214,12 @@ export const readHomeDirectoryCases = async (
 					),
 				),
 			);
+
+			for (const result of results) {
+				if (result.status === 'rejected') {
+					console.error(result.reason);
+				}
+			}
 		} catch (error) {
 			console.error(error);
 		}
