@@ -149,7 +149,7 @@ const readHomeDirectoryCase = async (
 	});
 };
 
-export const readSingleHomeDirectoryCase = async (
+const readSingleHomeDirectoryCase = async (
 	rootUri: Uri,
 	codemodEntities: Record<string, CodemodEntry | undefined>,
 	caseHashDigest: CaseHash,
@@ -230,37 +230,75 @@ export const readHomeDirectoryCases = async (
 	return eventEmitter;
 };
 
+interface CaseEventEmitter extends EventEmitter {
+	emit(event: 'finish'): boolean;
+}
+
+// const eventEmitter = await readHomeDirectoryCases(
+// 	this.__rootUri,
+// 	this.__store.getState().codemod.entities,
+// );
+// const jobHandler = (kase: Case, jobs: ReadonlyArray<Job>) => {
+// 	this.__messageBus.publish({
+// 		kind: MessageKind.upsertCase,
+// 		kase,
+// 		jobs,
+// 	});
+// };
+// eventEmitter?.once('end', () => {
+// 	eventEmitter.off('job', jobHandler);
+// });
+// eventEmitter?.on('job', jobHandler);
+// eventEmitter?.emit('start');
+
+// const eventEmitter = await readSingleHomeDirectoryCase(
+// 	this.__rootUri,
+// 	this.__store.getState().codemod.entities,
+// 	caseHashDigest,
+// );
+
+// let caseExists = false;
+
+// const jobHandler = (kase: Case, jobs: ReadonlyArray<Job>) => {
+// 	this.__messageBus.publish({
+// 		kind: MessageKind.upsertCase,
+// 		kase,
+// 		jobs,
+// 	});
+
+// 	if (!caseExists) {
+// 		caseExists = true;
+
+// 		this.__store.dispatch(actions.setActiveTabId('codemodRuns'));
+// 		this.__store.dispatch(
+// 			actions.setSelectedCaseHash(caseHashDigest),
+// 		);
+// 	}
+// };
+
+// eventEmitter?.once('end', () => {
+// 	if (!caseExists) {
+// 		window.showErrorMessage('The requested dry-run does not exist');
+// 	}
+
+// 	eventEmitter.off('job', jobHandler);
+// });
+
+// eventEmitter?.on('job', jobHandler);
+
+// eventEmitter?.emit('start');
+
 export class HomeDirectoryService {
+	protected readonly _caseEventEmitters: Map<string, CaseEventEmitter> =
+		new Map();
+
 	public constructor(
 		private readonly __messageBus: MessageBus,
 		private readonly __store: Store,
 		private readonly __rootUri: Uri | null,
 	) {
 		__messageBus.subscribe(MessageKind.loadHomeDirectoryData, async () => {
-			if (!this.__rootUri) {
-				return;
-			}
-
-			const eventEmitter = await readHomeDirectoryCases(
-				this.__rootUri,
-				this.__store.getState().codemod.entities,
-			);
-
-			const jobHandler = (kase: Case, jobs: ReadonlyArray<Job>) => {
-				this.__messageBus.publish({
-					kind: MessageKind.upsertCase,
-					kase,
-					jobs,
-				});
-			};
-
-			eventEmitter?.once('end', () => {
-				eventEmitter.off('job', jobHandler);
-			});
-
-			eventEmitter?.on('job', jobHandler);
-
-			eventEmitter?.emit('start');
+			await this._handleLoadHomeDirectoryDataEvent();
 		});
 
 		__messageBus.subscribe(
@@ -271,46 +309,61 @@ export class HomeDirectoryService {
 		);
 	}
 
+	protected async _handleLoadHomeDirectoryDataEvent() {
+		if (!this.__rootUri) {
+			return;
+		}
+
+		const casesDirectoryPath = join(homedir(), '.intuita', 'cases');
+
+		try {
+			const entries = await workspace.fs.readDirectory(
+				Uri.file(casesDirectoryPath),
+			);
+
+			const directoryNames = entries.filter(
+				([, fileType]) => fileType === FileType.Directory,
+			);
+
+			for (const [directoryName] of directoryNames) {
+				const path = join(
+					casesDirectoryPath,
+					directoryName,
+					'case.data',
+				);
+
+				if (!this._caseEventEmitters.has(path)) {
+					// TODO create the event emitter?
+				}
+			}
+
+			// forEach(([name]) => {
+			// 	join(casesDirectoryPath, name, 'case.data'),
+			// }
+
+			this._caseEventEmitters;
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
 	private async __handleLoadHomeDirectoryCase(caseHashDigest: CaseHash) {
 		if (!this.__rootUri) {
 			return;
 		}
 
-		const eventEmitter = await readSingleHomeDirectoryCase(
-			this.__rootUri,
-			this.__store.getState().codemod.entities,
+		const path = join(
+			homedir(),
+			'.intuita',
+			'cases',
 			caseHashDigest,
+			'case.data',
 		);
 
-		let caseExists = false;
+		if (this._caseEventEmitters.has(path)) {
+			return;
+		}
 
-		const jobHandler = (kase: Case, jobs: ReadonlyArray<Job>) => {
-			this.__messageBus.publish({
-				kind: MessageKind.upsertCase,
-				kase,
-				jobs,
-			});
-
-			if (!caseExists) {
-				caseExists = true;
-
-				this.__store.dispatch(actions.setActiveTabId('codemodRuns'));
-				this.__store.dispatch(
-					actions.setSelectedCaseHash(caseHashDigest),
-				);
-			}
-		};
-
-		eventEmitter?.once('end', () => {
-			if (!caseExists) {
-				window.showErrorMessage('The requested dry-run does not exist');
-			}
-
-			eventEmitter.off('job', jobHandler);
-		});
-
-		eventEmitter?.on('job', jobHandler);
-
-		eventEmitter?.emit('start');
+		// TODO create the event emitter
 	}
 }
