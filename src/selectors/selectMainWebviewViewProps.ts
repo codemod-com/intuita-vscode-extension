@@ -39,6 +39,7 @@ export const selectMainWebviewViewProps = (
 
 	if (state.activeTabId === 'codemodRuns') {
 		return {
+			clearingInProgress: state.clearingInProgress,
 			activeTabId: state.activeTabId,
 			toaster: state.toaster,
 			applySelectedInProgress: state.applySelectedInProgress,

@@ -2,7 +2,7 @@
 	"name": "intuita-vscode-extension",
 	"displayName": "Intuita",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.37.1",
+	"version": "0.38.0",
 	"publisher": "Intuita",
 	"icon": "img/intuita_square128.png",
 	"repository": {
@@ -282,7 +282,7 @@
 	},
 	"dependencies": {
 		"@effect/schema": "0.30.3",
-		"@intuita-inc/utilities": "^1.0.1",
+		"@intuita-inc/utilities": "^1.0.2",
 		"@reduxjs/toolkit": "^1.9.5",
 		"@vscode/extension-telemetry": "^0.7.7",
 		"axios": "^1.2.2",

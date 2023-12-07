@@ -9,8 +9,8 @@ dependencies:
     specifier: 0.30.3
     version: 0.30.3
   '@intuita-inc/utilities':
-    specifier: ^1.0.1
-    version: 1.0.1(effect@2.0.0-next.59)(fast-check@3.14.0)
+    specifier: ^1.0.2
+    version: 1.0.2(effect@2.0.0-next.59)(fast-check@3.14.0)
   '@reduxjs/toolkit':
     specifier: ^1.9.5
     version: 1.9.5
@@ -785,8 +785,8 @@ packages:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     dev: true
 
-  /@intuita-inc/utilities@1.0.1(effect@2.0.0-next.59)(fast-check@3.14.0):
-    resolution: {integrity: sha512-qTIp9n5Jh00fst3l3T8qZ/Wd81j+I3NgjPp9IVMSZoe3JWb9YUujRJLh0BbGJysQ7Ve0vHcEF/s1K3yVMCvxlw==}
+  /@intuita-inc/utilities@1.0.2(effect@2.0.0-next.59)(fast-check@3.14.0):
+    resolution: {integrity: sha512-qhJ6W2Ia4/ivLyPrR1qXJVszG8FRzlV8G54ozSHRpSCmAwrYsJCNZ4zA8TxVXZD9Fk3dJLP+bi0CCEvnLC+7hw==}
     dependencies:
       '@effect/schema': 0.52.0(effect@2.0.0-next.59)(fast-check@3.14.0)
     transitivePeerDependencies:

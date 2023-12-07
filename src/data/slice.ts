@@ -45,6 +45,7 @@ export const jobAdapter = createEntityAdapter<PersistedJob>({
 
 export const getInitialState = (): RootState => {
 	return {
+		clearingInProgress: false,
 		codemod: codemodAdapter.getInitialState(),
 		privateCodemods: privateCodemodAdapter.getInitialState(),
 		case: caseAdapter.getInitialState(),
@@ -142,6 +143,8 @@ const rootSlice = createSlice({
 			jobAdapter.upsertMany(state.job, action.payload);
 		},
 		clearState(state) {
+			state.clearingInProgress = true;
+
 			caseAdapter.removeAll(state.case);
 			jobAdapter.removeAll(state.job);
 
@@ -156,6 +159,9 @@ const rootSlice = createSlice({
 			state.collapsedExplorerNodes = {};
 			state.reviewedExplorerNodes = {};
 			state.focusedExplorerNodes = {};
+		},
+		onStateCleared(state) {
+			state.clearingInProgress = false;
 		},
 		setCodemods(state, action: PayloadAction<ReadonlyArray<CodemodEntry>>) {
 			codemodAdapter.setAll(state.codemod, action.payload);
