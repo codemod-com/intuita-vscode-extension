@@ -7,4 +7,4 @@ export const argumentRecordSchema = S.record(
 
 export const parseArgumentRecordSchema = S.parseSync(argumentRecordSchema);
 
-export type ArgumentRecord = S.To<typeof argumentRecordSchema>;
+export type ArgumentRecord = S.Schema.To<typeof argumentRecordSchema>;

@@ -48,7 +48,7 @@ const piranhaLanguageSchema = S.union(
 	...PIRANHA_LANGUAGES.map((language) => S.literal(language)),
 );
 
-export type PiranhaLanguage = S.To<typeof piranhaLanguageSchema>;
+export type PiranhaLanguage = S.Schema.To<typeof piranhaLanguageSchema>;
 
 export const parsePiranhaLanguage = S.parseSync(piranhaLanguageSchema);
 
@@ -89,5 +89,5 @@ export const codemodConfigSchema = S.union(
 
 export const parseCodemodConfigSchema = S.parseSync(codemodConfigSchema);
 
-export type CodemodArgument = S.To<typeof argumentSchema>;
-export type CodemodConfig = S.To<typeof codemodConfigSchema>;
+export type CodemodArgument = S.Schema.To<typeof argumentSchema>;
+export type CodemodConfig = S.Schema.To<typeof codemodConfigSchema>;
