@@ -182,19 +182,21 @@ export async function activate(context: vscode.ExtensionContext) {
 		mainViewProvider,
 	);
 
-	vscode.window.onDidChangeWindowState((event) => {
-		let syncRegistryIntervalId;
-		if (event.focused) {
-			// Interval in milliseconds (15 minutes)
-			const interval = 15 * 60 * 1000;
+	let syncRegistryIntervalId: NodeJS.Timer | null = null;
 
-			// Start the interval
-			syncRegistryIntervalId = setInterval(async () => {
-				await engineService.syncRegistry();
-			}, interval);
-		} else {
+	vscode.window.onDidChangeWindowState((event) => {
+		if (syncRegistryIntervalId) {
 			clearInterval(syncRegistryIntervalId);
+			syncRegistryIntervalId = null;
 		}
+
+		if (!event.focused) {
+			return;
+		}
+
+		syncRegistryIntervalId = setInterval(async () => {
+			await engineService.syncRegistry();
+		}, 15 * 60 * 1000);
 	});
 	// this is only used by the intuita panel's webview
 	context.subscriptions.push(
