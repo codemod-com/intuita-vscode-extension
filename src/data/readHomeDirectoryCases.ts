@@ -27,6 +27,66 @@ interface HomeDirectoryEventEmitter extends EventEmitter {
 	): this;
 }
 
+const buildPartialJob = (
+	surfaceAgnosticJob: SurfaceAgnosticJob,
+): Pick<Job, 'kind' | 'oldUri' | 'newContentUri' | 'newUri'> => {
+	if (surfaceAgnosticJob.kind === JOB_KIND.CREATE_FILE) {
+		return {
+			kind: JobKind.createFile,
+			oldUri: null,
+			newContentUri: Uri.file(surfaceAgnosticJob.dataUri),
+			newUri: Uri.file(surfaceAgnosticJob.pathUri),
+		};
+	}
+
+	if (surfaceAgnosticJob.kind === JOB_KIND.UPDATE_FILE) {
+		return {
+			kind: JobKind.rewriteFile,
+			oldUri: Uri.file(surfaceAgnosticJob.pathUri),
+			newContentUri: Uri.file(surfaceAgnosticJob.newDataUri),
+			newUri: null,
+		};
+	}
+
+	if (surfaceAgnosticJob.kind === JOB_KIND.MOVE_FILE) {
+		return {
+			kind: JobKind.moveFile,
+			oldUri: Uri.file(surfaceAgnosticJob.oldPathUri),
+			newContentUri: null,
+			newUri: Uri.file(surfaceAgnosticJob.newPathUri),
+		};
+	}
+
+	if (surfaceAgnosticJob.kind === JOB_KIND.MOVE_AND_UPDATE_FILE) {
+		return {
+			kind: JobKind.moveFile,
+			oldUri: Uri.file(surfaceAgnosticJob.oldPathUri),
+			newContentUri: Uri.file(surfaceAgnosticJob.newDataUri),
+			newUri: Uri.file(surfaceAgnosticJob.newPathUri),
+		};
+	}
+
+	if (surfaceAgnosticJob.kind === JOB_KIND.DELETE_FILE) {
+		return {
+			kind: JobKind.deleteFile,
+			oldUri: Uri.file(surfaceAgnosticJob.pathUri),
+			newContentUri: null,
+			newUri: null,
+		};
+	}
+
+	if (surfaceAgnosticJob.kind === JOB_KIND.COPY_FILE) {
+		return {
+			kind: JobKind.deleteFile,
+			oldUri: Uri.file(surfaceAgnosticJob.sourcePathUri),
+			newContentUri: null,
+			newUri: Uri.file(surfaceAgnosticJob.targetPathUri),
+		};
+	}
+
+	throw new Error('Unsupported surface agnostic job');
+};
+
 const readHomeDirectoryCase = async (
 	homeDirectoryEventEmitter: HomeDirectoryEventEmitter,
 	rootUri: Uri,
@@ -81,24 +141,16 @@ const readHomeDirectoryCase = async (
 			return;
 		}
 
-		if (surfaceAgnosticJob.kind === JOB_KIND.UPDATE_FILE) {
-			const job: Job = {
-				hash: surfaceAgnosticJob.jobHashDigest,
-				originalNewContent: null,
-				codemodName: kase.codemodName,
-				createdAt: kase.createdAt,
-				caseHashDigest: kase.hash,
-				// variant
-				kind: JobKind.rewriteFile,
-				oldUri: Uri.file(surfaceAgnosticJob.pathUri),
-				newContentUri: Uri.file(surfaceAgnosticJob.newDataUri),
-				newUri: null,
-			};
+		const job: Job = {
+			hash: surfaceAgnosticJob.jobHashDigest,
+			originalNewContent: null,
+			codemodName: kase.codemodName,
+			createdAt: kase.createdAt,
+			caseHashDigest: kase.hash,
+			...buildPartialJob(surfaceAgnosticJob),
+		};
 
-			homeDirectoryEventEmitter.emit('job', kase, [job]);
-		}
-
-		// TODO implement more job kinds
+		homeDirectoryEventEmitter.emit('job', kase, [job]);
 	};
 
 	caseReadingService.on('job', jobHandler);
