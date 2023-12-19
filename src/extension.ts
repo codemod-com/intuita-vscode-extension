@@ -90,7 +90,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 				searchParams.set(
 					SEARCH_PARAMS_KEYS.COMMAND,
-					'accessTokenRequested',
+					'accessTokenRequestedByVSCE',
 				);
 
 				const url = new URL('https://codemod.studio');
@@ -224,7 +224,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			searchParams.set(
 				SEARCH_PARAMS_KEYS.COMMAND,
-				'accessTokenRequested',
+				'accessTokenRequestedByVSCE',
 			);
 
 			const url = new URL('https://codemod.studio');
@@ -1178,7 +1178,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 						searchParams.set(
 							SEARCH_PARAMS_KEYS.COMMAND,
-							'accessTokenRequested',
+							'accessTokenRequestedByVSCE',
 						);
 
 						const url = new URL('https://codemod.studio');
