@@ -9,22 +9,28 @@ export const selectCodemodRunsTree = (state: RootState, rootPath: string) => {
 	const nodeData = Object.values(state.case.entities)
 		.filter(isNeitherNullNorUndefined)
 		.sort((a, b) => a.createdAt - b.createdAt)
-		.map(
-			(kase) =>
-				({
-					node: {
-						hashDigest: kase.hash,
-						label: kase.codemodName,
-						createdAt: kase.createdAt,
-						path: kase.path.replace(rootPath, dirName),
-					} as const,
-					depth: 0,
-					expanded: true,
-					focused: kase.hash === selectedCaseHash,
-					collapsable: false,
-					reviewed: false,
-				} as const),
-		);
+		.map((kase) => {
+			const label =
+				kase.codemodHashDigest !== undefined
+					? state.privateCodemods.entities[kase.codemodHashDigest]
+							?.name ??
+					  state.codemod.entities[kase.codemodHashDigest]?.name
+					: kase.codemodName;
+
+			return {
+				node: {
+					hashDigest: kase.hash,
+					label,
+					createdAt: kase.createdAt,
+					path: kase.path.replace(rootPath, dirName),
+				} as const,
+				depth: 0,
+				expanded: true,
+				focused: kase.hash === selectedCaseHash,
+				collapsable: false,
+				reviewed: false,
+			} as const;
+		});
 
 	return {
 		nodeData,

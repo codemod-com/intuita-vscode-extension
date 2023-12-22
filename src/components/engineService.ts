@@ -627,6 +627,10 @@ export class EngineService {
 			case: {
 				hash: caseHashDigest,
 				codemodName: message.command.name,
+				codemodHashDigest:
+					'codemodHash' in message.command
+						? message.command.codemodHash ?? undefined
+						: undefined,
 				createdAt: Number(message.happenedAt),
 				path: message.targetUri.fsPath,
 			},

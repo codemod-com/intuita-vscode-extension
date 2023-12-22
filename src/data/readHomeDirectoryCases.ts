@@ -121,6 +121,7 @@ const readHomeDirectoryCase = async (
 		kase = {
 			hash: surfaceAgnosticCase.caseHashDigest,
 			codemodName: `${codemodName} (CLI)`,
+			codemodHashDigest: surfaceAgnosticCase.codemodHashDigest,
 			createdAt: Number(surfaceAgnosticCase.createdAt),
 			path: surfaceAgnosticCase.absoluteTargetPath,
 		};
