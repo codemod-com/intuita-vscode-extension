@@ -1,3 +1,4 @@
+import { withFallback } from 'io-ts-types';
 import { buildTypeCodec } from '../utilities';
 import * as t from 'io-ts';
 
@@ -16,7 +17,11 @@ export type CaseHash = t.TypeOf<typeof caseHashCodec>;
 
 export const caseCodec = buildTypeCodec({
 	hash: caseHashCodec,
-	codemodName: t.string,
+	codemodName: t.string, // deprecated
+	codemodHashDigest: withFallback(
+		t.union([t.string, t.undefined]),
+		undefined,
+	),
 	createdAt: t.number,
 	path: t.string,
 });
