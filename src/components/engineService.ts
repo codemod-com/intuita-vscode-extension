@@ -838,7 +838,7 @@ export class EngineService {
 				);
 
 				commands.executeCommand('intuitaMainView.focus');
-				
+
 				if (
 					!this.#execution.halted &&
 					!this.#execution.affectedAnyFile
