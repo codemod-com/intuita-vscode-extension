@@ -53,8 +53,10 @@ export const App = (
 		);
 	}
 
+	type TreeNode = CodemodRunsTree['nodeData'][0]['node'];
+
 	return (
-		<IntuitaTreeView<CaseHash, CodemodRunsTree['nodeData'][0]['node']>
+		<IntuitaTreeView<CaseHash, TreeNode>
 			focusedNodeHashDigest={props.codemodRunsTree.selectedNodeHashDigest}
 			collapsedNodeHashDigests={[]}
 			nodeData={props.codemodRunsTree.nodeData}
