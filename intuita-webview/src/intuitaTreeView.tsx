@@ -28,13 +28,14 @@ export type NodeDatum<HD extends string, TN extends TreeNode<HD>> = Readonly<{
 export type TreeViewProps<
 	HD extends string,
 	TN extends TreeNode<HD>,
+	ND extends NodeDatum<HD, TN>,
 > = Readonly<{
 	focusedNodeHashDigest: HD | null;
 	collapsedNodeHashDigests: ReadonlyArray<HD>;
-	nodeData: ReadonlyArray<NodeDatum<HD, TN>>;
+	nodeData: ReadonlyArray<ND>;
 	nodeRenderer: (
 		props: Readonly<{
-			nodeDatum: NodeDatum<HD, TN>;
+			nodeDatum: ND;
 			onFlip: (hashDigest: HD) => void;
 			onFocus: (hashDigest: HD) => void;
 		}>,
@@ -43,8 +44,12 @@ export type TreeViewProps<
 	onFocus: (hashDigest: HD) => void;
 }>;
 
-export const IntuitaTreeView = <HD extends string, TN extends TreeNode<HD>>(
-	props: TreeViewProps<HD, TN>,
+export const IntuitaTreeView = <
+	HD extends string,
+	TN extends TreeNode<HD> = TreeNode<HD>,
+	ND extends NodeDatum<HD, TN> = NodeDatum<HD, TN>,
+>(
+	props: TreeViewProps<HD, TN, ND>,
 ) => {
 	const ref = useRef<HTMLDivElement>(null);
 

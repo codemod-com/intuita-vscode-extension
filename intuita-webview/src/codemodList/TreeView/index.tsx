@@ -6,6 +6,7 @@ import {
 	CodemodNode,
 	CodemodNodeHashDigest,
 	CodemodTree,
+	NodeDatum,
 } from '../../../../src/selectors/selectCodemodTree';
 
 import { IntuitaTreeView } from '../../intuitaTreeView';
@@ -43,7 +44,7 @@ const TreeView = ({
 	const progress = useProgressBar();
 
 	return (
-		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode>
+		<IntuitaTreeView<CodemodNodeHashDigest, CodemodNode, NodeDatum>
 			{...tree}
 			nodeRenderer={getCodemodNodeRenderer({
 				progress,
