@@ -150,7 +150,6 @@ const getCodemodNodeRenderer =
 												? `Processed ${progress.processedFileNumber} / ${progress.totalFileNumber} files`
 												: 'Processing all files...'}
 										</p>
-
 										{renderProgressBar(progress)}
 									</div>
 								</div>

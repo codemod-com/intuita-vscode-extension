@@ -1,4 +1,5 @@
 import { Line } from 'rc-progress';
+import { memo } from 'react';
 
 const ProgressBar = (
 	props: Readonly<{
@@ -17,4 +18,4 @@ const ProgressBar = (
 	</div>
 );
 
-export default ProgressBar;
+export default memo(ProgressBar);
