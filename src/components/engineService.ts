@@ -839,7 +839,10 @@ export class EngineService {
 
 				commands.executeCommand('intuitaMainView.focus');
 
-				if (!this.#execution.affectedAnyFile) {
+				if (
+					!this.#execution.halted &&
+					!this.#execution.affectedAnyFile
+				) {
 					window.showWarningMessage(Messages.noAffectedFiles);
 				}
 			}
