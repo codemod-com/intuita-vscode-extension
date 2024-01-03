@@ -217,7 +217,8 @@ export class MainViewProvider implements WebviewViewProvider {
 			}
 
 			if (
-				prevProps.activeTabId !== nextProps.activeTabId &&
+				nextProps !== null &&
+				prevProps?.activeTabId !== nextProps.activeTabId &&
 				nextProps.activeTabId === 'codemodRuns' &&
 				!nextProps.clearingInProgress
 			) {

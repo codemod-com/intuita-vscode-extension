@@ -12,6 +12,10 @@ export const selectMainWebviewViewProps = (
 	autocompleteItems: ReadonlyArray<string>,
 	executionQueue: ReadonlyArray<CodemodHash>,
 ) => {
+	if (rootUri === null) {
+		return null;
+	}
+
 	if (state.activeTabId === 'codemods') {
 		return {
 			activeTabId: state.activeTabId,

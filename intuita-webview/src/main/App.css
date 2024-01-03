@@ -65,3 +65,10 @@
 	height: 4em;
 	width: 100%;
 }
+
+.warning {
+	font-size: var(--type-ramp-base-font-size);
+	line-height: var(--type-ramp-base-line-height);
+	display: block;
+	color: var(--foreground);
+}
