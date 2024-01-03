@@ -23,7 +23,7 @@ const FormField = (props: Props) => {
 				className={styles.field}
 				title={description}
 			>
-				{name} {required && '*'}
+				{name} {required && '(required)'}
 			</VSCodeTextField>
 		);
 	}
