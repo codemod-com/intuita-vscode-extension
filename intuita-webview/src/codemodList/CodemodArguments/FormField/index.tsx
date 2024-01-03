@@ -19,7 +19,11 @@ const FormField = (props: Props) => {
 				placeholder={name}
 				value={String(value)}
 				// we need to explicitly set the type of target
-				onInput={(e) => onChange((e as React.ChangeEvent<HTMLInputElement>).target.value)}
+				onInput={(e) =>
+					onChange(
+						(e as React.ChangeEvent<HTMLInputElement>).target.value,
+					)
+				}
 				className={styles.field}
 				title={description}
 			>
@@ -31,7 +35,11 @@ const FormField = (props: Props) => {
 	if (kind === 'options') {
 		return (
 			<VSCodeDropdown
-				onChange={(e) => onChange((e as React.ChangeEvent<HTMLInputElement>).target.value)}
+				onChange={(e) =>
+					onChange(
+						(e as React.ChangeEvent<HTMLInputElement>).target.value,
+					)
+				}
 				value={value}
 			>
 				{props.options.map((o) => (
@@ -50,7 +58,12 @@ const FormField = (props: Props) => {
 				title={description}
 				checked={value}
 				onChange={(e) => {
-					onChange(String((e as React.ChangeEvent<HTMLInputElement>).target.checked));
+					onChange(
+						String(
+							(e as React.ChangeEvent<HTMLInputElement>).target
+								.checked,
+						),
+					);
 				}}
 			/>
 		</div>
