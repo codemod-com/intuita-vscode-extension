@@ -19,7 +19,7 @@ const FormField = (props: Props) => {
 				placeholder={name}
 				value={String(value)}
 				// @ts-expect-error value exists on target
-				onInput={(e) => onChange(e.target.value )}
+				onInput={(e) => onChange(e.target.value)}
 				className={styles.field}
 				title={description}
 			>
@@ -30,10 +30,11 @@ const FormField = (props: Props) => {
 
 	if (kind === 'options') {
 		return (
-			<VSCodeDropdown 
+			<VSCodeDropdown
 				// @ts-expect-error value exists on target
-				onChange={(e) => e.target.value} 
-				value={value}>
+				onChange={(e) => e.target.value}
+				value={value}
+			>
 				{props.options.map((o) => (
 					<VSCodeOption value={o}>{o}</VSCodeOption>
 				))}
@@ -51,7 +52,7 @@ const FormField = (props: Props) => {
 				checked={value}
 				onChange={(e) => {
 					// @ts-expect-error checked prop
-					onChange(String(e.target.checked))
+					onChange(String(e.target.checked));
 				}}
 			/>
 		</div>
