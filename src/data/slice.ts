@@ -331,6 +331,13 @@ const rootSlice = createSlice({
 					);
 				}
 
+				// if we persist collapsed state (e.g [0, 100]), last noticed panel sizes (user's resizing) will be lost when panel is unmounted
+				// so we want to persist only users resizing
+				// collapsed state is already handled by boolean flags resultsCollapsed, changeExplorerCollapsed
+				if (validation.right['0,0']?.some((size) => size === 0)) {
+					return;
+				}
+
 				state.codemodRunsTab.panelGroupSettings = validation.right;
 			} catch (error) {
 				console.error(error);
