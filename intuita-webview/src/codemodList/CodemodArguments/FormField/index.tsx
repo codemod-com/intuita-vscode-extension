@@ -18,8 +18,12 @@ const FormField = (props: Props) => {
 			<VSCodeTextField
 				placeholder={name}
 				value={String(value)}
-				// @ts-expect-error value exists on target
-				onInput={(e) => onChange(e.target.value)}
+				// we need to explicitly set the type of target
+				onInput={(e) =>
+					onChange(
+						(e as React.ChangeEvent<HTMLInputElement>).target.value,
+					)
+				}
 				className={styles.field}
 				title={description}
 			>
@@ -31,8 +35,11 @@ const FormField = (props: Props) => {
 	if (kind === 'options') {
 		return (
 			<VSCodeDropdown
-				// @ts-expect-error value exists on target
-				onChange={(e) => e.target.value}
+				onChange={(e) =>
+					onChange(
+						(e as React.ChangeEvent<HTMLInputElement>).target.value,
+					)
+				}
 				value={value}
 			>
 				{props.options.map((o) => (
@@ -51,8 +58,12 @@ const FormField = (props: Props) => {
 				title={description}
 				checked={value}
 				onChange={(e) => {
-					// @ts-expect-error checked prop
-					onChange(String(e.target.checked));
+					onChange(
+						String(
+							(e as React.ChangeEvent<HTMLInputElement>).target
+								.checked,
+						),
+					);
 				}}
 			/>
 		</div>
