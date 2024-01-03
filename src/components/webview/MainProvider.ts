@@ -211,7 +211,6 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		this.__store.subscribe(async () => {
 			const nextProps = this.__buildProps();
-
 			if (areEqual(prevProps, nextProps)) {
 				return;
 			}

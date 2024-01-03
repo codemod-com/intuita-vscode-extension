@@ -46,10 +46,8 @@ const CodemodArguments = ({
 	executionPath,
 }: Props) => {
 	const onChangeFormField =
-		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
-			const value = (e as React.ChangeEvent<HTMLInputElement>).target
-				.value;
-
+		(fieldName: string) => (value: string) => {
+			
 			vscode.postMessage({
 				kind: 'webview.global.setCodemodArgument',
 				hashDigest,
