@@ -508,7 +508,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				actions.setCodemodSearchPhrase(message.searchPhrase),
 			);
 		}
-
+		
 		if (message.kind === 'webview.global.collapseResultsPanel') {
 			this.__store.dispatch(
 				actions.collapseResultsPanel(message.collapsed),

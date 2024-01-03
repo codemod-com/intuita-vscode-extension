@@ -91,7 +91,7 @@ export const CodemodRuns = (
 				<ResizablePanel
 					collapsible
 					minSize={0}
-					defaultSize={props.panelGroupSettings['0,0']?.[0] ?? 50}
+					defaultSize={props.resultsCollapsed ? props.panelGroupSettings['0,0']?.[0] ?? 50 : 0}
 					style={{
 						overflowY: 'auto',
 						overflowX: 'hidden',
@@ -127,7 +127,7 @@ export const CodemodRuns = (
 				<ResizablePanel
 					collapsible
 					minSize={0}
-					defaultSize={props.panelGroupSettings['0,0']?.[1] ?? 50}
+					defaultSize={props.changeExplorerCollapsed ? 0 : props.panelGroupSettings['0,0']?.[1] ?? 50}
 					style={{
 						overflowY: 'auto',
 						overflowX: 'hidden',
