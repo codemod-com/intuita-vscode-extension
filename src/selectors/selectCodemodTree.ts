@@ -388,7 +388,7 @@ export const selectCodemodArguments = (
 			case 'boolean': {
 				return {
 					...arg,
-					value: Boolean(value),
+					value: value === 'true',
 				};
 			}
 		}

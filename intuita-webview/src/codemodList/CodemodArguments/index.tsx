@@ -45,18 +45,14 @@ const CodemodArguments = ({
 	rootPath,
 	executionPath,
 }: Props) => {
-	const onChangeFormField =
-		(fieldName: string) => (e: Event | React.FormEvent<HTMLElement>) => {
-			const value = (e as React.ChangeEvent<HTMLInputElement>).target
-				.value;
-
-			vscode.postMessage({
-				kind: 'webview.global.setCodemodArgument',
-				hashDigest,
-				name: fieldName,
-				value,
-			});
-		};
+	const onChangeFormField = (fieldName: string) => (value: string) => {
+		vscode.postMessage({
+			kind: 'webview.global.setCodemodArgument',
+			hashDigest,
+			name: fieldName,
+			value,
+		});
+	};
 
 	const error: string | null = pipe(
 		O.fromNullable(executionPath),

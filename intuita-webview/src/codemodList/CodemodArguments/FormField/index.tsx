@@ -8,7 +8,7 @@ import styles from './style.module.css';
 import { CodemodArgumentWithValue } from '../../../../../src/selectors/selectCodemodTree';
 
 type Props = CodemodArgumentWithValue & {
-	onChange(e: Event | React.FormEvent<HTMLElement>): void;
+	onChange(value: string): void;
 };
 
 const FormField = (props: Props) => {
@@ -18,7 +18,8 @@ const FormField = (props: Props) => {
 			<VSCodeTextField
 				placeholder={name}
 				value={String(value)}
-				onInput={onChange}
+				// @ts-expect-error value exists on target
+				onInput={(e) => onChange(e.target.value)}
 				className={styles.field}
 				title={description}
 			>
@@ -29,7 +30,11 @@ const FormField = (props: Props) => {
 
 	if (kind === 'options') {
 		return (
-			<VSCodeDropdown onChange={onChange} value={value}>
+			<VSCodeDropdown
+				// @ts-expect-error value exists on target
+				onChange={(e) => e.target.value}
+				value={value}
+			>
 				{props.options.map((o) => (
 					<VSCodeOption value={o}>{o}</VSCodeOption>
 				))}
@@ -45,7 +50,10 @@ const FormField = (props: Props) => {
 			<VSCodeCheckbox
 				title={description}
 				checked={value}
-				onChange={onChange}
+				onChange={(e) => {
+					// @ts-expect-error checked prop
+					onChange(String(e.target.checked));
+				}}
 			/>
 		</div>
 	);
