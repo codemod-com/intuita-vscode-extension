@@ -90,7 +90,10 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		if (mainWebviewViewProps.toaster === null) {
+		if (
+			mainWebviewViewProps === null ||
+			mainWebviewViewProps.toaster === null
+		) {
 			return;
 		}
 
@@ -122,7 +125,7 @@ function App() {
 			kind: 'webview.main.setToaster',
 			value: null,
 		});
-	}, [mainWebviewViewProps.toaster]);
+	}, [mainWebviewViewProps, mainWebviewViewProps?.toaster]);
 
 	const handlePanelTabClick = (id: ActiveTabId) => {
 		vscode.postMessage({
@@ -130,6 +133,16 @@ function App() {
 			activeTabId: id,
 		});
 	};
+
+	if (mainWebviewViewProps === null) {
+		return (
+			<main className="App" ref={ref}>
+				<p className="warning">
+					Open a workspace folder to use the Intuita VSCode Extension.
+				</p>
+			</main>
+		);
+	}
 
 	return (
 		<main className="App" ref={ref}>
