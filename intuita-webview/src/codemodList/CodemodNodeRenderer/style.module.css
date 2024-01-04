@@ -44,6 +44,10 @@
 	align-items: center;
 }
 
+.labelContainer.focused {
+	color: var(--vscode-list-activeSelectionForeground);
+}
+
 .directorySelector {
 	display: flex;
 }
@@ -69,6 +73,7 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
+	color: inherit;
 }
 
 .codemodRoot {

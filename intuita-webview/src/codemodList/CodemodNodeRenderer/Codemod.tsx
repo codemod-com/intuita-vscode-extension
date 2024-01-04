@@ -245,7 +245,12 @@ const Codemod = ({
 						<span className={cn('codicon', 'codicon-verified')} />
 					)}
 				</IntuitaPopover>
-				<span className={styles.labelContainer}>
+				<span
+					className={cn(
+						styles.labelContainer,
+						focused && styles.focused,
+					)}
+				>
 					<span
 						className={styles.label}
 						style={getLabelStyle(areButtonsVisible, screenWidth)}

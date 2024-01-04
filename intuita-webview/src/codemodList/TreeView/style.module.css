@@ -2,6 +2,7 @@
 	margin-left: 3px;
 	display: flex;
 	align-items: center;
+	color: inherit;
 }
 
 .active {
