@@ -67,7 +67,7 @@ export const createIssue = async (
 ): Promise<{ status: number; html_url: string | null }> => {
 	// call API to create Github Issue
 	const codemodRegistryRepo =
-		'https://github.com/intuita-inc/codemod-registry';
+		'https://github.com/codemod-com/codemod-registry';
 	const result = await axios.post(
 		'https://telemetry.intuita.io/sourceControl/github/issues',
 		{
