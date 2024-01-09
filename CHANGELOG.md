@@ -10,7 +10,7 @@ _Release date: December 1, 2023_
 
 ### **Highlights**
 
-- 🔲 Fetch the latest codemods from codemod registry every 15 minutes ([#831](https://github.com/intuita-inc/intuita-vscode-extension/pull/831))
+- 🔲 Fetch the latest codemods from codemod registry every 15 minutes ([#831](https://github.com/codemod-com/intuita-vscode-extension/pull/831))
 - 🐍 Another item
 
 **Notable Changes**

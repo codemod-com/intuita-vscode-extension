@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-> :warning: Use this to report bugs related to the Intuita VS Code extension, not codemod-specific issues and improvements. For codemod-specific issues, please [submit an issue in the codemod registry](https://github.com/intuita-inc/codemod-registry/issues).
+> :warning: Use this to report bugs related to the Intuita VS Code extension, not codemod-specific issues and improvements. For codemod-specific issues, please [submit an issue in the codemod registry](https://github.com/codemod-com/codemod-registry/issues).
 
 ### Describe the bug
 A clear and concise description of what the bug is.
