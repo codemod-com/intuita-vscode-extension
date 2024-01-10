@@ -65,11 +65,15 @@ export class BootstrapExecutablesService {
 		return executableUri;
 	}
 
-	private async __bootstrapCodemodEngineRustExecutableUri(): Promise<Uri> {
+	private async __bootstrapCodemodEngineRustExecutableUri(): Promise<Uri | null> {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
 				: encodeURIComponent(process.platform);
+		
+		if(platform === 'win32') {
+			return null;
+		}
 
 		const executableBaseName = `codemod-engine-rust-${platform}`;
 

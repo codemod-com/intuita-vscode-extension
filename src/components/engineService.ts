@@ -565,11 +565,11 @@ export class EngineService {
 			message,
 			storageUri,
 		);
+
 		
 		const executableCommand = message.command.kind === 'executePiranhaRule'
-		? this.__getCodemodEngineNodeExecutableCommand()
-		: this.__getCodemodEngineRustExecutableCommand()
-		
+		? this.__getCodemodEngineRustExecutableCommand()
+		: this.__getCodemodEngineNodeExecutableCommand()
 		const childProcess = spawn(
 			executableCommand,
 			args,
