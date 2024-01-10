@@ -244,17 +244,32 @@ export class EngineService {
 		await this.fetchPrivateCodemods();
 	}
 
+	private __getCodemodEngineNodeExecutableCommand() {
+		if (this.__codemodEngineNodeExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		return process.platform !== 'win32' ? singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath) : this.__codemodEngineNodeExecutableUri.fsPath;
+	}
+
+	private __getCodemodEngineRustExecutableCommand() {
+		if (this.__codemodEngineRustExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		return process.platform !== 'win32' ? singleQuotify(this.__codemodEngineRustExecutableUri.fsPath) : this.__codemodEngineRustExecutableUri.fsPath;
+	}
+
+
 	public isEngineBootstrapped() {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
 	public async syncRegistry(): Promise<void> {
-		if (this.__codemodEngineNodeExecutableUri === null) {
-			throw new Error('The engines are not bootstrapped.');
-		}
+		
 
 		const childProcess = spawn(
-			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+			this.__getCodemodEngineNodeExecutableCommand(), 
 			['syncRegistry'],
 			{
 				stdio: 'pipe',
@@ -275,16 +290,8 @@ export class EngineService {
 	}
 
 	public async __getCodemodNames(): Promise<ReadonlyArray<string>> {
-		const executableUri = this.__codemodEngineNodeExecutableUri;
-
-		if (executableUri === null) {
-			throw new EngineNotFoundError(
-				'The codemod engine node has not been downloaded yet',
-			);
-		}
-
 		const childProcess = spawn(
-			singleQuotify(executableUri.fsPath),
+			this.__getCodemodEngineNodeExecutableCommand(),
 			['list', '--useJson', '--useCache'],
 			{
 				stdio: 'pipe',
@@ -294,7 +301,6 @@ export class EngineService {
 		);
 
 		const codemodListJSON = await streamToString(childProcess.stdout);
-
 		try {
 			const codemodListOrError = codemodNamesCodec.decode(
 				JSON.parse(codemodListJSON),
@@ -511,6 +517,7 @@ export class EngineService {
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
+
 		if (this.#execution) {
 			if (message.command.kind === 'executeCodemod') {
 				this.__executionMessageQueue.push(
@@ -528,17 +535,6 @@ export class EngineService {
 			await window.showErrorMessage(
 				'Wait until the previous codemod set execution has finished',
 			);
-			return;
-		}
-
-		if (
-			!this.__codemodEngineNodeExecutableUri ||
-			!this.__codemodEngineRustExecutableUri
-		) {
-			await window.showErrorMessage(
-				'Wait until the engines has been bootstrapped to execute the operation',
-			);
-
 			return;
 		}
 
@@ -569,13 +565,13 @@ export class EngineService {
 			message,
 			storageUri,
 		);
-
+		
+		const executableCommand = message.command.kind === 'executePiranhaRule'
+		? this.__getCodemodEngineNodeExecutableCommand()
+		: this.__getCodemodEngineRustExecutableCommand()
+		
 		const childProcess = spawn(
-			singleQuotify(
-				message.command.kind === 'executePiranhaRule'
-					? this.__codemodEngineRustExecutableUri.fsPath
-					: this.__codemodEngineNodeExecutableUri.fsPath,
-			),
+			executableCommand,
 			args,
 			{
 				stdio: 'pipe',
