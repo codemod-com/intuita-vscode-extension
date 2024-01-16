@@ -245,7 +245,10 @@ const Codemod = ({
 						<span className={cn('codicon', 'codicon-verified')} />
 					)}
 				</IntuitaPopover>
-				<span className={styles.labelContainer}>
+				<span
+					className={styles.labelContainer}
+					id={`${hashDigest}-body`}
+				>
 					<span
 						className={styles.label}
 						style={getLabelStyle(areButtonsVisible, screenWidth)}

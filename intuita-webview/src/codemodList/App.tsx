@@ -17,6 +17,7 @@ import type { MainWebviewViewProps } from '../../../src/selectors/selectMainWebv
 import cn from 'classnames';
 import { SectionHeader } from '../shared/SectionHeader';
 import styles from './style.module.css';
+import { WebviewMessage } from '../shared/types';
 
 const setSearchPhrase = (searchPhrase: string) => {
 	vscode.postMessage({
@@ -34,6 +35,28 @@ export const App = memo(
 	) => {
 		const publicRegistryRef = useRef<ImperativePanelHandle | null>(null);
 		const privateRegistryRef = useRef<ImperativePanelHandle | null>(null);
+
+		useEffect(() => {
+			const handler = (e: MessageEvent<WebviewMessage>) => {
+				const message = e.data;
+
+				if (message.kind === 'webview.global.scrollToCodemod') {
+					const element = document.getElementById(
+						`${message.hashDigest}-body`,
+					);
+
+					if (element) {
+						element.scrollIntoView();
+					}
+				}
+			};
+
+			window.addEventListener('message', handler);
+
+			return () => {
+				window.removeEventListener('message', handler);
+			};
+		}, []);
 
 		useEffect(() => {
 			if (props.publicRegistryCollapsed) {

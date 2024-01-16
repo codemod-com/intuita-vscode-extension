@@ -48,6 +48,10 @@ export type WebviewMessage =
 	  }>
 	| Readonly<{
 			kind: 'webview.global.codemodExecutionHalted';
+	  }>
+	| Readonly<{
+			kind: 'webview.global.scrollToCodemod';
+			hashDigest: string;
 	  }>;
 
 export type WebviewResponse =

@@ -261,7 +261,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		});
 	}
 
-	private __postMessage(message: WebviewMessage) {
+	public __postMessage(message: WebviewMessage) {
 		this.__view?.webview.postMessage(message);
 	}
 

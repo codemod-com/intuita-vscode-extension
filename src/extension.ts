@@ -1098,60 +1098,63 @@ export async function activate(context: vscode.ExtensionContext) {
 					);
 
 					// Expand collapsed parent directories of the relevant codemod
-					if (codemodHashDigest !== null) {
-						const privateCodemod =
-							state.privateCodemods.entities[codemodHashDigest] ??
-							null;
+					const privateCodemod =
+						state.privateCodemods.entities[codemodHashDigest] ??
+						null;
 
-						if (privateCodemod !== null) {
-							store.dispatch(
-								actions.setFocusedCodemodHashDigest(
-									codemodHashDigest as unknown as CodemodNodeHashDigest,
-								),
-							);
-							return;
-						}
+					if (privateCodemod !== null) {
+						store.dispatch(
+							actions.setFocusedCodemodHashDigest(
+								codemodHashDigest as unknown as CodemodNodeHashDigest,
+							),
+						);
 
-						const codemod =
-							state.codemod.entities[codemodHashDigest] ?? null;
-						if (codemod === null) {
-							return;
-						}
-						const { name } = codemod;
-						const sep = name.indexOf('/') !== -1 ? '/' : ':';
-
-						const pathParts = name
-							.split(sep)
-							.filter((part) => part !== '');
-
-						if (pathParts.length === 0) {
-							return;
-						}
-
-						pathParts.forEach((name, idx) => {
-							const path = pathParts.slice(0, idx + 1).join(sep);
-
-							if (idx === pathParts.length - 1) {
-								return;
-							}
-
-							const parentHashDigest = buildHash(
-								[path, name].join('_'),
-							) as CodemodNodeHashDigest;
-
-							if (
-								state.codemodDiscoveryView.expandedNodeHashDigests.includes(
-									parentHashDigest,
-								)
-							) {
-								return;
-							}
-
-							store.dispatch(
-								actions.flipCodemodHashDigest(parentHashDigest),
-							);
+						mainViewProvider.__postMessage({
+							kind: 'webview.global.scrollToCodemod',
+							hashDigest: codemodHashDigest,
 						});
+						return;
 					}
+
+					const codemod =
+						state.codemod.entities[codemodHashDigest] ?? null;
+					if (codemod === null) {
+						return;
+					}
+					const { name } = codemod;
+					const sep = name.indexOf('/') !== -1 ? '/' : ':';
+
+					const pathParts = name
+						.split(sep)
+						.filter((part) => part !== '');
+
+					if (pathParts.length === 0) {
+						return;
+					}
+
+					pathParts.forEach((name, idx) => {
+						const path = pathParts.slice(0, idx + 1).join(sep);
+
+						if (idx === pathParts.length - 1) {
+							return;
+						}
+
+						const parentHashDigest = buildHash(
+							[path, name].join('_'),
+						) as CodemodNodeHashDigest;
+
+						if (
+							state.codemodDiscoveryView.expandedNodeHashDigests.includes(
+								parentHashDigest,
+							)
+						) {
+							return;
+						}
+
+						store.dispatch(
+							actions.flipCodemodHashDigest(parentHashDigest),
+						);
+					});
 
 					if (state.codemodDiscoveryView.searchPhrase.length > 0) {
 						store.dispatch(actions.setCodemodSearchPhrase(''));
@@ -1162,6 +1165,11 @@ export async function activate(context: vscode.ExtensionContext) {
 							codemodHashDigest as unknown as CodemodNodeHashDigest,
 						),
 					);
+
+					mainViewProvider.__postMessage({
+						kind: 'webview.global.scrollToCodemod',
+						hashDigest: codemodHashDigest,
+					});
 				} else if (accessToken !== null) {
 					const routeUserToStudioToAuthenticate = async () => {
 						const result = await vscode.window.showErrorMessage(
