@@ -47,6 +47,8 @@ import { GlobalStateTokenStorage, UserService } from './components/userService';
 import { HomeDirectoryService } from './data/readHomeDirectoryCases';
 import { isLeft } from 'fp-ts/lib/Either';
 import { createClearStateCommand } from './commands/clearStateCommand';
+import { isMainThread } from 'node:worker_threads';
+import { executeWorkerThread } from './worker';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -63,6 +65,18 @@ export const enum SEARCH_PARAMS_KEYS {
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
+	if (isMainThread) {
+		execute(context).catch((error) => {
+			if (error instanceof Error) {
+				console.error(JSON.stringify({ message: error.message }));
+			}
+		});
+	} else {
+		executeWorkerThread();
+	}
+}
+
+async function execute(context: vscode.ExtensionContext) {
 	const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
 
 	messageBus.setDisposables(context.subscriptions);
