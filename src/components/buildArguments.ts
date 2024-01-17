@@ -2,6 +2,21 @@ import { Uri } from 'vscode';
 import type { Configuration } from '../configuration';
 import type { Message, MessageKind } from './messageBus';
 import { singleQuotify } from '../utilities';
+import { sep, normalize } from 'path';
+
+const buildGlobPattern  = (targetUri: Uri, pattern?: string) => {
+	const { fsPath: targetUriFsPath} = targetUri;
+			
+	// Glob patterns should always use / as a path separator, even on Windows systems, as \ is used to escape glob characters. 
+	return targetUriFsPath.split(sep).join('/').concat(pattern ?? '');
+}
+
+const buildCrossplatformArg= (str: string) => {
+	const isWin = process.platform === 'win32';
+
+	return isWin ? str : singleQuotify(str);
+}
+
 
 export const buildArguments = (
 	configuration: Configuration,
@@ -32,28 +47,27 @@ export const buildArguments = (
 	}
 
 	if (command.kind === 'executeCodemod') {
-		args.push(singleQuotify(command.name));
+		args.push(buildCrossplatformArg(command.name));
 	} else {
-		args.push('--sourcePath', singleQuotify(command.codemodUri.fsPath));
+		args.push('--sourcePath', buildCrossplatformArg(command.codemodUri.fsPath));
 		args.push('--codemodEngine', 'jscodeshift');
 	}
 
-	args.push('--targetPath', singleQuotify(message.targetUri.fsPath));
+	args.push('--targetPath', buildCrossplatformArg(message.targetUri.fsPath));
 
 	if (message.targetUriIsDirectory) {
 		configuration.includePatterns.forEach((includePattern) => {
-			const { fsPath } = Uri.joinPath(message.targetUri, includePattern);
+			
 
-			args.push('--include', singleQuotify(fsPath));
+			args.push('--include', buildCrossplatformArg(buildGlobPattern(message.targetUri, includePattern)));
 		});
 
 		configuration.excludePatterns.forEach((excludePattern) => {
-			const { fsPath } = Uri.joinPath(message.targetUri, excludePattern);
-
-			args.push('--exclude', singleQuotify(fsPath));
+		
+			args.push('--exclude', buildCrossplatformArg(buildGlobPattern(message.targetUri, excludePattern)));
 		});
 	} else {
-		args.push('--include', singleQuotify(message.targetUri.fsPath));
+		args.push('--include', buildCrossplatformArg(buildGlobPattern(message.targetUri)));
 	}
 
 	args.push('--threadCount', String(configuration.workerThreadCount));
@@ -67,7 +81,7 @@ export const buildArguments = (
 	args.push('--useCache');
 
 	args.push('--dryRun');
-	args.push('--outputDirectoryPath', singleQuotify(storageUri.fsPath));
+	args.push('--outputDirectoryPath', buildCrossplatformArg(storageUri.fsPath));
 	args.push(...codemodArguments);
 	return args;
 };

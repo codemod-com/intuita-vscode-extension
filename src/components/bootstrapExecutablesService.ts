@@ -53,13 +53,13 @@ export class BootstrapExecutablesService {
 				'755',
 			);
 		} catch (error) {
-			if (!(error instanceof ForbiddenRequestError)) {
-				throw error;
-			}
+			// if (!(error instanceof ForbiddenRequestError)) {
+			// 	throw error;
+			// }
 
-			throw new Error(
-				`Your platform (${process.platform}) is not supported.`,
-			);
+			// throw new Error(
+			// 	`Your platform (${process.platform}) is not supported.`,
+			// );
 		}
 
 		return executableUri;

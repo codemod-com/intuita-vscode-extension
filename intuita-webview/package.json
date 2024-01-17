@@ -27,9 +27,9 @@
 	},
 	"scripts": {
 		"start": "NODE_ENV='development' vite -c 'vite.config.dev.ts'",
-		"build:main": "NODE_ENV='production' TARGET_APP='main' vite build",
-		"build:jobDiffView": "NODE_ENV='production' TARGET_APP='jobDiffView' vite build",
-		"build:errors": "NODE_ENV='production' TARGET_APP='errors' vite build",
+		"build:main": "set NODE_ENV='production' && set TARGET_APP=main&& vite build",
+		"build:jobDiffView": "set NODE_ENV='production' && set TARGET_APP=jobDiffView&& vite build",
+		"build:errors": "set NODE_ENV='production' && set TARGET_APP=errors&& vite build",
 		"build": "pnpm build:main && pnpm build:jobDiffView && pnpm build:errors"
 	},
 	"eslintConfig": {
