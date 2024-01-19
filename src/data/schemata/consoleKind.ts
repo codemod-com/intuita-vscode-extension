@@ -8,5 +8,6 @@ export const consoleKindSchema = S.union(
 	S.literal('trace'),
 	S.literal('warn'),
 );
+
 export type ConsoleKind = S.Schema.To<typeof consoleKindSchema>;
 export const parseConsoleKind = S.parseSync(consoleKindSchema);

@@ -28,10 +28,6 @@ const messageHandler = async (m: unknown) => {
 		}
 
 		sendLog('log', `Received message: ${JSON.stringify(message)}`);
-
-		// TODO:
-		// parentPort?.postMessage({
-		// } satisfies WorkerThreadMessage);
 	} catch (error) {
 		parentPort?.postMessage({
 			kind: 'error',
