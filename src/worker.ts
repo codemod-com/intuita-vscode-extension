@@ -19,6 +19,12 @@ const sendLog = (consoleKind: ConsoleKind, message: string): void => {
 };
 
 const messageHandler = async (m: unknown) => {
+	console.log('MESSAGE', m);
+
+	parentPort?.postMessage({
+		kind: 'test',
+	});
+
 	try {
 		const message = decodeMainThreadMessage(m);
 
@@ -38,5 +44,6 @@ const messageHandler = async (m: unknown) => {
 };
 
 export const executeWorkerThread = () => {
+	console.log(Boolean(parentPort));
 	parentPort?.on('message', messageHandler);
 };
