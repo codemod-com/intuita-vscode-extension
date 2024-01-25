@@ -59,6 +59,12 @@ export const timeout = (ms: number) =>
 export const singleQuotify = (str: string) => `'${str}'`;
 export const doubleQuotify = (str: string) => `"${str}"`;
 
+export const buildCrossplatformArg = (str: string) => {
+	const isWin = process.platform === 'win32';
+	// remove trailing "\"
+	return isWin ? doubleQuotify(str.replace(/\\+$/, '')) : singleQuotify(str);
+};
+
 export function getUri(
 	webview: Webview,
 	extensionUri: Uri,

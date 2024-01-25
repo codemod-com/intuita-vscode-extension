@@ -10,10 +10,9 @@ import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
 import {
+	buildCrossplatformArg,
 	buildTypeCodec,
-	doubleQuotify,
 	isNeitherNullNorUndefined,
-	singleQuotify,
 	streamToString,
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
@@ -250,9 +249,9 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		return process.platform !== 'win32'
-			? singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath)
-			: this.__codemodEngineNodeExecutableUri.fsPath;
+		return buildCrossplatformArg(
+			this.__codemodEngineNodeExecutableUri.fsPath,
+		);
 	}
 
 	private __getCodemodEngineRustExecutableCommand() {
@@ -260,9 +259,9 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		return process.platform !== 'win32'
-			? singleQuotify(this.__codemodEngineRustExecutableUri.fsPath)
-			: doubleQuotify(this.__codemodEngineRustExecutableUri.fsPath);
+		return buildCrossplatformArg(
+			this.__codemodEngineRustExecutableUri.fsPath,
+		);
 	}
 
 	public isEngineBootstrapped() {

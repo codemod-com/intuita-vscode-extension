@@ -1,7 +1,7 @@
 import { Uri } from 'vscode';
 import type { Configuration } from '../configuration';
 import type { Message, MessageKind } from './messageBus';
-import { doubleQuotify, singleQuotify } from '../utilities';
+import { buildCrossplatformArg } from '../utilities';
 import { sep } from 'path';
 
 const buildGlobPattern = (targetUri: Uri, pattern?: string) => {
@@ -12,12 +12,6 @@ const buildGlobPattern = (targetUri: Uri, pattern?: string) => {
 		.split(sep)
 		.join('/')
 		.concat(pattern ?? '');
-};
-
-const buildCrossplatformArg = (str: string) => {
-	const isWin = process.platform === 'win32';
-	// remove trailing "\"
-	return isWin ? doubleQuotify(str.replace(/\\+$/, '')) : singleQuotify(str);
 };
 
 export const buildArguments = (
