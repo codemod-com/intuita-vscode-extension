@@ -11,6 +11,7 @@ import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
 import {
 	buildTypeCodec,
+	doubleQuotify,
 	isNeitherNullNorUndefined,
 	singleQuotify,
 	streamToString,
@@ -261,7 +262,7 @@ export class EngineService {
 
 		return process.platform !== 'win32'
 			? singleQuotify(this.__codemodEngineRustExecutableUri.fsPath)
-			: this.__codemodEngineRustExecutableUri.fsPath;
+			: doubleQuotify(this.__codemodEngineRustExecutableUri.fsPath);
 	}
 
 	public isEngineBootstrapped() {

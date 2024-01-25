@@ -1,8 +1,8 @@
 import { Uri } from 'vscode';
 import type { Configuration } from '../configuration';
 import type { Message, MessageKind } from './messageBus';
-import { singleQuotify } from '../utilities';
-import { sep, normalize } from 'path';
+import { doubleQuotify, singleQuotify } from '../utilities';
+import { sep } from 'path';
 
 const buildGlobPattern  = (targetUri: Uri, pattern?: string) => {
 	const { fsPath: targetUriFsPath} = targetUri;
@@ -11,10 +11,10 @@ const buildGlobPattern  = (targetUri: Uri, pattern?: string) => {
 	return targetUriFsPath.split(sep).join('/').concat(pattern ?? '');
 }
 
-const buildCrossplatformArg= (str: string) => {
+const buildCrossplatformArg = (str: string) => {
 	const isWin = process.platform === 'win32';
-
-	return isWin ? str : singleQuotify(str);
+	// remove trailing "\"
+	return isWin ? doubleQuotify(str.replace(/\\+$/, '')) : singleQuotify(str);
 }
 
 
@@ -38,9 +38,9 @@ export const buildArguments = (
 			: [];
 
 	if (command.kind === 'executePiranhaRule') {
-		args.push('-i', singleQuotify(message.targetUri.fsPath));
-		args.push('-c', singleQuotify(command.configurationUri.fsPath));
-		args.push('-o', singleQuotify(storageUri.fsPath));
+		args.push('-i', buildCrossplatformArg(message.targetUri.fsPath));
+		args.push('-c', buildCrossplatformArg(command.configurationUri.fsPath));
+		args.push('-o', buildCrossplatformArg(storageUri.fsPath));
 		args.push('-l', command.language);
 		args.push(...codemodArguments);
 		return args;
