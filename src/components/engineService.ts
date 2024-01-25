@@ -249,7 +249,9 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		return process.platform !== 'win32' ? singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath) : this.__codemodEngineNodeExecutableUri.fsPath;
+		return process.platform !== 'win32'
+			? singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath)
+			: this.__codemodEngineNodeExecutableUri.fsPath;
 	}
 
 	private __getCodemodEngineRustExecutableCommand() {
@@ -257,19 +259,18 @@ export class EngineService {
 			throw new Error('The engines are not bootstrapped.');
 		}
 
-		return process.platform !== 'win32' ? singleQuotify(this.__codemodEngineRustExecutableUri.fsPath) : this.__codemodEngineRustExecutableUri.fsPath;
+		return process.platform !== 'win32'
+			? singleQuotify(this.__codemodEngineRustExecutableUri.fsPath)
+			: this.__codemodEngineRustExecutableUri.fsPath;
 	}
-
 
 	public isEngineBootstrapped() {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
 	public async syncRegistry(): Promise<void> {
-		
-
 		const childProcess = spawn(
-			this.__getCodemodEngineNodeExecutableCommand(), 
+			this.__getCodemodEngineNodeExecutableCommand(),
 			['syncRegistry'],
 			{
 				stdio: 'pipe',
@@ -517,7 +518,6 @@ export class EngineService {
 	async #onExecuteCodemodSetMessage(
 		message: Message & { kind: MessageKind.executeCodemodSet },
 	) {
-
 		if (this.#execution) {
 			if (message.command.kind === 'executeCodemod') {
 				this.__executionMessageQueue.push(
@@ -566,18 +566,14 @@ export class EngineService {
 			storageUri,
 		);
 
-		
-		const executableCommand = message.command.kind === 'executePiranhaRule'
-		? this.__getCodemodEngineRustExecutableCommand()
-		: this.__getCodemodEngineNodeExecutableCommand()
-		const childProcess = spawn(
-			executableCommand,
-			args,
-			{
-				stdio: 'pipe',
-				shell: true,
-			},
-		);
+		const executableCommand =
+			message.command.kind === 'executePiranhaRule'
+				? this.__getCodemodEngineRustExecutableCommand()
+				: this.__getCodemodEngineNodeExecutableCommand();
+		const childProcess = spawn(executableCommand, args, {
+			stdio: 'pipe',
+			shell: true,
+		});
 
 		this.__store.dispatch(
 			actions.setCaseHashInProgress(message.caseHashDigest),

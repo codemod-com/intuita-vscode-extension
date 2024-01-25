@@ -70,8 +70,8 @@ export class BootstrapExecutablesService {
 			process.platform === 'darwin'
 				? 'macos'
 				: encodeURIComponent(process.platform);
-		
-		if(platform === 'win32') {
+
+		if (platform === 'win32') {
 			return null;
 		}
 
