@@ -35,16 +35,29 @@
 	min-height: 35px;
 	column-gap: 10px;
 	padding: 0 2px;
+    width: 100%;
+    text-align: center;
 }
 
 .vscode-tab {
-	overflow: hidden;
+	overflow: visible;
 	text-overflow: ellipsis;
-	white-space: nowrap;
 	display: flex;
 	padding: 0 2px;
 	text-transform: uppercase;
 	font-size: 11px;
+}
+
+@media screen and (max-width: 320px) {
+    .vscode-tab {
+        font-size: calc(0.2rem + 2vw);
+    }
+}
+
+@media screen and (max-width: 240px) {
+    .vscode-tab {
+        font-size: calc(0.1rem + 2vw);
+    }
 }
 
 .vscode-tab:focus-visible {

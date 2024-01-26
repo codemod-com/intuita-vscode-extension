@@ -6,7 +6,7 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-wrap: nowrap;
-	padding-left: 3px;
+	padding-left: 8px;
 	padding-right: 12px;
 	outline: none;
 	align-items: center;

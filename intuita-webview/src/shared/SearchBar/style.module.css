@@ -1,3 +1,7 @@
+.root {
+	padding: 4px 12px 6px 20px;
+}
+
 .container:focus {
 	outline: none;
 }
@@ -8,4 +12,8 @@
 
 .container::part(control) {
 	padding: 0 4px;
+}
+
+.container::part(root) {
+	border-radius: 2px;
 }

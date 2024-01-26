@@ -9,7 +9,7 @@ const Directory = (
 	}>,
 ) => {
 	return (
-		<>
+		<div className={s.directory}>
 			<span
 				className={cn('codicon', {
 					'codicon-chevron-right': !props.expanded,
@@ -21,7 +21,7 @@ const Directory = (
 					<span className={s.label}>{props.label}</span>
 				</span>
 			</div>
-		</>
+		</div>
 	);
 };
 
