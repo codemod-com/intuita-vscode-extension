@@ -112,7 +112,7 @@ export type Message =
 	| Readonly<{
 			kind: MessageKind.engineBootstrapped;
 			codemodEngineNodeExecutableUri: Uri;
-			codemodEngineRustExecutableUri: Uri;
+			codemodEngineRustExecutableUri: Uri | null;
 	  }>
 	| Readonly<{
 			kind: MessageKind.executeCodemodSet;

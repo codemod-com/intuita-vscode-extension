@@ -10,9 +10,9 @@ import { Container } from '../container';
 import { buildJobHash } from '../jobs/buildJobHash';
 import { Job, JobKind } from '../jobs/types';
 import {
+	buildCrossplatformArg,
 	buildTypeCodec,
 	isNeitherNullNorUndefined,
-	singleQuotify,
 	streamToString,
 } from '../utilities';
 import { Message, MessageBus, MessageKind } from './messageBus';
@@ -244,17 +244,33 @@ export class EngineService {
 		await this.fetchPrivateCodemods();
 	}
 
+	private __getCodemodEngineNodeExecutableCommand() {
+		if (this.__codemodEngineNodeExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		return buildCrossplatformArg(
+			this.__codemodEngineNodeExecutableUri.fsPath,
+		);
+	}
+
+	private __getCodemodEngineRustExecutableCommand() {
+		if (this.__codemodEngineRustExecutableUri === null) {
+			throw new Error('The engines are not bootstrapped.');
+		}
+
+		return buildCrossplatformArg(
+			this.__codemodEngineRustExecutableUri.fsPath,
+		);
+	}
+
 	public isEngineBootstrapped() {
 		return this.__codemodEngineNodeExecutableUri !== null;
 	}
 
 	public async syncRegistry(): Promise<void> {
-		if (this.__codemodEngineNodeExecutableUri === null) {
-			throw new Error('The engines are not bootstrapped.');
-		}
-
 		const childProcess = spawn(
-			singleQuotify(this.__codemodEngineNodeExecutableUri.fsPath),
+			this.__getCodemodEngineNodeExecutableCommand(),
 			['syncRegistry'],
 			{
 				stdio: 'pipe',
@@ -275,16 +291,8 @@ export class EngineService {
 	}
 
 	public async __getCodemodNames(): Promise<ReadonlyArray<string>> {
-		const executableUri = this.__codemodEngineNodeExecutableUri;
-
-		if (executableUri === null) {
-			throw new EngineNotFoundError(
-				'The codemod engine node has not been downloaded yet',
-			);
-		}
-
 		const childProcess = spawn(
-			singleQuotify(executableUri.fsPath),
+			this.__getCodemodEngineNodeExecutableCommand(),
 			['list', '--useJson', '--useCache'],
 			{
 				stdio: 'pipe',
@@ -294,7 +302,6 @@ export class EngineService {
 		);
 
 		const codemodListJSON = await streamToString(childProcess.stdout);
-
 		try {
 			const codemodListOrError = codemodNamesCodec.decode(
 				JSON.parse(codemodListJSON),
@@ -531,17 +538,6 @@ export class EngineService {
 			return;
 		}
 
-		if (
-			!this.__codemodEngineNodeExecutableUri ||
-			!this.__codemodEngineRustExecutableUri
-		) {
-			await window.showErrorMessage(
-				'Wait until the engines has been bootstrapped to execute the operation',
-			);
-
-			return;
-		}
-
 		const codemodHash =
 			message.command.kind === 'executeCodemod' ||
 			message.command.kind === 'executeLocalCodemod'
@@ -570,18 +566,14 @@ export class EngineService {
 			storageUri,
 		);
 
-		const childProcess = spawn(
-			singleQuotify(
-				message.command.kind === 'executePiranhaRule'
-					? this.__codemodEngineRustExecutableUri.fsPath
-					: this.__codemodEngineNodeExecutableUri.fsPath,
-			),
-			args,
-			{
-				stdio: 'pipe',
-				shell: true,
-			},
-		);
+		const executableCommand =
+			message.command.kind === 'executePiranhaRule'
+				? this.__getCodemodEngineRustExecutableCommand()
+				: this.__getCodemodEngineNodeExecutableCommand();
+		const childProcess = spawn(executableCommand, args, {
+			stdio: 'pipe',
+			shell: true,
+		});
 
 		this.__store.dispatch(
 			actions.setCaseHashInProgress(message.caseHashDigest),
