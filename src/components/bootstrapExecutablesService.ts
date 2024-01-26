@@ -37,18 +37,20 @@ export class BootstrapExecutablesService {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
-				: encodeURIComponent(process.platform);
+				: process.platform === 'win32' ? 'win' : encodeURIComponent(process.platform);
 
 		const executableBaseName = `intuita-${platform}`;
+		const executableExt = process.platform === 'win32' ? '.exe' : '';
+		const executableName = `${executableBaseName}${executableExt}`;
 
 		const executableUri = Uri.joinPath(
 			this.__globalStorageUri,
-			executableBaseName,
+			executableName,
 		);
 
 		try {
 			await this.__downloadService.downloadFileIfNeeded(
-				`https://intuita-public.s3.us-west-1.amazonaws.com/intuita/${executableBaseName}`,
+				`https://intuita-public.s3.us-west-1.amazonaws.com/intuita/${executableName}`,
 				executableUri,
 				'755',
 			);
