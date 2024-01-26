@@ -35,8 +35,8 @@
 	min-height: 35px;
 	column-gap: 10px;
 	padding: 0 2px;
-    width: 100%;
-    text-align: center;
+	width: 100%;
+	text-align: center;
 }
 
 .vscode-tab {
@@ -49,15 +49,15 @@
 }
 
 @media screen and (max-width: 320px) {
-    .vscode-tab {
-        font-size: calc(0.2rem + 2vw);
-    }
+	.vscode-tab {
+		font-size: calc(0.2rem + 2vw);
+	}
 }
 
 @media screen and (max-width: 240px) {
-    .vscode-tab {
-        font-size: calc(0.1rem + 2vw);
-    }
+	.vscode-tab {
+		font-size: calc(0.1rem + 2vw);
+	}
 }
 
 .vscode-tab:focus-visible {
