@@ -37,7 +37,9 @@ export class BootstrapExecutablesService {
 		const platform =
 			process.platform === 'darwin'
 				? 'macos'
-				: process.platform === 'win32' ? 'win' : encodeURIComponent(process.platform);
+				: process.platform === 'win32'
+				? 'win'
+				: encodeURIComponent(process.platform);
 
 		const executableBaseName = `intuita-${platform}`;
 		const executableExt = process.platform === 'win32' ? '.exe' : '';
