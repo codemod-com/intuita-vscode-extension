@@ -189,8 +189,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		let prevProps = this.__buildProps();
 
 		this.__store.subscribe(async () => {
-
-			if(this.__directoryPaths === null) {
+			if (this.__directoryPaths === null) {
 				await this.__getDirectoryPaths();
 			}
 
@@ -252,14 +251,13 @@ export class MainViewProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__directoryPaths = (
+		this.__directoryPaths =
 			(await glob(`${basePath}/**`, {
 				fs: workspace.fs,
 				nodir: false,
 				// ignore node_modules and files, match only directories
 				ignore: ['**/node_modules/**', '**/*.*'],
-			})) ?? []
-		);
+			})) ?? [];
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -569,8 +567,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		if (
 			message.kind === 'webview.global.setCodemodArgumentsPopupHashDigest'
 		) {
-			if(this.__directoryPaths === null) {
-			
+			if (this.__directoryPaths === null) {
 			}
 
 			this.__store.dispatch(
@@ -613,7 +610,10 @@ export class MainViewProvider implements WebviewViewProvider {
 		const persistedExecutionPath = state.executionPaths[codemodHash];
 
 		const oldExecutionPath = persistedExecutionPath ?? null;
-		const newPathAbsolute = relativeToAbsolutePath(newPath, this.__rootUri.fsPath)
+		const newPathAbsolute = relativeToAbsolutePath(
+			newPath,
+			this.__rootUri.fsPath,
+		);
 
 		try {
 			await workspace.fs.stat(Uri.file(newPathAbsolute));

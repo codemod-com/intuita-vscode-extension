@@ -66,7 +66,9 @@ const CodemodArguments = ({
 			<form className={styles.form}>
 				<DirectorySelector
 					initialValue={path}
-					onChange={(value: string) => updatePath(value, hashDigest as unknown as CodemodHash )}
+					onChange={(value: string) =>
+						updatePath(value, hashDigest as unknown as CodemodHash)
+					}
 					autocompleteItems={autocompleteItems}
 				/>
 				{args.map((props) => (

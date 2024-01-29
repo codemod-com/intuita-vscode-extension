@@ -70,16 +70,22 @@ export const buildDirectoryNode = (name: string, path: string) =>
 		label: name,
 	} as const);
 
-export const absoluteToRelativePath = (absolutePath: string, rootPath: string) => {
+export const absoluteToRelativePath = (
+	absolutePath: string,
+	rootPath: string,
+) => {
 	const basePathWithoutLastDir = rootPath.split(sep).slice(0, -1).join(sep);
-	return relative(basePathWithoutLastDir, absolutePath)
-}
+	return relative(basePathWithoutLastDir, absolutePath);
+};
 
-export const relativeToAbsolutePath = (relativePath: string, rootPath: string) => {
+export const relativeToAbsolutePath = (
+	relativePath: string,
+	rootPath: string,
+) => {
 	const basePathWithoutLastDir = rootPath.split(sep).slice(0, -1).join(sep);
 
 	return join(basePathWithoutLastDir, relativePath);
-} 
+};
 
 export const buildCodemodNode = (
 	codemod: CodemodEntry | PrivateCodemodEntry,
@@ -130,7 +136,10 @@ export const selectPrivateCodemods = (
 		const executionPath =
 			executionPaths[codemod.hashDigest] ?? rootPath ?? '';
 
-		const executionRelativePath = absoluteToRelativePath(executionPath, rootPath ?? '');
+		const executionRelativePath = absoluteToRelativePath(
+			executionPath,
+			rootPath ?? '',
+		);
 
 		const args = selectCodemodArguments(
 			state,
@@ -223,8 +232,11 @@ export const selectCodemodTree = (
 			if (idx === pathParts.length - 1) {
 				const executionPath =
 					executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
-				
-				const executionRelativePath =  absoluteToRelativePath(executionPath, rootPath ?? '');
+
+				const executionRelativePath = absoluteToRelativePath(
+					executionPath,
+					rootPath ?? '',
+				);
 
 				const args = selectCodemodArguments(
 					state,

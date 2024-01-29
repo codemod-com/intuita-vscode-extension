@@ -14,27 +14,29 @@ type Props = {
 
 const AUTOCOMPLETE_OPTIONS_LENGTH = 20;
 
-const getFilteredOptions = (allOptions: ReadonlyArray<string>, value: string) => {
-
+const getFilteredOptions = (
+	allOptions: ReadonlyArray<string>,
+	value: string,
+) => {
 	// ignores slashes at the beginning, ignores whitespaces
 	const trimmedLowerCaseValue = value
-	.replace(/^[/\\]+/, '')
-	.trim()
-	.toLocaleLowerCase();
+		.replace(/^[/\\]+/, '')
+		.trim()
+		.toLocaleLowerCase();
 
 	return allOptions
-		.filter((i) =>
-			i.toLocaleLowerCase().startsWith(trimmedLowerCaseValue),
-		)
+		.filter((i) => i.toLocaleLowerCase().startsWith(trimmedLowerCaseValue))
 		.slice(0, AUTOCOMPLETE_OPTIONS_LENGTH);
-}
+};
 export const DirectorySelector = ({
 	initialValue,
 	onChange,
 	autocompleteItems,
 }: Props) => {
 	const [value, setValue] = useState(initialValue);
-	const [focusedOptionIdx, setFocusedOptionIdx] = useState<number | null>(null);
+	const [focusedOptionIdx, setFocusedOptionIdx] = useState<number | null>(
+		null,
+	);
 	const [showOptions, setShowOptions] = useState(false);
 
 	useEffect(() => {
@@ -63,25 +65,31 @@ export const DirectorySelector = ({
 		if (e.key === 'Enter') {
 			setShowOptions(false);
 
-			if(focusedOptionIdx === null) {
+			if (focusedOptionIdx === null) {
 				return;
 			}
 
 			const nextValue = autocompleteOptions[focusedOptionIdx] ?? '';
-			
+
 			onChange(nextValue);
 			setValue(nextValue);
 		}
 
 		if (e.key === 'ArrowUp') {
-			const nextValue = focusedOptionIdx === null ? maxLength : (focusedOptionIdx - 1 + maxLength) % maxLength;
+			const nextValue =
+				focusedOptionIdx === null
+					? maxLength
+					: (focusedOptionIdx - 1 + maxLength) % maxLength;
 			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
 			e.preventDefault();
 		}
 
 		if (e.key === 'ArrowDown') {
-			const nextValue = focusedOptionIdx === null ? 0 : (focusedOptionIdx + 1) % maxLength;
+			const nextValue =
+				focusedOptionIdx === null
+					? 0
+					: (focusedOptionIdx + 1) % maxLength;
 
 			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
@@ -89,7 +97,10 @@ export const DirectorySelector = ({
 		}
 
 		if (e.key === 'Tab') {
-			const nextValue = focusedOptionIdx === null ? 0 : (focusedOptionIdx + 1) % maxLength;
+			const nextValue =
+				focusedOptionIdx === null
+					? 0
+					: (focusedOptionIdx + 1) % maxLength;
 			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
 			e.preventDefault();
