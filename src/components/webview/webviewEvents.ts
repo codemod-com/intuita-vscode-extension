@@ -168,10 +168,6 @@ export type WebviewResponse =
 			kind: 'webview.codemodList.haltCodemodExecution';
 	  }>
 	| Readonly<{
-			kind: 'webview.codemodList.codemodPathChange';
-			codemodPath: string;
-	  }>
-	| Readonly<{
 			kind: 'webview.campaignManager.setSelectedCaseHash';
 			caseHash: CaseHash;
 	  }>

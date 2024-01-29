@@ -78,6 +78,7 @@
 		"INTC",
 		"INTJ",
 		"INTE",
-		"Crossplatform"
+		"Crossplatform",
+		"nodir"
 	]
 }
