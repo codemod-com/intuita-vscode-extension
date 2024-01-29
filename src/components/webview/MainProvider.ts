@@ -253,8 +253,8 @@ export class MainViewProvider implements WebviewViewProvider {
 		this.__directoryPaths =
 			(await glob(`${basePath}/**`, {
 				// ignore node_modules and files, match only directories
-				onlyDirectories: true, 
-				ignore: ['**/node_modules/**',],
+				onlyDirectories: true,
+				ignore: ['**/node_modules/**'],
 			})) ?? [];
 	}
 
