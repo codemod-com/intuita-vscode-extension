@@ -1,5 +1,5 @@
 import areEqual from 'fast-deep-equal';
-import { glob } from 'glob';
+import { glob } from 'fast-glob';
 
 import {
 	WebviewViewProvider,
@@ -252,10 +252,9 @@ export class MainViewProvider implements WebviewViewProvider {
 
 		this.__directoryPaths =
 			(await glob(`${basePath}/**`, {
-				fs: workspace.fs,
-				nodir: false,
 				// ignore node_modules and files, match only directories
-				ignore: ['**/node_modules/**', '**/*.*'],
+				onlyDirectories: true, 
+				ignore: ['**/node_modules/**',],
 			})) ?? [];
 	}
 
