@@ -17,4 +17,6 @@
 .autocompleteItems {
 	background-color: var(--vscode-editor-background);
 	padding: 4px;
+    max-height: 250px;
+    overflow-y: auto;
 }

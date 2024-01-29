@@ -1,5 +1,5 @@
 import areEqual from 'fast-deep-equal';
-import { relative, join } from 'node:path';
+import { relative, join, sep } from 'node:path';
 import { glob } from 'glob';
 
 import {
@@ -25,6 +25,7 @@ import axios from 'axios';
 import { UserService } from '../userService';
 import {
 	CodemodNodeHashDigest,
+	relativeToAbsolutePath,
 	selectCodemodArguments,
 } from '../../selectors/selectCodemodTree';
 import { isNeitherNullNorUndefined } from '../../utilities';
@@ -135,7 +136,7 @@ export class MainViewProvider implements WebviewViewProvider {
 	private __view: WebviewView | null = null;
 	private __webviewResolver: WebviewResolver;
 	private __executionQueue: ReadonlyArray<CodemodHash> = [];
-	private __directoryPaths: ReadonlyArray<string> = [];
+	private __directoryPaths: ReadonlyArray<string> | null = null;
 
 	constructor(
 		context: ExtensionContext,
@@ -188,6 +189,11 @@ export class MainViewProvider implements WebviewViewProvider {
 		let prevProps = this.__buildProps();
 
 		this.__store.subscribe(async () => {
+
+			if(this.__directoryPaths === null) {
+				await this.__getDirectoryPaths();
+			}
+
 			const nextProps = this.__buildProps();
 			if (areEqual(prevProps, nextProps)) {
 				return;
@@ -211,8 +217,6 @@ export class MainViewProvider implements WebviewViewProvider {
 				props: nextProps,
 			});
 		});
-
-		this.__getDirectoryPaths();
 	}
 
 	public isVisible(): boolean {
@@ -249,13 +253,13 @@ export class MainViewProvider implements WebviewViewProvider {
 		}
 
 		this.__directoryPaths = (
-			(await glob(`${this.__rootUri?.fsPath}/**`, {
+			(await glob(`${basePath}/**`, {
 				fs: workspace.fs,
 				nodir: false,
 				// ignore node_modules and files, match only directories
 				ignore: ['**/node_modules/**', '**/*.*'],
 			})) ?? []
-		).map((p) => relative(basePath, p));
+		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
@@ -565,6 +569,10 @@ export class MainViewProvider implements WebviewViewProvider {
 		if (
 			message.kind === 'webview.global.setCodemodArgumentsPopupHashDigest'
 		) {
+			if(this.__directoryPaths === null) {
+			
+			}
+
 			this.__store.dispatch(
 				actions.setCodemodArgumentsPopupHashDigest(message.hashDigest),
 			);
@@ -605,7 +613,7 @@ export class MainViewProvider implements WebviewViewProvider {
 		const persistedExecutionPath = state.executionPaths[codemodHash];
 
 		const oldExecutionPath = persistedExecutionPath ?? null;
-		const newPathAbsolute = join(this.__rootUri.fsPath, newPath);
+		const newPathAbsolute = relativeToAbsolutePath(newPath, this.__rootUri.fsPath)
 
 		try {
 			await workspace.fs.stat(Uri.file(newPathAbsolute));
@@ -616,7 +624,7 @@ export class MainViewProvider implements WebviewViewProvider {
 				}),
 			);
 
-			if (newPathAbsolute !== oldExecutionPath && !fromVSCodeCommand) {
+			if (!fromVSCodeCommand) {
 				window.showInformationMessage(
 					'Successfully updated the execution path.',
 				);

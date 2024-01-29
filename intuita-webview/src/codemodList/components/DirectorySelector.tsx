@@ -4,54 +4,51 @@ import {
 	VSCodeTextField,
 } from '@vscode/webview-ui-toolkit/react';
 import styles from './style.module.css';
-import { vscode } from '../../shared/utilities/vscode';
-import { CodemodHash } from '../../shared/types';
 import cn from 'classnames';
 
-const updatePath = (value: string, codemodHash: CodemodHash) => {
-	vscode.postMessage({
-		kind: 'webview.codemodList.updatePathToExecute',
-		value: {
-			newPath: value,
-			codemodHash,
-			errorMessage: '',
-			warningMessage: '',
-			revertToPrevExecutionIfInvalid: false,
-		},
-	});
-};
-
 type Props = {
-	defaultValue: string;
-	codemodHash: CodemodHash;
+	initialValue: string;
 	autocompleteItems: ReadonlyArray<string>;
+	onChange: (value: string) => void;
 };
 
+const AUTOCOMPLETE_OPTIONS_LENGTH = 20;
+
+const getFilteredOptions = (allOptions: ReadonlyArray<string>, value: string) => {
+
+	// ignores slashes at the beginning, ignores whitespaces
+	const trimmedLowerCaseValue = value
+	.replace(/^[/\\]+/, '')
+	.trim()
+	.toLocaleLowerCase();
+
+	return allOptions
+		.filter((i) =>
+			i.toLocaleLowerCase().startsWith(trimmedLowerCaseValue),
+		)
+		.slice(0, AUTOCOMPLETE_OPTIONS_LENGTH);
+}
 export const DirectorySelector = ({
-	defaultValue,
-	codemodHash,
+	initialValue,
+	onChange,
 	autocompleteItems,
 }: Props) => {
-	const [value, setValue] = useState(defaultValue);
-	const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
+	const [value, setValue] = useState(initialValue);
+	const [focusedOptionIdx, setFocusedOptionIdx] = useState<number | null>(null);
 	const [showOptions, setShowOptions] = useState(false);
 
-	console.log(defaultValue, '?');
 	useEffect(() => {
-		setValue(defaultValue);
-	}, [defaultValue]);
+		setValue(initialValue);
+	}, [initialValue]);
 
-	const autocompleteOptions = autocompleteItems
-		.filter((i) =>
-			i.toLocaleLowerCase().includes(value.trim().toLocaleLowerCase()),
-		)
-		.slice(0, 5);
+	const autocompleteOptions = getFilteredOptions(autocompleteItems, value);
 
 	const handleChange = (e: Event | React.FormEvent<HTMLElement>) => {
 		setValue((e.target as HTMLInputElement)?.value);
 	};
 
 	const handleFocus = () => {
+		setFocusedOptionIdx(-1);
 		setShowOptions(true);
 	};
 
@@ -64,26 +61,36 @@ export const DirectorySelector = ({
 		}
 
 		if (e.key === 'Enter') {
-			const nextValue = autocompleteOptions[focusedOptionIdx] ?? '';
 			setShowOptions(false);
+
+			if(focusedOptionIdx === null) {
+				return;
+			}
+
+			const nextValue = autocompleteOptions[focusedOptionIdx] ?? '';
+			
+			onChange(nextValue);
 			setValue(nextValue);
-			updatePath(nextValue, codemodHash);
 		}
 
 		if (e.key === 'ArrowUp') {
-			setFocusedOptionIdx((focusedOptionIdx - 1 + maxLength) % maxLength);
+			const nextValue = focusedOptionIdx === null ? maxLength : (focusedOptionIdx - 1 + maxLength) % maxLength;
+			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
 			e.preventDefault();
 		}
 
 		if (e.key === 'ArrowDown') {
-			setFocusedOptionIdx((focusedOptionIdx + 1) % maxLength);
+			const nextValue = focusedOptionIdx === null ? 0 : (focusedOptionIdx + 1) % maxLength;
+
+			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
 			e.preventDefault();
 		}
 
 		if (e.key === 'Tab') {
-			setFocusedOptionIdx((focusedOptionIdx + 1) % maxLength);
+			const nextValue = focusedOptionIdx === null ? 0 : (focusedOptionIdx + 1) % maxLength;
+			setFocusedOptionIdx(nextValue);
 			e.stopPropagation();
 			e.preventDefault();
 		}
@@ -123,10 +130,9 @@ export const DirectorySelector = ({
 								id={`option_${i}`}
 								className={styles.option}
 								onClick={() => {
-									console.log(item);
 									setShowOptions(false);
 									setValue(item);
-									updatePath(item, codemodHash);
+									onChange(item);
 								}}
 							>
 								{item}

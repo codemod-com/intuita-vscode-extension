@@ -4,6 +4,7 @@ import { RootState } from '../data';
 import * as t from 'io-ts';
 import * as T from 'fp-ts/These';
 import { CodemodHash } from '../packageJsonAnalyzer/types';
+import { sep, relative, join } from 'node:path';
 
 const IntuitaCertifiedCodemods = [
 	'next/13/app-directory-boilerplate',
@@ -69,6 +70,17 @@ export const buildDirectoryNode = (name: string, path: string) =>
 		label: name,
 	} as const);
 
+export const absoluteToRelativePath = (absolutePath: string, rootPath: string) => {
+	const basePathWithoutLastDir = rootPath.split(sep).slice(0, -1).join(sep);
+	return relative(basePathWithoutLastDir, absolutePath)
+}
+
+export const relativeToAbsolutePath = (relativePath: string, rootPath: string) => {
+	const basePathWithoutLastDir = rootPath.split(sep).slice(0, -1).join(sep);
+
+	return join(basePathWithoutLastDir, relativePath);
+} 
+
 export const buildCodemodNode = (
 	codemod: CodemodEntry | PrivateCodemodEntry,
 	name: string,
@@ -116,7 +128,9 @@ export const selectPrivateCodemods = (
 		const { executionPaths } = state.codemodDiscoveryView;
 
 		const executionPath =
-			executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
+			executionPaths[codemod.hashDigest] ?? rootPath ?? '';
+
+		const executionRelativePath = absoluteToRelativePath(executionPath, rootPath ?? '');
 
 		const args = selectCodemodArguments(
 			state,
@@ -126,7 +140,7 @@ export const selectPrivateCodemods = (
 		const node = buildCodemodNode(
 			codemod,
 			name,
-			executionPath,
+			executionRelativePath,
 			executionQueue.includes(codemod.hashDigest as CodemodHash),
 			true,
 			args,
@@ -166,7 +180,6 @@ export const selectCodemodTree = (
 	codemods.sort((a, b) => a.name.localeCompare(b.name));
 	const { executionPaths, searchPhrase } = state.codemodDiscoveryView;
 
-	console.log(executionPaths, '?');
 	const nodes: Record<CodemodNodeHashDigest, CodemodNode> = {};
 	const children: Record<CodemodNodeHashDigest, CodemodNodeHashDigest[]> = {};
 
@@ -210,6 +223,8 @@ export const selectCodemodTree = (
 			if (idx === pathParts.length - 1) {
 				const executionPath =
 					executionPaths[codemod.hashDigest] ?? rootPath ?? '/';
+				
+				const executionRelativePath =  absoluteToRelativePath(executionPath, rootPath ?? '');
 
 				const args = selectCodemodArguments(
 					state,
@@ -219,7 +234,7 @@ export const selectCodemodTree = (
 				currNode = buildCodemodNode(
 					codemod,
 					part,
-					executionPath,
+					executionRelativePath,
 					executionQueue.includes(codemod.hashDigest as CodemodHash),
 					false,
 					args,

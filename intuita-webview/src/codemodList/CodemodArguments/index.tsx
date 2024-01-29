@@ -18,19 +18,26 @@ type Props = Readonly<{
 	hashDigest: CodemodNodeHashDigest;
 	arguments: ReadonlyArray<CodemodArgumentWithValue>;
 	autocompleteItems: ReadonlyArray<string>;
-	rootPath: string | null;
 	executionPath: T.These<{ message: string }, string>;
 }>;
 
-const buildTargetPath = (path: string, rootPath: string) => {
-	return path.replace(rootPath, '');
+const updatePath = (value: string, codemodHash: CodemodHash) => {
+	vscode.postMessage({
+		kind: 'webview.codemodList.updatePathToExecute',
+		value: {
+			newPath: value,
+			codemodHash,
+			errorMessage: '',
+			warningMessage: '',
+			revertToPrevExecutionIfInvalid: false,
+		},
+	});
 };
 
 const CodemodArguments = ({
 	hashDigest,
 	arguments: args,
 	autocompleteItems,
-	rootPath,
 	executionPath,
 }: Props) => {
 	const onChangeFormField = (fieldName: string) => (value: string) => {
@@ -54,15 +61,12 @@ const CodemodArguments = ({
 		),
 	);
 
-	const targetPath =
-		rootPath !== null ? buildTargetPath(path, rootPath) : '/';
-
 	return (
 		<div className={styles.root}>
 			<form className={styles.form}>
 				<DirectorySelector
-					defaultValue={targetPath}
-					codemodHash={hashDigest as unknown as CodemodHash}
+					initialValue={path}
+					onChange={(value: string) => updatePath(value, hashDigest as unknown as CodemodHash )}
 					autocompleteItems={autocompleteItems}
 				/>
 				{args.map((props) => (
