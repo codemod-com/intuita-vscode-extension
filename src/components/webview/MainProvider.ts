@@ -1,5 +1,4 @@
 import areEqual from 'fast-deep-equal';
-import { relative, join, sep } from 'node:path';
 import { glob } from 'glob';
 
 import {
@@ -567,9 +566,6 @@ export class MainViewProvider implements WebviewViewProvider {
 		if (
 			message.kind === 'webview.global.setCodemodArgumentsPopupHashDigest'
 		) {
-			if (this.__directoryPaths === null) {
-			}
-
 			this.__store.dispatch(
 				actions.setCodemodArgumentsPopupHashDigest(message.hashDigest),
 			);

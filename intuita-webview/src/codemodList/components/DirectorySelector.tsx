@@ -18,7 +18,7 @@ const getFilteredOptions = (
 	allOptions: ReadonlyArray<string>,
 	value: string,
 ) => {
-	// ignores slashes at the beginning, ignores whitespaces
+	// ignores slashes at the beginning, ignores whitespace
 	const trimmedLowerCaseValue = value
 		.replace(/^[/\\]+/, '')
 		.trim()
