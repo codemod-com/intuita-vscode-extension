@@ -8,10 +8,11 @@ const buildGlobPattern = (targetUri: Uri, pattern?: string) => {
 	const { fsPath: targetUriFsPath } = targetUri;
 
 	// Glob patterns should always use / as a path separator, even on Windows systems, as \ is used to escape glob characters.
-	return targetUriFsPath
-		.split(sep)
-		.join('/')
-		.concat(pattern ?? '');
+	const pathParts = targetUriFsPath.split(sep);
+
+	pathParts.push(pattern ?? '');
+
+	return pathParts.join('/');
 };
 
 export const buildArguments = (
