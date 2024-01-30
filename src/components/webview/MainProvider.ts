@@ -250,12 +250,20 @@ export class MainViewProvider implements WebviewViewProvider {
 			return;
 		}
 
-		this.__directoryPaths =
-			(await glob(`${basePath}/**`, {
-				// ignore node_modules and files, match only directories
-				onlyDirectories: true,
-				ignore: ['**/node_modules/**'],
-			})) ?? [];
+		const directoryPaths = await glob(`${basePath}/**`, {
+			// ignore node_modules and files, match only directories
+			onlyDirectories: true,
+			ignore: ['**/node_modules/**'],
+			followSymbolicLinks: false,
+			deep: 10,
+		});
+
+		const MAX_NUMBER_OF_DIRECTORIES = 10000;
+
+		this.__directoryPaths = directoryPaths.slice(
+			0,
+			MAX_NUMBER_OF_DIRECTORIES,
+		);
 	}
 
 	private __postMessage(message: WebviewMessage) {
