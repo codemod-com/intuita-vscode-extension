@@ -1,6 +1,7 @@
-import { FileSystem, Uri } from 'vscode';
+import { FileSystem, Uri, window } from 'vscode';
 import { DownloadService, ForbiddenRequestError } from './downloadService';
 import { MessageBus, MessageKind } from './messageBus';
+import { Telemetry } from '../telemetry/telemetry';
 
 // aka bootstrap engines
 export class BootstrapExecutablesService {
@@ -9,6 +10,7 @@ export class BootstrapExecutablesService {
 		private readonly __globalStorageUri: Uri,
 		private readonly __fileSystem: FileSystem,
 		private readonly __messageBus: MessageBus,
+		private readonly __telemetryService: Telemetry
 	) {
 		__messageBus.subscribe(MessageKind.bootstrapEngine, () =>
 			this.__onBootstrapEngines(),
@@ -18,19 +20,31 @@ export class BootstrapExecutablesService {
 	private async __onBootstrapEngines() {
 		await this.__fileSystem.createDirectory(this.__globalStorageUri);
 
-		// Uri.file('/intuita/nora-node-engine/package/intuita-linux')
-		const codemodEngineNodeExecutableUri =
-			await this.__bootstrapCodemodEngineNodeExecutableUri();
+		try {
+			// Uri.file('/intuita/nora-node-engine/package/intuita-linux')
+			const codemodEngineNodeExecutableUri =
+				await this.__bootstrapCodemodEngineNodeExecutableUri();
 
-		// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
+					// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
 		const codemodEngineRustExecutableUri =
-			await this.__bootstrapCodemodEngineRustExecutableUri();
+		await this.__bootstrapCodemodEngineRustExecutableUri();
 
 		this.__messageBus.publish({
 			kind: MessageKind.engineBootstrapped,
 			codemodEngineNodeExecutableUri,
 			codemodEngineRustExecutableUri,
 		});
+
+		} catch(e) {
+			const message = e instanceof Error ? e.message : String(e);
+
+			window.showErrorMessage(message);
+
+			this.__telemetryService.sendError({
+				kind: 'failedToBootstrapEngines',
+				message,
+			});
+		}
 	}
 
 	private async __bootstrapCodemodEngineNodeExecutableUri(): Promise<Uri> {
