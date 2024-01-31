@@ -3,7 +3,7 @@ import { DownloadService } from '../src/components/downloadService';
 import type { FileSystem } from 'vscode';
 import { AxiosError, AxiosInstance } from 'axios';
 import nock from 'nock';
-import axiosInstance from '../src/axios';
+import { retryingClient as axiosInstance } from '../src/axios';
 
 const mockedFileSystemUtilities = {
 	getModificationTime: vi.fn(() => 1),
