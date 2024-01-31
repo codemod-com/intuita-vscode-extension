@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios';
-import axios, { DEFAULT_RETRY_COUNT } from '../axios';
+import { retryingClient, DEFAULT_RETRY_COUNT } from '../axios';
 import { Mode } from 'node:fs';
 import { FileSystem, Uri } from 'vscode';
 import { FileSystemUtilities } from './fileSystemUtilities';
@@ -30,7 +30,7 @@ export class DownloadService {
 		let response;
 
 		try {
-			response = await axios.head(url, {
+			response = await retryingClient.head(url, {
 				timeout: 15000,
 				'axios-retry': {
 					retries: DEFAULT_RETRY_COUNT,
@@ -75,7 +75,7 @@ export class DownloadService {
 		uri: Uri,
 		chmod: Mode | null,
 	): Promise<void> {
-		const response = await axios.get(url, {
+		const response = await retryingClient.get(url, {
 			responseType: 'arraybuffer',
 			'axios-retry': {
 				retries: DEFAULT_RETRY_COUNT,
