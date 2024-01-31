@@ -109,6 +109,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+	const telemetryKey = 'd9f8ad27-50df-46e3-8acf-81ea279c8444';
+	const vscodeTelemetry = new VscodeTelemetry(
+		new TelemetryReporter(telemetryKey),
+		messageBus,
+	);
+
 	const fileService = new FileService(messageBus);
 
 	const jobManager = new JobManager(fileService, messageBus, store);
@@ -134,16 +140,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
+		vscodeTelemetry,
 	);
 
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
-
-	const telemetryKey = 'd9f8ad27-50df-46e3-8acf-81ea279c8444';
-	const vscodeTelemetry = new VscodeTelemetry(
-		new TelemetryReporter(telemetryKey),
-		messageBus,
-	);
 
 	const mainViewProvider = new MainViewProvider(
 		context,
