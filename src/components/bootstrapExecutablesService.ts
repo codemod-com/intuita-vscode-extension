@@ -10,7 +10,7 @@ export class BootstrapExecutablesService {
 		private readonly __globalStorageUri: Uri,
 		private readonly __fileSystem: FileSystem,
 		private readonly __messageBus: MessageBus,
-		private readonly __telemetryService: Telemetry
+		private readonly __telemetryService: Telemetry,
 	) {
 		__messageBus.subscribe(MessageKind.bootstrapEngine, () =>
 			this.__onBootstrapEngines(),
@@ -25,17 +25,16 @@ export class BootstrapExecutablesService {
 			const codemodEngineNodeExecutableUri =
 				await this.__bootstrapCodemodEngineNodeExecutableUri();
 
-					// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
-		const codemodEngineRustExecutableUri =
-		await this.__bootstrapCodemodEngineRustExecutableUri();
+			// Uri.file('/intuita/codemod-engine-rust/target/release/codemod-engine-rust');
+			const codemodEngineRustExecutableUri =
+				await this.__bootstrapCodemodEngineRustExecutableUri();
 
-		this.__messageBus.publish({
-			kind: MessageKind.engineBootstrapped,
-			codemodEngineNodeExecutableUri,
-			codemodEngineRustExecutableUri,
-		});
-
-		} catch(e) {
+			this.__messageBus.publish({
+				kind: MessageKind.engineBootstrapped,
+				codemodEngineNodeExecutableUri,
+				codemodEngineRustExecutableUri,
+			});
+		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 
 			window.showErrorMessage(message);

@@ -39,28 +39,30 @@ const deserializeState = (serializedState: string) => {
 };
 
 const getPreloadedState = async (storage: MementoStorage) => {
-const initialState =
-	(await storage.getItem(`${PERSISTANCE_PREFIX}:${PERSISTANCE_KEY}`));
+	const initialState = await storage.getItem(
+		`${PERSISTANCE_PREFIX}:${PERSISTANCE_KEY}`,
+	);
 
-if(initialState === null) {
-	return null;
-}
+	if (!initialState) {
+		return null;
+	}
 
-const deserializedState = deserializeState(initialState);
+	const deserializedState = deserializeState(initialState);
 
-if(deserializeState === null) {
-	return null;
-}
+	if (!deserializedState) {
+		return null;
+	}
 
-const decodedState = persistedStateCodecNew.decode(deserializedState);
+	const decodedState = persistedStateCodecNew.decode(deserializedState);
 
-// should never happen because of codec fallback
-if (decodedState._tag !== 'Right') {
-	throw new Error('Invalid state');
-}
+	// should never happen because of codec fallback
+	if (decodedState._tag !== 'Right') {
+		return null;
+	}
 
-return decodedState.right;
-}
+	return decodedState.right;
+};
+
 const buildStore = async (workspaceState: Memento) => {
 	const storage = new MementoStorage(workspaceState);
 
@@ -93,10 +95,10 @@ const buildStore = async (workspaceState: Memento) => {
 
 	const preloadedState = await getPreloadedState(storage);
 
-	if(preloadedState === null) {
-		window.showWarningMessage('Unable to get preloaded state');
+	if (preloadedState === null) {
+		window.showWarningMessage('Unable to get preloaded state.');
 	}
-	
+
 	const store = configureStore({
 		reducer: validatedReducer,
 		...(preloadedState !== null && { preloadedState }),

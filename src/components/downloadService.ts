@@ -30,11 +30,11 @@ export class DownloadService {
 		let response;
 
 		try {
-			response = await axios.head(url, { 
-				timeout: 15000,  
+			response = await axios.head(url, {
+				timeout: 15000,
 				'axios-retry': {
-					retries: DEFAULT_RETRY_COUNT
-			  	}
+					retries: DEFAULT_RETRY_COUNT,
+				},
 			});
 		} catch (error) {
 			if (localModificationTime > 0) {
@@ -75,16 +75,16 @@ export class DownloadService {
 		uri: Uri,
 		chmod: Mode | null,
 	): Promise<void> {
-		const response = await axios.get(url, { 
-			responseType: 'arraybuffer', 
+		const response = await axios.get(url, {
+			responseType: 'arraybuffer',
 			'axios-retry': {
-				retries: DEFAULT_RETRY_COUNT
-			}
+				retries: DEFAULT_RETRY_COUNT,
+			},
 		});
 		const content = new Uint8Array(response.data);
 
 		await this.#fileSystem.writeFile(uri, content);
-		
+
 		if (chmod !== null) {
 			await this.#fileSystemUtilities.setChmod(uri, chmod);
 		}

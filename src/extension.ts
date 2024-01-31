@@ -140,13 +140,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalStorageUri,
 		vscode.workspace.fs,
 		messageBus,
-		vscodeTelemetry
+		vscodeTelemetry,
 	);
 
 	const intuitaTextDocumentContentProvider =
 		new IntuitaTextDocumentContentProvider();
-
-
 
 	const mainViewProvider = new MainViewProvider(
 		context,
