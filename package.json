@@ -1,10 +1,10 @@
 {
 	"name": "intuita-vscode-extension",
-	"displayName": "Intuita",
+	"displayName": "Codemod",
 	"description": " Discover, run & manage codemods faster & easier.",
-	"version": "0.38.12",
+	"version": "0.38.13",
 	"publisher": "Intuita",
-	"icon": "img/intuita_square128.png",
+	"icon": "img/codemod-square.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/codemod-com/intuita-vscode-extension"
@@ -134,14 +134,14 @@
 				{
 					"id": "intuitaViewId",
 					"title": "Intuita",
-					"icon": "img/intuita.svg"
+					"icon": "img/codemod-square.svg"
 				}
 			],
 			"panel": [
 				{
 					"id": "intuitaPanelViewContainerId",
 					"title": "Intuita",
-					"icon": "img/intuita.svg"
+					"icon": "img/codemod-square.svg"
 				}
 			]
 		},
