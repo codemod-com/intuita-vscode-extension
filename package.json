@@ -133,15 +133,15 @@
 			"activitybar": [
 				{
 					"id": "intuitaViewId",
-					"title": "Intuita",
-					"icon": "img/codemod-square.svg"
+					"title": "Codemod.com",
+					"icon": "img/codemod-icon-mask.svg"
 				}
 			],
 			"panel": [
 				{
 					"id": "intuitaPanelViewContainerId",
-					"title": "Intuita",
-					"icon": "img/codemod-square.svg"
+					"title": "Codemod.com",
+					"icon": "img/codemod-icon-mask.svg"
 				}
 			]
 		},
