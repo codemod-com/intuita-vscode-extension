@@ -1,3 +1,7 @@
+**⚠️ This repository is deprecated and no longer maintained.**
+
+**Please Note:** This repository was migrated to a monorepo called [codemod](https://github.com/codemod-com/codemod/tree/main/apps/vsce).
+
 # A better way to discover & run community-led codemods
 
 Upgrade your projects with the help of codemods created by experts in the community, one framework at a time, starting with Next.js v13.4.
