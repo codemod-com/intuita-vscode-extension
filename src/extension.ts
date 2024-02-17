@@ -47,6 +47,9 @@ import { GlobalStateTokenStorage, UserService } from './components/userService';
 import { HomeDirectoryService } from './data/readHomeDirectoryCases';
 import { isLeft } from 'fp-ts/lib/Either';
 import { createClearStateCommand } from './commands/clearStateCommand';
+import { isMainThread, Worker } from 'node:worker_threads';
+import { executeWorkerThread } from './worker';
+import { decodeWorkerThreadMessage } from './data/schemata/workerThreadMessage';
 
 export const enum SEARCH_PARAMS_KEYS {
 	ENGINE = 'engine',
@@ -60,9 +63,45 @@ export const enum SEARCH_PARAMS_KEYS {
 	ACCESS_TOKEN = 'accessToken',
 }
 
+const WORKER_THREADS_COUNT = 10;
+
 const messageBus = new MessageBus();
 
 export async function activate(context: vscode.ExtensionContext) {
+	if (isMainThread) {
+		for (let i = 0; i < WORKER_THREADS_COUNT; ++i) {
+			const worker = new Worker(__filename);
+
+			worker.on('message', (m: unknown) => {
+				const workerThreadMessage = decodeWorkerThreadMessage(m);
+
+				if (workerThreadMessage.kind === 'console') {
+					console[workerThreadMessage.consoleKind](
+						workerThreadMessage.message,
+					);
+					return;
+				}
+
+				if (workerThreadMessage.kind === 'error') {
+					console.error(
+						workerThreadMessage.message,
+						workerThreadMessage.path,
+					);
+				}
+			});
+		}
+
+		execute(context).catch((error) => {
+			if (error instanceof Error) {
+				console.error(JSON.stringify({ message: error.message }));
+			}
+		});
+	} else {
+		executeWorkerThread();
+	}
+}
+
+async function execute(context: vscode.ExtensionContext) {
 	const rootUri = vscode.workspace.workspaceFolders?.[0]?.uri ?? null;
 
 	messageBus.setDisposables(context.subscriptions);
